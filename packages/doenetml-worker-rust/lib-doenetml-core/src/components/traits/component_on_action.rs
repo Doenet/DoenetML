@@ -2,13 +2,10 @@ use enum_dispatch::enum_dispatch;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    components::{
-        doenet::text::TextActions,
-        types::{LocalPropIdx, UpdateFromAction},
-        ComponentEnum,
-    },
-    core::props::PropValue,
+use crate::components::{
+    doenet::{text::TextActions, text_input::TextInputActions},
+    types::{ActionQueryProp, UpdateFromAction},
+    ComponentEnum,
 };
 
 use super::{ComponentActions, ComponentNode};
@@ -21,7 +18,8 @@ use super::{ComponentActions, ComponentNode};
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum ActionsEnum {
-    Text(TextActions), //   TextInput(TextInputAction),
+    Text(TextActions),
+    TextInput(TextInputActions),
 }
 
 /// The `ComponentOnAction` trait allows a component to handle actions sent to the component.
@@ -39,7 +37,7 @@ pub trait ComponentOnAction: ComponentNode + ComponentActions {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
+        query_prop: ActionQueryProp,
     ) -> Result<Vec<UpdateFromAction>, String> {
         Err(format!(
             "Unknown action '{:?}' called on {}. Expected one of {:?}",

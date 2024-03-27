@@ -4,14 +4,14 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::core::props::{PropDefinition, PropDefinitionMeta, PropProfile, PropValue};
+use crate::core::props::{PropDefinition, PropDefinitionMeta, PropProfile};
 use crate::dast::Position as DastPosition;
 
 use super::_error::_Error;
 use super::_external::_External;
 use super::component_enum::ComponentEnum;
 use super::prelude::{ComponentIdx, FlatAttribute};
-use super::types::{LocalPropIdx, PropPointer};
+use super::types::{ActionQueryProp, LocalPropIdx, PropPointer, UpdateFromAction};
 use super::{
     ActionsEnum, ComponentActions, ComponentAttributes, ComponentNode, ComponentOnAction,
     ComponentProps, ComponentVariantProps,
@@ -217,8 +217,8 @@ impl ComponentOnAction for Component {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
-    ) -> Result<Vec<super::types::UpdateFromAction>, String> {
-        self.variant.on_action(action, resolve_and_retrieve_prop)
+        query_prop: ActionQueryProp,
+    ) -> Result<Vec<UpdateFromAction>, String> {
+        self.variant.on_action(action, query_prop)
     }
 }

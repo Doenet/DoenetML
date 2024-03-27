@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{core::props::PropValue, graph_node::GraphNode};
+use crate::{core::props::PropValue, graph_node::GraphNode, props::cache::PropWithMeta, Core};
 
 use super::ActionsEnum;
 
@@ -153,7 +153,44 @@ pub struct Action {
     pub action: ActionsEnum,
 }
 
-pub struct UpdateFromAction(pub LocalPropIdx, pub PropValue);
+pub struct UpdateFromAction {
+    pub local_prop_idx: LocalPropIdx,
+    pub prop_value: PropValue,
+}
+
+pub struct ActionQueryProp<'a> {
+    component_idx: ComponentIdx,
+    core: &'a Core,
+}
+
+impl<'a> ActionQueryProp<'a> {
+    pub fn new(component_idx: ComponentIdx, core: &'a Core) -> Self {
+        ActionQueryProp {
+            component_idx,
+            core,
+        }
+    }
+
+    pub fn get_local_prop(&self, local_prop_idx: LocalPropIdx) -> PropWithMeta {
+        let prop_pointer = PropPointer {
+            component_idx: self.component_idx,
+            local_prop_idx,
+        };
+        let prop_node = self
+            .core
+            .document_model
+            .prop_pointer_to_prop_node(prop_pointer);
+
+        // TODO: what do we use for origin?
+        let origin = GraphNode::Prop(0);
+
+        // Do we want to track these look up so changed is meaningful?
+        // No use case yet where need it in on_action
+        self.core
+            .document_model
+            .get_prop_untracked(prop_node, origin)
+    }
+}
 
 /// The `camelCase` name of an attribute.
 #[cfg_attr(feature = "web", tsify::declare)]

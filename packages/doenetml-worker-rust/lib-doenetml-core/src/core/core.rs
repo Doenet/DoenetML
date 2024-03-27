@@ -57,7 +57,7 @@ impl Core {
 ///
 /// Functions used for testing
 ///
-#[cfg(feature = "testing")]
+#[cfg(any(feature = "testing", test, not(feature = "web")))]
 pub mod testing_features {
     use super::*;
     use crate::{graph_node::GraphNode, props::cache::PropWithMeta};

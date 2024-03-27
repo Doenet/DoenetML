@@ -1,15 +1,12 @@
 use std::collections::HashMap;
 
 use crate::components::{
-    prelude::{ComponentIdx, FlatDastElementUpdate, LocalPropIdx},
-    types::{Action, PropPointer, UpdateFromAction},
+    prelude::{ComponentIdx, FlatDastElementUpdate},
+    types::{Action, ActionQueryProp, PropPointer, UpdateFromAction},
     ComponentOnAction,
 };
 
-use super::{
-    core::Core,
-    props::{cache::PropStatus, PropValue},
-};
+use super::{core::Core, props::cache::PropStatus};
 
 impl Core {
     /// Run the action specified by the `action` json and return any changes to the output flat dast.
@@ -30,21 +27,7 @@ impl Core {
         let component_idx = action.component_idx;
 
         // We allow actions to resolve and get the value of any prop from the component.
-        // To accomplish this, we pass in a function closure that will
-        // - take a prop index,
-        // - freshen the prop, if needed, and
-        // - return the prop's value
-        let mut prop_resolver = |_prop_idx: LocalPropIdx| {
-            // XXX - we need another solution here.
-            // probably have the action request which prop values it wants and do multiple passes
-
-            PropValue::Boolean(false) // return something for now
-
-            // self.get_prop_value(PropPointer {
-            //     component_idx,
-            //     local_prop_idx: prop_idx,
-            // })
-        };
+        let query_prop = ActionQueryProp::new(component_idx, self);
 
         {
             // A call to on_action from a component processes the arguments and returns a vector
@@ -52,20 +35,17 @@ impl Core {
             let props_to_update = self
                 .document_model
                 .get_component(component_idx)
-                .on_action(action.action, &mut prop_resolver)?;
+                .on_action(action.action, query_prop)?;
 
-            for UpdateFromAction(local_prop_idx, _requested_value) in props_to_update {
+            for UpdateFromAction {
+                local_prop_idx,
+                prop_value: _requested_value,
+            } in props_to_update
+            {
                 let prop_pointer = PropPointer {
                     component_idx,
                     local_prop_idx,
                 };
-
-                // XXX: this is obsolete. Replace with new method
-                // Record the requested value directly on the prop.
-                // Later calls from within process_prop_update_request
-                // will call invert on the prop
-                // which will look up this requested value.
-                // prop.set_requested_value(requested_value);
 
                 let prop_node = self.document_model.prop_pointer_to_prop_node(prop_pointer);
 
@@ -83,7 +63,7 @@ impl Core {
                 // to attempt to set the prop to its requested value.
 
                 // XXX: implement this
-                // process_prop_update_request(PropUpdateRequest::SetProp(prop_ptr));
+                // process_prop_update_request(PropUpdateRequest::SetProp(prop_ptr, requested_value));
             }
         }
         Ok(self.document_renderer.get_flat_dast_updates())
