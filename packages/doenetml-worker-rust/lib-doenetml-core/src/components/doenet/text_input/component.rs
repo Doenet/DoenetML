@@ -150,7 +150,7 @@ impl ComponentOnAction for TextInput {
             TextInputActions::UpdateImmediateValue(ActionBody { args }) => {
                 Ok(vec![UpdateFromAction {
                     local_prop_idx: TextInputProps::local_idx(&TextInputProps::ImmediateValue),
-                    prop_value: args.text.into(),
+                    requested_value: args.text.into(),
                 }])
             }
 
@@ -160,7 +160,7 @@ impl ComponentOnAction for TextInput {
 
                 Ok(vec![UpdateFromAction {
                     local_prop_idx: TextInputProps::local_idx(&TextInputProps::Value),
-                    prop_value: new_val.value,
+                    requested_value: new_val.value,
                 }])
             }
         }

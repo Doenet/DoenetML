@@ -155,7 +155,7 @@ pub struct Action {
 
 pub struct UpdateFromAction {
     pub local_prop_idx: LocalPropIdx,
-    pub prop_value: PropValue,
+    pub requested_value: PropValue,
 }
 
 pub struct ActionQueryProp<'a> {
@@ -190,6 +190,11 @@ impl<'a> ActionQueryProp<'a> {
             .document_model
             .get_prop_untracked(prop_node, origin)
     }
+}
+
+pub struct PropUpdateRequest {
+    pub prop_node: GraphNode,
+    pub requested_value: PropValue,
 }
 
 /// The `camelCase` name of an attribute.
