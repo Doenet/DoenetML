@@ -166,6 +166,8 @@ pub struct PropWithMeta {
     /// `true` if this prop has changed since the last time it was queried from
     /// from the same source.
     pub changed: bool,
+    /// The graph node where the value originated
+    pub node: Option<GraphNode>,
 }
 
 /// A caching store for storage and retrieval of props.
@@ -175,7 +177,7 @@ pub struct PropCache {
     store: RefCell<GraphNodeLookup<CachedProp>>,
     /// A map from {prop_node}x{query_node} -> {change_counter}
     // TODO: HashMap provides a quick solution, but there may be more efficient ones.
-    change_tracker: RefCell<HashMap<(usize, usize), u32>>,
+    change_tracker: RefCell<HashMap<(usize, GraphNode), u32>>,
 }
 impl PropCache {
     pub fn new() -> Self {
@@ -283,8 +285,8 @@ impl PropCache {
         update_change_tracker: bool,
     ) -> PropWithMeta {
         let prop_node = prop_node.borrow();
-        let origin = origin.borrow();
-        let change_tracker_key = (prop_node.idx(), origin.idx());
+        let origin = *origin.borrow();
+        let change_tracker_key = (prop_node.idx(), origin);
 
         let change_counter_on_last_query = {
             // Borrow RefCells for the shortest time possible to avoid panics.
@@ -318,6 +320,7 @@ impl PropCache {
             value,
             came_from_default,
             changed,
+            node: Some(*prop_node),
         }
     }
 

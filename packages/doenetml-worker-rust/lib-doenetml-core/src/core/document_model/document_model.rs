@@ -14,7 +14,7 @@ use crate::{
     graph_node::{DependencyGraph, GraphNode},
     props::{
         cache::{PropCache, PropStatus, PropWithMeta},
-        DataQuery, DataQueryResults, PropDefinition, PropProfile, StateCache,
+        DataQuery, DataQueryResults, PropDefinition, PropProfile, StateCache, UpdaterObject,
     },
 };
 
@@ -123,6 +123,14 @@ impl DocumentModel {
     pub fn get_prop_definition<T: Into<GraphNode>>(&self, pointer: T) -> PropDefinition {
         let document_structure = self.document_structure.borrow();
         (*document_structure.get_prop_definition(pointer)).clone()
+    }
+
+    pub fn get_prop_updater<T: Into<GraphNode>>(&self, pointer: T) -> UpdaterObject {
+        let document_structure = self.document_structure.borrow();
+        document_structure
+            .get_prop_definition(pointer)
+            .updater
+            .clone()
     }
 
     /// Get the requested component

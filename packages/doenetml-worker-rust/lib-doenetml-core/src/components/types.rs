@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{core::props::PropValue, graph_node::GraphNode, props::cache::PropWithMeta, Core};
+use crate::{
+    core::props::PropValue, graph_node::GraphNode, props::cache::PropWithMeta, DocumentModel,
+};
 
 use super::ActionsEnum;
 
@@ -160,35 +162,31 @@ pub struct UpdateFromAction {
 
 pub struct ActionQueryProp<'a> {
     component_idx: ComponentIdx,
-    core: &'a Core,
+    document_model: &'a DocumentModel,
 }
 
 impl<'a> ActionQueryProp<'a> {
-    pub fn new(component_idx: ComponentIdx, core: &'a Core) -> Self {
+    pub fn new(component_idx: ComponentIdx, document_model: &'a DocumentModel) -> Self {
         ActionQueryProp {
             component_idx,
-            core,
+            document_model,
         }
     }
 
+    /// Get the PropWithMeta of prop with local_prop_idx of this component.
+    ///
+    /// **Note**: the `changed` meta data indicates whether or not this prop has changed
+    /// since *any* action of this component called `get_local_prop()`.
     pub fn get_local_prop(&self, local_prop_idx: LocalPropIdx) -> PropWithMeta {
         let prop_pointer = PropPointer {
             component_idx: self.component_idx,
             local_prop_idx,
         };
-        let prop_node = self
-            .core
-            .document_model
-            .prop_pointer_to_prop_node(prop_pointer);
+        let prop_node = self.document_model.prop_pointer_to_prop_node(prop_pointer);
 
-        // TODO: what do we use for origin?
-        let origin = GraphNode::Prop(0);
+        let origin = GraphNode::Component(self.component_idx.as_usize());
 
-        // Do we want to track these look up so changed is meaningful?
-        // No use case yet where need it in on_action
-        self.core
-            .document_model
-            .get_prop_untracked(prop_node, origin)
+        self.document_model.get_prop(prop_node, origin)
     }
 }
 

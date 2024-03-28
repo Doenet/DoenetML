@@ -175,3 +175,11 @@ fn test_can_get_unchecked_prop_if_already_computed() {
     assert_eq!(val.changed, true);
     assert_eq!(val3.changed, true);
 }
+
+#[test]
+#[ignore]
+fn test_cache_origin_uses_whole_graph_node() {
+    // TODO: the change_tracker of the cache used to use just origin.idx(),
+    // which would lead to collisions if had two types of nodes with the same index.
+    // Make a test where they would have collided but now is fine
+}

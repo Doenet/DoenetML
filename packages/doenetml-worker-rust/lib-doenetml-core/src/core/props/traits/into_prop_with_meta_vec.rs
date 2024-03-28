@@ -46,6 +46,7 @@ mod test {
             value: PropValue::Integer(5),
             came_from_default: false,
             changed: false,
+            node: None,
         };
 
         assert_eq!(

@@ -70,7 +70,7 @@ impl StringCache {
         }
     }
 
-    /// Set the value of a state prop. `origin` is the `GraphNode::DataQuery` that requested the state prop.
+    /// Set the value of a string prop.
     /// The store tracks and reports if the value has changed since the last time it was queried.
     pub fn set_string<A: borrow::Borrow<GraphNode>>(&self, string_node: A, s: String) {
         let string_node = string_node.borrow();

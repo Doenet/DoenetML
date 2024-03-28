@@ -189,6 +189,7 @@ impl DocumentModel {
                                         // Note: a component reference can't change like a prop can change,
                                         // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                         changed: true,
+                                        node: Some(node),
                                     })
                                 } else {
                                     None
@@ -201,6 +202,7 @@ impl DocumentModel {
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
+                                node: Some(node),
                             }),
 
                             // XXX: Can we have other children
@@ -246,6 +248,7 @@ impl DocumentModel {
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
+                                node: Some(node),
                             }),
                             // XXX: Can we have other children
                             _ => None,
@@ -264,5 +267,28 @@ impl DocumentModel {
                 panic!("Dependency graph should only have DataQuery nodes as children of Prop nodes!");
             }
         }).collect()
+    }
+
+    pub fn _get_data_query_results_assuming_fresh_deps(
+        &self,
+        prop_node: GraphNode,
+    ) -> DataQueryResults {
+        DataQueryResults::from_vec(
+            self.get_data_query_nodes_for_prop(prop_node)
+                .into_iter()
+                .map(|dependency_query_node| {
+                    self._execute_data_query_with_fresh_deps(dependency_query_node)
+                })
+                .collect(),
+        )
+    }
+
+    pub fn get_data_query_results(&mut self, prop_node: GraphNode) -> DataQueryResults {
+        DataQueryResults::from_vec(
+            self.get_data_query_nodes_for_prop(prop_node)
+                .into_iter()
+                .map(|dependency_query_node| self.execute_data_query(dependency_query_node))
+                .collect(),
+        )
     }
 }

@@ -7,6 +7,7 @@ mod dependency_creation;
 #[allow(clippy::module_inception)]
 mod document_model;
 mod prop_calculation;
+mod prop_updates;
 
 pub use document_model::*;
 

@@ -112,6 +112,7 @@ mod into_prop_with_meta {
                 value: prop.value.into(),
                 came_from_default: prop.came_from_default,
                 changed: prop.changed,
+                node: None,
             }
         }
     }
