@@ -160,6 +160,22 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         DescendantTopologicalIterator::new(&self.nodes, &self.edges, start_index)
     }
 
+    /// Walk through all nodes that have any node listed in `start_nodes` as an ancestor. Nodes are walked in _topological_ order.
+    /// That is, if there is an edge `a -> b`, the node `a` will be visited before `b`.
+    ///
+    /// Panics if a cycle is detected.
+    pub fn descendants_topological_multiroot<A: Borrow<Node>>(
+        &self,
+        start_nodes: &[A],
+    ) -> DescendantTopologicalIterator<Node> {
+        let start_nodes = start_nodes
+            .iter()
+            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
+            .collect();
+
+        DescendantTopologicalIterator::new_multiroot(&self.nodes, &self.edges, start_nodes)
+    }
+
     /// Walk through all nodes that have `node` as an ancestor. Nodes are walked in _reverse topological_ order.
     /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
     /// Panics if a cycle is detected.
@@ -212,15 +228,18 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
 
     /// Walk through all nodes that have `node` as a descendant. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
-    pub fn walk_ancestors<A: Borrow<Node>>(&self, node: A) -> DescendantTopologicalIterator<Node> {
+    pub fn ancestors_topological<A: Borrow<Node>>(
+        &self,
+        node: A,
+    ) -> DescendantTopologicalIterator<Node> {
         let node = node.borrow();
         let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantTopologicalIterator::new(&self.nodes, &self.reverse_edges, start_index)
     }
 
-    /// Walk through all nodes that have `node` as a descendant. Nodes are walked in _topological_ order.
+    /// Walk through all nodes that have any node listed in `start_nodes` as a descendant. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
-    pub fn walk_ancestors_multiroot<A: Borrow<Node>>(
+    pub fn ancestors_topological_multiroot<A: Borrow<Node>>(
         &self,
         start_nodes: &[A],
     ) -> DescendantTopologicalIterator<Node> {
