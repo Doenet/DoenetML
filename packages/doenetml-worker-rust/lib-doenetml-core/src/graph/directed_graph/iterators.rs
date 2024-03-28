@@ -152,6 +152,26 @@ impl<'a, Node> DescendantTopologicalIterator<'a, Node> {
             iter: order.into_iter(),
         }
     }
+
+    /// Iterate over all descendants of any node in `start_indices` in topological order.
+    pub fn new_multiroot(
+        nodes: &'a [Node],
+        edges: &'a [Vec<usize>],
+        start_indices: Vec<usize>,
+    ) -> Self {
+        let rti = DescendantReverseTopologicalIteratorRaw {
+            edges,
+            remaining_indices: start_indices,
+            visited: vec![false; edges.len()],
+        };
+        let mut order = rti.collect::<Vec<_>>();
+        order.reverse();
+
+        Self {
+            nodes,
+            iter: order.into_iter(),
+        }
+    }
 }
 impl<'a, Node> Iterator for DescendantTopologicalIterator<'a, Node> {
     type Item = &'a Node;

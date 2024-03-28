@@ -218,6 +218,20 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         DescendantTopologicalIterator::new(&self.nodes, &self.reverse_edges, start_index)
     }
 
+    /// Walk through all nodes that have `node` as a descendant. Nodes are walked in _topological_ order.
+    /// Panics if a cycle is detected.
+    pub fn walk_ancestors_multiroot<A: Borrow<Node>>(
+        &self,
+        start_nodes: &[A],
+    ) -> DescendantTopologicalIterator<Node> {
+        let start_nodes = start_nodes
+            .iter()
+            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
+            .collect();
+
+        DescendantTopologicalIterator::new_multiroot(&self.nodes, &self.reverse_edges, start_nodes)
+    }
+
     /// Iterate through all nodes that have `node` as an ancestor. This iterator is meant to be fast.
     /// The order of the nodes is not guaranteed.
     /// Panics if a cycle is detected.
