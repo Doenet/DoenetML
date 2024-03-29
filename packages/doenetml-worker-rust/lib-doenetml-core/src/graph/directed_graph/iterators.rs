@@ -11,7 +11,15 @@ struct DescendantEdgeIteratorRaw<'a> {
 }
 impl<'a> DescendantEdgeIteratorRaw<'a> {
     pub fn new(num_nodes: usize, edges: &'a [Vec<usize>], start_index: usize) -> Self {
-        let descendant_iterator_raw = DescendantIteratorRaw::new(num_nodes, edges, start_index);
+        // Note since descendant iterators include the component itself if use `new()`,
+        // create the iterator manually to exclude start_index itself
+        let descendant_iterator_raw = DescendantIteratorRaw {
+            edges,
+            remaining_indices: edges[start_index].clone(),
+            num_visited: 0,
+            visited: vec![false; num_nodes],
+        };
+
         let remaining_indices = edges[start_index]
             .iter()
             .map(|&to| (start_index, to))
@@ -77,7 +85,7 @@ struct DescendantIteratorRaw<'a> {
 }
 impl<'a> DescendantIteratorRaw<'a> {
     pub fn new(num_nodes: usize, edges: &'a [Vec<usize>], start_index: usize) -> Self {
-        let remaining_indices = edges[start_index].clone();
+        let remaining_indices = vec![start_index];
         let visited = vec![false; num_nodes];
         Self {
             edges,
@@ -250,7 +258,7 @@ struct DescendantReverseTopologicalIteratorRaw<'a> {
 impl<'a> DescendantReverseTopologicalIteratorRaw<'a> {
     pub fn new(edges: &'a [Vec<usize>], start_index: usize) -> Self {
         let visited = vec![false; edges.len()];
-        let remaining_indices = edges[start_index].clone();
+        let remaining_indices = vec![start_index];
         Self {
             edges,
             visited,
