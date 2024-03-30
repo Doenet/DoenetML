@@ -268,7 +268,7 @@ impl PropCache {
             prop_node,
             origin,
             || panic!("Call to `get_prop_unchecked` on a prop that isn't `Fresh`"),
-            false,
+            true,
         )
     }
 

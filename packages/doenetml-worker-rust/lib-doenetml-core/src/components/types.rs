@@ -156,6 +156,7 @@ pub struct Action {
     pub action: ActionsEnum,
 }
 
+#[derive(Debug)]
 pub struct UpdateFromAction {
     pub local_prop_idx: LocalPropIdx,
     pub requested_value: PropValue,

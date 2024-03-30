@@ -43,6 +43,9 @@ impl DocumentModel {
         for prop_node in &props_to_update {
             let status = self.get_prop_status(*prop_node);
             if status != PropStatus::Fresh {
+                if status == PropStatus::Unresolved {
+                    self.resolve_prop(*prop_node);
+                }
                 self.get_data_query_results(*prop_node);
             }
         }

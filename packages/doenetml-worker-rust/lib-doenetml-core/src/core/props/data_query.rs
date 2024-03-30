@@ -46,6 +46,13 @@ impl DataQueryResults {
         }
         self
     }
+
+    /// Return whether or not any props in the results have changed
+    pub fn have_a_changed_value(&self) -> bool {
+        self.vec
+            .iter()
+            .any(|data| data.values.iter().any(|prop| prop.changed))
+    }
 }
 
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,
