@@ -54,7 +54,6 @@ fn boolean_prop_is_alias_of_value() {
     );
 }
 
-#[ignore]
 #[test]
 fn text_prop_converts_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);
@@ -109,17 +108,16 @@ mod test_helpers {
 
     use std::rc::Rc;
 
+    use doenetml_core::components::doenet::boolean::BooleanProps;
+
     use super::*;
 
-    // const VALUE_IDX: LocalPropIdx = BooleanProps::get_value_prop_index();
-    // const BOOLEAN_IDX: LocalPropIdx = BooleanProps::get_boolean_prop_index();
-    // const TEXT_IDX: LocalPropIdx = BooleanProps::get_text_prop_index();
+    const VALUE_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Value);
+    const TEXT_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Text);
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Hidden);
 
     // XXX - get these indices from the component type
-    const VALUE_LOCAL_IDX: LocalPropIdx = LocalPropIdx::new(0);
     const BOOLEAN_LOCAL_IDX: LocalPropIdx = LocalPropIdx::new(1);
-    const TEXT_LOCAL_IDX: LocalPropIdx = LocalPropIdx::new(2);
-    const HIDDEN_LOCAL_IDX: LocalPropIdx = LocalPropIdx::new(1); // XXX - this won't be the same as BOOLEAN!!!
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
