@@ -39,9 +39,10 @@ disjoint_impls = { workspace = true }
 [dev-dependencies]
 criterion = "0.5"
 
-# [[bench]]
-# name = "my_benchmark"
-# harness = false
+[[bench]]
+name = "core_benchmark"
+harness = false
+
 [features]
 # The web feature makes the log! macro additionally go to web-sys:console
 web = ["dep:web-sys", "dep:wasm-bindgen"]
