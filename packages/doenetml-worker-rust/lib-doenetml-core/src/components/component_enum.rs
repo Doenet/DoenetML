@@ -9,8 +9,8 @@ pub use super::doenet::document::Document;
 pub use super::doenet::p::P;
 pub use super::doenet::section::Section;
 pub use super::doenet::text::Text;
+pub use super::doenet::text_input::TextInput;
 pub use super::doenet::title::Title;
-//pub use super::doenet::text_input::TextInput;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -29,7 +29,7 @@ pub use super::doenet::title::Title;
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
-    //    TextInput(TextInput),
+    TextInput(TextInput),
     //    Math(Math),
     Boolean(Boolean),
     Section(Section),

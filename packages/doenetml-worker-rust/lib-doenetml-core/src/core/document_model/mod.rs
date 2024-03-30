@@ -7,8 +7,9 @@ mod dependency_creation;
 #[allow(clippy::module_inception)]
 mod document_model;
 mod prop_calculation;
+mod prop_updates;
 
 pub use document_model::*;
 
-#[cfg(test)]
+#[cfg(any(feature = "testing", test, not(feature = "web")))]
 mod debug;

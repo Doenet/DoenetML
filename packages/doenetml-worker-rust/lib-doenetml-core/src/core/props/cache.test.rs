@@ -167,11 +167,23 @@ fn test_can_get_unchecked_prop_if_already_computed() {
         prop_node,
         PropCalcResult::Calculated(PropValue::Integer(15)),
     );
-    // Both of these should have `changed == true` since there was no `get_prop` called since the value was set.
-    let _val3 = cache.get_prop_unchecked(prop_node, query_node);
+
     let val3 = cache.get_prop_unchecked(prop_node, query_node);
+    // This should have `changed == false` since there was no change since the last call
+    let val4 = cache.get_prop_unchecked(prop_node, query_node);
 
     assert_eq!(val.value, val2.value);
     assert_eq!(val.changed, true);
+    assert_eq!(val2.changed, false);
+    assert_eq!(val3.value, val4.value);
     assert_eq!(val3.changed, true);
+    assert_eq!(val4.changed, false);
+}
+
+#[test]
+#[ignore]
+fn test_cache_origin_uses_whole_graph_node() {
+    // TODO: the change_tracker of the cache used to use just origin.idx(),
+    // which would lead to collisions if had two types of nodes with the same index.
+    // Make a test where they would have collided but now is fine
 }

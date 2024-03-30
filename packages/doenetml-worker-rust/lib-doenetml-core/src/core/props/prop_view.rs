@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use crate::graph_node::GraphNode;
+
 use super::{cache::PropWithMeta, PropValue};
 use anyhow::anyhow;
 
@@ -10,6 +12,9 @@ pub struct PropView<T> {
     pub value: T,
     pub came_from_default: bool,
     pub changed: bool,
+
+    /// The graph node where the value originated
+    pub origin: Option<GraphNode>,
 }
 
 impl<T> PropView<T> {
@@ -56,6 +61,7 @@ mod try_from {
                 value,
                 came_from_default: prop.came_from_default,
                 changed: prop.changed,
+                origin: prop.origin,
             })
         }
     }
@@ -93,6 +99,7 @@ mod try_from {
                 value,
                 came_from_default: prop.came_from_default,
                 changed: prop.changed,
+                origin: prop.origin,
             })
         }
     }
@@ -112,6 +119,7 @@ mod into_prop_with_meta {
                 value: prop.value.into(),
                 came_from_default: prop.came_from_default,
                 changed: prop.changed,
+                origin: prop.origin,
             }
         }
     }

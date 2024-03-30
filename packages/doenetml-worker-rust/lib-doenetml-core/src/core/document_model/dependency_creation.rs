@@ -29,11 +29,11 @@ impl DocumentModel {
                 match leaf_node {
                     GraphNode::State(_) => {}
                     GraphNode::Prop(_) => {
-                        let prop_definition = self.get_prop_definition(leaf_node);
+                        let prop_updater = self.get_prop_updater(leaf_node);
 
                         // TODO: when we load saved data from a data base, then set value and came_from_default
                         // from the data.
-                        let default_value = prop_definition.updater.default();
+                        let default_value = prop_updater.default();
                         let came_from_default = true;
 
                         let state_node: GraphNode =

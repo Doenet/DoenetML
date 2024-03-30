@@ -161,7 +161,7 @@ impl PropUpdater for ValueProp {
 
         if required_data.value_from_children.came_from_default {
             desired.independent_state.change_to(requested_value.clone());
-            desired.immediate_value.change_to(requested_value)
+            desired.immediate_value.change_to(requested_value);
         } else {
             desired.value_from_children.change_to(requested_value);
         }

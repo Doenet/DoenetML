@@ -83,4 +83,11 @@ mod conversions {
             PropValue::String(Rc::new(v.to_string()))
         }
     }
+
+    impl TryFrom<PropValue> for String {
+        type Error = &'static str;
+        fn try_from(value: PropValue) -> Result<Self, Self::Error> {
+            TryInto::<prop_type::String>::try_into(value).map(|s| (*s).clone())
+        }
+    }
 }

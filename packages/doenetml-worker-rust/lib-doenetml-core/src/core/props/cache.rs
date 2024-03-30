@@ -166,6 +166,8 @@ pub struct PropWithMeta {
     /// `true` if this prop has changed since the last time it was queried from
     /// from the same source.
     pub changed: bool,
+    /// The graph node where the value originated
+    pub origin: Option<GraphNode>,
 }
 
 /// A caching store for storage and retrieval of props.
@@ -175,7 +177,7 @@ pub struct PropCache {
     store: RefCell<GraphNodeLookup<CachedProp>>,
     /// A map from {prop_node}x{query_node} -> {change_counter}
     // TODO: HashMap provides a quick solution, but there may be more efficient ones.
-    change_tracker: RefCell<HashMap<(usize, usize), u32>>,
+    change_tracker: RefCell<HashMap<(usize, GraphNode), u32>>,
 }
 impl PropCache {
     pub fn new() -> Self {
@@ -252,8 +254,7 @@ impl PropCache {
     }
 
     /// Get the cached value of a prop. An error is thrown if the prop is not `Fresh`.
-    /// Retrieving a prop this way does _not_ update the change tracker. The change state will be
-    /// the same as the last time the prop was queried.
+    /// The cache tracks and reports if the value has changed since the last time it was queried.
     ///
     /// `origin` is the `GraphNode::DataQuery` that requested the prop.
     /// The cache tracks and reports if the value has changed since the last time it was queried.
@@ -266,6 +267,28 @@ impl PropCache {
             prop_node,
             origin,
             || panic!("Call to `get_prop_unchecked` on a prop that isn't `Fresh`"),
+            true,
+        )
+    }
+
+    /// Get the cached value of a prop. An error is thrown if the prop is not `Fresh`.
+    /// Retrieving a prop this way does _not_ update the change tracker. The change state will be
+    /// the same as the last time the prop was queried.
+    ///
+    /// `origin` is the `GraphNode::DataQuery` that requested the prop.
+    /// The cache tracks and reports if the value has changed since the last time it was queried.
+    pub fn get_prop_unchecked_untracked<
+        A: borrow::Borrow<GraphNode>,
+        B: borrow::Borrow<GraphNode>,
+    >(
+        &self,
+        prop_node: A,
+        origin: B,
+    ) -> PropWithMeta {
+        self._get_prop(
+            prop_node,
+            origin,
+            || panic!("Call to `get_prop_unchecked_untracked` on a prop that isn't `Fresh`"),
             false,
         )
     }
@@ -283,8 +306,8 @@ impl PropCache {
         update_change_tracker: bool,
     ) -> PropWithMeta {
         let prop_node = prop_node.borrow();
-        let origin = origin.borrow();
-        let change_tracker_key = (prop_node.idx(), origin.idx());
+        let origin = *origin.borrow();
+        let change_tracker_key = (prop_node.idx(), origin);
 
         let change_counter_on_last_query = {
             // Borrow RefCells for the shortest time possible to avoid panics.
@@ -318,6 +341,7 @@ impl PropCache {
             value,
             came_from_default,
             changed,
+            origin: Some(*prop_node),
         }
     }
 

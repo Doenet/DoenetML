@@ -97,6 +97,14 @@ impl<T> GraphNodeLookup<T> {
     pub fn new() -> Self {
         Self::default()
     }
+
+    pub fn keys(&self) -> impl Iterator<Item = &GraphNode> {
+        self.hash.keys()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&GraphNode, &T)> {
+        self.hash.iter()
+    }
 }
 
 /// Cheap taggable to lookup `Node`s by index.

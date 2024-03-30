@@ -112,6 +112,7 @@ impl DocumentModel {
                             })
                             .collect(),
                     );
+
                     let prop_definition = self.get_prop_definition(node);
                     self.prop_cache.set_prop(
                         node,
@@ -189,6 +190,7 @@ impl DocumentModel {
                                         // Note: a component reference can't change like a prop can change,
                                         // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                         changed: true,
+                                        origin: Some(node),
                                     })
                                 } else {
                                     None
@@ -201,6 +203,7 @@ impl DocumentModel {
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
+                                origin: Some(node),
                             }),
 
                             // XXX: Can we have other children
@@ -246,6 +249,7 @@ impl DocumentModel {
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
+                                origin: Some(node),
                             }),
                             // XXX: Can we have other children
                             _ => None,
@@ -258,11 +262,39 @@ impl DocumentModel {
         }
     }
 
+    /// Get all `GraphNodes` that correspond to the data queries that determine the value of `prop_node`
     pub fn get_data_query_nodes_for_prop(&self, prop_node: GraphNode) -> Vec<GraphNode> {
         self.dependency_graph.borrow().get_children(prop_node).into_iter().inspect(|n| {
             if !matches!(n, GraphNode::Query(_)) {
                 panic!("Dependency graph should only have DataQuery nodes as children of Prop nodes!");
             }
         }).collect()
+    }
+
+    /// Get the data needed to calculate the value of `prop_node` assuming that all the dependencies are fresh.
+    ///
+    /// **Note**: will panic if any of the data are not fresh.
+    pub fn _get_data_query_results_assuming_fresh_deps(
+        &self,
+        prop_node: GraphNode,
+    ) -> DataQueryResults {
+        DataQueryResults::from_vec(
+            self.get_data_query_nodes_for_prop(prop_node)
+                .into_iter()
+                .map(|dependency_query_node| {
+                    self._execute_data_query_with_fresh_deps(dependency_query_node)
+                })
+                .collect(),
+        )
+    }
+
+    /// Get the data needed to calculate the value of `prop_node.`
+    pub fn get_data_query_results(&mut self, prop_node: GraphNode) -> DataQueryResults {
+        DataQueryResults::from_vec(
+            self.get_data_query_nodes_for_prop(prop_node)
+                .into_iter()
+                .map(|dependency_query_node| self.execute_data_query(dependency_query_node))
+                .collect(),
+        )
     }
 }

@@ -2,7 +2,7 @@ use crate::components::prelude::*;
 use crate::general_prop::{BooleanProp, IndependentProp, StringProp};
 use crate::props::UpdaterObject;
 
-#[component(name = TextInput, extend_via_default_prop)]
+#[component(name = TextInput, extend_via_default_prop, ref_transmutes_to="text")]
 pub(super) mod component {
 
     use super::*;
@@ -30,6 +30,7 @@ pub(super) mod component {
         #[prop(
             value_type = PropValueType::String,
             is_public,
+            profile = PropProfile::String,
             for_render,
         )]
         ImmediateValue,
@@ -82,11 +83,25 @@ pub(super) mod component {
         #[attribute(prop = StringProp, default = String::new())]
         Prefill,
     }
+
+    #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+    #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+    #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+    #[serde(expecting = "`text` must be a string")]
+    pub struct TextInputActionArgs {
+        pub text: String,
+    }
+
+    enum Actions {
+        UpdateImmediateValue(ActionBody<TextInputActionArgs>),
+        UpdateValue,
+    }
 }
 
 use component::attrs;
 pub(super) use component::props;
 pub use component::TextInput;
+pub use component::TextInputActionArgs;
 pub use component::TextInputActions;
 pub use component::TextInputAttributes;
 pub use component::TextInputProps;
@@ -123,56 +138,33 @@ impl PropGetUpdater for TextInputProps {
     }
 }
 
-// #[derive(Debug, Deserialize, Serialize)]
-// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
-// #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-// #[serde(expecting = "`text` must be a string")]
-// pub struct TextInputActionArgs {
-//     pub text: String,
-// }
+impl ComponentOnAction for TextInput {
+    fn on_action(
+        &self,
+        action: ActionsEnum,
+        query_prop: ActionQueryProp,
+    ) -> Result<Vec<UpdateFromAction>, String> {
+        // The type of `action` should have already been verified, so an
+        // error here is a programming logic error, not an API error.
+        let action: TextInputActions = action.try_into()?;
 
-// #[derive(Debug, Deserialize, Serialize, EnumVariantNames)]
-// #[serde(tag = "actionName", rename_all = "camelCase")]
-// #[strum(serialize_all = "camelCase")]
-// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
-// #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-// pub enum TextInputAction {
-//     UpdateImmediateValue(ActionBody<TextInputActionArgs>),
-//     UpdateValue,
-// }
+        match action {
+            TextInputActions::UpdateImmediateValue(ActionBody { args }) => {
+                Ok(vec![UpdateFromAction {
+                    local_prop_idx: TextInputProps::local_idx(&TextInputProps::ImmediateValue),
+                    requested_value: args.text.into(),
+                }])
+            }
 
-// impl ComponentActions for TextInput {
-//     fn get_action_names(&self) -> Vec<String> {
-//         TextInputAction::VARIANTS
-//             .iter()
-//             .map(|s| s.to_string())
-//             .collect()
-//     }
+            TextInputActions::UpdateValue => {
+                let new_val = query_prop
+                    .get_local_prop(TextInputProps::local_idx(&TextInputProps::ImmediateValue));
 
-//     fn on_action(
-//         &self,
-//         action: ActionsEnum,
-//         resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
-//     ) -> Result<Vec<UpdateFromAction>, String> {
-//         // The type of `action` should have already been verified, so an
-//         // error here is a programming logic error, not an API error.
-//         let action: TextInputAction = action.try_into()?;
-
-//         match action {
-//             TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
-//                 Ok(vec![TextInputProps::update_immediate_value_from_action(
-//                     args.text,
-//                 )])
-//             }
-
-//             TextInputAction::UpdateValue => {
-//                 let new_val =
-//                     resolve_and_retrieve_prop(TextInputProps::get_immediate_value_prop_index());
-
-//                 Ok(vec![TextInputProps::update_value_from_action(
-//                     new_val.try_into().unwrap(),
-//                 )])
-//             }
-//         }
-//     }
-// }
+                Ok(vec![UpdateFromAction {
+                    local_prop_idx: TextInputProps::local_idx(&TextInputProps::Value),
+                    requested_value: new_val.value,
+                }])
+            }
+        }
+    }
+}

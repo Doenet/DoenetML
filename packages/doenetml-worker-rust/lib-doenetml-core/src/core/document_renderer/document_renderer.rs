@@ -1,13 +1,9 @@
-use crate::{
-    graph_node::{GraphNode, GraphNodeLookup},
-    CoreProcessingState,
-};
+use crate::graph_node::{GraphNode, GraphNodeLookup};
 
 /// The `DocumentRenderer` is responsible for rendering the document tree into a flat DAST and
 /// delivering any rendered updates need as props change.
 #[derive(Debug)]
 pub struct DocumentRenderer {
-    pub processing_state: CoreProcessingState,
     /// A map to look up if a component_node is in the render tree,
     /// i.e., if it can be reached from the document root via rendered children.
     /// For nodes in the render tree, we add their props marked for_render to the flat dast output,
@@ -26,11 +22,7 @@ impl Default for DocumentRenderer {
 
 impl DocumentRenderer {
     pub fn new() -> Self {
-        // Initialize with the document element being stale.
-        let stale_renderers = Vec::from([0.into()]);
-
         DocumentRenderer {
-            processing_state: CoreProcessingState { stale_renderers },
             in_render_tree: GraphNodeLookup::new(),
             for_render_query_node: GraphNode::Query(0), // the DataQuery::Null added in queries, above
         }

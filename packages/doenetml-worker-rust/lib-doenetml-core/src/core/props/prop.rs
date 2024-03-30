@@ -14,7 +14,7 @@ pub struct PropDefinitionMeta {
     /// The profile that this prop matches.
     pub profile: Option<PropProfile>,
     /// Whether this prop is _always_ computed whenever this component is rendered.
-    pub for_renderer: bool,
+    pub for_render: bool,
     pub public: bool,
 }
 

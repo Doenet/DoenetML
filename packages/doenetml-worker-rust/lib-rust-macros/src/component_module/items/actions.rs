@@ -146,7 +146,7 @@ impl ComponentModule {
 
         quote! {
             #[doc = #doc_string]
-            #[derive(Debug, Clone, Copy)]
+            #[derive(Debug)]
             #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(tag = "actionName", rename_all = "camelCase")]
             // XXX: why aren't these types exporting?

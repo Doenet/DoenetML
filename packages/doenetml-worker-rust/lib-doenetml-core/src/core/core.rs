@@ -1,9 +1,6 @@
 //! A version of `Core` based on `DirectedGraph`
 
-use crate::{
-    components::prelude::ComponentIdx,
-    dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot, FlatDastRoot},
-};
+use crate::dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot, FlatDastRoot};
 
 use super::{
     component_builder::ComponentBuilder, document_model::DocumentModel,
@@ -57,7 +54,7 @@ impl Core {
 ///
 /// Functions used for testing
 ///
-#[cfg(feature = "testing")]
+#[cfg(any(feature = "testing", test, not(feature = "web")))]
 pub mod testing_features {
     use super::*;
     use crate::{graph_node::GraphNode, props::cache::PropWithMeta};
@@ -68,12 +65,6 @@ pub mod testing_features {
                 .get_prop_for_render_untracked(prop_node, &self.document_model)
         }
     }
-}
-
-#[derive(Debug)]
-pub struct CoreProcessingState {
-    /// List of the rendered components that have stale `for_renderer` props.
-    pub stale_renderers: Vec<ComponentIdx>,
 }
 
 //#[cfg(test)]

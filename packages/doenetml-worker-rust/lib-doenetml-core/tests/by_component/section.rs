@@ -143,22 +143,21 @@ mod test_helpers {
 
     use std::rc::Rc;
 
-    use doenetml_core::{components::Section, state::types::element_refs::ElementRefs};
+    use doenetml_core::{
+        components::doenet::section::SectionProps, state::types::element_refs::ElementRefs,
+    };
 
     use super::*;
 
+    const TITLE_LOCAL_IDX: LocalPropIdx = SectionProps::local_idx(&SectionProps::Title);
+    const RENDERED_CHILDREN_LOCAL_IDX: LocalPropIdx =
+        SectionProps::local_idx(&SectionProps::RenderedChildren);
+
     /// Resolves `title` from a `<section>` component and returns its value as a `ComponentIdx`
     pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> ComponentIdx {
-        let title_local_idx = LocalPropIdx::new(
-            Section::PROP_NAMES
-                .into_iter()
-                .position(|name| name.eq(&"title"))
-                .unwrap(),
-        );
-
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: title_local_idx,
+            local_prop_idx: TITLE_LOCAL_IDX,
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
@@ -172,16 +171,9 @@ mod test_helpers {
         component_idx: ComponentIdx,
         core: &mut Core,
     ) -> Vec<GraphNode> {
-        let rendered_children_local_idx = LocalPropIdx::new(
-            Section::PROP_NAMES
-                .into_iter()
-                .position(|name| name.eq(&"renderedChildren"))
-                .unwrap(),
-        );
-
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: rendered_children_local_idx,
+            local_prop_idx: RENDERED_CHILDREN_LOCAL_IDX,
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 

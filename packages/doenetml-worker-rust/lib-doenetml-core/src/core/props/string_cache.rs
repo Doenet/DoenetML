@@ -62,7 +62,9 @@ impl StringCache {
 
         // the origin doesn't matter as `qet_prop_unchecked` does not update change tracker
         let fake_origin = GraphNode::Query(0);
-        let prop = self.prop_cache.get_prop_unchecked(string_node, fake_origin);
+        let prop = self
+            .prop_cache
+            .get_prop_unchecked_untracked(string_node, fake_origin);
 
         match (prop.value).clone() {
             PropValue::String(s) => (*s).clone(),
@@ -70,7 +72,7 @@ impl StringCache {
         }
     }
 
-    /// Set the value of a state prop. `origin` is the `GraphNode::DataQuery` that requested the state prop.
+    /// Set the value of a string prop.
     /// The store tracks and reports if the value has changed since the last time it was queried.
     pub fn set_string<A: borrow::Borrow<GraphNode>>(&self, string_node: A, s: String) {
         let string_node = string_node.borrow();

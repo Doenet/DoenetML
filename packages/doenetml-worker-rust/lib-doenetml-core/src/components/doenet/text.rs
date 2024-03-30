@@ -1,4 +1,5 @@
 use crate::components::prelude::*;
+use crate::general_prop::PropAlias;
 use crate::general_prop::StringProp;
 use crate::props::UpdaterObject;
 
@@ -20,6 +21,13 @@ mod component {
             for_render,
         )]
         Value,
+
+        #[prop(
+            value_type = PropValueType::String,
+            is_public,
+            profile = PropProfile::String
+        )]
+        Text,
 
         /// Whether the `<text>` should be hidden.
         #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
@@ -46,6 +54,9 @@ impl PropGetUpdater for TextProps {
             TextProps::Value => as_updater_object::<_, props::types::Value>(
                 StringProp::new_from_children("".to_string()),
             ),
+            TextProps::Text => as_updater_object::<_, props::types::Text>(PropAlias::new(
+                TextProps::local_idx(&TextProps::Value),
+            )),
             TextProps::Hidden => {
                 as_updater_object::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
             }

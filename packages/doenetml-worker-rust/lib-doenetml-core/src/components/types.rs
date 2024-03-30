@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{core::props::PropValue, graph_node::GraphNode};
+use crate::{
+    core::props::PropValue, graph_node::GraphNode, props::cache::PropWithMeta, DocumentModel,
+};
 
 use super::ActionsEnum;
 
@@ -59,6 +61,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     Serialize,
     Deserialize,
     Default,
+    Hash,
 )]
 #[serde(transparent)]
 pub struct ComponentIdx(usize);
@@ -153,7 +156,44 @@ pub struct Action {
     pub action: ActionsEnum,
 }
 
-pub struct UpdateFromAction(pub LocalPropIdx, pub PropValue);
+/// A requested update to a prop of a component coming from an action
+#[derive(Debug)]
+pub struct UpdateFromAction {
+    pub local_prop_idx: LocalPropIdx,
+    pub requested_value: PropValue,
+}
+
+/// An object that can be used to get the value of any prop of a component.
+/// Used for allow actions to query any value.
+pub struct ActionQueryProp<'a> {
+    component_idx: ComponentIdx,
+    document_model: &'a DocumentModel,
+}
+
+impl<'a> ActionQueryProp<'a> {
+    pub fn new(component_idx: ComponentIdx, document_model: &'a DocumentModel) -> Self {
+        ActionQueryProp {
+            component_idx,
+            document_model,
+        }
+    }
+
+    /// Get the PropWithMeta of prop with local_prop_idx of this component.
+    ///
+    /// **Note**: the `changed` meta data indicates whether or not this prop has changed
+    /// since *any* action of this component called `get_local_prop()`.
+    pub fn get_local_prop(&self, local_prop_idx: LocalPropIdx) -> PropWithMeta {
+        let prop_pointer = PropPointer {
+            component_idx: self.component_idx,
+            local_prop_idx,
+        };
+        let prop_node = self.document_model.prop_pointer_to_prop_node(prop_pointer);
+
+        let origin = GraphNode::Component(self.component_idx.as_usize());
+
+        self.document_model.get_prop(prop_node, origin)
+    }
+}
 
 /// The `camelCase` name of an attribute.
 #[cfg_attr(feature = "web", tsify::declare)]

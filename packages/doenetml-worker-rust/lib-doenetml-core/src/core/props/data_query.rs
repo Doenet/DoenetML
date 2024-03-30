@@ -46,6 +46,18 @@ impl DataQueryResults {
         }
         self
     }
+
+    /// Return whether or not any props in the results have changed
+    pub fn have_a_changed_value(&self) -> bool {
+        self.vec
+            .iter()
+            .any(|data| data.values.iter().any(|prop| prop.changed))
+    }
+
+    /// return whether or not any results exist
+    pub fn is_empty(&self) -> bool {
+        self.vec.is_empty() || (self.vec.len() == 1 && self.vec[0].values.is_empty())
+    }
 }
 
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,

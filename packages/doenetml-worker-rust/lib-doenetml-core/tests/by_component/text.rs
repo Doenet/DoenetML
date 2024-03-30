@@ -113,7 +113,6 @@ fn hidden_or_unrendered_text_dont_calculate_render_props() {
     assert!(text_rendered_props.is_none());
 }
 
-#[ignore]
 #[test]
 fn text_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
@@ -189,7 +188,6 @@ fn text_extending_p_concatenate_children() {
 
 /// <text>, a component with `no_rendered_children` and marked `extend_via_default_prop`
 // extending <textInput> another component with `no_rendered_children` and marked `extend_via_default_prop`
-#[ignore]
 #[test]
 fn text_extending_text_input() {
     let dast_root = dast_root_no_position(
@@ -225,22 +223,19 @@ fn text_hidden() {
 
 mod test_helpers {
 
-    use doenetml_core::components::Text;
+    use doenetml_core::components::doenet::text::TextProps;
 
     use super::*;
 
+    const VALUE_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Value);
+    const TEXT_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Text);
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Hidden);
+
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        let value_local_idx = LocalPropIdx::new(
-            Text::PROP_NAMES
-                .into_iter()
-                .position(|name| name.eq(&"value"))
-                .unwrap(),
-        );
-
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: value_local_idx,
+            local_prop_idx: VALUE_LOCAL_IDX,
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
@@ -250,16 +245,9 @@ mod test_helpers {
 
     /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        let text_local_idx = LocalPropIdx::new(
-            Text::PROP_NAMES
-                .into_iter()
-                .position(|name| name.eq(&"text"))
-                .unwrap(),
-        );
-
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: text_local_idx,
+            local_prop_idx: TEXT_LOCAL_IDX,
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
@@ -269,16 +257,9 @@ mod test_helpers {
 
     /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
     pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        let hidden_local_idx = LocalPropIdx::new(
-            Text::PROP_NAMES
-                .into_iter()
-                .position(|name| name.eq(&"hidden"))
-                .unwrap(),
-        );
-
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: hidden_local_idx,
+            local_prop_idx: HIDDEN_LOCAL_IDX,
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 

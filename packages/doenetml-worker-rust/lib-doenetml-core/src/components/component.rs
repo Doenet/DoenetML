@@ -4,14 +4,14 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::core::props::{PropDefinition, PropDefinitionMeta, PropProfile, PropValue};
+use crate::core::props::{PropDefinition, PropDefinitionMeta, PropProfile};
 use crate::dast::Position as DastPosition;
 
 use super::_error::_Error;
 use super::_external::_External;
 use super::component_enum::ComponentEnum;
 use super::prelude::{ComponentIdx, FlatAttribute};
-use super::types::{LocalPropIdx, PropPointer};
+use super::types::{ActionQueryProp, LocalPropIdx, PropPointer, UpdateFromAction};
 use super::{
     ActionsEnum, ComponentActions, ComponentAttributes, ComponentNode, ComponentOnAction,
     ComponentProps, ComponentVariantProps,
@@ -76,7 +76,7 @@ impl ComponentProps for Component {
                 PropDefinition {
                     meta: PropDefinitionMeta {
                         name: self.variant.get_prop_name(local_prop_idx),
-                        for_renderer: self.variant.get_prop_is_for_render(local_prop_idx),
+                        for_render: self.variant.get_prop_is_for_render(local_prop_idx),
                         profile: self.variant.get_prop_profile(local_prop_idx),
                         prop_pointer: PropPointer {
                             component_idx,
@@ -122,7 +122,7 @@ impl ComponentProps for Component {
         self.variant.get_default_prop_local_index()
     }
 
-    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
         (0..self.variant.get_num_props()).filter_map(|i| {
             self.variant
                 .get_prop_is_for_render(LocalPropIdx::new(i))
@@ -217,8 +217,8 @@ impl ComponentOnAction for Component {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
-    ) -> Result<Vec<super::types::UpdateFromAction>, String> {
-        self.variant.on_action(action, resolve_and_retrieve_prop)
+        query_prop: ActionQueryProp,
+    ) -> Result<Vec<UpdateFromAction>, String> {
+        self.variant.on_action(action, query_prop)
     }
 }

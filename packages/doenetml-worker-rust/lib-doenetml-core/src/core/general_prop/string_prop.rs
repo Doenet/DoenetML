@@ -162,15 +162,16 @@ impl PropUpdater for StringProp {
                 }
             }
             1 => {
-                if self.propagate_came_from_default && strings[0].came_from_default {
+                let s = strings.into_iter().next().unwrap();
+                if self.propagate_came_from_default && s.came_from_default {
                     // if we are basing it on a single variable and propagating `came_from_default`,
                     // then we propagate `came_from_default` as well as the value.
-                    PropCalcResult::FromDefault(Rc::clone(&strings[0].value))
+                    PropCalcResult::FromDefault(s.value)
                 } else {
                     // If we are not propagating `came_from_default`,
                     // then we set `came_from_default` to be false (by specifying `Calculated`)
                     // independent of the dependency's `came_from_default`
-                    PropCalcResult::Calculated(Rc::clone(&strings[0].value))
+                    PropCalcResult::Calculated(s.value)
                 }
             }
             _ => {

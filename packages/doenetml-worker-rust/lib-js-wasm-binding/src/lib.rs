@@ -88,10 +88,9 @@ impl PublicDoenetMLCore {
     /// changing the value of a slider).
     ///
     /// Returns updates to the FlatDast.
-    pub fn dispatch_action(&mut self, _action: Action) -> Result<ActionResponse, String> {
+    pub fn dispatch_action(&mut self, action: Action) -> Result<ActionResponse, String> {
         Ok(ActionResponse {
-            // XXX: add dispatch action to core
-            payload: HashMap::new(), //self.core.dispatch_action(action)?,
+            payload: self.core.dispatch_action(action)?,
         })
     }
 }

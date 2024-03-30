@@ -85,9 +85,9 @@ const dastSlice = createSlice({
                     throw new Error("Updating errors is not yet implemented");
                 }
                 if (update.changedState) {
-                    elm.data ??= { id: Number(id), state: {} };
-                    elm.data.state ??= {};
-                    Object.assign(elm.data.state, update.changedState);
+                    elm.data ??= { id: Number(id), props: {} };
+                    elm.data.props ??= {};
+                    Object.assign(elm.data.props, update.changedState);
                 }
                 if (update.changedAttributes) {
                     console.warn("Updating attributes is not yet implemented");

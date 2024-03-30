@@ -11,10 +11,10 @@ fn text_input_referencing_boolean() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // the original text will be right after the text input, so index 2
-    let boolean_idx = 2;
+    let boolean_idx = ComponentIdx::new(2);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "true");

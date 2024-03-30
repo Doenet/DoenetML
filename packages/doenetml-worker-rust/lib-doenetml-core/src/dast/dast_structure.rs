@@ -107,6 +107,12 @@ pub struct ElementData {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct ForRenderProps(pub Vec<ForRenderPropValue>);
 
+impl ForRenderProps {
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
 impl Serialize for ForRenderProps {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

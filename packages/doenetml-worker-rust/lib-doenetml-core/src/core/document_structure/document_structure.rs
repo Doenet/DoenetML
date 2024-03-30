@@ -180,7 +180,7 @@ impl DocumentStructure {
     }
 
     /// Get the value of a string node. `origin` affects the metadata returned,
-    /// and is used to track whether the string has changed since hte last time its value
+    /// and is used to track whether the string has changed since the last time its value
     /// was requested.
     pub fn get_string<A: borrow::Borrow<GraphNode>, B: borrow::Borrow<GraphNode>>(
         &self,
@@ -193,6 +193,12 @@ impl DocumentStructure {
     /// Returns the value of a string node as a string without tracking whether it changed since the last request.
     pub fn get_string_value<A: borrow::Borrow<GraphNode>>(&self, string_node: A) -> String {
         self.strings.get_string_value(string_node)
+    }
+
+    /// Set the value of a string node.
+    /// The store tracks and reports if the value has changed since the last time it was queried.
+    pub fn set_string<A: borrow::Borrow<GraphNode>>(&self, string_node: A, s: String) {
+        self.strings.set_string(string_node, s)
     }
 }
 
