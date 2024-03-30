@@ -1,4 +1,4 @@
-//mod alias_prop;
+mod alias_prop;
 mod boolean_prop;
 mod boolean_to_string_prop;
 mod independent_prop;
@@ -9,7 +9,7 @@ mod rendered_children_passthrough_prop;
 mod string_prop;
 mod util;
 
-//pub use self::alias_prop::PropAlias;
+pub use self::alias_prop::PropAlias;
 pub use self::boolean_prop::BooleanProp;
 pub use self::boolean_to_string_prop::BooleanToStringProp;
 pub use self::independent_prop::IndependentProp;

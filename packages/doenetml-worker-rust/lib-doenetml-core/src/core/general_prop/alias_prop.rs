@@ -1,14 +1,6 @@
-use crate::components::prelude::*;
+use std::{marker::PhantomData, rc::Rc};
 
-/// A struct of all data required to compute the value of this prop.
-#[add_dependency_data]
-#[derive(Debug, Default, PropDependencies, PropDataQueries)]
-pub struct RequiredData<T>
-where
-    T: Default + Clone,
-{
-    aliased_value: PropView<T>,
-}
+use crate::{components::prelude::*, props::UpdaterObject};
 
 /// A prop that aliases another prop from the same component.
 ///
@@ -18,57 +10,94 @@ where
 /// Constructor:
 /// - `new(aliased_prop_idx)`: create a prop that aliases
 ///   the variable with the index `aliased_prop_idx`.
-#[derive(Debug, Default)]
-pub struct PropAlias {
-    aliased_prop_idx: LocalPropIdx,
+#[derive(Debug)]
+pub struct PropAlias<T: Default + Clone> {
+    aliased_local_prop_idx: LocalPropIdx,
+    phantom: PhantomData<T>,
 }
 
-impl PropAlias {
+impl<T: Default + Clone> PropAlias<T> {
     /// Create a prop that aliases
     /// the variable with the index `aliased_prop_idx`.
-    pub fn new(aliased_prop_idx: LocalPropIdx) -> Self {
-        PropAlias { aliased_prop_idx }
+    pub fn new(aliased_local_prop_idx: LocalPropIdx) -> Self {
+        PropAlias {
+            aliased_local_prop_idx,
+            phantom: PhantomData,
+        }
     }
 }
 
-impl<T> PropUpdater<T, RequiredData<T>> for PropAlias
+impl<T> From<PropAlias<T>> for UpdaterObject
 where
-    T: Default + Clone + std::fmt::Debug,
-    PropView<T>: TryFromProp<PropViewEnum>,
-    <PropView<T> as TryFromProp<PropViewEnum>>::Error: std::fmt::Debug,
+    T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug + 'static,
+    PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Debug,
 {
-    fn return_data_queries(&self) -> Vec<DataQuery> {
-        RequiredDataQueries {
-            aliased_value: DataQuery::Prop {
-                component_idx: None,
-                prop_idx: self.aliased_prop_idx,
-            },
+    fn from(prop: PropAlias<T>) -> UpdaterObject {
+        Rc::new(prop)
+    }
+}
+
+/// A struct of all data required to compute the value of this prop.
+#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[data_query(query_trait = DataQueries, pass_data = LocalPropIdx)]
+pub struct RequiredData<T>
+where
+    T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
+    PropValue: From<T>,
+{
+    aliased_value: PropView<T>,
+}
+
+impl<T> DataQueries for RequiredData<T>
+where
+    T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
+    PropValue: From<T>,
+{
+    fn aliased_value_query(aliased_local_prop_idx: LocalPropIdx) -> DataQuery {
+        DataQuery::Prop {
+            component_idx: None,
+            local_prop_idx: aliased_local_prop_idx,
         }
-        .into()
+    }
+}
+
+impl<T> PropUpdater for PropAlias<T>
+where
+    T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
+    PropValue: From<T>,
+{
+    type PropType = T;
+    fn data_queries(&self) -> Vec<DataQuery> {
+        RequiredData::data_queries_vec(self.aliased_local_prop_idx)
     }
 
-    fn calculate_old(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+        let required_data = RequiredData::from_data_query_results(data);
+        let aliased_value = required_data.aliased_value;
+
         // take on the value from `aliased_value`, propagating `came_from_default`.
-        if data.aliased_value.came_from_default() {
-            PropCalcResult::FromDefault(data.aliased_value.get().clone())
+        if aliased_value.came_from_default {
+            PropCalcResult::FromDefault(aliased_value.value.clone())
         } else {
-            PropCalcResult::Calculated(data.aliased_value.get().clone())
+            PropCalcResult::Calculated(aliased_value.value.clone())
         }
     }
 
     fn invert(
         &self,
-        data: &mut RequiredData<T>,
-        prop: &PropView<T>,
+        data: DataQueryResults,
+        requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        data.aliased_value
-            .queue_update(prop.get_requested_value().clone());
+    ) -> Result<DataQueryResults, InvertError> {
+        let mut desired = RequiredData::new_desired(&data);
 
-        Ok(data.queued_updates())
+        desired.aliased_value.change_to(requested_value);
+
+        Ok(desired.into_data_query_results())
     }
 }
 
-#[cfg(test)]
-#[path = "alias_prop.test.rs"]
-mod tests;
+// #[cfg(test)]
+// #[path = "alias_prop.test.rs"]
+// mod tests;

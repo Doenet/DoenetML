@@ -37,7 +37,6 @@ fn value_prop_from_boolean_child() {
     assert_eq!(get_value_prop(boolean3_idx, &mut core), false);
 }
 
-#[ignore]
 #[test]
 fn boolean_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);
@@ -113,11 +112,9 @@ mod test_helpers {
     use super::*;
 
     const VALUE_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Value);
+    const BOOLEAN_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Boolean);
     const TEXT_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Text);
     const HIDDEN_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Hidden);
-
-    // XXX - get these indices from the component type
-    const BOOLEAN_LOCAL_IDX: LocalPropIdx = LocalPropIdx::new(1);
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
