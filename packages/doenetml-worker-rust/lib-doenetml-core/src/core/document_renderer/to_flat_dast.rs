@@ -235,13 +235,15 @@ impl DocumentRenderer {
             if let Some(true) = self.in_render_tree.get_tag(&component_node) {
                 let rendered_props = self.get_rendered_props(component_idx, true, document_model);
 
-                flat_dast_updates.insert(
-                    component_idx,
-                    FlatDastElementUpdate {
-                        new_children: None,
-                        changed_state: Some(rendered_props),
-                    },
-                );
+                if !rendered_props.is_empty() {
+                    flat_dast_updates.insert(
+                        component_idx,
+                        FlatDastElementUpdate {
+                            new_children: None,
+                            changed_state: Some(rendered_props),
+                        },
+                    );
+                }
             }
         }
 

@@ -113,15 +113,11 @@ impl DocumentModel {
                             .collect(),
                     );
 
-                    if required_data.have_a_changed_value() {
-                        let prop_definition = self.get_prop_definition(node);
-                        self.prop_cache.set_prop(
-                            node,
-                            prop_definition.updater.calculate_untyped(required_data),
-                        );
-                    } else {
-                        self.prop_cache.set_prop_status(node, PropStatus::Fresh);
-                    }
+                    let prop_definition = self.get_prop_definition(node);
+                    self.prop_cache.set_prop(
+                        node,
+                        prop_definition.updater.calculate_untyped(required_data),
+                    );
                 }
                 _ => {
                     // Only Prop nodes need to be recursively calculated.

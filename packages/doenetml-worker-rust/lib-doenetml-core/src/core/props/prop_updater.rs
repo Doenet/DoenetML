@@ -165,7 +165,11 @@ const _: () = {
             Self::data_queries(self)
         }
         fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
-            Self::calculate(self, data).map(PropValue::from)
+            if data.have_a_changed_value() {
+                Self::calculate(self, data).map(PropValue::from)
+            } else {
+                PropCalcResult::NoChange
+            }
         }
         fn invert_untyped(
             &self,

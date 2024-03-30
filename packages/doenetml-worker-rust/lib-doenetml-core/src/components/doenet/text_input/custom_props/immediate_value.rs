@@ -111,8 +111,10 @@ impl PropUpdater for ImmediateValueProp {
             // Since this is a direct change from an action,
             // it means that a user typed into the text input.
             // In this case, the immediate_value prop should diverge from the value prop,
-            // so we set sync_value_to_immediate_value to false
-            desired.sync_value_to_immediate_value.change_to(false);
+            // so we set sync_value_to_immediate_value to false if it isn't already
+            if required_data.sync_value_to_immediate_value.value {
+                desired.sync_value_to_immediate_value.change_to(false);
+            }
         } else if !required_data.value_from_children.came_from_default
             && required_data.sync_value_to_immediate_value.value
         {
