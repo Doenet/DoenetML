@@ -40,13 +40,14 @@ mod test {
             value: 5,
             came_from_default: false,
             changed: false,
+            node: Some(GraphNode::Prop(7)),
         };
 
         let prop_with_meta = PropWithMeta {
             value: PropValue::Integer(5),
             came_from_default: false,
             changed: false,
-            node: None,
+            node: Some(GraphNode::Prop(7)),
         };
 
         assert_eq!(

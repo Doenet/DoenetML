@@ -1,3 +1,5 @@
+use doenetml_core::graph_node::GraphNode;
+
 use super::*;
 
 /// A text input extending a text input mirrors both value and immediate value
@@ -9,13 +11,14 @@ fn text_input_extending_text_input() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
-    let extending_idx = 2;
+    let extending_idx = ComponentIdx::new(2);
 
     // confirm that the extending component is still a text input
     assert_eq!(
-        core.components[extending_idx].get_component_type(),
+        core.document_model
+            .get_component_type(GraphNode::Component(extending_idx.as_usize())),
         "textInput"
     );
 
@@ -58,13 +61,14 @@ fn references_to_value_and_immediate_value_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
-    let extending_text_idx = 2;
+    let extending_text_idx = ComponentIdx::new(2);
 
     // confirm that the extending component is still a text
     assert_eq!(
-        core.components[extending_text_idx].get_component_type(),
+        core.document_model
+            .get_component_type(GraphNode::Component(extending_text_idx.as_usize())),
         "text"
     );
 

@@ -133,7 +133,7 @@ impl DocumentModel {
             .clone()
     }
 
-    /// Get the requested component
+    /// Get the requested component type
     pub fn get_component_type<T: Into<GraphNode>>(&self, pointer: T) -> String {
         let document_structure = self.document_structure.borrow();
         document_structure

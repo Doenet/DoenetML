@@ -11,5 +11,5 @@ mod prop_updates;
 
 pub use document_model::*;
 
-#[cfg(test)]
+#[cfg(any(feature = "testing", test, not(feature = "web")))]
 mod debug;

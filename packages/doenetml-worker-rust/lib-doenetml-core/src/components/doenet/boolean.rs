@@ -13,7 +13,8 @@ mod component {
             value_type = PropValueType::Boolean,
             is_public,
             profile = PropProfile::Boolean,
-            default
+            default,
+            for_render
         )]
         Value,
 

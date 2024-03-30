@@ -11,7 +11,7 @@ fn value_and_immediate_value_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "");
@@ -46,7 +46,7 @@ fn value_and_immediate_value_with_prefill_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");
@@ -81,7 +81,7 @@ fn value_and_immediate_value_with_string_child_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");
@@ -116,8 +116,8 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1 amd the text will be index 2, as the document tag will be index 0.
-    let text_input_idx = 1;
-    let text_idx = 2;
+    let text_input_idx = ComponentIdx::new(1);
+    let text_idx = ComponentIdx::new(2);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");
@@ -157,8 +157,8 @@ fn value_and_immediate_value_with_blank_text_child_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1 amd the text will be index 2, as the document tag will be index 0.
-    let text_input_idx = 1;
-    let text_idx = 2;
+    let text_input_idx = ComponentIdx::new(1);
+    let text_idx = ComponentIdx::new(2);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "");
@@ -196,7 +196,7 @@ fn value_and_immediate_value_with_two_children_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // both variables are initialized to blank strings
     assert_eq!(
@@ -237,7 +237,7 @@ fn value_and_immediate_value_with_two_grandchildren_respond_to_actions() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // both variables are initialized to blank strings
     assert_eq!(
@@ -276,7 +276,7 @@ fn text_input_child_supersedes_prefill() {
     core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");

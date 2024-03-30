@@ -26,6 +26,7 @@ where
             value,
             came_from_default: val.came_from_default,
             changed: val.changed,
+            node: val.node,
         }
     }
 }

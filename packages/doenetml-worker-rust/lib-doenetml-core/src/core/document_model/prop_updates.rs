@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{
     components::{
         prelude::ComponentIdx,
@@ -123,6 +125,25 @@ impl DocumentModel {
             }
         }
 
-        // XXX: mark all dependencies of these nodes as stale
+        let skip_fn = |node: &GraphNode| {
+            if matches!(node, GraphNode::Prop(_)) {
+                self.prop_cache.get_prop_status(node) != PropStatus::Fresh
+            } else {
+                false
+            }
+        };
+
+        let nodes_changed = changes_to_make.keys().collect_vec();
+
+        // mark all prop nodes that depend on nodes_changed as stale
+        for node in self
+            .dependency_graph
+            .borrow()
+            .ancestors_reverse_topological_multiroot_with_skip(&nodes_changed, skip_fn)
+        {
+            if matches!(node, GraphNode::Prop(_)) {
+                self.prop_cache.set_prop_status(node, PropStatus::Stale);
+            }
+        }
     }
 }

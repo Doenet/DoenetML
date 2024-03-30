@@ -2,7 +2,7 @@ use crate::components::prelude::*;
 use crate::general_prop::{BooleanProp, IndependentProp, StringProp};
 use crate::props::UpdaterObject;
 
-#[component(name = TextInput, extend_via_default_prop)]
+#[component(name = TextInput, extend_via_default_prop, ref_transmutes_to="text")]
 pub(super) mod component {
 
     use super::*;
@@ -30,6 +30,7 @@ pub(super) mod component {
         #[prop(
             value_type = PropValueType::String,
             is_public,
+            profile = PropProfile::String,
             for_render,
         )]
         ImmediateValue,
@@ -100,6 +101,7 @@ pub(super) mod component {
 use component::attrs;
 pub(super) use component::props;
 pub use component::TextInput;
+pub use component::TextInputActionArgs;
 pub use component::TextInputActions;
 pub use component::TextInputAttributes;
 pub use component::TextInputProps;
