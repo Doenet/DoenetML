@@ -121,7 +121,7 @@ impl DocumentModel {
             for data_query_result in invert_result.vec {
                 for prop in data_query_result.values {
                     if prop.changed {
-                        requested_value_lookup.set_tag(prop.node.unwrap(), prop.value);
+                        requested_value_lookup.set_tag(prop.origin.unwrap(), prop.value);
                     }
                 }
             }

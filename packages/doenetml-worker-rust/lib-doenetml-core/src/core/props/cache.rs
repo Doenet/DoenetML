@@ -167,7 +167,7 @@ pub struct PropWithMeta {
     /// from the same source.
     pub changed: bool,
     /// The graph node where the value originated
-    pub node: Option<GraphNode>,
+    pub origin: Option<GraphNode>,
 }
 
 /// A caching store for storage and retrieval of props.
@@ -341,7 +341,7 @@ impl PropCache {
             value,
             came_from_default,
             changed,
-            node: Some(*prop_node),
+            origin: Some(*prop_node),
         }
     }
 

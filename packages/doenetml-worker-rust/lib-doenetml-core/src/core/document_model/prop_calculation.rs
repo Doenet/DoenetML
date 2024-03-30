@@ -190,7 +190,7 @@ impl DocumentModel {
                                         // Note: a component reference can't change like a prop can change,
                                         // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                         changed: true,
-                                        node: Some(node),
+                                        origin: Some(node),
                                     })
                                 } else {
                                     None
@@ -203,7 +203,7 @@ impl DocumentModel {
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
-                                node: Some(node),
+                                origin: Some(node),
                             }),
 
                             // XXX: Can we have other children
@@ -249,7 +249,7 @@ impl DocumentModel {
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
-                                node: Some(node),
+                                origin: Some(node),
                             }),
                             // XXX: Can we have other children
                             _ => None,

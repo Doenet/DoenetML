@@ -26,7 +26,7 @@ where
             value,
             came_from_default: val.came_from_default,
             changed: val.changed,
-            node: val.node,
+            origin: val.origin,
         }
     }
 }
@@ -91,7 +91,7 @@ mod tests {
             value: "hello".into(),
             came_from_default: false,
             changed: false,
-            node: None,
+            origin: None,
         };
         let prop_view: PropView<prop_type::String> = PropView::from_prop_with_meta(prop);
         // Value is in an Rc, so it needs to be dereferenced.
@@ -104,7 +104,7 @@ mod tests {
             value: "hello".into(),
             came_from_default: false,
             changed: false,
-            node: None,
+            origin: None,
         };
         let prop_view: PropView<prop_type::String> = prop.into_prop_view();
         // Value is in an Rc, so it needs to be dereferenced.
@@ -117,7 +117,7 @@ mod tests {
             value: "hello".into(),
             came_from_default: false,
             changed: false,
-            node: None,
+            origin: None,
         };
         let prop_view_res: Result<PropView<prop_type::String>, anyhow::Error> =
             prop.clone().try_into();
@@ -136,7 +136,7 @@ mod tests {
             value: "hello".into(),
             came_from_default: false,
             changed: false,
-            node: None,
+            origin: None,
         };
         let prop_view_res: Result<PropView<prop_type::String>, anyhow::Error> = (&prop).try_into();
         let prop_view = prop_view_res.unwrap();
