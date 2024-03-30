@@ -165,9 +165,11 @@ const _: () = {
             Self::data_queries(self)
         }
         fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
-            if data.have_a_changed_value() {
+            if data.have_a_changed_value() || data.is_empty() {
                 Self::calculate(self, data).map(PropValue::from)
             } else {
+                // If data isn't empty but no value has changed,
+                // then we know the prop could not have changed.
                 PropCalcResult::NoChange
             }
         }

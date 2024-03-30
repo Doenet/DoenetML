@@ -254,8 +254,7 @@ impl PropCache {
     }
 
     /// Get the cached value of a prop. An error is thrown if the prop is not `Fresh`.
-    /// Retrieving a prop this way does _not_ update the change tracker. The change state will be
-    /// the same as the last time the prop was queried.
+    /// The cache tracks and reports if the value has changed since the last time it was queried.
     ///
     /// `origin` is the `GraphNode::DataQuery` that requested the prop.
     /// The cache tracks and reports if the value has changed since the last time it was queried.
@@ -269,6 +268,28 @@ impl PropCache {
             origin,
             || panic!("Call to `get_prop_unchecked` on a prop that isn't `Fresh`"),
             true,
+        )
+    }
+
+    /// Get the cached value of a prop. An error is thrown if the prop is not `Fresh`.
+    /// Retrieving a prop this way does _not_ update the change tracker. The change state will be
+    /// the same as the last time the prop was queried.
+    ///
+    /// `origin` is the `GraphNode::DataQuery` that requested the prop.
+    /// The cache tracks and reports if the value has changed since the last time it was queried.
+    pub fn get_prop_unchecked_untracked<
+        A: borrow::Borrow<GraphNode>,
+        B: borrow::Borrow<GraphNode>,
+    >(
+        &self,
+        prop_node: A,
+        origin: B,
+    ) -> PropWithMeta {
+        self._get_prop(
+            prop_node,
+            origin,
+            || panic!("Call to `get_prop_unchecked_untracked` on a prop that isn't `Fresh`"),
+            false,
         )
     }
 

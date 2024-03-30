@@ -62,7 +62,9 @@ impl StringCache {
 
         // the origin doesn't matter as `qet_prop_unchecked` does not update change tracker
         let fake_origin = GraphNode::Query(0);
-        let prop = self.prop_cache.get_prop_unchecked(string_node, fake_origin);
+        let prop = self
+            .prop_cache
+            .get_prop_unchecked_untracked(string_node, fake_origin);
 
         match (prop.value).clone() {
             PropValue::String(s) => (*s).clone(),
