@@ -222,7 +222,7 @@ impl DocumentRenderer {
         ForRenderProps(rendered_prop_value_vec)
     }
 
-    /// Output updates for any elements with changed rendered props
+    /// Output updates for any elements with changed for_render props
     pub fn get_flat_dast_updates(
         &mut self,
         changed_components: Vec<ComponentIdx>,

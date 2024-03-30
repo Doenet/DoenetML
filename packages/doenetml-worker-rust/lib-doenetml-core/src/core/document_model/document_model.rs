@@ -125,6 +125,8 @@ impl DocumentModel {
         (*document_structure.get_prop_definition(pointer)).clone()
     }
 
+    /// Get the prop `UpdaterObject` corresponding to `pointer`.
+    /// The type of `pointer` can be `GraphNode` or `PropDefinitionIdx`.
     pub fn get_prop_updater<T: Into<GraphNode>>(&self, pointer: T) -> UpdaterObject {
         let document_structure = self.document_structure.borrow();
         document_structure

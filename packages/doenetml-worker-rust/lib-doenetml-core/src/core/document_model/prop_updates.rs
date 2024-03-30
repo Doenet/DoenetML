@@ -12,6 +12,18 @@ use crate::{
 };
 
 impl DocumentModel {
+    /// Calculate new values of `State` or `String` nodes that are intended to achieve the values
+    /// of the props specified in `updates_from_action`.
+    ///
+    /// The values are calculated using the `invert()` functions supplied by prop dependencies,
+    /// recursing until a `State` or a `String` node is reached.
+    ///
+    /// The update may fail completely, in which case no changes are returned.
+    /// The update may partially fail, in which some dependencies are updated by others remain unchanged.
+    /// Even when all updates succeed, the final values of the props may not match their requested values
+    /// due to constraints of the system.
+    ///
+    /// Return a `GraphNodeLookup` that will records the requested values of the `State` and `String` nodes.
     pub fn calculate_changes_from_action_updates(
         &mut self,
         updates_from_action: Vec<UpdateFromAction>,
@@ -55,6 +67,7 @@ impl DocumentModel {
         let mut changes_to_make = GraphNodeLookup::new();
 
         for node in dep_graph.descendants_topological_multiroot(&props_to_update) {
+            // If there is no requested value for the node, then there is nothing to do that node so skip it.
             let requested_value = requested_value_lookup.get_tag(node).cloned();
             if requested_value.is_none() {
                 continue;
@@ -64,10 +77,12 @@ impl DocumentModel {
             match node {
                 GraphNode::Prop(_) => (),
                 GraphNode::State(_) => {
+                    // We've recursed all the way down to a `State` node, so record its requested value
                     changes_to_make.set_tag(*node, requested_value);
                     continue;
                 }
                 GraphNode::String(_) => {
+                    // We've recursed all the way down to a `String` node, so record its requested value
                     changes_to_make.set_tag(*node, requested_value);
                     continue;
                 }
@@ -93,14 +108,16 @@ impl DocumentModel {
                 is_direct_change_from_action,
             );
 
-            // if we were unable to invert prop, then simply stop trying to update that part of the graph
-            // and carry on if there are other paths to update
+            // If we were unable to invert prop, then simply stop trying to update that part of the graph
+            // and carry on if there are other paths to update.
             if invert_result.is_err() {
                 continue;
             }
 
             let invert_result = invert_result.unwrap();
 
+            // If the `invert()` function requested a change in one of its dependencies,
+            // record the desired value so that it will be used when we recurse to that dependency
             for data_query_result in invert_result.vec {
                 for prop in data_query_result.values {
                     if prop.changed {
@@ -113,6 +130,10 @@ impl DocumentModel {
         changes_to_make
     }
 
+    /// Change all the `State` and `String` nodes in `changes_to_make` to their requested values.
+    /// Mark all dependencies of those nodes as stale.
+    ///
+    /// Return the components that have had one of their `for_render` props newly marked as stale.
     pub fn execute_changes(
         &self,
         changes_to_make: GraphNodeLookup<PropValue>,

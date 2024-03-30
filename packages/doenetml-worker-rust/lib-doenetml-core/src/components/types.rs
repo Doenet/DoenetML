@@ -156,12 +156,15 @@ pub struct Action {
     pub action: ActionsEnum,
 }
 
+/// A requested update to a prop of a component coming from an action
 #[derive(Debug)]
 pub struct UpdateFromAction {
     pub local_prop_idx: LocalPropIdx,
     pub requested_value: PropValue,
 }
 
+/// An object that can be used to get the value of any prop of a component.
+/// Used for allow actions to query any value.
 pub struct ActionQueryProp<'a> {
     component_idx: ComponentIdx,
     document_model: &'a DocumentModel,
@@ -190,11 +193,6 @@ impl<'a> ActionQueryProp<'a> {
 
         self.document_model.get_prop(prop_node, origin)
     }
-}
-
-pub struct PropUpdateRequest {
-    pub prop_node: GraphNode,
-    pub requested_value: PropValue,
 }
 
 /// The `camelCase` name of an attribute.

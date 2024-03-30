@@ -262,6 +262,7 @@ impl DocumentModel {
         }
     }
 
+    /// Get all `GraphNodes` that correspond to the data queries that determine the value of `prop_node`
     pub fn get_data_query_nodes_for_prop(&self, prop_node: GraphNode) -> Vec<GraphNode> {
         self.dependency_graph.borrow().get_children(prop_node).into_iter().inspect(|n| {
             if !matches!(n, GraphNode::Query(_)) {
@@ -270,6 +271,9 @@ impl DocumentModel {
         }).collect()
     }
 
+    /// Get the data needed to calculate the value of `prop_node` assuming that all the dependencies are fresh.
+    ///
+    /// **Note**: will panic if any of the data are not fresh.
     pub fn _get_data_query_results_assuming_fresh_deps(
         &self,
         prop_node: GraphNode,
@@ -284,6 +288,7 @@ impl DocumentModel {
         )
     }
 
+    /// Get the data needed to calculate the value of `prop_node.`
     pub fn get_data_query_results(&mut self, prop_node: GraphNode) -> DataQueryResults {
         DataQueryResults::from_vec(
             self.get_data_query_nodes_for_prop(prop_node)
