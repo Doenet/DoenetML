@@ -110,7 +110,10 @@ impl DocumentModel {
         changes_to_make
     }
 
-    pub fn execute_changes(&self, changes_to_make: GraphNodeLookup<PropValue>) {
+    pub fn execute_changes(
+        &self,
+        changes_to_make: GraphNodeLookup<PropValue>,
+    ) -> Vec<ComponentIdx> {
         for (node, val) in changes_to_make.iter() {
             match node {
                 GraphNode::State(_) => self.states.set_state(node, val.clone()),
@@ -134,6 +137,7 @@ impl DocumentModel {
         };
 
         let nodes_changed = changes_to_make.keys().collect_vec();
+        let mut components_with_changed_for_render_prop = Vec::new();
 
         // mark all prop nodes that depend on nodes_changed as stale
         for node in self
@@ -143,7 +147,18 @@ impl DocumentModel {
         {
             if matches!(node, GraphNode::Prop(_)) {
                 self.prop_cache.set_prop_status(node, PropStatus::Stale);
+
+                // if prop is marked for render, add to components_with_changed_for_render_prop
+                let prop_meta = &self.get_prop_definition(node).meta;
+                if prop_meta.for_render {
+                    let component_idx = prop_meta.prop_pointer.component_idx;
+                    if !components_with_changed_for_render_prop.contains(&component_idx) {
+                        components_with_changed_for_render_prop.push(component_idx);
+                    }
+                }
             }
         }
+
+        components_with_changed_for_render_prop
     }
 }

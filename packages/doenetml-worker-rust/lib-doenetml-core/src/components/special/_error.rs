@@ -40,7 +40,7 @@ impl ComponentProps for _Error {
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
-    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
         vec![].into_iter()
     }
     fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {

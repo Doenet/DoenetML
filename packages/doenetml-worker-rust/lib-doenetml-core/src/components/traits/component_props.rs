@@ -26,6 +26,6 @@ pub trait ComponentProps {
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx>;
 
     /// Get the vector of the indices of all this component's props
-    /// that have been marked `for_renderer`.
-    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx>;
+    /// that have been marked `for_render`.
+    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx>;
 }

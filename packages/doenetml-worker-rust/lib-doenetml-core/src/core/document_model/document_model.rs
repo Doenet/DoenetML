@@ -156,7 +156,7 @@ impl DocumentModel {
             let document_structure = self.document_structure.borrow();
             let iterator = document_structure
                 .get_component(component_idx)
-                .get_for_renderer_local_prop_indices();
+                .get_for_render_local_prop_indices();
             // Note: collect into a vector so that stop borrowing from document_structure.components
             iterator.collect::<Vec<_>>()
         };

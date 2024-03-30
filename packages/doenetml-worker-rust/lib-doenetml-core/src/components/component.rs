@@ -76,7 +76,7 @@ impl ComponentProps for Component {
                 PropDefinition {
                     meta: PropDefinitionMeta {
                         name: self.variant.get_prop_name(local_prop_idx),
-                        for_renderer: self.variant.get_prop_is_for_render(local_prop_idx),
+                        for_render: self.variant.get_prop_is_for_render(local_prop_idx),
                         profile: self.variant.get_prop_profile(local_prop_idx),
                         prop_pointer: PropPointer {
                             component_idx,
@@ -122,7 +122,7 @@ impl ComponentProps for Component {
         self.variant.get_default_prop_local_index()
     }
 
-    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
         (0..self.variant.get_num_props()).filter_map(|i| {
             self.variant
                 .get_prop_is_for_render(LocalPropIdx::new(i))

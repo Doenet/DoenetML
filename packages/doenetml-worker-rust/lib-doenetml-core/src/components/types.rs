@@ -61,6 +61,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     Serialize,
     Deserialize,
     Default,
+    Hash,
 )]
 #[serde(transparent)]
 pub struct ComponentIdx(usize);

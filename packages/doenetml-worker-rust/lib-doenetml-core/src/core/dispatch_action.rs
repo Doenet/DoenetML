@@ -40,8 +40,10 @@ impl Core {
             .document_model
             .calculate_changes_from_action_updates(updates_from_action, component_idx);
 
-        self.document_model.execute_changes(changes_to_make);
+        let changed_components = self.document_model.execute_changes(changes_to_make);
 
-        Ok(self.document_renderer.get_flat_dast_updates())
+        Ok(self
+            .document_renderer
+            .get_flat_dast_updates(changed_components, &self.document_model))
     }
 }
