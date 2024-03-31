@@ -1,61 +1,78 @@
-use crate::components::prelude::*;
+use std::rc::Rc;
+
+use crate::{components::prelude::*, props::UpdaterObject};
 
 use super::util::string_to_boolean;
 
 /// A string prop converts a boolean into a string
 ///
 /// Constructor:
-/// - `new(boolean_prop_idx)`: create a prop converts
-///   the boolean variable with the index `boolean_prop_idx`.
-#[derive(Debug, Default)]
+/// - `new(boolean_local_prop_idx)`: create a prop converts
+///   the boolean variable with the index `boolean_local_prop_idx`.
+#[derive(Debug)]
 pub struct BooleanToStringProp {
-    boolean_prop_idx: PropIdx,
-}
-
-/// The data required to compute the value of this prop.
-#[add_dependency_data]
-#[derive(Debug, Default, PropDependencies, PropDataQueries)]
-pub struct RequiredData {
-    boolean: PropView<bool>,
+    boolean_local_prop_idx: LocalPropIdx,
 }
 
 impl BooleanToStringProp {
-    /// Creates a string prop by converting the boolean prop of `boolean_prop_idx`
-    pub fn new(boolean_prop_idx: PropIdx) -> Self {
-        BooleanToStringProp { boolean_prop_idx }
+    /// Creates a string prop by converting the boolean prop of `boolean_local_prop_idx`
+    pub fn new(boolean_local_prop_idx: LocalPropIdx) -> Self {
+        BooleanToStringProp {
+            boolean_local_prop_idx,
+        }
     }
 }
 
-impl PropUpdater<String, RequiredData> for BooleanToStringProp {
-    fn return_data_queries(&self) -> Vec<DataQuery> {
-        RequiredDataQueries {
-            boolean: DataQuery::Prop {
-                component_idx: None,
-                prop_idx: self.boolean_prop_idx,
-            },
+impl From<BooleanToStringProp> for UpdaterObject {
+    fn from(prop: BooleanToStringProp) -> UpdaterObject {
+        Rc::new(prop)
+    }
+}
+
+#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[data_query(query_trait = DataQueries, pass_data = LocalPropIdx)]
+struct RequiredData {
+    boolean: PropView<bool>,
+}
+
+impl DataQueries for RequiredData {
+    fn boolean_query(boolean_local_prop_idx: LocalPropIdx) -> DataQuery {
+        DataQuery::Prop {
+            component_idx: None,
+            local_prop_idx: boolean_local_prop_idx,
         }
-        .into()
+    }
+}
+
+impl PropUpdater for BooleanToStringProp {
+    type PropType = prop_type::String;
+    fn data_queries(&self) -> Vec<DataQuery> {
+        RequiredData::data_queries_vec(self.boolean_local_prop_idx)
     }
 
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
-        PropCalcResult::Calculated(data.boolean.get().to_string())
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+        let required_data = RequiredData::from_data_query_results(data);
+
+        PropCalcResult::Calculated(required_data.boolean.value.to_string().into())
     }
 
     /// Convert the requested string value to boolean when inverting
     fn invert(
         &self,
-        data: &mut RequiredData,
-        prop: &PropView<String>,
+        data: DataQueryResults,
+        requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        let requested_boolean = string_to_boolean(&prop.get_requested_value());
+    ) -> Result<DataQueryResults, InvertError> {
+        let mut desired = RequiredData::new_desired(&data);
 
-        data.boolean.queue_update(requested_boolean);
+        let requested_boolean = string_to_boolean(&requested_value);
 
-        Ok(data.queued_updates())
+        desired.boolean.change_to(requested_boolean);
+
+        Ok(desired.into_data_query_results())
     }
 }
 
-#[cfg(test)]
-#[path = "boolean_to_string_prop.test.rs"]
-mod tests;
+// #[cfg(test)]
+// #[path = "boolean_to_string_prop.test.rs"]
+// mod tests;

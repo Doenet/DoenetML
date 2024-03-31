@@ -28,7 +28,8 @@
         "test:rust:before": "wireit",
         "build:rust": "wireit",
         "build:js": "wireit",
-        "build": "npm run build:rust && npm run build:js"
+        "build": "npm run build:rust && npm run build:js",
+        "bench": "cargo bench -p doenetml-core"
     },
     "wireit": {
         "test:rust:before": {

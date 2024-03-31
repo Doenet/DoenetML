@@ -1,3 +1,5 @@
+use doenetml_core::graph_node::GraphNode;
+
 use super::*;
 
 /// A text component referenced as a child of a text input
@@ -6,13 +8,15 @@ use super::*;
 fn text_input_reference_child_is_changed_when_update_value() {
     let dast_root =
         dast_root_no_position(r#"<textInput>$t</textInput><text name="t">hello</text>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // the original text will be right after the text input, so index 2
-    let text_idx = 2;
+    let text_idx = ComponentIdx::new(2);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");
@@ -50,13 +54,15 @@ fn text_input_reference_child_is_changed_when_update_value() {
 #[test]
 fn text_input_reference_blank_child_is_changed_when_update_value() {
     let dast_root = dast_root_no_position(r#"<textInput>$t</textInput><text name="t"/>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // the original text will be right after the text input, so index 2
-    let text_idx = 2;
+    let text_idx = ComponentIdx::new(2);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "");
@@ -90,13 +96,15 @@ fn text_input_reference_blank_child_is_changed_when_update_value() {
 fn text_input_reference_prefill_is_not_changed_when_update_value() {
     let dast_root =
         dast_root_no_position(r#"<textInput prefill="$t" /><text name="t">hello</text>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
     // the original text will be right after the text input, so index 2
-    let text_idx = 2;
+    let text_idx = ComponentIdx::new(2);
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");
@@ -128,26 +136,27 @@ fn text_input_reference_prefill_is_not_changed_when_update_value() {
 #[test]
 fn references_to_value_and_immediate_value_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"$ti.immediateValue $ti.value <textInput name="ti"/>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0, so other indices are shifted by one.
-    let text_input_idx = 3;
+    let text_input_idx = ComponentIdx::new(3);
 
     // referencing components will be created right after the text input
-    let immediate_value_reference_idx = 1;
-    let value_reference_idx = 2;
+    let immediate_value_reference_idx = ComponentIdx::new(1);
+    let value_reference_idx = ComponentIdx::new(2);
 
     // confirm that the references were expanded into texts
     assert_eq!(
-        core.components[immediate_value_reference_idx]
-            .borrow()
-            .get_component_type(),
+        core.document_model.get_component_type(GraphNode::Component(
+            immediate_value_reference_idx.as_usize()
+        )),
         "text"
     );
     assert_eq!(
-        core.components[value_reference_idx]
-            .borrow()
-            .get_component_type(),
+        core.document_model
+            .get_component_type(GraphNode::Component(value_reference_idx.as_usize())),
         "text"
     );
 
@@ -190,16 +199,19 @@ fn references_to_value_and_immediate_value_respond_to_actions() {
 #[test]
 fn plain_reference_to_text_input_expands_into_text() {
     let dast_root = dast_root_no_position(r#"<textInput name="ti"/> $ti"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    let text_input_idx = ComponentIdx::new(1);
 
-    let reference_idx = 2;
+    let reference_idx = ComponentIdx::new(2);
 
     // confirm that the reference was expanded into text
     assert_eq!(
-        core.components[reference_idx].borrow().get_component_type(),
+        core.document_model
+            .get_component_type(GraphNode::Component(reference_idx.as_usize())),
         "text"
     );
 

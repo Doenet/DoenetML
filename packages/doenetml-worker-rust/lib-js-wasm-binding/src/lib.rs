@@ -9,9 +9,9 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
-    components::actions::Action,
+    components::{prelude::ComponentIdx, types::Action},
+    core::core::Core,
     dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
-    ComponentIdx, DoenetMLCore,
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -23,7 +23,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen(getter_with_clone)]
 #[derive(Debug)]
 pub struct PublicDoenetMLCore {
-    core: Option<DoenetMLCore>,
+    core: Core,
     dast_root: Option<DastRoot>,
     source: String,
     flags_json: Option<String>,
@@ -36,13 +36,15 @@ pub struct ActionResponse {
     payload: HashMap<ComponentIdx, FlatDastElementUpdate>,
 }
 
+// XXX: Remove this allow block. Everything there should be no warnings if the code is correct.
+#[allow(unreachable_code)]
 #[wasm_bindgen]
 impl PublicDoenetMLCore {
     #[allow(clippy::new_without_default)]
     pub fn new() -> PublicDoenetMLCore {
         utils::set_panic_hook();
         PublicDoenetMLCore {
-            core: None,
+            core: Core::new(),
             dast_root: None,
             source: "".to_string(),
             flags_json: None,
@@ -64,7 +66,7 @@ impl PublicDoenetMLCore {
 
     pub fn return_dast(&mut self) -> Result<FlatDastRoot, String> {
         if !self.initialized {
-            let flags = match &self.flags_json {
+            let _flags = match &self.flags_json {
                 Some(f) => f,
                 None => return Err("Cannot create core before flags are set.".to_string()),
             };
@@ -74,16 +76,11 @@ impl PublicDoenetMLCore {
             };
 
             // Create components from JSON tree and create all dependencies.
-            self.core = Some(DoenetMLCore::new(
-                dast_root.clone(),
-                &self.source,
-                flags,
-                None,
-            ));
+            self.core.init_from_dast_root(dast_root);
             self.initialized = true;
         }
 
-        Ok(self.core.as_mut().unwrap().to_flat_dast())
+        Ok(self.core.to_flat_dast())
     }
 
     /// Send an action to DoenetMLCore. This is often in response to a user
@@ -93,7 +90,7 @@ impl PublicDoenetMLCore {
     /// Returns updates to the FlatDast.
     pub fn dispatch_action(&mut self, action: Action) -> Result<ActionResponse, String> {
         Ok(ActionResponse {
-            payload: self.core.as_mut().unwrap().dispatch_action(action)?,
+            payload: self.core.dispatch_action(action)?,
         })
     }
 }

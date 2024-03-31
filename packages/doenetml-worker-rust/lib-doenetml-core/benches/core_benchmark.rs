@@ -1,38 +1,12 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use doenetml_core::{
     components::{
-        actions::{Action, ActionBody},
-        doenet::text_input::{TextInputAction, TextInputActionArgs},
+        doenet::text_input::{TextInputActionArgs, TextInputActions},
+        types::{Action, ActionBody},
         ActionsEnum,
     },
-    dast::{DastRoot, FlatDastRoot},
-    DoenetMLCore,
+    Core,
 };
-
-struct Core {
-    core: Option<DoenetMLCore>,
-}
-
-impl Core {
-    fn new() -> Self {
-        Core { core: None }
-    }
-
-    fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
-        self.core = Some(DoenetMLCore::new(dast_root.clone(), "", "", None));
-    }
-
-    fn to_flat_dast(&mut self) -> FlatDastRoot {
-        let core = self.core.as_mut().expect("Should be initialized");
-        core.to_flat_dast()
-    }
-
-    fn dispatch_action(&mut self, action: Action) -> Result<(), String> {
-        let core = self.core.as_mut().expect("Should be initialized");
-        core.dispatch_action(action)?;
-        Ok(())
-    }
-}
 
 #[path = "../tests/test_utils/mod.rs"]
 mod test_utils;
@@ -121,33 +95,37 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("dispatch_action with thousand chain", |b| {
         b.iter(|| {
             core.dispatch_action(Action {
-                component_idx: 2,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
-                    args: TextInputActionArgs {
-                        text: "test1".to_string(),
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test1".to_string(),
+                        },
                     },
-                })),
+                )),
             })
             .unwrap();
             core.dispatch_action(Action {
-                component_idx: 2,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
             })
             .unwrap();
 
             // We do it again with a different value to make sure the benchmark is not optimized
             core.dispatch_action(Action {
-                component_idx: 2,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
-                    args: TextInputActionArgs {
-                        text: "test2".to_string(),
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test2".to_string(),
+                        },
                     },
-                })),
+                )),
             })
             .unwrap();
             core.dispatch_action(Action {
-                component_idx: 2,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
             })
             .unwrap();
         });
@@ -160,44 +138,49 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("dispatch_action with reverse thousand chain", |b| {
         b.iter(|| {
             core.dispatch_action(Action {
-                component_idx: 1,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
-                    args: TextInputActionArgs {
-                        text: "test1".to_string(),
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test1".to_string(),
+                        },
                     },
-                })),
+                )),
             })
             .unwrap();
             core.dispatch_action(Action {
-                component_idx: 1,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
             })
             .unwrap();
 
             // We do it again with a different value to make sure the benchmark is not optimized
             core.dispatch_action(Action {
-                component_idx: 1,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
-                    args: TextInputActionArgs {
-                        text: "test2".to_string(),
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test2".to_string(),
+                        },
                     },
-                })),
+                )),
             })
             .unwrap();
             core.dispatch_action(Action {
-                component_idx: 1,
-                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
             })
             .unwrap();
         });
     });
 }
 
-//criterion_group!(benches, criterion_benchmark);
-//criterion_main!(benches);
+// Uncomment to run benchmarks without profiling
+// criterion_group!(benches, criterion_benchmark);
+// criterion_main!(benches);
 criterion_group! {
     name = benches;
-    config = Criterion::default().with_profiler(PProfProfiler::new(10000, Output::Protobuf));
+    config = Criterion::default().with_profiler(PProfProfiler::new(1000, Output::Protobuf));
     targets = criterion_benchmark
 }
 criterion_main!(benches);

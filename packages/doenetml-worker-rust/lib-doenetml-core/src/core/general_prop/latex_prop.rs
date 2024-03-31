@@ -30,7 +30,7 @@ impl PropUpdater<String, RequiredData> for LatexProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         PropCalcResult::Calculated(
             data.math_expression
                 .get()

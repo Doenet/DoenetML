@@ -89,3 +89,22 @@ pub fn to_serde_value(val: &FlatDastRoot) -> Value {
         serde_json::from_str(&serde_json::to_string(val).unwrap()).unwrap();
     val
 }
+
+/// If the `codelldb` extension is installed in VSCode,
+/// add this function to your test and set a breakpoint to debug a rust test.
+///
+/// You may need to run `sudo sysctl -w kernel.yama.ptrace_scope=0` on linux
+/// to allow vscode to attach to the process.
+#[allow(unused)]
+pub fn attach_codelldb_debugger() {
+    let url = format!(
+        "vscode://vadimcn.vscode-lldb/launch/config?{{'request':'attach','pid':{}}}",
+        std::process::id()
+    );
+    std::process::Command::new("code")
+        .arg("--open-url")
+        .arg(url)
+        .output()
+        .unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(1000)); // Wait for debugger to attach
+}

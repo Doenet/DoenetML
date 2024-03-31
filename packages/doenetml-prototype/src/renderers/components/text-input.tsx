@@ -6,13 +6,13 @@ import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./text-input.css";
 import { coreActions } from "../../state/redux-slices/core";
 
-type TextInputData = { state: { immediateValue: string; disabled: boolean } };
+type TextInputData = { props: { immediateValue: string; disabled: boolean } };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
     const id = node.data.id;
-    const value = node.data.state.immediateValue;
-    const disabled = node.data.state.disabled;
+    const value = node.data.props.immediateValue;
+    const disabled = node.data.props.disabled;
     const dispatch = useAppDispatch();
 
     const updateValue = React.useCallback(() => {

@@ -17,8 +17,7 @@ fn string_prop_from_children_gives_correct_data_queries() {
         vec![
             DataQuery::State,
             DataQuery::ChildPropProfile {
-                match_profiles: vec![ComponentProfile::String],
-                always_return_value: true,
+                match_profiles: vec![PropProfile::String],
             },
         ]
     );
@@ -128,8 +127,7 @@ fn string_prop_from_attribute_gives_correct_data_queries() {
             DataQuery::State,
             DataQuery::Attribute {
                 attribute_name: "my_attr",
-                match_profiles: vec![ComponentProfile::String],
-                always_return_value: true
+                match_profiles: vec![PropProfile::String],
             },
         ]
     );
