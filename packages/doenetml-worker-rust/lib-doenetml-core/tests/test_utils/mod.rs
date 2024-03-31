@@ -78,7 +78,8 @@ pub fn dast_root(str: &str) -> DastRoot {
 #[allow(unused)]
 pub fn dast_root_no_position(str: &str) -> DastRoot {
     let root: DastRoot =
-        serde_json::from_str(&evaluate_dast_via_node_to_json(str, true).unwrap()).unwrap();
+        serde_json::from_str(&evaluate_dast_via_node_to_json(str, true).expect("Should unwrap 1"))
+            .expect("Should unwrap 2");
     root
 }
 
