@@ -152,6 +152,45 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             .unwrap();
         });
     });
+
+    let dast_root = dast_root_no_position(REVERSE_THOUSAND_CHAIN);
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    core.to_flat_dast();
+    c.bench_function("dispatch_action with reverse thousand chain", |b| {
+        b.iter(|| {
+            core.dispatch_action(Action {
+                component_idx: 1,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
+                    args: TextInputActionArgs {
+                        text: "test1".to_string(),
+                    },
+                })),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 1,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+            })
+            .unwrap();
+
+            // We do it again with a different value to make sure the benchmark is not optimized
+            core.dispatch_action(Action {
+                component_idx: 1,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
+                    args: TextInputActionArgs {
+                        text: "test2".to_string(),
+                    },
+                })),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 1,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+            })
+            .unwrap();
+        });
+    });
 }
 
 //criterion_group!(benches, criterion_benchmark);
