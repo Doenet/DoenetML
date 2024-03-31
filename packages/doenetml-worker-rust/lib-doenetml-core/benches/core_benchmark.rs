@@ -1,5 +1,10 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use doenetml_core::{
+    components::{
+        actions::{Action, ActionBody},
+        doenet::text_input::{TextInputAction, TextInputActionArgs},
+        ActionsEnum,
+    },
     dast::{DastRoot, FlatDastRoot},
     DoenetMLCore,
 };
@@ -20,6 +25,12 @@ impl Core {
     fn to_flat_dast(&mut self) -> FlatDastRoot {
         let core = self.core.as_mut().expect("Should be initialized");
         core.to_flat_dast()
+    }
+
+    fn dispatch_action(&mut self, action: Action) -> Result<(), String> {
+        let core = self.core.as_mut().expect("Should be initialized");
+        core.dispatch_action(action)?;
+        Ok(())
     }
 }
 
@@ -100,6 +111,46 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     core.init_from_dast_root(&dast_root);
     c.bench_function("get_flat_dast with reverse thousand chain", |b| {
         b.iter(|| core.to_flat_dast());
+    });
+
+    // Benchmark sending an action
+    let dast_root = dast_root_no_position(THOUSAND_CHAIN);
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    core.to_flat_dast();
+    c.bench_function("dispatch_action with thousand chain", |b| {
+        b.iter(|| {
+            core.dispatch_action(Action {
+                component_idx: 2,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
+                    args: TextInputActionArgs {
+                        text: "test1".to_string(),
+                    },
+                })),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 2,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+            })
+            .unwrap();
+
+            // We do it again with a different value to make sure the benchmark is not optimized
+            core.dispatch_action(Action {
+                component_idx: 2,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateImmediateValue(ActionBody {
+                    args: TextInputActionArgs {
+                        text: "test2".to_string(),
+                    },
+                })),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 2,
+                action: ActionsEnum::TextInput(TextInputAction::UpdateValue),
+            })
+            .unwrap();
+        });
     });
 }
 
