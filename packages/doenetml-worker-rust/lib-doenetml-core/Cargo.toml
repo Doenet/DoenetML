@@ -36,7 +36,18 @@ assert-json-diff = "2.0.2"
 serde-wasm-bindgen = { workspace = true }
 
 [dev-dependencies]
-criterion = "0.3.6"
+criterion = "0.5"
+pprof = { version = "0.13.0", features = [
+    "flamegraph",
+    "criterion",
+    "protobuf-codec"
+] }
+
+
+
+[[bench]]
+name = "core_benchmark"
+harness = false
 
 # [[bench]]
 # name = "my_benchmark"
