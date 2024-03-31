@@ -3,6 +3,7 @@ use doenetml_core::Core;
 
 #[path = "../tests/test_utils/mod.rs"]
 mod test_utils;
+use pprof::criterion::{Output, PProfProfiler};
 use test_utils::*;
 
 const SMALL_SOURCE: &str = r#"<textInput />"#;
@@ -80,5 +81,12 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, criterion_benchmark);
+// Uncomment to run benchmarks without profiling
+// criterion_group!(benches, criterion_benchmark);
+// criterion_main!(benches);
+criterion_group! {
+    name = benches;
+    config = Criterion::default().with_profiler(PProfProfiler::new(1000, Output::Protobuf));
+    targets = criterion_benchmark
+}
 criterion_main!(benches);
