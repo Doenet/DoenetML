@@ -1,5 +1,12 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use doenetml_core::Core;
+use doenetml_core::{
+    components::{
+        doenet::text_input::{TextInputActionArgs, TextInputActions},
+        types::{Action, ActionBody},
+        ActionsEnum,
+    },
+    Core,
+};
 
 #[path = "../tests/test_utils/mod.rs"]
 mod test_utils;
@@ -78,6 +85,93 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     core.init_from_dast_root(&dast_root);
     c.bench_function("get_flat_dast with reverse thousand chain", |b| {
         b.iter(|| core.to_flat_dast());
+    });
+
+    // Benchmark sending an action
+    let dast_root = dast_root_no_position(THOUSAND_CHAIN);
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    core.to_flat_dast();
+    c.bench_function("dispatch_action with thousand chain", |b| {
+        b.iter(|| {
+            core.dispatch_action(Action {
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test1".to_string(),
+                        },
+                    },
+                )),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
+            })
+            .unwrap();
+
+            // We do it again with a different value to make sure the benchmark is not optimized
+            core.dispatch_action(Action {
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test2".to_string(),
+                        },
+                    },
+                )),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 2.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
+            })
+            .unwrap();
+        });
+    });
+
+    let dast_root = dast_root_no_position(REVERSE_THOUSAND_CHAIN);
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    core.to_flat_dast();
+    c.bench_function("dispatch_action with reverse thousand chain", |b| {
+        b.iter(|| {
+            core.dispatch_action(Action {
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test1".to_string(),
+                        },
+                    },
+                )),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
+            })
+            .unwrap();
+
+            // We do it again with a different value to make sure the benchmark is not optimized
+            core.dispatch_action(Action {
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateImmediateValue(
+                    ActionBody {
+                        args: TextInputActionArgs {
+                            text: "test2".to_string(),
+                        },
+                    },
+                )),
+            })
+            .unwrap();
+            core.dispatch_action(Action {
+                component_idx: 1.into(),
+                action: ActionsEnum::TextInput(TextInputActions::UpdateValue),
+            })
+            .unwrap();
+        });
     });
 }
 
