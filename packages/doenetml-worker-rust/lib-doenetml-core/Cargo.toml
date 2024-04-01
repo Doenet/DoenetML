@@ -32,10 +32,10 @@ derive_more = { workspace = true }
 itertools = { workspace = true }
 assert-json-diff = "2.0"
 serde-wasm-bindgen = { workspace = true }
-genrc = { workspace = true }
 typed-index-collections = { workspace = true }
 disjoint_impls = { workspace = true }
 rustc-hash = { workspace = true }
+bitvec = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.5"

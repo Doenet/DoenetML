@@ -36,7 +36,7 @@ fn make_graph(depth: usize, branches: usize) -> GraphNodeGraph {
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Populate `wide_graph` with three layers of nodes, each of which has 10 children.
     let root = GraphNode::Query(0);
-    let wide_graph = make_graph(4, 10);
+    let wide_graph = make_graph(5, 10);
     let descendants = wide_graph.descendants_quick(root).collect::<Vec<_>>();
     dbg!(descendants.len());
 
@@ -60,7 +60,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("iterate topological", |b| {
         b.iter(|| {
-            for x in wide_graph.descendants_topological(root) {
+            for x in wide_graph.descendants_topological_multiroot(&[root]) {
                 black_box(x);
             }
         });
@@ -68,7 +68,30 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("iterate reverse-topological", |b| {
         b.iter(|| {
-            for x in wide_graph.descendants_reverse_topological(root) {
+            for x in wide_graph.descendants_reverse_topological_multiroot(&[root]) {
+                black_box(x);
+            }
+        });
+    });
+
+    let root = GraphNode::Virtual(1000);
+    dbg!(wide_graph.descendants_quick(root).count());
+
+    c.bench_function("iterate part of graph", |b| {
+        b.iter(|| {
+            for x in wide_graph.descendants_reverse_topological_multiroot(&[root]) {
+                black_box(x);
+            }
+        });
+    });
+
+    c.bench_function("iterate part of graph with skip", |b| {
+        b.iter(|| {
+            for x in wide_graph
+                .descendants_reverse_topological_multiroot_with_skip(&[root], |node| {
+                    node.idx() < 1000
+                })
+            {
                 black_box(x);
             }
         });

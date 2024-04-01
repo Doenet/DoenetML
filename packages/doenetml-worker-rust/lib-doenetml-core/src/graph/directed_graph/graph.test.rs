@@ -31,21 +31,21 @@ fn can_walk_in_topological_order() {
     graph.add_edge("d".to_string(), "e".to_string());
     assert_eq!(
         graph
-            .descendants_topological(&"a".into())
+            .descendants_topological_multiroot(&[&"a".into()])
             .collect::<Vec<_>>(),
         vec!["a", "b", "c", "d", "e"]
     );
 
     assert_eq!(
         graph
-            .descendants_topological(&"d".into())
+            .descendants_topological_multiroot(&[&"d".into()])
             .collect::<Vec<_>>(),
         vec!["d", "e"]
     );
 
     assert_eq!(
         graph
-            .descendants_topological(&"e".into())
+            .descendants_topological_multiroot(&[&"e".into()])
             .collect::<Vec<_>>(),
         vec!["e"]
     );
@@ -70,36 +70,7 @@ fn can_quick_iterate_through_descendants() {
     graph.add_edge("d".to_string(), "e".to_string());
     assert_eq!(
         graph.descendants_quick(&"a".into()).collect::<Vec<_>>(),
-        vec!["a", "c", "e", "d", "b"]
-    );
-}
-
-#[test]
-fn can_iterate_through_descendant_edges() {
-    // Set up the graph
-    // a -> b
-    // a -> c -> e
-    // c -> d -> e
-    let mut graph = DirectedGraph::<String, HashMap<_, _>>::new();
-    graph.add_node("a".to_string());
-    graph.add_node("b".to_string());
-    graph.add_node("c".to_string());
-    graph.add_node("d".to_string());
-    graph.add_node("e".to_string());
-    graph.add_edge("a".to_string(), "b".to_string());
-    graph.add_edge("a".to_string(), "c".to_string());
-    graph.add_edge("c".to_string(), "d".to_string());
-    graph.add_edge("c".to_string(), "e".to_string());
-    graph.add_edge("d".to_string(), "e".to_string());
-    assert_eq!(
-        graph.descendant_edges(&"a".into()).collect::<Vec<_>>(),
-        vec![
-            (&"a".into(), &"c".into()),
-            (&"a".into(), &"b".into()),
-            (&"c".into(), &"e".into()),
-            (&"c".into(), &"d".into()),
-            (&"d".into(), &"e".into())
-        ]
+        vec!["e", "d", "c", "b", "a"]
     );
 }
 
@@ -120,7 +91,9 @@ fn can_iterate_through_descendants_reverse_topological_including_multiroot() {
     graph.add_edge(d, e);
     graph.add_edge(b, e);
 
-    let nodes = graph.descendants_reverse_topological(&a).collect_vec();
+    let nodes = graph
+        .descendants_reverse_topological_multiroot(&[&a])
+        .collect_vec();
     assert_eq!(nodes, vec![&e, &d, &c, &b, &a]);
     let nodes = graph
         .descendants_reverse_topological_multiroot(&[a])
@@ -172,7 +145,7 @@ fn can_iterate_through_descendants_topological_including_multiroot() {
     graph.add_edge(d, e);
     graph.add_edge(b, e);
 
-    let nodes = graph.descendants_topological(&a).collect_vec();
+    let nodes = graph.descendants_topological_multiroot(&[&a]).collect_vec();
     assert_eq!(nodes, vec![&a, &b, &c, &d, &e]);
 
     let nodes = graph.descendants_topological_multiroot(&[a]).collect_vec();
@@ -256,7 +229,7 @@ fn can_iterate_through_ancestors_topological_including_multiroot() {
     graph.add_edge(d, e);
     graph.add_edge(b, e);
 
-    let nodes = graph.ancestors_topological(&e).collect_vec();
+    let nodes = graph.ancestors_topological_multiroot(&[&e]).collect_vec();
     assert_eq!(nodes, vec![&e, &d, &c, &b, &a]);
 
     let nodes = graph.ancestors_topological_multiroot(&[e]).collect_vec();

@@ -1,4 +1,3 @@
-use super::iterators::*;
 use std::{borrow::Borrow, collections::HashMap, fmt::Debug, hash::Hash};
 
 /// An abstract graph. The speed of lookups is determined by the `Taggable` type,
@@ -18,21 +17,21 @@ use std::{borrow::Borrow, collections::HashMap, fmt::Debug, hash::Hash};
 /// graph.add_edge("a".to_string(), "b".to_string());
 /// graph.add_edge("a".to_string(), "c".to_string());
 /// graph.add_edge("b".to_string(), "c".to_string());
-/// assert_eq!(graph.descendants_topological("a".to_string()).collect::<Vec<_>>(), vec!["a", "b", "c"]);
+/// assert_eq!(graph.descendants_topological_multiroot(&["a".to_string()]).collect::<Vec<_>>(), vec!["a", "b", "c"]);
 /// ```
 #[derive(Debug)]
 pub struct DirectedGraph<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> {
     /// A `Taggable` that allows for looking up the index of a node in the graph.
     /// I.e., used for `Node -> usize` lookups.
-    index_lookup: IndexLookup,
+    pub(super) index_lookup: IndexLookup,
     /// The nodes in the graph. Internally nodes are represented as `usize`. But `Graph` stores nodes
     /// for the users to make its internal structure opaque.
-    nodes: Vec<Node>,
+    pub(super) nodes: Vec<Node>,
     /// Directed edges between nodes. `edges[i]` is a list of all node indices that node `i` has an edge to.
     /// The edges are not sorted, so `edges[i][j]` represents the `j`th-added edge from node `i` to node `edges[i][j]`.
-    edges: Vec<Vec<usize>>,
+    pub(super) edges: Vec<Vec<usize>>,
     /// Reverse directed version of every edge.
-    reverse_edges: Vec<Vec<usize>>,
+    pub(super) reverse_edges: Vec<Vec<usize>>,
 }
 
 impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node, IndexLookup> {
@@ -152,198 +151,6 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
                 _ => return None,
             }
         }
-    }
-
-    /// Walk through all nodes that have `node` as an ancestor, including `node` itself.
-    /// Nodes are walked in _topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `a` will be visited before `b`.
-    /// Panics if a cycle is detected.
-    pub fn descendants_topological<A: Borrow<Node>>(
-        &self,
-        node: A,
-    ) -> DescendantTopologicalIterator<Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantTopologicalIterator::new(&self.nodes, &self.edges, start_index)
-    }
-
-    /// Walk through all nodes that have any node listed in `start_nodes` as an ancestor, including `start_nodes` themselves.
-    /// Nodes are walked in _topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `a` will be visited before `b`.
-    ///
-    /// Panics if a cycle is detected.
-    pub fn descendants_topological_multiroot<A: Borrow<Node>>(
-        &self,
-        start_nodes: &[A],
-    ) -> DescendantTopologicalIterator<Node> {
-        let start_indices = start_nodes
-            .iter()
-            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
-            .collect();
-
-        DescendantTopologicalIterator::new_multiroot(&self.nodes, &self.edges, start_indices)
-    }
-
-    /// Walk through all nodes that have `node` as an ancestor, including `node` itself.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn descendants_reverse_topological<A: Borrow<Node>>(
-        &self,
-        node: A,
-    ) -> DescendantReverseTopologicalIterator<Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantReverseTopologicalIterator::new(&self.nodes, &self.edges, start_index)
-    }
-
-    /// Walk through all nodes that have any node listed in `start_nodes` as an ancestor, including `start_nodes` themselves.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn descendants_reverse_topological_multiroot<A: Borrow<Node>>(
-        &self,
-        start_nodes: &[A],
-    ) -> DescendantReverseTopologicalIterator<Node> {
-        let start_indices = start_nodes
-            .iter()
-            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
-            .collect();
-        DescendantReverseTopologicalIterator::new_multiroot(&self.nodes, &self.edges, start_indices)
-    }
-
-    /// Walk through all nodes that have any node listed in `start_nodes` as an ancestor, including `start_nodes` themselves.
-    /// Nodes for which `skip` returns `true` are treated as if they are absent from the graph.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn descendants_reverse_topological_multiroot_with_skip<
-        A: Borrow<Node>,
-        SkipFn: Fn(&Node) -> bool,
-    >(
-        &self,
-        start_nodes: &[A],
-        skip: SkipFn,
-    ) -> DescendantReverseTopologicalIterator<Node> {
-        let start_indices = start_nodes
-            .iter()
-            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
-            .collect();
-        DescendantReverseTopologicalIterator::new_multiroot_with_skip(
-            &self.nodes,
-            &self.edges,
-            start_indices,
-            skip,
-        )
-    }
-
-    /// Walk through all nodes that have `node` as a descendant, including `node` itself.
-    /// Nodes are walked in _topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `a` will be visited before `b`.
-    /// Panics if a cycle is detected.
-    pub fn ancestors_topological<A: Borrow<Node>>(
-        &self,
-        node: A,
-    ) -> DescendantTopologicalIterator<Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantTopologicalIterator::new(&self.nodes, &self.reverse_edges, start_index)
-    }
-
-    /// Walk through all nodes that have any node listed in `start_nodes` as a descendant, including `start_nodes` themselves.
-    /// Nodes are walked in _topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `a` will be visited before `b`.
-    /// Panics if a cycle is detected.
-    pub fn ancestors_topological_multiroot<A: Borrow<Node>>(
-        &self,
-        start_nodes: &[A],
-    ) -> DescendantTopologicalIterator<Node> {
-        let start_indices = start_nodes
-            .iter()
-            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
-            .collect();
-
-        DescendantTopologicalIterator::new_multiroot(
-            &self.nodes,
-            &self.reverse_edges,
-            start_indices,
-        )
-    }
-
-    /// Walk through all nodes that have `node` as a descendant, including `node` itself.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn ancestors_reverse_topological<A: Borrow<Node>>(
-        &self,
-        node: A,
-    ) -> DescendantReverseTopologicalIterator<Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantReverseTopologicalIterator::new(&self.nodes, &self.reverse_edges, start_index)
-    }
-
-    /// Walk through all nodes that have any node listed in `start_nodes` as a descendant, including `start_nodes` themselves.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn ancestors_reverse_topological_multiroot<A: Borrow<Node>>(
-        &self,
-        start_nodes: &[A],
-    ) -> DescendantReverseTopologicalIterator<Node> {
-        let start_indices = start_nodes
-            .iter()
-            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
-            .collect();
-
-        DescendantReverseTopologicalIterator::new_multiroot(
-            &self.nodes,
-            &self.reverse_edges,
-            start_indices,
-        )
-    }
-
-    /// Walk through all nodes that have any node listed in `start_nodes` as a descendant, including `start_nodes` themselves.
-    /// Nodes for which `skip` returns `true` are treated as if they are absent from the graph.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn ancestors_reverse_topological_multiroot_with_skip<
-        A: Borrow<Node>,
-        SkipFn: Fn(&Node) -> bool,
-    >(
-        &self,
-        start_nodes: &[A],
-        skip: SkipFn,
-    ) -> DescendantReverseTopologicalIterator<Node> {
-        let start_indices = start_nodes
-            .iter()
-            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
-            .collect();
-        DescendantReverseTopologicalIterator::new_multiroot_with_skip(
-            &self.nodes,
-            &self.reverse_edges,
-            start_indices,
-            skip,
-        )
-    }
-
-    /// Iterate through all nodes that have `node` as an ancestor. This iterator is meant to be fast.
-    /// The order of the nodes is not guaranteed.
-    /// Panics if a cycle is detected.
-    pub fn descendants_quick<A: Borrow<Node>>(&self, node: A) -> DescendantIterator<Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantIterator::new(&self.nodes, &self.edges, start_index)
-    }
-
-    /// Iterate through all edges of `node` and `node`'s descendants. This iterator is meant to be fast.
-    /// The order of the edges is not guaranteed.
-    /// Panics if a cycle is detected.
-    pub fn descendant_edges<A: Borrow<Node>>(&self, node: A) -> DescendantEdgeIterator<Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantEdgeIterator::new(&self.nodes, &self.edges, start_index)
     }
 }
 
