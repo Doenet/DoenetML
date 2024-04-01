@@ -27,11 +27,13 @@ impl<T> GraphNodeLookup<T> {
     }
 
     pub fn keys(&self) -> impl Iterator<Item = GraphNode> {
-        let all_nodes = self
-            .components
-            .iter()
-            .enumerate()
-            .filter_map(|(i, item)| item.as_ref().map(|_| GraphNode::Component(i)))
+        let all_nodes = std::iter::empty()
+            .chain(
+                self.components
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, item)| item.as_ref().map(|_| GraphNode::Component(i))),
+            )
             .chain(
                 self.strings
                     .iter()
@@ -146,8 +148,7 @@ impl<T> DoubleNodeLookup<T> {
         //let (second, first) = key;
         let idx = self.first.get_tag(first)?;
         // This should be safe because only indices of inserted items appear in `first`.
-        let lookup = self.second.get(*idx)?;
-        lookup.get_tag(second)
+        self.second[*idx].get_tag(second)
     }
 
     pub fn insert(&mut self, key: (GraphNode, GraphNode), value: T) {
@@ -163,5 +164,33 @@ impl<T> DoubleNodeLookup<T> {
             self.first.set_tag(first, self.second.len());
             self.second.push(lookup);
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn double_node_lookup() {
+        let mut lookup = DoubleNodeLookup::new();
+
+        let (key1, val1) = ((GraphNode::Component(0), GraphNode::String(0)), 42);
+        let (key2, val2) = ((GraphNode::String(0), GraphNode::String(0)), 43);
+        let (key3, val3) = ((GraphNode::Virtual(10), GraphNode::Prop(22)), 44);
+        let (key4, _val4) = ((GraphNode::Virtual(11), GraphNode::Prop(22)), 44);
+        let (key5, _val5) = ((GraphNode::Virtual(10), GraphNode::Prop(20)), 44);
+        lookup.insert(key1, val1);
+        lookup.insert(key2, val2);
+        lookup.insert(key3, val3);
+
+        assert_eq!(lookup.get(&key1), Some(&val1));
+        assert_eq!(lookup.get(&key2), Some(&val2));
+        assert_eq!(lookup.get(&key3), Some(&val3));
+
+        lookup.insert(key2, 77);
+        assert_eq!(lookup.get(&key2), Some(&77));
+        assert_eq!(lookup.get(&key4), None);
+        assert_eq!(lookup.get(&key5), None);
     }
 }

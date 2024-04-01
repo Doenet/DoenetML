@@ -10,7 +10,8 @@ use pprof::criterion::{Output, PProfProfiler};
 
 type GraphNodeGraph = DirectedGraph<GraphNode, GraphNodeLookup<usize>>;
 
-fn make_wide_graph(depth: usize, branches: usize) -> GraphNodeGraph {
+/// Create a graph with `depth` layers and `branches` children per node.
+fn make_graph(depth: usize, branches: usize) -> GraphNodeGraph {
     let mut graph: GraphNodeGraph = DirectedGraph::new();
 
     for i in 1..(depth + 1) {
@@ -35,7 +36,7 @@ fn make_wide_graph(depth: usize, branches: usize) -> GraphNodeGraph {
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Populate `wide_graph` with three layers of nodes, each of which has 10 children.
     let root = GraphNode::Query(0);
-    let wide_graph = make_wide_graph(4, 10);
+    let wide_graph = make_graph(4, 10);
     let descendants = wide_graph.descendants_quick(root).collect::<Vec<_>>();
     dbg!(descendants.len());
 

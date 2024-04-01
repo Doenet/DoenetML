@@ -183,7 +183,6 @@ impl PropCache {
     pub fn new() -> Self {
         PropCache {
             store: RefCell::new(GraphNodeLookup::new()),
-            //change_tracker: RefCell::new(FxHashMap::default()),
             change_tracker: RefCell::new(DoubleNodeLookup::new()),
         }
     }
