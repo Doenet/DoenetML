@@ -30,7 +30,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     pub fn descendants_reverse_topological_multiroot<A: Borrow<Node>>(
         &self,
         start_nodes: &[A],
-    ) -> DescendantReverseTopologicalIterator<Node> {
+    ) -> impl Iterator<Item = &Node> {
         let start_indices = start_nodes
             .iter()
             .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
@@ -50,7 +50,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         &self,
         start_nodes: &[A],
         skip: SkipFn,
-    ) -> DescendantReverseTopologicalIterator<Node> {
+    ) -> impl Iterator<Item = &Node> {
         let start_indices = start_nodes
             .iter()
             .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
@@ -90,7 +90,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     pub fn ancestors_reverse_topological<A: Borrow<Node>>(
         &self,
         node: A,
-    ) -> DescendantReverseTopologicalIterator<Node> {
+    ) -> impl Iterator<Item = &Node> {
         let node = node.borrow();
         let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantReverseTopologicalIterator::new_multiroot(
@@ -107,7 +107,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     pub fn ancestors_reverse_topological_multiroot<A: Borrow<Node>>(
         &self,
         start_nodes: &[A],
-    ) -> DescendantReverseTopologicalIterator<Node> {
+    ) -> impl Iterator<Item = &Node> {
         let start_indices = start_nodes
             .iter()
             .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
@@ -132,7 +132,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         &self,
         start_nodes: &[A],
         skip: SkipFn,
-    ) -> DescendantReverseTopologicalIterator<Node> {
+    ) -> impl Iterator<Item = &Node> {
         let start_indices = start_nodes
             .iter()
             .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
@@ -148,10 +148,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     /// Iterate through all nodes that have `node` as an ancestor. This iterator is meant to be fast.
     /// The order of the nodes is not guaranteed.
     /// Panics if a cycle is detected.
-    pub fn descendants_quick<A: Borrow<Node>>(
-        &self,
-        node: A,
-    ) -> DescendantReverseTopologicalIterator<Node> {
+    pub fn descendants_quick<A: Borrow<Node>>(&self, node: A) -> impl Iterator<Item = &Node> {
         let node = node.borrow();
         let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantReverseTopologicalIterator::new_multiroot(

@@ -1,16 +1,50 @@
 //! Iterators for the `Graph` type.
 
+/// A [`NodeSkipFn`] that never skips any nodes.
+pub(super) struct NeverSkip {}
+impl RawSkipFn for NeverSkip {
+    fn skip(&self, _: usize) -> bool {
+        false
+    }
+}
+
+/// A [`NodeSkipFn`] that should never be called. It is used as a type stand-in.
+pub(super) struct UnusedSkip {}
+impl RawSkipFn for UnusedSkip {
+    fn skip(&self, _: usize) -> bool {
+        unreachable!("UnusedSkip should never be called")
+    }
+}
+
+/// Struct to turn a skip function that works on `Node` into a [`RawSkipFn`].
+pub(super) struct SkipToRawSkipFn<'a, Node, F: Fn(&Node) -> bool> {
+    f: F,
+    nodes: &'a [Node],
+}
+
+/// Trait implemented for skipping nodes during graph traversal.
+/// The _raw_ version works on the internal indices of the nodes.
+pub(super) trait RawSkipFn {
+    fn skip(&self, _: usize) -> bool;
+}
+impl<'a, Node, F: Fn(&Node) -> bool> RawSkipFn for SkipToRawSkipFn<'a, Node, F> {
+    fn skip(&self, index: usize) -> bool {
+        (self.f)(&self.nodes[index])
+    }
+}
+
 /// An iterator that yields indices of all descendants of a node in a graph in reverse topological order.
 /// This is the iterator all others are based on.
 ///
 /// **For internal use**. Only use this function if you know what you're doing.
-struct DescendantReverseTopologicalIteratorRaw<'a> {
+struct DescendantReverseTopologicalIteratorRaw<'a, SkipFn: RawSkipFn> {
     edges: &'a [Vec<usize>],
     remaining_indices: Vec<usize>,
     visited: Vec<bool>,
+    skip_fn: Option<SkipFn>,
 }
 
-impl<'a> Iterator for DescendantReverseTopologicalIteratorRaw<'a> {
+impl<'a, SkipFn: RawSkipFn> Iterator for DescendantReverseTopologicalIteratorRaw<'a, SkipFn> {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -27,6 +61,16 @@ impl<'a> Iterator for DescendantReverseTopologicalIteratorRaw<'a> {
                 self.remaining_indices.pop();
                 continue;
             }
+
+            // If the node should be skipped, mark it as visited and continue.
+            if let Some(ref skip_fn) = self.skip_fn {
+                if skip_fn.skip(index) {
+                    self.visited[index] = true;
+                    self.remaining_indices.pop();
+                    continue;
+                }
+            }
+
             // If the node has no unvisited children, that's the node we want
             // to return next.
             if self.edges[index].iter().all(|&to| self.visited[to]) {
@@ -54,10 +98,13 @@ impl<'a, Node> DescendantTopologicalIterator<'a, Node> {
         edges: &'a [Vec<usize>],
         start_indices: Vec<usize>,
     ) -> Self {
+        // No skip function for this iterator.
+        let skip_fn: Option<NeverSkip> = None;
         let rti = DescendantReverseTopologicalIteratorRaw {
             edges,
             remaining_indices: start_indices,
             visited: vec![false; edges.len()],
+            skip_fn,
         };
         let mut order = rti.collect::<Vec<_>>();
         order.reverse();
@@ -78,23 +125,30 @@ impl<'a, Node> Iterator for DescendantTopologicalIterator<'a, Node> {
 
 /// An iterator that yields all descendants of a node in a graph in reverse topological order (i.e., children are
 /// always yielded before parents).
-pub struct DescendantReverseTopologicalIterator<'a, Node> {
+///
+/// `_RawSkipFn` is an internal type used by the `Raw` version of the iterator.
+pub struct DescendantReverseTopologicalIterator<'a, Node, _RawSkipFn: RawSkipFn> {
     nodes: &'a [Node],
-    iter: DescendantReverseTopologicalIteratorRaw<'a>,
+    iter: DescendantReverseTopologicalIteratorRaw<'a, _RawSkipFn>,
 }
-impl<'a, Node> DescendantReverseTopologicalIterator<'a, Node> {
+
+// We implement on `UnusedSkip` so that there is a unique implementation for the `new_*` functions.
+// Each `new_*` returns a customized version of `Self` with the `UnusedSkip` type replaced by one
+// derived from a function closure.
+impl<'a, Node> DescendantReverseTopologicalIterator<'a, Node, UnusedSkip> {
     /// Iterate over all descendants of any node in `start_indices` in reverse topological order.
     pub fn new_multiroot(
         nodes: &'a [Node],
         edges: &'a [Vec<usize>],
         start_indices: Vec<usize>,
-    ) -> Self {
-        Self {
+    ) -> DescendantReverseTopologicalIterator<'a, Node, NeverSkip> {
+        DescendantReverseTopologicalIterator {
             nodes,
             iter: DescendantReverseTopologicalIteratorRaw {
                 edges,
                 remaining_indices: start_indices,
                 visited: vec![false; edges.len()],
+                skip_fn: None,
             },
         }
     }
@@ -105,21 +159,26 @@ impl<'a, Node> DescendantReverseTopologicalIterator<'a, Node> {
         edges: &'a [Vec<usize>],
         start_indices: Vec<usize>,
         skip: SkipFn,
-    ) -> Self {
-        // TODO: This might be made more efficient by calling `skip` in the _raw_ version of this iterator
-        // only when needed. Investigate if we need this performance boost.
-        let visited = nodes.iter().map(skip).collect::<Vec<_>>();
-        Self {
+    ) -> DescendantReverseTopologicalIterator<'a, Node, SkipToRawSkipFn<'a, Node, SkipFn>> {
+        // Wrap the `skip_fn` so that it can operate on raw indices.
+        let skip_fn = SkipToRawSkipFn { f: skip, nodes };
+
+        // Just like in other cases, we start out not having "visited" any nodes.
+        let visited = vec![false; nodes.len()];
+        DescendantReverseTopologicalIterator {
             nodes,
             iter: DescendantReverseTopologicalIteratorRaw {
                 edges,
                 remaining_indices: start_indices,
                 visited,
+                skip_fn: Some(skip_fn),
             },
         }
     }
 }
-impl<'a, Node> Iterator for DescendantReverseTopologicalIterator<'a, Node> {
+impl<'a, Node, _RawSkipFn: RawSkipFn> Iterator
+    for DescendantReverseTopologicalIterator<'a, Node, _RawSkipFn>
+{
     type Item = &'a Node;
 
     fn next(&mut self) -> Option<Self::Item> {
