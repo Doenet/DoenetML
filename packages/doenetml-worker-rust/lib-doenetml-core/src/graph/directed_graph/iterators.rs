@@ -1,13 +1,5 @@
 //! Iterators for the `Graph` type.
 
-/// A [`NodeSkipFn`] that never skips any nodes.
-pub(super) struct NeverSkip {}
-impl RawSkipFn for NeverSkip {
-    fn skip(&self, _: usize) -> bool {
-        false
-    }
-}
-
 /// A [`NodeSkipFn`] that should never be called. It is used as a type stand-in.
 pub(super) struct UnusedSkip {}
 impl RawSkipFn for UnusedSkip {
@@ -99,7 +91,7 @@ impl<'a, Node> DescendantTopologicalIterator<'a, Node> {
         start_indices: Vec<usize>,
     ) -> Self {
         // No skip function for this iterator.
-        let skip_fn: Option<NeverSkip> = None;
+        let skip_fn: Option<UnusedSkip> = None;
         let rti = DescendantReverseTopologicalIteratorRaw {
             edges,
             remaining_indices: start_indices,
@@ -141,7 +133,7 @@ impl<'a, Node> DescendantReverseTopologicalIterator<'a, Node, UnusedSkip> {
         nodes: &'a [Node],
         edges: &'a [Vec<usize>],
         start_indices: Vec<usize>,
-    ) -> DescendantReverseTopologicalIterator<'a, Node, NeverSkip> {
+    ) -> DescendantReverseTopologicalIterator<'a, Node, UnusedSkip> {
         DescendantReverseTopologicalIterator {
             nodes,
             iter: DescendantReverseTopologicalIteratorRaw {
