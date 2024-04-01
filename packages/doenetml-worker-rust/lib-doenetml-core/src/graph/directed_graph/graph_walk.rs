@@ -83,23 +83,6 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         )
     }
 
-    /// Walk through all nodes that have `node` as a descendant, including `node` itself.
-    /// Nodes are walked in _reverse topological_ order.
-    /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
-    /// Panics if a cycle is detected.
-    pub fn ancestors_reverse_topological<A: Borrow<Node>>(
-        &self,
-        node: A,
-    ) -> impl Iterator<Item = &Node> {
-        let node = node.borrow();
-        let &start_index = self.index_lookup.get_tag(node).unwrap();
-        DescendantReverseTopologicalIterator::new_multiroot(
-            &self.nodes,
-            &self.reverse_edges,
-            vec![start_index],
-        )
-    }
-
     /// Walk through all nodes that have any node listed in `start_nodes` as a descendant, including `start_nodes` themselves.
     /// Nodes are walked in _reverse topological_ order.
     /// That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.

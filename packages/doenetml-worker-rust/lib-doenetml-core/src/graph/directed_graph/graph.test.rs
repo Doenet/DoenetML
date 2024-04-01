@@ -174,7 +174,9 @@ fn can_iterate_through_ancestors_reverse_topological_including_multiroot() {
     graph.add_edge(d, e);
     graph.add_edge(b, e);
 
-    let nodes = graph.ancestors_reverse_topological(&e).collect_vec();
+    let nodes = graph
+        .ancestors_reverse_topological_multiroot(&[&e])
+        .collect_vec();
     assert_eq!(nodes, vec![&a, &b, &c, &d, &e]);
 
     let nodes = graph
