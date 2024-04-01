@@ -48,7 +48,7 @@ impl NormalizedRoot {
                     // Print children if there are any
                     //
                     let children_name = format!("{}_children", e.idx);
-                    if e.children.len() > 0 {
+                    if !e.children.is_empty() {
                         mermaid.push_str(&format!("{}([children])\n", children_name));
                         mermaid.push_str(&format!("{} --> {}\n", e.idx, children_name));
                     }
@@ -61,7 +61,7 @@ impl NormalizedRoot {
                                 mermaid.push_str(&format!(
                                     "{} --> {}[\"'{}'\"]\n",
                                     children_name,
-                                    format!("{}_{}_text", e.idx, i),
+                                    format_args!("{}_{}_text", e.idx, i),
                                     t
                                 ));
                             }
@@ -75,17 +75,12 @@ impl NormalizedRoot {
                     let attrs = e
                         .attributes
                         .iter()
-                        .filter_map(|a| {
-                            if a.name.eq_ignore_ascii_case("name")
+                        .filter(|a| {
+                            a.name.eq_ignore_ascii_case("name")
                                 || a.name.eq_ignore_ascii_case("extend")
-                            {
-                                None
-                            } else {
-                                Some(a)
-                            }
                         })
                         .collect::<Vec<_>>();
-                    if attrs.len() > 0 {
+                    if !attrs.is_empty() {
                         mermaid.push_str(&format!("{}([attrs])\n", attrs_name));
                         mermaid.push_str(&format!("{} --> {}\n", e.idx, attrs_name));
                     }
@@ -104,7 +99,7 @@ impl NormalizedRoot {
                                     mermaid.push_str(&format!(
                                         "{} --> {}[\"'{}'\"]\n",
                                         attr_name,
-                                        format!("{}_{}_text", e.idx, j),
+                                        format_args!("{}_{}_text", e.idx, j),
                                         t
                                     ));
                                 }
@@ -232,7 +227,7 @@ impl Core {
         {
             let component_idx = ComponentIdx::from(component_node);
             // Children
-            if let Some(children_virtual_node) = graph.get_nth_child(&component_node, 0) {
+            if let Some(children_virtual_node) = graph.get_nth_child(component_node, 0) {
                 mermaid.push_str(&format!(
                     "{}([children])\n",
                     children_virtual_node.to_mermaid_id()
@@ -240,7 +235,7 @@ impl Core {
             }
 
             // Attrs
-            if let Some(attrs_virtual_node) = graph.get_nth_child(&component_node, 1) {
+            if let Some(attrs_virtual_node) = graph.get_nth_child(component_node, 1) {
                 mermaid.push_str(&format!(
                     "{}([attrs])\n",
                     attrs_virtual_node.to_mermaid_id()
@@ -263,7 +258,7 @@ impl Core {
             }
 
             // Props
-            let props_virtual_node = graph.get_nth_child(&component_node, 2).unwrap();
+            let props_virtual_node = graph.get_nth_child(component_node, 2).unwrap();
             mermaid.push_str(&format!(
                 "{}([props])\n",
                 props_virtual_node.to_mermaid_id()

@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-
+pub use super::graph_node_lookup::*;
 use crate::{
     components::types::{LocalPropIdx, PropDefinitionIdx},
-    graph::directed_graph::{DirectedGraph, Taggable},
+    graph::directed_graph::DirectedGraph,
 };
 
 /// A node in `Core`'s `structure_graph` or `dependency_graph`. `GraphNode` don't store
@@ -15,7 +14,6 @@ use crate::{
     Debug,
     // XXX: These three are for `NewNodeTypeLookup`
     // They can be removed when a more efficient implementation is made.
-    Hash,
     PartialEq,
     Eq,
     serde::Serialize,
@@ -69,52 +67,6 @@ impl GraphNode {
 impl From<&GraphNode> for GraphNode {
     fn from(node: &GraphNode) -> Self {
         *node
-    }
-}
-
-/// Data structure on which a `Taggable<GraphNode, _>` can be implemented.
-#[derive(Clone, Debug)]
-pub struct GraphNodeLookup<T> {
-    /// A `HashMap` is a not-so-efficient, but easy way to implement a lookup table.
-    /// XXX: This should be replaced with a more efficient data structure after performance tests.
-    hash: HashMap<GraphNode, T>,
-    //    components: Vec<Option<T>>,
-    //    strings: Vec<Option<T>>,
-    //    props: Vec<Option<T>>,
-    //    states: Vec<Option<T>>,
-    //    queries: Vec<Option<T>>,
-    //    virtuals: Vec<Option<T>>,
-}
-
-impl<T> Default for GraphNodeLookup<T> {
-    fn default() -> Self {
-        Self {
-            hash: HashMap::new(),
-        }
-    }
-}
-impl<T> GraphNodeLookup<T> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn keys(&self) -> impl Iterator<Item = &GraphNode> {
-        self.hash.keys()
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = (&GraphNode, &T)> {
-        self.hash.iter()
-    }
-}
-
-/// Cheap taggable to lookup `Node`s by index.
-/// XXX: This struct makes no attempt to be efficient.
-impl<T> Taggable<GraphNode, T> for GraphNodeLookup<T> {
-    fn set_tag(&mut self, node: GraphNode, tag: T) {
-        self.hash.insert(node, tag);
-    }
-    fn get_tag(&self, node: &GraphNode) -> Option<&T> {
-        self.hash.get(node)
     }
 }
 

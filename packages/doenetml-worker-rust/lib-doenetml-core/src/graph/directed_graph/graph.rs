@@ -36,6 +36,11 @@ pub struct DirectedGraph<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>
 }
 
 impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node, IndexLookup> {
+    /// **For internal use**. Get the `IndexLookup` object.
+    pub fn _debug_get_index_lookup(&self) -> &IndexLookup {
+        &self.index_lookup
+    }
+
     /// Get `self.nodes`
     pub fn get_nodes(&self) -> &Vec<Node> {
         &self.nodes
