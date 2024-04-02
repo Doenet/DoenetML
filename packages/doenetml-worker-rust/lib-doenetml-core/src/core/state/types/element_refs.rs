@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use crate::components::types::ComponentIdx;
 
 /// A vector of references to components
@@ -9,9 +7,6 @@ use crate::components::types::ComponentIdx;
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ElementRefs(pub Vec<ComponentIdx>);
 
-impl Deref for ElementRefs {
-    type Target = Vec<ComponentIdx>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+/// A reference to a single component
+#[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ElementRef(pub ComponentIdx);

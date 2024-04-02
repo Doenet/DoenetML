@@ -39,6 +39,8 @@ pub enum PropProfile {
     Hidden,
     /// Matches the RenderedChildren prop
     RenderedChildren,
+    /// Matches the SerialNumber prop
+    SerialNumber,
 }
 
 // TODO: implement with macro?
@@ -58,6 +60,7 @@ impl PropProfile {
             PropProfile::RenderedChildren => {
                 PropValue::ElementRefs(Rc::new(ElementRefs::default()))
             }
+            PropProfile::SerialNumber => PropValue::Integer(i64::default()),
         }
     }
 }

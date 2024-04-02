@@ -101,7 +101,7 @@ pub enum DataQuery {
     /// Query for all child GraphNodes,
     /// filtering element nodes for components which contain PropProfile props given specified values
     ///
-    /// filter: a vector of `PropProfile` and `PropValue` pairings.
+    /// - `filter`: a vector of `PropProfile` and `PropValue` pairings.
     /// If a component has a prop with each specified `PropProfile`,
     /// then it will be filtered out if any of the values don't match the specified `PropValue`.
     /// If a component does not have a prop with one or more of the specified `PropProfiles`,
@@ -142,6 +142,8 @@ pub enum DataQuery {
     /// and will accept any change when inverting.
     State,
 
+    ///// Query for a reference to "self", the component making the query.
+    //SelfRef,
     #[default]
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,

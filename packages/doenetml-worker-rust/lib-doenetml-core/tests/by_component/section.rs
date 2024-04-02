@@ -163,7 +163,7 @@ mod test_helpers {
 
         let element_refs: Rc<ElementRefs> = (value).clone().try_into().unwrap();
 
-        element_refs[0]
+        element_refs.0[0]
     }
 
     /// Resolves `renderedChildren` from a `<section>` component and returns its value

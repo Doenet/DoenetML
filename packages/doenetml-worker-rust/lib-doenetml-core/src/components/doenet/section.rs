@@ -35,6 +35,13 @@ mod component {
         )]
         Hidden,
 
+        //   /// The position of the section relative to other siblings with serial numbers.
+        //   /// E.g. in `<section /><section />` the first would have serial number 1 and the second 2.
+        //   #[prop(
+        //       value_type = PropValueType::Integer,
+        //       profile = PropProfile::SerialNumber
+        //   )]
+        //   SerialNumber,
         #[prop(
             value_type = PropValueType::GraphNodes,
             profile = PropProfile::RenderedChildren
@@ -83,7 +90,10 @@ impl PropGetUpdater for SectionProps {
                 as_updater_object::<_, props::types::RenderedChildren>(
                     custom_props::RenderedChildren::new(),
                 )
-            }
+            } //  SectionProps::SerialNumber => {
+              //      todo!()
+              //      //               as_updater_object::<_, props::types::SerialNumber>()
+              //  }
         }
     }
 }

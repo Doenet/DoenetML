@@ -56,6 +56,9 @@ impl PropDefinition {
             PropValueDiscriminants::GraphNodes => {
                 panic!("No preferred component type for an GraphNodes PropValue")
             }
+            PropValueDiscriminants::ElementRef => {
+                panic!("No preferred component type for an ElementRef PropValue")
+            }
         }
     }
 }

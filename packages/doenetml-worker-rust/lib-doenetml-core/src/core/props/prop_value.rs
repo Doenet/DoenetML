@@ -41,6 +41,7 @@ pub enum PropValue {
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
     ElementRefs(prop_type::ElementRefs),
+    ElementRef(prop_type::ElementRef),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
@@ -63,6 +64,7 @@ pub mod prop_type {
     pub type Integer = i64;
     pub type Boolean = bool;
     pub type Math = Rc<MathExpr>;
+    pub type ElementRef = element_refs::ElementRef;
     pub type ElementRefs = Rc<element_refs::ElementRefs>;
     pub type GraphNodes = Rc<Vec<GraphNode>>;
 }
