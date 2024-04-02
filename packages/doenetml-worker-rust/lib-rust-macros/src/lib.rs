@@ -9,7 +9,7 @@ mod component_module;
 mod data_query_results;
 mod try_from_ref;
 
-/// Create a _DoenetML_ _Component_ from a decorated module. This macro adds creates required structs/enums
+/// Create a _DoenetML_ _Component_ from a decorated module. This macro creates required structs/enums
 /// from a module containing a declaration of a _DoenetML_ component.
 ///
 /// By decorating a "component-description" module with `#[component(name = Foo, ...)]`,
@@ -35,10 +35,12 @@ mod try_from_ref;
 /// #[component(name = MyComponent)]
 /// mod component {
 ///    enum Props {
-///       #[prop(value_type = PropValueType::String,
-///              is_public,
-///              profile = PropProfile::String,
-///              default)]
+///      #[prop(
+///          value_type = PropValueType::String,
+///          is_public,
+///          profile = PropProfile::String,
+///          default
+///      )]
 ///      Value,
 ///   }
 /// }
@@ -48,7 +50,7 @@ mod try_from_ref;
 /// pub use component::MyComponentProps;
 /// ```
 /// In this example, `MyComponent` will have a prop `value` (note how Rust's PascalCase is converted to camelCase).
-/// It's value type is String, it is marked as public, and it satisfies the `PropProfile::String` profile. It is also
+/// Its value type is String that is marked as public, and it satisfies the `PropProfile::String` profile. It is also
 /// marked as the (unique) default prop.
 ///
 /// ## Usage
@@ -71,63 +73,49 @@ mod try_from_ref;
 ///
 /// ### `#[attribute(...)]`
 ///
-/// XXX Finish
+/// This macro is used to decorate an attribute inside the `Attributes` struct. For example
+/// ```ignore
+/// #[component(name = MyComponent)]
+/// mod component {
+///   enum Attributes {
+///     #[attribute(prop = BooleanProp, default = false)]
+///     Disabled,
+///   }
+/// }
+/// ```
+///
+/// It has the following options:
+/// - `prop = ...` - Required; the prop that will process this attribute's value. It can be a general prop (e.g. `BooleanProp` or
+/// `StringProp`) or a custom prop defined elsewhere.
+/// - `default = ...` - Required; the default value of the attribute. For strings use `String::new()`, for other types, you can specify
+/// their value literally.
+/// - `explicit_type = ...` - Optional; the type of the attribute. If not provided, the type will be inferred from the `prop` attribute.
 ///
 /// ### `#[prop(...)]`
 ///
-/// XXX Finish
+/// This macro is used to decorate a prop inside the `Props` struct. For example
+/// ```ignore
+/// #[component(name = MyComponent)]
+/// mod component {
+///   enum Props {
+///     #[prop(
+///       value_type = PropValueType::String,
+///       is_public,
+///       profile = PropProfile::String
+///     )]
+///     Value,
+///   }
+/// }
+/// ```
 ///
-/// The building blocks of a component
-/// ## Options
-///  - `#[component(ref_transmutes_to = "...")]` - The name of the component that should be used to
-///    render a direct reference to this component. E.g. in `<textInput name="i"/>$i`, the `$i`
-///    should be rendered as a `<text extend="$i"/>` rather than a `<textInput extend="$i"/>`.
-///    Setting `#[component(ref_transmutes_to = "Text")]` will do this.
-///    
+/// It has the following options:
+/// - `value_type = ...` - Required; the type of the prop. It should be specified as one of the `PropValueType::...` variants.
+/// - `is_public` - Optional; if set, the prop will be accessible by a ref in the document. E.g. with `$foo.prop`.
+/// - `profile = ...` - Optional; the profile that the prop satisfies. It should be specified as one of the `PropProfile::...` variants.
+/// If set, this prop will match [`DataQuery`]s for the specified profile.
+/// - `default` - Optional; if set, this prop will be the default prop for the component. Only **one** prop can be the default prop.
+/// - `for_render` - Optional; if set, this prop will be sent to the renderer. That is, if set, this prop will be included in data sent to the UI.
 ///
-/// FROM OLD DOCSTRING:
-/// ```text
-/// The following attributes specify properties of props in the component props structure.
-/// - #\[for_renderer\]
-///
-///   Designate the prop as one that will be sent to the renderer.
-///   If `for_renderer` is set, the value of the prop will be added to the `RenderedProps`
-///   structure for the component that is sent to the renderer
-///
-/// - #\[is_public\]
-///
-///   Designate that the prop is public, in the sense that it can be
-///   accessed by a ref in the document.
-///
-/// - #\[component_profile_prop\]
-///
-///   Designate that the prop can be used to satisfy the [`PropProfile`]
-///   that corresponds to the prop's type.
-///
-///   If a parent has a `Child` or `AttributeChild` data query, it will request
-///   a particular profile type, and this prop could be returned.
-///
-///   Currently, the `component_profile props` does not have a mechanism for specifying
-///   priority in case more than one prop matches what a parent is requesting.
-///   If there is more than one match, the prop that appears first in the ordering of
-///   the fields of the struct will be selected.
-///   
-///
-/// Accessible with `#[component(ref_transmutes_to = "new_name")]`.
-/// Indicates what component a reference should become. For example
-/// `<textInput name="a"/>$a`, one may want `$a` to appear as a `Text` by default,
-/// rather than a `TextInput`. In this case, you would set `ref_transmutes_to = "Text"`.
-///
-/// Accessible via `#[component(extend_via_default_prop)]`.
-/// Indicates that, when a component is extended into a different component type,
-/// it should use its default prop to create an `Extending::Prop` link
-/// rather than an `Extending::Component` link.
-///
-/// For example, with `<textInput name="a"/><text extend="$a" />`,
-/// the extension to `<text>` uses the `value` prop of the textInput,
-/// i.e., equivalent `<textInput name="a"/><text extend="$a.value" />`.
-///```
-/// XXX: Finish doc.
 #[proc_macro_attribute]
 pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = proc_macro2::TokenStream::from(item);
