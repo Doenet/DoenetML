@@ -18,9 +18,9 @@ fn p_rendered_children() {
         get_rendered_children_prop(p_idx, &mut core),
         vec![
             GraphNode::Component(2),
-            GraphNode::String(1),
+            GraphNode::String(0),
             GraphNode::Component(3),
-            GraphNode::String(2),
+            GraphNode::String(1),
         ]
     );
 
@@ -56,8 +56,8 @@ fn p_hidden_children_not_rendered() {
         get_rendered_children_prop(p_idx, &mut core),
         vec![
             GraphNode::Component(2),
+            GraphNode::String(0),
             GraphNode::String(1),
-            GraphNode::String(2),
         ]
     );
 

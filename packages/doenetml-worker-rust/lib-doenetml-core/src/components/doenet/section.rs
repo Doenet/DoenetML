@@ -132,8 +132,8 @@ mod custom_props {
             }
             fn title_query() -> DataQuery {
                 DataQuery::Prop {
-                    component_idx: None,
-                    local_prop_idx: SectionProps::Title.local_idx(),
+                    component: PropComponent::Me,
+                    prop_specifier: SectionProps::Title.local_idx().into(),
                 }
             }
         }

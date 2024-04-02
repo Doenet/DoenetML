@@ -4,13 +4,13 @@ use crate::{
         types::{LocalPropIdx, PropPointer},
     },
     graph_node::GraphNode,
-    props::{DataQuery, PropProfile},
+    props::{DataQuery, PropComponent, PropProfile, PropSpecifier},
     test_utils::*,
     Core,
 };
 
-const TEXT_VALUE_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Value);
-const TEXT_TEXT_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Text);
+const TEXT_VALUE_LOCAL_IDX: LocalPropIdx = TextProps::Value.local_idx();
+const TEXT_TEXT_LOCAL_IDX: LocalPropIdx = TextProps::Text.local_idx();
 
 #[test]
 fn test_adding_sate_data_query() {
@@ -102,8 +102,8 @@ fn test_adding_prop_data_query() {
     core.document_model.add_data_query(
         value_prop_node,
         DataQuery::Prop {
-            component_idx: None,
-            local_prop_idx: TEXT_TEXT_LOCAL_IDX,
+            component: PropComponent::Me,
+            prop_specifier: TEXT_TEXT_LOCAL_IDX.into(),
         },
     );
 
@@ -181,6 +181,42 @@ fn test_attribute_data_query() {
             .descendants_topological_multiroot(&[GraphNode::Query(1)])
             .collect::<Vec<_>>(),
         vec![&GraphNode::Query(1), &t2_value_node, &hide_second_child]
+    );
+}
+
+#[test]
+fn test_parent_prop_data_query() {
+    let dast_root = dast_root_no_position(r#"<text>Hi <text>there</text> you</text>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 2.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+
+    core.document_model.add_data_query(
+        prop_node,
+        DataQuery::Prop {
+            component: PropComponent::Parent,
+            prop_specifier: PropSpecifier::Matching(vec![PropProfile::String]),
+        },
+    );
+    let value_prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 1.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+
+    // Only one data query and one piece of state has been created.
+    // The query should point to the state.
+    assert_eq!(
+        core.document_model
+            .get_dependency_graph()
+            // GraphNode::Query(0) is always created as a DataQuery:Null, so the first
+            // created query actually has index 1.
+            .get_children(GraphNode::Query(1)),
+        vec![value_prop_node]
     );
 
     //    println!("{}", core.to_mermaid_dependency_graph());
