@@ -206,8 +206,7 @@ impl DocumentModel {
                                 origin: Some(node),
                             }),
 
-                            // XXX: Can we have other children
-                            _ => None,
+                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery::FilteredChildren`. Got node `{:?}`", node),
                         }
                     })
                     .collect::<Vec<_>>();
@@ -251,8 +250,8 @@ impl DocumentModel {
                                 changed: true,
                                 origin: Some(node),
                             }),
-                            // XXX: Can we have other children
-                            _ => None,
+
+                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery`. Got node `{:?}`", node),
                         }
                     })
                     .collect::<Vec<_>>();
