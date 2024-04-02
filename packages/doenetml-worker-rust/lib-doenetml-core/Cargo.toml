@@ -44,6 +44,7 @@ pprof = { version = "0.13.0", features = [
     "criterion",
     "protobuf-codec"
 ] }
+tempfile = "3.10"
 
 [[bench]]
 name = "core_benchmark"

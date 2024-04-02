@@ -15,7 +15,9 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["yargs"],
+            // If we do `external: ["yargs"]` then we do not produce a portable JS file,
+            // so only exclude node built-in modules
+            external: ["fs", "path"],
         },
     },
 });
