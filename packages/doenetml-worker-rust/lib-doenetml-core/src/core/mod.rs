@@ -10,6 +10,7 @@ mod document_model;
 mod document_renderer;
 mod document_structure;
 pub mod graph_node;
+mod graph_node_lookup;
 pub mod math_via_wasm;
 pub mod props;
 

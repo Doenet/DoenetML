@@ -1,11 +1,12 @@
 //! Allow for the caching of props (and state props and strings).
 
-use std::{borrow, cell::RefCell, collections::HashMap};
+use std::{borrow, cell::RefCell};
 
 use crate::{
     components::prelude::{GraphNode, PropCalcResult, PropValue},
     core::graph_node::GraphNodeLookup,
     graph::directed_graph::Taggable,
+    graph_node::DoubleNodeLookup,
 };
 
 /// The possible values of the status of a prop.
@@ -176,14 +177,13 @@ pub struct PropCache {
     /// A map from {prop_node} -> {cached_prop}
     store: RefCell<GraphNodeLookup<CachedProp>>,
     /// A map from {prop_node}x{query_node} -> {change_counter}
-    // TODO: HashMap provides a quick solution, but there may be more efficient ones.
-    change_tracker: RefCell<HashMap<(usize, GraphNode), u32>>,
+    change_tracker: RefCell<DoubleNodeLookup<u32>>,
 }
 impl PropCache {
     pub fn new() -> Self {
         PropCache {
             store: RefCell::new(GraphNodeLookup::new()),
-            change_tracker: RefCell::new(HashMap::new()),
+            change_tracker: RefCell::new(DoubleNodeLookup::new()),
         }
     }
 
@@ -306,8 +306,8 @@ impl PropCache {
         update_change_tracker: bool,
     ) -> PropWithMeta {
         let prop_node = prop_node.borrow();
-        let origin = *origin.borrow();
-        let change_tracker_key = (prop_node.idx(), origin);
+        let origin: GraphNode = *origin.borrow();
+        let change_tracker_key = (*prop_node, origin);
 
         let change_counter_on_last_query = {
             // Borrow RefCells for the shortest time possible to avoid panics.

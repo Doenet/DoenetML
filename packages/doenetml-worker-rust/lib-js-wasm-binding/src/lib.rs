@@ -36,8 +36,6 @@ pub struct ActionResponse {
     payload: HashMap<ComponentIdx, FlatDastElementUpdate>,
 }
 
-// XXX: Remove this allow block. Everything there should be no warnings if the code is correct.
-#[allow(unreachable_code)]
 #[wasm_bindgen]
 impl PublicDoenetMLCore {
     #[allow(clippy::new_without_default)]

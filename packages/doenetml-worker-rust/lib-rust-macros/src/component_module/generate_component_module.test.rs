@@ -39,7 +39,7 @@ fn test_preserves_pub_decorator_on_module() {
 #[test]
 fn test_can_parse_module() {
     let input = r#"
-        /// XXX
+        /// Some Comment
         #[component(name = Document, ref_transmutes_to = Text)]
         mod component {
             use super::ActionBody;

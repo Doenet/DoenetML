@@ -3,8 +3,13 @@ use doenetml_core::dast::{DastRoot, FlatDastRoot};
 use serde_json;
 #[allow(unused)]
 pub use serde_json::{json, Value};
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 use std::process::Command;
 use std::str;
+
+const PARSE_DAST_JS_SOURCE: &str = include_str!("../dist/parse-dast.js");
 
 /// Execute the command `node ./tests/dist/parse-dast.js -i <dast>`.
 /// This returns a JSON string of the parsed DAST. Node must be installed and properly configured.
@@ -20,14 +25,23 @@ pub fn evaluate_dast_via_node(dast: &str, strip_position: bool) -> std::io::Resu
 ///
 /// If `strip_position` is true, the position field will be stripped from the output.
 pub fn evaluate_dast_via_node_to_json(dast: &str, strip_position: bool) -> std::io::Result<String> {
+    // Save the JS source to a temporary file so that the resulting binary becomes more portable
+    let dir = tempfile::tempdir()?;
+    let file_path = PathBuf::from(dir.path().join("tempfile.mjs"));
+    let mut file = File::create(&file_path)?;
+    writeln!(file, "{}", PARSE_DAST_JS_SOURCE)?;
+
     let mut command = Command::new("node");
     command
-        .arg("./tests/dist/parse-dast.js")
+        // Instead of `.arg("./tests/dist/parse-dast.js")`
+        // we use the tmp file that was created
+        .arg(file_path)
         .arg("-i")
         .arg(dast);
     if strip_position {
         command.arg("--strip-position");
     }
+
     let output = command.output()?;
 
     match output.status.success() {
