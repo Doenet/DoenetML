@@ -206,8 +206,7 @@ impl DocumentModel {
                                 origin: Some(node),
                             }),
 
-                            // XXX: Can we have other children
-                            _ => None,
+                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery::FilteredChildren`. Got node `{:?}`", node),
                         }
                     })
                     .collect::<Vec<_>>();
@@ -223,24 +222,20 @@ impl DocumentModel {
                     .borrow()
                     .get_children(query_node)
                     .into_iter()
-                    .filter_map(|node| {
+                    .map(|node| {
                         match node {
                             GraphNode::Prop(_) => {
                                 let prop_to_calculate = node;
                                 // The prop should be fresh, so `unreachable_calculate` should never be called
-                                Some(
                                     self.prop_cache
-                                        .get_prop_unchecked(prop_to_calculate, query_node),
-                                )
+                                        .get_prop_unchecked(prop_to_calculate, query_node)
                             }
-                            GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
-                            GraphNode::String(_) => Some(
-                                self.document_structure
+                            GraphNode::State(_) => self.states.get_state(node, query_node),
+                            GraphNode::String(_) => self.document_structure
                                     .borrow()
                                     .get_string(node, query_node),
-                            ),
                             // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
-                            GraphNode::Component(component_idx) => Some(PropWithMeta {
+                            GraphNode::Component(component_idx) => PropWithMeta {
                                 // TODO: once we have a singular `ElementRef` we can remove the vector
                                 value: PropValue::ElementRefs(Rc::new(ElementRefs(vec![
                                     component_idx.into(),
@@ -250,9 +245,9 @@ impl DocumentModel {
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
                                 changed: true,
                                 origin: Some(node),
-                            }),
-                            // XXX: Can we have other children
-                            _ => None,
+                            },
+
+                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery`. Got node `{:?}`", node),
                         }
                     })
                     .collect::<Vec<_>>();

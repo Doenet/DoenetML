@@ -30,10 +30,13 @@ impl StringCache {
     /// Add a state prop to the store with given `value` and `came_from_default`.
     /// Returns the state prop's index.
     pub fn add_string(&mut self, s: String) -> usize {
-        self.string_counter += 1;
         let idx = self.string_counter;
         self.prop_cache
             .set_prop(GraphNode::String(idx), PropCalcResult::Calculated(s.into()));
+
+        // Update the string counter so the next time we add string we start at a new index.
+        self.string_counter += 1;
+
         idx
     }
 

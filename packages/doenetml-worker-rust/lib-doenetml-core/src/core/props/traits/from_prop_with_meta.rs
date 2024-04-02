@@ -46,8 +46,9 @@ where
                     val.len()
                 );
         }
-        let val = val.into_iter().next().unwrap();
-        val.into_prop_view()
+        // Slightly faster than
+        // val.into_iter().next().unwrap().into_prop_view()
+        val[0].to_owned().into_prop_view()
     }
 }
 

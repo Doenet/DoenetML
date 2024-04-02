@@ -74,6 +74,23 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         });
     });
 
+    let num_nodes = wide_graph
+        .descendants_reverse_topological_multiroot_with_skip(&[root], |node| node.idx() > 1000)
+        .count();
+    dbg!(num_nodes);
+
+    c.bench_function("iterate full graph with skip", |b| {
+        b.iter(|| {
+            for x in wide_graph
+                .descendants_reverse_topological_multiroot_with_skip(&[root], |node| {
+                    node.idx() > 1000
+                })
+            {
+                black_box(x);
+            }
+        });
+    });
+
     let root = GraphNode::Virtual(1000);
     dbg!(wide_graph.descendants_quick(root).count());
 

@@ -49,6 +49,10 @@ impl DocumentStructure {
         }
     }
 
+    pub fn _get_num_components(&self) -> usize {
+        self.components.len()
+    }
+
     /// Initialize Self based on the values from a `ComponentBuilder`
     pub fn init_from_builder(&mut self, builder: ComponentBuilder) {
         self.structure_graph = builder.structure_graph;

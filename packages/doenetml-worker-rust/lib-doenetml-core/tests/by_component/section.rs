@@ -58,12 +58,12 @@ fn section_finds_title_tag_in_middle() {
         get_rendered_children_prop(section_idx, &mut core),
         vec![
             GraphNode::Component(3),
-            GraphNode::String(1),
+            GraphNode::String(0),
             GraphNode::Component(2),
+            GraphNode::String(1),
             GraphNode::String(2),
-            GraphNode::String(3),
             GraphNode::Component(4),
-            GraphNode::String(4),
+            GraphNode::String(3),
         ]
     );
 
@@ -110,13 +110,13 @@ fn section_with_multiple_title_tags_picks_last() {
         get_rendered_children_prop(section_idx, &mut core),
         vec![
             GraphNode::Component(4),
+            GraphNode::String(0),
             GraphNode::String(1),
-            GraphNode::String(2),
             GraphNode::Component(3),
+            GraphNode::String(2),
             GraphNode::String(3),
-            GraphNode::String(4),
             GraphNode::Component(5),
-            GraphNode::String(5),
+            GraphNode::String(4),
         ]
     );
 
