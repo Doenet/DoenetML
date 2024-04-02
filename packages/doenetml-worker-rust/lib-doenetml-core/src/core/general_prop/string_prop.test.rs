@@ -59,6 +59,9 @@ fn check_default_and_attribute_data_queries() {
     );
 }
 
+/// Check that string prop from children is calculated from the independent state dependency
+/// if there are no children.
+/// The result is marked as default if the independent prop is marked came_from_default.
 #[test]
 fn from_independent_state() {
     let prop =
@@ -77,6 +80,10 @@ fn from_independent_state() {
     assert_string_calculated_value(prop.calculate_untyped(data), "hello");
 }
 
+/// Check that string prop from children is calculated by concatenating the children dependencies
+/// and ignoring the independent state dependency.
+/// If there is a single child dependency, then the result is marked as default
+/// if the child prop is marked came_from_default.
 #[test]
 fn from_children() {
     let prop =
@@ -100,6 +107,8 @@ fn from_children() {
     assert_string_calculated_value(prop.calculate_untyped(data), "hello world!");
 }
 
+/// Calling invert on a string prop from children with no children,
+/// causes the independent prop to be requested to change
 #[test]
 fn invert_with_independent_state() {
     let prop =
@@ -107,57 +116,69 @@ fn invert_with_independent_state() {
 
     let no_children = DataQueryResult { values: vec![] };
     let independent_state = return_single_string_data_query_result("", true);
-    let data = DataQueryResults::from_vec(vec![independent_state, no_children.clone()]);
+    let data = DataQueryResults::from_vec(vec![independent_state, no_children]);
 
     let invert_results = prop.invert_untyped(data, "new".into(), false).unwrap().vec;
 
     // don't have any children
     assert!(invert_results[1].values.is_empty());
+    // request change in independent state
+    assert_eq!(
+        invert_results[0].values,
+        vec![PropWithMeta {
+            value: "new".into(),
+            changed: true,
+            came_from_default: false,
+            origin: None
+        }]
+    );
 }
 
 /// Calling invert on a string prop with a single string child
-/// causes the child to receive that requested value
-// #[test]
-// fn invert_string_prop_that_has_a_single_string_child() {
-//     let prop =
-//         as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
+/// causes the child prop to be requested to change
+#[test]
+fn invert_string_prop_that_has_a_single_string_child() {
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
 
-//     // on the prop view, record that we request the value be "bye"
-//     prop_view.queue_update(String::from("bye"));
+    let independent_state = return_single_string_data_query_result("", true);
 
-//     let invert_result = prop.invert(false).unwrap();
+    // with single child, from default
+    let single_child = return_single_string_data_query_result("hello", true);
 
-//     // we should get a request informing core that we need to change the variable
-//     assert_eq!(
-//         invert_result,
-//         vec![DependencyValueUpdateRequest {
-//             data_query_idx: 1,
-//             dependency_idx: 0
-//         }]
-//     );
+    let data = DataQueryResults::from_vec(vec![independent_state, single_child]);
 
-//     // the child variable has recorded that it has been requested to be "bye"
-//     assert_eq!(*child_var.get_requested_value(), "bye");
-// }
+    let invert_results = prop.invert_untyped(data, "new".into(), false).unwrap().vec;
 
-// /// Cannot invert a string prop with a two string children
-// #[test]
-// fn cannot_invert_string_prop_that_has_two_string_children() {
-//     // create a string prop with two string children
-//     let (mut prop, mut prop_view, _state_var, _child_var_1, _child_var_2) =
-//         set_up_string_prop_with_two_string_children(
-//             String::from("Hello"),
-//             String::from(" World"),
-//             false,
-//         );
+    // independent state is unchanged
+    assert_eq!(invert_results[0].values[0].changed, false);
+    // request change in child
+    assert_eq!(
+        invert_results[1].values,
+        vec![PropWithMeta {
+            value: "new".into(),
+            changed: true,
+            came_from_default: false,
+            origin: None
+        }]
+    );
+}
 
-//     // on the prop view, record that we request the value be false
-//     prop_view.queue_update(String::from("Bye Earth"));
+/// Cannot invert a string prop with a two string children
+#[test]
+fn cannot_invert_string_prop_that_has_two_string_children() {
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
 
-//     let invert_result = prop.invert(false);
+    let independent_state = return_single_string_data_query_result("", true);
 
-//     assert!(invert_result.is_err());
-// }
+    let two_children = return_two_string_data_query_result("hello", " world!", true, true);
+    let data = DataQueryResults::from_vec(vec![independent_state, two_children]);
+
+    let invert_results = prop.invert_untyped(data, "new".into(), false);
+
+    assert!(invert_results.is_err());
+}
 
 mod setup_functions {
 
@@ -172,6 +193,7 @@ mod setup_functions {
                 value: PropValue::String(value.to_string().into()),
                 came_from_default,
                 changed: true,
+                origin: None,
             }],
         }
     }
@@ -188,11 +210,13 @@ mod setup_functions {
                     value: PropValue::String(value1.to_string().into()),
                     came_from_default: came_from_default1,
                     changed: true,
+                    origin: None,
                 },
                 PropWithMeta {
                     value: PropValue::String(value2.to_string().into()),
                     came_from_default: came_from_default2,
                     changed: true,
+                    origin: None,
                 },
             ],
         }
