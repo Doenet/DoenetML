@@ -1,10 +1,16 @@
 use crate::{
-    components::{prelude::DataQuery, PropProfile},
-    core::{graph_based_core::Core, graph_node::GraphNode},
-    dast::{flat_dast::FlatRoot, ref_expand::Expander},
-    state::PropPointer,
+    components::{
+        doenet::text::TextProps,
+        types::{LocalPropIdx, PropPointer},
+    },
+    graph_node::GraphNode,
+    props::{DataQuery, PropProfile},
     test_utils::*,
+    Core,
 };
+
+const TEXT_VALUE_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Value);
+const TEXT_TEXT_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Text);
 
 #[test]
 fn test_adding_sate_data_query() {
@@ -16,19 +22,22 @@ fn test_adding_sate_data_query() {
 
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
+    let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 2.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
 
-    core.add_data_query(
-        PropPointer {
-            component_idx: 2,
-            local_prop_idx: 0,
-        },
-        DataQuery::State,
-    );
+    core.document_model
+        .add_data_query(prop_node, DataQuery::State);
 
     // Only one data query and one piece of state has been created.
     // The query should point to the state.
     assert_eq!(
-        core.dependency_graph.get_children(GraphNode::Query(0)),
+        core.document_model
+            .get_dependency_graph()
+            // GraphNode::Query(0) is always created as a DataQuery:Null, so the first
+            // created query actually has index 1.
+            .get_children(GraphNode::Query(1)),
         vec![GraphNode::State(0)]
     );
 }
@@ -44,29 +53,31 @@ fn test_adding_sate_data_query_with_extending() {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
 
-    core.add_data_query(
-        PropPointer {
-            component_idx: 2,
-            local_prop_idx: 0,
-        },
-        DataQuery::State,
-    );
+    let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 2.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+    core.document_model
+        .add_data_query(prop_node, DataQuery::State);
 
-    core.add_data_query(
-        PropPointer {
-            component_idx: 1,
-            local_prop_idx: 0,
-        },
-        DataQuery::State,
-    );
+    let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 1.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+    core.document_model
+        .add_data_query(prop_node, DataQuery::State);
 
     // The two queries should point to the same state.
     assert_eq!(
-        core.dependency_graph.get_children(GraphNode::Query(0)),
+        core.document_model
+            .get_dependency_graph()
+            .get_children(GraphNode::Query(1)),
         vec![GraphNode::State(0)]
     );
     assert_eq!(
-        core.dependency_graph.get_children(GraphNode::Query(1)),
+        core.document_model
+            .get_dependency_graph()
+            .get_children(GraphNode::Query(2)),
         vec![GraphNode::State(0)]
     );
 }
@@ -83,42 +94,48 @@ fn test_adding_prop_data_query() {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
 
-    core.add_data_query(
-        PropPointer {
-            component_idx: 2,
-            local_prop_idx: 0,
-        },
+    let value_prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 2.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+    // The arrow is going the wrong way. We're doing this for fun.
+    core.document_model.add_data_query(
+        value_prop_node,
         DataQuery::Prop {
             component_idx: None,
-            prop_idx: 1,
+            local_prop_idx: TEXT_TEXT_LOCAL_IDX,
         },
     );
 
     // We should have our prop and the prop from the corresponding extending source.
+    let text_prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 2.into(),
+        local_prop_idx: TEXT_TEXT_LOCAL_IDX,
+    });
     assert_eq!(
-        core.dependency_graph
-            .descendants_topological(GraphNode::Query(0))
+        core.document_model
+            .get_dependency_graph()
+            .descendants_topological_multiroot(&[GraphNode::Query(1)])
             .collect::<Vec<_>>(),
-        vec![&GraphNode::Prop(4)]
+        vec![&GraphNode::Query(1), &text_prop_node]
     );
 
     // Add a state data query to the same prop. The state should appear in the dependency graph.
-    core.add_data_query(
-        PropPointer {
-            component_idx: 2,
-            local_prop_idx: 1,
-        },
-        DataQuery::State,
-    );
+    core.document_model
+        .add_data_query(text_prop_node, DataQuery::State);
 
     // We should now have the new state at the end of the graph.
     assert_eq!(
-        core.dependency_graph
-            .descendants_topological(GraphNode::Query(0))
+        core.document_model
+            .get_dependency_graph()
+            .descendants_topological_multiroot(&[GraphNode::Query(1)])
             .collect::<Vec<_>>(),
         vec![
-            &GraphNode::Prop(4),
             &GraphNode::Query(1),
+            &text_prop_node,
+            // The new query we created.
+            &GraphNode::Query(2),
+            // The first piece of state. We just created this.
             &GraphNode::State(0)
         ]
     );
@@ -133,21 +150,37 @@ fn test_attribute_data_query() {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
 
-    core.add_data_query(
-        PropPointer {
-            component_idx: 1,
-            local_prop_idx: 0,
-        },
+    let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 1.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+    core.document_model.add_data_query(
+        prop_node,
         DataQuery::Attribute {
             attribute_name: "hide",
             match_profiles: vec![PropProfile::String],
         },
     );
+
+    let t2_value_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+        component_idx: 2.into(),
+        local_prop_idx: TEXT_VALUE_LOCAL_IDX,
+    });
+
+    // Get the second child of the "hide" attribute. That should be the string node
+    // we're concerned about.
+    let structure = core.document_model.document_structure.borrow();
+    let hide_attribute = structure.get_attr_node(1.into(), "hide").unwrap();
+    let hide_second_child = structure
+        .get_attribute_content_children(hide_attribute)
+        .collect::<Vec<_>>()[1];
+
     assert_eq!(
-        core.dependency_graph
-            .descendants_topological(GraphNode::Query(0))
+        core.document_model
+            .get_dependency_graph()
+            .descendants_topological_multiroot(&[GraphNode::Query(1)])
             .collect::<Vec<_>>(),
-        vec![&GraphNode::Prop(6), &GraphNode::String(1)]
+        vec![&GraphNode::Query(1), &t2_value_node, &hide_second_child]
     );
 
     //    println!("{}", core.to_mermaid_dependency_graph());

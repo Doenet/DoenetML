@@ -60,6 +60,16 @@ impl DataQueryResults {
     }
 }
 
+/// Used in a [`DataQuery::Prop`] to specify which component to reference the prop from.
+pub enum PropComponent {
+    /// Search for the prop on the component making the query.
+    Own,
+    /// Search for the prop on the component making the query's parent.
+    Parent,
+    /// Search for the prop on the component with the given index.
+    Idx(ComponentIdx),
+}
+
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,
 /// a request for a list of children, etc..
 #[derive(Debug, Clone, Default, PartialEq)]

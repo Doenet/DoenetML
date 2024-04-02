@@ -417,7 +417,6 @@ impl DocumentModel {
     }
 }
 
-// XXX: re-enable
-//#[cfg(test)]
-//#[path = "dependency_creation.test.rs"]
-//mod test;
+#[cfg(test)]
+#[path = "dependency_creation.test.rs"]
+mod test;

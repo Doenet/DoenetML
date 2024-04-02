@@ -30,15 +30,17 @@ impl StateCache {
     /// Add a state prop to the store with given `value` and `came_from_default`.
     /// Returns the state prop's index.
     pub fn add_state(&self, value: PropValue, came_from_default: bool) -> usize {
-        let mut idx = self.state_counter.get();
-        idx += 1;
-        self.state_counter.set(idx);
+        let idx = self.state_counter.get();
         let value = if came_from_default {
             PropCalcResult::FromDefault(value)
         } else {
             PropCalcResult::Calculated(value)
         };
         self.prop_cache.set_prop(GraphNode::State(idx), value);
+
+        // Update the state counter so the next time we add state we start at a new index.
+        self.state_counter.set(idx + 1);
+
         idx
     }
 
