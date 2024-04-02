@@ -143,7 +143,7 @@ impl DocumentModel {
                 GraphNode::State(_) => self.states.set_state(node, val.clone()),
                 GraphNode::String(_) => self
                     .document_structure
-                    .borrow_mut()
+                    .borrow()
                     .set_string(node, val.clone().try_into().unwrap()),
                 _ => panic!(
                     "Can set the value of only State and String nodes, found {:?}",
@@ -161,7 +161,8 @@ impl DocumentModel {
         };
 
         let nodes_changed = changes_to_make.keys().collect_vec();
-        let mut components_with_changed_for_render_prop = Vec::new();
+        let mut changed_components =
+            vec![false; self.document_structure.borrow()._get_num_components()];
 
         // mark all prop nodes that depend on nodes_changed as stale
         for node in self
@@ -176,13 +177,21 @@ impl DocumentModel {
                 let prop_meta = &self.get_prop_definition(node).meta;
                 if prop_meta.for_render {
                     let component_idx = prop_meta.prop_pointer.component_idx;
-                    if !components_with_changed_for_render_prop.contains(&component_idx) {
-                        components_with_changed_for_render_prop.push(component_idx);
-                    }
+                    changed_components[component_idx.as_usize()] = true;
                 }
             }
         }
 
-        components_with_changed_for_render_prop
+        changed_components
+            .into_iter()
+            .enumerate()
+            .filter_map(|(idx, changed)| {
+                if changed {
+                    Some(ComponentIdx::new(idx))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }
