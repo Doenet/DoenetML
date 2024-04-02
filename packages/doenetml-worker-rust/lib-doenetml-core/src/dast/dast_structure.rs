@@ -15,6 +15,7 @@ use crate::props::PropValue;
 
 /// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -28,6 +29,7 @@ pub struct DastRoot {
 
 /// Allowed children of an element node or the root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastElementContent {
@@ -46,6 +48,7 @@ impl DastElementContent {
 
 /// Allowed children of an attribute node
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastTextRefContent {
@@ -56,6 +59,7 @@ pub enum DastTextRefContent {
 
 /// An element node
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -100,6 +104,19 @@ pub struct ElementData {
 
     #[serde(skip_serializing_if = "Option::is_none", skip_deserializing)]
     pub props: Option<ForRenderProps>,
+}
+
+/// A partial implementation of PartialEq for ElementData
+/// only to be used for _testing_.
+#[cfg(test)]
+impl PartialEq for ElementData {
+    /// This is an **incomplete** implementation of PartialEq for ElementData.
+    /// It does not compare `state`.
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.action_names == other.action_names
+            && self.message == other.message
+    }
 }
 
 /// A struct containing values of props marked for_render
@@ -157,6 +174,7 @@ pub struct TextData {}
 /// It is up to the serializer to convert the non-string children into a
 /// correct attribute value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -196,6 +214,7 @@ impl DastAttribute {
 
 /// A ref (i.e., starts with `$`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -209,6 +228,7 @@ pub struct DastRef {
 
 /// A function ref (i.e., starts with `$$`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -222,6 +242,7 @@ pub struct DastFunctionRef {
 
 /// A part of a ref path
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -235,6 +256,7 @@ pub struct PathPart {
 
 /// An index into a ref path
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 #[serde(tag = "type")]
 #[serde(rename = "index")]
 #[cfg_attr(feature = "web", derive(Tsify))]
