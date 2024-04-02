@@ -8,17 +8,7 @@ use crate::{
 /// any data themselves, but serve as pointers to data that is stored by `Core`. This enables
 /// "cheap" graphs to keep track of the structure of components (children, attributes, etc.)
 /// while keeping the actual data separate.
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    // XXX: These three are for `NewNodeTypeLookup`
-    // They can be removed when a more efficient implementation is made.
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum GraphNode {
     /// A node that corresponds to a component stored by `Core`
     Component(usize),
