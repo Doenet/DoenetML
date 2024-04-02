@@ -14,7 +14,7 @@ use thiserror::Error;
 use crate::props::PropValue;
 
 /// Dast root node
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -27,7 +27,7 @@ pub struct DastRoot {
 }
 
 /// Allowed children of an element node or the root node
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastElementContent {
@@ -45,7 +45,7 @@ impl DastElementContent {
 }
 
 /// Allowed children of an attribute node
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastTextRefContent {
@@ -55,7 +55,7 @@ pub enum DastTextRefContent {
 }
 
 /// An element node
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -134,16 +134,6 @@ pub struct ForRenderPropValue {
     pub value: PropValue,
 }
 
-impl PartialEq for ElementData {
-    /// XXX: This is an incomplete implementation of PartialEq for ElementData.
-    /// It does not compare `state`.
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-            && self.action_names == other.action_names
-            && self.message == other.message
-    }
-}
-
 /// A text node
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
@@ -166,7 +156,7 @@ pub struct TextData {}
 /// An attribute. Unlike in XML, attributes can have non-string children.
 /// It is up to the serializer to convert the non-string children into a
 /// correct attribute value.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -205,7 +195,7 @@ impl DastAttribute {
 }
 
 /// A ref (i.e., starts with `$`)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -218,7 +208,7 @@ pub struct DastRef {
 }
 
 /// A function ref (i.e., starts with `$$`)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -231,7 +221,7 @@ pub struct DastFunctionRef {
 }
 
 /// A part of a ref path
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -244,7 +234,7 @@ pub struct PathPart {
 }
 
 /// An index into a ref path
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "index")]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -317,7 +307,7 @@ pub enum FlatDastElementContent {
 /// A flattened version of DastElement that is easier to serialize
 /// Instead of children, an array of references to to child ids is used
 /// for element children, and `text` children are included as literal strings.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
 #[cfg_attr(feature = "web", derive(Tsify))]

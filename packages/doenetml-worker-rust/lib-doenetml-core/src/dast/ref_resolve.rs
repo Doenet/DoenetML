@@ -23,7 +23,7 @@ pub enum ResolutionError {
     NonUniqueReferent,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RefResolution {
     pub node_idx: Index,
     pub unresolved_path: Option<Vec<PathPart>>,
