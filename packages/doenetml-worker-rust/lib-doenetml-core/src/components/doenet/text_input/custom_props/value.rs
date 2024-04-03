@@ -40,29 +40,29 @@ impl DataQueries for RequiredData {
 
     fn immediate_value_query() -> DataQuery {
         DataQuery::Prop {
-            component_idx: None,
-            local_prop_idx: TextInputProps::local_idx(&TextInputProps::ImmediateValue),
+            component: PropComponent::Me,
+            prop_specifier: TextInputProps::ImmediateValue.local_idx().into(),
         }
     }
 
     fn sync_value_to_immediate_value_query() -> DataQuery {
         DataQuery::Prop {
-            component_idx: None,
-            local_prop_idx: TextInputProps::local_idx(&TextInputProps::SyncValueToImmediateValue),
+            component: PropComponent::Me,
+            prop_specifier: TextInputProps::SyncValueToImmediateValue.local_idx().into(),
         }
     }
 
     fn value_from_children_query() -> DataQuery {
         DataQuery::Prop {
-            component_idx: None,
-            local_prop_idx: TextInputProps::local_idx(&TextInputProps::ValueFromChildren),
+            component: PropComponent::Me,
+            prop_specifier: TextInputProps::ValueFromChildren.local_idx().into(),
         }
     }
 
     fn prefill_query() -> DataQuery {
         DataQuery::Prop {
-            component_idx: None,
-            local_prop_idx: TextInputProps::local_idx(&TextInputProps::Prefill),
+            component: PropComponent::Me,
+            prop_specifier: TextInputProps::Prefill.local_idx().into(),
         }
     }
 }

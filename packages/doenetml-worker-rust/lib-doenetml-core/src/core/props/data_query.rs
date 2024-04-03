@@ -60,6 +60,33 @@ impl DataQueryResults {
     }
 }
 
+/// Used in a [`DataQuery::Prop`] to specify which component to reference the prop from.
+#[derive(Debug, Clone, PartialEq)]
+pub enum PropComponent {
+    /// Search for the prop on the component making the query.
+    Me,
+    /// Search for the prop on the component making the query's parent.
+    Parent,
+    /// Search for the prop on the component with the given index.
+    ByIdx(ComponentIdx),
+}
+
+/// Used in a [`DataQuery::Prop`] to specify which prop to retrieve from a component.
+#[derive(Debug, Clone, PartialEq)]
+pub enum PropSpecifier {
+    /// Get the prop specified by the local index.
+    /// This is _only_ valid when used in conjunction with a `PropComponent::Me` or `PropComponent::ByIdx`.
+    LocalIdx(LocalPropIdx),
+    /// Get a prop that matches one of the profiles. The component decides which prop to return.
+    Matching(Vec<PropProfile>),
+}
+
+impl From<LocalPropIdx> for PropSpecifier {
+    fn from(local_idx: LocalPropIdx) -> Self {
+        PropSpecifier::LocalIdx(local_idx)
+    }
+}
+
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,
 /// a request for a list of children, etc..
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -96,14 +123,11 @@ pub enum DataQuery {
     /// Query for a particular prop of a component
     Prop {
         /// If None, prop is from the component making the query.
-        component_idx: Option<ComponentIdx>,
+        component: PropComponent,
 
         /// The prop from component_idx or component making the query.
-        local_prop_idx: LocalPropIdx,
+        prop_specifier: PropSpecifier,
     },
-
-    /// Query for a prop from a parent
-    ParentProp { prop_profile: PropProfile },
 
     /// Query for all children of an attribute that match the prescribed `PropProfile`
     Attribute {
@@ -114,11 +138,11 @@ pub enum DataQuery {
         match_profiles: Vec<PropProfile>,
     },
 
-    #[default]
     /// Will be initialized with the default value of this prop
     /// and will accept any change when inverting.
     State,
 
+    #[default]
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,
 }

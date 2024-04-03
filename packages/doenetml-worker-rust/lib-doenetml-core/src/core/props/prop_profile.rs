@@ -12,7 +12,7 @@ use super::PropValue;
 /// A prop can have only one `PropProfile`.
 ///
 /// A prop with a particular `PropProfile` must be of a particular type.
-/// XXX - this is currently not implemented.
+/// TODO - this is currently not implemented.
 /// Where do we specify this and how do we enforce it? Presumably in this `enum`.
 /// (Right now, the type can be inferred from the `default()` function.)
 /// If you specify the `profile` of a prop, should you no longer be able to specify the `value_type` attribute
@@ -23,7 +23,7 @@ pub enum PropProfile {
     String,
     /// Matches literal string children. Use if wish to exclude String props.
     /// Use the `String` variant to also match string props.
-    /// XXX - how do we prevent props from being given the `PropProfile`?
+    /// TODO - how do we prevent props from being given the `PropProfile`?
     /// We haven't yet used `LiteralString` without also including `String`,
     /// but there are probably going to be cases where we want to restrict to literal strings?
     LiteralString,

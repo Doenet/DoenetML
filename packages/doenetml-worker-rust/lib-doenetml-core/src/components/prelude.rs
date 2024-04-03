@@ -20,6 +20,7 @@ pub use crate::props::traits::*;
 pub use crate::props::InvertError;
 pub use crate::props::PropView;
 pub use crate::props::{DataQueryResult, DataQueryResults};
+pub use crate::props::{PropComponent, PropSpecifier};
 pub use crate::utils::KeyValueIgnoreCase;
 
 pub use crate::components::{

@@ -4,7 +4,9 @@ use crate::{
         types::{ComponentIdx, PropPointer},
         ComponentNode,
     },
-    props::{DataQueryFilter, DataQueryFilterComparison, PropProfile},
+    props::{
+        DataQueryFilter, DataQueryFilterComparison, PropComponent, PropProfile, PropSpecifier,
+    },
 };
 
 use crate::{graph_node::GraphNode, props::PropValue};
@@ -94,60 +96,55 @@ impl DocumentModel {
             }
             // Depend on a prop (of yourself or another component)
             DataQuery::Prop {
-                component_idx,
-                local_prop_idx,
+                component,
+                prop_specifier,
             } => {
-                let component_idx = component_idx.unwrap_or(prop_pointer.component_idx);
-                let target_prop_node = PropPointer {
-                    component_idx,
-                    local_prop_idx,
+                // Check we have a valid configuration
+                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
+                    match component {
+                        PropComponent::Me | PropComponent::ByIdx(_) => {}
+                        _ => {
+                            panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
+                        }
+                    }
                 }
-                .into_prop_node(&self.document_structure.borrow());
-                assert_ne!(prop_node, target_prop_node, "Self-loop detected; DataQuery requested a prop that is the same as the origin prop.");
-                self.dependency_graph
-                    .borrow_mut()
-                    .add_edge(query_node, target_prop_node);
-                linked_nodes.push(target_prop_node);
-            }
-            // Create a dependency that references the value of the prop with `prop_profile`
-            // from the parent of this component
-            DataQuery::ParentProp { prop_profile } => {
-                // If we're `extending`, we may not have a unique parent in the structure graph.
-                // So we query the component to find the (unique) original parent.
-                let parent_idx = self
-                    .document_structure
-                    .borrow()
-                    .get_true_component_parent(prop_pointer.component_idx)
-                    .expect("Component asks for parent but there is none.");
-                let local_prop_idx = self
-                    .document_structure
-                    .borrow()
-                    .get_component_prop_by_profile(parent_idx, &[prop_profile])
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "Cannot find prop with profile `{:?}` on component `{}`",
-                            prop_profile,
-                            self.document_structure
-                                .borrow()
-                                .get_component(parent_idx)
-                                .get_component_type()
-                        )
-                    })
-                    .local_prop_idx;
 
-                // Now that we have the component and prop index, this is the same as a `DataQuery::Prop`.
-                // XXX: this is wrong. We have added an extra query node onto origin in the dependency graph.
-                // We should remove the first one.
-                let nodes_from_parent = self.add_data_query(
-                    prop_node,
-                    DataQuery::Prop {
-                        component_idx: Some(parent_idx),
+                let component_idx = match component {
+                    PropComponent::Me => prop_pointer.component_idx,
+                    PropComponent::Parent => {
+                        let parent_idx = self
+                            .document_structure
+                            .borrow()
+                            .get_true_component_parent(prop_pointer.component_idx)
+                            .expect("Component asks for parent but there is none.");
+                        parent_idx
+                    }
+                    PropComponent::ByIdx(component_idx) => component_idx,
+                };
+
+                let local_prop_idx = match prop_specifier {
+                    PropSpecifier::LocalIdx(local_prop_idx) => Some(local_prop_idx),
+                    PropSpecifier::Matching(match_profiles) => self
+                        .document_structure
+                        .borrow()
+                        .get_component_prop_by_profile(component_idx, &match_profiles)
+                        .map(|prop_pointer| prop_pointer.local_prop_idx),
+                };
+
+                if let Some(local_prop_idx) = local_prop_idx {
+                    let target_prop_node = PropPointer {
+                        component_idx,
                         local_prop_idx,
-                    },
-                );
-
-                linked_nodes.extend(nodes_from_parent);
+                    }
+                    .into_prop_node(&self.document_structure.borrow());
+                    assert_ne!(prop_node, target_prop_node, "Self-loop detected; DataQuery requested a prop that is the same as the origin prop.");
+                    self.dependency_graph
+                        .borrow_mut()
+                        .add_edge(query_node, target_prop_node);
+                    linked_nodes.push(target_prop_node);
+                }
             }
+
             // Find the requested attribute and filter its children
             // based on `match_profiles`. Create dependencies on the
             // resulting children.
@@ -417,7 +414,6 @@ impl DocumentModel {
     }
 }
 
-// XXX: re-enable
-//#[cfg(test)]
-//#[path = "dependency_creation.test.rs"]
-//mod test;
+#[cfg(test)]
+#[path = "dependency_creation.test.rs"]
+mod test;
