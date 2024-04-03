@@ -26,6 +26,7 @@ where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug + 'static,
     PropValue: From<T>,
     <T as TryFrom<PropValue>>::Error: std::fmt::Debug,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display,
 {
     fn from(prop: IndependentProp<T>) -> UpdaterObject {
         Rc::new(prop)
@@ -38,6 +39,7 @@ struct RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     independent_state: PropView<T>,
 }
@@ -46,6 +48,7 @@ impl<T> DataQueries for RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     fn independent_state_query() -> DataQuery {
         DataQuery::State
@@ -56,6 +59,7 @@ impl<T> PropUpdater for IndependentProp<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     type PropType = T;
 

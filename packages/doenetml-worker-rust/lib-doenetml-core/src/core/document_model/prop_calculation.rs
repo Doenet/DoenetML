@@ -1,8 +1,7 @@
 use std::rc::Rc;
 
-use crate::{
-    props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropValue},
-    state::types::element_refs::ElementRefs,
+use crate::props::{
+    DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropValue,
 };
 
 use super::{
@@ -234,12 +233,8 @@ impl DocumentModel {
                             GraphNode::String(_) => self.document_structure
                                     .borrow()
                                     .get_string(node, query_node),
-                            // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
                             GraphNode::Component(component_idx) => PropWithMeta {
-                                // TODO: once we have a singular `ElementRef` we can remove the vector
-                                value: PropValue::ElementRefs(Rc::new(ElementRefs(vec![
-                                    component_idx.into(),
-                                ]))),
+                                value: PropValue::ElementRef(Some(component_idx.into())),
                                 came_from_default: false,
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried

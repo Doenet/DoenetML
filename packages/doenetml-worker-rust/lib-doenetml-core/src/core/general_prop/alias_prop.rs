@@ -32,6 +32,7 @@ where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug + 'static,
     PropValue: From<T>,
     <T as TryFrom<PropValue>>::Error: std::fmt::Debug,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display,
 {
     fn from(prop: PropAlias<T>) -> UpdaterObject {
         Rc::new(prop)
@@ -45,6 +46,7 @@ pub struct RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     aliased_value: PropView<T>,
 }
@@ -53,6 +55,7 @@ impl<T> DataQueries for RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     fn aliased_value_query(aliased_local_prop_idx: LocalPropIdx) -> DataQuery {
         DataQuery::Prop {
@@ -66,6 +69,7 @@ impl<T> PropUpdater for PropAlias<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     type PropType = T;
     fn data_queries(&self) -> Vec<DataQuery> {

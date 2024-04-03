@@ -142,8 +142,9 @@ pub enum DataQuery {
     /// and will accept any change when inverting.
     State,
 
-    ///// Query for a reference to "self", the component making the query.
-    //SelfRef,
+    /// Query for a reference to "self", the component making the query.
+    SelfRef,
+
     #[default]
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,

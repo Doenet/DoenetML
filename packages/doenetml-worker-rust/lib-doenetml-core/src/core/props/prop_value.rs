@@ -64,7 +64,7 @@ pub mod prop_type {
     pub type Integer = i64;
     pub type Boolean = bool;
     pub type Math = Rc<MathExpr>;
-    pub type ElementRef = element_refs::ElementRef;
+    pub type ElementRef = Option<element_refs::ElementRef>;
     pub type ElementRefs = Rc<element_refs::ElementRefs>;
     pub type GraphNodes = Rc<Vec<GraphNode>>;
 }

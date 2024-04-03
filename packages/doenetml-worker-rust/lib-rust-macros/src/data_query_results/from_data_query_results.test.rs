@@ -32,11 +32,14 @@ fn test_can_parse_struct_with_pass_data() {
 #[test]
 fn test_can_parse_struct_with_generic() {
     let input = r#"
-        #[data_query(query_trait = QueryTrait)]
-        struct RequiredData<T> where
-            T: std::fmt::Debug
+        #[derive(FromDataQueryResults, IntoDataQueryResults)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData<T>
+        where
+            T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
+            PropValue: From<T>,
         {
-            value: PropView<T>,
+            independent_state: PropView<T>,
         }
     "#;
     let result = generate_from_data_query_results(syn::parse_str(input).unwrap());

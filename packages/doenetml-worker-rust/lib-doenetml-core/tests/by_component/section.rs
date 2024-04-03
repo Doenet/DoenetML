@@ -14,7 +14,38 @@ fn section_finds_beginning_title_tag() {
     // the document tag will be index 0.
     let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 2.into());
+    assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 2.into());
+
+    assert_eq!(
+        get_rendered_children_prop(section_idx, &mut core),
+        vec![GraphNode::Component(2), GraphNode::Component(3),]
+    );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+    let section_children = &flat_dast.elements[section_idx.as_usize()].children;
+
+    assert_eq!(
+        *section_children,
+        vec![
+            FlatDastElementContent::Element(2),
+            FlatDastElementContent::Element(3),
+        ]
+    );
+}
+
+#[test]
+fn section_handles_missing_title_tag() {
+    let dast_root =
+        dast_root_no_position(r#"<section><titleX>Hello</titleX><text>content</text></section>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0.
+    let section_idx = 1.into();
+
+    assert_eq!(get_title_prop(section_idx, &mut core), None);
 
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
@@ -50,7 +81,7 @@ fn section_finds_title_tag_in_middle() {
     // the document tag will be index 0.
     let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 3.into());
+    assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 3.into());
 
     // Note we have blank string children between all the component children.
     // When title child gets moved up, we have multiple strings between component children
@@ -102,7 +133,7 @@ fn section_with_multiple_title_tags_picks_last() {
     // the document tag will be index 0.
     let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 4.into());
+    assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 4.into());
 
     // Note we have blank string children between all the component children.
     // When title children get removed and moved up, we have multiple strings between component children
@@ -141,10 +172,9 @@ fn section_with_multiple_title_tags_picks_last() {
 
 mod test_helpers {
 
-    use std::rc::Rc;
-
     use doenetml_core::{
-        components::doenet::section::SectionProps, state::types::element_refs::ElementRefs,
+        components::doenet::section::SectionProps,
+        props::{prop_type, traits::IntoPropView, PropView},
     };
 
     use super::*;
@@ -154,16 +184,15 @@ mod test_helpers {
         SectionProps::local_idx(&SectionProps::RenderedChildren);
 
     /// Resolves `title` from a `<section>` component and returns its value as a `ComponentIdx`
-    pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> ComponentIdx {
+    pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> Option<ComponentIdx> {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: TITLE_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render_untracked(prop_node).value;
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::ElementRef> = prop.into_prop_view();
 
-        let element_refs: Rc<ElementRefs> = (value).clone().try_into().unwrap();
-
-        element_refs.0[0]
+        prop_view.value.map(|v| v.0)
     }
 
     /// Resolves `renderedChildren` from a `<section>` component and returns its value
@@ -175,10 +204,9 @@ mod test_helpers {
             component_idx,
             local_prop_idx: RENDERED_CHILDREN_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render_untracked(prop_node).value;
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::GraphNodes> = prop.into_prop_view();
 
-        let graph_nodes: Rc<Vec<GraphNode>> = (value).clone().try_into().unwrap();
-
-        (*graph_nodes).clone()
+        (*prop_view.value).clone()
     }
 }

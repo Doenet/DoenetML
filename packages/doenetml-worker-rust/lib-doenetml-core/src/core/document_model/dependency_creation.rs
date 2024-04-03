@@ -180,6 +180,13 @@ impl DocumentModel {
                     linked_nodes.push(to);
                 }
             }
+
+            DataQuery::SelfRef => {
+                self.dependency_graph
+                    .borrow_mut()
+                    .add_edge(query_node, prop_node);
+                linked_nodes.push(prop_node);
+            }
         }
         linked_nodes
     }

@@ -10,3 +10,12 @@ pub struct ElementRefs(pub Vec<ComponentIdx>);
 /// A reference to a single component
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ElementRef(pub ComponentIdx);
+
+impl<T> From<T> for ElementRef
+where
+    T: Into<ComponentIdx>,
+{
+    fn from(t: T) -> Self {
+        ElementRef(t.into())
+    }
+}

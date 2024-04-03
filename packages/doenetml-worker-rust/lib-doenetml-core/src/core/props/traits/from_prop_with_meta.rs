@@ -16,12 +16,10 @@ pub trait FromPropWithMeta<In, Out> {
 impl<PropType> FromPropWithMeta<PropWithMeta, Self> for PropView<PropType>
 where
     PropType: TryFrom<PropValue>,
+    <PropType as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     fn from_prop_with_meta(val: PropWithMeta) -> Self {
-        let value: PropType = match val.value.try_into() {
-            Ok(v) => v,
-            Err(_e) => panic!("Error converting type"),
-        };
+        let value: PropType = val.value.try_into().unwrap();
         Self {
             value,
             came_from_default: val.came_from_default,

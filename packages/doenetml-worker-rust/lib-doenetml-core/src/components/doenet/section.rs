@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::components::prelude::*;
-use crate::general_prop::ElementRefsProp;
+use crate::general_prop::ElementRefProp;
 
 use super::title::Title;
 use crate::props::as_updater_object;
@@ -12,7 +12,6 @@ use crate::props::DataQueryResults;
 use crate::props::PropProfileDataQueryFilter;
 use crate::props::PropView;
 use crate::props::UpdaterObject;
-use crate::state::types::element_refs::ElementRefs;
 
 /// The `<section>` component renders its children along with a title
 #[component(name = Section)]
@@ -23,7 +22,7 @@ mod component {
     enum Props {
         /// The `<title>` child of the `<section>` that contain's the section's title
         #[prop(
-            value_type = PropValueType::ElementRefs,
+            value_type = PropValueType::ElementRef,
             is_public,
         )]
         Title,
@@ -81,7 +80,7 @@ impl PropGetUpdater for SectionProps {
     fn get_updater(&self) -> UpdaterObject {
         match self {
             SectionProps::Title => as_updater_object::<_, props::types::Title>(
-                ElementRefsProp::new_from_last_matching_child(Title::NAME),
+                ElementRefProp::new_from_last_matching_child(Title::NAME),
             ),
             SectionProps::Hidden => {
                 as_updater_object::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
@@ -120,7 +119,7 @@ mod custom_props {
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             filtered_children: Vec<PropView<Rc<Vec<GraphNode>>>>,
-            title: PropView<Rc<ElementRefs>>,
+            title: PropView<prop_type::ElementRef>,
         }
 
         impl DataQueries for RequiredData {
@@ -157,18 +156,15 @@ mod custom_props {
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
                 let required_data = RequiredData::from_data_query_results(data);
                 let title_element_refs = required_data.title.value;
-                let title_node = match &*title_element_refs {
-                    ElementRefs(element_refs) => {
-                        element_refs.first().map(|x| vec![x.as_graph_node()])
-                    }
-                };
 
                 let non_title_nodes = required_data
                     .filtered_children
                     .iter()
                     .flat_map(|prop| (*prop.value).clone());
 
-                let mut child_nodes = title_node.unwrap_or(vec![]);
+                let mut child_nodes = title_element_refs
+                    .map(|n| vec![n.0.as_graph_node()])
+                    .unwrap_or(vec![]);
                 child_nodes.extend(non_title_nodes);
 
                 PropCalcResult::Calculated(Rc::new(child_nodes))
