@@ -281,6 +281,6 @@ impl PropUpdater for BooleanProp {
     }
 }
 
-// #[cfg(test)]
-// #[path = "boolean_prop.test.rs"]
-// mod tests;
+#[cfg(test)]
+#[path = "boolean_prop.test.rs"]
+mod tests;
