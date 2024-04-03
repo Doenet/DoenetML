@@ -98,6 +98,6 @@ where
     }
 }
 
-// #[cfg(test)]
-// #[path = "alias_prop.test.rs"]
-// mod tests;
+#[cfg(test)]
+#[path = "alias_prop.test.rs"]
+mod tests;
