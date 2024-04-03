@@ -43,6 +43,15 @@ impl DocumentModel {
                     }
                 }
             }
+            DataQuery::SelfRef => {
+                //  // SelfRef queries store state containing the prop's value. They are not affected
+                //  // by `extend`.
+
+                //  let state_node = self.add_state_node(prop_node, PropValue::ElementRef(None), true);
+                //  self.document_structure
+                //      .borrow_mut()
+                //      .add_edge(prop_node, state_node);
+            }
             _ => {
                 // No new state to create
             }
@@ -91,6 +100,11 @@ impl DocumentModel {
                     .borrow_mut()
                     .add_edge(query_node, state_node);
                 linked_nodes.push(state_node);
+            }
+
+            DataQuery::SelfRef => {
+                // SelfRef queries are computed on-the-fly, so there is no need to link them
+                // to anything.
             }
 
             // Depend on a prop (of yourself or another component)
@@ -162,10 +176,12 @@ impl DocumentModel {
             }
 
             DataQuery::FilteredChildren {
+                parent,
                 filters,
                 include_if_missing_profile,
             } => {
                 let edges_to_add = process_data_query_filtered_children(
+                    parent,
                     filters,
                     include_if_missing_profile,
                     prop_pointer,
@@ -179,13 +195,6 @@ impl DocumentModel {
                     dependency_graph.add_edge(from, to);
                     linked_nodes.push(to);
                 }
-            }
-
-            DataQuery::SelfRef => {
-                self.dependency_graph
-                    .borrow_mut()
-                    .add_edge(query_node, prop_node);
-                linked_nodes.push(prop_node);
             }
         }
         linked_nodes

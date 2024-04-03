@@ -5,7 +5,7 @@ use crate::{
     },
     core::document_structure::DocumentStructure,
     graph_node::GraphNode,
-    props::{DataQueryFilter, DataQueryFilterComparison},
+    props::{DataQueryFilter, DataQueryFilterComparison, PropComponent},
     DocumentModel,
 };
 
@@ -13,6 +13,7 @@ use crate::{
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
 pub fn process_data_query_filtered_children(
+    parent: PropComponent,
     filters: Vec<DataQueryFilter>,
     include_if_missing_profile: bool,
     prop_pointer: PropPointer,
@@ -23,10 +24,17 @@ pub fn process_data_query_filtered_children(
 ) -> Vec<(GraphNode, GraphNode)> {
     let mut ret = Vec::new();
 
+    let component_idx = match parent {
+        PropComponent::Me => prop_pointer.component_idx,
+        PropComponent::Parent => document_structure
+            .get_true_component_parent(prop_pointer.component_idx)
+            .unwrap(),
+        PropComponent::ByIdx(component_idx) => component_idx,
+    };
+
     // create vector of content children so that we don't borrow core in loop
     // and can make a mutable borrow of core to create a virtual node
-    let content_children =
-        document_structure.get_component_content_children(prop_pointer.component_idx);
+    let content_children = document_structure.get_component_content_children(component_idx);
 
     // We will exclude children that are not components if there is a component type filter
     // that restricts to a particular component type
@@ -61,6 +69,10 @@ pub fn process_data_query_filtered_children(
                                 }
                                 DataQueryFilterComparison::NotEqual => {
                                     component_type == component_type_filter.component_type
+                                }
+                                DataQueryFilterComparison::ProfilePresent => {
+                                    // We ignore the value because we always want to include this element
+                                    true
                                 }
                             } {
                                 exclude_via_component_type = true;

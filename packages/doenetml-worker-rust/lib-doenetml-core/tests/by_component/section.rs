@@ -170,6 +170,25 @@ fn section_with_multiple_title_tags_picks_last() {
     );
 }
 
+#[test]
+fn section_gets_serial_number() {
+    // Items with idx 1 and 5 are <section> elements
+    let dast_root = dast_root_no_position(
+        r#"
+        <section><title>Hello</title><text>content</text></section>
+        <p>Random paragraph not in a section</p>
+        <section><title>Hello2</title><text>content2</text></section>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0.
+    let section_idx = 1.into();
+
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 7);
+}
+
 mod test_helpers {
 
     use doenetml_core::{
@@ -208,5 +227,23 @@ mod test_helpers {
         let prop_view: PropView<prop_type::GraphNodes> = prop.into_prop_view();
 
         (*prop_view.value).clone()
+    }
+
+    /// Resolves `serialNumber` from a `<section>` and returns it.
+    pub fn get_serial_number_prop(
+        component_idx: ComponentIdx,
+        core: &mut Core,
+    ) -> prop_type::Integer {
+        println!("{}", core.to_mermaid_structure_graph());
+        println!("\n\n\n");
+        println!("{}", core.to_mermaid_dependency_graph());
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: SectionProps::SerialNumber.local_idx(),
+        });
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();
+
+        prop_view.value
     }
 }

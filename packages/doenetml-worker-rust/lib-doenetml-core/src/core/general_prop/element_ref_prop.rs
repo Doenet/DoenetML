@@ -23,6 +23,7 @@ impl ElementRefProp {
     pub fn new_from_last_matching_child(component_type: &'static str) -> Self {
         ElementRefProp {
             data_query: DataQuery::FilteredChildren {
+                parent: PropComponent::Me,
                 filters: vec![DataQueryFilter::ComponentType(
                     ComponentTypeDataQueryFilter {
                         component_type,
@@ -39,6 +40,7 @@ impl ElementRefProp {
     pub fn new_from_first_matching_child(component_type: &'static str) -> Self {
         ElementRefProp {
             data_query: DataQuery::FilteredChildren {
+                parent: PropComponent::Me,
                 filters: vec![DataQueryFilter::ComponentType(
                     ComponentTypeDataQueryFilter {
                         component_type,
@@ -48,6 +50,13 @@ impl ElementRefProp {
                 include_if_missing_profile: true,
             },
             elements_to_select: Some(ElementsToSelect::First),
+        }
+    }
+
+    pub fn new_self_ref() -> Self {
+        ElementRefProp {
+            data_query: DataQuery::SelfRef,
+            elements_to_select: None,
         }
     }
 }

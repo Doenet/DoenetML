@@ -34,13 +34,15 @@ mod component {
         )]
         Hidden,
 
-        //   /// The position of the section relative to other siblings with serial numbers.
-        //   /// E.g. in `<section /><section />` the first would have serial number 1 and the second 2.
-        //   #[prop(
-        //       value_type = PropValueType::Integer,
-        //       profile = PropProfile::SerialNumber
-        //   )]
-        //   SerialNumber,
+        /// The position of the section relative to other siblings with serial numbers.
+        /// E.g. in `<section /><section />` the first would have serial number 1 and the second 2.
+        #[prop(
+               value_type = PropValueType::Integer,
+               profile = PropProfile::SerialNumber
+           )]
+        SerialNumber,
+
+        //SelfRef,
         #[prop(
             value_type = PropValueType::GraphNodes,
             profile = PropProfile::RenderedChildren
@@ -89,16 +91,72 @@ impl PropGetUpdater for SectionProps {
                 as_updater_object::<_, props::types::RenderedChildren>(
                     custom_props::RenderedChildren::new(),
                 )
-            } //  SectionProps::SerialNumber => {
-              //      todo!()
-              //      //               as_updater_object::<_, props::types::SerialNumber>()
-              //  }
+            }
+            SectionProps::SerialNumber => as_updater_object::<_, props::types::SerialNumber>(
+                custom_props::SerialNumberProp::new(),
+            ),
         }
     }
 }
 
 mod custom_props {
     use super::*;
+
+    pub use serial_number::*;
+    mod serial_number {
+        use super::*;
+
+        /// The serial number of this element. I.e., `n` where it is
+        /// the `n`th component in the series.
+        #[derive(Debug, Default)]
+        pub struct SerialNumberProp {}
+
+        impl SerialNumberProp {
+            pub fn new() -> Self {
+                SerialNumberProp {}
+            }
+        }
+
+        /// Structure to hold data generated from the data queries
+        #[derive(FromDataQueryResults, Debug)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData {
+            siblings: Vec<PropView<prop_type::GraphNodes>>,
+            self_ref: PropView<prop_type::ElementRef>,
+        }
+
+        impl DataQueries for RequiredData {
+            fn self_ref_query() -> DataQuery {
+                DataQuery::SelfRef
+            }
+            fn siblings_query() -> DataQuery {
+                DataQuery::FilteredChildren {
+                    parent: PropComponent::Parent,
+                    filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
+                        profile: PropProfile::SerialNumber,
+                        // Ignored because we only care about the presence of the profile
+                        // TODO: use new query syntax
+                        value: PropValue::Boolean(true),
+                        comparison: DataQueryFilterComparison::ProfilePresent,
+                    })],
+                    include_if_missing_profile: false,
+                }
+            }
+        }
+
+        impl PropUpdater for SerialNumberProp {
+            type PropType = prop_type::Integer;
+
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::from_data_query_results(data);
+                dbg!(required_data);
+                PropCalcResult::Calculated(7)
+            }
+        }
+    }
 
     pub use rendered_children::*;
     mod rendered_children {
@@ -125,6 +183,7 @@ mod custom_props {
         impl DataQueries for RequiredData {
             fn filtered_children_query() -> DataQuery {
                 DataQuery::FilteredChildren {
+                    parent: PropComponent::Parent,
                     filters: vec![
                         DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
                             profile: PropProfile::Hidden,

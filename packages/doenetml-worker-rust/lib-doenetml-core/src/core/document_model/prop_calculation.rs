@@ -137,6 +137,7 @@ impl DocumentModel {
 
         match query {
             DataQuery::FilteredChildren {
+                parent,
                 filters,
                 include_if_missing_profile: _,
             } => {
@@ -178,6 +179,10 @@ impl DocumentModel {
                                             DataQueryFilterComparison::NotEqual => {
                                                 prop_value != prop_filter.value
                                             }
+                                            DataQueryFilterComparison::ProfilePresent => {
+                                                // We ignore the value because we always want to include this element
+                                                true
+                                            }
                                         }
                                     });
 
@@ -212,6 +217,14 @@ impl DocumentModel {
 
                 DataQueryResult { values }
             }
+            DataQuery::SelfRef => DataQueryResult {
+                values: vec![PropWithMeta {
+                    value: PropValue::ElementRef(Some(1.into())),
+                    came_from_default: false,
+                    changed: true,
+                    origin: None,
+                }],
+            },
             _ => {
                 // default behavior
 

@@ -116,6 +116,7 @@ pub enum DataQuery {
     ///   all component children that do not have a prop with the profile `Hidden` with value `false`
     ///   will be filtered out.
     FilteredChildren {
+        parent: PropComponent,
         filters: Vec<DataQueryFilter>,
         include_if_missing_profile: bool,
     },
@@ -173,4 +174,6 @@ pub struct ComponentTypeDataQueryFilter {
 pub enum DataQueryFilterComparison {
     Equal,
     NotEqual,
+    // TODO: this is not the right way to do this. Cleanup how to build queries.
+    ProfilePresent,
 }

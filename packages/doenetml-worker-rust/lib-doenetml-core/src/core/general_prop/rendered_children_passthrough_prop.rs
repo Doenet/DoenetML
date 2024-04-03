@@ -17,6 +17,7 @@ impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
             data_query: DataQuery::FilteredChildren {
+                parent: PropComponent::Me,
                 filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
                     profile: PropProfile::Hidden,
                     value: PropValue::Boolean(true),
