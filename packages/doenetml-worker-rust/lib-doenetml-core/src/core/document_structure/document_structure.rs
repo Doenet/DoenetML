@@ -204,6 +204,24 @@ impl DocumentStructure {
     pub fn set_string<A: borrow::Borrow<GraphNode>>(&self, string_node: A, s: String) {
         self.strings.set_string(string_node, s)
     }
+
+    /// Get the nearest prop ancestor of `node`. If `node` is a `GraphNode::Prop`, it will return itself.
+    pub fn get_nearest_prop_ancestor<A: borrow::Borrow<GraphNode>>(
+        &self,
+        node: A,
+    ) -> Option<GraphNode> {
+        let mut parent = Some(node.borrow().clone());
+        while parent.is_some() {
+            match parent.unwrap() {
+                GraphNode::Prop(_) => return parent,
+                node => {
+                    parent = self.structure_graph.get_unique_parent(node);
+                }
+            }
+        }
+
+        parent
+    }
 }
 
 impl Default for DocumentStructure {

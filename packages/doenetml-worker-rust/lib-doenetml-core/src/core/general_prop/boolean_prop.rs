@@ -134,7 +134,7 @@ impl PropFromAttribute<bool> for BooleanProp {
     }
 }
 
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
     independent_state: PropView<prop_type::Boolean>,
@@ -161,7 +161,7 @@ impl PropUpdater for BooleanProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<prop_type::Boolean> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let independent_state = required_data.independent_state;
         let booleans_and_strings = required_data.booleans_and_strings;
 
@@ -248,8 +248,8 @@ impl PropUpdater for BooleanProp {
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
-        let required_data = RequiredData::from_data_query_results(data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         let booleans_and_strings = required_data.booleans_and_strings;
 

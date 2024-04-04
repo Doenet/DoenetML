@@ -5,7 +5,6 @@ use test_helpers::*;
 
 #[test]
 fn section_finds_beginning_title_tag() {
-    attach_codelldb_debugger();
     let dast_root =
         dast_root_no_position(r#"<section><title>Hello</title><text>content</text></section>"#);
 

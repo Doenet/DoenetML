@@ -184,6 +184,15 @@ impl DocumentModel {
         prop_name
     }
 
+    /// Get a `PropPointer` for the prop.
+    pub fn get_prop_pointer(&self, prop_node: GraphNode) -> PropPointer {
+        let document_structure = self.document_structure.borrow();
+        document_structure
+            .get_prop_definition(prop_node)
+            .meta
+            .prop_pointer
+    }
+
     /// Get the string value associated with a `GraphNode::String`
     pub fn get_string_value(&self, string_node: GraphNode) -> String {
         let document_structure = self.document_structure.borrow();
@@ -210,6 +219,40 @@ impl DocumentModel {
             .borrow()
             .get_component(component_idx)
             .clone()
+    }
+
+    /// Get the first prop that matches a profile in `profiles` for a given component.
+    pub fn get_component_prop_by_profile<T: Into<ComponentIdx>>(
+        &self,
+        component_idx: T,
+        profiles: &[PropProfile],
+    ) -> Option<PropPointer> {
+        let component_idx: ComponentIdx = component_idx.into();
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_component_prop_by_profile(component_idx, profiles)
+    }
+
+    /// Get the children of a component
+    pub fn get_component_content_children<T: Into<ComponentIdx>>(
+        &self,
+        component_idx: T,
+    ) -> Vec<GraphNode> {
+        let component_idx: ComponentIdx = component_idx.into();
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_component_content_children(component_idx)
+    }
+
+    /// Walk up the ancestor tree of `node` until a `GraphNode::Prop` is found.
+    /// If `node` is a `GraphNode::Prop`, `node` is returned.
+    pub fn get_nearest_prop_ancestor(&self, node: GraphNode) -> Option<GraphNode> {
+        match node {
+            // If we're a component, we're already here
+            GraphNode::Prop(_) => Some(node),
+            _ => {
+                let document_structure = self.document_structure.borrow();
+                document_structure.get_nearest_prop_ancestor(node)
+            }
+        }
     }
 }
 

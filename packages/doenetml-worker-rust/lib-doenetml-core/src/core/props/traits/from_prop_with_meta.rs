@@ -1,6 +1,8 @@
 //! Implement custom `From` and `Into` traits because Rust will not allow
 //! implementing `From` on a `Vec<PropWithMeta>` to a `Vec<PropView<T>>`.
 
+use anyhow::anyhow;
+
 use crate::props::{cache::PropWithMeta, DataQueryResult, PropValue, PropView};
 
 use super::IntoPropView;
@@ -11,21 +13,33 @@ use super::IntoPropView;
 pub trait FromPropWithMeta<In, Out> {
     /// Convert a `PropWithMeta` to a `PropView`.
     fn from_prop_with_meta(val: In) -> Out;
+
+    fn try_from_prop_with_meta(val: In) -> anyhow::Result<Out>;
 }
 
 impl<PropType> FromPropWithMeta<PropWithMeta, Self> for PropView<PropType>
 where
     PropType: TryFrom<PropValue>,
     <PropType as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
+    //anyhow::Error: From<<PropType as TryFrom<PropValue>>::Error>,
 {
     fn from_prop_with_meta(val: PropWithMeta) -> Self {
-        let value: PropType = val.value.try_into().unwrap();
-        Self {
+        Self::try_from_prop_with_meta(val).unwrap()
+    }
+
+    fn try_from_prop_with_meta(val: PropWithMeta) -> anyhow::Result<Self> {
+        let value: PropType = val
+            .value
+            .try_into()
+            // Convert the error to an anyhow::Error. This seems to be an issue with derive_more
+            // https://users.rust-lang.org/t/the-trait-std-error-is-not-implemented-for-str/44474
+            .map_err(|err| anyhow!("{}", err))?;
+        Ok(Self {
             value,
             came_from_default: val.came_from_default,
             changed: val.changed,
             origin: val.origin,
-        }
+        })
     }
 }
 
@@ -38,15 +52,18 @@ where
     PropWithMeta: IntoPropView<PropView<PropType>>,
 {
     fn from_prop_with_meta(val: Vec<PropWithMeta>) -> Self {
+        Self::try_from_prop_with_meta(val).unwrap()
+    }
+    fn try_from_prop_with_meta(val: Vec<PropWithMeta>) -> anyhow::Result<Self> {
         if val.len() != 1 {
-            panic!(
+            return Err(anyhow!(
                     "Converting from a Vec into a PropView can only be done if the vec is length 1, not {}",
                     val.len()
-                );
+                ));
         }
         // Slightly faster than
         // val.into_iter().next().unwrap().into_prop_view()
-        val[0].to_owned().into_prop_view()
+        val[0].to_owned().try_into_prop_view()
     }
 }
 
@@ -57,6 +74,13 @@ where
     fn from_prop_with_meta(val: Vec<PropWithMeta>) -> Self {
         val.into_iter().map(|val| val.into_prop_view()).collect()
     }
+    fn try_from_prop_with_meta(val: Vec<PropWithMeta>) -> anyhow::Result<Self> {
+        let mut ret = Vec::with_capacity(val.len());
+        for prop in val {
+            ret.push(prop.try_into_prop_view()?);
+        }
+        Ok(ret)
+    }
 }
 
 impl<PropType> FromPropWithMeta<DataQueryResult, Self> for PropView<PropType>
@@ -66,6 +90,9 @@ where
     fn from_prop_with_meta(val: DataQueryResult) -> Self {
         val.values.into_prop_view()
     }
+    fn try_from_prop_with_meta(val: DataQueryResult) -> anyhow::Result<Self> {
+        val.values.try_into_prop_view()
+    }
 }
 
 impl<PropType> FromPropWithMeta<DataQueryResult, Self> for Vec<PropView<PropType>>
@@ -74,6 +101,9 @@ where
 {
     fn from_prop_with_meta(val: DataQueryResult) -> Self {
         val.values.into_prop_view()
+    }
+    fn try_from_prop_with_meta(val: DataQueryResult) -> anyhow::Result<Self> {
+        val.values.try_into_prop_view()
     }
 }
 

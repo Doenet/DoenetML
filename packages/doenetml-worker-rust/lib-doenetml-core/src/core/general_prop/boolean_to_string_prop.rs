@@ -29,7 +29,7 @@ impl From<BooleanToStringProp> for UpdaterObject {
     }
 }
 
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = LocalPropIdx)]
 struct RequiredData {
     boolean: PropView<bool>,
@@ -51,7 +51,7 @@ impl PropUpdater for BooleanToStringProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         PropCalcResult::Calculated(required_data.boolean.value.to_string().into())
     }
@@ -63,7 +63,7 @@ impl PropUpdater for BooleanToStringProp {
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
 
         let requested_boolean = string_to_boolean(&requested_value);
 

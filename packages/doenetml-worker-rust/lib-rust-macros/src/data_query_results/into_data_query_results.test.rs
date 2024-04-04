@@ -18,7 +18,7 @@ fn test_can_parse_struct() {
 #[test]
 fn test_can_parse_struct_with_generics() {
     let input = r#"
-        #[derive(FromDataQueryResults, IntoDataQueryResults)]
+        #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData<T>
         where

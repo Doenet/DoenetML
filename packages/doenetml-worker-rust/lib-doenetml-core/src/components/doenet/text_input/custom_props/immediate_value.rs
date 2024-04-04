@@ -11,7 +11,7 @@ impl ImmediateValueProp {
 }
 
 /// Structure to hold data generated from the data queries
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries)]
 struct RequiredData {
     /// An independent state variable (that doesn't have any dependencies)
@@ -64,7 +64,7 @@ impl PropUpdater for ImmediateValueProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         // for simplicity, we don't work out scenarios where immediate_value didn't change,
         // as it typically does change if one of its dependencies changed
@@ -100,8 +100,8 @@ impl PropUpdater for ImmediateValueProp {
         requested_value: Self::PropType,
         is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
-        let required_data = RequiredData::from_data_query_results(data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         // We always record any requested update to immediate_value on its independent_state variable,
         // as immediate_value typically tracks its independent_state variable

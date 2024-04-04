@@ -11,7 +11,7 @@ fn test_can_parse_struct() {
             title: PropView<ElementRefs>,
         }
     "#;
-    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
+    let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
 
@@ -24,7 +24,7 @@ fn test_can_parse_struct_with_pass_data() {
             title: PropView<ElementRefs>,
         }
     "#;
-    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
+    let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
 
@@ -32,7 +32,7 @@ fn test_can_parse_struct_with_pass_data() {
 #[test]
 fn test_can_parse_struct_with_generic() {
     let input = r#"
-        #[derive(FromDataQueryResults, IntoDataQueryResults)]
+        #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData<T>
         where
@@ -42,6 +42,6 @@ fn test_can_parse_struct_with_generic() {
             independent_state: PropView<T>,
         }
     "#;
-    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
+    let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }

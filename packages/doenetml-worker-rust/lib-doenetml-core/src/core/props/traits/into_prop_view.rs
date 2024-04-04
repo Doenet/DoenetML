@@ -6,6 +6,8 @@ use super::FromPropWithMeta;
 pub trait IntoPropView<Out> {
     /// Convert the object into a `PropView`-like object.
     fn into_prop_view(self) -> Out;
+
+    fn try_into_prop_view(self) -> anyhow::Result<Out>;
 }
 
 /// Blanked implementation of `IntoPropView` for items with `FromPropViewWithMeta`
@@ -15,5 +17,9 @@ where
 {
     fn into_prop_view(self) -> Target {
         Target::from_prop_with_meta(self)
+    }
+
+    fn try_into_prop_view(self) -> anyhow::Result<Target> {
+        Target::try_from_prop_with_meta(self)
     }
 }

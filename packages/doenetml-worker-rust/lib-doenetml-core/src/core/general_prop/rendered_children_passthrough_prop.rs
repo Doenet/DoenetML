@@ -3,7 +3,8 @@ use std::rc::Rc;
 use crate::{
     components::prelude::*,
     props::{
-        DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter, UpdaterObject,
+        Cond, ContentFilter, DataQueryFilter, DataQueryFilterComparison, Op, OpNot,
+        PropProfileDataQueryFilter, UpdaterObject,
     },
 };
 
@@ -16,14 +17,17 @@ pub struct RenderedChildrenPassthroughProp {
 impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
-            data_query: DataQuery::FilteredChildren {
-                parent: PropComponent::Me,
-                filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
-                    profile: PropProfile::Hidden,
-                    value: PropValue::Boolean(true),
-                    comparison: DataQueryFilterComparison::NotEqual,
-                })],
-                include_if_missing_profile: true,
+            data_query: DataQuery::ComponentRefs {
+                container: PropComponent::Me,
+                filters: Rc::new(Op::Or(
+                    // Keep things without a "hidden" prop
+                    OpNot(ContentFilter::HasPropMatchingProfile(PropProfile::Hidden)),
+                    // Keep things with a "hidden != true" prop
+                    ContentFilter::HasPropMatchingProfileAndCondition(
+                        PropProfile::Hidden,
+                        Cond::NotEq(PropValue::Boolean(true)),
+                    ),
+                )),
             },
         }
     }
@@ -48,9 +52,9 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
             .values
             .iter()
             .flat_map(|prop| match &prop.value {
-                PropValue::ContentRefs(graph_nodes) => (**graph_nodes).clone().into_vec(),
+                PropValue::ContentRefs(content_ref) => (**content_ref).clone().into_vec(),
                 _ => {
-                    unreachable!("should only graph nodes from filtered children")
+                    unreachable!("should only encounter content refs from filtered children")
                 }
             })
             .collect::<Vec<_>>();

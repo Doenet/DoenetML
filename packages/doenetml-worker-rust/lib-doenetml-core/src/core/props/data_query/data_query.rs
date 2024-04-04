@@ -1,12 +1,14 @@
-//! A Prop is a piece of computed data associated with a component. The value of a Prop
-//! is lazily computed and can depend on other Props.
+use std::rc::Rc;
 
-use crate::components::{
-    prelude::{ComponentIdx, LocalPropIdx},
-    types::AttributeName,
+use crate::{
+    components::{
+        prelude::{ComponentIdx, LocalPropIdx},
+        types::AttributeName,
+    },
+    graph_node::GraphNode,
 };
 
-use super::{cache::PropWithMeta, PropProfile, PropValue};
+use super::{cache::PropWithMeta, ApplyTest, BindableAsGraphNodeFilter, PropProfile, PropValue};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug, Clone)]
@@ -89,7 +91,7 @@ impl From<LocalPropIdx> for PropSpecifier {
 
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,
 /// a request for a list of children, etc..
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub enum DataQuery {
     /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
     /// Returns the matching props
@@ -115,10 +117,11 @@ pub enum DataQuery {
     /// - if `include_if_missing_profile` is `false`,
     ///   all component children that do not have a prop with the profile `Hidden` with value `false`
     ///   will be filtered out.
-    FilteredChildren {
-        parent: PropComponent,
-        filters: Vec<DataQueryFilter>,
-        include_if_missing_profile: bool,
+    ComponentRefs {
+        /// Children of this component will be searched
+        container: PropComponent,
+        /// How to filter the children
+        filters: Rc<dyn BindableAsGraphNodeFilter>,
     },
 
     /// Query for a particular prop of a component

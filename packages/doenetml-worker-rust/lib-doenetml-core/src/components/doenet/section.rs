@@ -5,11 +5,7 @@ use crate::general_prop::ElementRefProp;
 
 use super::title::Title;
 use crate::props::as_updater_object;
-use crate::props::ComponentTypeDataQueryFilter;
-use crate::props::DataQueryFilter;
-use crate::props::DataQueryFilterComparison;
 use crate::props::DataQueryResults;
-use crate::props::PropProfileDataQueryFilter;
 use crate::props::PropView;
 use crate::props::UpdaterObject;
 
@@ -104,6 +100,8 @@ mod custom_props {
 
     pub use serial_number::*;
     mod serial_number {
+        use crate::props::ContentFilter;
+
         use super::*;
 
         /// The serial number of this element. I.e., `n` where it is
@@ -118,7 +116,7 @@ mod custom_props {
         }
 
         /// Structure to hold data generated from the data queries
-        #[derive(FromDataQueryResults, Debug)]
+        #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             siblings: Vec<PropView<prop_type::ContentRefs>>,
@@ -130,16 +128,11 @@ mod custom_props {
                 DataQuery::SelfRef
             }
             fn siblings_query() -> DataQuery {
-                DataQuery::FilteredChildren {
-                    parent: PropComponent::Parent,
-                    filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
-                        profile: PropProfile::SerialNumber,
-                        // Ignored because we only care about the presence of the profile
-                        // TODO: use new query syntax
-                        value: PropValue::Boolean(true),
-                        comparison: DataQueryFilterComparison::ProfilePresent,
-                    })],
-                    include_if_missing_profile: false,
+                DataQuery::ComponentRefs {
+                    container: PropComponent::Parent,
+                    filters: Rc::new(ContentFilter::HasPropMatchingProfile(
+                        PropProfile::SerialNumber,
+                    )),
                 }
             }
         }
@@ -151,7 +144,7 @@ mod custom_props {
                 RequiredData::to_data_queries()
             }
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-                let required_data = RequiredData::from_data_query_results(data);
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
                 dbg!(required_data);
                 PropCalcResult::Calculated(7)
             }
@@ -160,6 +153,8 @@ mod custom_props {
 
     pub use rendered_children::*;
     mod rendered_children {
+        use crate::props::{Cond, ContentFilter, Op, OpNot};
+
         use super::*;
 
         /// The children that this component renders.
@@ -173,7 +168,7 @@ mod custom_props {
         }
 
         /// Structure to hold data generated from the data queries
-        #[derive(FromDataQueryResults)]
+        #[derive(TryFromDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             filtered_children: Vec<PropView<prop_type::ContentRef>>,
@@ -182,20 +177,22 @@ mod custom_props {
 
         impl DataQueries for RequiredData {
             fn filtered_children_query() -> DataQuery {
-                DataQuery::FilteredChildren {
-                    parent: PropComponent::Parent,
-                    filters: vec![
-                        DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
-                            profile: PropProfile::Hidden,
-                            value: PropValue::Boolean(true),
-                            comparison: DataQueryFilterComparison::NotEqual,
-                        }),
-                        DataQueryFilter::ComponentType(ComponentTypeDataQueryFilter {
-                            component_type: Title::NAME,
-                            comparison: DataQueryFilterComparison::NotEqual,
-                        }),
-                    ],
-                    include_if_missing_profile: true,
+                DataQuery::ComponentRefs {
+                    container: PropComponent::Me,
+                    filters: Rc::new(Op::And(
+                        // This is what would be normally included in rendered children
+                        Op::Or(
+                            // Keep things without a "hidden" prop
+                            OpNot(ContentFilter::HasPropMatchingProfile(PropProfile::Hidden)),
+                            // Keep things with a "hidden != true" prop
+                            ContentFilter::HasPropMatchingProfileAndCondition(
+                                PropProfile::Hidden,
+                                Cond::NotEq(PropValue::Boolean(true)),
+                            ),
+                        ),
+                        // We exclude any `<title>` elements.
+                        OpNot(ContentFilter::IsType(Title::NAME)),
+                    )),
                 }
             }
             fn title_query() -> DataQuery {
@@ -213,8 +210,10 @@ mod custom_props {
                 RequiredData::to_data_queries()
             }
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-                let required_data = RequiredData::from_data_query_results(data);
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
                 let title_element_refs = required_data.title.value;
+                dbg!(&title_element_refs);
+                dbg!(&required_data.filtered_children);
 
                 let non_title_children = required_data
                     .filtered_children

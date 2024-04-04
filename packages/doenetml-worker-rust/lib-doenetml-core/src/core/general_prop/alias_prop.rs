@@ -40,7 +40,7 @@ where
 }
 
 /// A struct of all data required to compute the value of this prop.
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = LocalPropIdx)]
 pub struct RequiredData<T>
 where
@@ -77,7 +77,7 @@ where
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let aliased_value = required_data.aliased_value;
 
         // take on the value from `aliased_value`, propagating `came_from_default`.
@@ -94,7 +94,7 @@ where
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
 
         desired.aliased_value.change_to(requested_value);
 

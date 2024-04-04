@@ -175,15 +175,10 @@ impl DocumentModel {
                 }
             }
 
-            DataQuery::FilteredChildren {
-                parent,
-                filters,
-                include_if_missing_profile,
-            } => {
+            DataQuery::ComponentRefs { container, filters } => {
                 let edges_to_add = process_data_query_filtered_children(
-                    parent,
+                    container,
                     filters,
-                    include_if_missing_profile,
                     prop_pointer,
                     prop_node,
                     query_node,

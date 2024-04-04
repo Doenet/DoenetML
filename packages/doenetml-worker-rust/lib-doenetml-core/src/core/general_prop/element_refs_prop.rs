@@ -2,10 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    props::{
-        ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison,
-        PropProfileDataQueryFilter,
-    },
+    props::ContentFilter,
     state::types::{content_refs::ContentRef, element_refs::ElementRefs},
 };
 
@@ -20,15 +17,9 @@ impl ElementRefsProp {
     /// Creates a ElementRefs prop that returns all children with component_type
     pub fn new_from_all_matching_children(component_type: &'static str) -> Self {
         ElementRefsProp {
-            data_query: DataQuery::FilteredChildren {
-                parent: PropComponent::Me,
-                filters: vec![DataQueryFilter::ComponentType(
-                    ComponentTypeDataQueryFilter {
-                        component_type,
-                        comparison: DataQueryFilterComparison::Equal,
-                    },
-                )],
-                include_if_missing_profile: true,
+            data_query: DataQuery::ComponentRefs {
+                container: PropComponent::Me,
+                filters: Rc::new(ContentFilter::IsType(component_type)),
             },
         }
     }
@@ -36,16 +27,9 @@ impl ElementRefsProp {
     /// Creates a ElementRefs prop that returns all children with component_type
     pub fn new_from_all_matching_siblings(profile: PropProfile) -> Self {
         ElementRefsProp {
-            data_query: DataQuery::FilteredChildren {
-                parent: PropComponent::Me,
-                filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
-                    profile,
-                    // Ignored because we only care about the presence of the profile
-                    // TODO: use new query syntax
-                    value: PropValue::Boolean(true),
-                    comparison: DataQueryFilterComparison::ProfilePresent,
-                })],
-                include_if_missing_profile: false,
+            data_query: DataQuery::ComponentRefs {
+                container: PropComponent::Parent,
+                filters: Rc::new(ContentFilter::HasPropMatchingProfile(profile)),
             },
         }
     }

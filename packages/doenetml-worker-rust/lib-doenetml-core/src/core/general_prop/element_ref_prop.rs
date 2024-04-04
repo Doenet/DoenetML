@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use crate::{
     components::prelude::*,
-    props::{ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison},
+    props::ContentFilter,
     state::types::{content_refs::ContentRef, element_refs::ElementRef},
 };
 
@@ -23,15 +25,9 @@ impl ElementRefProp {
     /// Creates a ElementRefs prop that returns the last child with component_type
     pub fn new_from_last_matching_child(component_type: &'static str) -> Self {
         ElementRefProp {
-            data_query: DataQuery::FilteredChildren {
-                parent: PropComponent::Me,
-                filters: vec![DataQueryFilter::ComponentType(
-                    ComponentTypeDataQueryFilter {
-                        component_type,
-                        comparison: DataQueryFilterComparison::Equal,
-                    },
-                )],
-                include_if_missing_profile: true,
+            data_query: DataQuery::ComponentRefs {
+                container: PropComponent::Me,
+                filters: Rc::new(ContentFilter::IsType(component_type)),
             },
             elements_to_select: Some(ElementsToSelect::Last),
         }
@@ -40,15 +36,9 @@ impl ElementRefProp {
     /// Creates a ElementRefs prop that returns the first child with component_type
     pub fn new_from_first_matching_child(component_type: &'static str) -> Self {
         ElementRefProp {
-            data_query: DataQuery::FilteredChildren {
-                parent: PropComponent::Me,
-                filters: vec![DataQueryFilter::ComponentType(
-                    ComponentTypeDataQueryFilter {
-                        component_type,
-                        comparison: DataQueryFilterComparison::Equal,
-                    },
-                )],
-                include_if_missing_profile: true,
+            data_query: DataQuery::ComponentRefs {
+                container: PropComponent::Me,
+                filters: Rc::new(ContentFilter::IsType(component_type)),
             },
             elements_to_select: Some(ElementsToSelect::First),
         }
@@ -72,7 +62,7 @@ impl PropUpdater for ElementRefProp {
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         // There are two options based on the data query that created us.
         match self.data_query {
-            DataQuery::FilteredChildren { .. } => {
+            DataQuery::ComponentRefs { .. } => {
                 let elements_found: Vec<PropView<prop_type::ContentRef>> =
                     data.vec[0].to_owned().into_prop_view();
                 match elements_found.len() {

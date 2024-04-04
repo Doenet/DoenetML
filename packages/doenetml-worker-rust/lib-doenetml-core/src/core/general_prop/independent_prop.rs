@@ -33,7 +33,7 @@ where
     }
 }
 
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries)]
 struct RequiredData<T>
 where
@@ -72,7 +72,7 @@ where
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let independent_state = required_data.independent_state;
 
         if independent_state.came_from_default {
@@ -88,7 +88,7 @@ where
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
 
         desired.independent_state.change_to(requested_value);
 

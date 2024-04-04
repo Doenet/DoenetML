@@ -119,7 +119,7 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
     }
 }
 
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
     independent_state: PropView<prop_type::String>,
@@ -147,7 +147,7 @@ impl PropUpdater for StringProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let independent_state = required_data.independent_state;
         let strings = required_data.strings;
 
@@ -194,8 +194,8 @@ impl PropUpdater for StringProp {
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
-        let required_data = RequiredData::from_data_query_results(data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         match required_data.strings.len() {
             0 => {
