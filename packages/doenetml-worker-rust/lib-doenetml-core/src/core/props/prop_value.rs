@@ -5,8 +5,8 @@ use tsify::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
+use crate::state::types::math_expr::MathExpr;
 use crate::utils::rc_serde;
-use crate::{graph_node::GraphNode, state::types::math_expr::MathExpr};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props
@@ -45,7 +45,8 @@ pub enum PropValue {
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
-    GraphNodes(prop_type::GraphNodes),
+    ContentRefs(prop_type::ContentRefs),
+    ContentRef(prop_type::ContentRef),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -57,7 +58,7 @@ pub mod prop_type {
     //! so that they can be used in macros.
 
     use super::*;
-    use crate::state::types::element_refs;
+    use crate::state::types::{content_refs, element_refs};
 
     pub type String = Rc<std::string::String>;
     pub type Number = f64;
@@ -66,7 +67,8 @@ pub mod prop_type {
     pub type Math = Rc<MathExpr>;
     pub type ElementRef = Option<element_refs::ElementRef>;
     pub type ElementRefs = Rc<element_refs::ElementRefs>;
-    pub type GraphNodes = Rc<Vec<GraphNode>>;
+    pub type ContentRefs = Rc<content_refs::ContentRefs>;
+    pub type ContentRef = Option<content_refs::ContentRef>;
 }
 
 mod conversions {

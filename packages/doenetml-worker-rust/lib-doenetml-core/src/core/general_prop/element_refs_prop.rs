@@ -6,7 +6,7 @@ use crate::{
         ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison,
         PropProfileDataQueryFilter,
     },
-    state::types::element_refs::ElementRefs,
+    state::types::{content_refs::ContentRef, element_refs::ElementRefs},
 };
 
 /// A prop that references multiple components
@@ -68,8 +68,8 @@ impl PropUpdater for ElementRefsProp {
                 let elements = elements_found
                     .iter()
                     .flat_map(|elt| match &elt.value {
-                        PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().map(|node| match node {
-                            GraphNode::Component(_) => node.into(),
+                        PropValue::ContentRefs(graph_nodes) => (**graph_nodes).clone().into_vec().into_iter().map(|node| match node {
+                            ContentRef::Component(idx) => idx,
                             _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", node)
                         }),
                         _ => panic!(

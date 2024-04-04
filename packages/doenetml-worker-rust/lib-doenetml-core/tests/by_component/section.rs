@@ -1,10 +1,11 @@
 use super::*;
 
-use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
+use doenetml_core::{dast::FlatDastElementContent, state::types::content_refs::ContentRef};
 use test_helpers::*;
 
 #[test]
 fn section_finds_beginning_title_tag() {
+    attach_codelldb_debugger();
     let dast_root =
         dast_root_no_position(r#"<section><title>Hello</title><text>content</text></section>"#);
 
@@ -18,7 +19,10 @@ fn section_finds_beginning_title_tag() {
 
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
-        vec![GraphNode::Component(2), GraphNode::Component(3),]
+        vec![
+            ContentRef::Component(2.into()),
+            ContentRef::Component(3.into()),
+        ]
     );
 
     // check the flat dast
@@ -49,7 +53,10 @@ fn section_handles_missing_title_tag() {
 
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
-        vec![GraphNode::Component(2), GraphNode::Component(3),]
+        vec![
+            ContentRef::Component(2.into()),
+            ContentRef::Component(3.into()),
+        ]
     );
 
     // check the flat dast
@@ -88,13 +95,13 @@ fn section_finds_title_tag_in_middle() {
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
         vec![
-            GraphNode::Component(3),
-            GraphNode::String(0),
-            GraphNode::Component(2),
-            GraphNode::String(1),
-            GraphNode::String(2),
-            GraphNode::Component(4),
-            GraphNode::String(3),
+            ContentRef::Component(3.into()),
+            ContentRef::String(0.into()),
+            ContentRef::Component(2.into()),
+            ContentRef::String(1.into()),
+            ContentRef::String(2.into()),
+            ContentRef::Component(4.into()),
+            ContentRef::String(3.into()),
         ]
     );
 
@@ -140,14 +147,14 @@ fn section_with_multiple_title_tags_picks_last() {
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
         vec![
-            GraphNode::Component(4),
-            GraphNode::String(0),
-            GraphNode::String(1),
-            GraphNode::Component(3),
-            GraphNode::String(2),
-            GraphNode::String(3),
-            GraphNode::Component(5),
-            GraphNode::String(4),
+            ContentRef::Component(4.into()),
+            ContentRef::String(0.into()),
+            ContentRef::String(1.into()),
+            ContentRef::Component(3.into()),
+            ContentRef::String(2.into()),
+            ContentRef::String(3.into()),
+            ContentRef::Component(5.into()),
+            ContentRef::String(4.into()),
         ]
     );
 
@@ -194,6 +201,7 @@ mod test_helpers {
     use doenetml_core::{
         components::doenet::section::SectionProps,
         props::{prop_type, traits::IntoPropView, PropView},
+        state::types::content_refs::ContentRef,
     };
 
     use super::*;
@@ -218,15 +226,15 @@ mod test_helpers {
     pub fn get_rendered_children_prop(
         component_idx: ComponentIdx,
         core: &mut Core,
-    ) -> Vec<GraphNode> {
+    ) -> Vec<ContentRef> {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: RENDERED_CHILDREN_LOCAL_IDX,
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
-        let prop_view: PropView<prop_type::GraphNodes> = prop.into_prop_view();
+        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
 
-        (*prop_view.value).clone()
+        (*prop_view.value).clone().into_vec()
     }
 
     /// Resolves `serialNumber` from a `<section>` and returns it.

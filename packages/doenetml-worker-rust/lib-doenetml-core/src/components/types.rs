@@ -84,6 +84,7 @@ impl From<ComponentIdx> for GraphNode {
         Self::Component(idx.into())
     }
 }
+
 // Helper trait
 pub trait IntoGraphNode: Into<GraphNode> + Copy {}
 impl IntoGraphNode for GraphNode {}
@@ -93,6 +94,51 @@ impl<T: IntoGraphNode> From<T> for ComponentIdx {
     fn from(node: T) -> Self {
         match node.into() {
             GraphNode::Component(idx) => idx.into(),
+            node => panic!("Expected GraphNode::Component, not {:?}", node),
+        }
+    }
+}
+
+/// The index of the component in `Core.components`
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    derive_more::From,
+    derive_more::Into,
+    Serialize,
+    Deserialize,
+    Default,
+    Hash,
+)]
+#[serde(transparent)]
+pub struct StringIdx(usize);
+
+impl StringIdx {
+    pub const fn new(idx: usize) -> Self {
+        Self(idx)
+    }
+    #[inline(always)]
+    pub fn as_usize(self) -> usize {
+        self.0
+    }
+    pub fn as_graph_node(self) -> GraphNode {
+        GraphNode::String(self.0)
+    }
+}
+
+impl From<StringIdx> for GraphNode {
+    fn from(idx: StringIdx) -> Self {
+        Self::String(idx.into())
+    }
+}
+
+impl<T: IntoGraphNode> From<T> for StringIdx {
+    fn from(node: T) -> Self {
+        match node.into() {
+            GraphNode::String(idx) => idx.into(),
             node => panic!("Expected GraphNode::Component, not {:?}", node),
         }
     }

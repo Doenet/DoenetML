@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::props::{
     DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropValue,
 };
@@ -189,7 +187,7 @@ impl DocumentModel {
                                 if include_node {
                                     Some(PropWithMeta {
                                         // TODO: once we have a singular `GraphNode` we can remove the vector
-                                        value: PropValue::GraphNodes(Rc::new(vec![component_node])),
+                                        value: PropValue::ContentRef(Some(component_node.try_into().unwrap())),
                                         came_from_default: false,
                                         // Note: a component reference can't change like a prop can change,
                                         // but we mark `changed` as `true` as we don't know if this is the first time it is queried
@@ -202,7 +200,7 @@ impl DocumentModel {
                             }
                             GraphNode::String(_) => Some(PropWithMeta {
                                 // TODO: once we have a singular `GraphNode` we can remove the vector
-                                value: PropValue::GraphNodes(Rc::new(vec![node])),
+                                value: PropValue::ContentRef(Some(node.try_into().unwrap())),
                                 came_from_default: false,
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried

@@ -1,6 +1,7 @@
 use crate::{
     components::prelude::*,
     props::{ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison},
+    state::types::{content_refs::ContentRef, element_refs::ElementRef},
 };
 
 /// A prop that references a single component
@@ -69,12 +70,10 @@ impl PropUpdater for ElementRefProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        //let elements_found = &data.vec[0].values;
-
         // There are two options based on the data query that created us.
         match self.data_query {
             DataQuery::FilteredChildren { .. } => {
-                let elements_found: Vec<PropView<prop_type::GraphNodes>> =
+                let elements_found: Vec<PropView<prop_type::ContentRef>> =
                     data.vec[0].to_owned().into_prop_view();
                 match elements_found.len() {
                     // return an empty vector if nothing found
@@ -82,11 +81,18 @@ impl PropUpdater for ElementRefProp {
                     _ => {
                         let mut elements = elements_found
                             .iter()
-                            .flat_map(|elt| {
-                                elt.value.iter().map(|node| match node {
-                                    GraphNode::Component(_) => node.into(),
-                                    _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", node)
-                                })
+                            .filter_map(|elt| {
+                                let value = elt.value.as_ref()?;
+                                if !matches!(value, ContentRef::Component(_)) {
+                                    panic!("data queries for element refs prop should return component refs nodes, found {:?}", value.clone())
+                                }
+
+                                match value {
+                                    &ContentRef::Component(idx) => {
+                                         Some(ElementRef::from(idx))
+                                    },
+                                    _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", value.clone())
+                                }
                             });
 
                         let component = match self.elements_to_select {

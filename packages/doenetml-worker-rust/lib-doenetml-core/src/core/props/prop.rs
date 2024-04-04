@@ -53,11 +53,14 @@ impl PropDefinition {
             PropValueDiscriminants::ElementRefs => {
                 panic!("No preferred component type for an ElementRefs PropValue")
             }
-            PropValueDiscriminants::GraphNodes => {
-                panic!("No preferred component type for an GraphNodes PropValue")
-            }
             PropValueDiscriminants::ElementRef => {
                 panic!("No preferred component type for an ElementRef PropValue")
+            }
+            PropValueDiscriminants::ContentRefs => {
+                panic!("No preferred component type for an ContentRefs PropValue")
+            }
+            PropValueDiscriminants::ContentRef => {
+                panic!("No preferred component type for an ContentRef PropValue")
             }
         }
     }

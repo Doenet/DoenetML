@@ -44,7 +44,7 @@ mod component {
 
         //SelfRef,
         #[prop(
-            value_type = PropValueType::GraphNodes,
+            value_type = PropValueType::ContentRefs,
             profile = PropProfile::RenderedChildren
         )]
         RenderedChildren,
@@ -121,7 +121,7 @@ mod custom_props {
         #[derive(FromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            siblings: Vec<PropView<prop_type::GraphNodes>>,
+            siblings: Vec<PropView<prop_type::ContentRefs>>,
             self_ref: PropView<prop_type::ElementRef>,
         }
 
@@ -176,7 +176,7 @@ mod custom_props {
         #[derive(FromDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            filtered_children: Vec<PropView<Rc<Vec<GraphNode>>>>,
+            filtered_children: Vec<PropView<prop_type::ContentRef>>,
             title: PropView<prop_type::ElementRef>,
         }
 
@@ -207,7 +207,7 @@ mod custom_props {
         }
 
         impl PropUpdater for RenderedChildren {
-            type PropType = prop_type::GraphNodes;
+            type PropType = prop_type::ContentRefs;
 
             fn data_queries(&self) -> Vec<DataQuery> {
                 RequiredData::to_data_queries()
@@ -216,17 +216,16 @@ mod custom_props {
                 let required_data = RequiredData::from_data_query_results(data);
                 let title_element_refs = required_data.title.value;
 
-                let non_title_nodes = required_data
+                let non_title_children = required_data
                     .filtered_children
                     .iter()
-                    .flat_map(|prop| (*prop.value).clone());
+                    .filter_map(|prop| prop.value.as_ref())
+                    .copied();
 
-                let mut child_nodes = title_element_refs
-                    .map(|n| vec![n.0.as_graph_node()])
-                    .unwrap_or(vec![]);
-                child_nodes.extend(non_title_nodes);
+                let mut children = title_element_refs.map(|n| vec![n.into()]).unwrap_or(vec![]);
+                children.extend(non_title_children);
 
-                PropCalcResult::Calculated(Rc::new(child_nodes))
+                PropCalcResult::Calculated(Rc::new(children.into()))
             }
         }
     }

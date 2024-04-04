@@ -35,7 +35,7 @@ impl RenderedChildrenPassthroughProp {
 }
 
 impl PropUpdater for RenderedChildrenPassthroughProp {
-    type PropType = prop_type::GraphNodes;
+    type PropType = prop_type::ContentRefs;
 
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]
@@ -48,13 +48,13 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
             .values
             .iter()
             .flat_map(|prop| match &prop.value {
-                PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().copied(),
+                PropValue::ContentRefs(graph_nodes) => (**graph_nodes).clone().into_vec(),
                 _ => {
                     unreachable!("should only graph nodes from filtered children")
                 }
             })
             .collect::<Vec<_>>();
 
-        PropCalcResult::Calculated(Rc::new(nodes))
+        PropCalcResult::Calculated(Rc::new(nodes.into()))
     }
 }

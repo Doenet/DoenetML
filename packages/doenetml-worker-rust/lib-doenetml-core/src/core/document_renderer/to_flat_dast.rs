@@ -100,7 +100,7 @@ impl DocumentRenderer {
                     let rendered_children_value =
                         &self.get_prop_for_render(prop_pointer, document_model).value;
                     match rendered_children_value {
-                        PropValue::GraphNodes(graph_nodes) => Some((**graph_nodes).clone()),
+                        PropValue::ContentRefs(content_refs) => Some((**content_refs).clone()),
                         _ => unreachable!(
                             "RenderedChildren prop must return GraphNodes, found {:?}",
                             rendered_children_value
@@ -111,6 +111,10 @@ impl DocumentRenderer {
                 }
             })
             .unwrap_or_default()
+            .into_vec()
+            .into_iter()
+            .map(|content_ref| content_ref.into())
+            .collect()
     }
 
     /// Convert a component to a `FlatDastElement` without its children. This is can be used
