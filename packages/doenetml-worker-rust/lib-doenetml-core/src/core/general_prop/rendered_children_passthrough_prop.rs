@@ -2,10 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    props::{
-        Cond, ContentFilter, DataQueryFilter, DataQueryFilterComparison, Op, OpNot,
-        PropProfileDataQueryFilter, UpdaterObject,
-    },
+    props::{Cond, ContentFilter, Op, OpNot, UpdaterObject},
 };
 
 #[derive(Debug, Default)]
@@ -54,7 +51,10 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
             .flat_map(|prop| match &prop.value {
                 PropValue::ContentRefs(content_ref) => (**content_ref).clone().into_vec(),
                 _ => {
-                    unreachable!("should only encounter content refs from filtered children")
+                    unreachable!(
+                        "should only encounter content refs from filtered children, not {:?}",
+                        prop.value
+                    )
                 }
             })
             .collect::<Vec<_>>();

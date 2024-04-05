@@ -171,7 +171,7 @@ mod custom_props {
         #[derive(TryFromDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            filtered_children: Vec<PropView<prop_type::ContentRef>>,
+            filtered_children: PropView<prop_type::ContentRefs>,
             title: PropView<prop_type::ElementRef>,
         }
 
@@ -212,14 +212,8 @@ mod custom_props {
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
                 let required_data = RequiredData::try_from_data_query_results(data).unwrap();
                 let title_element_refs = required_data.title.value;
-                dbg!(&title_element_refs);
-                dbg!(&required_data.filtered_children);
 
-                let non_title_children = required_data
-                    .filtered_children
-                    .iter()
-                    .filter_map(|prop| prop.value.as_ref())
-                    .copied();
+                let non_title_children = required_data.filtered_children.value.as_slice();
 
                 let mut children = title_element_refs.map(|n| vec![n.into()]).unwrap_or(vec![]);
                 children.extend(non_title_children);

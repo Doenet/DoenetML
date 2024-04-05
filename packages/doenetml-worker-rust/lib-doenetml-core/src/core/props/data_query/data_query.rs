@@ -1,14 +1,11 @@
 use std::rc::Rc;
 
-use crate::{
-    components::{
-        prelude::{ComponentIdx, LocalPropIdx},
-        types::AttributeName,
-    },
-    graph_node::GraphNode,
+use crate::components::{
+    prelude::{ComponentIdx, LocalPropIdx},
+    types::AttributeName,
 };
 
-use super::{cache::PropWithMeta, ApplyTest, BindableAsGraphNodeFilter, PropProfile, PropValue};
+use super::{cache::PropWithMeta, BindableAsGraphNodeFilter, PropProfile, PropValue};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug, Clone)]
@@ -121,7 +118,7 @@ pub enum DataQuery {
         /// Children of this component will be searched
         container: PropComponent,
         /// How to filter the children
-        filters: Rc<dyn BindableAsGraphNodeFilter>,
+        filters: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
     },
 
     /// Query for a particular prop of a component

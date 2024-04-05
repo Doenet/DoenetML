@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use crate::props::{
-    DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropComponent,
-    PropValue,
+use crate::{
+    props::{DataQuery, DataQueryResults, PropComponent, PropValue},
+    state::types::content_refs::ContentRef,
 };
 
 use super::{
@@ -139,25 +139,55 @@ impl DocumentModel {
         match query {
             DataQuery::ComponentRefs { container, filters } => {
                 // This query is computed on the fly. We need to figure out who asked for this query.
-                //let prop_node = self.get_nearest_prop_ancestor(query_node);
-                //let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
-                //let prop_pointer = self.get_prop_pointer(prop_node);
+                let prop_node = self.get_nearest_prop_ancestor_of_query(query_node);
+                let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
+                let prop_pointer = self.get_prop_pointer(prop_node);
 
-                //// Get the correct "root" for the query.
-                //let component_idx = match container {
-                //    PropComponent::Me => prop_pointer.component_idx,
-                //    PropComponent::Parent => self
-                //        .document_structure
-                //        .borrow()
-                //        .get_true_component_parent(prop_pointer.component_idx)
-                //        .unwrap(),
-                //    PropComponent::ByIdx(component_idx) => *component_idx,
-                //};
-                //let filters = Rc::clone(filters);
-                //let bound_filter = filters.bind(&self);
-                //let content_children = self.get_component_content_children(component_idx);
+                // Get the correct "root" for the query.
+                let component_idx = match container {
+                    PropComponent::Me => prop_pointer.component_idx,
+                    PropComponent::Parent => self
+                        .document_structure
+                        .borrow()
+                        .get_true_component_parent(prop_pointer.component_idx)
+                        .unwrap(),
+                    PropComponent::ByIdx(component_idx) => *component_idx,
+                };
+                let filters = Rc::clone(filters);
+                let bound_filter = filters.bind(self);
+                let content_children = self.get_component_content_children(component_idx);
 
                 let mut values = Vec::new();
+
+                let mut content_refs: Vec<ContentRef> = Vec::new();
+
+                for node in content_children {
+                    if bound_filter.apply_test(&node) {
+                        match node {
+                            GraphNode::Component(_) => {
+                                content_refs.push(ContentRef::Component(node.component_idx().into()));
+                            }
+                            GraphNode::String(_) => {
+                                content_refs.push(ContentRef::String(node.idx().into()));
+                            }
+                            _ => panic!(
+                                "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
+                                node
+                            ),
+                        }
+
+                        // XXX: We also want to depend on the props we matched so that we know to re-trigger this query if any of them change?
+                        //ret.push((query_node, node));
+                    }
+                }
+
+                values.push(PropWithMeta {
+                    value: PropValue::ContentRefs(Rc::new(content_refs.into())),
+                    came_from_default: false,
+                    changed: true,
+                    origin: Some(query_node),
+                });
+
                 //for node in content_children {
                 //    if bound_filter.apply_test(&node) {
                 //        match node {

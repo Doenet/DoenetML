@@ -63,36 +63,29 @@ impl PropUpdater for ElementRefProp {
         // There are two options based on the data query that created us.
         match self.data_query {
             DataQuery::ComponentRefs { .. } => {
-                let elements_found: Vec<PropView<prop_type::ContentRef>> =
-                    data.vec[0].to_owned().into_prop_view();
-                match elements_found.len() {
-                    // return an empty vector if nothing found
-                    0 => PropCalcResult::FromDefault(<Self as PropUpdater>::default(self)),
-                    _ => {
-                        let mut elements = elements_found
-                            .iter()
-                            .filter_map(|elt| {
-                                let value = elt.value.as_ref()?;
-                                if !matches!(value, ContentRef::Component(_)) {
-                                    panic!("data queries for element refs prop should return component refs nodes, found {:?}", value.clone())
-                                }
+                let content_refs: PropView<prop_type::ContentRefs> = data.vec[0]
+                    .to_owned()
+                    .try_into_prop_view()
+                    .expect("Manual unwrap in ElementRefProp failed");
 
-                                match value {
-                                    &ContentRef::Component(idx) => {
-                                         Some(ElementRef::from(idx))
-                                    },
-                                    _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", value.clone())
-                                }
-                            });
-
-                        let component = match self.elements_to_select {
-                            Some(ElementsToSelect::First) => elements.next(),
-                            Some(ElementsToSelect::Last) => elements.last(),
-                            None => unreachable!("elements_to_select should be Some"),
-                        };
-                        PropCalcResult::Calculated(component)
-                    }
+                if content_refs.value.is_empty() {
+                    return PropCalcResult::FromDefault(<Self as PropUpdater>::default(self));
                 }
+
+                let mut elements = content_refs.value.as_slice().iter().map(|content_ref|
+                    match content_ref {
+                        &ContentRef::Component(idx) => {
+                             ElementRef::from(idx)
+                        },
+                        _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", content_ref.clone())
+                    }
+                );
+                let component = match self.elements_to_select {
+                    Some(ElementsToSelect::First) => elements.next(),
+                    Some(ElementsToSelect::Last) => elements.last(),
+                    None => unreachable!("elements_to_select should be Some"),
+                };
+                PropCalcResult::Calculated(component)
             }
             _ => panic!("ElementRefProp should only be created with a FilteredChildren data query"),
         }

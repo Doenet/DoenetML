@@ -244,13 +244,23 @@ impl DocumentModel {
 
     /// Walk up the ancestor tree of `node` until a `GraphNode::Prop` is found.
     /// If `node` is a `GraphNode::Prop`, `node` is returned.
-    pub fn get_nearest_prop_ancestor(&self, node: GraphNode) -> Option<GraphNode> {
+    pub fn get_nearest_prop_ancestor_of_query(&self, node: GraphNode) -> Option<GraphNode> {
         match node {
             // If we're a component, we're already here
             GraphNode::Prop(_) => Some(node),
             _ => {
-                let document_structure = self.document_structure.borrow();
-                document_structure.get_nearest_prop_ancestor(node)
+                let dependency_graph = self.dependency_graph.borrow();
+                let mut parent = Some(node);
+                while parent.is_some() {
+                    match parent.unwrap() {
+                        GraphNode::Prop(_) => return parent,
+                        node => {
+                            parent = dependency_graph.get_unique_parent(node);
+                        }
+                    }
+                }
+
+                parent
             }
         }
     }

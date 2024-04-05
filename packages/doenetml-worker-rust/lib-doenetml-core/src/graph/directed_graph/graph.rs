@@ -156,7 +156,10 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     /// Get the parent of `node` if it exists and is unique.
     pub fn get_unique_parent<A: Borrow<Node>>(&self, node: A) -> Option<Node> {
         let node = node.borrow();
-        let node_idx = self.index_lookup.get_tag(node).unwrap();
+        let node_idx = self
+            .index_lookup
+            .get_tag(node)
+            .expect("Could not find index of node. This should never happen.");
         if self.reverse_edges[*node_idx].len() == 1 {
             Some(self.nodes[self.reverse_edges[*node_idx][0]].clone())
         } else {

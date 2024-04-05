@@ -4,12 +4,12 @@ use crate::{graph_node::GraphNode, props::PropProfile, DocumentModel};
 
 /// Implementing this trait allows you to be bound to a document model.
 /// After you are bound, you can `.apply_test` on a `GraphNode`.
-pub trait BindableAsGraphNodeFilter
+pub trait BindableAsGraphNodeFilter<'a>
 where
     Self: Debug,
 {
     /// Attach `self` to `document_model` so that you can filter `GraphNode`s.
-    fn bind<'a>(&self, document_model: &'a DocumentModel) -> Box<dyn ApplyTest<GraphNode> + 'a>;
+    fn bind(&self, document_model: &'a DocumentModel) -> Box<dyn ApplyTest<GraphNode> + 'a>;
 }
 
 /// A filter that has been bound to a document model.
@@ -28,7 +28,7 @@ where
 {
     fn apply_test(&self, node: &GraphNode) -> bool {
         self.filter.apply_test(&FilterData {
-            node: node.clone(),
+            node: *node,
             document_model: self.document_model,
         })
     }
@@ -53,11 +53,8 @@ mod binding {
     //! Implementations of `.bind` for relevant types.
     use super::*;
 
-    impl BindableAsGraphNodeFilter for ContentFilter {
-        fn bind<'a>(
-            &self,
-            document_model: &'a DocumentModel,
-        ) -> Box<dyn ApplyTest<GraphNode> + 'a> {
+    impl<'a> BindableAsGraphNodeFilter<'a> for ContentFilter {
+        fn bind(&self, document_model: &'a DocumentModel) -> Box<dyn ApplyTest<GraphNode> + 'a> {
             Box::new(BoundContentFilter {
                 filter: self.clone(),
                 document_model,
@@ -65,14 +62,11 @@ mod binding {
         }
     }
 
-    impl<'a, Filter> BindableAsGraphNodeFilter for OpNot<Filter>
+    impl<'a, Filter> BindableAsGraphNodeFilter<'a> for OpNot<Filter>
     where
-        Filter: ApplyTest<FilterData<'a>> + Debug + Clone,
+        Filter: ApplyTest<FilterData<'a>> + Debug + Clone + 'a,
     {
-        fn bind<'b>(
-            &self,
-            document_model: &'b DocumentModel,
-        ) -> Box<dyn ApplyTest<GraphNode> + 'b> {
+        fn bind(&self, document_model: &'a DocumentModel) -> Box<dyn ApplyTest<GraphNode> + 'a> {
             Box::new(BoundContentFilter {
                 filter: self.clone(),
                 document_model,
@@ -80,15 +74,12 @@ mod binding {
         }
     }
 
-    impl<'a, LeftFilter, RightFilter> BindableAsGraphNodeFilter for Op<LeftFilter, RightFilter>
+    impl<'a, LeftFilter, RightFilter> BindableAsGraphNodeFilter<'a> for Op<LeftFilter, RightFilter>
     where
-        LeftFilter: ApplyTest<FilterData<'a>> + Debug + Clone,
-        RightFilter: ApplyTest<FilterData<'a>> + Debug + Clone,
+        LeftFilter: ApplyTest<FilterData<'a>> + Debug + Clone + 'a,
+        RightFilter: ApplyTest<FilterData<'a>> + Debug + Clone + 'a,
     {
-        fn bind<'b>(
-            &self,
-            document_model: &'b DocumentModel,
-        ) -> Box<dyn ApplyTest<GraphNode> + 'b> {
+        fn bind(&self, document_model: &'a DocumentModel) -> Box<dyn ApplyTest<GraphNode> + 'a> {
             Box::new(BoundContentFilter {
                 filter: self.clone(),
                 document_model,
@@ -118,8 +109,8 @@ impl ApplyTest<FilterData<'_>> for ContentFilter {
             },
             ContentFilter::HasPropMatchingProfile(profile) => match node {
                 GraphNode::Component(component_idx) => {
-                    let prop = document_model
-                        .get_component_prop_by_profile(component_idx, &[profile.clone()]);
+                    let prop =
+                        document_model.get_component_prop_by_profile(component_idx, &[*profile]);
                     prop.is_some()
                 }
                 _ => {
@@ -135,8 +126,8 @@ impl ApplyTest<FilterData<'_>> for ContentFilter {
             },
             ContentFilter::HasPropMatchingProfileAndCondition(profile, cond) => match node {
                 GraphNode::Component(component_idx) => {
-                    let prop = document_model
-                        .get_component_prop_by_profile(component_idx, &[profile.clone()]);
+                    let prop =
+                        document_model.get_component_prop_by_profile(component_idx, &[*profile]);
 
                     let prop = prop.map(|prop_pointer| {
                         let prop_node = document_model.prop_pointer_to_prop_node(prop_pointer);
@@ -164,17 +155,15 @@ use super::PropValue;
 mod operations {
     //! Abstract operations that can be used to build up complex queries
 
+    use super::*;
     use std::fmt::Debug;
-
-    use crate::{graph_node::GraphNode, DocumentModel};
-
-    use super::BindableAsGraphNodeFilter;
 
     /// Trait that lets you test to filter different values
     pub trait ApplyTest<T>
     where
         Self: Debug,
     {
+        /// Test `value` against this filter
         fn apply_test(&self, value: &T) -> bool;
     }
 
@@ -225,12 +214,9 @@ mod operations {
     }
 
     // Just to make it easier to do some examples
-    impl BindableAsGraphNodeFilter for bool {
-        fn bind<'a>(
-            &self,
-            _document_model: &'a DocumentModel,
-        ) -> Box<dyn ApplyTest<GraphNode> + 'a> {
-            Box::new(self.clone())
+    impl<'a> BindableAsGraphNodeFilter<'a> for bool {
+        fn bind(&self, _document_model: &'a DocumentModel) -> Box<dyn ApplyTest<GraphNode> + 'a> {
+            Box::new(*self)
         }
     }
 

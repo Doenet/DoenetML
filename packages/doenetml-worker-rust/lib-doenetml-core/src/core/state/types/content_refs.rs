@@ -19,6 +19,18 @@ impl ContentRefs {
     pub fn into_vec(self) -> Vec<ContentRef> {
         self.0
     }
+
+    pub fn as_slice(&self) -> &[ContentRef] {
+        &self.0
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl From<Vec<ContentRef>> for ContentRefs {

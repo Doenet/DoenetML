@@ -1,13 +1,10 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    components::{
-        types::{ComponentIdx, PropPointer},
-        ComponentNode,
-    },
+    components::types::PropPointer,
     core::document_structure::DocumentStructure,
     graph_node::GraphNode,
-    props::{BindableAsGraphNodeFilter, DataQueryFilter, DataQueryFilterComparison, PropComponent},
+    props::{BindableAsGraphNodeFilter, PropComponent},
     DocumentModel,
 };
 
@@ -15,26 +12,29 @@ use crate::{
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
 #[allow(clippy::too_many_arguments)]
-pub fn process_data_query_filtered_children(
+pub fn process_data_query_filtered_children<'a>(
     container: PropComponent,
-    filters: Rc<dyn BindableAsGraphNodeFilter>,
+    filters: Rc<dyn BindableAsGraphNodeFilter<'a>>,
     prop_pointer: PropPointer,
     _prop_node: GraphNode,
-    query_node: GraphNode,
-    document_structure: &DocumentStructure,
-    document_model: &DocumentModel,
+    _query_node: GraphNode,
+    document_structure: &'a RefCell<DocumentStructure>,
+    document_model: &'a DocumentModel,
 ) -> Vec<(GraphNode, GraphNode)> {
-    let mut ret = Vec::new();
+    let ret = Vec::new();
 
     let component_idx = match container {
         PropComponent::Me => prop_pointer.component_idx,
         PropComponent::Parent => document_structure
+            .borrow()
             .get_true_component_parent(prop_pointer.component_idx)
             .unwrap(),
         PropComponent::ByIdx(component_idx) => component_idx,
     };
 
-    let content_children = document_structure.get_component_content_children(component_idx);
+    let content_children = document_structure
+        .borrow()
+        .get_component_content_children(component_idx);
 
     let bound_filter = filters.bind(document_model);
 
@@ -121,12 +121,12 @@ pub fn process_data_query_filtered_children(
 
     // Query is computed on the fly...so no need to link to anything?
 
-    //for node in content_children {
-    //    if bound_filter.apply_test(&node) {
-    //        // XXX: We also want to depend on the props we matched so that we know to re-trigger this query if any of them change?
-    //        ret.push((query_node, node));
-    //    }
-    //}
+    for node in content_children {
+        if bound_filter.apply_test(&node) {
+            // XXX: We also want to depend on the props we matched so that we know to re-trigger this query if any of them change?
+            //   ret.push((query_node, node));
+        }
+    }
 
     ret
 }

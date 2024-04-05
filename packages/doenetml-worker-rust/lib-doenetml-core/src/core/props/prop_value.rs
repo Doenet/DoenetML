@@ -68,7 +68,7 @@ pub mod prop_type {
     pub type ElementRef = Option<element_refs::ElementRef>;
     pub type ElementRefs = Rc<element_refs::ElementRefs>;
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
-    pub type ContentRef = Option<content_refs::ContentRef>;
+    pub type ContentRef = content_refs::ContentRef;
 }
 
 mod conversions {

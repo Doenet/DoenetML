@@ -182,7 +182,7 @@ impl DocumentModel {
                     prop_pointer,
                     prop_node,
                     query_node,
-                    &self.document_structure.borrow(),
+                    &self.document_structure,
                     self,
                 );
                 let mut dependency_graph = self.dependency_graph.borrow_mut();
