@@ -176,7 +176,7 @@ impl DocumentModel {
             }
 
             DataQuery::ComponentRefs { container, filters } => {
-                let edges_to_add = process_data_query_filtered_children(
+                let edges_to_add = process_data_query_component_refs(
                     container,
                     filters,
                     prop_pointer,

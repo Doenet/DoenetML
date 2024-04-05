@@ -12,7 +12,7 @@ use crate::{
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
 #[allow(clippy::too_many_arguments)]
-pub fn process_data_query_filtered_children<'a>(
+pub fn process_data_query_component_refs<'a>(
     container: PropComponent,
     filters: Rc<dyn BindableAsGraphNodeFilter<'a>>,
     prop_pointer: PropPointer,
@@ -36,7 +36,7 @@ pub fn process_data_query_filtered_children<'a>(
         .borrow()
         .get_component_content_children(component_idx);
 
-    let bound_filter = filters.bind(document_model);
+    let bound_filter = filters.bind(GraphNode::Query(0), document_model);
 
     //// We will exclude children that are not components if there is a component type filter
     //// that restricts to a particular component type

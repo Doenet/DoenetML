@@ -134,6 +134,8 @@ impl DocumentModel {
     ///
     /// Will panic if any required prop is not fresh.
     fn _execute_data_query_with_fresh_deps(&self, query_node: GraphNode) -> DataQueryResult {
+        // TODO: Should we clone this so that we don't maintain a borrow of self.queries?
+        // If there are unresolved props, a call to `Filter.apply_test` may panic.
         let query = &self.queries.borrow()[query_node.idx()];
 
         match query {
@@ -154,7 +156,7 @@ impl DocumentModel {
                     PropComponent::ByIdx(component_idx) => *component_idx,
                 };
                 let filters = Rc::clone(filters);
-                let bound_filter = filters.bind(self);
+                let bound_filter = filters.bind(query_node, self);
                 let content_children = self.get_component_content_children(component_idx);
 
                 let mut values = Vec::new();

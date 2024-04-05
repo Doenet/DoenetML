@@ -3,6 +3,8 @@ use super::*;
 use doenetml_core::{dast::FlatDastElementContent, state::types::content_refs::ContentRef};
 use test_helpers::*;
 
+// TODO: add a test where a child with "hidden" is dynamically changed to hidden/unhidden.
+
 #[test]
 fn p_rendered_children() {
     let dast_root = dast_root_no_position(r#"<p><text>Hello</text> and <text>bye</text>!</p>"#);

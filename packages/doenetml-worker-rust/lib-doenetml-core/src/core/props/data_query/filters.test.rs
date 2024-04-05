@@ -32,6 +32,7 @@ fn can_apply_condition() {
 
 #[test]
 fn can_filter_on_component_type() {
+    let query_node = GraphNode::Query(0);
     let dast_root = dast_root_no_position(r#"<foo /><bar /><baz />"#);
 
     let mut core = Core::new();
@@ -39,7 +40,7 @@ fn can_filter_on_component_type() {
     let document_model = &core.document_model;
 
     // Filter for single element
-    let filter = ContentFilter::IsType("foo").bind(document_model);
+    let filter = ContentFilter::IsType("foo").bind(query_node, document_model);
     let filtered = (1..=3usize)
         .into_iter()
         .filter(|&idx| {
@@ -50,7 +51,7 @@ fn can_filter_on_component_type() {
     assert_eq!(filtered, vec![1]);
 
     // Filter for multiple elements NOT
-    let filter = OpNot(ContentFilter::IsType("foo")).bind(document_model);
+    let filter = OpNot(ContentFilter::IsType("foo")).bind(query_node, document_model);
     let filtered = (1..=3usize)
         .into_iter()
         .filter(|&idx| {
@@ -61,8 +62,8 @@ fn can_filter_on_component_type() {
     assert_eq!(filtered, vec![2, 3]);
 
     // Filter for multiple elements OR
-    let filter =
-        Op::Or(ContentFilter::IsType("foo"), ContentFilter::IsType("baz")).bind(document_model);
+    let filter = Op::Or(ContentFilter::IsType("foo"), ContentFilter::IsType("baz"))
+        .bind(query_node, document_model);
     let filtered = (1..=3usize)
         .into_iter()
         .filter(|&idx| {
@@ -75,6 +76,7 @@ fn can_filter_on_component_type() {
 
 #[test]
 fn can_filter_by_component_or_string() {
+    let query_node = GraphNode::Query(0);
     let dast_root = dast_root_no_position(r#"<foo />hi<bar />there<baz />"#);
 
     let mut core = Core::new();
@@ -83,7 +85,7 @@ fn can_filter_by_component_or_string() {
     let content_children = document_model.get_component_content_children(0);
 
     // Filter for single element
-    let filter = ContentFilter::IsComponent.bind(document_model);
+    let filter = ContentFilter::IsComponent.bind(query_node, document_model);
     let filtered = content_children
         .iter()
         .cloned()
@@ -98,7 +100,7 @@ fn can_filter_by_component_or_string() {
         ]
     );
 
-    let filter = ContentFilter::IsString.bind(document_model);
+    let filter = ContentFilter::IsString.bind(query_node, document_model);
     let filtered = content_children
         .iter()
         .cloned()
@@ -109,6 +111,7 @@ fn can_filter_by_component_or_string() {
 
 #[test]
 fn can_filter_by_profile() {
+    let query_node = GraphNode::Query(0);
     let dast_root = dast_root_no_position(r#"<text>me</text>hi<section>you</section>there<baz />"#);
 
     let mut core = Core::new();
@@ -116,7 +119,7 @@ fn can_filter_by_profile() {
     let document_model = &core.document_model;
     let content_children = document_model.get_component_content_children(0);
 
-    let filter = ContentFilter::IsType("section").bind(document_model);
+    let filter = ContentFilter::IsType("section").bind(query_node, document_model);
     let section_node = content_children
         .iter()
         .cloned()
@@ -128,7 +131,8 @@ fn can_filter_by_profile() {
     assert_eq!(section_node, GraphNode::Component(2));
 
     // Filtering based on `String` profile should give everything but `<section>` and `<baz>`
-    let filter = ContentFilter::HasPropMatchingProfile(PropProfile::String).bind(document_model);
+    let filter =
+        ContentFilter::HasPropMatchingProfile(PropProfile::String).bind(query_node, document_model);
     let filtered = content_children
         .iter()
         .cloned()
@@ -147,6 +151,7 @@ fn can_filter_by_profile() {
 
 #[test]
 fn can_filter_by_profile_and_condition() {
+    let query_node = GraphNode::Query(0);
     let dast_root = dast_root_no_position(r#"<text>me</text><text>you</text><text>me</text>"#);
 
     let mut core = Core::new();
@@ -161,7 +166,7 @@ fn can_filter_by_profile_and_condition() {
         PropProfile::String,
         Cond::Eq(str_me.clone()),
     )
-    .bind(document_model);
+    .bind(query_node, document_model);
     let filtered = content_children
         .iter()
         .cloned()
@@ -177,7 +182,7 @@ fn can_filter_by_profile_and_condition() {
         PropProfile::String,
         Cond::Eq(str_you.clone()),
     )
-    .bind(document_model);
+    .bind(query_node, document_model);
     let filtered = content_children
         .iter()
         .cloned()
