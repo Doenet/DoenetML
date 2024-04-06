@@ -99,12 +99,6 @@ impl From<LocalPropIdx> for PropSpecifier {
 /// a request for a list of children, etc..
 #[derive(Debug, Clone, Default)]
 pub enum DataQuery {
-    //    /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
-    //    /// Returns the matching props
-    //    ChildPropProfile {
-    //        /// The data query will match child components that have at least one of these profiles
-    //        match_profiles: Vec<PropProfile>,
-    //    },
     /// Query for all child GraphNodes, filtering element nodes based on the supplied
     /// `filter`.
     ///
