@@ -113,6 +113,18 @@ impl DocumentModel {
         })
     }
 
+    /// Get the value of a prop without checking its status. This function assumes the value
+    /// is already computed and cached. If the value is not cached, this function will panic.
+    /// You usually want `get_prop` or `get_prop_untracked` instead of this function.
+    ///
+    /// Unlike `get_prop_untracked`, this function will update the prop's change state, so calling
+    /// this function twice in a row on the same prop will result in its change status being "unchanged".
+    ///
+    /// **For internal use only**
+    pub fn _get_prop_unchecked(&self, prop_node: GraphNode, origin: GraphNode) -> PropWithMeta {
+        self.prop_cache.get_prop_unchecked(prop_node, origin)
+    }
+
     /// Get the status of a prop. This function will not resolve the prop or calculate its dependencies.
     pub fn get_prop_status(&self, prop_node: GraphNode) -> PropStatus {
         self.prop_cache.get_prop_status(prop_node)

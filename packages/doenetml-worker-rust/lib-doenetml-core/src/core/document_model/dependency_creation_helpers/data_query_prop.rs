@@ -12,7 +12,6 @@ pub fn process_data_query_prop(
     component: PropComponent,
     prop_specifier: PropSpecifier,
     prop_pointer: PropPointer,
-    prop_node: GraphNode,
     query_node: GraphNode,
     document_structure: &DocumentStructure,
 ) -> Vec<(GraphNode, GraphNode)> {
@@ -39,10 +38,6 @@ pub fn process_data_query_prop(
             local_prop_idx,
         }
         .into_prop_node(document_structure);
-        assert_ne!(
-            prop_node, target_prop_node,
-            "Self-loop detected; DataQuery requested a prop that is the same as the origin prop."
-        );
         ret.push((query_node, target_prop_node));
     }
 

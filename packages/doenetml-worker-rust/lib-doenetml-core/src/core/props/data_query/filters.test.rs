@@ -1,7 +1,10 @@
 use std::rc::Rc;
 
+use bitvec::ptr::read;
+
 use crate::{test_utils::*, Core};
 
+use super::super::*;
 use super::*;
 
 #[test]
@@ -156,6 +159,9 @@ fn can_filter_by_profile_and_condition() {
 
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
+    // We need to call `to_flat_dast` so that the `value` prop of our `<text>` components
+    // gets resolved. Otherwise we cannot `apply_test` without failing on an unresolved prop.
+    core.to_flat_dast();
     let document_model = &core.document_model;
     let content_children = document_model.get_component_content_children(0);
 
@@ -190,4 +196,119 @@ fn can_filter_by_profile_and_condition() {
         .collect::<Vec<_>>();
 
     assert_eq!(filtered, vec![GraphNode::Component(2),]);
+}
+
+#[test]
+fn can_accumulate_deps_for_simple_filter() {
+    let query_node = GraphNode::Query(0);
+    let dast_root = dast_root_no_position(r#"<text>me</text><text>you</text>fun<text>me</text>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    let document_model = &core.document_model;
+    let content_children = document_model.get_component_content_children(0);
+
+    let str_me = PropValue::String(Rc::new("me".to_string()));
+
+    // Match on just one prop
+    let filter = ContentFilter::HasPropMatchingProfileAndCondition(
+        PropProfile::String,
+        Cond::Eq(str_me.clone()),
+    )
+    .bind(query_node, document_model);
+    let deps = content_children
+        .iter()
+        .cloned()
+        .map(|n| filter.accumulate_deps(&n))
+        .collect::<Vec<_>>();
+
+    // The `value` props of the text components are what we're looking for.
+    let value_props = content_children
+        .iter()
+        .map(|n| {
+            if !matches!(n, GraphNode::Component(_)) {
+                // Never any deps for a non-component node
+                return vec![];
+            }
+            let prop =
+                document_model.get_component_prop_by_profile(&n.into(), &[PropProfile::String]);
+            vec![document_model.prop_pointer_to_prop_node(prop.unwrap())]
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(deps, value_props);
+}
+
+#[test]
+fn can_accumulate_deps_for_compound_filter() {
+    let query_node = GraphNode::Query(0);
+    let dast_root = dast_root_no_position(r#"<text>me</text><text>you</text>fun<text>me</text>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    let document_model = &core.document_model;
+    let content_children = document_model.get_component_content_children(0);
+
+    let str_me = PropValue::String(Rc::new("me".to_string()));
+
+    let cond1 = ContentFilter::HasPropMatchingProfileAndCondition(
+        PropProfile::Hidden,
+        Cond::Eq(PropValue::Boolean(false)),
+    );
+
+    let cond2 = ContentFilter::HasPropMatchingProfileAndCondition(
+        PropProfile::String,
+        Cond::Eq(str_me.clone()),
+    );
+
+    // Match on multiple props
+    let filter = Op::Or(cond1.clone(), cond2.clone()).bind(query_node, document_model);
+    let deps = content_children
+        .iter()
+        .cloned()
+        .map(|n| filter.accumulate_deps(&n))
+        .collect::<Vec<_>>();
+
+    // The `value` props of the text components are what we're looking for.
+    let value_props = content_children
+        .iter()
+        .map(|n| {
+            if !matches!(n, GraphNode::Component(_)) {
+                // Never any deps for a non-component node
+                return vec![];
+            }
+            let prop1 =
+                document_model.get_component_prop_by_profile(&n.into(), &[PropProfile::Hidden]);
+            let prop2 =
+                document_model.get_component_prop_by_profile(&n.into(), &[PropProfile::String]);
+            vec![
+                document_model.prop_pointer_to_prop_node(prop1.unwrap()),
+                document_model.prop_pointer_to_prop_node(prop2.unwrap()),
+            ]
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(deps, value_props);
+
+    // Changing the Or to an And shouldn't change the result
+    let filter = Op::And(cond1.clone(), cond2.clone()).bind(query_node, document_model);
+    let deps = content_children
+        .iter()
+        .cloned()
+        .map(|n| filter.accumulate_deps(&n))
+        .collect::<Vec<_>>();
+
+    assert_eq!(deps, value_props);
+
+    // Inserting a OpNot should not change the result
+    // Changing the Or to an And shouldn't change the result
+    let filter =
+        OpNot(Op::And(cond1.clone(), OpNot(cond2.clone()))).bind(query_node, document_model);
+    let deps = content_children
+        .iter()
+        .cloned()
+        .map(|n| filter.accumulate_deps(&n))
+        .collect::<Vec<_>>();
+
+    assert_eq!(deps, value_props);
 }

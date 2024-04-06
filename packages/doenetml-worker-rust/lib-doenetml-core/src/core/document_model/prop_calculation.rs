@@ -177,9 +177,6 @@ impl DocumentModel {
                                 node
                             ),
                         }
-
-                        // XXX: We also want to depend on the props we matched so that we know to re-trigger this query if any of them change?
-                        //ret.push((query_node, node));
                     }
                 }
 
@@ -189,106 +186,6 @@ impl DocumentModel {
                     changed: true,
                     origin: Some(query_node),
                 });
-
-                //for node in content_children {
-                //    if bound_filter.apply_test(&node) {
-                //        match node {
-                //            GraphNode::Component(_) => {
-                //                values.push(PropWithMeta {
-                //                    value: PropValue::ElementRef(Some(node.try_into().unwrap())),
-                //                    came_from_default: false,
-                //                    changed: true,
-                //                    origin: Some(node),
-                //                });
-                //            }
-                //            GraphNode::String(_) => {
-                //                values.push(PropWithMeta {
-                //                    value: PropValue::ContentRef(Some(node.try_into().unwrap())),
-                //                    came_from_default: false,
-                //                    changed: true,
-                //                    origin: Some(node),
-                //                });
-                //            }
-                //            _ => panic!(
-                //                "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
-                //                node
-                //            ),
-                //        }
-                //    }
-                //}
-                //let values = self
-                //    .dependency_graph
-                //    .borrow()
-                //    .get_children(query_node)
-                //    .into_iter()
-                //    .filter_map(|node| {
-                //        match node {
-                //            GraphNode::Virtual(_) => {
-                //                let virtual_node = node;
-                //                let virtual_children =
-                //                    self.dependency_graph.borrow().get_children(virtual_node);
-
-                //                let component_node = virtual_children[0];
-
-                //                let prop_filters =
-                //                    filters.iter().filter_map(|filter| match filter {
-                //                        DataQueryFilter::PropProfile(prop_filter) => {
-                //                            Some(prop_filter)
-                //                        }
-                //                        DataQueryFilter::ComponentType(_) => None,
-                //                    });
-
-                //                let include_node = virtual_children[1..]
-                //                    .iter()
-                //                    .zip(prop_filters)
-                //                    .all(|(prop_node, prop_filter)| {
-                //                        let prop_value = self
-                //                            .prop_cache
-                //                            .get_prop_unchecked(prop_node, query_node)
-                //                            .value;
-
-                //                        match prop_filter.comparison {
-                //                            DataQueryFilterComparison::Equal => {
-                //                                prop_value == prop_filter.value
-                //                            }
-                //                            DataQueryFilterComparison::NotEqual => {
-                //                                prop_value != prop_filter.value
-                //                            }
-                //                            DataQueryFilterComparison::ProfilePresent => {
-                //                                // We ignore the value because we always want to include this element
-                //                                true
-                //                            }
-                //                        }
-                //                    });
-
-                //                if include_node {
-                //                    Some(PropWithMeta {
-                //                        // TODO: once we have a singular `GraphNode` we can remove the vector
-                //                        value: PropValue::ContentRef(Some(component_node.try_into().unwrap())),
-                //                        came_from_default: false,
-                //                        // Note: a component reference can't change like a prop can change,
-                //                        // but we mark `changed` as `true` as we don't know if this is the first time it is queried
-                //                        changed: true,
-                //                        origin: Some(node),
-                //                    })
-                //                } else {
-                //                    None
-                //                }
-                //            }
-                //            GraphNode::String(_) => Some(PropWithMeta {
-                //                // TODO: once we have a singular `GraphNode` we can remove the vector
-                //                value: PropValue::ContentRef(Some(node.try_into().unwrap())),
-                //                came_from_default: false,
-                //                // Note: a component reference can't change like a prop can change,
-                //                // but we mark `changed` as `true` as we don't know if this is the first time it is queried
-                //                changed: true,
-                //                origin: Some(node),
-                //            }),
-
-                //            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery::FilteredChildren`. Got node `{:?}`", node),
-                //        }
-                //    })
-                //    .collect::<Vec<_>>();
 
                 DataQueryResult { values }
             }

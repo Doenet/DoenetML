@@ -15,7 +15,6 @@ pub fn process_data_query_attribute(
     attribute_name: AttributeName,
     match_profiles: Vec<PropProfile>,
     prop_pointer: PropPointer,
-    _prop_node: GraphNode,
     query_node: GraphNode,
     document_structure: &DocumentStructure,
 ) -> Vec<(GraphNode, GraphNode)> {

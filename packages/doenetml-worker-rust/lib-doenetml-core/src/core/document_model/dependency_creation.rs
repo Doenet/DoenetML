@@ -82,6 +82,20 @@ impl DocumentModel {
         // to pass on to the caller
         let mut linked_nodes = Vec::new();
 
+        let mut fn_add_edges = |edges_to_add: Vec<(GraphNode, GraphNode)>| {
+            let mut dependency_graph = self.dependency_graph.borrow_mut();
+            for (from, to) in edges_to_add {
+                // Small sanity check to make sure we don't produce  self loop.
+                // `prop_node` should not ask for a query that results in itself.
+                assert_ne!(
+                    prop_node, to,
+                    "Self-loop detected; DataQuery requested a prop that is the same as the origin prop."
+                );
+                dependency_graph.add_edge(from, to);
+                linked_nodes.push(to);
+            }
+        };
+
         match query {
             DataQuery::Null => {
                 unreachable!("Cannot execute Null data query.")
@@ -126,15 +140,10 @@ impl DocumentModel {
                     component,
                     prop_specifier,
                     prop_pointer,
-                    prop_node,
                     query_node,
                     &self.document_structure.borrow(),
                 );
-                let mut dependency_graph = self.dependency_graph.borrow_mut();
-                for (from, to) in edges_to_add {
-                    dependency_graph.add_edge(from, to);
-                    linked_nodes.push(to);
-                }
+                fn_add_edges(edges_to_add);
             }
 
             // Find the requested attribute and filter its children
@@ -148,15 +157,10 @@ impl DocumentModel {
                     attribute_name,
                     match_profiles,
                     prop_pointer,
-                    prop_node,
                     query_node,
                     &self.document_structure.borrow(),
                 );
-                let mut dependency_graph = self.dependency_graph.borrow_mut();
-                for (from, to) in edges_to_add {
-                    dependency_graph.add_edge(from, to);
-                    linked_nodes.push(to);
-                }
+                fn_add_edges(edges_to_add);
             }
 
             // Create a dependency from all children that match a profile from match_profiles.
@@ -164,15 +168,10 @@ impl DocumentModel {
                 let edges_to_add = process_data_query_child_prop_profile(
                     match_profiles,
                     prop_pointer,
-                    prop_node,
                     query_node,
                     &self.document_structure.borrow(),
                 );
-                let mut dependency_graph = self.dependency_graph.borrow_mut();
-                for (from, to) in edges_to_add {
-                    dependency_graph.add_edge(from, to);
-                    linked_nodes.push(to);
-                }
+                fn_add_edges(edges_to_add);
             }
 
             DataQuery::ComponentRefs { container, filters } => {
@@ -180,16 +179,11 @@ impl DocumentModel {
                     container,
                     filters,
                     prop_pointer,
-                    prop_node,
                     query_node,
                     &self.document_structure,
                     self,
                 );
-                let mut dependency_graph = self.dependency_graph.borrow_mut();
-                for (from, to) in edges_to_add {
-                    dependency_graph.add_edge(from, to);
-                    linked_nodes.push(to);
-                }
+                fn_add_edges(edges_to_add);
             }
         }
         linked_nodes
