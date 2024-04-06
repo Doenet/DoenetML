@@ -37,6 +37,8 @@ pub struct DocumentModel {
     pub(super) prop_cache: PropCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
+    // XXX: Revisit if we still need this.
+    #[allow(unused)]
     pub(super) virtual_node_count: Cell<usize>,
 }
 

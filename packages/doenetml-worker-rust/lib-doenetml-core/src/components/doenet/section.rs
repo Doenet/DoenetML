@@ -119,7 +119,7 @@ mod custom_props {
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            siblings: Vec<PropView<prop_type::ContentRefs>>,
+            siblings: PropView<prop_type::ContentRefs>,
             self_ref: PropView<prop_type::ElementRef>,
         }
 
@@ -145,8 +145,21 @@ mod custom_props {
             }
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
                 let required_data = RequiredData::try_from_data_query_results(data).unwrap();
-                dbg!(required_data);
-                PropCalcResult::Calculated(7)
+                let self_ref = required_data
+                    .self_ref
+                    .value
+                    .expect("SelfRef must always be valid")
+                    .as_content_ref();
+                // Find the location of `self` in the list of siblings
+                let serial_number = required_data
+                    .siblings
+                    .value
+                    .as_slice()
+                    .iter()
+                    .position(|sibling| sibling == &self_ref)
+                    .expect("Self must be in the list of siblings");
+                // Serial numbers start at 1 instead of 0.
+                PropCalcResult::Calculated(serial_number as i64 + 1)
             }
         }
     }

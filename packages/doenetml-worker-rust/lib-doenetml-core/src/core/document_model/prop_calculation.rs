@@ -189,14 +189,21 @@ impl DocumentModel {
 
                 DataQueryResult { values }
             }
-            DataQuery::SelfRef => DataQueryResult {
-                values: vec![PropWithMeta {
-                    value: PropValue::ElementRef(Some(99999999.into())),
-                    came_from_default: false,
-                    changed: true,
-                    origin: None,
-                }],
-            },
+            DataQuery::SelfRef => {
+                // This query is computed on the fly. We need to figure out who asked for this query.
+                let prop_node = self.get_nearest_prop_ancestor_of_query(query_node);
+                let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
+                let prop_pointer = self.get_prop_pointer(prop_node);
+
+                DataQueryResult {
+                    values: vec![PropWithMeta {
+                        value: PropValue::ElementRef(Some(prop_pointer.component_idx.into())),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    }],
+                }
+            }
             _ => {
                 // default behavior
 

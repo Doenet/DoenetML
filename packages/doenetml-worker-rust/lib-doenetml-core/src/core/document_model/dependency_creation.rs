@@ -212,6 +212,8 @@ impl DocumentModel {
     }
 
     /// Creates a `GraphNode::Virtual` node adds it to the `dependency_graph`.
+    // XXX: Revisit if we still need this.
+    #[allow(unused)]
     pub(super) fn add_virtual_node(&self, _origin_node: GraphNode) -> GraphNode {
         let idx = self.virtual_node_count.get();
         self.virtual_node_count.set(idx + 1);

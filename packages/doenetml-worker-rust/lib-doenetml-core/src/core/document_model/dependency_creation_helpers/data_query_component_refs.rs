@@ -37,6 +37,12 @@ pub fn process_data_query_component_refs<'a>(
 
     let bound_filter = filters.bind(query_node, document_model);
 
+    // We add a dependency to the component whose children we are filtering.
+    // This ensures that this query is re-run if that component's children ever changes.
+    // XXX: do we want this?
+    // Will this approach lead to self-referential dependencies?
+    ret.push((query_node, GraphNode::Component(component_idx.into())));
+
     for node in content_children {
         let deps = bound_filter.accumulate_deps(&node);
         // deps consists of everything that the filter could possibly depend on.

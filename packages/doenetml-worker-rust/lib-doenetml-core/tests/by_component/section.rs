@@ -191,8 +191,14 @@ fn section_gets_serial_number() {
 
     // the document tag will be index 0.
     let section_idx = 1.into();
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 1);
 
-    assert_eq!(get_serial_number_prop(section_idx, &mut core), 7);
+    let section_idx = 5.into();
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 2);
+
+    //println!("{}", core.to_mermaid_structure_graph());
+    //println!("\n\n\n");
+    //println!("{}", core.to_mermaid_dependency_graph());
 }
 
 mod test_helpers {
@@ -241,9 +247,6 @@ mod test_helpers {
         component_idx: ComponentIdx,
         core: &mut Core,
     ) -> prop_type::Integer {
-        println!("{}", core.to_mermaid_structure_graph());
-        println!("\n\n\n");
-        println!("{}", core.to_mermaid_dependency_graph());
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: SectionProps::SerialNumber.local_idx(),
