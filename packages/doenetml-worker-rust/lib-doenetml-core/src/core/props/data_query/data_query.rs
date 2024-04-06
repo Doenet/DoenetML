@@ -97,28 +97,48 @@ pub enum DataQuery {
         match_profiles: Vec<PropProfile>,
     },
 
-    /// Query for all child GraphNodes,
-    /// filtering element nodes for components which contain PropProfile props given specified values
+    /// Query for all child GraphNodes, filtering element nodes based on the supplied
+    /// `filter`.
     ///
-    /// - `filter`: a vector of `PropProfile` and `PropValue` pairings.
-    /// If a component has a prop with each specified `PropProfile`,
-    /// then it will be filtered out if any of the values don't match the specified `PropValue`.
-    /// If a component does not have a prop with one or more of the specified `PropProfiles`,
-    /// then it will be included if `include_if_missing_profile` is `true`, otherwise it will be be filtered out.
-    /// All non-component children are unaffected by the filter.
+    /// - `container`: the component whose children will be searched. For example, `PropComponent::Me`
+    /// to search your own children, or `PropComponent::Parent` to search your parent's children.
+    /// - `filter`: A composition of `ContentFilter`s. These can be combined with `Op::And`, `Op::Or`,
+    /// and `OpNot`.
     ///
-    /// For example, if the filter has one element `(PropProfile:Hidden`, `PropValue::Boolean(false))`, then
-    /// - if `include_if_missing_profile` is `true`,
-    ///   all component children that have a prop with the profile `Hidden` whose value is not `false`
-    ///   will be filtered out.
-    /// - if `include_if_missing_profile` is `false`,
-    ///   all component children that do not have a prop with the profile `Hidden` with value `false`
-    ///   will be filtered out.
+    /// ## Example
+    /// ```rust
+    /// # use std::rc::Rc;
+    /// # use doenetml_core::props::{DataQuery, PropComponent, ContentFilter, Op, PropProfile};
+    /// DataQuery::ComponentRefs {
+    ///    container: PropComponent::Me,
+    ///    filter: Rc::new(Op::And(
+    ///      ContentFilter::IsType("section"),
+    ///      ContentFilter::HasPropMatchingProfile(PropProfile::Hidden),
+    ///    ))
+    /// }
+    /// # ;
+    /// ```
+    /// This query will return all children of the querying component that are `<section>` components
+    /// and have a prop matching the `PropProfile::Hidden` profile.
     ComponentRefs {
         /// Children of this component will be searched
         container: PropComponent,
-        /// How to filter the children
-        filters: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
+        /// How to filter the children. This should be a [`ContentFilter`] or a
+        /// composition of [`ContentFilter`]s.
+        ///
+        /// See [`DataQuery::ComponentRefs`] for an example.
+        filter: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
+    },
+
+    AncestorRefs {
+        /// The component where the search starts.
+        /// This node will be included in the results if it matches the filter.
+        start: PropComponent,
+        /// The filter to apply to the ancestors. Ancestors matching this filter
+        /// are returned.
+        ///
+        /// See [`DataQuery::ComponentRefs`] for an example of a filter.
+        filter: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
     },
 
     /// Query for a particular prop of a component

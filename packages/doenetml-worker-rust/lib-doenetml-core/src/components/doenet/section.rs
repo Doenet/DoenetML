@@ -130,7 +130,7 @@ mod custom_props {
             fn siblings_query() -> DataQuery {
                 DataQuery::ComponentRefs {
                     container: PropComponent::Parent,
-                    filters: Rc::new(ContentFilter::HasPropMatchingProfile(
+                    filter: Rc::new(ContentFilter::HasPropMatchingProfile(
                         PropProfile::SerialNumber,
                     )),
                 }
@@ -158,8 +158,7 @@ mod custom_props {
                     .iter()
                     .position(|sibling| sibling == &self_ref)
                     .expect("Self must be in the list of siblings");
-                // Serial numbers start at 1 instead of 0.
-                PropCalcResult::Calculated(serial_number as i64 + 1)
+                PropCalcResult::Calculated(serial_number as i64)
             }
         }
     }
@@ -192,7 +191,7 @@ mod custom_props {
             fn filtered_children_query() -> DataQuery {
                 DataQuery::ComponentRefs {
                     container: PropComponent::Me,
-                    filters: Rc::new(Op::And(
+                    filter: Rc::new(Op::And(
                         // This is what would be normally included in rendered children
                         Op::Or(
                             // Keep things without a "hidden" prop

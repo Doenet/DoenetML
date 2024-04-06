@@ -1,11 +1,8 @@
 use std::rc::Rc;
 
-use bitvec::ptr::read;
-
-use crate::{test_utils::*, Core};
-
 use super::super::*;
 use super::*;
+use crate::{test_utils::*, Core};
 
 #[test]
 fn can_apply_test_on_an_op() {

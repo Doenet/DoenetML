@@ -24,11 +24,14 @@ where
 /// Operations used to build up complex queries
 #[derive(Debug, Clone, PartialEq)]
 pub enum Op<Left, Right> {
+    /// Satisfied if both `Left` and `Right` are satisfied
     And(Left, Right),
+    /// Satisfied if either `Left` or `Right` are satisfied
     Or(Left, Right),
 }
 
 /// Not operation used to build complex queries
+/// Satisfied only if `T` is not satisfied
 #[derive(Debug, Clone, PartialEq)]
 pub struct OpNot<T>(pub T);
 

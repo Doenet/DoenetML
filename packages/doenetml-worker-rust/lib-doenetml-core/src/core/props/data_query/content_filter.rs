@@ -13,6 +13,9 @@ pub enum ContentFilter {
     /// Match components that have a prop matching a profile;
     /// The value of the matched prop is not considered.
     HasPropMatchingProfile(PropProfile),
+    /// Match components that have a prop matching a profile;
+    /// The value of the matched prop is tested against `Cond` and only matches
+    /// if `Cond` is true.
     HasPropMatchingProfileAndCondition(PropProfile, Cond<PropValue>),
     /// Match content is a component.
     IsComponent,

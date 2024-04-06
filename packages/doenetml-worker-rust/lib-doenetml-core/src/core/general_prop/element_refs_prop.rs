@@ -19,7 +19,7 @@ impl ElementRefsProp {
         ElementRefsProp {
             data_query: DataQuery::ComponentRefs {
                 container: PropComponent::Me,
-                filters: Rc::new(ContentFilter::IsType(component_type)),
+                filter: Rc::new(ContentFilter::IsType(component_type)),
             },
         }
     }
@@ -29,7 +29,7 @@ impl ElementRefsProp {
         ElementRefsProp {
             data_query: DataQuery::ComponentRefs {
                 container: PropComponent::Parent,
-                filters: Rc::new(ContentFilter::HasPropMatchingProfile(profile)),
+                filter: Rc::new(ContentFilter::HasPropMatchingProfile(profile)),
             },
         }
     }

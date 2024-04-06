@@ -191,10 +191,10 @@ fn section_gets_serial_number() {
 
     // the document tag will be index 0.
     let section_idx = 1.into();
-    assert_eq!(get_serial_number_prop(section_idx, &mut core), 1);
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 0);
 
     let section_idx = 5.into();
-    assert_eq!(get_serial_number_prop(section_idx, &mut core), 2);
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 1);
 
     //println!("{}", core.to_mermaid_structure_graph());
     //println!("\n\n\n");

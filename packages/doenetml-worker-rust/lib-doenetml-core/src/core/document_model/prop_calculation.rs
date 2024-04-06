@@ -134,35 +134,33 @@ impl DocumentModel {
     ///
     /// Will panic if any required prop is not fresh.
     fn _execute_data_query_with_fresh_deps(&self, query_node: GraphNode) -> DataQueryResult {
-        // TODO: Should we clone this so that we don't maintain a borrow of self.queries?
-        // If there are unresolved props, a call to `Filter.apply_test` may panic.
         let query = &self.queries.borrow()[query_node.idx()];
 
-        match query {
-            DataQuery::ComponentRefs { container, filters } => {
-                // This query is computed on the fly. We need to figure out who asked for this query.
-                let prop_node = self.get_nearest_prop_ancestor_of_query(query_node);
-                let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
-                let prop_pointer = self.get_prop_pointer(prop_node);
+        // Get the prop pointer to the prop that owns the current query.
+        let get_prop_pointer = || {
+            let prop_node = self.get_nearest_prop_ancestor_of_query(query_node);
+            let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
+            self.get_prop_pointer(prop_node)
+        };
+        // Resolve a `PropComponent` to a component index.
+        let resolve_prop_component = |prop_component: &PropComponent| match prop_component {
+            PropComponent::Me => get_prop_pointer().component_idx,
+            PropComponent::Parent => self
+                .document_structure
+                .borrow()
+                .get_true_component_parent(get_prop_pointer().component_idx)
+                .unwrap(),
+            PropComponent::ByIdx(component_idx) => *component_idx,
+        };
 
+        match query {
+            DataQuery::ComponentRefs { container, filter } => {
                 // Get the correct "root" for the query.
-                let component_idx = match container {
-                    PropComponent::Me => prop_pointer.component_idx,
-                    PropComponent::Parent => self
-                        .document_structure
-                        .borrow()
-                        .get_true_component_parent(prop_pointer.component_idx)
-                        .unwrap(),
-                    PropComponent::ByIdx(component_idx) => *component_idx,
-                };
-                let filters = Rc::clone(filters);
-                let bound_filter = filters.bind(query_node, self);
+                let component_idx = resolve_prop_component(container);
+                let bound_filter = filter.bind(query_node, self);
                 let content_children = self.get_component_content_children(component_idx);
 
-                let mut values = Vec::new();
-
                 let mut content_refs: Vec<ContentRef> = Vec::new();
-
                 for node in content_children {
                     if bound_filter.apply_test(&node) {
                         match node {
@@ -180,20 +178,56 @@ impl DocumentModel {
                     }
                 }
 
-                values.push(PropWithMeta {
-                    value: PropValue::ContentRefs(Rc::new(content_refs.into())),
-                    came_from_default: false,
-                    changed: true,
-                    origin: Some(query_node),
-                });
+                DataQueryResult {
+                    values: vec![PropWithMeta {
+                        value: PropValue::ContentRefs(Rc::new(content_refs.into())),
+                        came_from_default: false,
+                        changed: true,
+                        origin: Some(query_node),
+                    }],
+                }
+            }
+            DataQuery::AncestorRefs { start, filter } => {
+                // Get the correct "root" for the query.
+                let start_component_idx = resolve_prop_component(start);
+                let bound_filter = filter.bind(query_node, self);
+                let ancestors = self
+                    .document_structure
+                    .borrow()
+                    .get_true_component_ancestors(start_component_idx)
+                    .collect::<Vec<_>>();
 
-                DataQueryResult { values }
+                let mut content_refs: Vec<ContentRef> = Vec::new();
+                for ancestor_idx in ancestors {
+                    let ancestor_node = ancestor_idx.into();
+                    if bound_filter.apply_test(&ancestor_node) {
+                        match ancestor_node {
+                            GraphNode::Component(_) => {
+                                content_refs.push(ContentRef::Component(ancestor_node.component_idx().into()));
+                            }
+                            GraphNode::String(_) => {
+                                content_refs.push(ContentRef::String(ancestor_node.idx().into()));
+                            }
+                            _ => panic!(
+                                "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
+                                ancestor_node
+                            ),
+                        }
+                    }
+                }
+
+                DataQueryResult {
+                    values: vec![PropWithMeta {
+                        value: PropValue::ContentRefs(Rc::new(content_refs.into())),
+                        came_from_default: false,
+                        changed: true,
+                        origin: Some(query_node),
+                    }],
+                }
             }
             DataQuery::SelfRef => {
                 // This query is computed on the fly. We need to figure out who asked for this query.
-                let prop_node = self.get_nearest_prop_ancestor_of_query(query_node);
-                let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
-                let prop_pointer = self.get_prop_pointer(prop_node);
+                let prop_pointer = get_prop_pointer();
 
                 DataQueryResult {
                     values: vec![PropWithMeta {
@@ -205,7 +239,9 @@ impl DocumentModel {
                 }
             }
             _ => {
+                //
                 // default behavior
+                //
 
                 // The props for the data query should be the immediate children of the query node
                 let values = self

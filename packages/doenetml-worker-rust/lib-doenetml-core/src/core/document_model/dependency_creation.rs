@@ -96,6 +96,17 @@ impl DocumentModel {
             }
         };
 
+        // Resolve a `PropComponent` to a component index.
+        let resolve_prop_component = |prop_component: &PropComponent| match prop_component {
+            PropComponent::Me => prop_pointer.component_idx,
+            PropComponent::Parent => self
+                .document_structure
+                .borrow()
+                .get_true_component_parent(prop_pointer.component_idx)
+                .unwrap(),
+            PropComponent::ByIdx(component_idx) => *component_idx,
+        };
+
         match query {
             DataQuery::Null => {
                 unreachable!("Cannot execute Null data query.")
@@ -174,15 +185,53 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
-            DataQuery::ComponentRefs { container, filters } => {
-                let edges_to_add = process_data_query_component_refs(
-                    container,
-                    filters,
-                    prop_pointer,
-                    query_node,
-                    &self.document_structure,
-                    self,
-                );
+            DataQuery::ComponentRefs {
+                container,
+                filter: filters,
+            } => {
+                let mut edges_to_add = Vec::new();
+                let component_idx = resolve_prop_component(&container);
+
+                let content_children = self
+                    .document_structure
+                    .borrow()
+                    .get_component_content_children(component_idx);
+
+                let bound_filter = filters.bind(query_node, self);
+
+                for node in content_children {
+                    let deps = bound_filter.accumulate_deps(&node);
+                    // deps consists of everything that the filter could possibly depend on.
+                    // We need to link each dep to the query node.
+                    for dep in deps {
+                        edges_to_add.push((query_node, dep));
+                    }
+                }
+
+                fn_add_edges(edges_to_add);
+            }
+            DataQuery::AncestorRefs { start, filter } => {
+                let mut edges_to_add = Vec::new();
+                let start_component_idx = resolve_prop_component(&start);
+
+                let ancestors = self
+                    .document_structure
+                    .borrow()
+                    .get_true_component_ancestors(start_component_idx)
+                    .collect::<Vec<_>>();
+
+                let bound_filter = filter.bind(query_node, self);
+
+                for component_idx in ancestors {
+                    let component_node = GraphNode::Component(component_idx.into());
+                    let deps = bound_filter.accumulate_deps(&component_node);
+                    // deps consists of everything that the filter could possibly depend on.
+                    // We need to link each dep to the query node.
+                    for dep in deps {
+                        edges_to_add.push((query_node, dep));
+                    }
+                }
+
                 fn_add_edges(edges_to_add);
             }
         }

@@ -27,7 +27,7 @@ impl ElementRefProp {
         ElementRefProp {
             data_query: DataQuery::ComponentRefs {
                 container: PropComponent::Me,
-                filters: Rc::new(ContentFilter::IsType(component_type)),
+                filter: Rc::new(ContentFilter::IsType(component_type)),
             },
             elements_to_select: Some(ElementsToSelect::Last),
         }
@@ -38,7 +38,7 @@ impl ElementRefProp {
         ElementRefProp {
             data_query: DataQuery::ComponentRefs {
                 container: PropComponent::Me,
-                filters: Rc::new(ContentFilter::IsType(component_type)),
+                filter: Rc::new(ContentFilter::IsType(component_type)),
             },
             elements_to_select: Some(ElementsToSelect::First),
         }
