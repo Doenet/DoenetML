@@ -8,7 +8,8 @@ use typed_index_collections::TiVec;
 use crate::{
     components::{
         prelude::{
-            ComponentIdx, Extending, FlatAttribute, KeyValueIgnoreCase, PropSource, UntaggedContent,
+            ComponentIdx, Extending, ExtendingPropSource, FlatAttribute, KeyValueIgnoreCase,
+            UntaggedContent,
         },
         types::{PropDefinitionIdx, PropPointer},
         Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
@@ -215,7 +216,7 @@ impl ComponentBuilder {
             return match referent
                 .get_public_local_prop_index_from_name_case_insensitive(referenced_prop_name)
             {
-                Some(referent_prop_idx) => Ok(Extending::Prop(PropSource {
+                Some(referent_prop_idx) => Ok(Extending::Prop(ExtendingPropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
                         local_prop_idx: referent_prop_idx,
@@ -243,7 +244,7 @@ impl ComponentBuilder {
             // Since we are extending a component to a different type via default prop,
             // the component should have specified a default prop
             match referent.get_default_prop_local_index() {
-                Some(default_prop) => Ok(Extending::Prop(PropSource {
+                Some(default_prop) => Ok(Extending::Prop(ExtendingPropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
                         local_prop_idx: default_prop,
@@ -268,7 +269,7 @@ impl ComponentBuilder {
     fn create_implicit_child_from_prop_source(
         &self,
         component: &Component,
-        prop_source: PropSource,
+        prop_source: ExtendingPropSource,
     ) -> Option<Component> {
         if !prop_source.from_direct_ref {
             // the `Extending` was due to specifying a prop inside the `extend` attribute
@@ -642,7 +643,7 @@ impl ComponentBuilder {
     fn add_prop_extending_structure(
         &mut self,
         component_idx: ComponentIdx,
-        prop_source: PropSource,
+        prop_source: ExtendingPropSource,
     ) {
         let referent_idx = prop_source.prop_pointer.component_idx;
 

@@ -8,8 +8,8 @@ pub use std::collections::HashMap;
 pub use super::traits::*;
 pub use super::types::*;
 pub use crate::core::props::{
-    DataQuery, PropCalcResult, PropDefinition, PropProfile, PropUpdater, PropUpdaterUntyped,
-    PropValueType,
+    DataQuery, PickPropSource, PropCalcResult, PropDefinition, PropProfile, PropUpdater,
+    PropUpdaterUntyped, PropValueType,
 };
 pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
@@ -20,7 +20,7 @@ pub use crate::props::traits::*;
 pub use crate::props::InvertError;
 pub use crate::props::PropView;
 pub use crate::props::{DataQueryResult, DataQueryResults};
-pub use crate::props::{PropComponent, PropSpecifier};
+pub use crate::props::{PropSource, PropSpecifier};
 pub use crate::utils::KeyValueIgnoreCase;
 
 pub use crate::components::{

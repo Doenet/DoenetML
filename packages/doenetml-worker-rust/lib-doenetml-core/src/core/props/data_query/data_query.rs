@@ -61,7 +61,7 @@ impl DataQueryResults {
 
 /// Used in a [`DataQuery::Prop`] to specify which component to reference the prop from.
 #[derive(Debug, Clone, PartialEq)]
-pub enum PropComponent {
+pub enum PropSource {
     /// Search for the prop on the component making the query.
     Me,
     /// Search for the prop on the component making the query's parent.
@@ -80,6 +80,15 @@ pub enum PropSpecifier {
     Matching(Vec<PropProfile>),
 }
 
+/// The source of a  [`DataQuery::PickProp`].
+#[derive(Debug, Clone, PartialEq)]
+pub enum PickPropSource {
+    /// Search for the props on the children of the querying component.
+    Children,
+    /// Search for the prop on ancestors of the querying component.
+    Ancestors,
+}
+
 impl From<LocalPropIdx> for PropSpecifier {
     fn from(local_idx: LocalPropIdx) -> Self {
         PropSpecifier::LocalIdx(local_idx)
@@ -90,13 +99,12 @@ impl From<LocalPropIdx> for PropSpecifier {
 /// a request for a list of children, etc..
 #[derive(Debug, Clone, Default)]
 pub enum DataQuery {
-    /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
-    /// Returns the matching props
-    ChildPropProfile {
-        /// The data query will match child components that have at least one of these profiles
-        match_profiles: Vec<PropProfile>,
-    },
-
+    //    /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
+    //    /// Returns the matching props
+    //    ChildPropProfile {
+    //        /// The data query will match child components that have at least one of these profiles
+    //        match_profiles: Vec<PropProfile>,
+    //    },
     /// Query for all child GraphNodes, filtering element nodes based on the supplied
     /// `filter`.
     ///
@@ -108,9 +116,9 @@ pub enum DataQuery {
     /// ## Example
     /// ```rust
     /// # use std::rc::Rc;
-    /// # use doenetml_core::props::{DataQuery, PropComponent, ContentFilter, Op, PropProfile};
+    /// # use doenetml_core::props::{DataQuery, PropSource, ContentFilter, Op, PropProfile};
     /// DataQuery::ComponentRefs {
-    ///    container: PropComponent::Me,
+    ///    container: PropSource::Me,
     ///    filter: Rc::new(Op::And(
     ///      ContentFilter::IsType("section"),
     ///      ContentFilter::HasPropMatchingProfile(PropProfile::Hidden),
@@ -122,7 +130,7 @@ pub enum DataQuery {
     /// and have a prop matching the `PropProfile::Hidden` profile.
     ComponentRefs {
         /// Children of this component will be searched
-        container: PropComponent,
+        container: PropSource,
         /// How to filter the children. This should be a [`ContentFilter`] or a
         /// composition of [`ContentFilter`]s.
         ///
@@ -133,7 +141,7 @@ pub enum DataQuery {
     AncestorRefs {
         /// The component where the search starts.
         /// This node will be included in the results if it matches the filter.
-        start: PropComponent,
+        source: PropSource,
         /// The filter to apply to the ancestors. Ancestors matching this filter
         /// are returned.
         ///
@@ -143,10 +151,19 @@ pub enum DataQuery {
 
     /// Query for a particular prop of a component
     Prop {
-        /// If None, prop is from the component making the query.
-        component: PropComponent,
+        /// Where to look for the desired prop.
+        source: PropSource,
+        /// What prop to look for. Node `PropSpecifier::LocalIdx` is only valid
+        /// when used in conjunction with `PropComponent::Me`.
+        prop_specifier: PropSpecifier,
+    },
 
-        /// The prop from component_idx or component making the query.
+    /// Query multiple components and pick a prop from each.
+    PickProp {
+        /// Where to find the component's whose props will be searched.
+        source: PickPropSource,
+        /// How to filter the props to pick. Node that `PropSpecifier::LocalIdx` is forbidden
+        /// for this query.
         prop_specifier: PropSpecifier,
     },
 

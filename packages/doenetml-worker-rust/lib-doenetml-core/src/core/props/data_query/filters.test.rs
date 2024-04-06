@@ -170,6 +170,7 @@ fn can_filter_by_profile_and_condition() {
         Cond::Eq(str_me.clone()),
     )
     .bind(query_node, document_model);
+
     let filtered = content_children
         .iter()
         .cloned()

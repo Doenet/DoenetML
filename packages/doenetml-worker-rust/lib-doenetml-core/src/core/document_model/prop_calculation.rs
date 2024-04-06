@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    props::{DataQuery, DataQueryResults, PropComponent, PropValue},
+    props::{DataQuery, DataQueryResults, PropSource, PropValue},
     state::types::content_refs::ContentRef,
 };
 
@@ -143,14 +143,14 @@ impl DocumentModel {
             self.get_prop_pointer(prop_node)
         };
         // Resolve a `PropComponent` to a component index.
-        let resolve_prop_component = |prop_component: &PropComponent| match prop_component {
-            PropComponent::Me => get_prop_pointer().component_idx,
-            PropComponent::Parent => self
+        let resolve_prop_component = |prop_component: &PropSource| match prop_component {
+            PropSource::Me => get_prop_pointer().component_idx,
+            PropSource::Parent => self
                 .document_structure
                 .borrow()
                 .get_true_component_parent(get_prop_pointer().component_idx)
                 .unwrap(),
-            PropComponent::ByIdx(component_idx) => *component_idx,
+            PropSource::ByIdx(component_idx) => *component_idx,
         };
 
         match query {
@@ -187,7 +187,10 @@ impl DocumentModel {
                     }],
                 }
             }
-            DataQuery::AncestorRefs { start, filter } => {
+            DataQuery::AncestorRefs {
+                source: start,
+                filter,
+            } => {
                 // Get the correct "root" for the query.
                 let start_component_idx = resolve_prop_component(start);
                 let bound_filter = filter.bind(query_node, self);

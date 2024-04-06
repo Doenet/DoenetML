@@ -26,7 +26,7 @@ impl ElementRefProp {
     pub fn new_from_last_matching_child(component_type: &'static str) -> Self {
         ElementRefProp {
             data_query: DataQuery::ComponentRefs {
-                container: PropComponent::Me,
+                container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
             elements_to_select: Some(ElementsToSelect::Last),
@@ -37,7 +37,7 @@ impl ElementRefProp {
     pub fn new_from_first_matching_child(component_type: &'static str) -> Self {
         ElementRefProp {
             data_query: DataQuery::ComponentRefs {
-                container: PropComponent::Me,
+                container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
             elements_to_select: Some(ElementsToSelect::First),

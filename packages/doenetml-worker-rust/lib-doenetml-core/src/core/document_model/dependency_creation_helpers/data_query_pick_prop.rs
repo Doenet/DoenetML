@@ -1,22 +1,20 @@
 use crate::{
-    components::types::{ComponentIdx, PropPointer},
-    core::document_structure::DocumentStructure,
-    graph_node::GraphNode,
-    props::PropProfile,
+    components::types::ComponentIdx, core::document_structure::DocumentStructure,
+    graph_node::GraphNode, props::PropProfile,
 };
 
 /// Process a `DataQuery::ChildPropProfile`.
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
-pub fn process_data_query_child_prop_profile(
+pub fn process_data_query_pick_prop(
+    nodes_to_match: Vec<GraphNode>,
     match_profiles: Vec<PropProfile>,
-    prop_pointer: PropPointer,
     query_node: GraphNode,
     document_structure: &DocumentStructure,
 ) -> Vec<(GraphNode, GraphNode)> {
     let mut ret = Vec::new();
 
-    for node in document_structure.get_component_content_children(prop_pointer.component_idx) {
+    for node in nodes_to_match {
         match node {
             GraphNode::Component(_) => {
                 // Check the component. We want to link to the first prop that matches one of the profiles.

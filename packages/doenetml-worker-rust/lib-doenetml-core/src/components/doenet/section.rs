@@ -129,7 +129,7 @@ mod custom_props {
             }
             fn siblings_query() -> DataQuery {
                 DataQuery::ComponentRefs {
-                    container: PropComponent::Parent,
+                    container: PropSource::Parent,
                     filter: Rc::new(ContentFilter::HasPropMatchingProfile(
                         PropProfile::SerialNumber,
                     )),
@@ -190,7 +190,7 @@ mod custom_props {
         impl DataQueries for RequiredData {
             fn filtered_children_query() -> DataQuery {
                 DataQuery::ComponentRefs {
-                    container: PropComponent::Me,
+                    container: PropSource::Me,
                     filter: Rc::new(Op::And(
                         // This is what would be normally included in rendered children
                         Op::Or(
@@ -209,7 +209,7 @@ mod custom_props {
             }
             fn title_query() -> DataQuery {
                 DataQuery::Prop {
-                    component: PropComponent::Me,
+                    source: PropSource::Me,
                     prop_specifier: SectionProps::Title.local_idx().into(),
                 }
             }

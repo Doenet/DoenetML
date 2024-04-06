@@ -38,7 +38,7 @@ struct RequiredData {
 impl DataQueries for RequiredData {
     fn boolean_query(boolean_local_prop_idx: LocalPropIdx) -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: boolean_local_prop_idx.into(),
         }
     }

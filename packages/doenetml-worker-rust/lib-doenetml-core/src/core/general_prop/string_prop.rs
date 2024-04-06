@@ -58,8 +58,9 @@ impl StringProp {
     /// If there are no matching children, the prop will be initialized with `default_value`.
     pub fn new_from_children<S: Into<String>>(default_value: S) -> Self {
         StringProp {
-            data_query: DataQuery::ChildPropProfile {
-                match_profiles: vec![PropProfile::String],
+            data_query: DataQuery::PickProp {
+                source: PickPropSource::Children,
+                prop_specifier: PropSpecifier::Matching(vec![PropProfile::String]),
             },
             default_value: default_value.into(),
             propagate_came_from_default: true,

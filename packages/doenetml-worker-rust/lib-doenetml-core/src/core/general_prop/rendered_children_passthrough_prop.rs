@@ -15,7 +15,7 @@ impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
             data_query: DataQuery::ComponentRefs {
-                container: PropComponent::Me,
+                container: PropSource::Me,
                 filter: Rc::new(Op::Or(
                     // Keep things without a "hidden" prop
                     OpNot(ContentFilter::HasPropMatchingProfile(PropProfile::Hidden)),

@@ -1,6 +1,6 @@
 use crate::{
     components::prelude::DataQuery,
-    props::{PropComponent, PropSpecifier},
+    props::{PickPropSource, PropSource, PropSpecifier},
 };
 
 use crate::{graph_node::GraphNode, props::PropValue};
@@ -97,14 +97,14 @@ impl DocumentModel {
         };
 
         // Resolve a `PropComponent` to a component index.
-        let resolve_prop_component = |prop_component: &PropComponent| match prop_component {
-            PropComponent::Me => prop_pointer.component_idx,
-            PropComponent::Parent => self
+        let resolve_prop_component = |prop_component: &PropSource| match prop_component {
+            PropSource::Me => prop_pointer.component_idx,
+            PropSource::Parent => self
                 .document_structure
                 .borrow()
                 .get_true_component_parent(prop_pointer.component_idx)
                 .unwrap(),
-            PropComponent::ByIdx(component_idx) => *component_idx,
+            PropSource::ByIdx(component_idx) => *component_idx,
         };
 
         match query {
@@ -134,21 +134,22 @@ impl DocumentModel {
 
             // Depend on a prop (of yourself or another component)
             DataQuery::Prop {
-                component,
+                source,
                 prop_specifier,
             } => {
                 // Check we have a valid configuration
                 if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
-                    match component {
-                        PropComponent::Me | PropComponent::ByIdx(_) => {}
+                    match source {
+                        PropSource::Me | PropSource::ByIdx(_) => {}
                         _ => {
                             panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
                         }
                     }
                 }
+                let component_idx = resolve_prop_component(&source);
 
                 let edges_to_add = process_data_query_prop(
-                    component,
+                    component_idx,
                     prop_specifier,
                     prop_pointer,
                     query_node,
@@ -174,14 +175,34 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
-            // Create a dependency from all children that match a profile from match_profiles.
-            DataQuery::ChildPropProfile { match_profiles } => {
-                let edges_to_add = process_data_query_child_prop_profile(
+            DataQuery::PickProp {
+                source,
+                prop_specifier,
+            } => {
+                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
+                    panic!(
+                        "`LocalIdx` as a prop specifier is forbidden in a `DataQuery::PickProp`."
+                    )
+                }
+                let nodes_to_match = match source {
+                    PickPropSource::Children => self
+                        .document_structure
+                        .borrow()
+                        .get_component_content_children(prop_pointer.component_idx),
+                    PickPropSource::Ancestors => todo!(),
+                };
+
+                let match_profiles = match prop_specifier {
+                    PropSpecifier::Matching(profiles) => profiles,
+                    PropSpecifier::LocalIdx(_) => unreachable!(),
+                };
+                let edges_to_add = process_data_query_pick_prop(
+                    nodes_to_match,
                     match_profiles,
-                    prop_pointer,
                     query_node,
                     &self.document_structure.borrow(),
                 );
+
                 fn_add_edges(edges_to_add);
             }
 
@@ -210,8 +231,10 @@ impl DocumentModel {
 
                 fn_add_edges(edges_to_add);
             }
-            DataQuery::AncestorRefs { start, filter } => {
-                let mut edges_to_add = Vec::new();
+            DataQuery::AncestorRefs {
+                source: start,
+                filter,
+            } => {
                 let start_component_idx = resolve_prop_component(&start);
 
                 let ancestors = self
@@ -222,6 +245,7 @@ impl DocumentModel {
 
                 let bound_filter = filter.bind(query_node, self);
 
+                let mut edges_to_add = Vec::new();
                 for component_idx in ancestors {
                     let component_node = GraphNode::Component(component_idx.into());
                     let deps = bound_filter.accumulate_deps(&component_node);

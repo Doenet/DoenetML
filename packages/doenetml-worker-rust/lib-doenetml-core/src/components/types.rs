@@ -152,11 +152,11 @@ pub enum Extending {
     Component(ComponentIdx),
     // TODO: what about array props?
     /// The component is extending the prop of another component
-    Prop(PropSource),
+    Prop(ExtendingPropSource),
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct PropSource {
+pub struct ExtendingPropSource {
     /// The prop being extended
     pub prop_pointer: PropPointer,
 

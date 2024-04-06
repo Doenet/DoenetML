@@ -72,8 +72,12 @@ impl BooleanProp {
     /// If there are no matching children, the prop will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanProp {
-            data_query: DataQuery::ChildPropProfile {
-                match_profiles: vec![PropProfile::String, PropProfile::Boolean],
+            data_query: DataQuery::PickProp {
+                source: PickPropSource::Children,
+                prop_specifier: PropSpecifier::Matching(vec![
+                    PropProfile::String,
+                    PropProfile::Boolean,
+                ]),
             },
             default_value,
             propagate_came_from_default: true,

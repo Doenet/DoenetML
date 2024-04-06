@@ -18,7 +18,7 @@ impl ElementRefsProp {
     pub fn new_from_all_matching_children(component_type: &'static str) -> Self {
         ElementRefsProp {
             data_query: DataQuery::ComponentRefs {
-                container: PropComponent::Me,
+                container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
         }
@@ -28,7 +28,7 @@ impl ElementRefsProp {
     pub fn new_from_all_matching_siblings(profile: PropProfile) -> Self {
         ElementRefsProp {
             data_query: DataQuery::ComponentRefs {
-                container: PropComponent::Parent,
+                container: PropSource::Parent,
                 filter: Rc::new(ContentFilter::HasPropMatchingProfile(profile)),
             },
         }

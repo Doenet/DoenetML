@@ -59,7 +59,7 @@ where
 {
     fn aliased_value_query(aliased_local_prop_idx: LocalPropIdx) -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: aliased_local_prop_idx.into(),
         }
     }

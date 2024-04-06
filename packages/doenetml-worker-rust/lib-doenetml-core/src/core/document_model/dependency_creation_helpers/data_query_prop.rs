@@ -1,29 +1,21 @@
 use crate::{
-    components::types::PropPointer,
+    components::types::{ComponentIdx, PropPointer},
     core::document_structure::DocumentStructure,
     graph_node::GraphNode,
-    props::{PropComponent, PropSpecifier},
+    props::PropSpecifier,
 };
 
 /// Process a `DataQuery::Prop`.
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
 pub fn process_data_query_prop(
-    component: PropComponent,
+    component_idx: ComponentIdx,
     prop_specifier: PropSpecifier,
-    prop_pointer: PropPointer,
+    _prop_pointer: PropPointer,
     query_node: GraphNode,
     document_structure: &DocumentStructure,
 ) -> Vec<(GraphNode, GraphNode)> {
     let mut ret = Vec::new();
-
-    let component_idx = match component {
-        PropComponent::Me => prop_pointer.component_idx,
-        PropComponent::Parent => document_structure
-            .get_true_component_parent(prop_pointer.component_idx)
-            .expect("Component asks for parent but there is none."),
-        PropComponent::ByIdx(component_idx) => component_idx,
-    };
 
     let local_prop_idx = match prop_specifier {
         PropSpecifier::LocalIdx(local_prop_idx) => Some(local_prop_idx),
