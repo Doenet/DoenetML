@@ -166,7 +166,7 @@ pub struct ExtendingPropSource {
     /// For example, given `<textInput name="i"/>`, a direct ref would be `$i.value` by itself,
     /// unlike `<text extend="$i.value"/>`.
     ///
-    /// XXX: No longer relevant?
+    /// XXX: Incorrect comment?
     /// If we are extending from a direct ref,
     /// we need to add the referenced prop as a child in the `DataQuery::ChildPropProfile`,
     /// because the prop was not already added to the children.

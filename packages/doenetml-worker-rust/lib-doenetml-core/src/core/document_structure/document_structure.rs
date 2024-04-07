@@ -136,7 +136,7 @@ impl DocumentStructure {
     }
 
     /// Iterate through the ancestor chain of the component coming from the structure of the DAST.
-    /// The component itself is included as the first element in the iterator.
+    /// The elements earlier in the sequence are closer ancestors to `component_idx` than elements later in the sequence.
     ///
     /// Use of the `extends` attribute can cause a component to have a non-unique structural parent,
     /// but the XML-like DAST has an unambiguous parent for every component (except root component).

@@ -195,6 +195,44 @@ fn section_gets_serial_number() {
 
     let section_idx = 5.into();
     assert_eq!(get_serial_number_prop(section_idx, &mut core), 1);
+}
+
+#[test]
+fn section_gets_code_number() {
+    // Items with idx 1 and 5 are <section> elements
+    let dast_root = dast_root_no_position(
+        r#"
+        <section>
+            <title>Hello</title><text>content</text>
+            <section>
+                <title>Inner title</title>
+                <p>
+                    Inner paragraph
+                    <section>More inner section</section>
+                </p>
+            </section>
+        </section>
+        <p>Random paragraph not in a section</p>
+        <section><title>Hello2</title><text>content2</text></section>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    //core.to_flat_dast();
+
+    //// the document tag will be index 0.
+    let section_idx = 1.into();
+    assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "1");
+    let section_idx = 4.into();
+    assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "1.1");
+    let section_idx = 7.into();
+    assert_eq!(
+        get_code_number_prop(section_idx, &mut core).as_str(),
+        "1.1.1"
+    );
+    let section_idx = 9.into();
+    assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "2");
 
     //println!("{}", core.to_mermaid_structure_graph());
     //println!("\n\n\n");
@@ -253,6 +291,18 @@ mod test_helpers {
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
         let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();
+
+        prop_view.value
+    }
+
+    /// Resolves `serialNumber` from a `<section>` and returns it.
+    pub fn get_code_number_prop(component_idx: ComponentIdx, core: &mut Core) -> prop_type::String {
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: SectionProps::CodeNumber.local_idx(),
+        });
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::String> = prop.into_prop_view();
 
         prop_view.value
     }

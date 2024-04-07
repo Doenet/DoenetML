@@ -38,6 +38,14 @@ mod component {
            )]
         SerialNumber,
 
+        /// The code-number uniquely identifying this `<section />`. E.g. the `1.2.3`
+        /// in _Section 1.2.3_.
+        #[prop(
+               value_type = PropValueType::String,
+               for_render
+           )]
+        CodeNumber,
+
         //SelfRef,
         #[prop(
             value_type = PropValueType::ContentRefs,
@@ -91,12 +99,79 @@ impl PropGetUpdater for SectionProps {
             SectionProps::SerialNumber => as_updater_object::<_, props::types::SerialNumber>(
                 custom_props::SerialNumberProp::new(),
             ),
+            SectionProps::CodeNumber => {
+                as_updater_object::<_, props::types::CodeNumber>(custom_props::CodeNumberProp::new())
+            }
         }
     }
 }
 
 mod custom_props {
     use super::*;
+
+    pub use code_number::*;
+    mod code_number {
+        use super::*;
+
+        /// The serial number of this element. I.e., `n` where it is
+        /// the `n`th component in the series.
+        #[derive(Debug, Default)]
+        pub struct CodeNumberProp {}
+
+        impl CodeNumberProp {
+            pub fn new() -> Self {
+                CodeNumberProp {}
+            }
+        }
+
+        /// Structure to hold data generated from the data queries
+        #[derive(TryFromDataQueryResults, Debug)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData {
+            ancestor_serial_numbers: Vec<PropView<prop_type::Integer>>,
+            self_serial_number: PropView<prop_type::Integer>,
+        }
+
+        impl DataQueries for RequiredData {
+            fn ancestor_serial_numbers_query() -> DataQuery {
+                DataQuery::PickProp {
+                    source: PickPropSource::Ancestors,
+                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::SerialNumber]),
+                }
+            }
+            fn self_serial_number_query() -> DataQuery {
+                DataQuery::Prop {
+                    source: PropSource::Me,
+                    prop_specifier: SectionProps::SerialNumber.local_idx().into(),
+                }
+            }
+        }
+
+        impl PropUpdater for CodeNumberProp {
+            type PropType = prop_type::String;
+
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                // Create a "." separated string of our ancestors' serial numbers followed by our serial number.
+                // Since the ancestors are ordered from closest to furthest, we reverse the list.
+                let code_number = required_data
+                    .ancestor_serial_numbers
+                    .iter()
+                    .rev()
+                    .map(|serial_number| (serial_number.value + 1).to_string())
+                    .chain(std::iter::once(
+                        (required_data.self_serial_number.value + 1).to_string(),
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(".");
+
+                PropCalcResult::Calculated(Rc::new(code_number))
+            }
+        }
+    }
 
     pub use serial_number::*;
     mod serial_number {

@@ -43,15 +43,6 @@ impl DocumentModel {
                     }
                 }
             }
-            DataQuery::SelfRef => {
-                //  // SelfRef queries store state containing the prop's value. They are not affected
-                //  // by `extend`.
-
-                //  let state_node = self.add_state_node(prop_node, PropValue::ElementRef(None), true);
-                //  self.document_structure
-                //      .borrow_mut()
-                //      .add_edge(prop_node, state_node);
-            }
             _ => {
                 // No new state to create
             }
@@ -189,7 +180,12 @@ impl DocumentModel {
                         .document_structure
                         .borrow()
                         .get_component_content_children(prop_pointer.component_idx),
-                    PickPropSource::Ancestors => todo!(),
+                    PickPropSource::Ancestors => self
+                        .document_structure
+                        .borrow()
+                        .get_true_component_ancestors(prop_pointer.component_idx)
+                        .map(|idx| GraphNode::Component(idx.as_usize()))
+                        .collect::<Vec<_>>(),
                 };
 
                 let match_profiles = match prop_specifier {
