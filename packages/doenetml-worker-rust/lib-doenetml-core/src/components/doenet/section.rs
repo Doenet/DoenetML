@@ -42,6 +42,7 @@ mod component {
         /// in _Section 1.2.3_.
         #[prop(
                value_type = PropValueType::String,
+               profile = PropProfile::CodeNumber,
                for_render
            )]
         CodeNumber,
@@ -128,15 +129,15 @@ mod custom_props {
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            ancestor_serial_numbers: Vec<PropView<prop_type::Integer>>,
+            nearest_ancestor_code_number: Vec<PropView<prop_type::String>>,
             self_serial_number: PropView<prop_type::Integer>,
         }
 
         impl DataQueries for RequiredData {
-            fn ancestor_serial_numbers_query() -> DataQuery {
+            fn nearest_ancestor_code_number_query() -> DataQuery {
                 DataQuery::PickProp {
-                    source: PickPropSource::Ancestors,
-                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::SerialNumber]),
+                    source: PickPropSource::NearestMatchingAncestor,
+                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::CodeNumber]),
                 }
             }
             fn self_serial_number_query() -> DataQuery {
@@ -155,13 +156,11 @@ mod custom_props {
             }
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
                 let required_data = RequiredData::try_from_data_query_results(data).unwrap();
-                // Create a "." separated string of our ancestors' serial numbers followed by our serial number.
-                // Since the ancestors are ordered from closest to furthest, we reverse the list.
+                // Create a "." separated string of our ancestors' code number followed by our serial number.
                 let code_number = required_data
-                    .ancestor_serial_numbers
+                    .nearest_ancestor_code_number
                     .iter()
-                    .rev()
-                    .map(|serial_number| (serial_number.value + 1).to_string())
+                    .map(|serial_number| serial_number.value.to_string())
                     .chain(std::iter::once(
                         (required_data.self_serial_number.value + 1).to_string(),
                     ))

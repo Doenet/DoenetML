@@ -41,6 +41,8 @@ pub enum PropProfile {
     RenderedChildren,
     /// Matches the SerialNumber prop
     SerialNumber,
+    /// Matches the CodeNumber prop
+    CodeNumber,
 }
 
 // TODO: implement with macro?
@@ -53,7 +55,7 @@ impl PropProfile {
             PropProfile::Integer => PropValue::Integer(i64::default()),
             PropProfile::Number => PropValue::Number(f64::default()),
             PropProfile::Math => PropValue::Math(Rc::new(MathExpr::default())),
-            PropProfile::LiteralString | PropProfile::String => {
+            PropProfile::LiteralString | PropProfile::String | PropProfile::CodeNumber => {
                 PropValue::String(Rc::new(String::default()))
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),

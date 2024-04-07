@@ -175,29 +175,50 @@ impl DocumentModel {
                         "`LocalIdx` as a prop specifier is forbidden in a `DataQuery::PickProp`."
                     )
                 }
-                let nodes_to_match = match source {
-                    PickPropSource::Children => self
-                        .document_structure
-                        .borrow()
-                        .get_component_content_children(prop_pointer.component_idx),
-                    PickPropSource::Ancestors => self
-                        .document_structure
-                        .borrow()
-                        .get_true_component_ancestors(prop_pointer.component_idx)
-                        .map(|idx| GraphNode::Component(idx.as_usize()))
-                        .collect::<Vec<_>>(),
-                };
 
                 let match_profiles = match prop_specifier {
                     PropSpecifier::Matching(profiles) => profiles,
                     PropSpecifier::LocalIdx(_) => unreachable!(),
                 };
-                let edges_to_add = process_data_query_pick_prop(
-                    nodes_to_match,
-                    match_profiles,
-                    query_node,
-                    &self.document_structure.borrow(),
-                );
+
+                let mut edges_to_add = Vec::new();
+
+                match source {
+                    PickPropSource::Children => {
+                        let document_structure = self.document_structure.borrow();
+                        let nodes_to_match = document_structure
+                            .get_component_content_children(prop_pointer.component_idx)
+                            .into_iter()
+                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
+                            .map(|node| (query_node, node));
+                        for edge in nodes_to_match {
+                            edges_to_add.push(edge);
+                        }
+                    }
+                    PickPropSource::Ancestors => {
+                        let document_structure = self.document_structure.borrow();
+                        let nodes_to_match = document_structure
+                            .get_true_component_ancestors(prop_pointer.component_idx)
+                            .map(|idx| GraphNode::Component(idx.as_usize()))
+                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
+                            .map(|node| (query_node, node));
+                        for edge in nodes_to_match {
+                            edges_to_add.push(edge);
+                        }
+                    }
+                    PickPropSource::NearestMatchingAncestor => {
+                        let document_structure = self.document_structure.borrow();
+                        let mut nodes_to_match = document_structure
+                            .get_true_component_ancestors(prop_pointer.component_idx)
+                            .map(|idx| GraphNode::Component(idx.as_usize()))
+                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
+                            .map(|node| (query_node, node));
+                        // Only link to the first match (if it exists)
+                        if let Some(edge) = nodes_to_match.next() {
+                            edges_to_add.push(edge);
+                        }
+                    }
+                };
 
                 fn_add_edges(edges_to_add);
             }
