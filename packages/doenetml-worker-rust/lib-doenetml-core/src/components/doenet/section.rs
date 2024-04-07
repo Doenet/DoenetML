@@ -63,17 +63,6 @@ mod component {
         )]
         Hide,
     }
-
-    pub mod prop_traits {
-        pub use super::*;
-
-        /// Implementing this trait will automatically implement the `PropUpdater` trait.
-        /// It will also required you to implement `PropUpdaterTyped` for the correct type.
-        ///
-        /// If you need full (untyped) control over `PropUpdater`, you can implement `PropUpdater` directly.
-        /// **Note**: Component authors should always implement `PropUpdaterTyped` instead of `PropUpdater`.
-        pub trait Hidden: PropUpdater<PropType = prop_type::Boolean> {}
-    }
 }
 
 use component::attrs;
