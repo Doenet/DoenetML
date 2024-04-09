@@ -5,7 +5,7 @@ use crate::components::{
     types::AttributeName,
 };
 
-use super::{cache::PropWithMeta, BindableAsGraphNodeFilter, PropProfile, PropValue};
+use super::{cache::PropWithMeta, BindableAsGraphNodeFilter, PropProfile};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug, Clone)]
@@ -103,8 +103,8 @@ impl From<LocalPropIdx> for PropSpecifier {
 /// a request for a list of children, etc..
 #[derive(Debug, Clone, Default)]
 pub enum DataQuery {
-    /// Query for all child GraphNodes, filtering element nodes based on the supplied
-    /// `filter`.
+    /// Query for components, filtering element nodes based on the supplied
+    /// `filter`. Results in a `prop_type::ComponentRefs` with the matching component refs.
     ///
     /// - `container`: the component whose children will be searched. For example, `PropComponent::Me`
     /// to search your own children, or `PropComponent::Parent` to search your parent's children.
@@ -136,6 +136,10 @@ pub enum DataQuery {
         filter: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
     },
 
+    /// Query for the ancestors of a component, filtering element nodes based on the supplied
+    /// `filter`. Results in a `prop_type::ComponentRefs` with the matching component refs.
+    /// This query is similar to [`DataQuery::ComponentRefs`] except that instead of filtering the children
+    /// of some component, it filters the list of ancestors of the querying component.
     AncestorRefs {
         /// The component where the search starts.
         /// This node will be included in the results if it matches the filter.
@@ -151,7 +155,7 @@ pub enum DataQuery {
     Prop {
         /// Where to look for the desired prop.
         source: PropSource,
-        /// What prop to look for. Node `PropSpecifier::LocalIdx` is only valid
+        /// What prop to look for. Note that `PropSpecifier::LocalIdx` is only valid
         /// when used in conjunction with `PropComponent::Me`.
         prop_specifier: PropSpecifier,
     },
@@ -160,7 +164,7 @@ pub enum DataQuery {
     PickProp {
         /// Where to find the component's whose props will be searched.
         source: PickPropSource,
-        /// How to filter the props to pick. Node that `PropSpecifier::LocalIdx` is forbidden
+        /// How to filter the props to pick. Note that `PropSpecifier::LocalIdx` is forbidden
         /// for this query.
         prop_specifier: PropSpecifier,
     },
@@ -184,31 +188,4 @@ pub enum DataQuery {
     #[default]
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DataQueryFilter {
-    PropProfile(PropProfileDataQueryFilter),
-    ComponentType(ComponentTypeDataQueryFilter),
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct PropProfileDataQueryFilter {
-    pub profile: PropProfile,
-    pub value: PropValue,
-    pub comparison: DataQueryFilterComparison,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ComponentTypeDataQueryFilter {
-    pub component_type: &'static str,
-    pub comparison: DataQueryFilterComparison,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DataQueryFilterComparison {
-    Equal,
-    NotEqual,
-    // TODO: this is not the right way to do this. Cleanup how to build queries.
-    ProfilePresent,
 }
