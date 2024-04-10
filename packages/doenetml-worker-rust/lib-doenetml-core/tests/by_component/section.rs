@@ -253,7 +253,6 @@ fn section_xxx() {
 
     //println!("{:#?}", core.to_flat_dast());
 
-
     //println!("{}", core.to_mermaid_structure_graph());
     //println!("\n\n\n");
     //println!("{}", core.to_mermaid_dependency_graph());
@@ -271,7 +270,6 @@ fn section_xxx2() {
     core.init_from_dast_root(&dast_root);
 
     //println!("{:#?}", core.to_flat_dast());
-
 
     println!("{}", core.to_mermaid_structure_graph());
     //println!("\n\n\n");
