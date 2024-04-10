@@ -1,11 +1,14 @@
 use std::rc::Rc;
 
-use crate::components::{
-    prelude::{ComponentIdx, LocalPropIdx},
-    types::AttributeName,
+use crate::{
+    components::{
+        prelude::{ComponentIdx, LocalPropIdx},
+        types::AttributeName,
+    },
+    graph_node::GraphNode,
 };
 
-use super::{cache::PropWithMeta, BindableAsGraphNodeFilter, PropProfile};
+use super::{cache::PropWithMeta, ApplyTest, FilterData, PropProfile};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug, Clone)]
@@ -133,22 +136,7 @@ pub enum DataQuery {
         /// composition of [`ContentFilter`]s.
         ///
         /// See [`DataQuery::ComponentRefs`] for an example.
-        filter: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
-    },
-
-    /// Query for the ancestors of a component, filtering element nodes based on the supplied
-    /// `filter`. Results in a `prop_type::ComponentRefs` with the matching component refs.
-    /// This query is similar to [`DataQuery::ComponentRefs`] except that instead of filtering the children
-    /// of some component, it filters the list of ancestors of the querying component.
-    AncestorRefs {
-        /// The component where the search starts.
-        /// This node will be included in the results if it matches the filter.
-        source: PropSource,
-        /// The filter to apply to the ancestors. Ancestors matching this filter
-        /// are returned.
-        ///
-        /// See [`DataQuery::ComponentRefs`] for an example of a filter.
-        filter: Rc<dyn for<'a> BindableAsGraphNodeFilter<'a>>,
+        filter: Rc<dyn for<'a> ApplyTest<FilterData<'a>, GraphNode>>,
     },
 
     /// Query for a particular prop of a component

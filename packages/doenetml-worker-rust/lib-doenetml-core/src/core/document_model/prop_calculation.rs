@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    props::{DataQuery, DataQueryResults, PropSource, PropValue},
+    props::{DataQuery, DataQueryResults, FilterData, PropSource, PropValue},
     state::types::content_refs::ContentRef,
 };
 
@@ -157,12 +157,15 @@ impl DocumentModel {
             DataQuery::ComponentRefs { container, filter } => {
                 // Get the correct "root" for the query.
                 let component_idx = resolve_prop_component(container);
-                let bound_filter = filter.bind(query_node, self);
                 let content_children = self.get_component_content_children(component_idx);
 
                 let mut content_refs: Vec<ContentRef> = Vec::new();
                 for node in content_children {
-                    if bound_filter.apply_test(&node) {
+                    if filter.apply_test(&FilterData {
+                        node,
+                        origin: query_node,
+                        document_model: self,
+                    }) {
                         match node {
                             GraphNode::Component(_) => {
                                 content_refs.push(ContentRef::Component(node.component_idx().into()));
@@ -173,47 +176,6 @@ impl DocumentModel {
                             _ => panic!(
                                 "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
                                 node
-                            ),
-                        }
-                    }
-                }
-
-                DataQueryResult {
-                    values: vec![PropWithMeta {
-                        value: PropValue::ContentRefs(Rc::new(content_refs.into())),
-                        came_from_default: false,
-                        changed: true,
-                        origin: Some(query_node),
-                    }],
-                }
-            }
-            DataQuery::AncestorRefs {
-                source: start,
-                filter,
-            } => {
-                // Get the correct "root" for the query.
-                let start_component_idx = resolve_prop_component(start);
-                let bound_filter = filter.bind(query_node, self);
-                let ancestors = self
-                    .document_structure
-                    .borrow()
-                    .get_true_component_ancestors(start_component_idx)
-                    .collect::<Vec<_>>();
-
-                let mut content_refs: Vec<ContentRef> = Vec::new();
-                for ancestor_idx in ancestors {
-                    let ancestor_node = ancestor_idx.into();
-                    if bound_filter.apply_test(&ancestor_node) {
-                        match ancestor_node {
-                            GraphNode::Component(_) => {
-                                content_refs.push(ContentRef::Component(ancestor_node.component_idx().into()));
-                            }
-                            GraphNode::String(_) => {
-                                content_refs.push(ContentRef::String(ancestor_node.idx().into()));
-                            }
-                            _ => panic!(
-                                "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
-                                ancestor_node
                             ),
                         }
                     }

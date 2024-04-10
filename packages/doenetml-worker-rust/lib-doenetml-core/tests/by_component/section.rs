@@ -239,6 +239,26 @@ fn section_gets_code_number() {
     //println!("{}", core.to_mermaid_dependency_graph());
 }
 
+//#[test]
+//fn section_xxx() {
+//    // Items with idx 1 and 5 are <section> elements
+//    let dast_root = dast_root_no_position(
+//        r#"
+//        <section name="s1"><title>Hello</title><text>content</text></section> $s1.title
+//        "#,
+//    );
+//
+//    let mut core = Core::new();
+//    core.init_from_dast_root(&dast_root);
+//
+//    //println!("{:#?}", core.to_flat_dast());
+//
+//
+//    //println!("{}", core.to_mermaid_structure_graph());
+//    //println!("\n\n\n");
+//    //println!("{}", core.to_mermaid_dependency_graph());
+//}
+
 mod test_helpers {
 
     use doenetml_core::{

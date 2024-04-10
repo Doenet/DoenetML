@@ -1,6 +1,6 @@
 use crate::{
     components::prelude::DataQuery,
-    props::{PickPropSource, PropSource, PropSpecifier},
+    props::{FilterData, PickPropSource, PropSource, PropSpecifier},
 };
 
 use crate::{graph_node::GraphNode, props::PropValue};
@@ -223,10 +223,7 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
-            DataQuery::ComponentRefs {
-                container,
-                filter: filters,
-            } => {
+            DataQuery::ComponentRefs { container, filter } => {
                 let mut edges_to_add = Vec::new();
                 let component_idx = resolve_prop_component(&container);
 
@@ -235,37 +232,12 @@ impl DocumentModel {
                     .borrow()
                     .get_component_content_children(component_idx);
 
-                let bound_filter = filters.bind(query_node, self);
-
                 for node in content_children {
-                    let deps = bound_filter.accumulate_deps(&node);
-                    // deps consists of everything that the filter could possibly depend on.
-                    // We need to link each dep to the query node.
-                    for dep in deps {
-                        edges_to_add.push((query_node, dep));
-                    }
-                }
-
-                fn_add_edges(edges_to_add);
-            }
-            DataQuery::AncestorRefs {
-                source: start,
-                filter,
-            } => {
-                let start_component_idx = resolve_prop_component(&start);
-
-                let ancestors = self
-                    .document_structure
-                    .borrow()
-                    .get_true_component_ancestors(start_component_idx)
-                    .collect::<Vec<_>>();
-
-                let bound_filter = filter.bind(query_node, self);
-
-                let mut edges_to_add = Vec::new();
-                for component_idx in ancestors {
-                    let component_node = GraphNode::Component(component_idx.into());
-                    let deps = bound_filter.accumulate_deps(&component_node);
+                    let deps = filter.accumulate_deps(&FilterData {
+                        node,
+                        origin: query_node,
+                        document_model: self,
+                    });
                     // deps consists of everything that the filter could possibly depend on.
                     // We need to link each dep to the query node.
                     for dep in deps {
