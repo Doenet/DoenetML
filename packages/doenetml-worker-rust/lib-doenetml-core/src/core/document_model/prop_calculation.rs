@@ -196,7 +196,7 @@ impl DocumentModel {
 
                 DataQueryResult {
                     values: vec![PropWithMeta {
-                        value: PropValue::ElementRef(Some(prop_pointer.component_idx.into())),
+                        value: PropValue::ComponentRef(Some(prop_pointer.component_idx.into())),
                         came_from_default: false,
                         changed: true,
                         origin: None,
@@ -227,7 +227,7 @@ impl DocumentModel {
                                     .borrow()
                                     .get_string(node, query_node),
                             GraphNode::Component(component_idx) => PropWithMeta {
-                                value: PropValue::ElementRef(Some(component_idx.into())),
+                                value: PropValue::ComponentRef(Some(component_idx.into())),
                                 came_from_default: false,
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried

@@ -40,8 +40,8 @@ pub enum PropValue {
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
-    ElementRefs(prop_type::ElementRefs),
-    ElementRef(prop_type::ElementRef),
+    ComponentRefs(prop_type::ComponentRefs),
+    ComponentRef(prop_type::ComponentRef),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
@@ -65,8 +65,8 @@ pub mod prop_type {
     pub type Integer = i64;
     pub type Boolean = bool;
     pub type Math = Rc<MathExpr>;
-    pub type ElementRef = Option<element_refs::ElementRef>;
-    pub type ElementRefs = Rc<element_refs::ElementRefs>;
+    pub type ComponentRef = Option<element_refs::ElementRef>;
+    pub type ComponentRefs = Rc<element_refs::ElementRefs>;
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
     pub type ContentRef = content_refs::ContentRef;
 }

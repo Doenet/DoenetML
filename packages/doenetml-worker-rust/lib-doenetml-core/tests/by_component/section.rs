@@ -297,7 +297,7 @@ mod test_helpers {
             local_prop_idx: TITLE_LOCAL_IDX,
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
-        let prop_view: PropView<prop_type::ElementRef> = prop.into_prop_view();
+        let prop_view: PropView<prop_type::ComponentRef> = prop.into_prop_view();
 
         prop_view.value.map(|v| v.0)
     }

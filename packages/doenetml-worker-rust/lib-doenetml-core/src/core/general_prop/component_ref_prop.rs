@@ -53,7 +53,7 @@ impl ComponentRefProp {
 }
 
 impl PropUpdater for ComponentRefProp {
-    type PropType = prop_type::ElementRef;
+    type PropType = prop_type::ComponentRef;
 
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]

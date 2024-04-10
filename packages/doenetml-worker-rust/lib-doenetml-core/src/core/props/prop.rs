@@ -50,11 +50,11 @@ impl PropDefinition {
             PropValueDiscriminants::Math => "math",
             // TODO: starting to accumulate these "no preferred" panics.
             // Maybe a sign that we need to rethink how this `preferred_component_type()` works?
-            PropValueDiscriminants::ElementRefs => {
-                panic!("No preferred component type for an ElementRefs PropValue")
+            PropValueDiscriminants::ComponentRefs => {
+                panic!("No preferred component type for an ComponentRefs PropValue")
             }
-            PropValueDiscriminants::ElementRef => {
-                panic!("No preferred component type for an ElementRef PropValue")
+            PropValueDiscriminants::ComponentRef => {
+                panic!("No preferred component type for an ComponentRef PropValue")
             }
             PropValueDiscriminants::ContentRefs => {
                 panic!("No preferred component type for an ContentRefs PropValue")

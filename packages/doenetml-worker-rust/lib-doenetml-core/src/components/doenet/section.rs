@@ -18,7 +18,8 @@ mod component {
     enum Props {
         /// The `<title>` child of the `<section>` that contain's the section's title
         #[prop(
-            value_type = PropValueType::ElementRef,
+            value_type = PropValueType::ComponentRef,
+            profile = PropProfile::Renderable,
             is_public,
         )]
         Title,
@@ -183,7 +184,7 @@ mod custom_props {
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             siblings: PropView<prop_type::ContentRefs>,
-            self_ref: PropView<prop_type::ElementRef>,
+            self_ref: PropView<prop_type::ComponentRef>,
         }
 
         impl DataQueries for RequiredData {
@@ -247,7 +248,7 @@ mod custom_props {
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             filtered_children: PropView<prop_type::ContentRefs>,
-            title: PropView<prop_type::ElementRef>,
+            title: PropView<prop_type::ComponentRef>,
         }
 
         impl DataQueries for RequiredData {

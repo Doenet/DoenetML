@@ -37,12 +37,16 @@ pub enum PropProfile {
     Boolean,
     /// Matches the hidden prop
     Hidden,
-    /// Matches the RenderedChildren prop
-    RenderedChildren,
     /// Matches the SerialNumber prop
     SerialNumber,
     /// Matches the CodeNumber prop
     CodeNumber,
+    /// Matches a prop that can be rendered (e.g., contains `ComponentRefs` but is not `RenderedChildren`.
+    /// This is used on props like `<section>.title` which contain references to content but are not themselves used for
+    /// rendering children.)
+    Renderable,
+    /// Matches the RenderedChildren prop
+    RenderedChildren,
 }
 
 // TODO: implement with macro?
@@ -59,8 +63,8 @@ impl PropProfile {
                 PropValue::String(Rc::new(String::default()))
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),
-            PropProfile::RenderedChildren => {
-                PropValue::ElementRefs(Rc::new(ElementRefs::default()))
+            PropProfile::RenderedChildren | PropProfile::Renderable => {
+                PropValue::ComponentRefs(Rc::new(ElementRefs::default()))
             }
             PropProfile::SerialNumber => PropValue::Integer(i64::default()),
         }
