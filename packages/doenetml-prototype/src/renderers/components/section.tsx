@@ -3,7 +3,7 @@ import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
 
 export const Section: BasicComponentWithPassthroughChildren<{
-    props: {title?: number, codeNumber: string};
+    props: { title?: number; codeNumber: string };
 }> = ({ children, node, visibilityRef }) => {
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
@@ -13,7 +13,9 @@ export const Section: BasicComponentWithPassthroughChildren<{
 
     return (
         <div className="section" ref={visibilityRef}>
-            <h3>{displayName} {title}</h3>
+            <h3>
+                {displayName} {title}
+            </h3>
             {children}
         </div>
     );
