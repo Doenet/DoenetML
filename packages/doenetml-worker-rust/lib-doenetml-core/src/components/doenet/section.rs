@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::components::prelude::*;
-use crate::general_prop::ElementRefProp;
+use crate::general_prop::ComponentRefProp;
 
 use super::title::Title;
 use crate::props::as_updater_object;
@@ -76,7 +76,7 @@ impl PropGetUpdater for SectionProps {
     fn get_updater(&self) -> UpdaterObject {
         match self {
             SectionProps::Title => as_updater_object::<_, props::types::Title>(
-                ElementRefProp::new_from_last_matching_child(Title::NAME),
+                ComponentRefProp::new_from_last_matching_child(Title::NAME),
             ),
             SectionProps::Hidden => {
                 as_updater_object::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())

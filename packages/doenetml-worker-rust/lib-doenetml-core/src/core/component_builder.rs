@@ -260,11 +260,10 @@ impl ComponentBuilder {
     }
 
     /// If component `component_idx` extended a prop using the `extend` attribute,
-    /// then create a child corresponding to that prop
-    /// that should be prepended to the children of the component.
+    /// then create a child corresponding to that prop that should be prepended to the children of the component.
     ///
     /// For example, if `<textInput name="i"/>`, then we create a child corresponding to `$i.value`
-    /// in the cases of `<text extend="$i.value>more text</text>` or `<p extend="$i.value">more text</p>`
+    /// in the cases of `<text extend="$i.value">more text</text>` or `<p extend="$i.value">more text</p>`
     /// but not in the case of text component from `$i.value` that occurs outside the `extend` attribute.
     fn create_implicit_child_from_prop_source(
         &self,
