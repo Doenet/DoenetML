@@ -21,6 +21,7 @@ mod component {
             value_type = PropValueType::ComponentRef,
             profile = PropProfile::Renderable,
             is_public,
+            for_render
         )]
         Title,
 
@@ -248,7 +249,6 @@ mod custom_props {
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             filtered_children: PropView<prop_type::ContentRefs>,
-            title: PropView<prop_type::ComponentRef>,
         }
 
         impl DataQueries for RequiredData {
@@ -271,12 +271,6 @@ mod custom_props {
                     )),
                 }
             }
-            fn title_query() -> DataQuery {
-                DataQuery::Prop {
-                    source: PropSource::Me,
-                    prop_specifier: SectionProps::Title.local_idx().into(),
-                }
-            }
         }
 
         impl PropUpdater for RenderedChildren {
@@ -287,14 +281,9 @@ mod custom_props {
             }
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
                 let required_data = RequiredData::try_from_data_query_results(data).unwrap();
-                let title_element_refs = required_data.title.value;
-
-                let non_title_children = required_data.filtered_children.value.as_slice();
-
-                let mut children = title_element_refs.map(|n| vec![n.into()]).unwrap_or(vec![]);
-                children.extend(non_title_children);
-
-                PropCalcResult::Calculated(Rc::new(children.into()))
+                PropCalcResult::Calculated(Rc::new(
+                    required_data.filtered_children.value.as_ref().clone(),
+                ))
             }
         }
     }

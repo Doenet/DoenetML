@@ -4,7 +4,7 @@ use doenetml_core::{dast::FlatDastElementContent, state::types::content_refs::Co
 use test_helpers::*;
 
 #[test]
-fn section_finds_beginning_title_tag() {
+fn section_content_excludes_title_tag() {
     let dast_root =
         dast_root_no_position(r#"<section><title>Hello</title><text>content</text></section>"#);
 
@@ -18,23 +18,14 @@ fn section_finds_beginning_title_tag() {
 
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
-        vec![
-            ContentRef::Component(2.into()),
-            ContentRef::Component(3.into()),
-        ]
+        vec![ContentRef::Component(3.into()),]
     );
 
     // check the flat dast
     let flat_dast = core.to_flat_dast();
     let section_children = &flat_dast.elements[section_idx.as_usize()].children;
 
-    assert_eq!(
-        *section_children,
-        vec![
-            FlatDastElementContent::Element(2),
-            FlatDastElementContent::Element(3),
-        ]
-    );
+    assert_eq!(*section_children, vec![FlatDastElementContent::Element(3),]);
 }
 
 #[test]
@@ -94,7 +85,6 @@ fn section_finds_title_tag_in_middle() {
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
         vec![
-            ContentRef::Component(3.into()),
             ContentRef::String(0.into()),
             ContentRef::Component(2.into()),
             ContentRef::String(1.into()),
@@ -111,7 +101,6 @@ fn section_finds_title_tag_in_middle() {
     assert_eq!(
         *section_children,
         vec![
-            FlatDastElementContent::Element(3),
             FlatDastElementContent::Text("\n".to_string()),
             FlatDastElementContent::Element(2),
             FlatDastElementContent::Text(" string outside\n".to_string()),
@@ -120,6 +109,9 @@ fn section_finds_title_tag_in_middle() {
             FlatDastElementContent::Text("\n".to_string()),
         ]
     );
+
+    let title_prop = get_title_prop(1.into(), &mut core);
+    assert_eq!(title_prop, Some(3.into()));
 }
 
 #[test]
@@ -146,7 +138,6 @@ fn section_with_multiple_title_tags_picks_last() {
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
         vec![
-            ContentRef::Component(4.into()),
             ContentRef::String(0.into()),
             ContentRef::String(1.into()),
             ContentRef::Component(3.into()),
@@ -164,7 +155,6 @@ fn section_with_multiple_title_tags_picks_last() {
     assert_eq!(
         *section_children,
         vec![
-            FlatDastElementContent::Element(4),
             FlatDastElementContent::Text("\n".to_string()),
             FlatDastElementContent::Text(" after title 1\n".to_string()),
             FlatDastElementContent::Element(3),
@@ -174,6 +164,9 @@ fn section_with_multiple_title_tags_picks_last() {
             FlatDastElementContent::Text("\n".to_string()),
         ]
     );
+
+    let title_prop = get_title_prop(1.into(), &mut core);
+    assert_eq!(title_prop, Some(4.into()));
 }
 
 #[test]

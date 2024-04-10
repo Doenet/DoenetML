@@ -3,15 +3,17 @@ import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
 
 export const Section: BasicComponentWithPassthroughChildren<{
-    titleElmId?: number;
+    props: {title?: number, codeNumber: string};
 }> = ({ children, node, visibilityRef }) => {
-    const titleElmId = node.data.titleElmId;
+    const titleElmId = node.data.props.title;
+    const codeNumber = node.data.props.codeNumber;
+    const displayName = `Section${codeNumber ? ` ${codeNumber}.` : ""}`;
 
-    const title = titleElmId != null ? <Element id={titleElmId} /> : "Section";
+    const title = titleElmId != null ? <Element id={titleElmId} /> : "";
 
     return (
         <div className="section" ref={visibilityRef}>
-            <h3>{title}</h3>
+            <h3>{displayName} {title}</h3>
             {children}
         </div>
     );
