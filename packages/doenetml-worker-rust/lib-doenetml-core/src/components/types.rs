@@ -111,7 +111,6 @@ impl<T: IntoGraphNode> From<T> for ComponentIdx {
     Serialize,
     Deserialize,
     Default,
-    Hash,
 )]
 #[serde(transparent)]
 pub struct StringIdx(usize);
