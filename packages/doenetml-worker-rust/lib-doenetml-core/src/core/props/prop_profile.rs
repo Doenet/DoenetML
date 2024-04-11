@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::state::types::{element_refs::ElementRefs, math_expr::MathExpr};
+use crate::state::types::{component_refs::ComponentRefs, math_expr::MathExpr};
 
 use super::PropValue;
 
@@ -64,7 +64,7 @@ impl PropProfile {
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),
             PropProfile::RenderedChildren | PropProfile::Renderable => {
-                PropValue::ComponentRefs(Rc::new(ElementRefs::default()))
+                PropValue::ComponentRefs(Rc::new(ComponentRefs::default()))
             }
             PropProfile::SerialNumber => PropValue::Integer(i64::default()),
         }

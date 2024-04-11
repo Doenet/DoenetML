@@ -4,31 +4,31 @@ use anyhow::anyhow;
 
 /// A vector of references to components
 ///
-/// TODO: when have array props, turn this into just `ElementRef`, which is a reference to a single component
+/// TODO: when have array props, turn this into just `ComponentRef`, which is a reference to a single component
 /// and then use the general array prop mechanism to refer to multiple components
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct ElementRefs(pub Vec<ComponentIdx>);
+pub struct ComponentRefs(pub Vec<ComponentIdx>);
 
 /// A reference to a single component
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct ElementRef(pub ComponentIdx);
+pub struct ComponentRef(pub ComponentIdx);
 
-impl ElementRef {
+impl ComponentRef {
     pub fn as_content_ref(&self) -> ContentRef {
         ContentRef::Component(self.0)
     }
 }
 
-impl<T> From<T> for ElementRef
+impl<T> From<T> for ComponentRef
 where
     T: Into<ComponentIdx>,
 {
     fn from(t: T) -> Self {
-        ElementRef(t.into())
+        ComponentRef(t.into())
     }
 }
 
-impl TryFrom<ContentRef> for ElementRef {
+impl TryFrom<ContentRef> for ComponentRef {
     type Error = anyhow::Error;
 
     fn try_from(value: ContentRef) -> Result<Self, Self::Error> {

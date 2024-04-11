@@ -5,7 +5,7 @@ use crate::{
     graph_node::GraphNode,
 };
 
-use super::element_refs::ElementRef;
+use super::component_refs::ComponentRef;
 
 /// A vector of references to components or strings
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -40,7 +40,7 @@ impl From<Vec<ContentRef>> for ContentRefs {
 }
 
 /// A reference to a single component or string. If you want a reference to just a component,
-/// use `ElementRef` instead.
+/// use `ComponentRef` instead.
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum ContentRef {
     Component(ComponentIdx),
@@ -59,8 +59,8 @@ impl From<StringIdx> for ContentRef {
     }
 }
 
-impl From<ElementRef> for ContentRef {
-    fn from(t: ElementRef) -> Self {
+impl From<ComponentRef> for ContentRef {
+    fn from(t: ComponentRef) -> Self {
         let idx = t.0;
         ContentRef::Component(idx)
     }

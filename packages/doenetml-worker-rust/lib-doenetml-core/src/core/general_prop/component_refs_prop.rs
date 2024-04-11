@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     components::prelude::*,
     props::ContentFilter,
-    state::types::{content_refs::ContentRef, element_refs::ElementRefs},
+    state::types::{component_refs::ComponentRefs, content_refs::ContentRef},
 };
 
 /// A prop that references multiple components
@@ -14,7 +14,7 @@ pub struct ComponentRefsProp {
 }
 
 impl ComponentRefsProp {
-    /// Creates a ElementRefs prop that returns all children with component_type
+    /// Creates a ComponentRefs prop that returns all children with component_type
     pub fn new_from_all_matching_children(component_type: &'static str) -> Self {
         ComponentRefsProp {
             data_query: DataQuery::ComponentRefs {
@@ -24,7 +24,7 @@ impl ComponentRefsProp {
         }
     }
 
-    /// Creates a ElementRefs prop that returns all children with component_type
+    /// Creates a ComponentRefs prop that returns all children with component_type
     pub fn new_from_all_matching_siblings(profile: PropProfile) -> Self {
         ComponentRefsProp {
             data_query: DataQuery::ComponentRefs {
@@ -62,7 +62,7 @@ impl PropUpdater for ComponentRefsProp {
                         ),
                     })
                     .collect::<Vec<_>>();
-                PropCalcResult::Calculated(Rc::new(ElementRefs(elements)))
+                PropCalcResult::Calculated(Rc::new(ComponentRefs(elements)))
             }
         }
     }

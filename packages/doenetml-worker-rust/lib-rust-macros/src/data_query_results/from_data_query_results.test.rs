@@ -8,7 +8,7 @@ fn test_can_parse_struct() {
         #[data_query(query_trait = QueryTrait)]
         struct RequiredData {
             filtered_children: Vec<PropView<Vec<GraphNode>>>,
-            title: PropView<ElementRefs>,
+            title: PropView<ComponentRefs>,
         }
     "#;
     let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
@@ -21,7 +21,7 @@ fn test_can_parse_struct_with_pass_data() {
         #[data_query(query_trait = QueryTrait, pass_data = &std::string::String)]
         struct RequiredData {
             filtered_children: Vec<PropView<Vec<GraphNode>>>,
-            title: PropView<ElementRefs>,
+            title: PropView<ComponentRefs>,
         }
     "#;
     let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());

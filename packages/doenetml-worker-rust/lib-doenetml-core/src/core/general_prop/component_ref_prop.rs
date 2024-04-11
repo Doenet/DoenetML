@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     components::prelude::*,
     props::ContentFilter,
-    state::types::{content_refs::ContentRef, element_refs::ElementRef},
+    state::types::{component_refs::ComponentRef, content_refs::ContentRef},
 };
 
 /// A prop that references a single component
@@ -22,7 +22,7 @@ enum ElementsToSelect {
 }
 
 impl ComponentRefProp {
-    /// Creates a ElementRefs prop that returns the last child with component_type
+    /// Creates a ComponentRefs prop that returns the last child with component_type
     pub fn new_from_last_matching_child(component_type: &'static str) -> Self {
         ComponentRefProp {
             data_query: DataQuery::ComponentRefs {
@@ -33,7 +33,7 @@ impl ComponentRefProp {
         }
     }
 
-    /// Creates a ElementRefs prop that returns the first child with component_type
+    /// Creates a ComponentRefs prop that returns the first child with component_type
     pub fn new_from_first_matching_child(component_type: &'static str) -> Self {
         ComponentRefProp {
             data_query: DataQuery::ComponentRefs {
@@ -66,7 +66,7 @@ impl PropUpdater for ComponentRefProp {
                 let content_refs: PropView<prop_type::ContentRefs> = data.vec[0]
                     .to_owned()
                     .try_into_prop_view()
-                    .expect("Manual unwrap in ElementRefProp failed");
+                    .expect("Manual unwrap in ComponentRefProp failed");
 
                 if content_refs.value.is_empty() {
                     return PropCalcResult::FromDefault(<Self as PropUpdater>::default(self));
@@ -75,7 +75,7 @@ impl PropUpdater for ComponentRefProp {
                 let mut elements = content_refs.value.as_slice().iter().map(|content_ref|
                     match content_ref {
                         &ContentRef::Component(idx) => {
-                             ElementRef::from(idx)
+                             ComponentRef::from(idx)
                         },
                         _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", content_ref.clone())
                     }
@@ -87,7 +87,9 @@ impl PropUpdater for ComponentRefProp {
                 };
                 PropCalcResult::Calculated(component)
             }
-            _ => panic!("ElementRefProp should only be created with a FilteredChildren data query"),
+            _ => {
+                panic!("ComponentRefProp should only be created with a FilteredChildren data query")
+            }
         }
     }
 }

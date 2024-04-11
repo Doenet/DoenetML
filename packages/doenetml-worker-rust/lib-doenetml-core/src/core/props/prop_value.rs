@@ -58,15 +58,15 @@ pub mod prop_type {
     //! so that they can be used in macros.
 
     use super::*;
-    use crate::state::types::{content_refs, element_refs};
+    use crate::state::types::{component_refs, content_refs};
 
     pub type String = Rc<std::string::String>;
     pub type Number = f64;
     pub type Integer = i64;
     pub type Boolean = bool;
     pub type Math = Rc<MathExpr>;
-    pub type ComponentRef = Option<element_refs::ElementRef>;
-    pub type ComponentRefs = Rc<element_refs::ElementRefs>;
+    pub type ComponentRef = Option<component_refs::ComponentRef>;
+    pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
     pub type ContentRef = content_refs::ContentRef;
 }
