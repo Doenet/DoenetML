@@ -49,7 +49,6 @@ mod component {
            )]
         CodeNumber,
 
-        //SelfRef,
         #[prop(
             value_type = PropValueType::ContentRefs,
             profile = PropProfile::RenderedChildren
@@ -151,7 +150,7 @@ mod custom_props {
                 let code_number = required_data
                     .nearest_ancestor_code_number
                     .iter()
-                    .map(|serial_number| serial_number.value.to_string())
+                    .map(|code_number| code_number.value.to_string())
                     .chain(std::iter::once(
                         (required_data.self_serial_number.value + 1).to_string(),
                     ))
@@ -263,7 +262,7 @@ mod custom_props {
                             // Keep things with a "hidden != true" prop
                             ContentFilter::HasPropMatchingProfileAndCondition(
                                 PropProfile::Hidden,
-                                Cond::NotEq(PropValue::Boolean(true)),
+                                Cond::Eq(PropValue::Boolean(false)),
                             ),
                         ),
                         // We exclude any `<title>` elements.

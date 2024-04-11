@@ -49,7 +49,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     }
 }
 
-/// The index of the component in `Core.components`
+/// The index of the component in `DocumentStructure.components`
 #[derive(
     Debug,
     Clone,
@@ -166,10 +166,9 @@ pub struct ExtendingPropSource {
     /// For example, given `<textInput name="i"/>`, a direct ref would be `$i.value` by itself,
     /// unlike `<text extend="$i.value"/>`.
     ///
-    /// XXX: Incorrect comment?
-    /// If we are extending from a direct ref,
-    /// we need to add the referenced prop as a child in the `DataQuery::ChildPropProfile`,
-    /// because the prop was not already added to the children.
+    /// If we are extending from a direct ref (e.g., the user specified `$i`),
+    /// the expansion behavior is slightly different. We keep track of whether or not this `extend`
+    /// is from a direct ref or not.
     pub from_direct_ref: bool,
 }
 

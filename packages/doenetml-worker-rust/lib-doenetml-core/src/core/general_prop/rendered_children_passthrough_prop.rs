@@ -22,7 +22,7 @@ impl RenderedChildrenPassthroughProp {
                     // Keep things with a "hidden != true" prop
                     ContentFilter::HasPropMatchingProfileAndCondition(
                         PropProfile::Hidden,
-                        Cond::NotEq(PropValue::Boolean(true)),
+                        Cond::Eq(PropValue::Boolean(false)),
                     ),
                 )),
             },
