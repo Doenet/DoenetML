@@ -8,6 +8,7 @@ use crate::{
 /// Process a `DataQuery::Prop`.
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
+/// The resulting vec will be length 0 or 1.
 pub fn process_data_query_prop(
     component_idx: ComponentIdx,
     prop_specifier: PropSpecifier,
@@ -15,8 +16,6 @@ pub fn process_data_query_prop(
     query_node: GraphNode,
     document_structure: &DocumentStructure,
 ) -> Vec<(GraphNode, GraphNode)> {
-    let mut ret = Vec::new();
-
     let local_prop_idx = match prop_specifier {
         PropSpecifier::LocalIdx(local_prop_idx) => Some(local_prop_idx),
         PropSpecifier::Matching(match_profiles) => document_structure
@@ -30,8 +29,8 @@ pub fn process_data_query_prop(
             local_prop_idx,
         }
         .into_prop_node(document_structure);
-        ret.push((query_node, target_prop_node));
+        vec![(query_node, target_prop_node)]
+    } else {
+        vec![]
     }
-
-    ret
 }

@@ -118,7 +118,7 @@ impl StructureGraph {
 
     /// Get a list of `GraphNode`s corresponding to the requested
     /// component's props. Each node will be a `GraphNode::Virtual` and
-    /// the children of each virtual node will be the content of the attribute.
+    /// the children of each virtual node will be the content.
     /// The order is the same as that returned by `Component::get_attribute_names()`.
     pub fn get_component_props<T: Into<GraphNode>>(
         &self,

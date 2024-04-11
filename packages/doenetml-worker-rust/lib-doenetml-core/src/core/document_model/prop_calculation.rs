@@ -142,7 +142,7 @@ impl DocumentModel {
             let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
             self.get_prop_pointer(prop_node)
         };
-        // Resolve a `PropComponent` to a component index.
+        // Resolve a `PropSource` to a component index.
         let resolve_prop_component = |prop_component: &PropSource| match prop_component {
             PropSource::Me => get_prop_pointer().component_idx,
             PropSource::Parent => self

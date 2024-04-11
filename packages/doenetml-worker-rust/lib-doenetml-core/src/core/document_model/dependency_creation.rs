@@ -195,17 +195,6 @@ impl DocumentModel {
                             edges_to_add.push(edge);
                         }
                     }
-                    PickPropSource::Ancestors => {
-                        let document_structure = self.document_structure.borrow();
-                        let nodes_to_match = document_structure
-                            .get_true_component_ancestors(prop_pointer.component_idx)
-                            .map(|idx| GraphNode::Component(idx.as_usize()))
-                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
-                            .map(|node| (query_node, node));
-                        for edge in nodes_to_match {
-                            edges_to_add.push(edge);
-                        }
-                    }
                     PickPropSource::NearestMatchingAncestor => {
                         let document_structure = self.document_structure.borrow();
                         let mut nodes_to_match = document_structure

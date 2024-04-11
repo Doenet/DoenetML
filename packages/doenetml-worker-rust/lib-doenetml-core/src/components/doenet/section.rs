@@ -33,7 +33,7 @@ mod component {
         Hidden,
 
         /// The position of the section relative to other siblings with serial numbers.
-        /// E.g. in `<section /><section />` the first would have serial number 1 and the second 2.
+        /// E.g. in `<section /><section />` the first would have serial number 0 and the second 1.
         #[prop(
                value_type = PropValueType::Integer,
                profile = PropProfile::SerialNumber

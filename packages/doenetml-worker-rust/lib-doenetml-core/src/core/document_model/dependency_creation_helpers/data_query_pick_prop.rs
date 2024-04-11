@@ -37,7 +37,7 @@ pub fn pick_prop(
         }
         GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
             unreachable!(
-                "Cannot have GraphNode of type {:?} as a content child of a component's children.",
+                "Cannot process a GraphNode of type {:?} when picking a prop.",
                 node
             );
         }
