@@ -12,6 +12,8 @@ pub struct ComponentRefs(pub Vec<ComponentIdx>);
 
 /// A reference to a single component
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+// TODO: currently, the type exposed to the JS side is an `Option<ComponentRef>`, not a `ComponentRef`,
+// so this generates the wrong Typescript types
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentRef(pub ComponentIdx);
 
