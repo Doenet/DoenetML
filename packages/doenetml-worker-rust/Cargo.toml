@@ -39,7 +39,7 @@ syn = "2.0"
 convert_case = "0.6.0"
 anyhow = "1.0.79"
 thiserror = "1.0.56"
-tsify = { git = "https://github.com/siefkenj/tsify.git", branch = "next" }
+tsify-next = { version = "0.5.1" }
 derive_more = "0.99.17"
 itertools = "0.12.1"
 serde-wasm-bindgen = "0.6"

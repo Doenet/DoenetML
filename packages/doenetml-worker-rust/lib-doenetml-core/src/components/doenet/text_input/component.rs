@@ -85,7 +85,7 @@ pub(super) mod component {
     }
 
     #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
-    #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+    #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
     #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
     #[serde(expecting = "`text` must be a string")]
     pub struct TextInputActionArgs {

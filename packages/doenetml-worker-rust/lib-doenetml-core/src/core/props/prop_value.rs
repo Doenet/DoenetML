@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 #[cfg(feature = "web")]
-use tsify::Tsify;
+use tsify_next::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
@@ -61,14 +61,33 @@ pub mod prop_type {
     use crate::state::types::{component_refs, content_refs};
 
     pub type String = Rc<std::string::String>;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Number = f64;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Integer = i64;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Boolean = bool;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Math = Rc<MathExpr>;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ComponentRef = Option<component_refs::ComponentRef>;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ContentRef = content_refs::ContentRef;
+
+    /// By default, wasm-bindgen won't pick up this module as containing types to export
+    /// to Typescript. We force wasm-bindgen to export types in this module by providing a
+    /// dummy type that is explicitly referenced in `lib-js-wasm-binding/src/lib.rs`.
+    #[cfg(feature = "web")]
+    #[cfg_attr(
+        feature = "web",
+        derive(Copy, Clone, Tsify, serde::Serialize, serde::Deserialize)
+    )]
+    #[cfg_attr(feature = "web", tsify(from_wasm_abi, into_wasm_abi))]
+    pub struct _DummyForWasmBindgen {}
 }
 
 mod conversions {

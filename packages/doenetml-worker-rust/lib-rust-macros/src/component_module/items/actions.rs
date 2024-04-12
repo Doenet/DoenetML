@@ -149,9 +149,8 @@ impl ComponentModule {
             #[derive(Debug)]
             #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(tag = "actionName", rename_all = "camelCase")]
-            // XXX: why aren't these types exporting?
-            //#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-            //#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+            #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
+            #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
             pub enum #actions_name {
                 #(#action_idents_with_doc_comments,)*
             }
