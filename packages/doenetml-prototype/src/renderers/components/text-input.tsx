@@ -1,18 +1,18 @@
 import React from "react";
-import { Action } from "@doenet/doenetml-worker-rust";
+import type { Action, TextInputProps } from "@doenet/doenetml-worker-rust";
 import { BasicComponent } from "../types";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./text-input.css";
 import { coreActions } from "../../state/redux-slices/core";
 
-type TextInputData = { props: { immediateValue: string; disabled: boolean } };
+type TextInputData = { props: TextInputProps };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
     const id = node.data.id;
     const value = node.data.props.immediateValue;
-    const disabled = node.data.props.disabled;
+    //const disabled = node.data.props.disabled;
     const dispatch = useAppDispatch();
 
     const updateValue = React.useCallback(() => {
@@ -36,7 +36,9 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
                 <input
                     type="text"
                     value={value}
-                    disabled={disabled}
+                    disabled={
+                        false //disabled
+                    }
                     onChange={(e) => {
                         const action: Action = {
                             component: "textInput",
