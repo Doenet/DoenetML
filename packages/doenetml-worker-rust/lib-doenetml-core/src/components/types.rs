@@ -64,6 +64,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     Hash,
 )]
 #[serde(transparent)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentIdx(usize);
 
 impl ComponentIdx {
@@ -113,6 +114,7 @@ impl<T: IntoGraphNode> From<T> for ComponentIdx {
     Default,
 )]
 #[serde(transparent)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct StringIdx(usize);
 
 impl StringIdx {

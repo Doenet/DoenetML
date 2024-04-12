@@ -9,6 +9,7 @@ use super::component_refs::ComponentRef;
 
 /// A vector of references to components or strings
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ContentRefs(pub Vec<ContentRef>);
 
 impl ContentRefs {
@@ -42,6 +43,7 @@ impl From<Vec<ContentRef>> for ContentRefs {
 /// A reference to a single component or string. If you want a reference to just a component,
 /// use `ComponentRef` instead.
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub enum ContentRef {
     Component(ComponentIdx),
     String(StringIdx),

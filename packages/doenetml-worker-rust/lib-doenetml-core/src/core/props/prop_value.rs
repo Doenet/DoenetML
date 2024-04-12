@@ -60,6 +60,7 @@ pub mod prop_type {
     use super::*;
     use crate::state::types::{component_refs, content_refs};
 
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type String = Rc<std::string::String>;
     #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Number = f64;
@@ -69,13 +70,12 @@ pub mod prop_type {
     pub type Boolean = bool;
     #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Math = Rc<MathExpr>;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
+
+    // The typescript types for these are exported in their respective files,
+    // so we don't use `tsify_next::declare` on them.
     pub type ComponentRef = Option<component_refs::ComponentRef>;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type ContentRef = content_refs::ContentRef;
 
     /// By default, wasm-bindgen won't pick up this module as containing types to export

@@ -296,6 +296,48 @@ impl PropsEnum {
             }
         }
     }
+
+    /// Generate a typescript type for all the props marked as `for_render`.
+    fn generate_for_render_props_typescript(&self, component_name: &str) -> TokenStream {
+        let type_name = format!("{}Props", component_name);
+        let for_render_props = self
+            .get_prop_names()
+            .into_iter()
+            .zip(self.get_prop_for_renders())
+            .zip(self.get_prop_value_types())
+            .filter_map(|((prop_name, is_public), value_type)| {
+                if !is_public {
+                    return None;
+                }
+                // The type should be specified as a `PropTypeValue::Foo`, where `Foo` is the prop value
+                // discriminant. It should be safe (if component authors follow the convention) to use the
+                // `Foo` as a literal type name. (The corresponding type definition of `Foo` should be exported elsewhere.)
+                let value_type_name = value_type.segments.last().unwrap().ident.to_string();
+
+                Some((prop_name, value_type_name))
+            })
+            .collect::<Vec<_>>();
+
+        let for_render_props_ts = for_render_props
+            .iter()
+            .map(|(prop_name, value_type_name)| format!("{}: {}", prop_name, value_type_name))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        // This is the actual typescript that we want to end up in the generated file.
+        let type_string = format!("export type {} = {{ {} }};", type_name, for_render_props_ts);
+
+        quote! {
+            // Generated typescript for all props marked as `for_render`.
+            #[cfg(feature = "web")]
+            const _: () = {
+                pub use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen(typescript_custom_section)]
+                const TS_APPEND_CONTENT: &'static str = #type_string;
+            };
+        }
+    }
 }
 
 //
@@ -308,11 +350,13 @@ impl ComponentModule {
         let enum_props = self.enum_props();
         let impl_prop_trait = self.props.impl_prop_trait();
         let props_module = self.props.generate_props_module();
+        let typescript_extras = self.props.generate_for_render_props_typescript(&self.name);
 
         quote! {
             #enum_props
             #impl_prop_trait
             #props_module
+            #typescript_extras
         }
     }
 

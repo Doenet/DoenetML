@@ -7,10 +7,12 @@ use anyhow::anyhow;
 /// TODO: when have array props, turn this into just `ComponentRef`, which is a reference to a single component
 /// and then use the general array prop mechanism to refer to multiple components
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentRefs(pub Vec<ComponentIdx>);
 
 /// A reference to a single component
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentRef(pub ComponentIdx);
 
 impl ComponentRef {
