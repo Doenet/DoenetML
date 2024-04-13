@@ -28,6 +28,9 @@ fn can_apply_condition() {
     let filter = OpNot(Cond::Eq(4));
     assert_eq!(filter.apply_test(&4), false);
     assert_eq!(filter.apply_test(&5), true);
+
+    let op = OpNot(true);
+    assert_eq!(op.apply_test(&true), false);
 }
 
 #[test]

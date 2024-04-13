@@ -35,10 +35,10 @@ pub enum Op<Left, Right> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct OpNot<T>(pub T);
 
-impl<T, Left, Right> ApplyTest<T, GraphNode> for Op<Left, Right>
+impl<T, D, Left, Right> ApplyTest<T, D> for Op<Left, Right>
 where
-    Left: ApplyTest<T, GraphNode>,
-    Right: ApplyTest<T, GraphNode>,
+    Left: ApplyTest<T, D>,
+    Right: ApplyTest<T, D>,
     T: Debug,
 {
     fn apply_test(&self, value: &T) -> bool {
@@ -48,7 +48,7 @@ where
         }
     }
 
-    fn accumulate_deps(&self, value: &T) -> Vec<GraphNode> {
+    fn accumulate_deps(&self, value: &T) -> Vec<D> {
         let (a, b) = match self {
             Op::And(a, b) => (a, b),
             Op::Or(a, b) => (a, b),
@@ -74,14 +74,14 @@ where
 
 /// Implement the ApplyTest trait for bool. This ignores any input to `apply_test` and just returns
 /// the value of the bool.
-impl<T, D> ApplyTest<T, D> for bool
+impl<T> ApplyTest<T, GraphNode> for bool
 where
     T: Debug,
 {
     fn apply_test(&self, _value: &T) -> bool {
         *self
     }
-    fn accumulate_deps(&self, _: &T) -> Vec<D> {
+    fn accumulate_deps(&self, _: &T) -> Vec<GraphNode> {
         vec![]
     }
 }
