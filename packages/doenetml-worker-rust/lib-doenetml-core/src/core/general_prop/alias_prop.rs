@@ -31,8 +31,7 @@ impl<T> From<PropAlias<T>> for UpdaterObject
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug + 'static,
     PropValue: From<T>,
-    <T as TryFrom<PropValue>>::Error: std::fmt::Debug,
-    <T as TryFrom<PropValue>>::Error: std::fmt::Display,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Debug + std::fmt::Display,
 {
     fn from(prop: PropAlias<T>) -> UpdaterObject {
         Rc::new(prop)

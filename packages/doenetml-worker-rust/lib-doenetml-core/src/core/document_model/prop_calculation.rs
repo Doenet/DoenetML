@@ -143,7 +143,7 @@ impl DocumentModel {
             self.get_prop_pointer(prop_node)
         };
         // Resolve a `PropSource` to a component index.
-        let resolve_prop_component = |prop_component: &PropSource| match prop_component {
+        let resolve_prop_source = |prop_source: &PropSource| match prop_source {
             PropSource::Me => get_prop_pointer().component_idx,
             PropSource::Parent => self
                 .document_structure
@@ -156,7 +156,7 @@ impl DocumentModel {
         match query {
             DataQuery::ComponentRefs { container, filter } => {
                 // Get the correct "root" for the query.
-                let component_idx = resolve_prop_component(container);
+                let component_idx = resolve_prop_source(container);
                 let content_children = self.get_component_content_children(component_idx);
 
                 let mut content_refs: Vec<ContentRef> = Vec::new();

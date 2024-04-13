@@ -23,7 +23,7 @@ pub enum ContentFilter {
     IsString,
 }
 
-/// Information needed to determine of `node` matches a given filter condition.
+/// Information needed to determine if `node` matches a given filter condition.
 #[derive(Debug, Clone)]
 pub struct FilterData<'a> {
     pub node: GraphNode,
@@ -54,7 +54,7 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                         document_model.get_component_prop_by_profile(component_idx, &[*profile]);
                     prop.is_some()
                 }
-                _ => {
+                GraphNode::String(_) => {
                     // `PropProfile::String` is the only profile that non-component nodes can match.
                     // We special case it here.
                     if matches!(profile, PropProfile::String)
@@ -64,6 +64,7 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                     }
                     false
                 }
+                _ => unreachable!("Only components and strings can match profiles"),
             },
             ContentFilter::HasPropMatchingProfileAndCondition(profile, cond) => match node {
                 GraphNode::Component(component_idx) => {

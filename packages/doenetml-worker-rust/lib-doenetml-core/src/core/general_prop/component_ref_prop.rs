@@ -12,11 +12,11 @@ pub struct ComponentRefProp {
     /// The data query that indicates how the dependencies of this prop will be created.
     data_query: DataQuery,
 
-    elements_to_select: Option<ElementsToSelect>,
+    component_to_select: Option<ComponentToSelect>,
 }
 
 #[derive(Debug)]
-enum ElementsToSelect {
+enum ComponentToSelect {
     First,
     Last,
 }
@@ -29,7 +29,7 @@ impl ComponentRefProp {
                 container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
-            elements_to_select: Some(ElementsToSelect::Last),
+            component_to_select: Some(ComponentToSelect::Last),
         }
     }
 
@@ -40,14 +40,14 @@ impl ComponentRefProp {
                 container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
-            elements_to_select: Some(ElementsToSelect::First),
+            component_to_select: Some(ComponentToSelect::First),
         }
     }
 
     pub fn new_self_ref() -> Self {
         ComponentRefProp {
             data_query: DataQuery::SelfRef,
-            elements_to_select: None,
+            component_to_select: None,
         }
     }
 }
@@ -80,10 +80,10 @@ impl PropUpdater for ComponentRefProp {
                         _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", content_ref.clone())
                     }
                 );
-                let component = match self.elements_to_select {
-                    Some(ElementsToSelect::First) => elements.next(),
-                    Some(ElementsToSelect::Last) => elements.last(),
-                    None => unreachable!("elements_to_select should be Some"),
+                let component = match self.component_to_select {
+                    Some(ComponentToSelect::First) => elements.next(),
+                    Some(ComponentToSelect::Last) => elements.last(),
+                    None => unreachable!("component_to_select should be Some"),
                 };
                 PropCalcResult::Calculated(component)
             }

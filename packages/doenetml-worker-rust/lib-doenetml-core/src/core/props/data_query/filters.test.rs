@@ -267,7 +267,7 @@ fn can_accumulate_deps_for_compound_filter() {
         .map(|n| filter.accumulate_deps(&n))
         .collect::<Vec<_>>();
 
-    // The `value` props of the text components are what we're looking for.
+    // The `value` and `hidden` props of the text components are what we're looking for.
     let value_props = content_children
         .iter()
         .map(|n| {
