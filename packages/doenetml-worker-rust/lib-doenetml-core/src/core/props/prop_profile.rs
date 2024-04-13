@@ -41,6 +41,9 @@ pub enum PropProfile {
     SerialNumber,
     /// Matches the CodeNumber prop
     CodeNumber,
+    /// Matches a prop that indicates the depth of a division in a hierarchy of divisions. E.g.,
+    /// how many levels deep a `<section>` is nested.
+    DivisionDepth,
     /// Matches a prop that can be rendered (e.g., contains `ComponentRefs` but is not `RenderedChildren`.
     /// This is used on props like `<section>.title` which contain references to content but are not themselves used for
     /// rendering children.)
@@ -67,6 +70,7 @@ impl PropProfile {
                 PropValue::ComponentRefs(Rc::new(ComponentRefs::default()))
             }
             PropProfile::SerialNumber => PropValue::Integer(i64::default()),
+            PropProfile::DivisionDepth => PropValue::Integer(i64::default()),
         }
     }
 }

@@ -14,10 +14,24 @@ export const Section: BasicComponentWithPassthroughChildren<{
 
     return (
         <div className="section" ref={visibilityRef}>
-            <h3>
+            <Header depth={node.data.props.divisionDepth}>
                 {displayName} {title}
-            </h3>
+            </Header>
             {children}
         </div>
     );
+};
+
+const Header: React.FunctionComponent<
+    React.PropsWithChildren<{ depth: number }>
+> = ({ depth, children }) => {
+    if (depth > 5) {
+        depth = 5;
+    }
+    if (depth < 0) {
+        depth = 0;
+    }
+    depth += 1;
+
+    return React.createElement(`h${depth}`, {}, children);
 };

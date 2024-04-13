@@ -49,6 +49,14 @@ mod component {
            )]
         CodeNumber,
 
+        /// How many levels deep this `<section /> is nested.
+        #[prop(
+               value_type = PropValueType::Integer,
+               profile = PropProfile::DivisionDepth,
+               for_render
+           )]
+        DivisionDepth,
+
         #[prop(
             value_type = PropValueType::ContentRefs,
             profile = PropProfile::RenderedChildren
@@ -93,12 +101,63 @@ impl PropGetUpdater for SectionProps {
             SectionProps::CodeNumber => {
                 as_updater_object::<_, props::types::CodeNumber>(custom_props::CodeNumberProp::new())
             }
+            SectionProps::DivisionDepth => as_updater_object::<_, props::types::DivisionDepth>(
+                custom_props::DivisionDepth::new(),
+            ),
         }
     }
 }
 
 mod custom_props {
     use super::*;
+
+    pub use division_depth::*;
+    mod division_depth {
+        use super::*;
+
+        /// The depth of this component in the hierarchy of divisions. E.g., how many
+        /// times this `<section>` is nested in another.
+        #[derive(Debug, Default)]
+        pub struct DivisionDepth {}
+
+        impl DivisionDepth {
+            pub fn new() -> Self {
+                DivisionDepth {}
+            }
+        }
+
+        /// Structure to hold data generated from the data queries
+        #[derive(TryFromDataQueryResults, Debug)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData {
+            nearest_ancestor_division_depth: Vec<PropView<prop_type::Integer>>,
+        }
+
+        impl DataQueries for RequiredData {
+            fn nearest_ancestor_division_depth_query() -> DataQuery {
+                DataQuery::PickProp {
+                    source: PickPropSource::NearestMatchingAncestor,
+                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::DivisionDepth]),
+                }
+            }
+        }
+
+        impl PropUpdater for DivisionDepth {
+            type PropType = prop_type::Integer;
+
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                let self_depth = required_data
+                    .nearest_ancestor_division_depth
+                    .first()
+                    .map_or(0, |d| d.value + 1);
+                PropCalcResult::Calculated(self_depth)
+            }
+        }
+    }
 
     pub use code_number::*;
     mod code_number {
