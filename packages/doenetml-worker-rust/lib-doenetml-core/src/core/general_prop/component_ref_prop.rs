@@ -54,13 +54,13 @@ impl ComponentRefProp {
 
 /// Structure to hold data generated from the data queries
 #[derive(TryFromDataQueryResults, Debug)]
-#[data_query(query_trait = DataQueries, pass_data = &ComponentRefProp)]
+#[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
     refs: PropView<prop_type::ContentRefs>,
 }
 impl DataQueries for RequiredData {
-    fn refs_query(arg: &ComponentRefProp) -> DataQuery {
-        arg.data_query.clone()
+    fn refs_query(query: &DataQuery) -> DataQuery {
+        query.clone()
     }
 }
 
@@ -68,7 +68,7 @@ impl PropUpdater for ComponentRefProp {
     type PropType = prop_type::ComponentRef;
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        vec![self.data_query.clone()]
+        RequiredData::data_queries_vec(&self.data_query)
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
