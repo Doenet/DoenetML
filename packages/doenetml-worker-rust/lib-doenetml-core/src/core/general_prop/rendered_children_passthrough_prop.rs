@@ -35,6 +35,18 @@ impl RenderedChildrenPassthroughProp {
     }
 }
 
+/// Structure to hold data generated from the data queries
+#[derive(TryFromDataQueryResults, Debug)]
+#[data_query(query_trait = DataQueries, pass_data = &RenderedChildrenPassthroughProp)]
+struct RequiredData {
+    refs: PropView<prop_type::ContentRefs>,
+}
+impl DataQueries for RequiredData {
+    fn refs_query(arg: &RenderedChildrenPassthroughProp) -> DataQuery {
+        arg.data_query.clone()
+    }
+}
+
 impl PropUpdater for RenderedChildrenPassthroughProp {
     type PropType = prop_type::ContentRefs;
 
@@ -43,22 +55,7 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        // TODO: verify that data was in the right format.
-        // For now, assuming that has just one value that is of type PropValue::GraphNodes
-        let nodes = data.vec[0]
-            .values
-            .iter()
-            .flat_map(|prop| match &prop.value {
-                PropValue::ContentRefs(content_ref) => (**content_ref).clone().into_vec(),
-                _ => {
-                    unreachable!(
-                        "should only encounter content refs from filtered children, not {:?}",
-                        prop.value
-                    )
-                }
-            })
-            .collect::<Vec<_>>();
-
-        PropCalcResult::Calculated(Rc::new(nodes.into()))
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+        PropCalcResult::Calculated(required_data.refs.value)
     }
 }

@@ -52,6 +52,18 @@ impl ComponentRefProp {
     }
 }
 
+/// Structure to hold data generated from the data queries
+#[derive(TryFromDataQueryResults, Debug)]
+#[data_query(query_trait = DataQueries, pass_data = &ComponentRefProp)]
+struct RequiredData {
+    refs: PropView<prop_type::ContentRefs>,
+}
+impl DataQueries for RequiredData {
+    fn refs_query(arg: &ComponentRefProp) -> DataQuery {
+        arg.data_query.clone()
+    }
+}
+
 impl PropUpdater for ComponentRefProp {
     type PropType = prop_type::ComponentRef;
 
@@ -63,10 +75,8 @@ impl PropUpdater for ComponentRefProp {
         // There are two options based on the data query that created us.
         match self.data_query {
             DataQuery::ComponentRefs { .. } => {
-                let content_refs: PropView<prop_type::ContentRefs> = data.vec[0]
-                    .to_owned()
-                    .try_into_prop_view()
-                    .expect("Manual unwrap in ComponentRefProp failed");
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                let content_refs = required_data.refs;
 
                 if content_refs.value.is_empty() {
                     return PropCalcResult::FromDefault(<Self as PropUpdater>::default(self));

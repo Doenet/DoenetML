@@ -227,6 +227,9 @@ fn can_accumulate_deps_for_simple_filter() {
     let value_props = content_children
         .iter()
         .map(|n| {
+            if matches!(n, GraphNode::String(_)) {
+                return vec![*n];
+            }
             if !matches!(n, GraphNode::Component(_)) {
                 // Never any deps for a non-component node
                 return vec![];
@@ -274,6 +277,10 @@ fn can_accumulate_deps_for_compound_filter() {
     let value_props = content_children
         .iter()
         .map(|n| {
+            if matches!(n, GraphNode::String(_)) {
+                // We're matching the string profile, so strings always get returned.
+                return vec![*n];
+            }
             if !matches!(n, GraphNode::Component(_)) {
                 // Never any deps for a non-component node
                 return vec![];

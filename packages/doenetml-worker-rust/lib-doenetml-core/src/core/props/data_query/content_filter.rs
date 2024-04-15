@@ -1,9 +1,9 @@
 //! Implementation of [`ApplyTest`] for [`ContentFilter`]. This module contains the implementation details of
 //! filtering/querying a component and its props.
 
-use crate::{graph_node::GraphNode, props::PropProfile, DocumentModel};
-
 use super::{ApplyTest, Cond, PropValue};
+use crate::{graph_node::GraphNode, props::PropProfile, DocumentModel};
+use std::rc::Rc;
 
 /// Filters used to filter content (props/components/strings) from the structure graph.
 #[derive(Debug, Clone)]
@@ -83,6 +83,18 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                     })
                     .unwrap_or(false)
                 }
+                GraphNode::String(_) => {
+                    // `PropProfile::String` is the only profile that non-component nodes can match.
+                    // We special case it here.
+                    if !matches!(profile, PropProfile::String)
+                        || !matches!(profile, PropProfile::LiteralString)
+                    {
+                        return false;
+                    }
+                    let str_val = document_model.get_string_value(node);
+                    let synthetic_prop_val = PropValue::String(Rc::new(str_val));
+                    cond.apply_test(&synthetic_prop_val)
+                }
                 _ => false,
             },
             ContentFilter::IsComponent => matches!(node, GraphNode::Component(_)),
@@ -98,6 +110,21 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
 
         match node {
             GraphNode::Component(_) => {}
+            GraphNode::String(_) => {
+                match self {
+                    ContentFilter::HasPropMatchingProfileAndCondition(profile, _) => {
+                        // If we are testing the value of a string, since the string value could change, the strings
+                        // themselves need to be added as dependencies.
+                        if matches!(profile, PropProfile::String)
+                            || matches!(profile, PropProfile::LiteralString)
+                        {
+                            return vec![node];
+                        }
+                    }
+                    _ => {}
+                }
+                return vec![];
+            }
             _ => {
                 // The only allowable deps are from props. If we are here, we're querying a non-component
                 // (e.g. a String). These cannot have deps.
