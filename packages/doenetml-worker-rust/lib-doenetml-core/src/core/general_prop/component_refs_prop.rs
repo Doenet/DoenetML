@@ -35,35 +35,41 @@ impl ComponentRefsProp {
     }
 }
 
+/// Structure to hold data generated from the data queries
+#[derive(TryFromDataQueryResults, Debug)]
+#[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
+struct RequiredData {
+    refs: PropView<prop_type::ContentRefs>,
+}
+impl DataQueries for RequiredData {
+    fn refs_query(query: &DataQuery) -> DataQuery {
+        query.clone()
+    }
+}
+
 impl PropUpdater for ComponentRefsProp {
     type PropType = prop_type::ComponentRefs;
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        vec![self.data_query.clone()]
+        RequiredData::data_queries_vec(&self.data_query)
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let elements_found = &data.vec[0].values;
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+        let component_refs = required_data.refs;
 
-        match elements_found.len() {
-            // return an empty vector if nothing found
-            0 => PropCalcResult::FromDefault(<Self as PropUpdater>::default(self)),
-            _ => {
-                let elements = elements_found
-                    .iter()
-                    .flat_map(|elt| match &elt.value {
-                        PropValue::ContentRefs(graph_nodes) => (**graph_nodes).clone().into_vec().into_iter().map(|node| match node {
-                            ContentRef::Component(idx) => idx,
-                            _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", node)
-                        }),
-                        _ => panic!(
-                            "Should get GraphNodes dependencies for FilteredChildren query, found {:?}",
-                            elt
-                        ),
-                    })
-                    .collect::<Vec<_>>();
-                PropCalcResult::Calculated(Rc::new(ComponentRefs(elements)))
-            }
+        if component_refs.value.is_empty() {
+            return PropCalcResult::FromDefault(<Self as PropUpdater>::default(self));
         }
+
+        let components = component_refs.value.as_slice().iter().map(|content_ref|
+            match content_ref {
+                &ContentRef::Component(idx) => {
+                     idx
+                },
+                _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", content_ref.clone())
+            }
+        ).collect::<Vec<_>>();
+        PropCalcResult::Calculated(Rc::new(ComponentRefs(components)))
     }
 }
