@@ -3,7 +3,6 @@
 
 use super::{ApplyTest, Cond, PropValue};
 use crate::{graph_node::GraphNode, props::PropProfile, DocumentModel};
-use std::rc::Rc;
 
 /// Filters used to filter content (props/components/strings) from the structure graph.
 #[derive(Debug, Clone)]
@@ -55,14 +54,9 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                     prop.is_some()
                 }
                 GraphNode::String(_) => {
-                    // `PropProfile::String` is the only profile that non-component nodes can match.
-                    // We special case it here.
-                    if matches!(profile, PropProfile::String)
-                        && matches!(node, GraphNode::String(_))
-                    {
-                        return true;
-                    }
-                    false
+                    // `PropProfile::String` and `PropProfile::LiteralString` are the only profiles that non-component nodes can match.
+                    // We special case them here.
+                    matches!(profile, PropProfile::String | PropProfile::LiteralString)
                 }
                 _ => unreachable!("Only components and strings can match profiles"),
             },
@@ -84,16 +78,13 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                     .unwrap_or(false)
                 }
                 GraphNode::String(_) => {
-                    // `PropProfile::String` is the only profile that non-component nodes can match.
-                    // We special case it here.
-                    if !matches!(profile, PropProfile::String)
-                        || !matches!(profile, PropProfile::LiteralString)
-                    {
+                    // `PropProfile::String` and `PropProfile::LiteralString` are the only profiles that non-component nodes can match.
+                    // We special case them here.
+                    if !matches!(profile, PropProfile::String | PropProfile::LiteralString) {
                         return false;
                     }
-                    let str_val = document_model.get_string_value(node);
-                    let synthetic_prop_val = PropValue::String(Rc::new(str_val));
-                    cond.apply_test(&synthetic_prop_val)
+                    let str_val = document_model.get_string(node, origin).value;
+                    cond.apply_test(&str_val)
                 }
                 _ => false,
             },
@@ -115,9 +106,7 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                     ContentFilter::HasPropMatchingProfileAndCondition(profile, _) => {
                         // If we are testing the value of a string, since the string value could change, the strings
                         // themselves need to be added as dependencies.
-                        if matches!(profile, PropProfile::String)
-                            || matches!(profile, PropProfile::LiteralString)
-                        {
+                        if matches!(profile, PropProfile::String | PropProfile::LiteralString) {
                             return vec![node];
                         }
                     }

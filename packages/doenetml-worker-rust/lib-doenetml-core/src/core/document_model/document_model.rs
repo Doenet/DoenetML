@@ -207,6 +207,12 @@ impl DocumentModel {
             .prop_pointer
     }
 
+    /// Get the string associated with a `GraphNode::String`
+    pub fn get_string(&self, string_node: GraphNode, origin: GraphNode) -> PropWithMeta {
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_string(string_node, origin)
+    }
+
     /// Get the string value associated with a `GraphNode::String`
     pub fn get_string_value(&self, string_node: GraphNode) -> String {
         let document_structure = self.document_structure.borrow();
