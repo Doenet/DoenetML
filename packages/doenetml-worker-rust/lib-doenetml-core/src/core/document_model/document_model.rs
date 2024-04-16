@@ -37,6 +37,8 @@ pub struct DocumentModel {
     pub(super) prop_cache: PropCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
+    // XXX: Revisit if we still need this.
+    #[allow(unused)]
     pub(super) virtual_node_count: Cell<usize>,
 }
 
@@ -113,6 +115,18 @@ impl DocumentModel {
         })
     }
 
+    /// Get the value of a prop without checking its status. This function assumes the value
+    /// is already computed and cached. If the value is not cached, this function will panic.
+    /// You usually want `get_prop` or `get_prop_untracked` instead of this function.
+    ///
+    /// Unlike `get_prop_untracked`, this function will update the prop's change state, so calling
+    /// this function twice in a row on the same prop will result in its change status being "unchanged".
+    ///
+    /// **For internal use only**
+    pub fn _get_prop_unchecked(&self, prop_node: GraphNode, origin: GraphNode) -> PropWithMeta {
+        self.prop_cache.get_prop_unchecked(prop_node, origin)
+    }
+
     /// Get the status of a prop. This function will not resolve the prop or calculate its dependencies.
     pub fn get_prop_status(&self, prop_node: GraphNode) -> PropStatus {
         self.prop_cache.get_prop_status(prop_node)
@@ -184,6 +198,21 @@ impl DocumentModel {
         prop_name
     }
 
+    /// Get a `PropPointer` for the prop.
+    pub fn get_prop_pointer(&self, prop_node: GraphNode) -> PropPointer {
+        let document_structure = self.document_structure.borrow();
+        document_structure
+            .get_prop_definition(prop_node)
+            .meta
+            .prop_pointer
+    }
+
+    /// Get the string associated with a `GraphNode::String`
+    pub fn get_string(&self, string_node: GraphNode, origin: GraphNode) -> PropWithMeta {
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_string(string_node, origin)
+    }
+
     /// Get the string value associated with a `GraphNode::String`
     pub fn get_string_value(&self, string_node: GraphNode) -> String {
         let document_structure = self.document_structure.borrow();
@@ -210,6 +239,50 @@ impl DocumentModel {
             .borrow()
             .get_component(component_idx)
             .clone()
+    }
+
+    /// Get the first prop that matches a profile in `profiles` for a given component.
+    pub fn get_component_prop_by_profile<T: Into<ComponentIdx>>(
+        &self,
+        component_idx: T,
+        profiles: &[PropProfile],
+    ) -> Option<PropPointer> {
+        let component_idx: ComponentIdx = component_idx.into();
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_component_prop_by_profile(component_idx, profiles)
+    }
+
+    /// Get the children of a component
+    pub fn get_component_content_children<T: Into<ComponentIdx>>(
+        &self,
+        component_idx: T,
+    ) -> Vec<GraphNode> {
+        let component_idx: ComponentIdx = component_idx.into();
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_component_content_children(component_idx)
+    }
+
+    /// Walk up the ancestor tree of `node` until a `GraphNode::Prop` is found.
+    /// If `node` is a `GraphNode::Prop`, `node` is returned.
+    pub fn get_nearest_prop_ancestor_of_query(&self, node: GraphNode) -> Option<GraphNode> {
+        match node {
+            // If we're a component, we're already here
+            GraphNode::Prop(_) => Some(node),
+            _ => {
+                let dependency_graph = self.dependency_graph.borrow();
+                let mut parent = Some(node);
+                while parent.is_some() {
+                    match parent.unwrap() {
+                        GraphNode::Prop(_) => return parent,
+                        node => {
+                            parent = dependency_graph.get_unique_parent(node);
+                        }
+                    }
+                }
+
+                parent
+            }
+        }
     }
 }
 

@@ -15,4 +15,21 @@ fn test_can_parse_struct() {
     println!("\n{}\n", pretty_print_result(&result));
 }
 
+#[test]
+fn test_can_parse_struct_with_generics() {
+    let input = r#"
+        #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData<T>
+        where
+            T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
+            PropValue: From<T>,
+        {
+            independent_state: PropView<T>,
+        }
+    "#;
+    let result = generate_into_data_query_results(syn::parse_str(input).unwrap());
+    println!("\n{}\n", pretty_print_result(&result));
+}
+
 // TODO: test that pass through generics

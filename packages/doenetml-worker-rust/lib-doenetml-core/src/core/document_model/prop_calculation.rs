@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropValue},
-    state::types::element_refs::ElementRefs,
+    props::{DataQuery, DataQueryResults, FilterData, PropSource, PropValue},
+    state::types::content_refs::ContentRef,
 };
 
 use super::{
@@ -136,85 +136,77 @@ impl DocumentModel {
     fn _execute_data_query_with_fresh_deps(&self, query_node: GraphNode) -> DataQueryResult {
         let query = &self.queries.borrow()[query_node.idx()];
 
+        // Get the prop pointer to the prop that owns the current query.
+        let get_prop_pointer = || {
+            let prop_node = self.get_nearest_prop_ancestor_of_query(query_node);
+            let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
+            self.get_prop_pointer(prop_node)
+        };
+        // Resolve a `PropSource` to a component index.
+        let resolve_prop_source = |prop_source: &PropSource| match prop_source {
+            PropSource::Me => get_prop_pointer().component_idx,
+            PropSource::Parent => self
+                .document_structure
+                .borrow()
+                .get_true_component_parent(get_prop_pointer().component_idx)
+                .unwrap(),
+            PropSource::ByIdx(component_idx) => *component_idx,
+        };
+
         match query {
-            DataQuery::FilteredChildren {
-                filters,
-                include_if_missing_profile: _,
-            } => {
-                let values = self
-                    .dependency_graph
-                    .borrow()
-                    .get_children(query_node)
-                    .into_iter()
-                    .filter_map(|node| {
+            DataQuery::ComponentRefs { container, filter } => {
+                // Get the correct "root" for the query.
+                let component_idx = resolve_prop_source(container);
+                let content_children = self.get_component_content_children(component_idx);
+
+                let mut content_refs: Vec<ContentRef> = Vec::new();
+                for node in content_children {
+                    if filter.apply_test(&FilterData {
+                        node,
+                        origin: query_node,
+                        document_model: self,
+                    }) {
                         match node {
-                            GraphNode::Virtual(_) => {
-                                let virtual_node = node;
-                                let virtual_children =
-                                    self.dependency_graph.borrow().get_children(virtual_node);
-
-                                let component_node = virtual_children[0];
-
-                                let prop_filters =
-                                    filters.iter().filter_map(|filter| match filter {
-                                        DataQueryFilter::PropProfile(prop_filter) => {
-                                            Some(prop_filter)
-                                        }
-                                        DataQueryFilter::ComponentType(_) => None,
-                                    });
-
-                                let include_node = virtual_children[1..]
-                                    .iter()
-                                    .zip(prop_filters)
-                                    .all(|(prop_node, prop_filter)| {
-                                        let prop_value = self
-                                            .prop_cache
-                                            .get_prop_unchecked(prop_node, query_node)
-                                            .value;
-
-                                        match prop_filter.comparison {
-                                            DataQueryFilterComparison::Equal => {
-                                                prop_value == prop_filter.value
-                                            }
-                                            DataQueryFilterComparison::NotEqual => {
-                                                prop_value != prop_filter.value
-                                            }
-                                        }
-                                    });
-
-                                if include_node {
-                                    Some(PropWithMeta {
-                                        // TODO: once we have a singular `GraphNode` we can remove the vector
-                                        value: PropValue::GraphNodes(Rc::new(vec![component_node])),
-                                        came_from_default: false,
-                                        // Note: a component reference can't change like a prop can change,
-                                        // but we mark `changed` as `true` as we don't know if this is the first time it is queried
-                                        changed: true,
-                                        origin: Some(node),
-                                    })
-                                } else {
-                                    None
-                                }
+                            GraphNode::Component(_) => {
+                                content_refs.push(ContentRef::Component(node.component_idx().into()));
                             }
-                            GraphNode::String(_) => Some(PropWithMeta {
-                                // TODO: once we have a singular `GraphNode` we can remove the vector
-                                value: PropValue::GraphNodes(Rc::new(vec![node])),
-                                came_from_default: false,
-                                // Note: a component reference can't change like a prop can change,
-                                // but we mark `changed` as `true` as we don't know if this is the first time it is queried
-                                changed: true,
-                                origin: Some(node),
-                            }),
-
-                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery::FilteredChildren`. Got node `{:?}`", node),
+                            GraphNode::String(_) => {
+                                content_refs.push(ContentRef::String(node.idx().into()));
+                            }
+                            _ => panic!(
+                                "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
+                                node
+                            ),
                         }
-                    })
-                    .collect::<Vec<_>>();
+                    }
+                }
 
-                DataQueryResult { values }
+                DataQueryResult {
+                    values: vec![PropWithMeta {
+                        value: PropValue::ContentRefs(Rc::new(content_refs.into())),
+                        came_from_default: false,
+                        changed: true,
+                        origin: Some(query_node),
+                    }],
+                }
+            }
+            DataQuery::SelfRef => {
+                // This query is computed on the fly. We need to figure out who asked for this query.
+                let prop_pointer = get_prop_pointer();
+
+                DataQueryResult {
+                    values: vec![PropWithMeta {
+                        value: PropValue::ComponentRef(Some(prop_pointer.component_idx.into())),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    }],
+                }
             }
             _ => {
+                //
                 // default behavior
+                //
 
                 // The props for the data query should be the immediate children of the query node
                 let values = self
@@ -234,12 +226,8 @@ impl DocumentModel {
                             GraphNode::String(_) => self.document_structure
                                     .borrow()
                                     .get_string(node, query_node),
-                            // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
                             GraphNode::Component(component_idx) => PropWithMeta {
-                                // TODO: once we have a singular `ElementRef` we can remove the vector
-                                value: PropValue::ElementRefs(Rc::new(ElementRefs(vec![
-                                    component_idx.into(),
-                                ]))),
+                                value: PropValue::ComponentRef(Some(component_idx.into())),
                                 came_from_default: false,
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried

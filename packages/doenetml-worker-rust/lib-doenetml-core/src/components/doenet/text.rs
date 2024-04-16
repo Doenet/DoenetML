@@ -15,8 +15,8 @@ mod component {
         /// the `<text>` component.
         #[prop(
             value_type = PropValueType::String,
-            is_public,
             profile = PropProfile::String,
+            is_public,
             default,
             for_render,
         )]
@@ -24,13 +24,16 @@ mod component {
 
         #[prop(
             value_type = PropValueType::String,
+            profile = PropProfile::String,
             is_public,
-            profile = PropProfile::String
         )]
         Text,
 
         /// Whether the `<text>` should be hidden.
-        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
+        #[prop(
+            value_type = PropValueType::Boolean,
+            profile = PropProfile::Hidden
+        )]
         Hidden,
     }
 

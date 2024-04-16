@@ -3,6 +3,7 @@ use strum_macros::EnumString;
 
 pub use super::_error::_Error;
 pub use super::_external::_External;
+pub use super::doenet::_fragment::_Fragment;
 pub use super::doenet::boolean::Boolean;
 pub use super::doenet::document::Document;
 //pub use super::doenet::math::Math;
@@ -38,4 +39,5 @@ pub enum ComponentEnum {
     Document(Document),
     _Error(_Error),
     _External(_External),
+    _Fragment(_Fragment),
 }

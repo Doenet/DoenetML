@@ -1,25 +1,16 @@
 use crate::{
-    components::{
-        prelude::DataQuery,
-        types::{ComponentIdx, PropPointer},
-        ComponentNode,
-    },
-    props::{
-        DataQueryFilter, DataQueryFilterComparison, PropComponent, PropProfile, PropSpecifier,
-    },
+    components::prelude::DataQuery,
+    props::{FilterData, PickPropSource, PropSource, PropSpecifier},
 };
 
 use crate::{graph_node::GraphNode, props::PropValue};
 
+use super::dependency_creation_helpers::*;
 use super::DocumentModel;
 
 impl DocumentModel {
-    /// Creates all necessary dependencies for a `DataQuery`.
-    /// Returns vector of all graph nodes directly linked to the data query    
-    pub(super) fn add_data_query(&self, prop_node: GraphNode, query: DataQuery) -> Vec<GraphNode> {
-        //
-        // Create any necessary state nodes
-        //
+    /// Create any state nodes that are required for the given `DataQuery`.
+    fn _create_state_for_query(&self, prop_node: GraphNode, query: &DataQuery) {
         match query {
             DataQuery::State => {
                 // Every prop can have exactly one piece of state. In the case of a prop extending another prop,
@@ -56,6 +47,12 @@ impl DocumentModel {
                 // No new state to create
             }
         }
+    }
+
+    /// Creates all necessary dependencies for a `DataQuery`.
+    /// Returns a vector of all graph nodes directly linked to the data query.
+    pub(super) fn add_data_query(&self, prop_node: GraphNode, query: DataQuery) -> Vec<GraphNode> {
+        self._create_state_for_query(prop_node, &query);
 
         //
         // Create appropriate dependencies on the dependency graph.
@@ -76,10 +73,36 @@ impl DocumentModel {
         // to pass on to the caller
         let mut linked_nodes = Vec::new();
 
+        let mut fn_add_edges = |edges_to_add: Vec<(GraphNode, GraphNode)>| {
+            let mut dependency_graph = self.dependency_graph.borrow_mut();
+            for (from, to) in edges_to_add {
+                // Small sanity check to make sure we don't produce  self loop.
+                // `prop_node` should not ask for a query that results in itself.
+                assert_ne!(
+                    prop_node, to,
+                    "Self-loop detected; DataQuery requested a prop that is the same as the origin prop."
+                );
+                dependency_graph.add_edge(from, to);
+                linked_nodes.push(to);
+            }
+        };
+
+        // Resolve a `PropComponent` to a component index.
+        let resolve_prop_component = |prop_component: &PropSource| match prop_component {
+            PropSource::Me => prop_pointer.component_idx,
+            PropSource::Parent => self
+                .document_structure
+                .borrow()
+                .get_true_component_parent(prop_pointer.component_idx)
+                .unwrap(),
+            PropSource::ByIdx(component_idx) => *component_idx,
+        };
+
         match query {
             DataQuery::Null => {
                 unreachable!("Cannot execute Null data query.")
             }
+
             // Depend on a piece of state
             DataQuery::State => {
                 // State is stored as the leaf node on a chain of props. (A chain may exist because of `extending`)
@@ -94,55 +117,36 @@ impl DocumentModel {
                     .add_edge(query_node, state_node);
                 linked_nodes.push(state_node);
             }
+
+            DataQuery::SelfRef => {
+                // SelfRef queries are computed on-the-fly, so there is no need to link them
+                // to anything.
+            }
+
             // Depend on a prop (of yourself or another component)
             DataQuery::Prop {
-                component,
+                source,
                 prop_specifier,
             } => {
                 // Check we have a valid configuration
                 if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
-                    match component {
-                        PropComponent::Me | PropComponent::ByIdx(_) => {}
+                    match source {
+                        PropSource::Me | PropSource::ByIdx(_) => {}
                         _ => {
                             panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
                         }
                     }
                 }
+                let component_idx = resolve_prop_component(&source);
 
-                let component_idx = match component {
-                    PropComponent::Me => prop_pointer.component_idx,
-                    PropComponent::Parent => {
-                        let parent_idx = self
-                            .document_structure
-                            .borrow()
-                            .get_true_component_parent(prop_pointer.component_idx)
-                            .expect("Component asks for parent but there is none.");
-                        parent_idx
-                    }
-                    PropComponent::ByIdx(component_idx) => component_idx,
-                };
-
-                let local_prop_idx = match prop_specifier {
-                    PropSpecifier::LocalIdx(local_prop_idx) => Some(local_prop_idx),
-                    PropSpecifier::Matching(match_profiles) => self
-                        .document_structure
-                        .borrow()
-                        .get_component_prop_by_profile(component_idx, &match_profiles)
-                        .map(|prop_pointer| prop_pointer.local_prop_idx),
-                };
-
-                if let Some(local_prop_idx) = local_prop_idx {
-                    let target_prop_node = PropPointer {
-                        component_idx,
-                        local_prop_idx,
-                    }
-                    .into_prop_node(&self.document_structure.borrow());
-                    assert_ne!(prop_node, target_prop_node, "Self-loop detected; DataQuery requested a prop that is the same as the origin prop.");
-                    self.dependency_graph
-                        .borrow_mut()
-                        .add_edge(query_node, target_prop_node);
-                    linked_nodes.push(target_prop_node);
-                }
+                let edges_to_add = process_data_query_prop(
+                    component_idx,
+                    prop_specifier,
+                    prop_pointer,
+                    query_node,
+                    &self.document_structure.borrow(),
+                );
+                fn_add_edges(edges_to_add);
             }
 
             // Find the requested attribute and filter its children
@@ -152,231 +156,85 @@ impl DocumentModel {
                 attribute_name,
                 match_profiles,
             } => {
-                // Find the requested attribute.
-                let attr_node = self
-                    .document_structure
-                    .borrow()
-                    .get_attr_node(prop_pointer.component_idx, attribute_name)
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "Cannot find attribute `{}` on component `{}`",
-                            attribute_name,
-                            self.document_structure
-                                .borrow()
-                                .get_component(prop_pointer.component_idx)
-                                .get_component_type()
-                        )
-                    });
-
-                for node in self
-                    .document_structure
-                    .borrow()
-                    .get_attribute_content_children(attr_node)
-                {
-                    match node {
-                        GraphNode::Component(_) => {
-                            // Check the component. We want to link to the first prop that matches one of the profiles.
-                            let matching_prop = self
-                                .document_structure
-                                .borrow()
-                                .get_component_prop_by_profile(
-                                    ComponentIdx::from(node),
-                                    &match_profiles,
-                                )
-                                .map(|prop_pointer| {
-                                    prop_pointer.into_prop_node(&self.document_structure.borrow())
-                                });
-
-                            if let Some(matching_prop) = matching_prop {
-                                self.dependency_graph
-                                    .borrow_mut()
-                                    .add_edge(query_node, matching_prop);
-                                linked_nodes.push(matching_prop);
-                            }
-                        }
-                        GraphNode::String(_) => {
-                            if match_profiles.contains(&PropProfile::String)
-                                || match_profiles.contains(&PropProfile::LiteralString)
-                            {
-                                self.dependency_graph
-                                    .borrow_mut()
-                                    .add_edge(query_node, node);
-                                linked_nodes.push(node);
-                            }
-                        }
-                        GraphNode::State(_)
-                        | GraphNode::Query(_)
-                        | GraphNode::Prop(_)
-                        | GraphNode::Virtual(_) => {
-                            unreachable!("Cannot have GraphNode of type {:?} as a direct child of an attribute.", node);
-                        }
-                    }
-                }
+                let edges_to_add = process_data_query_attribute(
+                    attribute_name,
+                    match_profiles,
+                    prop_pointer,
+                    query_node,
+                    &self.document_structure.borrow(),
+                );
+                fn_add_edges(edges_to_add);
             }
-            // Create a dependency from all children that match a profile from match_profiles.
-            DataQuery::ChildPropProfile { match_profiles } => {
-                for node in self
-                    .document_structure
-                    .borrow()
-                    .get_component_content_children(prop_pointer.component_idx)
-                {
-                    match node {
-                        GraphNode::Component(_) => {
-                            // Check the component. We want to link to the first prop that matches one of the profiles.
-                            let matching_prop = self
-                                .document_structure
-                                .borrow()
-                                .get_component_prop_by_profile(
-                                    ComponentIdx::from(node),
-                                    &match_profiles,
-                                )
-                                .map(|prop_pointer| {
-                                    prop_pointer.into_prop_node(&self.document_structure.borrow())
-                                });
 
-                            if let Some(matching_prop) = matching_prop {
-                                self.dependency_graph
-                                    .borrow_mut()
-                                    .add_edge(query_node, matching_prop);
-                                linked_nodes.push(matching_prop);
-                            }
-                        }
-                        GraphNode::String(_) => {
-                            if match_profiles.contains(&PropProfile::String)
-                                || match_profiles.contains(&PropProfile::LiteralString)
-                            {
-                                self.dependency_graph
-                                    .borrow_mut()
-                                    .add_edge(query_node, node);
-                                linked_nodes.push(node);
-                            }
-                        }
-                        GraphNode::Prop(_) => {
-                            let prop = self.get_prop_definition(node);
-
-                            let profile = prop.meta.profile;
-                            if profile.is_some() && match_profiles.contains(&profile.unwrap()) {
-                                self.dependency_graph
-                                    .borrow_mut()
-                                    .add_edge(query_node, node);
-                                linked_nodes.push(node);
-                            }
-                        }
-                        GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
-                            unreachable!("Cannot have GraphNode of type {:?} as a content child of a component's children.", node);
-                        }
-                    }
-                }
-            }
-            DataQuery::FilteredChildren {
-                filters,
-                include_if_missing_profile,
+            DataQuery::PickProp {
+                source,
+                prop_specifier,
             } => {
-                // create vector of content children so that we don't borrow core in loop
-                // and can make a mutable borrow of core to create a virtual node
+                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
+                    panic!(
+                        "`LocalIdx` as a prop specifier is forbidden in a `DataQuery::PickProp`."
+                    )
+                }
+
+                let match_profiles = match prop_specifier {
+                    PropSpecifier::Matching(profiles) => profiles,
+                    PropSpecifier::LocalIdx(_) => unreachable!(),
+                };
+
+                let mut edges_to_add = Vec::new();
+
+                match source {
+                    PickPropSource::Children => {
+                        let document_structure = self.document_structure.borrow();
+                        let nodes_to_match = document_structure
+                            .get_component_content_children(prop_pointer.component_idx)
+                            .into_iter()
+                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
+                            .map(|node| (query_node, node));
+                        for edge in nodes_to_match {
+                            edges_to_add.push(edge);
+                        }
+                    }
+                    PickPropSource::NearestMatchingAncestor => {
+                        let document_structure = self.document_structure.borrow();
+                        let mut nodes_to_match = document_structure
+                            .get_true_component_ancestors(prop_pointer.component_idx)
+                            .map(|idx| GraphNode::Component(idx.as_usize()))
+                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
+                            .map(|node| (query_node, node));
+                        // Only link to the first match (if it exists)
+                        if let Some(edge) = nodes_to_match.next() {
+                            edges_to_add.push(edge);
+                        }
+                    }
+                };
+
+                fn_add_edges(edges_to_add);
+            }
+
+            DataQuery::ComponentRefs { container, filter } => {
+                let mut edges_to_add = Vec::new();
+                let component_idx = resolve_prop_component(&container);
+
                 let content_children = self
                     .document_structure
                     .borrow()
-                    .get_component_content_children(prop_pointer.component_idx);
-
-                // We will exclude children that are not components if there is a component type filter
-                // that restricts to a particular component type
-                let exclude_non_components = filters.iter().any(|filter| {
-                    if let DataQueryFilter::ComponentType(component_type_filter) = filter {
-                        component_type_filter.comparison == DataQueryFilterComparison::Equal
-                    } else {
-                        false
-                    }
-                });
+                    .get_component_content_children(component_idx);
 
                 for node in content_children {
-                    match node {
-                        GraphNode::Component(_) => {
-                            let mut exclude_via_component_type = false;
-
-                            let matching_props = filters
-                                .iter()
-                                .filter_map(|filter| match filter {
-                                    DataQueryFilter::PropProfile(profile_filter) => self
-                                        .document_structure
-                                        .borrow()
-                                        .get_component_prop_by_profile(
-                                            ComponentIdx::from(node),
-                                            &[profile_filter.profile],
-                                        )
-                                        .map(|prop_pointer| {
-                                            prop_pointer
-                                                .into_prop_node(&self.document_structure.borrow())
-                                        }),
-                                    DataQueryFilter::ComponentType(component_type_filter) => {
-                                        let component_type = self.get_component_type(node);
-                                        if match component_type_filter.comparison {
-                                            DataQueryFilterComparison::Equal => {
-                                                component_type
-                                                    != component_type_filter.component_type
-                                            }
-                                            DataQueryFilterComparison::NotEqual => {
-                                                component_type
-                                                    == component_type_filter.component_type
-                                            }
-                                        } {
-                                            exclude_via_component_type = true;
-                                        }
-                                        // no matching profiles from component type filter
-                                        None
-                                    }
-                                })
-                                .collect::<Vec<_>>();
-
-                            if !exclude_via_component_type {
-                                let n_prop_filters = filters
-                                    .iter()
-                                    .filter(|filter| {
-                                        matches!(filter, DataQueryFilter::PropProfile(_))
-                                    })
-                                    .count();
-
-                                // Include the component if found all matching profiles or
-                                // if `include_if_missing_profile` is true.
-                                // In these cases, it's possible the data query will return the component.
-                                if matching_props.len() == n_prop_filters
-                                    || include_if_missing_profile
-                                {
-                                    // add a virtual node for all the information for the component
-                                    let virtual_node = self.add_virtual_node(query_node);
-                                    self.dependency_graph
-                                        .borrow_mut()
-                                        .add_edge(query_node, virtual_node);
-                                    linked_nodes.push(virtual_node);
-
-                                    // first child of virtual node is always the component itself
-                                    self.dependency_graph
-                                        .borrow_mut()
-                                        .add_edge(virtual_node, node);
-                                    linked_nodes.push(node);
-
-                                    if matching_props.len() == n_prop_filters {
-                                        // we matched all filters, so add links to the props
-                                        for prop_node in matching_props {
-                                            self.dependency_graph
-                                                .borrow_mut()
-                                                .add_edge(virtual_node, prop_node);
-                                            linked_nodes.push(prop_node);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        _ => {
-                            if !exclude_non_components {
-                                self.dependency_graph
-                                    .borrow_mut()
-                                    .add_edge(query_node, node);
-                                linked_nodes.push(node);
-                            }
-                        }
+                    let deps = filter.accumulate_deps(&FilterData {
+                        node,
+                        origin: query_node,
+                        document_model: self,
+                    });
+                    // deps consists of everything that the filter could possibly depend on.
+                    // We need to link each dep to the query node.
+                    for dep in deps {
+                        edges_to_add.push((query_node, dep));
                     }
                 }
+
+                fn_add_edges(edges_to_add);
             }
         }
         linked_nodes
@@ -405,7 +263,9 @@ impl DocumentModel {
     }
 
     /// Creates a `GraphNode::Virtual` node adds it to the `dependency_graph`.
-    fn add_virtual_node(&self, _origin_node: GraphNode) -> GraphNode {
+    // XXX: Revisit if we still need this.
+    #[allow(unused)]
+    pub(super) fn add_virtual_node(&self, _origin_node: GraphNode) -> GraphNode {
         let idx = self.virtual_node_count.get();
         self.virtual_node_count.set(idx + 1);
         let new_node = GraphNode::Virtual(idx);

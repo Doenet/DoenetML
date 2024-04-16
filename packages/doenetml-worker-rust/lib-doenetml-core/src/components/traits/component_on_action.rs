@@ -14,7 +14,7 @@ use super::{ComponentActions, ComponentNode};
 /// A deserialized version of this action will be sent to the component.
 #[derive(Debug, Deserialize, Serialize, derive_more::TryInto)]
 #[serde(tag = "component")]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum ActionsEnum {

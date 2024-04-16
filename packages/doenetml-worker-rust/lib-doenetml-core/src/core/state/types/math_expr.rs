@@ -22,6 +22,7 @@ const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"
 /// This architecture may have performance implications
 /// and may be replaced by a Rust-based symbolic tool in the future.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct MathExpr {
     pub math_object: JsMathExpr,
 }
@@ -38,6 +39,7 @@ impl MathExpr {
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct JsMathExpr(pub String);
 
 #[cfg(all(not(feature = "testing"), feature = "web"))]

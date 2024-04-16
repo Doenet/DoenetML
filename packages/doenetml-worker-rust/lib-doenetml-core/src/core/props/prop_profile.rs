@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::state::types::{element_refs::ElementRefs, math_expr::MathExpr};
+use crate::state::types::{component_refs::ComponentRefs, math_expr::MathExpr};
 
 use super::PropValue;
 
@@ -37,6 +37,17 @@ pub enum PropProfile {
     Boolean,
     /// Matches the hidden prop
     Hidden,
+    /// Matches the SerialNumber prop
+    SerialNumber,
+    /// Matches the CodeNumber prop
+    CodeNumber,
+    /// Matches a prop that indicates the depth of a division in a hierarchy of divisions. E.g.,
+    /// how many levels deep a `<section>` is nested.
+    DivisionDepth,
+    /// Matches a prop that can be rendered (e.g., contains `ComponentRefs` but is not `RenderedChildren`.
+    /// This is used on props like `<section>.title` which contain references to content but are not themselves used for
+    /// rendering children.)
+    Renderable,
     /// Matches the RenderedChildren prop
     RenderedChildren,
 }
@@ -51,13 +62,15 @@ impl PropProfile {
             PropProfile::Integer => PropValue::Integer(i64::default()),
             PropProfile::Number => PropValue::Number(f64::default()),
             PropProfile::Math => PropValue::Math(Rc::new(MathExpr::default())),
-            PropProfile::LiteralString | PropProfile::String => {
+            PropProfile::LiteralString | PropProfile::String | PropProfile::CodeNumber => {
                 PropValue::String(Rc::new(String::default()))
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),
-            PropProfile::RenderedChildren => {
-                PropValue::ElementRefs(Rc::new(ElementRefs::default()))
+            PropProfile::RenderedChildren | PropProfile::Renderable => {
+                PropValue::ComponentRefs(Rc::new(ComponentRefs::default()))
             }
+            PropProfile::SerialNumber => PropValue::Integer(i64::default()),
+            PropProfile::DivisionDepth => PropValue::Integer(i64::default()),
         }
     }
 }

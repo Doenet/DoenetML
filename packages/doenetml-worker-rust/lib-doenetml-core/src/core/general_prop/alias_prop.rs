@@ -31,7 +31,7 @@ impl<T> From<PropAlias<T>> for UpdaterObject
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug + 'static,
     PropValue: From<T>,
-    <T as TryFrom<PropValue>>::Error: std::fmt::Debug,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Debug + std::fmt::Display,
 {
     fn from(prop: PropAlias<T>) -> UpdaterObject {
         Rc::new(prop)
@@ -39,12 +39,13 @@ where
 }
 
 /// A struct of all data required to compute the value of this prop.
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = LocalPropIdx)]
 pub struct RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     aliased_value: PropView<T>,
 }
@@ -53,10 +54,11 @@ impl<T> DataQueries for RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     fn aliased_value_query(aliased_local_prop_idx: LocalPropIdx) -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: aliased_local_prop_idx.into(),
         }
     }
@@ -66,6 +68,7 @@ impl<T> PropUpdater for PropAlias<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     type PropType = T;
     fn data_queries(&self) -> Vec<DataQuery> {
@@ -73,7 +76,7 @@ where
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let aliased_value = required_data.aliased_value;
 
         // take on the value from `aliased_value`, propagating `came_from_default`.
@@ -90,7 +93,7 @@ where
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
 
         desired.aliased_value.change_to(requested_value);
 

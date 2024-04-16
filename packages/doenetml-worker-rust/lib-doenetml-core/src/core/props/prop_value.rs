@@ -1,12 +1,12 @@
 use std::rc::Rc;
 
 #[cfg(feature = "web")]
-use tsify::Tsify;
+use tsify_next::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
+use crate::state::types::math_expr::MathExpr;
 use crate::utils::rc_serde;
-use crate::{graph_node::GraphNode, state::types::math_expr::MathExpr};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props
@@ -40,11 +40,13 @@ pub enum PropValue {
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
-    ElementRefs(prop_type::ElementRefs),
+    ComponentRefs(prop_type::ComponentRefs),
+    ComponentRef(prop_type::ComponentRef),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
-    GraphNodes(prop_type::GraphNodes),
+    ContentRefs(prop_type::ContentRefs),
+    ContentRef(prop_type::ContentRef),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -56,15 +58,36 @@ pub mod prop_type {
     //! so that they can be used in macros.
 
     use super::*;
-    use crate::state::types::element_refs;
+    use crate::state::types::{component_refs, content_refs};
 
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type String = Rc<std::string::String>;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Number = f64;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Integer = i64;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Boolean = bool;
+    #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type Math = Rc<MathExpr>;
-    pub type ElementRefs = Rc<element_refs::ElementRefs>;
-    pub type GraphNodes = Rc<Vec<GraphNode>>;
+
+    // The typescript types for these are exported in their respective files,
+    // so we don't use `tsify_next::declare` on them.
+    pub type ComponentRef = Option<component_refs::ComponentRef>;
+    pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
+    pub type ContentRefs = Rc<content_refs::ContentRefs>;
+    pub type ContentRef = content_refs::ContentRef;
+
+    /// By default, wasm-bindgen won't pick up this module as containing types to export
+    /// to Typescript. We force wasm-bindgen to export types in this module by providing a
+    /// dummy type that is explicitly referenced in `lib-js-wasm-binding/src/lib.rs`.
+    #[cfg(feature = "web")]
+    #[cfg_attr(
+        feature = "web",
+        derive(Copy, Clone, Tsify, serde::Serialize, serde::Deserialize)
+    )]
+    #[cfg_attr(feature = "web", tsify(from_wasm_abi, into_wasm_abi))]
+    pub struct _DummyForWasmBindgen {}
 }
 
 mod conversions {

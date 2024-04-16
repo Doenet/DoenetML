@@ -49,7 +49,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     }
 }
 
-/// The index of the component in `Core.components`
+/// The index of the component in `DocumentStructure.components`
 #[derive(
     Debug,
     Clone,
@@ -64,6 +64,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     Hash,
 )]
 #[serde(transparent)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentIdx(usize);
 
 impl ComponentIdx {
@@ -84,6 +85,7 @@ impl From<ComponentIdx> for GraphNode {
         Self::Component(idx.into())
     }
 }
+
 // Helper trait
 pub trait IntoGraphNode: Into<GraphNode> + Copy {}
 impl IntoGraphNode for GraphNode {}
@@ -98,6 +100,51 @@ impl<T: IntoGraphNode> From<T> for ComponentIdx {
     }
 }
 
+/// The index of the component in `Core.components`
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    derive_more::From,
+    derive_more::Into,
+    Serialize,
+    Deserialize,
+    Default,
+)]
+#[serde(transparent)]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
+pub struct StringIdx(usize);
+
+impl StringIdx {
+    pub const fn new(idx: usize) -> Self {
+        Self(idx)
+    }
+    #[inline(always)]
+    pub fn as_usize(self) -> usize {
+        self.0
+    }
+    pub fn as_graph_node(self) -> GraphNode {
+        GraphNode::String(self.0)
+    }
+}
+
+impl From<StringIdx> for GraphNode {
+    fn from(idx: StringIdx) -> Self {
+        Self::String(idx.into())
+    }
+}
+
+impl<T: IntoGraphNode> From<T> for StringIdx {
+    fn from(node: T) -> Self {
+        match node.into() {
+            GraphNode::String(idx) => idx.into(),
+            node => panic!("Expected GraphNode::Component, not {:?}", node),
+        }
+    }
+}
+
 /// Information of the source that a component is extending, which is currently
 /// either another component or a prop.
 #[derive(Debug, Clone)]
@@ -106,11 +153,11 @@ pub enum Extending {
     Component(ComponentIdx),
     // TODO: what about array props?
     /// The component is extending the prop of another component
-    Prop(PropSource),
+    Prop(ExtendingPropSource),
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct PropSource {
+pub struct ExtendingPropSource {
     /// The prop being extended
     pub prop_pointer: PropPointer,
 
@@ -120,9 +167,9 @@ pub struct PropSource {
     /// For example, given `<textInput name="i"/>`, a direct ref would be `$i.value` by itself,
     /// unlike `<text extend="$i.value"/>`.
     ///
-    /// If we are extending from a direct ref,
-    /// we need to add the referenced prop as a child in the `DataQuery::ChildPropProfile`,
-    /// because the prop was not already added to the children.
+    /// If we are extending from a direct ref (e.g., the user specified `$i`),
+    /// the expansion behavior is slightly different. We keep track of whether or not this `extend`
+    /// is from a direct ref or not.
     pub from_direct_ref: bool,
 }
 
@@ -139,7 +186,7 @@ pub struct PropPointer {
 /// The body of an [`Action`].
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub struct ActionBody<T> {
     pub args: T,
@@ -147,7 +194,7 @@ pub struct ActionBody<T> {
 
 /// An _action_ sent from the UI to `Core`.
 #[derive(Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub struct Action {
@@ -196,5 +243,5 @@ impl<'a> ActionQueryProp<'a> {
 }
 
 /// The `camelCase` name of an attribute.
-#[cfg_attr(feature = "web", tsify::declare)]
+#[cfg_attr(feature = "web", tsify_next::declare)]
 pub type AttributeName = &'static str;

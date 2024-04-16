@@ -1,12 +1,14 @@
-//! A Prop is a piece of computed data associated with a component. The value of a Prop
-//! is lazily computed and can depend on other Props.
+use std::rc::Rc;
 
-use crate::components::{
-    prelude::{ComponentIdx, LocalPropIdx},
-    types::AttributeName,
+use crate::{
+    components::{
+        prelude::{ComponentIdx, LocalPropIdx},
+        types::AttributeName,
+    },
+    graph_node::GraphNode,
 };
 
-use super::{cache::PropWithMeta, PropProfile, PropValue};
+use super::{cache::PropWithMeta, ApplyTest, FilterData, PropProfile};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug, Clone)]
@@ -62,7 +64,7 @@ impl DataQueryResults {
 
 /// Used in a [`DataQuery::Prop`] to specify which component to reference the prop from.
 #[derive(Debug, Clone, PartialEq)]
-pub enum PropComponent {
+pub enum PropSource {
     /// Search for the prop on the component making the query.
     Me,
     /// Search for the prop on the component making the query's parent.
@@ -81,6 +83,16 @@ pub enum PropSpecifier {
     Matching(Vec<PropProfile>),
 }
 
+/// The source of a  [`DataQuery::PickProp`].
+#[derive(Debug, Clone, PartialEq)]
+pub enum PickPropSource {
+    /// Search for the props on the children of the querying component.
+    Children,
+    /// Search for the prop on the ancestors of the querying component.
+    /// Only return the prop from the first matching ancestor (if one exists).
+    NearestMatchingAncestor,
+}
+
 impl From<LocalPropIdx> for PropSpecifier {
     fn from(local_idx: LocalPropIdx) -> Self {
         PropSpecifier::LocalIdx(local_idx)
@@ -89,43 +101,56 @@ impl From<LocalPropIdx> for PropSpecifier {
 
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,
 /// a request for a list of children, etc..
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub enum DataQuery {
-    /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
-    /// Returns the matching props
-    ChildPropProfile {
-        /// The data query will match child components that have at least one of these profiles
-        match_profiles: Vec<PropProfile>,
-    },
-
-    /// Query for all child GraphNodes,
-    /// filtering element nodes for components which contain PropProfile props given specified values
+    /// Query for components, filtering element nodes based on the supplied
+    /// `filter`. Results in a `prop_type::ComponentRefs` with the matching component refs.
     ///
-    /// filter: a vector of `PropProfile` and `PropValue` pairings.
-    /// If a component has a prop with each specified `PropProfile`,
-    /// then it will be filtered out if any of the values don't match the specified `PropValue`.
-    /// If a component does not have a prop with one or more of the specified `PropProfiles`,
-    /// then it will be included if `include_if_missing_profile` is `true`, otherwise it will be be filtered out.
-    /// All non-component children are unaffected by the filter.
+    /// - `container`: the component whose children will be searched. For example, `PropComponent::Me`
+    /// to search your own children, or `PropComponent::Parent` to search your parent's children.
+    /// - `filter`: A composition of `ContentFilter`s. These can be combined with `Op::And`, `Op::Or`,
+    /// and `OpNot`.
     ///
-    /// For example, if the filter has one element `(PropProfile:Hidden`, `PropValue::Boolean(false))`, then
-    /// - if `include_if_missing_profile` is `true`,
-    ///   all component children that have a prop with the profile `Hidden` whose value is not `false`
-    ///   will be filtered out.
-    /// - if `include_if_missing_profile` is `false`,
-    ///   all component children that do not have a prop with the profile `Hidden` with value `false`
-    ///   will be filtered out.
-    FilteredChildren {
-        filters: Vec<DataQueryFilter>,
-        include_if_missing_profile: bool,
+    /// ## Example
+    /// ```rust
+    /// # use std::rc::Rc;
+    /// # use doenetml_core::props::{DataQuery, PropSource, ContentFilter, Op, PropProfile};
+    /// DataQuery::ComponentRefs {
+    ///    container: PropSource::Me,
+    ///    filter: Rc::new(Op::And(
+    ///      ContentFilter::IsType("section"),
+    ///      ContentFilter::HasPropMatchingProfile(PropProfile::Hidden),
+    ///    ))
+    /// }
+    /// # ;
+    /// ```
+    /// This query will return all children of the querying component that are `<section>` components
+    /// and have a prop matching the `PropProfile::Hidden` profile.
+    ComponentRefs {
+        /// Children of this component will be searched
+        container: PropSource,
+        /// How to filter the children. This should be a [`ContentFilter`] or a
+        /// composition of [`ContentFilter`]s.
+        ///
+        /// See [`DataQuery::ComponentRefs`] for an example.
+        filter: Rc<dyn for<'a> ApplyTest<FilterData<'a>, GraphNode>>,
     },
 
     /// Query for a particular prop of a component
     Prop {
-        /// If None, prop is from the component making the query.
-        component: PropComponent,
+        /// Where to look for the desired prop.
+        source: PropSource,
+        /// What prop to look for. Note that `PropSpecifier::LocalIdx` is only valid
+        /// when used in conjunction with `PropComponent::Me`.
+        prop_specifier: PropSpecifier,
+    },
 
-        /// The prop from component_idx or component making the query.
+    /// Query multiple components and pick a prop from each.
+    PickProp {
+        /// Where to find the component's whose props will be searched.
+        source: PickPropSource,
+        /// How to filter the props to pick. Note that `PropSpecifier::LocalIdx` is forbidden
+        /// for this query.
         prop_specifier: PropSpecifier,
     },
 
@@ -142,32 +167,10 @@ pub enum DataQuery {
     /// and will accept any change when inverting.
     State,
 
+    /// Query for a reference to "self", the component making the query.
+    SelfRef,
+
     #[default]
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DataQueryFilter {
-    PropProfile(PropProfileDataQueryFilter),
-    ComponentType(ComponentTypeDataQueryFilter),
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct PropProfileDataQueryFilter {
-    pub profile: PropProfile,
-    pub value: PropValue,
-    pub comparison: DataQueryFilterComparison,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ComponentTypeDataQueryFilter {
-    pub component_type: &'static str,
-    pub comparison: DataQueryFilterComparison,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DataQueryFilterComparison {
-    Equal,
-    NotEqual,
 }

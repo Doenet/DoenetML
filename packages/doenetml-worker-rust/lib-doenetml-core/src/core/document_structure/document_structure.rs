@@ -17,6 +17,8 @@ use crate::{
     props::{cache::PropWithMeta, PropDefinition, PropProfile, StringCache},
 };
 
+use super::ancestor_iterator::AncestorIterator;
+
 /// Stores information about the _structure_ of a document. This includes components, props, and children.
 /// It does not include any information about the computational dependencies of the document. E.g., which props
 /// depend on which other props.
@@ -131,6 +133,21 @@ impl DocumentStructure {
     /// but the XML-like DAST has an unambiguous parent for every component (except root component).
     pub fn get_true_component_parent(&self, component_idx: ComponentIdx) -> Option<ComponentIdx> {
         self.components[component_idx].get_parent()
+    }
+
+    /// Iterate through the ancestor chain of the component coming from the structure of the DAST.
+    /// The elements earlier in the sequence are closer ancestors to `component_idx` than elements later in the sequence.
+    ///
+    /// Use of the `extends` attribute can cause a component to have a non-unique structural parent,
+    /// but the XML-like DAST has an unambiguous parent for every component (except root component).
+    pub fn get_true_component_ancestors(
+        &self,
+        component_idx: ComponentIdx,
+    ) -> impl Iterator<Item = ComponentIdx> + '_ {
+        AncestorIterator {
+            components: &self.components,
+            current_idx: component_idx,
+        }
     }
 
     /// Get the requested component

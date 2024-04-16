@@ -104,7 +104,7 @@ pub trait PropUpdater {
     fn data_queries(&self) -> Vec<DataQuery>;
 
     /// Calculate the value of the prop from the passed in `data`. You will
-    /// probably want to use a struct that derives `FromDataQueryResults` to unwrap
+    /// probably want to use a struct that derives `TryFromDataQueryResults` to unwrap
     /// `data` into a typed form.
     ///
     /// Results of this function will be cached, so local caching is not needed.

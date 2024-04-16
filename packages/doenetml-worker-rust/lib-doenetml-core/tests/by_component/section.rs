@@ -1,10 +1,10 @@
 use super::*;
 
-use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
+use doenetml_core::{dast::FlatDastElementContent, state::types::content_refs::ContentRef};
 use test_helpers::*;
 
 #[test]
-fn section_finds_beginning_title_tag() {
+fn section_content_excludes_title_tag() {
     let dast_root =
         dast_root_no_position(r#"<section><title>Hello</title><text>content</text></section>"#);
 
@@ -14,11 +14,39 @@ fn section_finds_beginning_title_tag() {
     // the document tag will be index 0.
     let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 2.into());
+    assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 2.into());
 
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
-        vec![GraphNode::Component(2), GraphNode::Component(3),]
+        vec![ContentRef::Component(3.into()),]
+    );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+    let section_children = &flat_dast.elements[section_idx.as_usize()].children;
+
+    assert_eq!(*section_children, vec![FlatDastElementContent::Element(3),]);
+}
+
+#[test]
+fn section_handles_missing_title_tag() {
+    let dast_root =
+        dast_root_no_position(r#"<section><titleX>Hello</titleX><text>content</text></section>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0.
+    let section_idx = 1.into();
+
+    assert_eq!(get_title_prop(section_idx, &mut core), None);
+
+    assert_eq!(
+        get_rendered_children_prop(section_idx, &mut core),
+        vec![
+            ContentRef::Component(2.into()),
+            ContentRef::Component(3.into()),
+        ]
     );
 
     // check the flat dast
@@ -50,20 +78,19 @@ fn section_finds_title_tag_in_middle() {
     // the document tag will be index 0.
     let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 3.into());
+    assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 3.into());
 
     // Note we have blank string children between all the component children.
     // When title child gets moved up, we have multiple strings between component children
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
         vec![
-            GraphNode::Component(3),
-            GraphNode::String(0),
-            GraphNode::Component(2),
-            GraphNode::String(1),
-            GraphNode::String(2),
-            GraphNode::Component(4),
-            GraphNode::String(3),
+            ContentRef::String(0.into()),
+            ContentRef::Component(2.into()),
+            ContentRef::String(1.into()),
+            ContentRef::String(2.into()),
+            ContentRef::Component(4.into()),
+            ContentRef::String(3.into()),
         ]
     );
 
@@ -74,7 +101,6 @@ fn section_finds_title_tag_in_middle() {
     assert_eq!(
         *section_children,
         vec![
-            FlatDastElementContent::Element(3),
             FlatDastElementContent::Text("\n".to_string()),
             FlatDastElementContent::Element(2),
             FlatDastElementContent::Text(" string outside\n".to_string()),
@@ -83,6 +109,9 @@ fn section_finds_title_tag_in_middle() {
             FlatDastElementContent::Text("\n".to_string()),
         ]
     );
+
+    let title_prop = get_title_prop(1.into(), &mut core);
+    assert_eq!(title_prop, Some(3.into()));
 }
 
 #[test]
@@ -102,21 +131,20 @@ fn section_with_multiple_title_tags_picks_last() {
     // the document tag will be index 0.
     let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 4.into());
+    assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 4.into());
 
     // Note we have blank string children between all the component children.
     // When title children get removed and moved up, we have multiple strings between component children
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
         vec![
-            GraphNode::Component(4),
-            GraphNode::String(0),
-            GraphNode::String(1),
-            GraphNode::Component(3),
-            GraphNode::String(2),
-            GraphNode::String(3),
-            GraphNode::Component(5),
-            GraphNode::String(4),
+            ContentRef::String(0.into()),
+            ContentRef::String(1.into()),
+            ContentRef::Component(3.into()),
+            ContentRef::String(2.into()),
+            ContentRef::String(3.into()),
+            ContentRef::Component(5.into()),
+            ContentRef::String(4.into()),
         ]
     );
 
@@ -127,7 +155,6 @@ fn section_with_multiple_title_tags_picks_last() {
     assert_eq!(
         *section_children,
         vec![
-            FlatDastElementContent::Element(4),
             FlatDastElementContent::Text("\n".to_string()),
             FlatDastElementContent::Text(" after title 1\n".to_string()),
             FlatDastElementContent::Element(3),
@@ -137,14 +164,152 @@ fn section_with_multiple_title_tags_picks_last() {
             FlatDastElementContent::Text("\n".to_string()),
         ]
     );
+
+    let title_prop = get_title_prop(1.into(), &mut core);
+    assert_eq!(title_prop, Some(4.into()));
 }
+
+#[test]
+fn section_gets_serial_number() {
+    // Items with idx 1 and 5 are <section> elements
+    let dast_root = dast_root_no_position(
+        r#"
+        <section><title>Hello</title><text>content</text></section>
+        <p>Random paragraph not in a section</p>
+        <section><title>Hello2</title><text>content2</text></section>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0.
+    let section_idx = 1.into();
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 0);
+
+    let section_idx = 5.into();
+    assert_eq!(get_serial_number_prop(section_idx, &mut core), 1);
+}
+
+#[test]
+fn section_gets_code_number() {
+    // Items with idx 1 and 5 are <section> elements
+    let dast_root = dast_root_no_position(
+        r#"
+        <section>
+            <title>Hello</title><text>content</text>
+            <section>
+                <title>Inner title</title>
+                <p>
+                    Inner paragraph
+                    <section>More inner section</section>
+                </p>
+            </section>
+        </section>
+        <p>Random paragraph not in a section</p>
+        <section><title>Hello2</title><text>content2</text></section>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    //core.to_flat_dast();
+
+    //// the document tag will be index 0.
+    let section_idx = 1.into();
+    assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "1");
+    let section_idx = 4.into();
+    assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "1.1");
+    let section_idx = 7.into();
+    assert_eq!(
+        get_code_number_prop(section_idx, &mut core).as_str(),
+        "1.1.1"
+    );
+    let section_idx = 9.into();
+    assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "2");
+}
+
+#[test]
+fn section_gets_division_depth() {
+    // Items with idx 1 and 5 are <section> elements
+    let dast_root = dast_root_no_position(
+        r#"
+        <section>
+            <title>Hello</title><text>content</text>
+            <section>
+                <title>Inner title</title>
+                <p>
+                    Inner paragraph
+                    <section>More inner section</section>
+                </p>
+            </section>
+        </section>
+        <p>Random paragraph not in a section</p>
+        <section><title>Hello2</title><text>content2</text></section>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    //core.to_flat_dast();
+
+    //// the document tag will be index 0.
+    let section_idx = 1.into();
+    assert_eq!(get_division_depth_prop(section_idx, &mut core), 0);
+    let section_idx = 4.into();
+    assert_eq!(get_division_depth_prop(section_idx, &mut core), 1);
+    let section_idx = 7.into();
+    assert_eq!(get_division_depth_prop(section_idx, &mut core), 2);
+    let section_idx = 9.into();
+    assert_eq!(get_division_depth_prop(section_idx, &mut core), 0);
+
+    //println!("{}", core.to_mermaid_structure_graph());
+    //println!("\n\n\n");
+    //println!("{}", core.to_mermaid_dependency_graph());
+}
+
+//#[test]
+//fn section_xxx() {
+//    // Items with idx 1 and 5 are <section> elements
+//    let dast_root = dast_root_no_position(
+//        r#"
+//        <section name="s1"><title>Hello</title><text>content</text></section> $s1.title
+//        "#,
+//    );
+//
+//    let mut core = Core::new();
+//    core.init_from_dast_root(&dast_root);
+//
+//    //println!("{:#?}", core.to_flat_dast());
+//
+//    //println!("{}", core.to_mermaid_structure_graph());
+//    //println!("\n\n\n");
+//    //println!("{}", core.to_mermaid_dependency_graph());
+//}
+//#[test]
+//fn section_xxx2() {
+//    // Items with idx 1 and 5 are <section> elements
+//    let dast_root = dast_root_no_position(
+//        r#"
+//        <text name="t1">text</text>$t1.value
+//        "#,
+//    );
+//
+//    let mut core = Core::new();
+//    core.init_from_dast_root(&dast_root);
+//
+//    //println!("{:#?}", core.to_flat_dast());
+//
+//    println!("{}", core.to_mermaid_structure_graph());
+//    //println!("\n\n\n");
+//    //println!("{}", core.to_mermaid_dependency_graph());
+//}
 
 mod test_helpers {
 
-    use std::rc::Rc;
-
     use doenetml_core::{
-        components::doenet::section::SectionProps, state::types::element_refs::ElementRefs,
+        components::doenet::section::SectionProps,
+        props::{prop_type, traits::IntoPropView, PropView},
+        state::types::content_refs::ContentRef,
     };
 
     use super::*;
@@ -154,31 +319,71 @@ mod test_helpers {
         SectionProps::local_idx(&SectionProps::RenderedChildren);
 
     /// Resolves `title` from a `<section>` component and returns its value as a `ComponentIdx`
-    pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> ComponentIdx {
+    pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> Option<ComponentIdx> {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: TITLE_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render_untracked(prop_node).value;
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::ComponentRef> = prop.into_prop_view();
 
-        let element_refs: Rc<ElementRefs> = (value).clone().try_into().unwrap();
-
-        element_refs[0]
+        prop_view.value.map(|v| v.0)
     }
 
     /// Resolves `renderedChildren` from a `<section>` component and returns its value
     pub fn get_rendered_children_prop(
         component_idx: ComponentIdx,
         core: &mut Core,
-    ) -> Vec<GraphNode> {
+    ) -> Vec<ContentRef> {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: RENDERED_CHILDREN_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render_untracked(prop_node).value;
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
 
-        let graph_nodes: Rc<Vec<GraphNode>> = (value).clone().try_into().unwrap();
+        (*prop_view.value).clone().into_vec()
+    }
 
-        (*graph_nodes).clone()
+    /// Resolves `serialNumber` from a `<section>` and returns it.
+    pub fn get_serial_number_prop(
+        component_idx: ComponentIdx,
+        core: &mut Core,
+    ) -> prop_type::Integer {
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: SectionProps::SerialNumber.local_idx(),
+        });
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();
+
+        prop_view.value
+    }
+
+    /// Resolves `codeNumber` from a `<section>` and returns it.
+    pub fn get_code_number_prop(component_idx: ComponentIdx, core: &mut Core) -> prop_type::String {
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: SectionProps::CodeNumber.local_idx(),
+        });
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::String> = prop.into_prop_view();
+
+        prop_view.value
+    }
+
+    /// Resolves `divisionDepth` from a `<section>` and returns it.
+    pub fn get_division_depth_prop(
+        component_idx: ComponentIdx,
+        core: &mut Core,
+    ) -> prop_type::Integer {
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: SectionProps::DivisionDepth.local_idx(),
+        });
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();
+
+        prop_view.value
     }
 }
