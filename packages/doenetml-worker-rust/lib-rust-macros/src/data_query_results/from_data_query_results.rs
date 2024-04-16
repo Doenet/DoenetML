@@ -24,17 +24,17 @@ pub struct StructuredData {
 /// struct RequiredData { ... }
 /// ```
 /// struct and generate a resulting module containing all required structs.
-pub fn generate_from_data_query_results(input: TokenStream) -> syn::Result<TokenStream> {
+pub fn generate_try_from_data_query_results(input: TokenStream) -> syn::Result<TokenStream> {
     let struct_source: DeriveInput = syn::parse2(input).unwrap();
     let structured_data = StructuredData::from_derive_input(&struct_source)?;
 
     let generated_query_trait = structured_data.generate_query_trait();
-    let generated_from_data_query_results_impl =
-        structured_data.generate_from_data_query_results_impl();
+    let generated_try_from_data_query_results_impl =
+        structured_data.generate_try_from_data_query_results_impl();
 
     Ok(quote! {
         #generated_query_trait
-        #generated_from_data_query_results_impl
+        #generated_try_from_data_query_results_impl
     })
 }
 
@@ -77,7 +77,7 @@ impl StructuredData {
 
         quote! {
             /// A custom trait to make defining data queries easier. This trait was
-            /// created by the `#[derive(FromDataQueryResults)]` macro.
+            /// created by the `#[derive(TryFromDataQueryResults)]` macro.
             ///
             /// Every `*_query()` function should be implemented. These are used to
             /// destructure `DataQueryResults` into typed forms in your struct.
@@ -98,17 +98,17 @@ impl StructuredData {
         }
     }
 
-    /// Generate an implementation of `FromDataQueryResults` for the struct.
+    /// Generate an implementation of `TryFromDataQueryResults` for the struct.
     /// The implementation may look something like
     /// ```ignore
-    /// impl FromDataQueryResults for RequiredData
+    /// impl TryFromDataQueryResults for RequiredData
     /// where
     ///    Self: CreateDataQueries,
     /// {
     ///    fn to_data_queries() -> Vec<DataQuery> {
     ///       Self::data_queries_vec()
     ///    }
-    ///    fn from_data_query_results(data: DataQueryResults) -> Self {
+    ///    fn try_from_data_query_results(data: DataQueryResults) -> anyhow::Result<Self> {
     ///       let data = data.vec;
     ///       if data.len() != 2 {
     ///         panic!("Expected 2 data query results, got {}", data.len());
@@ -121,7 +121,7 @@ impl StructuredData {
     ///   }
     /// }
     /// ```
-    fn generate_from_data_query_results_impl(&self) -> TokenStream {
+    fn generate_try_from_data_query_results_impl(&self) -> TokenStream {
         let struct_ident = &self.ident;
         let struct_ident_str = struct_ident.to_string();
         let query_trait = &self.query_trait;
@@ -133,8 +133,9 @@ impl StructuredData {
         let struct_body = fields
             .iter()
             .map(|(ident, _ty)| {
+                let err_str = format!("Missing field `{}` while unpacking.", ident);
                 quote! {
-                    #ident: IntoPropView::into_prop_view(iter.next().unwrap())
+                    #ident: IntoPropView::try_into_prop_view(iter.next().ok_or_else(|| anyhow::anyhow!(#err_str))?)?
                 }
             })
             .collect::<Vec<_>>();
@@ -158,29 +159,29 @@ impl StructuredData {
         };
 
         quote! {
-            impl #generics FromDataQueryResults for #struct_ident #generics
+            impl #generics TryFromDataQueryResults for #struct_ident #generics
             where
                 Self: #query_trait, #where_clause_predicates
             {
                 fn to_data_queries() -> Vec<DataQuery> {
                     #func_body
                 }
-                fn from_data_query_results(data: DataQueryResults) -> Self {
+                fn try_from_data_query_results(data: DataQueryResults) -> anyhow::Result<Self> {
                     let data = data.vec;
                     if data.len() != #num_fields {
-                        panic!(
+                        return Err(anyhow::anyhow!(
                             "Can only unpack exactly {} data query results into a `{}` struct, but found {}",
                             #num_fields,
                             #struct_ident_str,
                             data.len()
-                        );
+                        ));
                     }
                     // We will use `iter.next().unwrap()` the correct number of times
                     // to unpack the data query results into the struct fields.
                     let mut iter = data.into_iter();
-                    Self {
+                    Ok(Self {
                         #(#struct_body),*
-                    }
+                    })
                 }
             }
         }

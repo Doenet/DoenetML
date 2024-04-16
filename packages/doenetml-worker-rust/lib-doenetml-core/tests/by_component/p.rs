@@ -1,7 +1,9 @@
 use super::*;
 
-use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
+use doenetml_core::{dast::FlatDastElementContent, state::types::content_refs::ContentRef};
 use test_helpers::*;
+
+// TODO: add a test where a child with "hidden" is dynamically changed to hidden/unhidden.
 
 #[test]
 fn p_rendered_children() {
@@ -17,10 +19,10 @@ fn p_rendered_children() {
     assert_eq!(
         get_rendered_children_prop(p_idx, &mut core),
         vec![
-            GraphNode::Component(2),
-            GraphNode::String(0),
-            GraphNode::Component(3),
-            GraphNode::String(1),
+            ContentRef::Component(2.into()),
+            ContentRef::String(0.into()),
+            ContentRef::Component(3.into()),
+            ContentRef::String(1.into()),
         ]
     );
 
@@ -55,9 +57,9 @@ fn p_hidden_children_not_rendered() {
     assert_eq!(
         get_rendered_children_prop(p_idx, &mut core),
         vec![
-            GraphNode::Component(2),
-            GraphNode::String(0),
-            GraphNode::String(1),
+            ContentRef::Component(2.into()),
+            ContentRef::String(0.into()),
+            ContentRef::String(1.into()),
         ]
     );
 
@@ -179,13 +181,12 @@ fn p_extending_section() {
 }
 
 mod test_helpers {
-    use std::rc::Rc;
 
     use doenetml_core::{
         components::P,
         dast::{FlatDastElement, FlatDastElementContent},
-        graph_node::GraphNode,
-        props::PropValue,
+        props::{prop_type, traits::IntoPropView, PropValue, PropView},
+        state::types::content_refs::ContentRef,
     };
 
     use super::*;
@@ -194,7 +195,7 @@ mod test_helpers {
     pub fn get_rendered_children_prop(
         component_idx: ComponentIdx,
         core: &mut Core,
-    ) -> Vec<GraphNode> {
+    ) -> Vec<ContentRef> {
         let rendered_children_local_idx = LocalPropIdx::new(
             P::PROP_NAMES
                 .into_iter()
@@ -206,11 +207,10 @@ mod test_helpers {
             component_idx,
             local_prop_idx: rendered_children_local_idx,
         });
-        let value = core.get_prop_for_render_untracked(prop_node).value;
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
 
-        let graph_nodes: Rc<Vec<GraphNode>> = (value).clone().try_into().unwrap();
-
-        (*graph_nodes).clone()
+        (*prop_view.value).clone().into_vec()
     }
 
     pub fn get_string_children(element: &FlatDastElement) -> Vec<Option<&str>> {

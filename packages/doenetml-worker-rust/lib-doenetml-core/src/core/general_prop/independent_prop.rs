@@ -25,19 +25,20 @@ impl<T> From<IndependentProp<T>> for UpdaterObject
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug + 'static,
     PropValue: From<T>,
-    <T as TryFrom<PropValue>>::Error: std::fmt::Debug,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Debug + std::fmt::Display,
 {
     fn from(prop: IndependentProp<T>) -> UpdaterObject {
         Rc::new(prop)
     }
 }
 
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries)]
 struct RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     independent_state: PropView<T>,
 }
@@ -46,6 +47,7 @@ impl<T> DataQueries for RequiredData<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     fn independent_state_query() -> DataQuery {
         DataQuery::State
@@ -56,6 +58,7 @@ impl<T> PropUpdater for IndependentProp<T>
 where
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
+    <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
 {
     type PropType = T;
 
@@ -68,7 +71,7 @@ where
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let independent_state = required_data.independent_state;
 
         if independent_state.came_from_default {
@@ -84,7 +87,7 @@ where
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
 
         desired.independent_state.change_to(requested_value);
 

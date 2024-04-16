@@ -7,7 +7,7 @@ use crate::props::UpdaterObject;
 pub mod component {
 
     enum Props {
-        #[prop(value_type = PropValueType::GraphNodes, profile = PropProfile::RenderedChildren)]
+        #[prop(value_type = PropValueType::ContentRefs, profile = PropProfile::RenderedChildren)]
         RenderedChildren,
     }
 }

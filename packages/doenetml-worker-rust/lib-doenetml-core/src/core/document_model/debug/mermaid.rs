@@ -157,7 +157,7 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
 impl Core {
     /// Output a mermaid graph of the dependency graph.
     pub fn to_mermaid_dependency_graph(&self) -> String {
-        self.to_mermaid_from_graph(&self.document_model.get_dependency_graph())
+        self.to_mermaid_from_graph(&self.document_model.get_dependency_graph(), false)
     }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid_structure_graph(&self) -> String {
@@ -166,6 +166,7 @@ impl Core {
                 .document_structure
                 .borrow()
                 .get_structure_graph(),
+            true,
         )
     }
     /// Output a mermaid graph of the structure graph.
@@ -175,11 +176,15 @@ impl Core {
                 .document_structure
                 .borrow()
                 .get_structure_graph(),
+            true,
         )
     }
+    /// Output a mermaid graph of the structure graph.
+    /// If `print_labels == true` then `document_structure` is assumed and labels are printed for components/attributes/etc.
     pub fn to_mermaid_from_graph(
         &self,
         graph: &DirectedGraph<GraphNode, GraphNodeLookup<usize>>,
+        print_labels: bool,
     ) -> String {
         let mut mermaid = String::new();
         mermaid.push_str("graph TD;\n");
@@ -223,7 +228,7 @@ impl Core {
         for &component_node in graph
             .get_nodes()
             .iter()
-            .filter(|n| matches!(n, GraphNode::Component(_)))
+            .filter(|n| matches!(n, GraphNode::Component(_)) && print_labels)
         {
             let component_idx = ComponentIdx::from(component_node);
             // Children

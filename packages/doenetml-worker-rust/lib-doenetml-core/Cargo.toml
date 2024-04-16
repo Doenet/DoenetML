@@ -22,7 +22,7 @@ strum_macros = { workspace = true }
 enum_dispatch = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
-tsify = { workspace = true }
+tsify-next = { workspace = true }
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for

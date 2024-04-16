@@ -11,7 +11,7 @@ impl ValueProp {
 }
 
 /// Structure to hold data generated from the data queries
-#[derive(FromDataQueryResults, IntoDataQueryResults)]
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries)]
 struct RequiredData {
     /// An independent state variable (that doesn't have any dependencies)
@@ -40,28 +40,28 @@ impl DataQueries for RequiredData {
 
     fn immediate_value_query() -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: TextInputProps::ImmediateValue.local_idx().into(),
         }
     }
 
     fn sync_value_to_immediate_value_query() -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: TextInputProps::SyncValueToImmediateValue.local_idx().into(),
         }
     }
 
     fn value_from_children_query() -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: TextInputProps::ValueFromChildren.local_idx().into(),
         }
     }
 
     fn prefill_query() -> DataQuery {
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: TextInputProps::Prefill.local_idx().into(),
         }
     }
@@ -75,7 +75,7 @@ impl PropUpdater for ValueProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         // For the value calculation of `textInput`, we work out scenarios where the value didn't change
         // because this calculate_old() function will get called whenever immediate_value is changed
@@ -156,8 +156,8 @@ impl PropUpdater for ValueProp {
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut desired = RequiredData::new_desired(&data);
-        let required_data = RequiredData::from_data_query_results(data);
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
 
         if required_data.value_from_children.came_from_default {
             desired.independent_state.change_to(requested_value.clone());

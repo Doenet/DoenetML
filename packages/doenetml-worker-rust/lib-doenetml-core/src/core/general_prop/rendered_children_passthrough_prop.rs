@@ -2,9 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    props::{
-        DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter, UpdaterObject,
-    },
+    props::{Cond, ContentFilter, Op, OpNot, UpdaterObject},
 };
 
 #[derive(Debug, Default)]
@@ -16,13 +14,17 @@ pub struct RenderedChildrenPassthroughProp {
 impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
-            data_query: DataQuery::FilteredChildren {
-                filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
-                    profile: PropProfile::Hidden,
-                    value: PropValue::Boolean(true),
-                    comparison: DataQueryFilterComparison::NotEqual,
-                })],
-                include_if_missing_profile: true,
+            data_query: DataQuery::ComponentRefs {
+                container: PropSource::Me,
+                filter: Rc::new(Op::Or(
+                    // Keep things without a "hidden" prop
+                    OpNot(ContentFilter::HasPropMatchingProfile(PropProfile::Hidden)),
+                    // Keep things with a "hidden != true" prop
+                    ContentFilter::HasPropMatchingProfileAndCondition(
+                        PropProfile::Hidden,
+                        Cond::Eq(PropValue::Boolean(false)),
+                    ),
+                )),
             },
         }
     }
@@ -33,27 +35,27 @@ impl RenderedChildrenPassthroughProp {
     }
 }
 
+/// Structure to hold data generated from the data queries
+#[derive(TryFromDataQueryResults, Debug)]
+#[data_query(query_trait = DataQueries, pass_data = &RenderedChildrenPassthroughProp)]
+struct RequiredData {
+    refs: PropView<prop_type::ContentRefs>,
+}
+impl DataQueries for RequiredData {
+    fn refs_query(arg: &RenderedChildrenPassthroughProp) -> DataQuery {
+        arg.data_query.clone()
+    }
+}
+
 impl PropUpdater for RenderedChildrenPassthroughProp {
-    type PropType = prop_type::GraphNodes;
+    type PropType = prop_type::ContentRefs;
 
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        // TODO: verify that data was in the right format.
-        // For now, assuming that has just one value that is of type PropValue::GraphNodes
-        let nodes = data.vec[0]
-            .values
-            .iter()
-            .flat_map(|prop| match &prop.value {
-                PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().copied(),
-                _ => {
-                    unreachable!("should only graph nodes from filtered children")
-                }
-            })
-            .collect::<Vec<_>>();
-
-        PropCalcResult::Calculated(Rc::new(nodes))
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+        PropCalcResult::Calculated(required_data.refs.value)
     }
 }

@@ -1,8 +1,24 @@
-<textInput prefill="hi" name="ti" />
+<section name="s">
+  <title>My Cool Section</title>
+  <p>Some content!!</p>
+</section>
+<section extend="$s">
+  <title>Second Clone</title>
+  <p>With more content</p>
+  <p>
+    <textInput prefill="hi" name="ti" />
+
+    "<text extend="$ti.immediateValue"> world</text>" "<text extend="$ti.value">
+       world
+    </text>"
+  </p>
+</section>
+<!-- <textInput prefill="hi" name="ti" />
 The value: $ti.immediateValue
 
 "<text extend="$ti.immediateValue"> world</text>"
 "<text extend="$ti.value"> world</text>"
+-->
 
 <!--
 
@@ -21,7 +37,6 @@ dsaf
 </p>
 
 -->
-
 
 <!--
  "<text extend="<textInput _remaining_path="immediateValue"/>"> world</text>"

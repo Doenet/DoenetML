@@ -4,7 +4,7 @@ use crate::{
         types::{LocalPropIdx, PropPointer},
     },
     graph_node::GraphNode,
-    props::{DataQuery, PropComponent, PropProfile, PropSpecifier},
+    props::{DataQuery, PropProfile, PropSource, PropSpecifier},
     test_utils::*,
     Core,
 };
@@ -102,7 +102,7 @@ fn test_adding_prop_data_query() {
     core.document_model.add_data_query(
         value_prop_node,
         DataQuery::Prop {
-            component: PropComponent::Me,
+            source: PropSource::Me,
             prop_specifier: TEXT_TEXT_LOCAL_IDX.into(),
         },
     );
@@ -199,7 +199,7 @@ fn test_parent_prop_data_query() {
     core.document_model.add_data_query(
         prop_node,
         DataQuery::Prop {
-            component: PropComponent::Parent,
+            source: PropSource::Parent,
             prop_specifier: PropSpecifier::Matching(vec![PropProfile::String]),
         },
     );

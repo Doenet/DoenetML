@@ -13,6 +13,7 @@ import {
     Text,
     TextInput,
     Boolean,
+    Title,
 } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 import { ChoiceInput } from "./components/choice-input";
@@ -23,11 +24,14 @@ type CommonProps = {
     monitorVisibility?: boolean;
 };
 type Component = {
-    component: BasicComponent;
+    // At this point, we don't care about the type of the data prop
+    // The component author should make sure it's correct.
+    // TODO: Can we make this a union of all possible data props?
+    component: BasicComponent<any>;
     passthroughChildren?: false;
 } & CommonProps;
 type ComponentWithPassthroughChildren = {
-    component: BasicComponentWithPassthroughChildren;
+    component: BasicComponentWithPassthroughChildren<any>;
     passthroughChildren: true;
 } & CommonProps;
 
@@ -59,6 +63,7 @@ const TEXT_MODE_COMPONENTS: Record<
     textInput: { component: TextInput },
     text: { component: Text },
     boolean: { component: Boolean },
+    title: { component: Title, passthroughChildren: true },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<

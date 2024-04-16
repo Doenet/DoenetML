@@ -1,7 +1,7 @@
 extern crate proc_macro2;
 
 use component_module::generate_component_module;
-use data_query_results::{generate_from_data_query_results, generate_into_data_query_results};
+use data_query_results::{generate_into_data_query_results, generate_try_from_data_query_results};
 use proc_macro::TokenStream;
 use quote::quote;
 
@@ -151,7 +151,7 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ## Example
 /// ```ignore
-/// #[derive(FromDataQueryResults)]
+/// #[derive(TryFromDataQueryResults)]
 /// #[data_query(query_trait = CreateDataQueries)]
 /// struct RequiredData {
 ///     foo: PropView<String>,
@@ -170,21 +170,21 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-#[proc_macro_derive(FromDataQueryResults, attributes(data_query))]
-pub fn from_data_query_results(input: TokenStream) -> TokenStream {
-    match generate_from_data_query_results(input.into()) {
+#[proc_macro_derive(TryFromDataQueryResults, attributes(data_query))]
+pub fn try_from_data_query_results(input: TokenStream) -> TokenStream {
+    match generate_try_from_data_query_results(input.into()) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
     }
 }
 
 /// Allow a typed struct to be converted into [`DataQueryResults`].
-/// The struct should have been created with [`FromDataQueryResults::from_data_query_results`].
+/// The struct should have been created with [`TryFromDataQueryResults::try_from_data_query_results`].
 ///
 ///
 /// ## Example
 /// ```ignore
-/// #[derive(IntoDataQueryResults, FromDataQueryResults)]
+/// #[derive(IntoDataQueryResults, TryFromDataQueryResults)]
 /// #[data_query(query_trait = CreateDataQueries)]
 /// struct RequiredData {
 ///     foo: PropView<String>,
@@ -203,7 +203,7 @@ pub fn from_data_query_results(input: TokenStream) -> TokenStream {
 /// }
 ///
 /// fn main(d: DataQueryResults) {
-///     let required_data = RequiredData::from_data_query_results(d);
+///     let required_data = RequiredData::try_from_data_query_results(d);
 ///     // You can convert back to `DataQueryResults`.
 ///     let data_query_results = required_data.into_data_query_results();
 /// }

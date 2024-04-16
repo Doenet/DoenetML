@@ -5,7 +5,7 @@ use serde::{
 
 use std::collections::HashMap;
 #[cfg(feature = "web")]
-use tsify::Tsify;
+use tsify_next::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 

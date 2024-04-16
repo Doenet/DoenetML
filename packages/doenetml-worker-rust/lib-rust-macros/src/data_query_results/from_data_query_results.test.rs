@@ -8,10 +8,10 @@ fn test_can_parse_struct() {
         #[data_query(query_trait = QueryTrait)]
         struct RequiredData {
             filtered_children: Vec<PropView<Vec<GraphNode>>>,
-            title: PropView<ElementRefs>,
+            title: PropView<ComponentRefs>,
         }
     "#;
-    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
+    let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
 
@@ -21,10 +21,10 @@ fn test_can_parse_struct_with_pass_data() {
         #[data_query(query_trait = QueryTrait, pass_data = &std::string::String)]
         struct RequiredData {
             filtered_children: Vec<PropView<Vec<GraphNode>>>,
-            title: PropView<ElementRefs>,
+            title: PropView<ComponentRefs>,
         }
     "#;
-    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
+    let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
 
@@ -32,13 +32,16 @@ fn test_can_parse_struct_with_pass_data() {
 #[test]
 fn test_can_parse_struct_with_generic() {
     let input = r#"
-        #[data_query(query_trait = QueryTrait)]
-        struct RequiredData<T> where
-            T: std::fmt::Debug
+        #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData<T>
+        where
+            T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
+            PropValue: From<T>,
         {
-            value: PropView<T>,
+            independent_state: PropView<T>,
         }
     "#;
-    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
+    let result = generate_try_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
