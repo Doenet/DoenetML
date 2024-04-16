@@ -97,6 +97,11 @@ impl PropUpdater for ComponentRefProp {
                 };
                 PropCalcResult::Calculated(component)
             }
+            DataQuery::SelfRef => {
+                let component_ref: PropView<prop_type::ComponentRef> =
+                    data.vec[0].values[0].to_owned().into_prop_view();
+                PropCalcResult::Calculated(component_ref.value)
+            }
             _ => {
                 panic!("ComponentRefProp should only be created with a FilteredChildren data query")
             }
