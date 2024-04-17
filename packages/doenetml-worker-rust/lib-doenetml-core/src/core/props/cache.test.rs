@@ -180,10 +180,31 @@ fn test_can_get_unchecked_prop_if_already_computed() {
     assert_eq!(val4.changed, false);
 }
 
+/// The change_tracker of the cache used to use just origin.idx(),
+/// which would lead to collisions if had two types of nodes with the same index.
+/// Test that that nodes with the same index do not collide.
 #[test]
-#[ignore]
 fn test_cache_origin_uses_whole_graph_node() {
-    // TODO: the change_tracker of the cache used to use just origin.idx(),
-    // which would lead to collisions if had two types of nodes with the same index.
-    // Make a test where they would have collided but now is fine
+    let cache = PropCache::new();
+
+    let prop_node = GraphNode::Prop(0);
+    let origin_node1 = GraphNode::Query(0);
+    let origin_node2 = GraphNode::Component(0);
+
+    cache.set_prop_status(prop_node, PropStatus::Resolved);
+
+    // value starts off as changed
+    let val1 = cache.get_prop(prop_node, origin_node1, || {
+        PropCalcResult::Calculated(PropValue::Integer(10))
+    });
+    assert_eq!(val1.changed, true);
+
+    // second query from `origin_node1` should be denoted as unchanged
+    let val2 = cache.get_prop_unchecked(prop_node, origin_node1);
+    assert_eq!(val2.changed, false);
+
+    // Since `origin_node2` is a different node than `origin_node1` despite sharing the index,
+    // the value should be denoted as changed.
+    let val3 = cache.get_prop_unchecked(prop_node, origin_node2);
+    assert_eq!(val3.changed, true);
 }
