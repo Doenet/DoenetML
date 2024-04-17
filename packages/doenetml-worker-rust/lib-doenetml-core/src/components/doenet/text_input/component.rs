@@ -151,17 +151,16 @@ impl ComponentOnAction for TextInput {
         match action {
             TextInputActions::UpdateImmediateValue(ActionBody { args }) => {
                 Ok(vec![UpdateFromAction {
-                    local_prop_idx: TextInputProps::local_idx(&TextInputProps::ImmediateValue),
+                    local_prop_idx: TextInputProps::ImmediateValue.local_idx(),
                     requested_value: args.text.into(),
                 }])
             }
 
             TextInputActions::UpdateValue => {
-                let new_val = query_prop
-                    .get_local_prop(TextInputProps::local_idx(&TextInputProps::ImmediateValue));
+                let new_val = query_prop.get_local_prop(TextInputProps::ImmediateValue.local_idx());
 
                 Ok(vec![UpdateFromAction {
-                    local_prop_idx: TextInputProps::local_idx(&TextInputProps::Value),
+                    local_prop_idx: TextInputProps::Value.local_idx(),
                     requested_value: new_val.value,
                 }])
             }

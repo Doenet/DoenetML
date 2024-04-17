@@ -111,10 +111,10 @@ mod test_helpers {
 
     use super::*;
 
-    const VALUE_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Value);
-    const BOOLEAN_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Boolean);
-    const TEXT_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Text);
-    const HIDDEN_LOCAL_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Hidden);
+    const VALUE_LOCAL_IDX: LocalPropIdx = BooleanProps::Value.local_idx();
+    const BOOLEAN_LOCAL_IDX: LocalPropIdx = BooleanProps::Boolean.local_idx();
+    const TEXT_LOCAL_IDX: LocalPropIdx = BooleanProps::Text.local_idx();
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = BooleanProps::Hidden.local_idx();
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {

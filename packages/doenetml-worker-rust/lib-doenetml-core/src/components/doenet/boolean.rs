@@ -56,10 +56,10 @@ impl PropGetUpdater for BooleanProps {
                 BooleanProp::new_from_children(false),
             ),
             BooleanProps::Boolean => as_updater_object::<_, component::props::types::Boolean>(
-                PropAlias::new(BooleanProps::local_idx(&BooleanProps::Value)),
+                PropAlias::new(BooleanProps::Value.local_idx()),
             ),
             BooleanProps::Text => as_updater_object::<_, component::props::types::Text>(
-                BooleanToStringProp::new(BooleanProps::local_idx(&BooleanProps::Value)),
+                BooleanToStringProp::new(BooleanProps::Value.local_idx()),
             ),
             BooleanProps::Hidden => as_updater_object::<_, component::props::types::Hidden>(
                 component::attrs::Hide::get_prop_updater(),
