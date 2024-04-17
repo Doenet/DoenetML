@@ -1,16 +1,10 @@
 use itertools::Itertools;
 
 use crate::{
-    components::{
-        doenet::{p::PAttributes, text::TextAttributes, text_input::TextInputAttributes},
-        types::LocalPropIdx,
-        ComponentNode,
-    },
+    components::{types::LocalPropIdx, ComponentNode, Text, TextInput, P},
     core::{core::Core, graph_node::GraphNode},
     test_utils::*,
 };
-
-// use test_helpers::*;
 
 #[test]
 fn blank_attribute_is_empty_string() {
@@ -20,7 +14,10 @@ fn blank_attribute_is_empty_string() {
 
     let text_node = GraphNode::Component(1);
 
-    let hide_idx = TextAttributes::Hide.idx();
+    let hide_idx = Text::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
 
     let document_structure = core.document_model.document_structure.borrow();
 
@@ -144,8 +141,15 @@ fn extend_via_transmuted_ref() {
 
     // text ref's hide attribute depends on textInput's hide attribute
 
-    let text_hide_idx = TextAttributes::Hide.idx();
-    let text_input_hide_idx = TextInputAttributes::Hide.idx();
+    let text_hide_idx = Text::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
+
+    let text_input_hide_idx = TextInput::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
 
     let text_input_hide_attribute_virtual_node = document_structure
         .get_structure_graph()
@@ -209,8 +213,15 @@ fn extend_via_ref_prop() {
     assert_eq!(text_ref_children, vec![text_input_value_prop]);
 
     // text ref's hide attribute depends on textInput's hide attribute
-    let text_hide_idx = TextAttributes::Hide.idx();
-    let text_input_hide_idx = TextInputAttributes::Hide.idx();
+    let text_hide_idx = Text::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
+
+    let text_input_hide_idx = TextInput::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
 
     let text_input_hide_attribute_virtual_node = document_structure
         .get_structure_graph()
@@ -413,8 +424,15 @@ fn extend_attribute_with_default_prop() {
     assert_eq!(implicit_text_children, vec![text_input_value_prop]);
 
     // text and implicit text's hide attribute depends on textInput's hide attribute
-    let text_hide_idx = TextAttributes::Hide.idx();
-    let text_input_hide_idx = TextInputAttributes::Hide.idx();
+    let text_hide_idx = Text::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
+
+    let text_input_hide_idx = TextInput::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
 
     let text_input_hide_attribute_virtual_node = document_structure
         .get_structure_graph()
@@ -509,8 +527,15 @@ fn extend_attribute_with_explicit_prop() {
     assert_eq!(implicit_text_children, vec![text_input_value_prop]);
 
     // text and implicit text's hide attribute depends on textInput's hide attribute
-    let text_hide_idx = TextAttributes::Hide.idx();
-    let text_input_hide_idx = TextInputAttributes::Hide.idx();
+    let text_hide_idx = Text::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
+
+    let text_input_hide_idx = TextInput::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
 
     let text_input_hide_attribute_virtual_node = document_structure
         .get_structure_graph()
@@ -589,8 +614,15 @@ fn extend_attribute_without_default_prop() {
     assert_eq!(text_children, vec![hello_node, world_node]);
 
     // text's hide attribute depends on p's hide attribute
-    let text_hide_idx = TextAttributes::Hide.idx();
-    let p_hide_idx = PAttributes::Hide.idx();
+    let text_hide_idx = Text::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
+
+    let p_hide_idx = P::ATTRIBUTE_NAMES
+        .into_iter()
+        .position(|a| *a == "hide")
+        .unwrap();
 
     let p_hide_attribute_virtual_node = document_structure
         .get_structure_graph()

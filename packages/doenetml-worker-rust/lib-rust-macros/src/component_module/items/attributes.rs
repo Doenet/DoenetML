@@ -111,32 +111,6 @@ impl AttributesEnum {
         format!("{}\n- Name: \"{}\"\n{}", existing_doc, name, default)
     }
 
-    /// Generate the `idx` method on `Attributes`
-    pub fn impl_attributes_methods(&self) -> TokenStream {
-        let variant_names = self.get_attribute_idents();
-
-        if variant_names.is_empty() {
-            quote! {}
-        } else {
-            let match_arms = variant_names.iter().enumerate().map(|(i, variant_name)| {
-                quote! {
-                    Attributes::#variant_name => #i
-                }
-            });
-
-            quote! {
-                impl Attributes {
-                    /// Get the index of the attribute.
-                    pub const fn idx(&self) -> usize {
-                        match self {
-                            #( #match_arms, )*
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     /// Generate the `pub mod attrs { ... }` module.
     fn generate_attrs_module(&self) -> TokenStream {
         // For each attribute `Foo` we will create
@@ -224,13 +198,11 @@ impl ComponentModule {
     /// Generate the `enum Attributes` and all the associated impls for required traits.
     pub fn generate_attributes_and_impls(&self) -> TokenStream {
         let enum_attributes = self.enum_attributes();
-        let impl_attributes_methods = self.attributes.impl_attributes_methods();
         let impl_prop_from_attribute_variant_trait = self.impl_prop_from_attribute_variant_trait();
         let attrs_module = self.attributes.generate_attrs_module();
 
         quote! {
             #enum_attributes
-            #impl_attributes_methods
             #impl_prop_from_attribute_variant_trait
             #attrs_module
         }
