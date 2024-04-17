@@ -66,7 +66,3 @@ pub mod testing_features {
         }
     }
 }
-
-//#[cfg(test)]
-//#[path = "core.test.rs"]
-//mod test;
