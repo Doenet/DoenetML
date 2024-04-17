@@ -73,6 +73,6 @@ impl PropUpdater for BooleanToStringProp {
     }
 }
 
-// #[cfg(test)]
-// #[path = "boolean_to_string_prop.test.rs"]
-// mod tests;
+#[cfg(test)]
+#[path = "boolean_to_string_prop.test.rs"]
+mod tests;

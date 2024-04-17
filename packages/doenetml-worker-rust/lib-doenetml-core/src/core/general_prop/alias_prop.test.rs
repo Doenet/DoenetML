@@ -4,39 +4,41 @@ use super::*;
 use setup_functions::*;
 
 /// check that a prop alias
-/// gives the correct data query that requests original value
+/// gives the correct data query that requests the prop index specified
 #[test]
 fn prop_alias_gives_correct_data_queries() {
     // boolean
-    let prop = as_updater_object::<_, prop_type::Boolean>(PropAlias::new(3.into()));
+    let local_prop_idx: LocalPropIdx = 3.into();
+    let prop = as_updater_object::<_, prop_type::Boolean>(PropAlias::new(local_prop_idx));
 
     let queries = prop.data_queries();
 
-    assert_eq!(
-        queries,
-        vec![DataQuery::Prop {
-            component: PropComponent::Me,
-            prop_specifier: PropSpecifier::LocalIdx(3.into())
-        }]
-    );
+    match queries[0] {
+        DataQuery::Prop {
+            source: PropSource::Me,
+            prop_specifier: PropSpecifier::LocalIdx(idx),
+        } => assert_eq!(idx, local_prop_idx),
+        _ => panic!("Incorrect query"),
+    }
 
     // String
-    let prop = as_updater_object::<_, prop_type::String>(PropAlias::new(4.into()));
+    let local_prop_idx: LocalPropIdx = 4.into();
+    let prop = as_updater_object::<_, prop_type::String>(PropAlias::new(local_prop_idx));
 
     let queries = prop.data_queries();
 
-    assert_eq!(
-        queries,
-        vec![DataQuery::Prop {
-            component: PropComponent::Me,
-            prop_specifier: PropSpecifier::LocalIdx(4.into())
-        }]
-    );
+    match queries[0] {
+        DataQuery::Prop {
+            source: PropSource::Me,
+            prop_specifier: PropSpecifier::LocalIdx(idx),
+        } => assert_eq!(idx, local_prop_idx),
+        _ => panic!("Incorrect query"),
+    }
 }
 
 /// For a boolean prop alias,
-/// its value should be the same as the original value,
-/// and its came_from_default should be the same as the original value's came_from_default
+/// its value should be the same as the boolean data,
+/// and its came_from_default should be the same as the boolean data's came_from_default
 #[test]
 fn calculate_boolean_prop_alias() {
     let prop = as_updater_object::<_, prop_type::Boolean>(PropAlias::new(3.into()));
@@ -51,7 +53,7 @@ fn calculate_boolean_prop_alias() {
 }
 
 /// Calling invert on a boolean prop alias
-/// causes the original value to receive that requested value
+/// causes the boolean data to receive that requested value
 #[test]
 fn invert_boolean_prop_alias() {
     let prop = as_updater_object::<_, prop_type::Boolean>(PropAlias::new(3.into()));
@@ -74,8 +76,8 @@ fn invert_boolean_prop_alias() {
 }
 
 /// For a string prop alias,
-/// its value should be the same as its original value,
-/// and its came_from_default should be the same as the original value's came_from_default
+/// its value should be the same as its string data,
+/// and its came_from_default should be the same as the string data's came_from_default
 #[test]
 fn calculate_string_prop_alias() {
     let prop = as_updater_object::<_, prop_type::String>(PropAlias::new(3.into()));
@@ -90,7 +92,7 @@ fn calculate_string_prop_alias() {
 }
 
 /// Calling invert on a string prop alias
-/// causes the original value to receive that requested value
+/// causes the string data to receive that requested value
 #[test]
 fn invert_string_prop_alias() {
     let prop = as_updater_object::<_, prop_type::String>(PropAlias::new(3.into()));

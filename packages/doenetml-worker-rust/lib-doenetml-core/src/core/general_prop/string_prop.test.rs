@@ -19,15 +19,14 @@ fn check_default_and_child_data_queries() {
 
     let queries = prop.data_queries();
 
-    assert_eq!(
-        queries,
-        vec![
-            DataQuery::State,
-            DataQuery::ChildPropProfile {
-                match_profiles: vec![PropProfile::String],
-            },
-        ]
-    );
+    assert!(matches!(queries[0], DataQuery::State));
+    match &queries[1] {
+        DataQuery::PickProp {
+            source: PickPropSource::Children,
+            prop_specifier: PropSpecifier::Matching(profiles),
+        } => assert_eq!(profiles, &vec![PropProfile::String]),
+        _ => panic!("Incorrect query"),
+    }
 }
 
 /// check that a string prop created from attribute
@@ -47,16 +46,14 @@ fn check_default_and_attribute_data_queries() {
 
     let queries = prop.data_queries();
 
-    assert_eq!(
-        queries,
-        vec![
-            DataQuery::State,
-            DataQuery::Attribute {
-                attribute_name: "my_attr",
-                match_profiles: vec![PropProfile::String],
-            },
-        ]
-    );
+    assert!(matches!(queries[0], DataQuery::State));
+    match &queries[1] {
+        DataQuery::Attribute {
+            attribute_name: "my_attr",
+            match_profiles: profiles,
+        } => assert_eq!(profiles, &vec![PropProfile::String]),
+        _ => panic!("Incorrect query"),
+    }
 }
 
 /// Check that string prop from children is calculated from the independent state dependency
