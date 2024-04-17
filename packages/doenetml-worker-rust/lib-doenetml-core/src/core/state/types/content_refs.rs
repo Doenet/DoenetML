@@ -3,9 +3,10 @@ use anyhow::anyhow;
 use crate::{
     components::types::{ComponentIdx, StringIdx},
     graph_node::GraphNode,
+    props::prop_type,
 };
 
-use super::component_refs::ComponentRef;
+use super::component_refs::{ComponentRef, ComponentRefs};
 
 /// A vector of references to components or strings
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -65,6 +66,19 @@ impl From<ComponentRef> for ContentRef {
     fn from(t: ComponentRef) -> Self {
         let idx = t.0;
         ContentRef::Component(idx)
+    }
+}
+
+impl From<ComponentRefs> for ContentRefs {
+    fn from(t: ComponentRefs) -> Self {
+        let indices = t.0;
+        ContentRefs(indices.into_iter().map(|idx| idx.into()).collect())
+    }
+}
+impl From<prop_type::ComponentRefs> for ContentRefs {
+    fn from(t: prop_type::ComponentRefs) -> Self {
+        let indices = &t.0;
+        ContentRefs(indices.iter().map(|idx| (*idx).into()).collect())
     }
 }
 

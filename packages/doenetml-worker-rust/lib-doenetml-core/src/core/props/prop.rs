@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::components::{types::PropPointer, Boolean, Text};
+use crate::components::{types::PropPointer, Boolean, Text, _Fragment};
 
 use super::{PropProfile, PropUpdaterUntyped, PropValueDiscriminants};
 
@@ -48,20 +48,10 @@ impl PropDefinition {
             PropValueDiscriminants::String => Text::NAME,
             PropValueDiscriminants::Boolean => Boolean::NAME,
             PropValueDiscriminants::Math => "math",
-            // TODO: starting to accumulate these "no preferred" panics.
-            // Maybe a sign that we need to rethink how this `preferred_component_type()` works?
-            PropValueDiscriminants::ComponentRefs => {
-                panic!("No preferred component type for an ComponentRefs PropValue")
-            }
-            PropValueDiscriminants::ComponentRef => {
-                panic!("No preferred component type for an ComponentRef PropValue")
-            }
-            PropValueDiscriminants::ContentRefs => {
-                panic!("No preferred component type for an ContentRefs PropValue")
-            }
-            PropValueDiscriminants::ContentRef => {
-                panic!("No preferred component type for an ContentRef PropValue")
-            }
+            PropValueDiscriminants::ComponentRef
+            | PropValueDiscriminants::ComponentRefs
+            | PropValueDiscriminants::ContentRefs
+            | PropValueDiscriminants::ContentRef => _Fragment::NAME,
         }
     }
 }

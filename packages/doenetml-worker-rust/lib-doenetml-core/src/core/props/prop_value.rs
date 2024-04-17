@@ -93,6 +93,10 @@ pub mod prop_type {
 mod conversions {
     //! Implementation of `From` traits for `PropValue`.
 
+    use anyhow::anyhow;
+
+    use crate::state::types::content_refs::{ContentRef, ContentRefs};
+
     use super::*;
 
     impl From<String> for PropValue {
@@ -111,6 +115,22 @@ mod conversions {
         type Error = &'static str;
         fn try_from(value: PropValue) -> Result<Self, Self::Error> {
             TryInto::<prop_type::String>::try_into(value).map(|s| (*s).clone())
+        }
+    }
+
+    impl TryFrom<PropValue> for ContentRefs {
+        type Error = anyhow::Error;
+        fn try_from(value: PropValue) -> Result<Self, Self::Error> {
+            match value {
+                PropValue::ComponentRef(idx_option) => {
+                    let con_ref: Option<ContentRef> = idx_option.map(|c_ref| c_ref.into());
+                    Ok(con_ref.into_iter().collect::<Vec<_>>().into())
+                }
+                PropValue::ComponentRefs(indices) => Ok(indices.into()),
+                PropValue::ContentRef(val) => Ok(vec![val].into()),
+                PropValue::ContentRefs(val) => Ok((*val).clone()),
+                _ => Err(anyhow!("Cannot convert {:?} into a ContentRefs", value)),
+            }
         }
     }
 }

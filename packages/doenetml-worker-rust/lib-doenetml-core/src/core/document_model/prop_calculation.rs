@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     props::{DataQuery, DataQueryResults, FilterData, PropSource, PropValue},
-    state::types::content_refs::ContentRef,
+    state::types::content_refs::{ContentRef, ContentRefs},
 };
 
 use super::{
@@ -172,6 +172,12 @@ impl DocumentModel {
                             }
                             GraphNode::String(_) => {
                                 content_refs.push(ContentRef::String(node.idx().into()));
+                            }
+                            GraphNode::Prop(_) => {
+                                // The referent of a PropValue::ContentRef child should be forwarded.
+                                // Note: the filter is *not* applied to the forward referent.
+                                let c_refs: ContentRefs = self._get_prop_unchecked(node, query_node).value.try_into().unwrap();
+                                content_refs.extend(c_refs.into_vec());
                             }
                             _ => panic!(
                                 "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",

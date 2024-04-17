@@ -12,3 +12,4 @@ export * from "./point";
 export * from "./text";
 export * from "./boolean";
 export * from "./title";
+export * from "./_fragment";

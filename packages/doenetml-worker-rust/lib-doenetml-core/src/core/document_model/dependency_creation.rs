@@ -222,15 +222,21 @@ impl DocumentModel {
                     .get_component_content_children(component_idx);
 
                 for node in content_children {
-                    let deps = filter.accumulate_deps(&FilterData {
-                        node,
-                        origin: query_node,
-                        document_model: self,
-                    });
-                    // deps consists of everything that the filter could possibly depend on.
-                    // We need to link each dep to the query node.
-                    for dep in deps {
-                        edges_to_add.push((query_node, dep));
+                    // If the component was generated from syntax like `$sec.title`,
+                    // then it will have a prop as a content child
+                    if matches!(node, GraphNode::Prop(_)) {
+                        edges_to_add.push((query_node, node));
+                    } else {
+                        let deps = filter.accumulate_deps(&FilterData {
+                            node,
+                            origin: query_node,
+                            document_model: self,
+                        });
+                        // deps consists of everything that the filter could possibly depend on.
+                        // We need to link each dep to the query node.
+                        for dep in deps {
+                            edges_to_add.push((query_node, dep));
+                        }
                     }
                 }
 
