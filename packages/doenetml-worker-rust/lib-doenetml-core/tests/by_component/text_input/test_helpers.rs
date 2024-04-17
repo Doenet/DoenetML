@@ -10,12 +10,11 @@ use doenetml_core::components::{
 
 use super::*;
 
-const IMMEDIATE_VALUE_IDX: LocalPropIdx =
-    TextInputProps::local_idx(&TextInputProps::ImmediateValue);
-const VALUE_IDX: LocalPropIdx = TextInputProps::local_idx(&TextInputProps::Value);
+const IMMEDIATE_VALUE_IDX: LocalPropIdx = TextInputProps::ImmediateValue.local_idx();
+const VALUE_IDX: LocalPropIdx = TextInputProps::Value.local_idx();
 
-const TEXT_VALUE_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Value);
-const BOOLEAN_VALUE_IDX: LocalPropIdx = BooleanProps::local_idx(&BooleanProps::Value);
+const TEXT_VALUE_IDX: LocalPropIdx = TextProps::Value.local_idx();
+const BOOLEAN_VALUE_IDX: LocalPropIdx = BooleanProps::Value.local_idx();
 
 /// Resolves `immediate_value` of a text input and returns its value as a `String`
 pub fn get_immediate_value(component_idx: ComponentIdx, core: &mut Core) -> String {

@@ -1,212 +1,249 @@
-use crate::utils::test_utils::create_prop_dependency;
+use crate::props::cache::PropWithMeta;
 
 use super::*;
 use setup_functions::*;
 
 /// check that a string prop created from children
-/// gives the correct data query that requests string children
+/// gives the correct default and data query that requests string children
 #[test]
-fn string_prop_from_children_gives_correct_data_queries() {
+fn check_default_and_child_data_queries() {
     // create a string prop requesting children
-    let mut prop = StringProp::new_from_children(String::from("")).into_prop();
-
-    let queries = prop.return_data_queries();
+    let prop = as_updater_object::<_, prop_type::String>(StringProp::new_from_children(
+        String::from("this default"),
+    ));
 
     assert_eq!(
-        queries,
-        vec![
-            DataQuery::State,
-            DataQuery::ChildPropProfile {
-                match_profiles: vec![PropProfile::String],
-            },
-        ]
+        prop.default(),
+        PropValue::String(Rc::new(String::from("this default")))
     );
+
+    let queries = prop.data_queries();
+
+    assert!(matches!(queries[0], DataQuery::State));
+    match &queries[1] {
+        DataQuery::PickProp {
+            source: PickPropSource::Children,
+            prop_specifier: PropSpecifier::Matching(profiles),
+        } => assert_eq!(profiles, &vec![PropProfile::String]),
+        _ => panic!("Incorrect query"),
+    }
 }
 
-/// If a string prop is based on a single string child,
-/// its value should be the same as the string child's value,
-/// and its came_from_default should be the same as the string child's came_from_default
+/// check that a string prop created from attribute
+/// gives the correct default and data query that requests attribute
 #[test]
-fn string_prop_calculated_from_single_string_child() {
-    // create a string prop with one string child
-    let (mut prop, _prop_view, _state_var, child_var) =
-        set_up_string_prop_with_string_child(String::from("hello"), true);
+fn check_default_and_attribute_data_queries() {
+    // create a string prop requesting children
+    let prop = as_updater_object::<_, prop_type::String>(StringProp::new_from_attribute(
+        "my_attr",
+        String::from("this default"),
+    ));
 
-    // we initialize child to be "hello", so should get "hello"
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), "hello");
-    assert_eq!(prop.came_from_default(), true);
+    assert_eq!(
+        prop.default(),
+        PropValue::String(Rc::new(String::from("this default")))
+    );
 
-    // changing child to be "bye", results in prop being "bye"
-    child_var.set_value(String::from("bye"));
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), "bye");
-    assert_eq!(prop.came_from_default(), false);
+    let queries = prop.data_queries();
+
+    assert!(matches!(queries[0], DataQuery::State));
+    match &queries[1] {
+        DataQuery::Attribute {
+            attribute_name: "my_attr",
+            match_profiles: profiles,
+        } => assert_eq!(profiles, &vec![PropProfile::String]),
+        _ => panic!("Incorrect query"),
+    }
+}
+
+/// Check that string prop from children is calculated from the independent state dependency
+/// if there are no children.
+/// The result is marked as default if the independent prop is marked came_from_default.
+#[test]
+fn from_independent_state() {
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
+
+    let no_children = DataQueryResult { values: vec![] };
+
+    // with default value
+    let independent_state = return_single_string_data_query_result("", true);
+    let data = DataQueryResults::from_vec(vec![independent_state, no_children.clone()]);
+    assert_string_default_result(prop.calculate_untyped(data), "");
+
+    // with non-default value
+    let independent_state = return_single_string_data_query_result("hello", false);
+    let data = DataQueryResults::from_vec(vec![independent_state, no_children.clone()]);
+    assert_string_calculated_value(prop.calculate_untyped(data), "hello");
+}
+
+/// Check that string prop from children is calculated by concatenating the children dependencies
+/// and ignoring the independent state dependency.
+/// If there is a single child dependency, then the result is marked as default
+/// if the child prop is marked came_from_default.
+#[test]
+fn from_children() {
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
+
+    let independent_state = return_single_string_data_query_result("", true);
+
+    // with single child, from default
+    let single_child = return_single_string_data_query_result("hello", true);
+    let data = DataQueryResults::from_vec(vec![independent_state.clone(), single_child]);
+    assert_string_default_result(prop.calculate_untyped(data), "hello");
+
+    // with single child, non-default
+    let single_child = return_single_string_data_query_result("hello", false);
+    let data = DataQueryResults::from_vec(vec![independent_state.clone(), single_child]);
+    assert_string_calculated_value(prop.calculate_untyped(data), "hello");
+
+    // with two children, ignore default
+    let two_children = return_two_string_data_query_result("hello", " world!", true, true);
+    let data = DataQueryResults::from_vec(vec![independent_state.clone(), two_children]);
+    assert_string_calculated_value(prop.calculate_untyped(data), "hello world!");
+}
+
+/// Calling invert on a string prop from children with no children,
+/// causes the independent prop to be requested to change
+#[test]
+fn invert_with_independent_state() {
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
+
+    let no_children = DataQueryResult { values: vec![] };
+    let independent_state = return_single_string_data_query_result("", true);
+    let data = DataQueryResults::from_vec(vec![independent_state, no_children]);
+
+    let invert_results = prop.invert_untyped(data, "new".into(), false).unwrap().vec;
+
+    // don't have any children
+    assert!(invert_results[1].values.is_empty());
+    // request change in independent state
+    assert_eq!(
+        invert_results[0].values,
+        vec![PropWithMeta {
+            value: "new".into(),
+            changed: true,
+            came_from_default: false,
+            origin: None
+        }]
+    );
 }
 
 /// Calling invert on a string prop with a single string child
-/// causes the child to receive that requested value
+/// causes the child prop to be requested to change
 #[test]
 fn invert_string_prop_that_has_a_single_string_child() {
-    // create a string prop with one string child
-    let (mut prop, mut prop_view, _state_var, child_var) =
-        set_up_string_prop_with_string_child(String::from("hello"), false);
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
 
-    // on the prop view, record that we request the value be "bye"
-    prop_view.queue_update(String::from("bye"));
+    let independent_state = return_single_string_data_query_result("", true);
 
-    let invert_result = prop.invert(false).unwrap();
+    // with single child, from default
+    let single_child = return_single_string_data_query_result("hello", true);
 
-    // we should get a request informing core that we need to change the variable
+    let data = DataQueryResults::from_vec(vec![independent_state, single_child]);
+
+    let invert_results = prop.invert_untyped(data, "new".into(), false).unwrap().vec;
+
+    // independent state is unchanged
+    assert_eq!(invert_results[0].values[0].changed, false);
+    // request change in child
     assert_eq!(
-        invert_result,
-        vec![DependencyValueUpdateRequest {
-            data_query_idx: 1,
-            dependency_idx: 0
+        invert_results[1].values,
+        vec![PropWithMeta {
+            value: "new".into(),
+            changed: true,
+            came_from_default: false,
+            origin: None
         }]
     );
-
-    // the child variable has recorded that it has been requested to be "bye"
-    assert_eq!(*child_var.get_requested_value(), "bye");
-}
-
-/// If a string prop is based on a two string children,
-/// its value should is based on concatenating those strings
-#[test]
-fn string_prop_calculated_from_two_string_children() {
-    // create a string prop with two string children
-    let (mut prop, _prop_view, _state_var, child_var_1, child_var_2) =
-        set_up_string_prop_with_two_string_children(
-            String::from("Hello"),
-            String::from(" World"),
-            false,
-        );
-
-    // the initial value of "Hello World"
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), "Hello World");
-
-    // change to "Bye Earth"
-    child_var_1.set_value(String::from("Bye"));
-    child_var_2.set_value(String::from(" Earth"));
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), "Bye Earth");
 }
 
 /// Cannot invert a string prop with a two string children
 #[test]
 fn cannot_invert_string_prop_that_has_two_string_children() {
-    // create a string prop with two string children
-    let (mut prop, mut prop_view, _state_var, _child_var_1, _child_var_2) =
-        set_up_string_prop_with_two_string_children(
-            String::from("Hello"),
-            String::from(" World"),
-            false,
-        );
+    let prop =
+        as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
 
-    // on the prop view, record that we request the value be false
-    prop_view.queue_update(String::from("Bye Earth"));
+    let independent_state = return_single_string_data_query_result("", true);
 
-    let invert_result = prop.invert(false);
+    let two_children = return_two_string_data_query_result("hello", " world!", true, true);
+    let data = DataQueryResults::from_vec(vec![independent_state, two_children]);
 
-    assert!(invert_result.is_err());
-}
+    let invert_results = prop.invert_untyped(data, "new".into(), false);
 
-/// check that a string prop created from an attribute
-/// gives the correct data query that requests string children from that attribute
-#[test]
-fn string_prop_from_attribute_gives_correct_data_queries() {
-    // create a string prop from attribute
-    let mut prop = StringProp::new_from_attribute("my_attr", String::from("")).into_prop();
-
-    let queries = prop.return_data_queries();
-
-    assert_eq!(
-        queries,
-        vec![
-            DataQuery::State,
-            DataQuery::Attribute {
-                attribute_name: "my_attr",
-                match_profiles: vec![PropProfile::String],
-            },
-        ]
-    );
+    assert!(invert_results.is_err());
 }
 
 mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up string prop that depends on one string child variable
-    pub fn set_up_string_prop_with_string_child(
-        initial_value: String,
+    pub fn return_single_string_data_query_result(
+        value: &str,
         came_from_default: bool,
-    ) -> (
-        Prop<String>,
-        PropView<String>,
-        PropViewMut<String>,
-        PropViewMut<String>,
-    ) {
-        let mut prop: Prop<String> = StringProp::new_from_children(String::from("")).into_prop();
-        let prop_view = prop.create_new_read_only_view();
-
-        // need to return data queries since side effect is saving the required data
-        prop.return_data_queries();
-
-        // fulfill data queries with state and one child of type T
-
-        let (state_dependency, state_var) =
-            create_prop_dependency(initial_value.clone(), came_from_default);
-
-        let (child_dependency, child_var) =
-            create_prop_dependency(initial_value, came_from_default);
-
-        let dependencies_created_for_data_queries = vec![
-            DependenciesCreatedForDataQuery(vec![state_dependency]),
-            DependenciesCreatedForDataQuery(vec![child_dependency]),
-        ];
-
-        prop.save_dependencies(&dependencies_created_for_data_queries);
-
-        (prop, prop_view, state_var, child_var)
+    ) -> DataQueryResult {
+        DataQueryResult {
+            values: vec![PropWithMeta {
+                value: PropValue::String(value.to_string().into()),
+                came_from_default,
+                changed: true,
+                origin: None,
+            }],
+        }
     }
 
-    /// Utility function to set up string prop that depends on two string child variables
-    pub fn set_up_string_prop_with_two_string_children(
-        initial_value_1: String,
-        initial_value_2: String,
-        came_from_default: bool,
-    ) -> (
-        Prop<String>,
-        PropView<String>,
-        PropViewMut<String>,
-        PropViewMut<String>,
-        PropViewMut<String>,
-    ) {
-        let mut prop: Prop<String> = StringProp::new_from_children(String::from("")).into_prop();
-        let prop_view = prop.create_new_read_only_view();
+    pub fn return_two_string_data_query_result(
+        value1: &str,
+        value2: &str,
+        came_from_default1: bool,
+        came_from_default2: bool,
+    ) -> DataQueryResult {
+        DataQueryResult {
+            values: vec![
+                PropWithMeta {
+                    value: PropValue::String(value1.to_string().into()),
+                    came_from_default: came_from_default1,
+                    changed: true,
+                    origin: None,
+                },
+                PropWithMeta {
+                    value: PropValue::String(value2.to_string().into()),
+                    came_from_default: came_from_default2,
+                    changed: true,
+                    origin: None,
+                },
+            ],
+        }
+    }
 
-        // need to return data queries since side effect is saving the required data
-        prop.return_data_queries();
+    pub fn assert_string_calculated_value(result: PropCalcResult<PropValue>, value: &str) {
+        let value: PropValue = value.into();
 
-        let (state_dependency, state_var) =
-            create_prop_dependency(initial_value_1.clone(), came_from_default);
+        match result {
+            PropCalcResult::FromDefault(_) => {
+                panic!("incorrectly from default")
+            }
+            PropCalcResult::Calculated(string_prop) => {
+                assert_eq!(string_prop, value)
+            }
+            PropCalcResult::NoChange => panic!("Incorrectly no change"),
+        }
+    }
 
-        // fulfill data query with two children of type T
-        let (child_dependency_1, child_var_1) =
-            create_prop_dependency(initial_value_1, came_from_default);
+    pub fn assert_string_default_result(result: PropCalcResult<PropValue>, value: &str) {
+        let value: PropValue = value.into();
 
-        // fulfill data query with two children of type T
-        let (child_dependency_2, child_var_2) =
-            create_prop_dependency(initial_value_2, came_from_default);
-
-        let dependencies_created_for_data_queries = vec![
-            DependenciesCreatedForDataQuery(vec![state_dependency]),
-            DependenciesCreatedForDataQuery(vec![child_dependency_1, child_dependency_2]),
-        ];
-
-        prop.save_dependencies(&dependencies_created_for_data_queries);
-
-        (prop, prop_view, state_var, child_var_1, child_var_2)
+        match result {
+            PropCalcResult::FromDefault(string_prop) => {
+                assert_eq!(string_prop, value)
+            }
+            PropCalcResult::Calculated(_) => {
+                panic!("incorrectly calculated")
+            }
+            PropCalcResult::NoChange => panic!("Incorrectly no change"),
+        }
     }
 }

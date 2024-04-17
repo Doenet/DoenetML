@@ -95,6 +95,6 @@ where
     }
 }
 
-// #[cfg(test)]
-// #[path = "independent_prop.test.rs"]
-// mod tests;
+#[cfg(test)]
+#[path = "independent_prop.test.rs"]
+mod tests;

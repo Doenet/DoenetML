@@ -95,7 +95,7 @@ impl ComponentModule {
 
                 const REF_TRANSMUTES_TO: Option<&'static str> = #ref_transmutes_to;
 
-                const ATTRIBUTE_NAMES: &'static [&'static str] = &[#(#attribute_names),*];
+                pub const ATTRIBUTE_NAMES: &'static [&'static str] = &[#(#attribute_names),*];
 
                 const ACTION_NAMES: &'static [&'static str] = &[#(#action_names),*];
 

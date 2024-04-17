@@ -195,7 +195,7 @@ pub struct AttributesVariant {
 //
 
 impl ComponentModule {
-    /// Generate the `enum Props` and all the associated impls for required traits.
+    /// Generate the `enum Attributes` and all the associated impls for required traits.
     pub fn generate_attributes_and_impls(&self) -> TokenStream {
         let enum_attributes = self.enum_attributes();
         let impl_prop_from_attribute_variant_trait = self.impl_prop_from_attribute_variant_trait();
@@ -208,7 +208,7 @@ impl ComponentModule {
         }
     }
 
-    /// Generate the `enum Props` for this component.
+    /// Generate the `enum Attributes` for this component.
     pub fn enum_attributes(&self) -> TokenStream {
         let (_, _, attributes_name, _) = self.get_component_idents();
         let doc_string = self.attributes.generate_enum_doc_comment();

@@ -227,9 +227,9 @@ mod test_helpers {
 
     use super::*;
 
-    const VALUE_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Value);
-    const TEXT_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Text);
-    const HIDDEN_LOCAL_IDX: LocalPropIdx = TextProps::local_idx(&TextProps::Hidden);
+    const VALUE_LOCAL_IDX: LocalPropIdx = TextProps::Value.local_idx();
+    const TEXT_LOCAL_IDX: LocalPropIdx = TextProps::Text.local_idx();
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = TextProps::Hidden.local_idx();
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {

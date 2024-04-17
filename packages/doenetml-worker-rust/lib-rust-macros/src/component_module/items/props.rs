@@ -213,8 +213,8 @@ impl PropsEnum {
             .collect()
     }
 
-    /// Generate the `impl PropTrait {...}` trait
-    pub fn impl_prop_trait(&self) -> TokenStream {
+    /// Generate the `local_idx` method on `Props`
+    pub fn impl_props_methods(&self) -> TokenStream {
         let variant_names = self.get_prop_idents();
 
         let match_arms = variant_names.iter().enumerate().map(|(i, variant_name)| {
@@ -348,13 +348,13 @@ impl ComponentModule {
     /// Generate the `enum Props` and all the associated impls for required traits.
     pub fn generate_props_and_impls(&self) -> TokenStream {
         let enum_props = self.enum_props();
-        let impl_prop_trait = self.props.impl_prop_trait();
+        let impl_props_methods = self.props.impl_props_methods();
         let props_module = self.props.generate_props_module();
         let typescript_extras = self.props.generate_for_render_props_typescript(&self.name);
 
         quote! {
             #enum_props
-            #impl_prop_trait
+            #impl_props_methods
             #props_module
             #typescript_extras
         }

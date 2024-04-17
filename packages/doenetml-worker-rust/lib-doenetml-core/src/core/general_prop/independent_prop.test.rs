@@ -1,4 +1,4 @@
-use crate::utils::test_utils::create_prop_dependency;
+use crate::props::cache::PropWithMeta;
 
 use super::*;
 use setup_functions::*;
@@ -8,155 +8,188 @@ use setup_functions::*;
 #[test]
 fn independent_prop_gives_correct_data_queries() {
     // boolean
-    let mut prop: Prop<bool> = IndependentProp::new(false).into_prop();
-    let queries = prop.return_data_queries();
-    assert_eq!(queries, vec![DataQuery::State,]);
+    let prop = as_updater_object::<_, prop_type::Boolean>(IndependentProp::new(false));
+
+    let queries = prop.data_queries();
+
+    assert!(matches!(queries[0], DataQuery::State));
 
     // String
-    let mut prop: Prop<String> = IndependentProp::new(String::from("")).into_prop();
-    let queries = prop.return_data_queries();
-    assert_eq!(queries, vec![DataQuery::State,]);
+    let prop =
+        as_updater_object::<_, prop_type::String>(IndependentProp::new("".to_string().into()));
+
+    let queries = prop.data_queries();
+
+    assert!(matches!(queries[0], DataQuery::State));
 }
 
 /// For an independent boolean prop,
-/// its value should be the same as its independent state,
-/// and its came_from_default should be the same as the independent state's came_from_default
+/// its value should be the same as the boolean data's state,
+/// and its came_from_default should be the same as the boolean data's came_from_default
 #[test]
 fn calculate_independent_boolean_prop() {
-    let (mut prop, _prop_view, independent_state) = set_up_boolean_independent_prop(false, true);
+    let prop = as_updater_object::<_, prop_type::Boolean>(IndependentProp::new(false));
 
-    // we initialize independent state to be false, so should get false
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), false);
-    assert_eq!(prop.came_from_default(), true);
+    let boolean_data = return_single_boolean_data_query_result(false, true);
+    let data = DataQueryResults::from_vec(vec![boolean_data]);
+    assert_boolean_default_result(prop.calculate_untyped(data), false);
 
-    // changing independent state to be true, results in prop being true
-    independent_state.set_value(true);
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), true);
-    assert_eq!(prop.came_from_default(), false);
+    let boolean_data = return_single_boolean_data_query_result(true, false);
+    let data = DataQueryResults::from_vec(vec![boolean_data]);
+    assert_boolean_calculated_value(prop.calculate_untyped(data), true);
 }
 
 /// Calling invert on a boolean independent prop
-/// causes the independent state to receive that requested value
+/// causes the boolean data to receive that requested value
 #[test]
 fn invert_independent_boolean_prop() {
-    let (mut prop, mut prop_view, independent_state) = set_up_boolean_independent_prop(true, false);
+    let prop = as_updater_object::<_, prop_type::Boolean>(IndependentProp::new(false));
 
-    // on the prop view, record that we request the value be false
-    prop_view.queue_update(false);
+    let boolean_data = return_single_boolean_data_query_result(false, true);
+    let data = DataQueryResults::from_vec(vec![boolean_data]);
 
-    let invert_result = prop.invert(false).unwrap();
+    let invert_results = prop.invert_untyped(data, true.into(), false).unwrap().vec;
 
-    // we should get a request informing core that we need to change the state
+    // request change in original
     assert_eq!(
-        invert_result,
-        vec![DependencyValueUpdateRequest {
-            data_query_idx: 0,
-            dependency_idx: 0
+        invert_results[0].values,
+        vec![PropWithMeta {
+            value: true.into(),
+            changed: true,
+            came_from_default: false,
+            origin: None
         }]
     );
-
-    // the independent state has recorded that it has been requested to be false
-    assert_eq!(*independent_state.get_requested_value(), false);
 }
 
 /// For an independent string prop,
-/// its value should be the same as its independent state
-/// and its came_from_default should be the same as the independent state's came_from_default
+/// its value should be the same as its string data
+/// and its came_from_default should be the same as the string data's came_from_default
 #[test]
 fn calculate_independent_string_prop() {
-    let (mut prop, _prop_view, independent_state) =
-        set_up_string_independent_prop(String::from("hello"), true);
+    let prop = as_updater_object::<_, prop_type::String>(IndependentProp::new(
+        String::from("hello").into(),
+    ));
 
-    // we initialize independent state to be true, so should get true
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), "hello");
-    assert_eq!(prop.came_from_default(), true);
+    let string_data = return_single_string_data_query_result("hello", true);
+    let data = DataQueryResults::from_vec(vec![string_data]);
+    assert_string_default_result(prop.calculate_untyped(data), "hello");
 
-    // changing independent state to be false, results in prop being false
-    independent_state.set_value(String::from("bye"));
-    prop.calculate_and_mark_fresh();
-    assert_eq!(*prop.get(), "bye");
-    assert_eq!(prop.came_from_default(), false);
+    let string_data = return_single_string_data_query_result("bye", false);
+    let data = DataQueryResults::from_vec(vec![string_data]);
+    assert_string_calculated_value(prop.calculate_untyped(data), "bye");
 }
 
 /// Calling invert on a string independent prop
-/// causes the independent state to receive that requested value
+/// causes the string data to receive that requested value
 #[test]
 fn invert_independent_string_prop() {
-    let (mut prop, mut prop_view, independent_state) =
-        set_up_string_independent_prop(String::from("hello"), false);
+    let prop = as_updater_object::<_, prop_type::String>(IndependentProp::new(
+        String::from("hello").into(),
+    ));
 
-    // on the prop view, record that we request the value be "bye"
-    prop_view.queue_update(String::from("bye"));
+    let string_data = return_single_string_data_query_result("hello", true);
+    let data = DataQueryResults::from_vec(vec![string_data]);
 
-    let invert_result = prop.invert(false).unwrap();
+    let invert_results = prop.invert_untyped(data, "bye".into(), false).unwrap().vec;
 
-    // we should get a request informing core that we need to change the state
+    // request change in original
     assert_eq!(
-        invert_result,
-        vec![DependencyValueUpdateRequest {
-            data_query_idx: 0,
-            dependency_idx: 0
+        invert_results[0].values,
+        vec![PropWithMeta {
+            value: "bye".into(),
+            changed: true,
+            came_from_default: false,
+            origin: None
         }]
     );
-
-    // the independent state has recorded that it has been requested to be false
-    assert_eq!(*independent_state.get_requested_value(), "bye");
 }
 
 mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up independent boolean prop and its independent state dependency
-    pub fn set_up_boolean_independent_prop(
-        initial_value: bool,
+    pub fn return_single_boolean_data_query_result(
+        value: bool,
         came_from_default: bool,
-    ) -> (Prop<bool>, PropView<bool>, PropViewMut<bool>) {
-        let mut prop: Prop<bool> = IndependentProp::new(initial_value).into_prop();
-        let prop_view = prop.create_new_read_only_view();
-
-        // need to return data queries since side effect is saving the required data
-        prop.return_data_queries();
-
-        // Note: the default_value specified in the creation of prop above
-        // isn't used at this level of testing, so we supply it directly here to match
-        let (independent_state_dependency, independent_state) =
-            create_prop_dependency(initial_value, came_from_default);
-
-        let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-            independent_state_dependency,
-        ])];
-
-        prop.save_dependencies(&dependencies_created_for_data_queries);
-
-        (prop, prop_view, independent_state)
+    ) -> DataQueryResult {
+        DataQueryResult {
+            values: vec![PropWithMeta {
+                value: PropValue::Boolean(value),
+                came_from_default,
+                changed: true,
+                origin: None,
+            }],
+        }
     }
 
-    /// Utility function to set up independent string prop and its independent state dependency
-    pub fn set_up_string_independent_prop(
-        initial_value: String,
+    pub fn return_single_string_data_query_result(
+        value: &str,
         came_from_default: bool,
-    ) -> (Prop<String>, PropView<String>, PropViewMut<String>) {
-        let mut prop: Prop<String> = IndependentProp::new(initial_value.clone()).into_prop();
-        let prop_view = prop.create_new_read_only_view();
+    ) -> DataQueryResult {
+        DataQueryResult {
+            values: vec![PropWithMeta {
+                value: PropValue::String(value.to_string().into()),
+                came_from_default,
+                changed: true,
+                origin: None,
+            }],
+        }
+    }
 
-        // need to return data queries since side effect is saving the required data
-        prop.return_data_queries();
+    pub fn assert_boolean_calculated_value(result: PropCalcResult<PropValue>, value: bool) {
+        let value: PropValue = value.into();
 
-        // Note: the default_value specified in the creation of prop above
-        // isn't used at this level of testing, so we supply it directly here to match
-        let (independent_state_dependency, independent_state) =
-            create_prop_dependency(initial_value, came_from_default);
+        match result {
+            PropCalcResult::FromDefault(_) => {
+                panic!("incorrectly from default")
+            }
+            PropCalcResult::Calculated(boolean_prop) => {
+                assert_eq!(boolean_prop, value)
+            }
+            PropCalcResult::NoChange => panic!("Incorrectly no change"),
+        }
+    }
 
-        let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-            independent_state_dependency,
-        ])];
+    pub fn assert_boolean_default_result(result: PropCalcResult<PropValue>, value: bool) {
+        let value: PropValue = value.into();
 
-        prop.save_dependencies(&dependencies_created_for_data_queries);
+        match result {
+            PropCalcResult::FromDefault(boolean_prop) => {
+                assert_eq!(boolean_prop, value)
+            }
+            PropCalcResult::Calculated(_) => {
+                panic!("incorrectly calculated")
+            }
+            PropCalcResult::NoChange => panic!("Incorrectly no change"),
+        }
+    }
 
-        (prop, prop_view, independent_state)
+    pub fn assert_string_calculated_value(result: PropCalcResult<PropValue>, value: &str) {
+        let value: PropValue = value.into();
+
+        match result {
+            PropCalcResult::FromDefault(_) => {
+                panic!("incorrectly from default")
+            }
+            PropCalcResult::Calculated(string_prop) => {
+                assert_eq!(string_prop, value)
+            }
+            PropCalcResult::NoChange => panic!("Incorrectly no change"),
+        }
+    }
+
+    pub fn assert_string_default_result(result: PropCalcResult<PropValue>, value: &str) {
+        let value: PropValue = value.into();
+
+        match result {
+            PropCalcResult::FromDefault(string_prop) => {
+                assert_eq!(string_prop, value)
+            }
+            PropCalcResult::Calculated(_) => {
+                panic!("incorrectly calculated")
+            }
+            PropCalcResult::NoChange => panic!("Incorrectly no change"),
+        }
     }
 }
