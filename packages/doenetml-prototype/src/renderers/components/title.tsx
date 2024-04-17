@@ -4,5 +4,5 @@ import { BasicComponentWithPassthroughChildren } from "../types";
 export const Title: BasicComponentWithPassthroughChildren<{}> = ({
     children,
 }) => {
-    return <span className="title">{children}</span>;
+    return <span className="referenced-title">{children}</span>;
 };

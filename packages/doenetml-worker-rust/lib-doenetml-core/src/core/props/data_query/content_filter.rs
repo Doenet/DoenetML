@@ -58,6 +58,11 @@ impl ApplyTest<FilterData<'_>, GraphNode> for ContentFilter {
                     // We special case them here.
                     matches!(profile, PropProfile::String | PropProfile::LiteralString)
                 }
+                // We may encounter a prop here if we were created with syntax like `$sec.title`.
+                // We are looking for components with matching props, not props themselves, so we filter out the prop.
+                // Ideally, if the prop is a `ContentRef/ComponentRef`, we should determine its referent
+                // and apply this test to that component, but it was too hard (Apr 16, 24)
+                GraphNode::Prop(_) => false,
                 _ => unreachable!("Only components and strings can match profiles"),
             },
             ContentFilter::HasPropMatchingProfileAndCondition(profile, cond) => match node {

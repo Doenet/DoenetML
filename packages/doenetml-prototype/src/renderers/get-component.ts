@@ -14,6 +14,7 @@ import {
     TextInput,
     Boolean,
     Title,
+    _Fragment,
 } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 import { ChoiceInput } from "./components/choice-input";
@@ -64,6 +65,7 @@ const TEXT_MODE_COMPONENTS: Record<
     text: { component: Text },
     boolean: { component: Boolean },
     title: { component: Title, passthroughChildren: true },
+    _fragment: { component: _Fragment, passthroughChildren: true },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<

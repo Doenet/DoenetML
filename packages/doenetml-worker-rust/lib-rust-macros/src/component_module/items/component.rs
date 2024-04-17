@@ -37,7 +37,14 @@ impl ComponentModule {
 
     pub fn impl_component(&self) -> TokenStream {
         let component_name = &self.name;
-        let name_camel_case = self.name.to_case(Case::Camel);
+
+        // Take care to preserve a leading "_".
+        let leading_underscore = if self.name.starts_with('_') {
+            "_".to_string()
+        } else {
+            "".to_string()
+        };
+        let name_camel_case = leading_underscore + &(self.name.to_case(Case::Camel));
 
         let ref_transmutes_to = self
             .ref_transmutes_to
