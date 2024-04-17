@@ -1,7 +1,7 @@
 //! An error component. The error component is processed like a regular component until rendering to `FlatDast`,
 //! whereupon it is converted into a DAST error.
 
-use crate::components::prelude::*;
+use crate::{components::prelude::*, props::UpdaterObject};
 
 #[derive(Debug, Default, Clone)]
 pub struct _Error {
@@ -25,7 +25,6 @@ impl ComponentNode for _Error {
 impl ComponentActions for _Error {}
 impl ComponentOnAction for _Error {}
 impl ComponentAttributes for _Error {}
-impl ComponentVariantProps for _Error {}
 
 #[derive(Debug, Default)]
 pub struct _ErrorProps {}
@@ -51,5 +50,35 @@ impl ComponentProps for _Error {
         _name: &str,
     ) -> Option<LocalPropIdx> {
         None
+    }
+}
+
+impl ComponentVariantProps for _Error {
+    fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
+        None
+    }
+    fn get_num_props(&self) -> usize {
+        0
+    }
+    fn get_prop_is_for_render(&self, _local_prop_idx: LocalPropIdx) -> bool {
+        panic!("No props on _Error")
+    }
+    fn get_prop_name(&self, _local_prop_idx: LocalPropIdx) -> &'static str {
+        panic!("No props on _Error")
+    }
+    fn get_prop_profile(&self, _local_prop_idx: LocalPropIdx) -> Option<PropProfile> {
+        None
+    }
+    fn get_prop_value_type(&self, _local_prop_idx: LocalPropIdx) -> PropValueType {
+        panic!("No props on _Error")
+    }
+    fn get_prop_is_public(&self, _local_prop_idx: LocalPropIdx) -> bool {
+        panic!("No props on _Error")
+    }
+    fn get_prop_names(&self) -> &'static [&'static str] {
+        &[]
+    }
+    fn get_prop_updater_object(&self, _local_prop_idx: LocalPropIdx) -> UpdaterObject {
+        panic!("No props on _Error")
     }
 }
