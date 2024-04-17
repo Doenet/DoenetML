@@ -267,47 +267,37 @@ fn section_gets_division_depth() {
     //println!("{}", core.to_mermaid_dependency_graph());
 }
 
-//#[test]
-//fn section_xxx() {
-//    // Items with idx 1 and 5 are <section> elements
-//    let dast_root = dast_root_no_position(
-//        r#"
-//        <section name="s1"><title>Hello</title><text>content</text></section> $s1.title
-//        "#,
-//    );
-//
-//    let mut core = Core::new();
-//    core.init_from_dast_root(&dast_root);
-//
-//    //println!("{:#?}", core.to_flat_dast());
-//
-//    //println!("{}", core.to_mermaid_structure_graph());
-//    //println!("\n\n\n");
-//    //println!("{}", core.to_mermaid_dependency_graph());
-//}
-//#[test]
-//fn section_xxx2() {
-//    // Items with idx 1 and 5 are <section> elements
-//    let dast_root = dast_root_no_position(
-//        r#"
-//        <text name="t1">text</text>$t1.value
-//        "#,
-//    );
-//
-//    let mut core = Core::new();
-//    core.init_from_dast_root(&dast_root);
-//
-//    //println!("{:#?}", core.to_flat_dast());
-//
-//    println!("{}", core.to_mermaid_structure_graph());
-//    //println!("\n\n\n");
-//    //println!("{}", core.to_mermaid_dependency_graph());
-//}
+#[test]
+fn section_title_reference_works() {
+    // Items with idx 1 and 5 are <section> elements
+    let dast_root = dast_root_no_position(
+        r#"
+       <section name="s1"><title>Hello</title><text>content</text></section> $s1.title
+       "#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // just to make sure this doesn't error
+    core.to_flat_dast();
+
+    let fragment_idx = 4.into();
+
+    assert_eq!(
+        get_fragment_rendered_children_prop(fragment_idx, &mut core),
+        vec![ContentRef::Component(2.into()),]
+    );
+
+    //println!("{}", core.to_mermaid_structure_graph());
+    //println!("\n\n\n");
+    //println!("{}", core.to_mermaid_dependency_graph());
+}
 
 mod test_helpers {
 
     use doenetml_core::{
-        components::doenet::section::SectionProps,
+        components::doenet::{_fragment::_FragmentProps, section::SectionProps},
         props::{prop_type, traits::IntoPropView, PropView},
         state::types::content_refs::ContentRef,
     };
@@ -384,5 +374,20 @@ mod test_helpers {
         let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();
 
         prop_view.value
+    }
+
+    /// Resolves `renderedChildren` from a `<section>` component and returns its value
+    pub fn get_fragment_rendered_children_prop(
+        component_idx: ComponentIdx,
+        core: &mut Core,
+    ) -> Vec<ContentRef> {
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: _FragmentProps::RenderedChildren.local_idx(),
+        });
+        let prop = core.get_prop_for_render_untracked(prop_node);
+        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
+
+        (*prop_view.value).clone().into_vec()
     }
 }
