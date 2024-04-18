@@ -1,5 +1,9 @@
 //! This file contains utilities for testing DoenetMLCore.
+use doenetml_core::components::types::{ComponentIdx, LocalPropIdx, PropPointer};
 use doenetml_core::dast::{DastRoot, FlatDastRoot};
+use doenetml_core::props::cache::PropWithMeta;
+use doenetml_core::props::PropValue;
+use doenetml_core::Core;
 use serde_json;
 #[allow(unused)]
 pub use serde_json::{json, Value};
@@ -121,4 +125,64 @@ pub fn attach_codelldb_debugger() {
         .output()
         .unwrap();
     std::thread::sleep(std::time::Duration::from_millis(1000)); // Wait for debugger to attach
+}
+
+/// A mirror of `Core` with extra methods for testing.
+#[allow(unused)]
+pub struct TestCore {
+    pub core: doenetml_core::Core,
+}
+#[allow(unused)]
+impl TestCore {
+    pub fn new() -> Self {
+        Self { core: Core::new() }
+    }
+    pub fn new_from(core: doenetml_core::Core) -> Self {
+        Self { core }
+    }
+    /// Get a prop from the core without tracking it. It will be resolved and calculated
+    /// if it hasn't been already. This function internally uses `get_prop_for_render_untracked`.
+    pub fn get_prop<A, B>(&mut self, component_idx: A, local_prop_idx: B) -> PropWithMeta
+    where
+        ComponentIdx: From<A>,
+        LocalPropIdx: From<B>,
+    {
+        let component_idx = ComponentIdx::from(component_idx);
+        let local_prop_idx = LocalPropIdx::from(local_prop_idx);
+        let prop_node = self
+            .core
+            .document_model
+            .prop_pointer_to_prop_node(PropPointer {
+                component_idx,
+                local_prop_idx,
+            });
+        let prop = self.core.get_prop_for_render_untracked(prop_node);
+        prop
+    }
+
+    /// Get the value of a prop from the core without tracking it. It will be resolved and calculated
+    /// if it hasn't been already. This function internally uses `get_prop_for_render_untracked`.
+    pub fn get_prop_value<A, B>(&mut self, component_idx: A, local_prop_idx: B) -> PropValue
+    where
+        ComponentIdx: From<A>,
+        LocalPropIdx: From<B>,
+    {
+        let prop = self.get_prop(component_idx, local_prop_idx);
+        prop.value
+    }
+
+    pub fn get_component<A>(&self, component_idx: A) -> doenetml_core::components::Component
+    where
+        ComponentIdx: From<A>,
+    {
+        let component_idx = ComponentIdx::from(component_idx);
+        self.core.document_model.get_component(component_idx)
+    }
+
+    pub fn to_flat_dast(&mut self) -> FlatDastRoot {
+        self.core.to_flat_dast()
+    }
+    pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
+        self.core.init_from_dast_root(dast_root);
+    }
 }

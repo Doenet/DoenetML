@@ -52,6 +52,18 @@ impl ComponentRefProp {
     }
 }
 
+impl PropFromAttribute<prop_type::ComponentRef> for ComponentRefProp {
+    fn new_from_attribute(attr_name: &'static str, _default: prop_type::ComponentRef) -> Self {
+        Self {
+            data_query: DataQuery::Attribute {
+                attribute_name: attr_name,
+                match_profiles: vec![PropProfile::_Ref],
+            },
+            component_to_select: None,
+        }
+    }
+}
+
 /// Structure to hold data generated from the data queries
 #[derive(TryFromDataQueryResults, Debug)]
 #[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
@@ -98,6 +110,11 @@ impl PropUpdater for ComponentRefProp {
                 PropCalcResult::Calculated(component)
             }
             DataQuery::SelfRef => {
+                let component_ref: PropView<prop_type::ComponentRef> =
+                    data.vec[0].values[0].to_owned().into_prop_view();
+                PropCalcResult::Calculated(component_ref.value)
+            }
+            DataQuery::Attribute { .. } => {
                 let component_ref: PropView<prop_type::ComponentRef> =
                     data.vec[0].values[0].to_owned().into_prop_view();
                 PropCalcResult::Calculated(component_ref.value)

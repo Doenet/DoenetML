@@ -3,6 +3,7 @@ use strum_macros::EnumString;
 
 pub use super::_error::_Error;
 pub use super::_external::_External;
+pub use super::_ref::_Ref;
 pub use super::doenet::_fragment::_Fragment;
 pub use super::doenet::boolean::Boolean;
 pub use super::doenet::document::Document;
@@ -12,6 +13,7 @@ pub use super::doenet::section::Section;
 pub use super::doenet::text::Text;
 pub use super::doenet::text_input::TextInput;
 pub use super::doenet::title::Title;
+pub use super::doenet::xref::Xref;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -37,7 +39,9 @@ pub enum ComponentEnum {
     Title(Title),
     P(P),
     Document(Document),
+    Xref(Xref),
     _Error(_Error),
     _External(_External),
     _Fragment(_Fragment),
+    _Ref(_Ref),
 }

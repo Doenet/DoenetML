@@ -50,6 +50,8 @@ pub enum PropProfile {
     Renderable,
     /// Matches the RenderedChildren prop
     RenderedChildren,
+    /// Matches a prop that stores a reference to another component.
+    _Ref,
 }
 
 // TODO: implement with macro?
@@ -71,6 +73,7 @@ impl PropProfile {
             }
             PropProfile::SerialNumber => PropValue::Integer(i64::default()),
             PropProfile::DivisionDepth => PropValue::Integer(i64::default()),
+            PropProfile::_Ref => PropValue::ComponentRef(None),
         }
     }
 }

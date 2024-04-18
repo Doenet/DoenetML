@@ -255,11 +255,19 @@ impl Core {
                 .iter()
                 .enumerate()
             {
-                mermaid.push_str(&format!(
-                    "{}([\"@{}\"])\n",
-                    attr_virtual_node.to_mermaid_id(),
-                    component.get_attribute_names()[i]
-                ));
+                if let Some(attr_name) = component.get_attribute_names().get(i) {
+                    mermaid.push_str(&format!(
+                        "{}([\"@{}\"])\n",
+                        attr_virtual_node.to_mermaid_id(),
+                        attr_name
+                    ));
+                } else {
+                    mermaid.push_str(&format!(
+                        "{}([\"@{}\"])\n",
+                        attr_virtual_node.to_mermaid_id(),
+                        "ERROR_MISSING_ATTRIBUTE"
+                    ));
+                }
             }
 
             // Props

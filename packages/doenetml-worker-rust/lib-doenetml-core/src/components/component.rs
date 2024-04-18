@@ -157,6 +157,9 @@ impl ComponentAttributes for Component {
     fn get_attribute_names(&self) -> Vec<&'static str> {
         self.variant.get_attribute_names()
     }
+    fn get_preserve_ref_attribute_indices(&self) -> &[usize] {
+        self.variant.get_preserve_ref_attribute_indices()
+    }
 }
 
 impl ComponentCommon for Component {
