@@ -21,6 +21,7 @@ pub fn process_data_query_prop(
         PropSpecifier::Matching(match_profiles) => document_structure
             .get_component_prop_by_profile(component_idx, &match_profiles)
             .map(|prop_pointer| prop_pointer.local_prop_idx),
+        PropSpecifier::MatchingPair(_profiles1, _profiles2) => unimplemented!(),
     };
 
     if let Some(local_prop_idx) = local_prop_idx {

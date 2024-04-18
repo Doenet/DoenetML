@@ -81,6 +81,10 @@ pub enum PropSpecifier {
     LocalIdx(LocalPropIdx),
     /// Get a prop that matches one of the profiles. The component decides which prop to return.
     Matching(Vec<PropProfile>),
+    /// Get a pair of props
+    /// where the first prop matches a profile from the first set
+    /// and the second prop matches a profile from the second set.
+    MatchingPair(Vec<PropProfile>, Vec<PropProfile>),
 }
 
 /// The source of a  [`DataQuery::PickProp`].

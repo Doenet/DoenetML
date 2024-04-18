@@ -52,6 +52,12 @@ impl PropDefinition {
             | PropValueDiscriminants::ComponentRefs
             | PropValueDiscriminants::ContentRefs
             | PropValueDiscriminants::ContentRef => _Fragment::NAME,
+            PropValueDiscriminants::PropVec => {
+                panic!("No preferred component type for PropVec")
+            }
+            PropValueDiscriminants::None => {
+                panic!("No preferred component type for None")
+            }
         }
     }
 }

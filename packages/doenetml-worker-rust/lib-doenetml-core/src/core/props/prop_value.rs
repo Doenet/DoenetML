@@ -47,6 +47,8 @@ pub enum PropValue {
     #[serde(with = "rc_serde")]
     ContentRefs(prop_type::ContentRefs),
     ContentRef(prop_type::ContentRef),
+    None(()),
+    PropVec(Vec<PropValue>),
 }
 
 /// The discriminating type of a `PropValue`.
