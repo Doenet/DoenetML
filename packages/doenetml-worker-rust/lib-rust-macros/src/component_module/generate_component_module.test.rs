@@ -91,6 +91,24 @@ fn test_can_parse_empty_module() {
 }
 
 #[test]
+fn test_can_parse_preserve_ref() {
+    let input = r#"
+        #[component(name = Document, ref_transmutes_to = Text)]
+        mod component {
+            enum Attributes {
+                MyAttr,
+                #[attribute(preserve_refs)]
+                YourAttr
+            }
+        }
+    "#;
+    let result = generate_component_module(syn::parse_str(input).unwrap());
+    println!("\n{}\n", pretty_print_result(&result));
+    //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
+    // dbg!(result.to_string());
+}
+
+#[test]
 fn test_can_parse_module3() {
     let input = r#"
 #[component(name = Text, extend_via_default_prop)]

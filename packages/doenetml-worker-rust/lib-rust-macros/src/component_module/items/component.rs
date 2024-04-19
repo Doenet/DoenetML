@@ -56,6 +56,7 @@ impl ComponentModule {
 
         let action_names = self.actions.get_action_names();
         let attribute_names = self.attributes.get_attribute_names();
+        let preserve_ref_attribute_indices = self.attributes.get_preserve_ref_attribute_indices();
         let prop_names = self.props.get_prop_names();
         let prop_profiles = self
             .props
@@ -96,6 +97,8 @@ impl ComponentModule {
                 const REF_TRANSMUTES_TO: Option<&'static str> = #ref_transmutes_to;
 
                 pub const ATTRIBUTE_NAMES: &'static [&'static str] = &[#(#attribute_names),*];
+
+                const PRESERVE_REF_ATTRIBUTE_INDICES: &'static [usize] = &[#(#preserve_ref_attribute_indices),*];
 
                 const ACTION_NAMES: &'static [&'static str] = &[#(#action_names),*];
 
@@ -187,6 +190,10 @@ impl ComponentModule {
             impl ComponentAttributes for Component {
                 fn get_attribute_names(&self) -> Vec<AttributeName> {
                     Component::ATTRIBUTE_NAMES.iter().map(|x| *x).collect()
+                }
+
+                fn get_preserve_ref_attribute_indices(&self) -> &[usize] {
+                    Component::PRESERVE_REF_ATTRIBUTE_INDICES
                 }
             }
         }

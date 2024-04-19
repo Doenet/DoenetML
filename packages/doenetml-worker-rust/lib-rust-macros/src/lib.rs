@@ -90,6 +90,8 @@ mod try_from_ref;
 /// - `default = ...` - Required; the default value of the attribute. For strings use `String::new()`, for other types, you can specify
 /// their value literally.
 /// - `explicit_type = ...` - Optional; the type of the attribute. If not provided, the type will be inferred from the `prop` attribute.
+/// - `preserve_refs` - Optional; if set, the references in this attribute will not be expanded into components. Instead, they will become
+/// an internal-use-only `_ref` component which preserves a pointer back to the referent component.
 ///
 /// ### `#[prop(...)]`
 ///

@@ -37,6 +37,14 @@ impl<T> Source<T> {
             Source::Ref(m) => Source::Attribute(m),
         }
     }
+    /// Returns whether `self` is an `Attribute` variant.
+    pub fn is_attribute(&self) -> bool {
+        matches!(self, Source::Attribute(_))
+    }
+    /// Returns whether `self` is a `Ref` variant.
+    pub fn is_ref(&self) -> bool {
+        matches!(self, Source::Ref(_))
+    }
 }
 
 impl Source<RefResolution> {

@@ -99,6 +99,23 @@ impl AttributesEnum {
             .collect()
     }
 
+    /// Get a list of indices of attributes annotated with `preserve_refs = true`
+    pub fn get_preserve_ref_attribute_indices(&self) -> Vec<usize> {
+        self.get_variants()
+            .iter()
+            .enumerate()
+            .filter_map(
+                |(i, variant)| {
+                    if variant.preserve_refs {
+                        Some(i)
+                    } else {
+                        None
+                    }
+                },
+            )
+            .collect()
+    }
+
     fn generate_variant_doc_comment(&self, variant_idx: usize) -> String {
         let variant = &self.get_variants()[variant_idx];
         let existing_doc = variant.doc.clone().unwrap_or_default();
@@ -185,6 +202,9 @@ pub struct AttributesVariant {
     /// The explicit type for the attribute. This can be auto-computed if using one of the standard
     /// prop types.
     pub explicit_type: Option<Path>,
+    /// Whether or not to preserve/expand references that are children in this attribute.
+    #[darling(default)]
+    pub preserve_refs: bool,
     pub attrs: Vec<syn::Attribute>,
     #[darling(default)]
     pub doc: Option<String>,

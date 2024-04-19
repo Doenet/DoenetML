@@ -16,6 +16,13 @@ pub trait ComponentAttributes {
         // If so, should provide a mechanism for including default props depending on them.
         vec![]
     }
+
+    /// In some attributes, references should not be expanded into components, but
+    /// should instead keep the data they have about their referent.
+    /// This function returns the (local) indices of the attributes whose references should be preserved.
+    fn get_preserve_ref_attribute_indices(&self) -> &[usize] {
+        &[]
+    }
 }
 
 /// Trait that creates props from attribute variants.
