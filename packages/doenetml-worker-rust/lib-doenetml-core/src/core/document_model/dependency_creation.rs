@@ -145,6 +145,7 @@ impl DocumentModel {
                     prop_pointer,
                     query_node,
                     &self.document_structure.borrow(),
+                    self,
                 );
                 fn_add_edges(edges_to_add);
             }
