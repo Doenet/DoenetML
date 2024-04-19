@@ -52,13 +52,39 @@ impl ComponentRefProp {
     }
 }
 
+impl PropFromAttribute<prop_type::ComponentRef> for ComponentRefProp {
+    fn new_from_attribute(attr_name: &'static str, _default: prop_type::ComponentRef) -> Self {
+        Self {
+            data_query: DataQuery::Attribute {
+                attribute_name: attr_name,
+                match_profiles: vec![PropProfile::_Ref],
+            },
+            component_to_select: None,
+        }
+    }
+}
+
 /// Structure to hold data generated from the data queries
+/// This is used for the `DataQuery::ComponentRefs` variant.
 #[derive(TryFromDataQueryResults, Debug)]
-#[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
-struct RequiredData {
+#[data_query(query_trait = DataQueriesRefs, pass_data = &DataQuery)]
+struct RequiredDataRefs {
     refs: PropView<prop_type::ContentRefs>,
 }
-impl DataQueries for RequiredData {
+impl DataQueriesRefs for RequiredDataRefs {
+    fn refs_query(query: &DataQuery) -> DataQuery {
+        query.clone()
+    }
+}
+
+/// Structure to hold data generated from the data queries
+/// This is used for the `DataQuery::SelfRef` and `DataQuery::Attribute` variants.
+#[derive(TryFromDataQueryResults, Debug)]
+#[data_query(query_trait = DataQueriesRef, pass_data = &DataQuery)]
+struct RequiredDataRef {
+    refs: PropView<prop_type::ComponentRef>,
+}
+impl DataQueriesRef for RequiredDataRef {
     fn refs_query(query: &DataQuery) -> DataQuery {
         query.clone()
     }
@@ -68,14 +94,14 @@ impl PropUpdater for ComponentRefProp {
     type PropType = prop_type::ComponentRef;
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        RequiredData::data_queries_vec(&self.data_query)
+        RequiredDataRefs::data_queries_vec(&self.data_query)
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        // There are two options based on the data query that created us.
+        // There are different options based on the data query that created us.
         match self.data_query {
             DataQuery::ComponentRefs { .. } => {
-                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                let required_data = RequiredDataRefs::try_from_data_query_results(data).unwrap();
                 let content_refs = required_data.refs;
 
                 if content_refs.value.is_empty() {
@@ -98,9 +124,12 @@ impl PropUpdater for ComponentRefProp {
                 PropCalcResult::Calculated(component)
             }
             DataQuery::SelfRef => {
-                let component_ref: PropView<prop_type::ComponentRef> =
-                    data.vec[0].values[0].to_owned().into_prop_view();
-                PropCalcResult::Calculated(component_ref.value)
+                let required_data = RequiredDataRef::try_from_data_query_results(data).unwrap();
+                PropCalcResult::Calculated(required_data.refs.value)
+            }
+            DataQuery::Attribute { .. } => {
+                let required_data = RequiredDataRef::try_from_data_query_results(data).unwrap();
+                PropCalcResult::Calculated(required_data.refs.value)
             }
             _ => {
                 panic!("ComponentRefProp should only be created with a FilteredChildren data query")

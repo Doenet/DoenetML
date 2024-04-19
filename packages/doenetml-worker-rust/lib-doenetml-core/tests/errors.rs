@@ -3,7 +3,6 @@ use doenetml_core::core::core::Core;
 use test_utils::*;
 
 #[test]
-#[ignore]
 fn errors_from_dast_parsing_transmitted() {
     let dast_root = dast_root_no_position("<document><a></document>");
 
@@ -24,7 +23,6 @@ fn errors_from_dast_parsing_transmitted() {
 }
 
 #[test]
-#[ignore]
 fn error_from_no_referent() {
     let dast_root = dast_root_no_position("<document>$t</document>");
 
@@ -44,7 +42,6 @@ fn error_from_no_referent() {
 }
 
 #[test]
-#[ignore]
 fn error_referencing_external_and_referencing_error() {
     let dast_root = dast_root_no_position(
         "<document><text extend='$e' name='f' />$f<ext name='e'/></document>",

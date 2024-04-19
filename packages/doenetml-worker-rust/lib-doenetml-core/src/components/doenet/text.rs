@@ -58,7 +58,7 @@ impl PropGetUpdater for TextProps {
                 StringProp::new_from_children("".to_string()),
             ),
             TextProps::Text => as_updater_object::<_, props::types::Text>(PropAlias::new(
-                TextProps::local_idx(&TextProps::Value),
+                TextProps::Value.local_idx(),
             )),
             TextProps::Hidden => {
                 as_updater_object::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())

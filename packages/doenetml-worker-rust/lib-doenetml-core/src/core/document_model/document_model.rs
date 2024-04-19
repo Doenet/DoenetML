@@ -291,3 +291,7 @@ impl Default for DocumentModel {
         Self::new()
     }
 }
+
+#[cfg(test)]
+#[path = "document_model.test.rs"]
+mod test;

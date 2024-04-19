@@ -13,7 +13,7 @@ use crate::{
         },
         types::{PropDefinitionIdx, PropPointer},
         Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
-        ComponentNode, ComponentProps,
+        ComponentNode, ComponentProps, _Ref,
     },
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
@@ -36,6 +36,10 @@ pub struct ComponentBuilder {
     /// The reified components. These can be queried for information about their attributes/props/state
     /// as well as asked to calculate/recalculate props.
     pub components: TiVec<ComponentIdx, Component>,
+    /// Some components should not be expanded when they are extending something else. Instead they should be
+    /// turned into the internal `_ref` component. This vec stores whether an _extend_ing component should be
+    /// turned into a `_ref` component.
+    component_preserve_refs: TiVec<ComponentIdx, bool>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
     pub strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
@@ -56,6 +60,7 @@ impl ComponentBuilder {
         ComponentBuilder {
             structure_graph: DirectedGraph::new(),
             components: TiVec::new(),
+            component_preserve_refs: TiVec::new(),
             strings: StringCache::new(),
             props: TiVec::new(),
             virtual_node_count: 0,
@@ -98,8 +103,13 @@ impl ComponentBuilder {
                 continue;
             }
 
-            let ref_source = elm.extending.clone().unwrap();
             let component = &self.components[component_idx];
+            if matches!(component.variant, ComponentEnum::_Ref(_)) {
+                // The `_Ref` component is special, keeping a pointer to its referent
+                // but never getting connected to it.
+                continue;
+            }
+            let ref_source = elm.extending.clone().unwrap();
             let referent = &self.components[ComponentIdx::from(ref_source.idx())];
 
             match Self::determine_extending(ref_source, component, referent) {
@@ -300,13 +310,19 @@ impl ComponentBuilder {
     /// Creates all `components` but sets all their `extending` fields to `None`.
     /// This is an intermediate step that needs to be done before resolving references in `extending`.
     fn init_normalized_root_without_extending(&mut self, normalized_root: &NormalizedRoot) {
+        // Keep track of special expanding behavior for components with `extend`.
+        self.component_preserve_refs =
+            TiVec::from_iter(std::iter::repeat(false).take(normalized_root.nodes.len()));
+
         // We are going to create components possibly out of order. We will track which components are created
         // and which are in the process of being created.
         let mut components: Vec<Option<Component>> = std::iter::repeat_with(|| None)
             .take(normalized_root.nodes.len())
             .collect();
 
-        // Creating the nodes lowest-index first should lead to less queueing than the other way around.
+        // Creating the nodes lowest-index first. This
+        //  1. is assumed by the algorithm which specializes the `extend` expansion/resolution, and
+        //  2. should lead to less queueing than the other way around.
         let mut queue: Vec<usize> = Vec::from_iter((0..components.len()).rev());
 
         while let Some(idx) = queue.pop() {
@@ -362,7 +378,61 @@ impl ComponentBuilder {
                         unrecognized_attributes: HashMap::new(),
                     },
                 );
-                if let Some(Source::Ref(ref_resolution)) = &elm.extending {
+
+                // Some of a component's attributes may specify that refs in those attributes should not be expanded.
+                // We mark the corresponding components.
+                // Because the component's attributes have not been processed yet, we need to look up the corresponding
+                // attributes from `node`
+                for preserve_ref_attr_name in component
+                    .get_preserve_ref_attribute_indices()
+                    .iter()
+                    .map(|idx| component.get_attribute_names()[*idx])
+                {
+                    let attr = elm
+                        .attributes
+                        .iter()
+                        .find(|a| a.name == preserve_ref_attr_name);
+                    if attr.is_none() {
+                        continue;
+                    }
+                    let attr = attr.unwrap();
+                    for child in &attr.children {
+                        match child {
+                            UntaggedContent::Ref(idx) => {
+                                self.component_preserve_refs[ComponentIdx::from(*idx)] = true;
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                if self.component_preserve_refs[component.get_idx()] {
+                    // If we're here, we have special expanding behavior.
+                    // We want to expand _most_ components that are marked with `extending`, but not all.
+                    // Components that are children of an attribute that has the `preserve_refs` flag set
+                    // are protected and should be converted into a special `_ref` component instead of being linked
+                    // to their extend referent.
+                    if let Some(ref_source) = &elm.extending {
+                        let ref_resolution = match ref_source {
+                            Source::Ref(ref_resolution) => ref_resolution,
+                            _ => unreachable!("Encountered an extend of style <foo extend='$xxx' /> inside of an attribute. It should be syntactically impossible to parse such an element in an attribute."),
+                        };
+                        if ref_resolution.unresolved_path.is_some() {
+                            // XXX: this should result in the component being converted into an error, not a hard panic.
+                            // TODO: Not only should this not be an error, but sometimes it is valid. For example `<point name="p">(3,2)</point><updateValue target="$p.x" newValue="$p.x+1" />`
+                            panic!("Cannot preserve_refs if there is a remaining path part. Remaining: {:?}", ref_resolution.unresolved_path);
+                        }
+                        // If we made it here, we are a ref pointing to a component and we should not actually be expanded
+                        // to a copy of our referent. Instead we should be replaced with a special `_ref` component that preserves the pointer.
+                        let referent_idx = ComponentIdx::from(ref_resolution.node_idx);
+
+                        // The new component!
+                        component = Component {
+                            common: component.common,
+                            variant: ComponentEnum::_Ref(_Ref { referent_idx }),
+                        };
+                    }
+                } else if let Some(Source::Ref(ref_resolution)) = &elm.extending {
                     // Some components specify that when they are referenced with the `$foo` syntax,
                     // a different component should be created in their place. E.g., `<textInput name="i" />$i`
                     // should become `<textInput name="i" /><text extend="$i` />`.

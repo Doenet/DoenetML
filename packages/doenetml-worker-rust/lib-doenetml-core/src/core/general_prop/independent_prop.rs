@@ -11,13 +11,27 @@ use crate::{components::prelude::*, props::UpdaterObject};
 /// - `new(default_value)`: create an independent prop with the given default value.
 #[derive(Debug, Default)]
 pub struct IndependentProp<T: Default + Clone> {
+    /// The default value of the prop.
     default: T,
+    /// Whether or not the prop can be changed.
+    frozen: bool,
 }
 
 impl<T: Default + Clone> IndependentProp<T> {
     /// Create an independent prop with the given default value.
     pub fn new(default: T) -> Self {
-        IndependentProp { default }
+        IndependentProp {
+            default,
+            frozen: false,
+        }
+    }
+
+    /// Create a new instance of the prop with the specified value. The value cannot be changed.
+    pub fn new_frozen(value: T) -> Self {
+        IndependentProp {
+            default: value,
+            frozen: true,
+        }
     }
 }
 
@@ -87,6 +101,9 @@ where
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
+        if self.frozen {
+            return Err(InvertError::CouldNotUpdate);
+        }
         let mut desired = RequiredData::try_new_desired(&data).unwrap();
 
         desired.independent_state.change_to(requested_value);
@@ -95,6 +112,6 @@ where
     }
 }
 
-// #[cfg(test)]
-// #[path = "independent_prop.test.rs"]
-// mod tests;
+#[cfg(test)]
+#[path = "independent_prop.test.rs"]
+mod tests;

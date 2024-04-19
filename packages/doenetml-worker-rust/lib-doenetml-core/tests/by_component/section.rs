@@ -304,9 +304,8 @@ mod test_helpers {
 
     use super::*;
 
-    const TITLE_LOCAL_IDX: LocalPropIdx = SectionProps::local_idx(&SectionProps::Title);
-    const RENDERED_CHILDREN_LOCAL_IDX: LocalPropIdx =
-        SectionProps::local_idx(&SectionProps::RenderedChildren);
+    const TITLE_LOCAL_IDX: LocalPropIdx = SectionProps::Title.local_idx();
+    const RENDERED_CHILDREN_LOCAL_IDX: LocalPropIdx = SectionProps::RenderedChildren.local_idx();
 
     /// Resolves `title` from a `<section>` component and returns its value as a `ComponentIdx`
     pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> Option<ComponentIdx> {

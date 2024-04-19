@@ -99,6 +99,23 @@ impl AttributesEnum {
             .collect()
     }
 
+    /// Get a list of indices of attributes annotated with `preserve_refs = true`
+    pub fn get_preserve_ref_attribute_indices(&self) -> Vec<usize> {
+        self.get_variants()
+            .iter()
+            .enumerate()
+            .filter_map(
+                |(i, variant)| {
+                    if variant.preserve_refs {
+                        Some(i)
+                    } else {
+                        None
+                    }
+                },
+            )
+            .collect()
+    }
+
     fn generate_variant_doc_comment(&self, variant_idx: usize) -> String {
         let variant = &self.get_variants()[variant_idx];
         let existing_doc = variant.doc.clone().unwrap_or_default();
@@ -185,6 +202,9 @@ pub struct AttributesVariant {
     /// The explicit type for the attribute. This can be auto-computed if using one of the standard
     /// prop types.
     pub explicit_type: Option<Path>,
+    /// Whether or not to preserve/expand references that are children in this attribute.
+    #[darling(default)]
+    pub preserve_refs: bool,
     pub attrs: Vec<syn::Attribute>,
     #[darling(default)]
     pub doc: Option<String>,
@@ -195,7 +215,7 @@ pub struct AttributesVariant {
 //
 
 impl ComponentModule {
-    /// Generate the `enum Props` and all the associated impls for required traits.
+    /// Generate the `enum Attributes` and all the associated impls for required traits.
     pub fn generate_attributes_and_impls(&self) -> TokenStream {
         let enum_attributes = self.enum_attributes();
         let impl_prop_from_attribute_variant_trait = self.impl_prop_from_attribute_variant_trait();
@@ -208,7 +228,7 @@ impl ComponentModule {
         }
     }
 
-    /// Generate the `enum Props` for this component.
+    /// Generate the `enum Attributes` for this component.
     pub fn enum_attributes(&self) -> TokenStream {
         let (_, _, attributes_name, _) = self.get_component_idents();
         let doc_string = self.attributes.generate_enum_doc_comment();
