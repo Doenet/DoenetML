@@ -320,7 +320,9 @@ impl ComponentBuilder {
             .take(normalized_root.nodes.len())
             .collect();
 
-        // Creating the nodes lowest-index first should lead to less queueing than the other way around.
+        // Creating the nodes lowest-index first. This
+        //  1. is assumed by the algorithm which specializes the `extend` expansion/resolution, and
+        //  2. should lead to less queueing than the other way around.
         let mut queue: Vec<usize> = Vec::from_iter((0..components.len()).rev());
 
         while let Some(idx) = queue.pop() {
@@ -377,7 +379,7 @@ impl ComponentBuilder {
                     },
                 );
 
-                // A some of a component's attributes may specify that refs in those attributes should not be expanded.
+                // Some of a component's attributes may specify that refs in those attributes should not be expanded.
                 // We mark the corresponding components.
                 // Because the component's attributes have not been processed yet, we need to look up the corresponding
                 // attributes from `node`
@@ -417,6 +419,7 @@ impl ComponentBuilder {
                         };
                         if ref_resolution.unresolved_path.is_some() {
                             // XXX: this should result in the component being converted into an error, not a hard panic.
+                            // TODO: Not only should this not be an error, but sometimes it is valid. For example `<point name="p">(3,2)</point><updateValue target="$p.x" newValue="$p.x+1" />`
                             panic!("Cannot preserve_refs if there is a remaining path part. Remaining: {:?}", ref_resolution.unresolved_path);
                         }
                         // If we made it here, we are a ref pointing to a component and we should not actually be expanded

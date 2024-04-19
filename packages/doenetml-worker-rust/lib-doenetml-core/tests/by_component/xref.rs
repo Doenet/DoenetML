@@ -27,3 +27,25 @@ fn xref_ref_attribute_refs_dont_expand() {
     let pv: PropView<prop_type::ComponentRef> = prop.into_prop_view();
     assert_eq!(pv.value.unwrap(), ComponentRef(section_idx));
 }
+
+#[test]
+fn xref_referring_to_itself_wont_crash_the_system() {
+    let dast_root = dast_root_no_position(r#"<xref name="foo" ref="$foo" />"#);
+
+    //attach_codelldb_debugger();
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+    core.to_flat_dast();
+
+    // the document tag will be index 0.
+    let xref_idx = ComponentIdx::from(1);
+    let _ref_idx = ComponentIdx::from(2);
+
+    // The `$foo` should be expanded into a `<_ref />` component
+    assert_eq!(core.get_component(_ref_idx).get_component_type(), "_ref");
+
+    let prop = core.get_prop(xref_idx, XrefProps::Referent.local_idx());
+    let pv: PropView<prop_type::ComponentRef> = prop.into_prop_view();
+    assert_eq!(pv.value.unwrap(), ComponentRef(xref_idx));
+}

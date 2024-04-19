@@ -84,7 +84,7 @@ impl PropUpdater for ComponentRefProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        // There are two options based on the data query that created us.
+        // There are different options based on the data query that created us.
         match self.data_query {
             DataQuery::ComponentRefs { .. } => {
                 let required_data = RequiredData::try_from_data_query_results(data).unwrap();
