@@ -51,7 +51,10 @@ impl DocumentModel {
             states: StateCache::new(),
             queries: RefCell::new(Vec::new()),
             prop_cache: PropCache::new(),
-            virtual_node_count: Cell::new(0),
+            // Start with a count of 1, as the virtual node will index 0
+            // will be used to represent null,
+            // i.e., the lack of a node in that spot in the dependency graph.
+            virtual_node_count: Cell::new(1),
         }
     }
 

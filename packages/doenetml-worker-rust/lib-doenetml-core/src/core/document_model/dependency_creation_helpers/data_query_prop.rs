@@ -8,6 +8,7 @@ use crate::{
 /// Process a `DataQuery::Prop`.
 ///
 /// Returns a vector of edges (of the form `(from, to)`) that should be added to the dependency graph.
+/// The resulting vec will be length 0 or 1.
 pub fn process_data_query_prop(
     component_idx: ComponentIdx,
     prop_specifier: PropSpecifier,

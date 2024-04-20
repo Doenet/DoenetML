@@ -173,6 +173,8 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
+            // For the component(s) of `source`
+            // find the prop(s) that match `prop_specifier`
             DataQuery::PickProp {
                 source,
                 prop_specifier,
@@ -183,6 +185,7 @@ impl DocumentModel {
                     )
                 }
 
+                // determine the nodes from which to pick props
                 let container_nodes = match source {
                     PickPropSource::Children => {
                         let document_structure = self.document_structure.borrow();
@@ -201,10 +204,10 @@ impl DocumentModel {
                     }
                 };
 
-                // For each prop we are attempting to match, `match_profiles_list` contains a vector of `PropProfile`s.
-                // A prop will be selected if it matches any of those `PropProfile`s in that vector.
                 match prop_specifier {
                     PropSpecifier::Matching(match_profiles) => {
+                        // pick the prop off each node, if it exists,
+                        // and potentially create an edge to that node
                         let document_structure = self.document_structure.borrow();
                         let mut edges = container_nodes
                             .into_iter()
@@ -213,9 +216,11 @@ impl DocumentModel {
 
                         match source {
                             PickPropSource::Children => {
+                                // for children, use all edges
                                 fn_add_edges(edges.collect());
                             }
                             PickPropSource::NearestMatchingAncestor => {
+                                // for nearest match ancestor, we just use the first edge, if it exists
                                 if let Some(edge) = edges.next() {
                                     fn_add_edges(vec![edge]);
                                 }
@@ -223,6 +228,7 @@ impl DocumentModel {
                         }
                     }
                     PropSpecifier::MatchingPair(match_profiles1, match_profiles2) => {
+                        // attempt to match both sets of profiles to the nodes
                         let document_structure = self.document_structure.borrow();
                         let props1 = container_nodes
                             .iter()
@@ -231,19 +237,26 @@ impl DocumentModel {
                             .iter()
                             .map(|&node| pick_prop(node, &match_profiles2, &document_structure));
 
+                        // create an iterator for the ingredients for the an edge to a virtual node
+                        // and then edges from that virtual node to both prop nodes
                         let mut matching_props = props1
                             .zip(props2)
                             .filter_map(|(p1, p2)| match (p1, p2) {
                                 (Some(prop1), Some(prop2)) => Some((prop1, prop2)),
-                                _ => None,
+                                // if only one prop is missing, substitute the null virtual node
+                                (Some(prop1), None) => Some((prop1, GraphNode::Virtual(0))),
+                                (None, Some(prop2)) => Some((GraphNode::Virtual(0), prop2)),
+                                (None, None) => None,
                             })
                             .map(|(prop1, prop2)| {
+                                // Note: this virtual node will be created only if these props will be used
                                 let virtual_node = self.add_virtual_node(query_node);
                                 (virtual_node, prop1, prop2)
                             });
 
                         match source {
                             PickPropSource::Children => {
+                                // for children, use all edges
                                 let edges =
                                     matching_props.flat_map(|(virtual_node, prop1, prop2)| {
                                         [
@@ -255,6 +268,7 @@ impl DocumentModel {
                                 fn_add_edges(edges.collect());
                             }
                             PickPropSource::NearestMatchingAncestor => {
+                                // for nearest match ancestor, we just use the first combination of edge, if it exists
                                 if let Some((virtual_node, prop1, prop2)) = matching_props.next() {
                                     fn_add_edges(vec![
                                         (query_node, virtual_node),
@@ -326,8 +340,7 @@ impl DocumentModel {
         new_node
     }
 
-    /// Creates a `GraphNode::Virtual` node adds it to the `dependency_graph`.
-    // XXX: Revisit if we still need this.
+    /// Creates a `GraphNode::Virtual` node and adds it to the `dependency_graph`.
     #[allow(unused)]
     pub(super) fn add_virtual_node(&self, _origin_node: GraphNode) -> GraphNode {
         let idx = self.virtual_node_count.get();
