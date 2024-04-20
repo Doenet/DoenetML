@@ -156,7 +156,7 @@ impl DataQueries for RequiredData {
 impl PropUpdater for BooleanProp {
     type PropType = prop_type::Boolean;
 
-    fn default(&self) -> prop_type::Boolean {
+    fn default(&self) -> Self::PropType {
         self.default_value
     }
 
@@ -164,7 +164,7 @@ impl PropUpdater for BooleanProp {
         RequiredData::data_queries_vec(&self.data_query)
     }
 
-    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<prop_type::Boolean> {
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let independent_state = required_data.independent_state;
         let booleans_and_strings = required_data.booleans_and_strings;

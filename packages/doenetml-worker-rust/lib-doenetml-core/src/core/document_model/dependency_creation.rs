@@ -186,6 +186,7 @@ impl DocumentModel {
                 }
 
                 // determine the nodes from which to pick props
+                #[allow(clippy::let_and_return)]
                 let container_nodes = match source {
                     PickPropSource::Children => {
                         let document_structure = self.document_structure.borrow();
