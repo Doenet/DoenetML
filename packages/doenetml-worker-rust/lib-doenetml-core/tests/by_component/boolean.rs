@@ -150,7 +150,7 @@ mod test_helpers {
         (*rc_value).clone()
     }
 
-    /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
+    /// Resolves `hidden` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,

@@ -1,41 +1,59 @@
+use std::rc::Rc;
+
 use crate::{
     components::prelude::*,
+    props::UpdaterObject,
     state::types::math_expr::{MathExpr, ToLatexParams},
 };
 
-/// A struct of all data required to compute the value of this state variable.
-#[add_dependency_data]
-#[derive(Debug, Default, PropDependencies, PropDataQueries)]
-pub struct RequiredData {
-    math_expression: PropView<MathExpr>,
-}
-
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct LatexProp {
-    /// Data query that should return the math expression to be converted to Latex
-    math_expression: DataQuery,
+    /// Local index for the math expression to be converted to Latex
+    math_expression_local_idx: LocalPropIdx,
 }
 
 impl LatexProp {
-    pub fn new(math_expression: DataQuery) -> Self {
-        LatexProp { math_expression }
+    pub fn new(math_expression_local_idx: LocalPropIdx) -> Self {
+        LatexProp {
+            math_expression_local_idx,
+        }
     }
 }
 
-impl PropUpdater<String, RequiredData> for LatexProp {
-    fn return_data_queries(&self) -> Vec<DataQuery> {
-        RequiredDataQueries {
-            math_expression: self.math_expression.clone(),
+impl From<LatexProp> for UpdaterObject {
+    fn from(prop: LatexProp) -> UpdaterObject {
+        Rc::new(prop)
+    }
+}
+
+#[derive(TryFromDataQueryResults, IntoDataQueryResults)]
+#[data_query(query_trait = DataQueries, pass_data = &LocalPropIdx)]
+struct RequiredData {
+    math_expression: PropView<MathExpr>,
+}
+impl DataQueries for RequiredData {
+    fn math_expression_query(math_expression_local_idx: &LocalPropIdx) -> DataQuery {
+        DataQuery::Prop {
+            source: PropSource::Me,
+            prop_specifier: (*math_expression_local_idx).into(),
         }
-        .into()
+    }
+}
+
+impl PropUpdater for LatexProp {
+    type PropType = prop_type::String;
+
+    fn data_queries(&self) -> Vec<DataQuery> {
+        RequiredData::data_queries_vec(&self.math_expression_local_idx)
     }
 
-    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<String> {
-        PropCalcResult::Calculated(
-            data.math_expression
-                .get()
-                // TODO: add support for specifying latex parameters
-                .to_latex(ToLatexParams::default()),
-        )
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+        let math_expression = required_data.math_expression;
+
+        PropCalcResult::Calculated(Rc::new(
+            // TODO: add support for specifying latex parameters
+            math_expression.value.to_latex(ToLatexParams::default()),
+        ))
     }
 }

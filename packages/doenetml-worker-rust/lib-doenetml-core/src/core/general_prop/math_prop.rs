@@ -28,7 +28,7 @@ use crate::{
 ///   no longer propagate that dependency's `came_from_default` flag
 ///   to this prop's `came_from_default` flag.
 ///   Instead this prop's `came_from_default` flag will always be `false` whenever it is based on one or more dependency.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct MathProp {
     /// The data query that indicates how the dependencies of this prop will be created.
     data_query: DataQuery,
@@ -51,7 +51,7 @@ pub struct MathProp {
     ///
     /// If `true`, we split multi-character symbols into the product of the characters
     /// when parsing the string to a math expression
-    split_symbols: DataQuery,
+    split_symbols_local_prop_idx: LocalPropIdx,
 
     // TODO: this should be based on a data query for a prop/attribute once we implement array props or attributes
     /// A vector of the symbols that should be treated as functions if they are followed by parentheses.  
@@ -88,7 +88,7 @@ impl MathProp {
     pub fn new_from_children<S: Into<MathExpr>>(
         default_value: S,
         parser: MathParser,
-        split_symbols: DataQuery,
+        split_symbols_local_prop_idx: LocalPropIdx,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
@@ -100,11 +100,11 @@ impl MathProp {
                 ]),
             },
             parser,
-            split_symbols,
+            split_symbols_local_prop_idx,
             function_symbols,
             default_value: default_value.into(),
             propagate_came_from_default: true,
-            ..Default::default()
+            cache: Default::default(),
         }
     }
 
@@ -125,7 +125,7 @@ impl MathProp {
         attr_name: AttributeName,
         default_value: S,
         parser: MathParser,
-        split_symbols: DataQuery,
+        split_symbols_local_prop_idx: LocalPropIdx,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
@@ -134,11 +134,11 @@ impl MathProp {
                 match_profiles: vec![PropProfile::String, PropProfile::Math],
             },
             parser,
-            split_symbols,
+            split_symbols_local_prop_idx,
             function_symbols,
             default_value: default_value.into(),
             propagate_came_from_default: true,
-            ..Default::default()
+            cache: Default::default(),
         }
     }
 
@@ -193,7 +193,10 @@ impl DataQueries for RequiredData {
         math_prop.data_query.clone()
     }
     fn split_symbols_query(math_prop: &MathProp) -> DataQuery {
-        math_prop.split_symbols.clone()
+        DataQuery::Prop {
+            source: PropSource::Me,
+            prop_specifier: math_prop.split_symbols_local_prop_idx.into(),
+        }
     }
 }
 

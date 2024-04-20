@@ -120,6 +120,19 @@ mod conversions {
         }
     }
 
+    impl From<MathExpr> for PropValue {
+        fn from(v: MathExpr) -> Self {
+            PropValue::Math(Rc::new(v))
+        }
+    }
+
+    impl TryFrom<PropValue> for MathExpr {
+        type Error = &'static str;
+        fn try_from(value: PropValue) -> Result<Self, Self::Error> {
+            TryInto::<prop_type::Math>::try_into(value).map(|s| (*s).clone())
+        }
+    }
+
     impl TryFrom<PropValue> for ContentRefs {
         type Error = anyhow::Error;
         fn try_from(value: PropValue) -> Result<Self, Self::Error> {

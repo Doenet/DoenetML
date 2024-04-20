@@ -37,6 +37,8 @@ pub enum PropProfile {
     Boolean,
     /// Matches the hidden prop
     Hidden,
+    /// Matches the fixed prop
+    Fixed,
     /// Matches the SerialNumber prop
     SerialNumber,
     /// Matches the CodeNumber prop
@@ -68,6 +70,7 @@ impl PropProfile {
                 PropValue::String(Rc::new(String::default()))
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),
+            PropProfile::Fixed => PropValue::Boolean(bool::default()),
             PropProfile::RenderedChildren | PropProfile::Renderable => {
                 PropValue::ComponentRefs(Rc::new(ComponentRefs::default()))
             }
