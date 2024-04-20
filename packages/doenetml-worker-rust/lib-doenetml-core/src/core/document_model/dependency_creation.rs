@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{
     components::prelude::DataQuery,
     props::{FilterData, PickPropSource, PropSource, PropSpecifier},
@@ -129,14 +131,19 @@ impl DocumentModel {
                 prop_specifier,
             } => {
                 // Check we have a valid configuration
-                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
-                    match source {
+                match prop_specifier {
+                    PropSpecifier::LocalIdx(_) => match source {
                         PropSource::Me | PropSource::ByIdx(_) => {}
                         _ => {
                             panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
                         }
+                    },
+                    PropSpecifier::MatchingPair(..) => {
+                        panic!("`MatchingPair` in a `DataQuery::Prop` is not valid. Use two separate data queries to retrieve two props.")
                     }
+                    _ => {}
                 }
+
                 let component_idx = resolve_prop_component(&source);
 
                 let edges_to_add = process_data_query_prop(
@@ -145,7 +152,6 @@ impl DocumentModel {
                     prop_pointer,
                     query_node,
                     &self.document_structure.borrow(),
-                    self,
                 );
                 fn_add_edges(edges_to_add);
             }
@@ -177,49 +183,90 @@ impl DocumentModel {
                     )
                 }
 
-                // For each prop will are attempting to match, `match_profiles_list` contains a vector of `PropProfile`s.
-                // A prop will be selected if it matches any of those `PropProfile`s in that vector.
-                let match_profiles_list = match prop_specifier {
-                    PropSpecifier::Matching(profiles) => vec![profiles],
-                    PropSpecifier::MatchingPair(profiles1, profiles2) => vec![profiles1, profiles2],
-                    PropSpecifier::LocalIdx(_) => unreachable!(),
-                };
-
-                match source {
+                let container_nodes = match source {
                     PickPropSource::Children => {
                         let document_structure = self.document_structure.borrow();
                         let container_nodes = document_structure
-                            .get_component_content_children(prop_pointer.component_idx)
-                            .into_iter();
-
-                        let edges_to_add = process_pick_prop(
-                            container_nodes,
-                            match_profiles_list,
-                            false,
-                            query_node,
-                            &document_structure,
-                            self,
-                        );
-
-                        fn_add_edges(edges_to_add);
+                            .get_component_content_children(prop_pointer.component_idx);
+                        container_nodes
                     }
+
                     PickPropSource::NearestMatchingAncestor => {
                         let document_structure = self.document_structure.borrow();
                         let container_nodes = document_structure
                             .get_true_component_ancestors(prop_pointer.component_idx)
-                            .map(|idx| GraphNode::Component(idx.as_usize()));
-
-                        let edges_to_add = process_pick_prop(
-                            container_nodes,
-                            match_profiles_list,
-                            true,
-                            query_node,
-                            &document_structure,
-                            self,
-                        );
-
-                        fn_add_edges(edges_to_add);
+                            .map(|idx| GraphNode::Component(idx.as_usize()))
+                            .collect_vec();
+                        container_nodes
                     }
+                };
+
+                // For each prop we are attempting to match, `match_profiles_list` contains a vector of `PropProfile`s.
+                // A prop will be selected if it matches any of those `PropProfile`s in that vector.
+                match prop_specifier {
+                    PropSpecifier::Matching(match_profiles) => {
+                        let document_structure = self.document_structure.borrow();
+                        let mut edges = container_nodes
+                            .into_iter()
+                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
+                            .map(|node| (query_node, node));
+
+                        match source {
+                            PickPropSource::Children => {
+                                fn_add_edges(edges.collect());
+                            }
+                            PickPropSource::NearestMatchingAncestor => {
+                                if let Some(edge) = edges.next() {
+                                    fn_add_edges(vec![edge]);
+                                }
+                            }
+                        }
+                    }
+                    PropSpecifier::MatchingPair(match_profiles1, match_profiles2) => {
+                        let document_structure = self.document_structure.borrow();
+                        let props1 = container_nodes
+                            .iter()
+                            .map(|&node| pick_prop(node, &match_profiles1, &document_structure));
+                        let props2 = container_nodes
+                            .iter()
+                            .map(|&node| pick_prop(node, &match_profiles2, &document_structure));
+
+                        let mut matching_props = props1
+                            .zip(props2)
+                            .filter_map(|(p1, p2)| match (p1, p2) {
+                                (Some(prop1), Some(prop2)) => Some((prop1, prop2)),
+                                _ => None,
+                            })
+                            .map(|(prop1, prop2)| {
+                                let virtual_node = self.add_virtual_node(query_node);
+                                (virtual_node, prop1, prop2)
+                            });
+
+                        match source {
+                            PickPropSource::Children => {
+                                let edges =
+                                    matching_props.flat_map(|(virtual_node, prop1, prop2)| {
+                                        [
+                                            (query_node, virtual_node),
+                                            (virtual_node, prop1),
+                                            (virtual_node, prop2),
+                                        ]
+                                    });
+                                fn_add_edges(edges.collect());
+                            }
+                            PickPropSource::NearestMatchingAncestor => {
+                                if let Some((virtual_node, prop1, prop2)) = matching_props.next() {
+                                    fn_add_edges(vec![
+                                        (query_node, virtual_node),
+                                        (virtual_node, prop1),
+                                        (virtual_node, prop2),
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
+                    PropSpecifier::LocalIdx(_) => unreachable!(),
                 };
             }
 
