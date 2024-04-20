@@ -12,7 +12,9 @@ use web_sys::js_sys::{Array, Boolean, JsString, Number};
 use anyhow::anyhow;
 use std::collections::HashMap;
 
-use crate::state::types::math_expr::{JsMathExpr, MathArg, NormalizeParams, ToLatexParams};
+use crate::state::types::math_expr::{
+    JsMathExpr, MathArg, NormalizeParams, ToLatexParams, ToTextParams,
+};
 
 /// Directly evaluate a javascript string with `MathExpressions` in scope.
 ///
@@ -77,6 +79,76 @@ pub fn parse_text_into_math<Text: AsRef<str>, FnSymbol: AsRef<str>>(
 ) -> Result<JsMathExpr, anyhow::Error> {
     Err(anyhow!(
         "parse_text_into_math is only available when compiled with the `web` feature".to_string()
+    ))
+}
+
+/// Return a text string that corresponds to the mathematical expression `math_object`.
+/// The behavior is controlled by `params`.
+///
+/// Examples:
+/// ```
+/// let expr = parse_text_into_math("123 / 0.05", true, &["f"]).unwrap();
+///
+/// assert_eq!(
+///     math_to_text(&expr, ToTextParams::default()).unwrap(),
+///     r#"123/0.05"#
+/// );
+///
+/// let pad_three_decimals = ToTextParams {
+///     pad_to_decimals: Some(3),
+///     ..Default::default()
+/// };
+/// assert_eq!(
+///     math_to_text(&expr, pad_three_decimals).unwrap(),
+///     r#"123.000/0.050"#
+/// );
+///
+/// let pad_four_digits = ToTextParams {
+///     pad_to_digits: Some(4),
+///     ..Default::default()
+/// };
+/// assert_eq!(
+///     math_to_text(&expr, pad_four_digits).unwrap(),
+///     r#"123.0/0.05000"#
+/// );
+///
+/// let expr_with_blanks = parse_text_into_math("x + ()", true, &["f"]).unwrap();
+///
+/// assert_eq!(
+///     math_to_text(&expr_with_blanks, ToTextParams::default()).unwrap(),
+///     "x + \u{FF3F}"
+/// );
+///
+/// let hide_blanks = ToTextParams {
+///     show_blanks: false,
+///     ..Default::default()
+/// };
+/// assert_eq!(
+///     math_to_text(&expr_with_blanks, hide_blanks).unwrap(),
+///     "x + "
+/// );
+/// ````
+#[cfg(all(not(feature = "testing"), feature = "web"))]
+pub fn math_to_text(
+    math_object: &JsMathExpr,
+    params: ToTextParams,
+) -> Result<String, anyhow::Error> {
+    let result: JsString = toText(
+        math_object.to_js_string(),
+        params.pad_to_decimals.map(Number::from),
+        params.pad_to_digits.map(Number::from),
+        Boolean::from(params.show_blanks),
+    )
+    .map_err(|e| anyhow!("{:?}", e))?;
+    Ok(result.into())
+}
+#[cfg(any(feature = "testing", not(feature = "web")))]
+pub fn math_to_text(
+    _math_object: &JsMathExpr,
+    _params: ToTextParams,
+) -> Result<String, anyhow::Error> {
+    Err(anyhow!(
+        "math_to_text is only available when compiled with the `web` feature".to_string(),
     ))
 }
 
@@ -293,6 +365,14 @@ extern "C" {
         source: JsString,
         splitSymbols: Boolean,
         functionSymbols: JsValue,
+    ) -> Result<JsString, JsValue>;
+
+    #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]
+    pub fn toText(
+        mathObject: JsString,
+        padToDecimals: Option<Number>,
+        padToDigits: Option<Number>,
+        showBlanks: Boolean,
     ) -> Result<JsString, JsValue>;
 
     #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]

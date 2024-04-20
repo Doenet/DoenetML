@@ -68,6 +68,33 @@ export function parseTextIntoMath(
 }
 
 /**
+ * Return a text string that corresponds to a mathematical expression.
+ *
+ * Arguments:
+ * @mathObject - the stringify math expression
+ * @padToDecimals - If present, then pad numbers with zeros so they have at least
+ *    this many decimal places after the decimal point displayed.
+ * @padToDigits - If present, then pad numbers with zeros so they have at least
+ *    this many total digits displayed.
+ * @showBlanks - If `true`, then display any blanks in the mathematical expression
+ *    as a long underscore.
+ */
+export function toText(
+    mathObject: string,
+    padToDecimals?: number,
+    padToDigits?: number,
+    showBlanks?: boolean,
+) {
+    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+
+    return mathExpr.toString({
+        padToDecimals,
+        padToDigits,
+        showBlanks,
+    });
+}
+
+/**
  * Parse the string `latex` into math using the `math-expressions` latex parser.
  * Return the `JSON.stringify`ed results.
  *

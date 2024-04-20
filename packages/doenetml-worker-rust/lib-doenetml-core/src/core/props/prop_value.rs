@@ -48,7 +48,7 @@ pub enum PropValue {
     ContentRefs(prop_type::ContentRefs),
     ContentRef(prop_type::ContentRef),
     None(()),
-    PropVec(Vec<PropValue>),
+    PropVec(prop_type::PropVec),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -79,6 +79,8 @@ pub mod prop_type {
     pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
     pub type ContentRef = content_refs::ContentRef;
+
+    pub type PropVec = Vec<PropValue>;
 
     /// By default, wasm-bindgen won't pick up this module as containing types to export
     /// to Typescript. We force wasm-bindgen to export types in this module by providing a

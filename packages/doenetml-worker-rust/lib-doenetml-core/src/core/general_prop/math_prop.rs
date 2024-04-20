@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{
     components::prelude::*,
     props::UpdaterObject,
-    state::types::math_expr::{MathArg, MathExpr, MathParser},
+    state::types::math_expr::{MathArg, MathExpr, MathParser, ToLatexParams, ToTextParams},
 };
 
 /// A math prop that calculates its value by
@@ -30,8 +30,11 @@ use crate::{
 ///   Instead this prop's `came_from_default` flag will always be `false` whenever it is based on one or more dependency.
 #[derive(Debug)]
 pub struct MathProp {
-    /// The data query that indicates how the dependencies of this prop will be created.
-    data_query: DataQuery,
+    /// The data query that giving the math and strings upon which to base the math
+    math_strings_data_query: DataQuery,
+
+    /// The data query that includes the fixed prop along with the math/strings prop
+    data_query_with_fixed: DataQuery,
 
     /// The default value that is initially returned if no dependencies were returned.
     /// It behaves differently depending on the value of `propagate_came_from_default`.
@@ -92,12 +95,19 @@ impl MathProp {
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
-            data_query: DataQuery::PickProp {
+            math_strings_data_query: DataQuery::PickProp {
                 source: PickPropSource::Children,
                 prop_specifier: PropSpecifier::Matching(vec![
                     PropProfile::String,
                     PropProfile::Math,
                 ]),
+            },
+            data_query_with_fixed: DataQuery::PickProp {
+                source: PickPropSource::Children,
+                prop_specifier: PropSpecifier::MatchingPair(
+                    vec![PropProfile::String, PropProfile::Math],
+                    vec![PropProfile::Fixed],
+                ),
             },
             parser,
             split_symbols_local_prop_idx,
@@ -108,39 +118,44 @@ impl MathProp {
         }
     }
 
-    /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute components that match the `String` and `Math` profiles.
-    ///
-    ///
-    /// Arguments:
-    /// - `default_value`: If there are no matching attribute components,
-    ///   the prop will be initialized with `default_value`.
-    /// - `parser`: Determine whether that latex or text parser is used to parse strings into math.
-    /// - `split_symbols`: If `true`, we split multi-character symbols into the product of the characters
-    ///   when parsing the string to a math expression
-    /// - `function_symbols`: a list of the symbols that will be treated as a function,
-    ///   i.e., one of these symbols followed by arguments in parentheses
-    ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    pub fn new_from_attribute<S: Into<MathExpr>>(
-        attr_name: AttributeName,
-        default_value: S,
-        parser: MathParser,
-        split_symbols_local_prop_idx: LocalPropIdx,
-        function_symbols: Vec<String>,
-    ) -> Self {
-        MathProp {
-            data_query: DataQuery::Attribute {
-                attribute_name: attr_name,
-                match_profiles: vec![PropProfile::String, PropProfile::Math],
-            },
-            parser,
-            split_symbols_local_prop_idx,
-            function_symbols,
-            default_value: default_value.into(),
-            propagate_came_from_default: true,
-            cache: Default::default(),
-        }
-    }
+    // TODO: significant work needed to add math as an attribute
+    // - We need to generalized `PropFromAttribute` to allow passing in more parameters
+    // - We need to extend `DataQuery::Attribute` to handle something like PropSpecifier::MatchingPair
+    //   or somehow treat the attribute case specially
+
+    // /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
+    // /// basing the calculation on the attribute components that match the `String` and `Math` profiles.
+    // ///
+    // ///
+    // /// Arguments:
+    // /// - `default_value`: If there are no matching attribute components,
+    // ///   the prop will be initialized with `default_value`.
+    // /// - `parser`: Determine whether that latex or text parser is used to parse strings into math.
+    // /// - `split_symbols`: If `true`, we split multi-character symbols into the product of the characters
+    // ///   when parsing the string to a math expression
+    // /// - `function_symbols`: a list of the symbols that will be treated as a function,
+    // ///   i.e., one of these symbols followed by arguments in parentheses
+    // ///   will be interpreted as apply that function to the arguments (rather than multiplication)
+    // pub fn new_from_attribute<S: Into<MathExpr>>(
+    //     attr_name: AttributeName,
+    //     default_value: S,
+    //     parser: MathParser,
+    //     split_symbols_local_prop_idx: LocalPropIdx,
+    //     function_symbols: Vec<String>,
+    // ) -> Self {
+    //     MathProp {
+    //         data_query: DataQuery::Attribute {
+    //             attribute_name: attr_name,
+    //             match_profiles: vec![PropProfile::String, PropProfile::Math],
+    //         },
+    //         parser,
+    //         split_symbols_local_prop_idx,
+    //         function_symbols,
+    //         default_value: default_value.into(),
+    //         propagate_came_from_default: true,
+    //         cache: Default::default(),
+    //     }
+    // }
 
     /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
     /// when there is only one matching math dependency.
@@ -183,6 +198,7 @@ impl From<MathProp> for UpdaterObject {
 struct RequiredData {
     independent_state: PropView<prop_type::Math>,
     maths_and_strings: Vec<PropView<PropValue>>,
+    with_fixed: Vec<PropView<prop_type::PropVec>>,
     split_symbols: PropView<prop_type::Boolean>,
 }
 impl DataQueries for RequiredData {
@@ -190,7 +206,10 @@ impl DataQueries for RequiredData {
         DataQuery::State
     }
     fn maths_and_strings_query(math_prop: &MathProp) -> DataQuery {
-        math_prop.data_query.clone()
+        math_prop.math_strings_data_query.clone()
+    }
+    fn with_fixed_query(math_prop: &MathProp) -> DataQuery {
+        math_prop.data_query_with_fixed.clone()
     }
     fn split_symbols_query(math_prop: &MathProp) -> DataQuery {
         DataQuery::Prop {
@@ -368,6 +387,65 @@ impl PropUpdater for MathProp {
                 }
             }
         }
+    }
+
+    fn invert(
+        &self,
+        data: DataQueryResults,
+        requested_value: Self::PropType,
+        _is_direct_change_from_action: bool,
+    ) -> Result<DataQueryResults, InvertError> {
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
+        let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+        let maths_and_strings = required_data.maths_and_strings;
+
+        // .iter()
+        // .filter_map(|p| {
+        //     let prop_vec = p.value;
+
+        //     // filter out any matches where we don't have a math or string
+        //     // (i.e., we matched only on Fixed)
+        //     if matches!(prop_vec[0], PropValue::None(())) {
+        //         return None;
+        //     }
+
+        //     if !matches!(prop_vec[0], PropValue::String(_) | PropValue::Math(_)) {
+        //         panic!(
+        //             "Should get math or string dependency for math, found {:?}",
+        //             prop_vec[0]
+        //         )
+        //     }
+
+        //     Some(prop_vec[0])
+        // })
+        // .collect_vec();
+
+        match maths_and_strings.len() {
+            0 => {
+                // We had no dependencies, so change the independent state variable
+                desired.independent_state.change_to(requested_value);
+            }
+            1 => {
+                // based on a single value, so we can invert
+                match &maths_and_strings[0].value {
+                    PropValue::Math(_) => {
+                        desired.maths_and_strings[0].change_to(requested_value.into());
+                    }
+                    PropValue::String(_) => {
+                        let desired_string_value = match self.parser {
+                            MathParser::Text => requested_value.to_text(ToTextParams::default()),
+                            MathParser::Latex => requested_value.to_latex(ToLatexParams::default()),
+                        };
+                        desired.maths_and_strings[0].change_to(desired_string_value.into());
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            // TODO: implement `invert` for the case with multiple values
+            _ => return Err(InvertError::CouldNotUpdate),
+        }
+
+        Ok(desired.into_data_query_results())
     }
 }
 

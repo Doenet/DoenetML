@@ -59,14 +59,26 @@ impl DocumentModel {
 
     /// Gets the `DataQueryResult` associated with the given data query node.
     pub fn execute_data_query(&mut self, query_node: GraphNode) -> DataQueryResult {
-        for prop_node in self
+        for node in self
             .dependency_graph
             .borrow()
             .get_children(query_node)
             .into_iter()
-            .filter(|node| matches!(node, GraphNode::Prop(_)))
         {
-            self.resolve_prop(prop_node);
+            match node {
+                GraphNode::Prop(_) => self.resolve_prop(node),
+                GraphNode::Virtual(_) => {
+                    // if we have a virtual node, we resolve its prop node children
+                    // TODO: will we need to go yet another level of virtual nodes?
+                    for child_node in self.dependency_graph.borrow().get_children(node).into_iter() {
+                        match child_node {
+                            GraphNode::Prop(_) => self.resolve_prop(child_node),
+                            _ => ()
+                        }
+                    }
+                }
+                _ => ()
+            };
         }
         self._execute_data_query_with_resolved_deps(query_node)
     }
@@ -215,9 +227,9 @@ impl DocumentModel {
                 //
 
                 // The props for the data query should be the immediate children of the query node
-                let values = self
-                    .dependency_graph
-                    .borrow()
+                let dependency_graph = self.dependency_graph.borrow();
+                let values = 
+                    dependency_graph
                     .get_children(query_node)
                     .into_iter()
                     .map(|node| {
@@ -240,6 +252,55 @@ impl DocumentModel {
                                 changed: true,
                                 origin: Some(node),
                             },
+                            GraphNode::Virtual(_) => {
+                                // if we have a virtual node, it means we have a multiple props returned,
+                                // which will be the children of the virtual node
+                                let mut found_change = false;
+                                let values= dependency_graph.get_children(node).into_iter().map(|child_node| {
+                                    match child_node {
+                                        GraphNode::Prop(_) => {
+                                            let prop_to_calculate = child_node;
+                                            // The prop should be fresh, so `unreachable_calculate` should never be called
+                                            let with_meta = self.prop_cache
+                                                .get_prop_unchecked(prop_to_calculate, query_node);
+                                            if with_meta.changed {
+                                                found_change = true;
+                                            }
+                                            with_meta.value
+                                        }
+                                        GraphNode::State(_) => {
+                                            let with_meta = self.states.get_state(child_node, query_node);
+                                            if with_meta.changed {
+                                                found_change = true;
+                                            }
+                                            with_meta.value
+                                        }
+
+                                        GraphNode::String(_) => {
+                                            let with_meta= self.document_structure
+                                                .borrow()
+                                                .get_string(child_node, query_node);
+                                            if with_meta.changed {
+                                                found_change = true;
+                                            }
+                                            with_meta.value
+                                        }
+                                        GraphNode::Component(component_idx) => PropValue::ComponentRef(Some(component_idx.into())),
+                                        GraphNode::Virtual(_) => {
+                                            PropValue::None(())
+                                        }
+                                        _ => panic!("Unexpected child of `GraphNode::Virtual` coming from `DataQuery`. Got node `{:?}`", child_node),
+
+                                    }
+                                }).collect();
+                                PropWithMeta {
+                                    value: PropValue::PropVec(values),
+                                    came_from_default: false,
+                                    changed: found_change,
+                                    origin: Some(node)
+                                }
+
+                            }
 
                             _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery`. Got node `{:?}`", node),
                         }

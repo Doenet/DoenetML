@@ -56,4 +56,19 @@ impl PropUpdater for LatexProp {
             math_expression.value.to_latex(ToLatexParams::default()),
         ))
     }
+
+    fn invert(
+        &self,
+        data: DataQueryResults,
+        requested_value: Self::PropType,
+        _is_direct_change_from_action: bool,
+    ) -> Result<DataQueryResults, InvertError> {
+        let mut desired = RequiredData::try_new_desired(&data).unwrap();
+
+        let desired_math = MathExpr::from_latex((*requested_value).clone(), true, &["f", "g"]);
+
+        desired.math_expression.change_to(desired_math);
+
+        Ok(desired.into_data_query_results())
+    }
 }
