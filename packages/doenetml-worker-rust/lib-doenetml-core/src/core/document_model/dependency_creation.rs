@@ -1,5 +1,5 @@
 use crate::{
-    components::prelude::DataQuery,
+    components::{prelude::DataQuery, types::PropPointer},
     props::{FilterData, PickPropSource, PropSource, PropSpecifier},
 };
 
@@ -88,14 +88,39 @@ impl DocumentModel {
         };
 
         // Resolve a `PropComponent` to a component index.
-        let resolve_prop_component = |prop_component: &PropSource| match prop_component {
-            PropSource::Me => prop_pointer.component_idx,
-            PropSource::Parent => self
-                .document_structure
-                .borrow()
-                .get_true_component_parent(prop_pointer.component_idx)
-                .unwrap(),
-            PropSource::ByIdx(component_idx) => *component_idx,
+        let resolve_prop_component = |prop_component: &PropSource| {
+            Ok(match prop_component {
+                PropSource::Me => prop_pointer.component_idx,
+                PropSource::Parent => self
+                    .document_structure
+                    .borrow()
+                    .get_true_component_parent(prop_pointer.component_idx)
+                    .unwrap(),
+                PropSource::ByIdx(component_idx) => *component_idx,
+                PropSource::StaticComponentRef(local_prop_idx) => {
+                    // This is the prop that contains the ref.
+                    let prop_node = self.prop_pointer_to_prop_node(PropPointer {
+                        component_idx: prop_pointer.component_idx,
+                        local_prop_idx: *local_prop_idx,
+                    });
+                    // We could encounter a circularly-recursive call here if there was a programmer error.
+                    // If all goes well, `prop` will be a non-null ComponentRef.
+                    let prop = self.get_prop_untracked(prop_node, query_node);
+                    let component_ref = match prop.value {
+                    PropValue::ComponentRef(Some(component_ref)) => component_ref,
+                    PropValue::ComponentRef(None) => {
+                        // We have the correct prop type, but there wasn't a valid reference inside.
+                        // This could result from a user's input (e.g., `<xref ref="" />`, with an invalid `ref` field),
+                        // so we don't cause a hard panic here.
+                        return Err(())
+                    }
+                    _ => panic!(
+                        "Tried to resolve a `StaticComponentRef` but the prop had the wrong type. Expected `ComponentRef`. Found {:?}.", prop.value
+                    ),
+                };
+                    component_ref.0
+                }
+            })
         };
 
         match query {
@@ -137,7 +162,14 @@ impl DocumentModel {
                         }
                     }
                 }
-                let component_idx = resolve_prop_component(&source);
+                let component_idx = match resolve_prop_component(&source) {
+                    Ok(idx) => idx,
+                    Err(_) => {
+                        // If we can't resolve the component, then we can't resolve the prop.
+                        // Avoid a hard panic here.
+                        return linked_nodes;
+                    }
+                };
 
                 let edges_to_add = process_data_query_prop(
                     component_idx,
@@ -214,7 +246,14 @@ impl DocumentModel {
 
             DataQuery::ComponentRefs { container, filter } => {
                 let mut edges_to_add = Vec::new();
-                let component_idx = resolve_prop_component(&container);
+                let component_idx = match resolve_prop_component(&container) {
+                    Ok(idx) => idx,
+                    Err(_) => {
+                        // If we can't resolve the component, then we can't resolve the prop.
+                        // Avoid a hard panic here.
+                        return linked_nodes;
+                    }
+                };
 
                 let content_children = self
                     .document_structure

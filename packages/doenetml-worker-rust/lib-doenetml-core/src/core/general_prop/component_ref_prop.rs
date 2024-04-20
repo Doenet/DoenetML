@@ -128,7 +128,10 @@ impl PropUpdater for ComponentRefProp {
                 PropCalcResult::Calculated(required_data.refs.value)
             }
             DataQuery::Attribute { .. } => {
-                let required_data = RequiredDataRef::try_from_data_query_results(data).unwrap();
+                let required_data = match RequiredDataRef::try_from_data_query_results(data) {
+                    Ok(data) => data,
+                    Err(_) => return PropCalcResult::Calculated(None),
+                };
                 PropCalcResult::Calculated(required_data.refs.value)
             }
             _ => {

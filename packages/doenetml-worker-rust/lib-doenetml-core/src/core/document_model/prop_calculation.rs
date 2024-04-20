@@ -142,19 +142,23 @@ impl DocumentModel {
             let prop_node = prop_node.expect("Query node was not owned by a unique prop.");
             self.get_prop_pointer(prop_node)
         };
-        // Resolve a `PropSource` to a component index.
-        let resolve_prop_source = |prop_source: &PropSource| match prop_source {
-            PropSource::Me => get_prop_pointer().component_idx,
-            PropSource::Parent => self
-                .document_structure
-                .borrow()
-                .get_true_component_parent(get_prop_pointer().component_idx)
-                .unwrap(),
-            PropSource::ByIdx(component_idx) => *component_idx,
-        };
 
         match query {
             DataQuery::ComponentRefs { container, filter } => {
+                // Resolve a `PropSource` to a component index.
+                let resolve_prop_source = |prop_source: &PropSource| match prop_source {
+                    PropSource::Me => get_prop_pointer().component_idx,
+                    PropSource::Parent => self
+                        .document_structure
+                        .borrow()
+                        .get_true_component_parent(get_prop_pointer().component_idx)
+                        .unwrap(),
+                    PropSource::ByIdx(component_idx) => *component_idx,
+                    PropSource::StaticComponentRef(_) => {
+                        panic!("Cannot combine `StaticComponentRef` with `ComponentRefs` query")
+                    }
+                };
+
                 // Get the correct "root" for the query.
                 let component_idx = resolve_prop_source(container);
                 let content_children = self.get_component_content_children(component_idx);

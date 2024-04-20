@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use crate::state::types::{component_refs::ComponentRefs, math_expr::MathExpr};
+use crate::state::types::{
+    component_refs::ComponentRefs, math_expr::MathExpr, xref_label::XrefLabel,
+};
 
 use super::PropValue;
 
@@ -52,6 +54,8 @@ pub enum PropProfile {
     RenderedChildren,
     /// Matches a prop that stores a reference to another component.
     _Ref,
+    /// Matches a prop that stores a label suitable for a text-only reference to the component.
+    XrefLabel,
 }
 
 // TODO: implement with macro?
@@ -74,6 +78,7 @@ impl PropProfile {
             PropProfile::SerialNumber => PropValue::Integer(i64::default()),
             PropProfile::DivisionDepth => PropValue::Integer(i64::default()),
             PropProfile::_Ref => PropValue::ComponentRef(None),
+            PropProfile::XrefLabel => PropValue::XrefLabel(Rc::new(XrefLabel::default())),
         }
     }
 }
