@@ -7,7 +7,7 @@ use crate::{
     },
     graph::directed_graph::Taggable,
     graph_node::{GraphNode, GraphNodeLookup},
-    props::{cache::PropStatus, PropValue},
+    props::{cache::PropStatus, PropProfile, PropValue},
     DocumentModel,
 };
 
@@ -62,13 +62,21 @@ impl DocumentModel {
             }
         }
 
-        let dep_graph = self.get_dependency_graph();
-
         let mut changes_to_make = GraphNodeLookup::new();
 
-        for node in dep_graph.descendants_topological_multiroot(&props_to_update) {
+        // We collect all the nodes to visit into a vector and then drop the dependency graph
+        // so that we can look up values of arbitrary props in the invert loop
+        // (which might add to the dependency graph if the prop was unresolved)
+        let dep_graph = self.get_dependency_graph();
+        let nodes_to_visit = dep_graph
+            .descendants_topological_multiroot(&props_to_update)
+            .cloned()
+            .collect_vec();
+        drop(dep_graph);
+
+        for node in nodes_to_visit {
             // If there is no requested value for the node, then there is nothing to do that node so skip it.
-            let requested_value = requested_value_lookup.get_tag(node).cloned();
+            let requested_value = requested_value_lookup.get_tag(&node).cloned();
             if requested_value.is_none() {
                 continue;
             }
@@ -78,12 +86,12 @@ impl DocumentModel {
                 GraphNode::Prop(_) => (),
                 GraphNode::State(_) => {
                     // We've recursed all the way down to a `State` node, so record its requested value
-                    changes_to_make.set_tag(*node, requested_value);
+                    changes_to_make.set_tag(node, requested_value);
                     continue;
                 }
                 GraphNode::String(_) => {
                     // We've recursed all the way down to a `String` node, so record its requested value
-                    changes_to_make.set_tag(*node, requested_value);
+                    changes_to_make.set_tag(node, requested_value);
                     continue;
                 }
                 _ => panic!(
@@ -93,14 +101,38 @@ impl DocumentModel {
             }
 
             let prop_node = node;
+            let prop_pointer = self.get_prop_pointer(prop_node);
+
+            // Check if the component has a `PropProfile::Fixed` with a value of true.
+            // If so, then make the invert fail without even needing to call it
+            let fixed_option = self
+                .document_structure
+                .borrow()
+                .get_component_prop_by_profile(prop_pointer.component_idx, &[PropProfile::Fixed]);
+            if let Some(fixed_prop_pointer) = fixed_option {
+                let fixed_prop_node = self.prop_pointer_to_prop_node(fixed_prop_pointer);
+                let fixed_value = self.get_prop_untracked(fixed_prop_node, prop_node).value;
+                match fixed_value {
+                    PropValue::Boolean(fixed) => {
+                        if fixed {
+                            // component was fixed, so skip invert (i.e., make it fail)
+                            continue;
+                        }
+                    }
+                    _ => panic!(
+                        "fixed prop profile should be boolean, found {:?}",
+                        fixed_value
+                    ),
+                }
+            }
 
             let prop_updater = self.get_prop_updater(prop_node);
 
-            let required_data = self._get_data_query_results_assuming_fresh_deps(*prop_node);
+            let required_data = self._get_data_query_results_assuming_fresh_deps(prop_node);
 
             // if node is one of the original nodes specified by the action,
             // then we have a direct change from action
-            let is_direct_change_from_action = props_to_update.contains(prop_node);
+            let is_direct_change_from_action = props_to_update.contains(&prop_node);
 
             let invert_result = prop_updater.invert_untyped(
                 required_data,
