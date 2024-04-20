@@ -1,5 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
+use itertools::Itertools;
+
 use crate::{
     components::prelude::*,
     props::UpdaterObject,
@@ -399,27 +401,6 @@ impl PropUpdater for MathProp {
         let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let maths_and_strings = required_data.maths_and_strings;
 
-        // .iter()
-        // .filter_map(|p| {
-        //     let prop_vec = p.value;
-
-        //     // filter out any matches where we don't have a math or string
-        //     // (i.e., we matched only on Fixed)
-        //     if matches!(prop_vec[0], PropValue::None(())) {
-        //         return None;
-        //     }
-
-        //     if !matches!(prop_vec[0], PropValue::String(_) | PropValue::Math(_)) {
-        //         panic!(
-        //             "Should get math or string dependency for math, found {:?}",
-        //             prop_vec[0]
-        //         )
-        //     }
-
-        //     Some(prop_vec[0])
-        // })
-        // .collect_vec();
-
         match maths_and_strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
@@ -442,7 +423,42 @@ impl PropUpdater for MathProp {
                 }
             }
             // TODO: implement `invert` for the case with multiple values
-            _ => return Err(InvertError::CouldNotUpdate),
+            _ => {
+                let fixed_maths_and_strings = required_data
+                    .with_fixed
+                    .iter()
+                    .filter_map(|p| {
+                        let prop_vec = &p.value;
+
+                        // filter out any matches where we don't have a math or string
+                        // (i.e., we matched only on Fixed)
+                        if matches!(prop_vec[0], PropValue::None(())) {
+                            return None;
+                        }
+
+                        if !matches!(prop_vec[0], PropValue::String(_) | PropValue::Math(_)) {
+                            panic!(
+                                "Should get math or string dependency for math, found {:?}",
+                                prop_vec[0]
+                            )
+                        }
+
+                        match prop_vec[1] {
+                            PropValue::Boolean(v) => Some(v),
+                            PropValue::None(_) => Some(false),
+                            _ => panic!("Fixed be be a boolean, found {:?}", prop_vec[1]),
+                        }
+                    })
+                    .collect_vec();
+
+                if fixed_maths_and_strings.len() != maths_and_strings.len() {
+                    panic!(
+                        "Inconsistent lengths with fixed math and strings: {}, {}",
+                        fixed_maths_and_strings.len(),
+                        maths_and_strings.len()
+                    )
+                }
+            }
         }
 
         Ok(desired.into_data_query_results())
