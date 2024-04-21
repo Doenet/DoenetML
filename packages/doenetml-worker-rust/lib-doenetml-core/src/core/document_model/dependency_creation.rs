@@ -1,6 +1,6 @@
 use crate::{
     components::{prelude::DataQuery, types::PropPointer},
-    props::{FilterData, PickPropSource, PropSource, PropSpecifier},
+    props::{cache::PropStatus, FilterData, PickPropSource, PropSource, PropSpecifier},
 };
 
 use crate::{graph_node::GraphNode, props::PropValue};
@@ -51,7 +51,97 @@ impl DocumentModel {
 
     /// Creates all necessary dependencies for a `DataQuery`.
     /// Returns a vector of all graph nodes directly linked to the data query.
-    pub(super) fn add_data_query(&self, prop_node: GraphNode, query: DataQuery) -> Vec<GraphNode> {
+    pub(super) fn add_data_query(
+        &self,
+        prop_node: GraphNode,
+        query: DataQuery,
+    ) -> Result<Vec<GraphNode>, GraphNode> {
+        let prop_pointer = self.get_prop_pointer(prop_node);
+
+        // Resolve a `PropComponent` to a component index.
+        let resolve_prop_component = |prop_component: &PropSource| {
+            Ok(match prop_component {
+                PropSource::Me => prop_pointer.component_idx,
+                PropSource::Parent => self
+                    .document_structure
+                    .borrow()
+                    .get_true_component_parent(prop_pointer.component_idx)
+                    .unwrap(),
+                PropSource::ByIdx(component_idx) => *component_idx,
+                PropSource::StaticComponentRef(local_prop_idx) => {
+                    // This is the prop that contains the ref.
+                    let prop_node = self.prop_pointer_to_prop_node(PropPointer {
+                        component_idx: prop_pointer.component_idx,
+                        local_prop_idx: *local_prop_idx,
+                    });
+
+                    // If the prop is not resolved, then we abort this attempt to add the data query
+                    // in order to first resolve this prop.
+                    let status = self.prop_cache.get_prop_status(prop_node);
+                    if matches!(status, PropStatus::Unresolved | PropStatus::Resolving) {
+                        return Err(Some(prop_node));
+                    }
+
+                    // Since the prop is resolved, getting its value should not encounter any problems.
+                    // Use `GraphNode::Query(0)` for origin since it doesn't matter with untracked
+                    let prop = self.get_prop_untracked(prop_node, GraphNode::Query(0));
+                    let component_ref = match prop.value {
+                        PropValue::ComponentRef(Some(component_ref)) => component_ref,
+                        PropValue::ComponentRef(None) => {
+                            // We have the correct prop type, but there wasn't a valid reference inside.
+                            // This could result from a user's input (e.g., `<xref ref="" />`, with an invalid `ref` field),
+                            // so we don't cause a hard panic here.
+                            return Err(None)
+                        }
+                        _ => panic!(
+                            "Tried to resolve a `StaticComponentRef` but the prop had the wrong type. Expected `ComponentRef`. Found {:?}.", prop.value
+                        ),
+                    };
+                    component_ref.0
+                }
+            })
+        };
+
+        // If a query depends on resolving a component index,
+        // it is possible that will fail due to depending on an unresolved prop.
+        // In this case, we will abort early before creating any dependency structure
+        #[allow(clippy::let_and_return)]
+        let resolved_component_idx = match &query {
+            DataQuery::Prop {
+                source,
+                prop_specifier,
+            } => {
+                // Check we have a valid configuration
+                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
+                    match source {
+                        PropSource::Me | PropSource::ByIdx(_) => {}
+                        _ => {
+                            panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
+                        }
+                    }
+                }
+                let component_idx = match resolve_prop_component(source) {
+                    Ok(idx) => Some(idx),
+                    Err(None) => None, // an unrecoverable failure, so don't abort before adding dependencies
+                    Err(Some(node)) => {
+                        return Err(node);
+                    }
+                };
+                component_idx
+            }
+            DataQuery::ComponentRefs { container, .. } => {
+                let component_idx = match resolve_prop_component(container) {
+                    Ok(idx) => Some(idx),
+                    Err(None) => None, // an unrecoverable failure, so don't abort before adding dependencies
+                    Err(Some(node)) => {
+                        return Err(node);
+                    }
+                };
+                component_idx
+            }
+            _ => None,
+        };
+
         self._create_state_for_query(prop_node, &query);
 
         //
@@ -61,13 +151,6 @@ impl DocumentModel {
         self.dependency_graph
             .borrow_mut()
             .add_edge(prop_node, query_node);
-
-        let prop_pointer = self
-            .document_structure
-            .borrow()
-            .get_prop_definition(prop_node)
-            .meta
-            .prop_pointer;
 
         // Accumulate the props linked to the data query
         // to pass on to the caller
@@ -87,42 +170,6 @@ impl DocumentModel {
             }
         };
 
-        // Resolve a `PropComponent` to a component index.
-        let resolve_prop_component = |prop_component: &PropSource| {
-            Ok(match prop_component {
-                PropSource::Me => prop_pointer.component_idx,
-                PropSource::Parent => self
-                    .document_structure
-                    .borrow()
-                    .get_true_component_parent(prop_pointer.component_idx)
-                    .unwrap(),
-                PropSource::ByIdx(component_idx) => *component_idx,
-                PropSource::StaticComponentRef(local_prop_idx) => {
-                    // This is the prop that contains the ref.
-                    let prop_node = self.prop_pointer_to_prop_node(PropPointer {
-                        component_idx: prop_pointer.component_idx,
-                        local_prop_idx: *local_prop_idx,
-                    });
-                    // We could encounter a circularly-recursive call here if there was a programmer error.
-                    // If all goes well, `prop` will be a non-null ComponentRef.
-                    let prop = self.get_prop_untracked(prop_node, query_node);
-                    let component_ref = match prop.value {
-                    PropValue::ComponentRef(Some(component_ref)) => component_ref,
-                    PropValue::ComponentRef(None) => {
-                        // We have the correct prop type, but there wasn't a valid reference inside.
-                        // This could result from a user's input (e.g., `<xref ref="" />`, with an invalid `ref` field),
-                        // so we don't cause a hard panic here.
-                        return Err(())
-                    }
-                    _ => panic!(
-                        "Tried to resolve a `StaticComponentRef` but the prop had the wrong type. Expected `ComponentRef`. Found {:?}.", prop.value
-                    ),
-                };
-                    component_ref.0
-                }
-            })
-        };
-
         match query {
             DataQuery::Null => {
                 unreachable!("Cannot execute Null data query.")
@@ -137,10 +184,7 @@ impl DocumentModel {
                         "Tried to create a state query for a prop that doesn't have a state node."
                     )
                 }
-                self.dependency_graph
-                    .borrow_mut()
-                    .add_edge(query_node, state_node);
-                linked_nodes.push(state_node);
+                fn_add_edges(vec![(query_node, state_node)]);
             }
 
             DataQuery::SelfRef => {
@@ -150,24 +194,15 @@ impl DocumentModel {
 
             // Depend on a prop (of yourself or another component)
             DataQuery::Prop {
-                source,
+                source: _source,
                 prop_specifier,
             } => {
-                // Check we have a valid configuration
-                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
-                    match source {
-                        PropSource::Me | PropSource::ByIdx(_) => {}
-                        _ => {
-                            panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
-                        }
-                    }
-                }
-                let component_idx = match resolve_prop_component(&source) {
-                    Ok(idx) => idx,
-                    Err(_) => {
+                let component_idx = match resolved_component_idx {
+                    Some(idx) => idx,
+                    None => {
                         // If we can't resolve the component, then we can't resolve the prop.
                         // Avoid a hard panic here.
-                        return linked_nodes;
+                        return Ok(linked_nodes);
                     }
                 };
 
@@ -244,16 +279,20 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
-            DataQuery::ComponentRefs { container, filter } => {
-                let mut edges_to_add = Vec::new();
-                let component_idx = match resolve_prop_component(&container) {
-                    Ok(idx) => idx,
-                    Err(_) => {
+            DataQuery::ComponentRefs {
+                container: _container,
+                filter,
+            } => {
+                let component_idx = match resolved_component_idx {
+                    Some(idx) => idx,
+                    None => {
                         // If we can't resolve the component, then we can't resolve the prop.
                         // Avoid a hard panic here.
-                        return linked_nodes;
+                        return Ok(linked_nodes);
                     }
                 };
+
+                let mut edges_to_add = Vec::new();
 
                 let content_children = self
                     .document_structure
@@ -282,7 +321,7 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
         }
-        linked_nodes
+        Ok(linked_nodes)
     }
 
     /// Create a new `GraphNode::State` and add it to the `structure_graph`.

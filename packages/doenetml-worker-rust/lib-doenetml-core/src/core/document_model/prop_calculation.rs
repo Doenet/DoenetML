@@ -16,6 +16,13 @@ use super::{
     DocumentModel,
 };
 
+/// Structure for representing prop nodes on the resolve_stack
+/// along with any of their queries that have been successfully added
+struct NodeAndQueries {
+    prop_node: GraphNode,
+    completed_queries: Option<Vec<usize>>,
+}
+
 impl DocumentModel {
     /// Props are created lazily so they start as `Unresolved`.
     /// They need to be resolved to be used.
@@ -29,11 +36,26 @@ impl DocumentModel {
 
         // Since resolving props won't recurse with repeated actions,
         // will go ahead and allocate the stack locally, for simplicity.
-        let mut resolve_stack = vec![prop_node];
+        let mut resolve_stack = vec![NodeAndQueries {
+            prop_node,
+            completed_queries: None,
+        }];
 
-        while let Some(prop_node) = resolve_stack.pop() {
+        while let Some(NodeAndQueries {
+            prop_node,
+            completed_queries,
+        }) = resolve_stack.pop()
+        {
             let status = self.prop_cache.get_prop_status(prop_node);
 
+            if status == PropStatus::Resolving {
+                // If prop is in resolving state, that means we've gotten back to this prop
+                // after all its dependencies have been resolved.
+                // So the prop is now fully resolved
+                self.prop_cache
+                    .set_prop_status(prop_node, PropStatus::Resolved);
+                continue;
+            }
             if status != PropStatus::Unresolved {
                 // nothing to do if the prop is already resolved
                 continue;
@@ -41,19 +63,52 @@ impl DocumentModel {
 
             let prop = self.get_prop_definition(prop_node);
             let data_queries = prop.updater.data_queries();
+            let mut found_query_to_redo = false;
+            let mut new_completed_queries = completed_queries.unwrap_or_default();
 
-            for data_query in data_queries {
+            let mut new_props_to_resolve = Vec::new();
+
+            for (query_idx, data_query) in data_queries.into_iter().enumerate() {
                 // The data query we created may have referenced unresolved props,
                 // so loop through all the props it references
-                resolve_stack.extend(
-                    self.add_data_query(prop_node, data_query)
-                        .into_iter()
-                        .filter(|node| matches!(node, GraphNode::Prop(_))),
-                );
+
+                if !new_completed_queries.contains(&query_idx) {
+                    match self.add_data_query(prop_node, data_query) {
+                        Ok(linked_nodes) => {
+                            new_props_to_resolve.extend(
+                                linked_nodes
+                                    .into_iter()
+                                    .filter(|node| matches!(node, GraphNode::Prop(_))),
+                            );
+                            new_completed_queries.push(query_idx);
+                        }
+                        Err(node) => {
+                            new_props_to_resolve.push(node);
+                            found_query_to_redo = true
+                        }
+                    }
+                }
             }
 
-            self.prop_cache
-                .set_prop_status(prop_node, PropStatus::Resolved);
+            // Put the prop back on the stack.
+            // We will get it again either to try again to add more queries
+            // or to mark it as resolved once we've already gotten through all its dependencies
+            resolve_stack.push(NodeAndQueries {
+                prop_node,
+                completed_queries: Some(new_completed_queries),
+            });
+            // Add any new props that need to be resolved before we look at prop_node again
+            resolve_stack.extend(new_props_to_resolve.into_iter().map(|node| NodeAndQueries {
+                prop_node: node,
+                completed_queries: None,
+            }));
+
+            if !found_query_to_redo {
+                // We succeeded in adding all the prop's queries.
+                // When we get back to the prop in the stack again, it will be fully resolved
+                self.prop_cache
+                    .set_prop_status(prop_node, PropStatus::Resolving);
+            }
         }
     }
 
@@ -101,6 +156,7 @@ impl DocumentModel {
                             unreachable!("Prop should already be skipped due to topological sort!")
                         }
                         PropStatus::Unresolved => unreachable!("Prop should not be Unresolved!"),
+                        PropStatus::Resolving => unreachable!("Prop should not be Resolving!"),
                         PropStatus::Resolved | PropStatus::Stale => {}
                     };
 
