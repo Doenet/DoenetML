@@ -4,7 +4,7 @@ use crate::state::types::{
     component_refs::ComponentRefs, math_expr::MathExpr, xref_label::XrefLabel,
 };
 
-use super::PropValue;
+use super::{prop_type, PropValue};
 
 /// A `PropProfile` is used in a `DataQuery` to match a particular type of prop.
 /// It can be used to filter components based on the presence of a prop with the `PropProfile`
@@ -46,6 +46,9 @@ pub enum PropProfile {
     /// Matches a prop that indicates the depth of a division in a hierarchy of divisions. E.g.,
     /// how many levels deep a `<section>` is nested.
     DivisionDepth,
+    /// Matches a prop that indicates the depth of a list in a hierarchy of lists. E.g.,
+    /// how many levels deep a `<ol>` is nested.
+    ListDepth,
     /// Matches a prop that can be rendered (e.g., contains `ComponentRefs` but is not `RenderedChildren`.
     /// This is used on props like `<section>.title` which contain references to content but are not themselves used for
     /// rendering children.)
@@ -77,6 +80,7 @@ impl PropProfile {
             }
             PropProfile::SerialNumber => PropValue::Integer(i64::default()),
             PropProfile::DivisionDepth => PropValue::Integer(i64::default()),
+            PropProfile::ListDepth => PropValue::ListDepth(prop_type::ListDepth::default()),
             PropProfile::_Ref => PropValue::ComponentRef(None),
             PropProfile::XrefLabel => PropValue::XrefLabel(Rc::new(XrefLabel::default())),
         }
