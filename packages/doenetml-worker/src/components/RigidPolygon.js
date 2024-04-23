@@ -2,185 +2,136 @@ import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
-export default class RegularPolygon extends Polygon {
-    static componentType = "regularPolygon";
+export default class RigidPolygon extends Polygon {
+    static componentType = "rigidPolygon";
     static rendererType = "polygon";
-
-    static createAttributesObject() {
-        let attributes = super.createAttributesObject();
-
-        attributes.numVertices = {
-            createComponentOfType: "integer",
-        };
-
-        attributes.numSides = {
-            createComponentOfType: "integer",
-        };
-
-        // Note: vertices is already an attribute from polygon
-
-        attributes.center = {
-            createComponentOfType: "point",
-        };
-
-        // if center and vertex or two vertices are specified
-        // then the following size attributes are ignored
-
-        // circumradius and radius are the same thing and either attribute can be used
-        // If both specified, circumradius is used
-        attributes.circumradius = {
-            createComponentOfType: "number",
-        };
-        attributes.radius = {
-            createComponentOfType: "number",
-        };
-
-        // inradius and apothem are the same thing and either attribute can be used
-        // If both specified, inradius is used.
-        // If circumradius is specified, inradius is ignored
-        attributes.inradius = {
-            createComponentOfType: "number",
-        };
-        attributes.apothem = {
-            createComponentOfType: "number",
-        };
-
-        // if circumradius or inradius is specified, sideLength is ignored
-        attributes.sideLength = {
-            createComponentOfType: "number",
-        };
-
-        // if circumradius, inradius, or sideLength is specified, perimeter is ignored
-        attributes.perimeter = {
-            createComponentOfType: "number",
-        };
-
-        // if circumradius, inradius, sideLength, or perimeter is specified, area is ignored
-        attributes.area = {
-            createComponentOfType: "number",
-        };
-
-        return attributes;
-    }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let styleDescriptionWithNounDeps =
-            stateVariableDefinitions.styleDescriptionWithNoun.returnDependencies();
-        styleDescriptionWithNounDeps.numSides = {
-            dependencyType: "stateVariable",
-            variableName: "numSides",
+        stateVariableDefinitions.specifiedVertices = {
+            isLocation: true,
+            isArray: true,
+            numDimensions: 2,
+            returnArraySizeDependencies: () => ({
+                numVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numVertices",
+                },
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [
+                    dependencyValues.numVertices,
+                    dependencyValues.numDimensions,
+                ];
+            },
+            returnArrayDependenciesByKey({ arrayKeys }) {
+                let dependenciesByKey = {};
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    dependenciesByKey[arrayKey] = {
+                        vertices: {
+                            dependencyType: "attributeComponent",
+                            attributeName: "vertices",
+                            variableNames: ["pointX" + varEnding],
+                        },
+                    };
+                }
+                return { dependenciesByKey };
+            },
+            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+                // console.log('array definition of polyline vertices');
+                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)))
+                // console.log(arrayKeys);
+
+                let specifiedVertices = {};
+
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    let verticesAttr = dependencyValuesByKey[arrayKey].vertices;
+                    if (
+                        verticesAttr !== null &&
+                        verticesAttr.stateValues["pointX" + varEnding]
+                    ) {
+                        specifiedVertices[arrayKey] =
+                            verticesAttr.stateValues["pointX" + varEnding];
+                    } else {
+                        specifiedVertices[arrayKey] = me.fromAst("\uff3f");
+                    }
+                }
+
+                return { setValue: { vertices: specifiedVertices } };
+            },
+            async inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                dependencyValuesByKey,
+                dependencyNamesByKey,
+            }) {
+                let instructions = [];
+                for (let arrayKey in desiredStateVariableValues.specifiedVertices) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    if (
+                        dependencyValuesByKey[arrayKey].vertices !== null &&
+                        dependencyValuesByKey[arrayKey].vertices.stateValues[
+                            "pointX" + varEnding
+                        ]
+                    ) {
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey].vertices,
+                            desiredValue:
+                                desiredStateVariableValues.specifiedVertices[
+                                    arrayKey
+                                ],
+                            variableIndex: 0,
+                        });
+                    } else {
+                        return { success: false };
+                    }
+                }
+
+                return {
+                    success: true,
+                    instructions,
+                };
+            },
         };
 
-        stateVariableDefinitions.styleDescriptionWithNoun.returnDependencies =
-            () => styleDescriptionWithNounDeps;
-
-        let styleDescriptionWithNounDef =
-            stateVariableDefinitions.styleDescriptionWithNoun.definition;
-
-        stateVariableDefinitions.styleDescriptionWithNoun.definition =
-            function ({ dependencyValues }) {
-                let styleDescriptionWithNoun = styleDescriptionWithNounDef({
-                    dependencyValues,
-                }).setValue.styleDescriptionWithNoun;
-
-                styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
-                    "polygon",
-                    `${dependencyValues.numSides}-sided regular polygon`,
-                );
-
-                return { setValue: { styleDescriptionWithNoun } };
-            };
-
-        stateVariableDefinitions.numVertices = {
-            isLocation: true,
-            hasEssential: true,
-            defaultValue: 3,
-            public: true,
-            forRenderer: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
+        stateVariableDefinitions.centroid = {
             returnDependencies: () => ({
-                numVerticesAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "numVertices",
-                    variableNames: ["value"],
-                },
-                numSidesAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "numSides",
-                    variableNames: ["value"],
+                numericalVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalVertices",
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.numVerticesAttr) {
-                    return {
-                        setValue: {
-                            numVertices:
-                                dependencyValues.numVerticesAttr.stateValues
-                                    .value,
-                        },
-                    };
-                } else if (dependencyValues.numSidesAttr) {
-                    return {
-                        setValue: {
-                            numVertices:
-                                dependencyValues.numSidesAttr.stateValues.value,
-                        },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: { numVertices: true },
-                    };
+                let x = 0,
+                    y = 0;
+                let verts = dependencyValues.numericalVertices;
+                let nVerts = dependencyValues.numericalVertices.length;
+                for (let i = 0; i < nVerts; i++) {
+                    x += verts[i][0];
+                    y += verts[i][1];
                 }
-            },
-            inverseDefinition({
-                desiredStateVariableValues,
-                dependencyValues,
-            }) {
-                if (dependencyValues.numVerticesAttr) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "numVerticesAttr",
-                                desiredValue:
-                                    desiredStateVariableValues.numVertices,
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                } else if (dependencyValues.numSidesAttr) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "numSidesAttr",
-                                desiredValue:
-                                    desiredStateVariableValues.numVertices,
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "numVertices",
-                                value: desiredStateVariableValues.numVertices,
-                            },
-                        ],
-                    };
-                }
-            },
-        };
 
-        stateVariableDefinitions.numSides = {
-            isAlias: true,
-            targetVariableName: "numVertices",
+                x /= nVerts;
+                y /= nVerts;
+
+                return { setValue: { centroid: [x, y] } };
+            },
         };
 
         stateVariableDefinitions.numVerticesSpecified = {

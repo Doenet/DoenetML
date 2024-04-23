@@ -46,9 +46,25 @@ export default class Polyline extends GraphicalComponent {
             forRenderer: true,
         };
 
+        attributes.rigid = {
+            createComponentOfType: "boolean",
+            createStateVariable: "rigid",
+            defaultValue: false,
+            public: true,
+        };
+
         Object.assign(attributes, returnRoundingAttributes());
 
         return attributes;
+    }
+
+    static returnChildGroups() {
+        let groups = super.returnChildGroups();
+        groups.push({
+            group: "constrainedVertices",
+            componentTypes: ["_constrainedVertex"],
+        });
+        return groups;
     }
 
     static returnStateVariableDefinitions() {
@@ -216,6 +232,233 @@ export default class Polyline extends GraphicalComponent {
                     // polyline through zero vertices
                     return { setValue: { numDimensions: 2 } };
                 }
+            },
+        };
+
+        stateVariableDefinitions.unconstrainedVertices = {
+            isLocation: true,
+            isArray: true,
+            numDimensions: 2,
+            entryPrefixes: ["unconstrainedVertexX", "unconstrainedVertex"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "unconstrainedVertex" ? 1 : 0,
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                if (arrayEntryPrefix === "unconstrainedVertexX") {
+                    // vertexX1_2 is the 2nd component of the first vertex
+                    let indices = varEnding
+                        .split("_")
+                        .map((x) => Number(x) - 1);
+                    if (
+                        indices.length === 2 &&
+                        indices.every((x, i) => Number.isInteger(x) && x >= 0)
+                    ) {
+                        if (arraySize) {
+                            if (indices.every((x, i) => x < arraySize[i])) {
+                                return [String(indices)];
+                            } else {
+                                return [];
+                            }
+                        } else {
+                            // If not given the array size,
+                            // then return the array keys assuming the array is large enough.
+                            // Must do this as it is used to determine potential array entries.
+                            return [String(indices)];
+                        }
+                    } else {
+                        return [];
+                    }
+                } else {
+                    // vertex3 is all components of the third vertex
+
+                    let pointInd = Number(varEnding) - 1;
+                    if (!(Number.isInteger(pointInd) && pointInd >= 0)) {
+                        return [];
+                    }
+
+                    if (!arraySize) {
+                        // If don't have array size, we just need to determine if it is a potential entry.
+                        // Return the first entry assuming array is large enough
+                        return [pointInd + ",0"];
+                    }
+                    if (pointInd < arraySize[0]) {
+                        // array of "pointInd,i", where i=0, ..., arraySize[1]-1
+                        return Array.from(
+                            Array(arraySize[1]),
+                            (_, i) => pointInd + "," + i,
+                        );
+                    } else {
+                        return [];
+                    }
+                }
+            },
+            getAllArrayKeys(arraySize, flatten = true, desiredSize) {
+                function getAllArrayKeysSub(subArraySize) {
+                    if (subArraySize.length === 1) {
+                        // array of numbers from 0 to subArraySize[0], cast to strings
+                        return Array.from(Array(subArraySize[0]), (_, i) =>
+                            String(i),
+                        );
+                    } else {
+                        let currentSize = subArraySize[0];
+                        let subSubKeys = getAllArrayKeysSub(
+                            subArraySize.slice(1),
+                        );
+                        let subKeys = [];
+                        for (let ind = 0; ind < currentSize; ind++) {
+                            if (flatten) {
+                                subKeys.push(
+                                    ...subSubKeys.map((x) => ind + "," + x),
+                                );
+                            } else {
+                                subKeys.push(
+                                    subSubKeys.map((x) => ind + "," + x),
+                                );
+                            }
+                        }
+                        return subKeys;
+                    }
+                }
+
+                if (desiredSize) {
+                    // if have desired size, then assume specify size after wrapping components
+                    // I.e., use actual array size, with first component
+                    // replaced with desired size
+                    if (desiredSize.length === 0 || !arraySize) {
+                        return [];
+                    } else {
+                        let desiredSizeOfWholeArray = [...arraySize];
+                        desiredSizeOfWholeArray[0] = desiredSize[0];
+                        return getAllArrayKeysSub(desiredSizeOfWholeArray);
+                    }
+                } else if (!arraySize || arraySize.length === 0) {
+                    return [];
+                } else {
+                    return getAllArrayKeysSub(arraySize);
+                }
+            },
+            arrayVarNameFromPropIndex(propIndex, varName) {
+                if (varName === "unconstrainedVertices") {
+                    if (propIndex.length === 1) {
+                        return "unconstrainedVertex" + propIndex[0];
+                    } else {
+                        // if propIndex has additional entries, ignore them
+                        return `unconstrainedVertexX${propIndex[0]}_${propIndex[1]}`;
+                    }
+                }
+                if (varName.slice(0, 19) === "unconstrainedVertex") {
+                    // could be vertex or vertexX
+                    let vertexNum = Number(varName.slice(19));
+                    if (Number.isInteger(vertexNum) && vertexNum > 0) {
+                        // if propIndex has additional entries, ignore them
+                        return `unconstrainedVertexX${vertexNum}_${propIndex[0]}`;
+                    }
+                }
+                return null;
+            },
+            returnArraySizeDependencies: () => ({
+                numVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numVertices",
+                },
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [
+                    dependencyValues.numVertices,
+                    dependencyValues.numDimensions,
+                ];
+            },
+            returnArrayDependenciesByKey({ arrayKeys }) {
+                let dependenciesByKey = {};
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    dependenciesByKey[arrayKey] = {
+                        vertices: {
+                            dependencyType: "attributeComponent",
+                            attributeName: "vertices",
+                            variableNames: ["pointX" + varEnding],
+                        },
+                    };
+                }
+                return { dependenciesByKey };
+            },
+            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+                // console.log('array definition of polyline unconstrainedVertices');
+                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)))
+                // console.log(arrayKeys);
+
+                let unconstrainedVertices = {};
+
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    let verticesAttr = dependencyValuesByKey[arrayKey].vertices;
+                    if (
+                        verticesAttr !== null &&
+                        verticesAttr.stateValues["pointX" + varEnding]
+                    ) {
+                        unconstrainedVertices[arrayKey] =
+                            verticesAttr.stateValues["pointX" + varEnding];
+                    } else {
+                        unconstrainedVertices[arrayKey] = me.fromAst("\uff3f");
+                    }
+                }
+
+                return { setValue: { unconstrainedVertices } };
+            },
+            async inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                dependencyValuesByKey,
+                dependencyNamesByKey,
+                initialChange,
+                stateValues,
+            }) {
+                // console.log(`inverseArrayDefinition of unconstrainedVertices of polyline`);
+                // console.log(desiredStateVariableValues)
+                // console.log(JSON.parse(JSON.stringify(stateValues)))
+                // console.log(dependencyValuesByKey);
+
+                let instructions = [];
+                for (let arrayKey in desiredStateVariableValues.unconstrainedVertices) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    if (
+                        dependencyValuesByKey[arrayKey].vertices !== null &&
+                        dependencyValuesByKey[arrayKey].vertices.stateValues[
+                            "pointX" + varEnding
+                        ]
+                    ) {
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey].vertices,
+                            desiredValue:
+                                desiredStateVariableValues
+                                    .unconstrainedVertices[arrayKey],
+                            variableIndex: 0,
+                        });
+                    } else {
+                        return { success: false };
+                    }
+                }
+
+                return {
+                    success: true,
+                    instructions,
+                };
             },
         };
 
@@ -390,36 +633,43 @@ export default class Polyline extends GraphicalComponent {
                         Number(pointInd) + 1 + "_" + (Number(dim) + 1);
 
                     dependenciesByKey[arrayKey] = {
-                        vertices: {
-                            dependencyType: "attributeComponent",
-                            attributeName: "vertices",
-                            variableNames: ["pointX" + varEnding],
+                        unconstrainedVertices: {
+                            dependencyType: "stateVariable",
+                            variableName: "unconstrainedVertexX" + varEnding,
+                        },
+                        constrainedVertex: {
+                            dependencyType: "child",
+                            childGroups: ["constrainedVertices"],
+                            childIndices: [pointInd],
+                            variableNames: ["x" + (Number(dim) + 1)],
                         },
                     };
                 }
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                // console.log('array definition of polyline vertices');
-                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)))
-                // console.log(arrayKeys);
+                console.log("array definition of polyline vertices");
+                console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
+                console.log(arrayKeys);
 
                 let vertices = {};
 
                 for (let arrayKey of arrayKeys) {
                     let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
 
-                    let verticesAttr = dependencyValuesByKey[arrayKey].vertices;
-                    if (
-                        verticesAttr !== null &&
-                        verticesAttr.stateValues["pointX" + varEnding]
-                    ) {
+                    let constrainedVertex =
+                        dependencyValuesByKey[arrayKey].constrainedVertex[0];
+
+                    if (constrainedVertex) {
                         vertices[arrayKey] =
-                            verticesAttr.stateValues["pointX" + varEnding];
+                            constrainedVertex.stateValues[
+                                "x" + (Number(dim) + 1)
+                            ];
                     } else {
-                        vertices[arrayKey] = me.fromAst("\uff3f");
+                        vertices[arrayKey] =
+                            dependencyValuesByKey[
+                                arrayKey
+                            ].unconstrainedVertices;
                     }
                 }
 
@@ -439,25 +689,27 @@ export default class Polyline extends GraphicalComponent {
 
                 let instructions = [];
                 for (let arrayKey in desiredStateVariableValues.vertices) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                    let constrainedVertex =
+                        dependencyValuesByKey[arrayKey].constrainedVertex[0];
 
-                    if (
-                        dependencyValuesByKey[arrayKey].vertices !== null &&
-                        dependencyValuesByKey[arrayKey].vertices.stateValues[
-                            "pointX" + varEnding
-                        ]
-                    ) {
+                    if (constrainedVertex) {
                         instructions.push({
                             setDependency:
-                                dependencyNamesByKey[arrayKey].vertices,
+                                dependencyNamesByKey[arrayKey]
+                                    .constrainedVertex,
                             desiredValue:
                                 desiredStateVariableValues.vertices[arrayKey],
+                            childIndex: 0,
                             variableIndex: 0,
                         });
                     } else {
-                        return { success: false };
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey]
+                                    .unconstrainedVertices,
+                            desiredValue:
+                                desiredStateVariableValues.vertices[arrayKey],
+                        });
                     }
                 }
 

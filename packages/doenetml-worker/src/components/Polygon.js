@@ -292,6 +292,11 @@ export default class Polygon extends Polyline {
             },
         };
 
+        stateVariableDefinitions.numSides = {
+            isAlias: true,
+            targetVariableName: "numVertices",
+        };
+
         delete stateVariableDefinitions.length;
 
         stateVariableDefinitions.perimeter = {
@@ -349,7 +354,7 @@ export default class Polygon extends Polyline {
         };
 
         // overwrite nearestPoint so that it includes
-        // segement between first and last vertex
+        // segment between first and last vertex
         stateVariableDefinitions.nearestPoint = {
             returnDependencies: () => ({
                 numDimensions: {
