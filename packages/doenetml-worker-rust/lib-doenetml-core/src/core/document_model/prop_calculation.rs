@@ -86,7 +86,7 @@ impl DocumentModel {
         let mut tmp_unresolved_queries = Vec::new();
         let mut tmp_unresolved_query_nodes = Vec::new();
 
-        while resolve_stack.len() > 0 {
+        while !resolve_stack.is_empty() {
             let processing_state_idx = resolve_stack.len() - 1;
             let mut processing_state = std::mem::take(&mut resolve_stack[processing_state_idx]);
             if matches!(processing_state.status, QueriesStatus::InvalidState) {

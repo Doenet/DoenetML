@@ -102,7 +102,7 @@ mod custom_props {
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
             rendered_children: PropView<component::props::types::RenderedChildren>,
-            label: Vec<PropView<prop_type::XrefLabel>>,
+            label: Option<PropView<prop_type::XrefLabel>>,
         }
 
         impl DataQueries for RequiredData {
@@ -129,16 +129,13 @@ mod custom_props {
             fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
                 let required_data = RequiredData::try_from_data_query_results(data).unwrap();
                 // If the `ref` field is not set correctly, we may fail to find the label data.
-                let xref_label_data = match required_data.label.len() {
-                    0 => {
+                let xref_label_data = match required_data.label {
+                    None => {
                         return PropCalcResult::Calculated(Rc::new(
                             "[ERROR RESOLVING REFERENCE]".to_string(),
                         ))
                     }
-                    1 => required_data.label[0].to_owned().value,
-                    _ => {
-                        unreachable!()
-                    }
+                    Some(val) => val.to_owned().value,
                 };
                 let ident = match xref_label_data.preferred_form {
                     XrefLabelPreferredForm::Global => &xref_label_data.global_ident,
