@@ -255,8 +255,6 @@ fn section_gets_division_depth() {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
 
-    //core.to_flat_dast();
-
     //// the document tag will be index 0.
     let section_idx = 1.into();
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 0);
@@ -311,12 +309,12 @@ fn can_get_xref_label() {
 
     // Get the nested section
     let section_idx = 3;
-    let xref_label = core.get_prop(section_idx, SectionProps::XrefLabel.local_idx());
-    let xref_label: PropView<prop_type::XrefLabel> = xref_label.into_prop_view();
+    let xref_label: prop_type::XrefLabel =
+        core.get_prop_value_typed(section_idx, SectionProps::XrefLabel.local_idx());
 
-    assert_eq!(xref_label.value.label, "Section");
-    assert_eq!(xref_label.value.global_ident, "2.1");
-    assert_eq!(xref_label.value.local_ident, "1");
+    assert_eq!(xref_label.label, "Section");
+    assert_eq!(xref_label.global_ident, "2.1");
+    assert_eq!(xref_label.local_ident, "1");
 
     //println!("{}", core.to_mermaid_structure_graph());
     //println!("\n\n\n");

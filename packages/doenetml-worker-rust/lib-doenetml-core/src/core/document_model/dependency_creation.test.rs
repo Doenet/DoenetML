@@ -27,7 +27,8 @@ fn test_adding_sate_data_query() {
         local_prop_idx: TEXT_VALUE_LOCAL_IDX,
     });
 
-    core.document_model
+    let _ = core
+        .document_model
         .add_data_query(prop_node, DataQuery::State);
 
     // Only one data query and one piece of state has been created.
@@ -57,14 +58,16 @@ fn test_adding_sate_data_query_with_extending() {
         component_idx: 2.into(),
         local_prop_idx: TEXT_VALUE_LOCAL_IDX,
     });
-    core.document_model
+    let _ = core
+        .document_model
         .add_data_query(prop_node, DataQuery::State);
 
     let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
         component_idx: 1.into(),
         local_prop_idx: TEXT_VALUE_LOCAL_IDX,
     });
-    core.document_model
+    let _ = core
+        .document_model
         .add_data_query(prop_node, DataQuery::State);
 
     // The two queries should point to the same state.
@@ -99,7 +102,7 @@ fn test_adding_prop_data_query() {
         local_prop_idx: TEXT_VALUE_LOCAL_IDX,
     });
     // The arrow is going the wrong way. We're doing this for fun.
-    core.document_model.add_data_query(
+    let _ = core.document_model.add_data_query(
         value_prop_node,
         DataQuery::Prop {
             source: PropSource::Me,
@@ -121,7 +124,8 @@ fn test_adding_prop_data_query() {
     );
 
     // Add a state data query to the same prop. The state should appear in the dependency graph.
-    core.document_model
+    let _ = core
+        .document_model
         .add_data_query(text_prop_node, DataQuery::State);
 
     // We should now have the new state at the end of the graph.
@@ -154,7 +158,7 @@ fn test_attribute_data_query() {
         component_idx: 1.into(),
         local_prop_idx: TEXT_VALUE_LOCAL_IDX,
     });
-    core.document_model.add_data_query(
+    let _ = core.document_model.add_data_query(
         prop_node,
         DataQuery::Attribute {
             attribute_name: "hide",
@@ -196,7 +200,7 @@ fn test_parent_prop_data_query() {
         local_prop_idx: TEXT_VALUE_LOCAL_IDX,
     });
 
-    core.document_model.add_data_query(
+    let _ = core.document_model.add_data_query(
         prop_node,
         DataQuery::Prop {
             source: PropSource::Parent,

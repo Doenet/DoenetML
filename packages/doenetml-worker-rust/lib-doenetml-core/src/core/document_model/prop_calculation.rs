@@ -16,6 +16,60 @@ use super::{
     DocumentModel,
 };
 
+#[derive(Debug, Copy, Clone)]
+enum ResolvedStatus {
+    Resolved,
+    Unresolved,
+}
+
+/// The status of all the queries associated with a prop.
+#[derive(Debug)]
+enum QueriesStatus {
+    /// Not all queries have been fully computed. Query number n is fully processed if `vec[n] == true`.
+    PartialResolution(Vec<ResolvedStatus>),
+    /// No data queries have been computed.
+    Unprocessed,
+    /// All data queries have been computed (but their dependencies may not be processed yet).
+    Processed,
+    /// Used as a placeholder. If a node in this state is encountered, it is an error in _this_ function.
+    InvalidState,
+}
+impl QueriesStatus {
+    fn with_unresolved_queries(num_queries: usize, unresolved_query_indices: &[usize]) -> Self {
+        let mut completed_queries = vec![ResolvedStatus::Resolved; num_queries];
+        for idx in unresolved_query_indices {
+            completed_queries[*idx] = ResolvedStatus::Unresolved;
+        }
+        Self::PartialResolution(completed_queries)
+    }
+}
+
+/// Structure for representing prop nodes on the resolve_stack
+/// along with any of their queries that have been successfully added
+#[derive(Debug)]
+struct NodeProcessingState {
+    prop_node: GraphNode,
+    status: QueriesStatus,
+}
+
+impl NodeProcessingState {
+    fn new(prop_node: GraphNode) -> Self {
+        Self {
+            prop_node,
+            status: QueriesStatus::Unprocessed,
+        }
+    }
+}
+
+impl Default for NodeProcessingState {
+    fn default() -> Self {
+        Self {
+            prop_node: GraphNode::Virtual(usize::MAX),
+            status: QueriesStatus::InvalidState,
+        }
+    }
+}
+
 impl DocumentModel {
     /// Props are created lazily so they start as `Unresolved`.
     /// They need to be resolved to be used.
@@ -27,33 +81,137 @@ impl DocumentModel {
             return;
         }
 
-        // Since resolving props won't recurse with repeated actions,
-        // will go ahead and allocate the stack locally, for simplicity.
-        let mut resolve_stack = vec![prop_node];
+        // Stack to keep track of props that need to be resolved
+        let mut resolve_stack = vec![NodeProcessingState::new(prop_node)];
+        let mut tmp_unresolved_queries = Vec::new();
+        let mut tmp_unresolved_query_nodes = Vec::new();
 
-        while let Some(prop_node) = resolve_stack.pop() {
-            let status = self.prop_cache.get_prop_status(prop_node);
-
-            if status != PropStatus::Unresolved {
-                // nothing to do if the prop is already resolved
-                continue;
+        while !resolve_stack.is_empty() {
+            let processing_state_idx = resolve_stack.len() - 1;
+            let mut processing_state = std::mem::take(&mut resolve_stack[processing_state_idx]);
+            if matches!(processing_state.status, QueriesStatus::InvalidState) {
+                panic!("Invalid state in resolve_stack");
             }
+
+            let prop_node = processing_state.prop_node;
+            match self.prop_cache.get_prop_status(prop_node) {
+                PropStatus::Resolved | PropStatus::Fresh | PropStatus::Stale => {
+                    resolve_stack.pop();
+                    continue;
+                }
+                PropStatus::Resolving => {
+                    if matches!(processing_state.status, QueriesStatus::Processed) {
+                        // If prop is in resolving state, that means we've gotten back to this prop
+                        // after all its dependencies have been resolved; it's now resolved.
+                        self.prop_cache
+                            .set_prop_status(prop_node, PropStatus::Resolved);
+                        resolve_stack.pop();
+                        continue;
+                    }
+                }
+                PropStatus::Unresolved => {
+                    // Continue processing the prop. It needs to be resolved.
+                }
+            }
+
+            // We are starting the process of resolving `prop_node`
+            self.prop_cache
+                .set_prop_status(prop_node, PropStatus::Resolving);
 
             let prop = self.get_prop_definition(prop_node);
             let data_queries = prop.updater.data_queries();
+            let num_data_queries = data_queries.len();
+            match processing_state.status {
+                QueriesStatus::InvalidState | QueriesStatus::Processed => unreachable!(),
+                QueriesStatus::Unprocessed => {
+                    // If we're here, no previous processing of this prop has been done.
 
-            for data_query in data_queries {
-                // The data query we created may have referenced unresolved props,
-                // so loop through all the props it references
-                resolve_stack.extend(
-                    self.add_data_query(prop_node, data_query)
-                        .into_iter()
-                        .filter(|node| matches!(node, GraphNode::Prop(_))),
-                );
+                    // Most of the time we won't need to do any further processing of queries.
+                    // This is the common (optimized) case.
+                    tmp_unresolved_queries.clear();
+                    tmp_unresolved_query_nodes.clear();
+                    for (i, data_query) in data_queries.into_iter().enumerate() {
+                        match self.add_data_query(prop_node, data_query) {
+                            Ok(linked_nodes) => resolve_stack.extend(
+                                linked_nodes
+                                    .into_iter()
+                                    .filter(is_prop_node)
+                                    .map(NodeProcessingState::new),
+                            ),
+                            Err(node) => {
+                                // `node` is a node that needs to be resolved before we can finish resolving `prop_node`
+                                tmp_unresolved_queries.push(i);
+                                tmp_unresolved_query_nodes.push(node);
+                            }
+                        }
+                    }
+                    if tmp_unresolved_queries.is_empty() {
+                        // We succeeded in adding all the prop's queries.
+                        processing_state.status = QueriesStatus::Processed;
+                    } else {
+                        // If we have any unresolved dependencies, the prop is not fully resolved.
+                        // We save information about which of its queries have already been resolved
+                        // and push the remaining ones to the stack.
+                        processing_state.status = QueriesStatus::with_unresolved_queries(
+                            num_data_queries,
+                            &tmp_unresolved_queries,
+                        );
+                        resolve_stack.extend(
+                            tmp_unresolved_query_nodes
+                                .iter()
+                                .cloned()
+                                .filter(is_prop_node)
+                                .map(NodeProcessingState::new),
+                        );
+                    }
+                }
+                QueriesStatus::PartialResolution(ref mut resolved_status) => {
+                    // If we're here, we have tried to resolve this prop before but some of its queries
+                    // had dependencies that needed to be resolved first. `resolved_status` stores
+                    // whether each query has been resolved or not. It is rare that we end up in this loop,
+                    // so efficiency is not as much of a concern.
+                    tmp_unresolved_queries.clear();
+                    tmp_unresolved_query_nodes.clear();
+                    for (i, data_query) in data_queries.into_iter().enumerate() {
+                        if matches!(resolved_status[i], ResolvedStatus::Resolved) {
+                            // This data query has already been resolved
+                            continue;
+                        }
+                        match self.add_data_query(prop_node, data_query) {
+                            Ok(linked_nodes) => {
+                                resolved_status[i] = ResolvedStatus::Resolved;
+                                resolve_stack.extend(
+                                    linked_nodes
+                                        .into_iter()
+                                        .filter(is_prop_node)
+                                        .map(NodeProcessingState::new),
+                                )
+                            }
+                            Err(node) => {
+                                // `node` is a node that needs to be resolved before we can finish resolving `prop_node`
+                                tmp_unresolved_queries.push(i);
+                                tmp_unresolved_query_nodes.push(node);
+                            }
+                        }
+                    }
+                    if tmp_unresolved_queries.is_empty() {
+                        // We succeeded in adding all the prop's queries.
+                        processing_state.status = QueriesStatus::Processed;
+                    } else {
+                        // If we have any unresolved dependencies, the prop is not fully resolved.
+                        // We save information about which of its queries have already been resolved
+                        // and push the remaining ones to the stack.
+                        resolve_stack.extend(
+                            tmp_unresolved_query_nodes
+                                .iter()
+                                .cloned()
+                                .filter(is_prop_node)
+                                .map(NodeProcessingState::new),
+                        );
+                    }
+                }
             }
-
-            self.prop_cache
-                .set_prop_status(prop_node, PropStatus::Resolved);
+            resolve_stack[processing_state_idx] = processing_state;
         }
     }
 
@@ -101,6 +259,7 @@ impl DocumentModel {
                             unreachable!("Prop should already be skipped due to topological sort!")
                         }
                         PropStatus::Unresolved => unreachable!("Prop should not be Unresolved!"),
+                        PropStatus::Resolving => unreachable!("Prop should not be Resolving!"),
                         PropStatus::Resolved | PropStatus::Stale => {}
                     };
 
@@ -290,4 +449,8 @@ impl DocumentModel {
                 .collect(),
         )
     }
+}
+
+fn is_prop_node(node: &GraphNode) -> bool {
+    matches!(node, GraphNode::Prop(_))
 }
