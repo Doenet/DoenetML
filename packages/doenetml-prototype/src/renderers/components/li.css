@@ -1,5 +1,6 @@
 .doenet-document {
-    ol, ul {
+    ol,
+    ul {
         @apply ps-8 relative;
     }
     .list-label {

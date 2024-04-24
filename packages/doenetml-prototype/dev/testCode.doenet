@@ -39,17 +39,19 @@ Consider: <xref ref="$si" />
         </ol>
       </li>
     </ol>
+  </li>
+</ol>
 
-    <xref ref="$deepitem" />
+<xref ref="$deepitem" />
 
-    <!-- <textInput prefill="hi" name="ti" />
+<!-- <textInput prefill="hi" name="ti" />
 The value: $ti.immediateValue
 
 "<text extend="$ti.immediateValue"> world</text>"
 "<text extend="$ti.value"> world</text>"
 -->
 
-    <!--
+<!--
 
 <text name="t">hello</text> ___
 
@@ -67,7 +69,7 @@ dsaf
 
 -->
 
-    <!--
+<!--
  "<text extend="<textInput _remaining_path="immediateValue"/>"> world</text>"
  
 
@@ -115,5 +117,3 @@ dsaf
 </section>
 
 -->
-  </li>
-</ol>
