@@ -1,0 +1,8 @@
+.doenet-document {
+    ol, ul {
+        @apply ps-8 relative;
+    }
+    .list-label {
+        @apply w-5 inline-block absolute left-0 text-right select-none;
+    }
+}

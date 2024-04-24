@@ -1,6 +1,7 @@
 //! This file contains utilities for testing DoenetMLCore.
 use doenetml_core::components::types::{ComponentIdx, LocalPropIdx, PropPointer};
-use doenetml_core::dast::{DastRoot, FlatDastRoot};
+use doenetml_core::dast::ref_resolve::Resolver;
+use doenetml_core::dast::{DastRoot, FlatDastRoot, PathPart};
 use doenetml_core::props::cache::PropWithMeta;
 use doenetml_core::props::traits::IntoPropView;
 use doenetml_core::props::{PropValue, PropView};
@@ -132,14 +133,22 @@ pub fn attach_codelldb_debugger() {
 #[allow(unused)]
 pub struct TestCore {
     pub core: doenetml_core::Core,
+    /// Resolver that can be used to look items up by name.
+    pub resolver: Option<Resolver>,
 }
 #[allow(unused)]
 impl TestCore {
     pub fn new() -> Self {
-        Self { core: Core::new() }
+        Self {
+            core: Core::new(),
+            resolver: None,
+        }
     }
     pub fn new_from(core: doenetml_core::Core) -> Self {
-        Self { core }
+        Self {
+            core,
+            resolver: None,
+        }
     }
     /// Get a prop from the core without tracking it. It will be resolved and calculated
     /// if it hasn't been already. This function internally uses `get_prop_for_render_untracked`.
@@ -217,10 +226,30 @@ impl TestCore {
         self.core.document_model.get_component(component_idx)
     }
 
+    /// Get the index of a component via its assigned name.
+    pub fn get_component_index_by_name(&self, name: &str) -> usize {
+        if self.resolver.is_none() {
+            panic!("Resolver is not initialized, must call `init_from_dast_root` first");
+        }
+        let resolver = self.resolver.as_ref().unwrap();
+        let resolved = resolver
+            .resolve(
+                &[PathPart {
+                    name: name.to_string(),
+                    index: vec![],
+                    position: None,
+                }],
+                1,
+            )
+            .unwrap();
+
+        resolved.node_idx
+    }
+
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
         self.core.to_flat_dast()
     }
     pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
-        self.core.init_from_dast_root(dast_root);
+        self.resolver = Some(self.core.init_from_dast_root(dast_root));
     }
 }

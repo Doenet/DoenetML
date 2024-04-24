@@ -7,6 +7,7 @@ pub use super::_ref::_Ref;
 pub use super::doenet::_fragment::_Fragment;
 pub use super::doenet::boolean::Boolean;
 pub use super::doenet::document::Document;
+pub use super::doenet::li::Li;
 pub use super::doenet::ol::Ol;
 //pub use super::doenet::math::Math;
 pub use super::doenet::p::P;
@@ -42,6 +43,7 @@ pub enum ComponentEnum {
     Document(Document),
     Xref(Xref),
     Ol(Ol),
+    Li(Li),
     _Error(_Error),
     _External(_External),
     _Fragment(_Fragment),

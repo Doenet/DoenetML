@@ -45,7 +45,9 @@ impl PropDefinition {
             PropValueDiscriminants::Number => {
                 unimplemented!("haven't yet created a number component")
             }
-            PropValueDiscriminants::XrefLabel | PropValueDiscriminants::ListDepth => {
+            PropValueDiscriminants::XrefLabel
+            | PropValueDiscriminants::ListDepth
+            | PropValueDiscriminants::ListMarker => {
                 panic!("no bare references to allowed")
             }
             PropValueDiscriminants::String => Text::NAME,

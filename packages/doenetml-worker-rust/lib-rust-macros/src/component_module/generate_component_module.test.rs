@@ -115,28 +115,20 @@ fn test_can_parse_module3() {
 mod component {
     use crate::general_prop::BooleanProp;
 
-    enum Props {
-        /// The value of the `<text>`. This is the content that will be displayed inside
-        /// the `<text>` component.
-        #[prop(
-            value_type = PropValueType::String,
-            is_public,
-            profile = PropProfile::String,
-            default
-        )]
-        Value,
-        #[prop(value_type = PropValueType::Boolean)]
-        Hidden,
-    }
-
     enum Attributes {
-        /// Whether the `<text>` should be hidden.
-        #[attribute(prop = BooleanProp, default = false)]
+        #[attribute(prop = BooleanProp<Foo>)]
         Hide,
     }
 }
     "#;
-    let result = generate_component_module(syn::parse_str(input).unwrap());
+
+    //    let input = "BooleanProp<Foo>";
+    //    let parsed: syn::TypePath = syn::parse_str(input).unwrap();
+    //    dbg!(parsed);
+
+    let syn_item = syn::parse_str(input).unwrap();
+    //dbg!(&syn_item);
+    let result = generate_component_module(syn_item);
     println!("\n{}\n", pretty_print_result(&result));
     //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
     // dbg!(result.to_string());

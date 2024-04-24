@@ -44,7 +44,7 @@ mod component {
         /// in _Section 1.2.3_.
         #[prop(
                value_type = PropValueType::String,
-               profile = PropProfile::CodeNumber,
+               profile = PropProfile::DivisionCodeNumber,
                for_render
            )]
         CodeNumber,
@@ -258,7 +258,7 @@ mod custom_props {
             fn nearest_ancestor_code_number_query() -> DataQuery {
                 DataQuery::PickProp {
                     source: PickPropSource::NearestMatchingAncestor,
-                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::CodeNumber]),
+                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::DivisionCodeNumber]),
                 }
             }
             fn self_serial_number_query() -> DataQuery {
