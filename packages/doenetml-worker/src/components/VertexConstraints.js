@@ -389,11 +389,11 @@ export class ConstrainedVertex extends BaseComponent {
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                console.log(
-                    "array def of xs of point shadow",
-                    dependencyValuesByKey,
-                    arrayKeys,
-                );
+                // console.log(
+                //     "array def of xs of point shadow",
+                //     dependencyValuesByKey,
+                //     arrayKeys,
+                // );
                 let xs = {};
 
                 for (let arrayKey of arrayKeys) {
