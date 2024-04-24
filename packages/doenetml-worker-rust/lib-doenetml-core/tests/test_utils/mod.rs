@@ -2,7 +2,8 @@
 use doenetml_core::components::types::{ComponentIdx, LocalPropIdx, PropPointer};
 use doenetml_core::dast::{DastRoot, FlatDastRoot};
 use doenetml_core::props::cache::PropWithMeta;
-use doenetml_core::props::PropValue;
+use doenetml_core::props::traits::IntoPropView;
+use doenetml_core::props::{PropValue, PropView};
 use doenetml_core::Core;
 use serde_json;
 #[allow(unused)]
@@ -169,6 +170,43 @@ impl TestCore {
     {
         let prop = self.get_prop(component_idx, local_prop_idx);
         prop.value
+    }
+
+    /// Get the value of a prop from the core without tracking it. It will be resolved and calculated
+    /// if it hasn't been already. This function internally uses `get_prop_for_render_untracked`.
+    /// This function returns a _typed_ value. You may have to annotate your source with the desired type.
+    pub fn get_prop_value_typed<A, B, PropType>(
+        &mut self,
+        component_idx: A,
+        local_prop_idx: B,
+    ) -> PropType
+    where
+        ComponentIdx: From<A>,
+        LocalPropIdx: From<B>,
+        PropType: TryFrom<PropValue>,
+        <PropType as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
+    {
+        let prop = self.get_prop(component_idx, local_prop_idx);
+        let prop_value: PropView<PropType> = prop.try_into_prop_view().unwrap();
+        prop_value.value
+    }
+
+    /// Get a `PropView` from the core without tracking it. It will be resolved and calculated
+    /// if it hasn't been already. This function internally uses `get_prop_for_render_untracked`.
+    /// This function returns a _typed_ `PropView`. You may have to annotate your source with the desired type.
+    pub fn get_prop_typed<A, B, PropType>(
+        &mut self,
+        component_idx: A,
+        local_prop_idx: B,
+    ) -> PropView<PropType>
+    where
+        ComponentIdx: From<A>,
+        LocalPropIdx: From<B>,
+        PropType: TryFrom<PropValue>,
+        <PropType as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
+    {
+        let prop = self.get_prop(component_idx, local_prop_idx);
+        prop.try_into_prop_view().unwrap()
     }
 
     pub fn get_component<A>(&self, component_idx: A) -> doenetml_core::components::Component

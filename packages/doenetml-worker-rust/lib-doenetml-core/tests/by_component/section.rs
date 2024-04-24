@@ -1,6 +1,11 @@
 use super::*;
 
-use doenetml_core::{dast::FlatDastElementContent, state::types::content_refs::ContentRef};
+use doenetml_core::{
+    components::doenet::section::SectionProps,
+    dast::FlatDastElementContent,
+    props::{prop_type, traits::IntoPropView, PropView},
+    state::types::content_refs::ContentRef,
+};
 use test_helpers::*;
 
 #[test]
@@ -250,8 +255,6 @@ fn section_gets_division_depth() {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
 
-    //core.to_flat_dast();
-
     //// the document tag will be index 0.
     let section_idx = 1.into();
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 0);
@@ -261,10 +264,6 @@ fn section_gets_division_depth() {
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 2);
     let section_idx = 9.into();
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 0);
-
-    //println!("{}", core.to_mermaid_structure_graph());
-    //println!("\n\n\n");
-    //println!("{}", core.to_mermaid_dependency_graph());
 }
 
 #[test]
@@ -288,6 +287,34 @@ fn section_title_reference_works() {
         get_fragment_rendered_children_prop(fragment_idx, &mut core),
         vec![ContentRef::Component(2.into()),]
     );
+
+    //println!("{}", core.to_mermaid_structure_graph());
+    //println!("\n\n\n");
+    //println!("{}", core.to_mermaid_dependency_graph());
+}
+
+#[test]
+fn can_get_xref_label() {
+    let dast_root = dast_root_no_position(
+        r#"
+       <section /><section><section /></section>
+       "#,
+    );
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    // just to make sure this doesn't error
+    core.to_flat_dast();
+
+    // Get the nested section
+    let section_idx = 3;
+    let xref_label: prop_type::XrefLabel =
+        core.get_prop_value_typed(section_idx, SectionProps::XrefLabel.local_idx());
+
+    assert_eq!(xref_label.label, "Section");
+    assert_eq!(xref_label.global_ident, "2.1");
+    assert_eq!(xref_label.local_ident, "1");
 
     //println!("{}", core.to_mermaid_structure_graph());
     //println!("\n\n\n");

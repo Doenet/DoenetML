@@ -57,6 +57,14 @@ mod component {
            )]
         DivisionDepth,
 
+        /// The label that should be used to refer to this `<section>` when
+        /// the section is referred to by `<xref>`.
+        #[prop(
+               value_type = PropValueType::XrefLabel,
+               profile = PropProfile::XrefLabel,
+           )]
+        XrefLabel,
+
         #[prop(
             value_type = PropValueType::ContentRefs,
             profile = PropProfile::RenderedChildren
@@ -104,12 +112,76 @@ impl PropGetUpdater for SectionProps {
             SectionProps::DivisionDepth => as_updater_object::<_, props::types::DivisionDepth>(
                 custom_props::DivisionDepth::new(),
             ),
+            SectionProps::XrefLabel => {
+                as_updater_object::<_, props::types::XrefLabel>(custom_props::XrefLabel::new())
+            }
         }
     }
 }
 
 mod custom_props {
     use super::*;
+
+    pub use xref_label::*;
+    mod xref_label {
+        use crate::state::types::xref_label;
+
+        use super::*;
+
+        /// Information about how to reference this component from an `xref`
+        #[derive(Debug, Default)]
+        pub struct XrefLabel {}
+
+        impl XrefLabel {
+            pub fn new() -> Self {
+                XrefLabel {}
+            }
+        }
+
+        /// Structure to hold data generated from the data queries
+        #[derive(TryFromDataQueryResults, Debug)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData {
+            serial_number: PropView<props::types::SerialNumber>,
+            code_number: PropView<props::types::CodeNumber>,
+        }
+
+        impl DataQueries for RequiredData {
+            fn code_number_query() -> DataQuery {
+                DataQuery::Prop {
+                    source: PropSource::Me,
+                    prop_specifier: SectionProps::CodeNumber.local_idx().into(),
+                }
+            }
+            fn serial_number_query() -> DataQuery {
+                DataQuery::Prop {
+                    source: PropSource::Me,
+                    prop_specifier: SectionProps::SerialNumber.local_idx().into(),
+                }
+            }
+        }
+
+        impl PropUpdater for XrefLabel {
+            type PropType = prop_type::XrefLabel;
+
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                let label = String::from("Section");
+                let global_ident = required_data.code_number.value.to_string();
+                let local_ident = (required_data.serial_number.value + 1).to_string();
+
+                PropCalcResult::Calculated(Rc::new(xref_label::XrefLabel {
+                    label,
+                    global_ident,
+                    local_ident,
+                    preferred_form: xref_label::XrefLabelPreferredForm::Global,
+                }))
+            }
+        }
+    }
 
     pub use division_depth::*;
     mod division_depth {
