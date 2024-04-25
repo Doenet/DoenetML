@@ -116,6 +116,26 @@ impl ListMarker {
             marker
         }
     }
+
+    /// The default value of an unordered list.
+    pub fn default_ul() -> Self {
+        Self::Disc
+    }
+    /// The default value of an ordered list.
+    pub fn default_ol() -> Self {
+        Self::Decimal { start: 1 }
+    }
+    /// Whether this list marker is ordered.
+    pub fn is_ordered(&self) -> bool {
+        matches!(
+            self,
+            ListMarker::Decimal { .. }
+                | ListMarker::LowerAlpha
+                | ListMarker::LowerRoman
+                | ListMarker::UpperAlpha
+                | ListMarker::UpperRoman
+        )
+    }
 }
 
 impl Default for ListMarker {
@@ -149,6 +169,17 @@ impl From<&str> for ListMarker {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_list_marker_from_str() {
+        assert_eq!(ListMarker::from("1"), ListMarker::Decimal { start: 1 },);
+        assert_eq!(ListMarker::from("0"), ListMarker::Decimal { start: 0 });
+        assert_eq!(ListMarker::from("a"), ListMarker::LowerAlpha);
+        assert_eq!(
+            ListMarker::from("INVALID"),
+            ListMarker::Decimal { start: 1 }
+        );
+    }
 
     #[test]
     fn test_list_marker_next() {

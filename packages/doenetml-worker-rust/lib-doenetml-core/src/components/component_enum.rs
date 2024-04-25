@@ -15,6 +15,7 @@ pub use super::doenet::section::Section;
 pub use super::doenet::text::Text;
 pub use super::doenet::text_input::TextInput;
 pub use super::doenet::title::Title;
+pub use super::doenet::ul::Ul;
 pub use super::doenet::xref::Xref;
 
 /// A enum that can contain a component of any possible component type.
@@ -43,6 +44,7 @@ pub enum ComponentEnum {
     Document(Document),
     Xref(Xref),
     Ol(Ol),
+    Ul(Ul),
     Li(Li),
     _Error(_Error),
     _External(_External),

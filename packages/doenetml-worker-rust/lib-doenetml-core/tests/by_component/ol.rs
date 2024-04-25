@@ -180,3 +180,31 @@ fn li_know_their_own_code_number() {
     );
     assert_eq!(*pos, "1");
 }
+
+#[test]
+fn li_can_start_at_zero() {
+    let dast_root = dast_root_no_position(
+        r#"<ol marker="0" name="ol"><li name="a"/><li name="b"/></ol><ol start="4"><li><ol><li name="c" /></ol></li></ol><li name="d"/>"#,
+    );
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    let marker: prop_type::ListMarker = core.get_prop_value_typed(
+        core.get_component_index_by_name("ol"),
+        OlProps::Marker.local_idx(),
+    );
+    assert_eq!(marker, prop_type::ListMarker::Decimal { start: 0 });
+
+    let pos: prop_type::String = core.get_prop_value_typed(
+        core.get_component_index_by_name("a"),
+        LiProps::CodeNumber.local_idx(),
+    );
+    assert_eq!(*pos, "0");
+
+    let pos: prop_type::String = core.get_prop_value_typed(
+        core.get_component_index_by_name("b"),
+        LiProps::CodeNumber.local_idx(),
+    );
+    assert_eq!(*pos, "1");
+}

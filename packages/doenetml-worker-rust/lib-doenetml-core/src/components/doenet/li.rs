@@ -30,12 +30,6 @@ mod component {
         )]
         Label,
 
-        /// The position of this `<li>` relative to its siblings.
-        #[prop(
-            value_type = PropValueType::Integer,
-        )]
-        LocalSerialNumber,
-
         /// The code number for this list item. E.g. `1.a.ii`.
         #[prop(
             value_type = PropValueType::String,
@@ -48,6 +42,12 @@ mod component {
             value_type = PropValueType::Integer,
         )]
         SerialNumber,
+
+        /// The position of this `<li>` relative to its siblings.
+        #[prop(
+            value_type = PropValueType::Integer,
+        )]
+        LocalSerialNumber,
 
         /// The label that should be used to refer to this `<li>` when
         /// the section is referred to by `<xref>`.

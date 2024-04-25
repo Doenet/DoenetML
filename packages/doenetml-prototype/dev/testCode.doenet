@@ -25,6 +25,23 @@ See <xref ref="$s2" />, or by its other name <xref ref="$s2">Super Sec</xref>.
 
 Consider: <xref ref="$si" />
 
+<ol marker="0">
+  <li>My item</li>
+  <li>My other item</li>
+  <li>
+    Hi
+    <ol>
+      <li>Deeper list</li>
+      <li>
+        Foo
+        <ol>
+          <li>Item</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
 <ol start="7">
   <li>My item</li>
   <li>My other item</li>
@@ -49,8 +66,35 @@ Consider: <xref ref="$si" />
   <ul>
     <li>stuff</li>
     <li>things</li>
+    <li>
+      <ul>
+        <li>stuff</li>
+        <li>things</li>
+        <li>
+          <ul>
+            <li name="uldeep">stuff</li>
+            <li>things</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
   </ul>
 </p>
+
+<xref ref="$uldeep" />
+<ul name="a">
+  <li>
+    there
+    <ol name="b">
+      <li>
+        you
+        <ol name="c">
+          <li>hey</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ul>
 
 <!-- <textInput prefill="hi" name="ti" />
 The value: $ti.immediateValue
