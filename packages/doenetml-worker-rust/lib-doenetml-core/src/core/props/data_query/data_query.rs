@@ -71,6 +71,9 @@ pub enum PropSource {
     Parent,
     /// Search for the prop on the component with the given index.
     ByIdx(ComponentIdx),
+    /// Search for the prop at the referent of a `ComponentRef`. The `ComponentRef`
+    /// must be the contents of a local prop and is assumed to be **static**.
+    StaticComponentRef(LocalPropIdx),
 }
 
 /// Used in a [`DataQuery::Prop`] to specify which prop to retrieve from a component.

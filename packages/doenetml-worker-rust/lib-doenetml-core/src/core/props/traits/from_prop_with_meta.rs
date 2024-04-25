@@ -83,6 +83,25 @@ where
     }
 }
 
+impl<PropType> FromPropWithMeta<Vec<PropWithMeta>, Self> for Option<PropView<PropType>>
+where
+    PropWithMeta: IntoPropView<PropView<PropType>>,
+{
+    fn from_prop_with_meta(val: Vec<PropWithMeta>) -> Self {
+        Self::try_from_prop_with_meta(val).unwrap()
+    }
+    fn try_from_prop_with_meta(val: Vec<PropWithMeta>) -> anyhow::Result<Self> {
+        match val.len() {
+            0 => Ok(None),
+            1 => Ok(Some(val[0].to_owned().try_into_prop_view()?)),
+            _ => Err(anyhow!(
+                "Converting from a Vec into a Option<PropView> can only be done if the vec is length 0 or 1, not {}",
+                val.len()
+            )),
+        }
+    }
+}
+
 impl<PropType> FromPropWithMeta<DataQueryResult, Self> for PropView<PropType>
 where
     PropWithMeta: IntoPropView<PropView<PropType>>,
@@ -96,6 +115,18 @@ where
 }
 
 impl<PropType> FromPropWithMeta<DataQueryResult, Self> for Vec<PropView<PropType>>
+where
+    PropWithMeta: IntoPropView<PropView<PropType>>,
+{
+    fn from_prop_with_meta(val: DataQueryResult) -> Self {
+        val.values.into_prop_view()
+    }
+    fn try_from_prop_with_meta(val: DataQueryResult) -> anyhow::Result<Self> {
+        val.values.try_into_prop_view()
+    }
+}
+
+impl<PropType> FromPropWithMeta<DataQueryResult, Self> for Option<PropView<PropType>>
 where
     PropWithMeta: IntoPropView<PropView<PropType>>,
 {

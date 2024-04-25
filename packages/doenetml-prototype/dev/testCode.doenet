@@ -2,7 +2,7 @@
   <title>My Cool Section</title>
   <p>Some content!!</p>
 </section>
-<section extend="$s">
+<section extend="$s" name="s2">
   <title>Second Clone</title>
   <p>With more content</p>
   <p>
@@ -12,7 +12,19 @@
        world
     </text>"
   </p>
+  <section name="si">
+    <title>Wow. We will explore this<m>x^2</m></title>
+    <p>Some important content</p>
+  </section>
 </section>
+
+
+See <xref ref="$s2" />, or by its other name <xref ref="$s2">Super Sec</xref>.
+
+<xref ref="$foo" />
+
+Consider: <xref ref="$si" />
+
 <!-- <textInput prefill="hi" name="ti" />
 The value: $ti.immediateValue
 

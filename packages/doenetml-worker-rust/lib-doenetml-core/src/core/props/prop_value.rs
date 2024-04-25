@@ -49,6 +49,8 @@ pub enum PropValue {
     ContentRef(prop_type::ContentRef),
     None(()),
     PropVec(prop_type::PropVec),
+    #[serde(with = "rc_serde")]
+    XrefLabel(prop_type::XrefLabel),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -60,7 +62,7 @@ pub mod prop_type {
     //! so that they can be used in macros.
 
     use super::*;
-    use crate::state::types::{component_refs, content_refs};
+    use crate::state::types::{component_refs, content_refs, xref_label};
 
     #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type String = Rc<std::string::String>;
@@ -79,6 +81,7 @@ pub mod prop_type {
     pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
     pub type ContentRef = content_refs::ContentRef;
+    pub type XrefLabel = Rc<xref_label::XrefLabel>;
 
     pub type PropVec = Vec<PropValue>;
 

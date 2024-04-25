@@ -27,6 +27,8 @@ pub enum PropStatus {
     /// The prop has been "resolved", meaning it and its dependencies have been added to the dependency graph,
     /// but the value has never been computed.
     Resolved,
+    /// The prop in the process of being resolved.
+    Resolving,
 }
 
 /// Metadata stored along with a cached prop.
@@ -112,6 +114,9 @@ impl CachedProp {
             }
             PropStatus::Unresolved => {
                 panic!("Cannot get value of prop with Unresolved status")
+            }
+            PropStatus::Resolving => {
+                panic!("Cannot get value of prop with Resolving status")
             }
         }
     }
