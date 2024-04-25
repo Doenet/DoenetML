@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use super::{super::graph_node::GraphNode, DocumentRenderer};
 use crate::{
     components::{
         prelude::{ComponentIdx, ElementData, FlatDastElement, FlatDastElementContent},
@@ -9,13 +10,21 @@ use crate::{
     core::document_model::DocumentModel,
     dast::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
-        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderProps,
+        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderPropValueOrContent,
+        ForRenderProps,
     },
     graph::directed_graph::Taggable,
     props::{cache::PropWithMeta, PropProfile, PropValue},
+    state::types::content_refs::ContentRef,
 };
 
-use super::{super::graph_node::GraphNode, DocumentRenderer};
+/// When to include a prop in the serialized rendered props.
+pub enum SerializeCondition {
+    /// Always include the prop in the serialized rendered props.
+    Always,
+    /// Only include the prop if it has changed since the last time it was serialized.
+    IfChanged,
+}
 
 impl DocumentRenderer {
     /// Output all components as a flat dast,
@@ -130,7 +139,13 @@ impl DocumentRenderer {
             .get_tag(&component_idx.as_graph_node())
             .copied()
             .and_then(|in_tree| {
-                in_tree.then(|| self.get_rendered_props(component_idx, false, document_model))
+                in_tree.then(|| {
+                    self.get_rendered_props(
+                        component_idx,
+                        SerializeCondition::Always,
+                        document_model,
+                    )
+                })
             });
 
         let component = document_model.get_component(component_idx);
@@ -202,7 +217,7 @@ impl DocumentRenderer {
     fn get_rendered_props(
         &mut self,
         component_idx: ComponentIdx,
-        only_changed_props: bool,
+        serialize_condition: SerializeCondition,
         document_model: &DocumentModel,
     ) -> ForRenderProps {
         let rendered_prop_pointers = document_model.get_for_render_prop_pointers(component_idx);
@@ -210,13 +225,12 @@ impl DocumentRenderer {
         let rendered_prop_value_vec = rendered_prop_pointers
             .filter_map(|prop_pointer| {
                 let prop = self.get_prop_for_render(prop_pointer, document_model);
-                if !only_changed_props || prop.changed {
-                    let prop_value = (prop.value).clone();
+                let should_serialize =
+                    prop.changed || matches!(serialize_condition, SerializeCondition::Always);
+                if should_serialize {
+                    let prop_value = prop.value;
                     let prop_name = document_model.get_prop_name(prop_pointer);
-                    Some(ForRenderPropValue {
-                        name: prop_name,
-                        value: prop_value,
-                    })
+                    Some(self.prepare_prop_value_for_render(prop_name, prop_value, document_model))
                 } else {
                     None
                 }
@@ -224,6 +238,42 @@ impl DocumentRenderer {
             .collect::<Vec<_>>();
 
         ForRenderProps(rendered_prop_value_vec)
+    }
+
+    /// Turns a `PropValue` into a `ForRenderPropValueOrContent` that is ready for serialization.
+    /// In particular, this will substitute in any `PropValue::ContentRefs` that are strings with an
+    /// appropriate `FlatDastElementContent::Text`.
+    #[inline(always)]
+    fn prepare_prop_value_for_render(
+        &self,
+        name: &'static str,
+        value: PropValue,
+        document_model: &DocumentModel,
+    ) -> ForRenderPropValue {
+        let ref_to_element_content = |r: &ContentRef| match r {
+            ContentRef::String(s) => {
+                let node = GraphNode::String(s.as_usize());
+                FlatDastElementContent::Text(document_model.get_string_value(node))
+            }
+            ContentRef::Component(c) => FlatDastElementContent::Element(c.as_usize()),
+        };
+
+        let value: ForRenderPropValueOrContent = match value {
+            PropValue::ContentRef(r) => {
+                // A content ref gets converted into FlatDastElementContent
+                ref_to_element_content(&r).into()
+            }
+            PropValue::ContentRefs(r) => {
+                // Content refs gets converted into FlatDastElementContent
+                r.as_slice()
+                    .iter()
+                    .map(ref_to_element_content)
+                    .collect::<Vec<_>>()
+                    .into()
+            }
+            _ => ForRenderPropValueOrContent::PropValue(value),
+        };
+        ForRenderPropValue { name, value }
     }
 
     /// Output updates for any elements with changed for_render props
@@ -237,7 +287,11 @@ impl DocumentRenderer {
         for component_idx in changed_components {
             let component_node = component_idx.as_graph_node();
             if let Some(true) = self.in_render_tree.get_tag(&component_node) {
-                let rendered_props = self.get_rendered_props(component_idx, true, document_model);
+                let rendered_props = self.get_rendered_props(
+                    component_idx,
+                    SerializeCondition::IfChanged,
+                    document_model,
+                );
 
                 if !rendered_props.is_empty() {
                     flat_dast_updates.insert(

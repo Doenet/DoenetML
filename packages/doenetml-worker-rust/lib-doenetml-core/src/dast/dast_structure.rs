@@ -148,7 +148,41 @@ impl Serialize for ForRenderProps {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ForRenderPropValue {
     pub name: &'static str,
-    pub value: PropValue,
+    pub value: ForRenderPropValueOrContent,
+}
+
+/// Some data may be pre-processed into `FlatDastElementContent`
+/// and other data may be left as a `PropValue` to be serialized by
+/// its own serializer. This enum stores both types of data.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(untagged)]
+pub enum ForRenderPropValueOrContent {
+    PropValue(PropValue),
+    Content(Vec<FlatDastElementContent>),
+}
+
+impl From<PropValue> for ForRenderPropValueOrContent {
+    fn from(prop_value: PropValue) -> Self {
+        ForRenderPropValueOrContent::PropValue(prop_value)
+    }
+}
+
+impl From<FlatDastElementContent> for ForRenderPropValueOrContent {
+    fn from(content: FlatDastElementContent) -> Self {
+        ForRenderPropValueOrContent::Content(vec![content])
+    }
+}
+
+impl From<Vec<FlatDastElementContent>> for ForRenderPropValueOrContent {
+    fn from(content: Vec<FlatDastElementContent>) -> Self {
+        ForRenderPropValueOrContent::Content(content)
+    }
+}
+
+impl From<&str> for ForRenderPropValueOrContent {
+    fn from(s: &str) -> Self {
+        ForRenderPropValueOrContent::PropValue(s.into())
+    }
 }
 
 /// A text node
