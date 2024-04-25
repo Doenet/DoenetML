@@ -20,7 +20,6 @@ use crate::utils::rc_serde;
     Clone,
     PartialEq, // TODO: this might be too much to require on all value types if we have complex types
     serde::Serialize,
-    serde::Deserialize,
     derive_more::TryInto,
     derive_more::From,
     doenetml_macros::TryFromRef,
@@ -28,7 +27,6 @@ use crate::utils::rc_serde;
 )]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum PropValue {
     #[serde(with = "rc_serde")]
     String(prop_type::String),

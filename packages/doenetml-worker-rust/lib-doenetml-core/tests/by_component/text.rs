@@ -31,7 +31,7 @@ fn value_prop_from_string_child() {
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
             name: "value",
-            value: PropValue::from("hello")
+            value: PropValue::from("hello").into()
         }])
     );
 
@@ -47,7 +47,7 @@ fn value_prop_from_string_child() {
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
             name: "value",
-            value: PropValue::from("hello")
+            value: PropValue::from("hello").into()
         }])
     );
 }
@@ -94,7 +94,7 @@ fn hidden_or_unrendered_text_dont_calculate_render_props() {
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
             name: "value",
-            value: PropValue::String(Rc::new("hello there".to_string()))
+            value: PropValue::String(Rc::new("hello there".to_string())).into()
         }])
     );
 

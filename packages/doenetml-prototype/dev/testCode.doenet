@@ -23,7 +23,7 @@ See <xref ref="$s2" />, or by its other name <xref ref="$s2">Super Sec</xref>.
 
 <xref ref="$foo" />
 
-Consider: <xref ref="$si" />
+Consider: <xref ref="$si" /> that important section.
 
 <ol marker="0">
   <li>My item</li>
@@ -59,7 +59,7 @@ Consider: <xref ref="$si" />
   </li>
 </ol>
 
-<xref ref="$deepitem" />
+We have a reference to a deep item: <xref ref="$deepitem" />.
 
 <p>
   An unordered list

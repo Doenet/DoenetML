@@ -184,7 +184,7 @@ mod test_helpers {
 
     use doenetml_core::{
         components::P,
-        dast::{FlatDastElement, FlatDastElementContent},
+        dast::{FlatDastElement, FlatDastElementContent, ForRenderPropValueOrContent},
         props::{prop_type, traits::IntoPropView, PropValue, PropView},
         state::types::content_refs::ContentRef,
     };
@@ -241,7 +241,9 @@ mod test_helpers {
                         prop_values.iter().find_map(|prop_val| {
                             if prop_val.name == "value".to_string() {
                                 match &prop_val.value {
-                                    PropValue::String(string_val) => Some(string_val.as_str()),
+                                    ForRenderPropValueOrContent::PropValue(PropValue::String(
+                                        string_val,
+                                    )) => Some(string_val.as_str()),
                                     _ => panic!("must have string value"),
                                 }
                             } else {
