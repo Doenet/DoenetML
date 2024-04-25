@@ -196,7 +196,7 @@ pub struct AttributesVariant {
     /// The name of the attribute (before it is turned into camelCase)
     pub ident: Ident,
     /// The prop that should be used to create the data query for this attribute
-    pub prop: Option<Path>,
+    pub prop: Option<syn::Path>,
     /// The default value for the attribute
     pub default: Option<syn::Expr>,
     /// The explicit type for the attribute. This can be auto-computed if using one of the standard

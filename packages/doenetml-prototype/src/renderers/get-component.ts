@@ -16,6 +16,9 @@ import {
     Title,
     _Fragment,
     Xref,
+    Ol,
+    Li,
+    Ul,
 } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 import { ChoiceInput } from "./components/choice-input";
@@ -68,6 +71,9 @@ const TEXT_MODE_COMPONENTS: Record<
     title: { component: Title, passthroughChildren: true },
     _fragment: { component: _Fragment, passthroughChildren: true },
     xref: { component: Xref, passthroughChildren: true },
+    ol: { component: Ol, passthroughChildren: true },
+    ul: { component: Ul, passthroughChildren: true },
+    li: { component: Li, passthroughChildren: true },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<

@@ -33,11 +33,20 @@ pub enum PropProfile {
     Hidden,
     /// Matches the SerialNumber prop
     SerialNumber,
-    /// Matches the CodeNumber prop
-    CodeNumber,
+    /// Matches the DivisionCodeNumber prop
+    DivisionCodeNumber,
     /// Matches a prop that indicates the depth of a division in a hierarchy of divisions. E.g.,
     /// how many levels deep a `<section>` is nested.
     DivisionDepth,
+    /// Matches a prop that indicates the depth of a list in a hierarchy of lists. E.g.,
+    /// how many levels deep a `<ol>` is nested.
+    ListDepth,
+    /// Matches a prop that indicates on which number a list start start indexing from.
+    ListStartIndex,
+    /// Matches a prop that indicates the marker to be used for list items in a list.
+    ListMarker,
+    /// Matches a prop that indicates the code number of a list item. I.e., its fully-specified (local) name, like `4.a.ii`.
+    ListCodeNumber,
     /// Matches a prop that can be rendered (e.g., contains `ComponentRefs` but is not `RenderedChildren`.
     /// This is used on props like `<section>.title` which contain references to content but are not themselves used for
     /// rendering children.)
@@ -48,4 +57,6 @@ pub enum PropProfile {
     _Ref,
     /// Matches a prop that stores a label suitable for a text-only reference to the component.
     XrefLabel,
+    /// Matches a prop that stores `ContentRefs` to any content that should be "expanded" when an xref is clicked.
+    XrefDisplayContent,
 }

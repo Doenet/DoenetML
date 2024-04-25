@@ -1,9 +1,7 @@
 use super::*;
 
 use doenetml_core::{
-    components::doenet::section::SectionProps,
-    dast::FlatDastElementContent,
-    props::{prop_type, traits::IntoPropView, PropView},
+    components::doenet::section::SectionProps, dast::FlatDastElementContent, props::prop_type,
     state::types::content_refs::ContentRef,
 };
 use test_helpers::*;

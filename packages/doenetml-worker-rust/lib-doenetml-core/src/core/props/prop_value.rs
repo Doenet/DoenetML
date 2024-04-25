@@ -49,6 +49,8 @@ pub enum PropValue {
     ContentRef(prop_type::ContentRef),
     #[serde(with = "rc_serde")]
     XrefLabel(prop_type::XrefLabel),
+    ListDepth(prop_type::ListDepth),
+    ListMarker(prop_type::ListMarker),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -60,7 +62,7 @@ pub mod prop_type {
     //! so that they can be used in macros.
 
     use super::*;
-    use crate::state::types::{component_refs, content_refs, xref_label};
+    use crate::state::types::{component_refs, content_refs, list_depth, list_marker, xref_label};
 
     #[cfg_attr(feature = "web", tsify_next::declare)]
     pub type String = Rc<std::string::String>;
@@ -80,6 +82,8 @@ pub mod prop_type {
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
     pub type ContentRef = content_refs::ContentRef;
     pub type XrefLabel = Rc<xref_label::XrefLabel>;
+    pub type ListDepth = list_depth::ListDepth;
+    pub type ListMarker = list_marker::ListMarker;
 
     /// By default, wasm-bindgen won't pick up this module as containing types to export
     /// to Typescript. We force wasm-bindgen to export types in this module by providing a
