@@ -3,7 +3,7 @@ use std::ops::Add;
 /// The depth of a list (ordered or unordered).
 /// `ListDepth` implements a funny kind of arithmetic. The unit is `-1` as opposed to `0`.
 /// That is, `ListDepth::Ol(0) + ListDepth::Ol(0)` is `ListDepth::Ol(1)`. Further, changing
-/// list types (between unordered and ordered) resets the depth to the new type with the _section_
+/// list types (between unordered and ordered) resets the depth to the new type with the _second_
 /// list depth taking priority. So `ListDepth::Ol(2) + ListDepth::Ul(2)` is `ListDepth::Ul(2)`.
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]

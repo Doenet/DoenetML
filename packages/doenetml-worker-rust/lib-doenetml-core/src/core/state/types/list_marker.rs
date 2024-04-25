@@ -41,6 +41,10 @@ impl ListMarker {
     /// Convert `index` into the string representation given by this marker.
     /// `0` maps to the number `"0"`. Lists are assumed to start indexing at `1`,
     /// though when using `ListMarker::Decimal`, any integer value of `index` can be used.
+    ///
+    /// If `0` or negative numbers are used for any method other than `ListMarker::Decimal`,
+    /// the function will not error, but results may vary. (`ListMarker::*Alpha` will return an empty string,
+    /// `ListMarker::*Roman` will prefix the result with `-`.)
     pub fn index_to_string(&self, index: i64) -> String {
         match self {
             ListMarker::Decimal { .. } => index.to_string(),

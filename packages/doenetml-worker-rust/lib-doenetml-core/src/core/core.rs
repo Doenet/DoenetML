@@ -37,6 +37,9 @@ impl Core {
     ///
     /// This function relies upon the fact that `dast.nodes` will be the same length as `self.components`
     /// and exactly mirror it's structure (i.e., `dast.nodes[i].idx == self.components[i].idx`).
+    ///
+    /// A [`Resolver`] is returned. I most cases the resolver is not needed, but it can be used
+    /// to look up a `ComponentIdx` by name (useful for testing).
     pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) -> Resolver {
         let mut flat_root = FlatRoot::from_dast(dast_root);
         let resolver = Expander::expand(&mut flat_root);

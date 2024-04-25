@@ -2,7 +2,7 @@ use std::{marker::PhantomData, rc::Rc};
 
 use crate::{components::prelude::*, props::UpdaterObject};
 
-/// A prop that represents a value from an enum. The enum must implement `From<String>`.
+/// A prop that represents a value from an enum. The enum must implement `From<&str>`.
 #[derive(Debug)]
 pub struct EnumProp<T: Default + Clone> {
     /// The data query that indicates how the dependencies of this prop will be created.
