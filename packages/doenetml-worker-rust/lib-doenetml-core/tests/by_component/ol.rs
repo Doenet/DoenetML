@@ -208,3 +208,21 @@ fn li_can_start_at_zero() {
     );
     assert_eq!(*pos, "1");
 }
+
+#[test]
+fn li_can_get_xref_display_children() {
+    let dast_root =
+        dast_root_no_position(r#"<ol><li name="a"><text name="t"/></li><li name="b"/></ol>"#);
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    let pos: prop_type::ContentRefs = core.get_prop_value_typed(
+        core.get_component_index_by_name("a"),
+        LiProps::XrefDisplayContent.local_idx(),
+    );
+    assert_eq!(
+        *pos,
+        vec![ComponentIdx::new(core.get_component_index_by_name("t")).into()].into()
+    );
+}

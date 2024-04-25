@@ -1,4 +1,5 @@
 use crate::components::prelude::*;
+use crate::general_prop::PropAlias;
 use crate::general_prop::RenderedChildrenPassthroughProp;
 use crate::props::UpdaterObject;
 
@@ -57,6 +58,13 @@ mod component {
            )]
         XrefLabel,
 
+        /// The content that should be displayed when an `<xref>` to this `<li>` is clicked.
+        #[prop(
+            value_type = PropValueType::ContentRefs,
+            profile = PropProfile::XrefDisplayContent
+        )]
+        XrefDisplayContent,
+
         #[prop(
             value_type = PropValueType::ContentRefs,
             profile = PropProfile::RenderedChildren
@@ -105,6 +113,11 @@ impl PropGetUpdater for LiProps {
             LiProps::XrefLabel => as_updater_object::<_, component::props::types::XrefLabel>(
                 custom_props::XrefLabel::new(),
             ),
+            LiProps::XrefDisplayContent => {
+                as_updater_object::<_, component::props::types::XrefDisplayContent>(PropAlias::new(
+                    LiProps::RenderedChildren.local_idx(),
+                ))
+            }
         }
     }
 }

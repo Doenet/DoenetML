@@ -57,4 +57,6 @@ pub enum PropProfile {
     _Ref,
     /// Matches a prop that stores a label suitable for a text-only reference to the component.
     XrefLabel,
+    /// Matches a prop that stores `ContentRefs` to any content that should be "expanded" when an xref is clicked.
+    XrefDisplayContent,
 }

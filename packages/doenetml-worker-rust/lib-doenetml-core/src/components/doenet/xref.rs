@@ -33,6 +33,14 @@ mod component {
         )]
         DisplayText,
 
+        /// When clicking on the `<xref>`, the desired behavior might be to show the content
+        /// of the referent. If so, such content is stored here.
+        #[prop(
+            value_type = PropValueType::ContentRefs,
+            for_render,
+        )]
+        ReferentChildren,
+
         #[prop(
             value_type = PropValueType::ContentRefs,
             profile = PropProfile::RenderedChildren
@@ -72,6 +80,10 @@ impl PropGetUpdater for XrefProps {
             XrefProps::DisplayText => as_updater_object::<_, component::props::types::DisplayText>(
                 custom_props::DisplayText::new(),
             ),
+            XrefProps::ReferentChildren => as_updater_object::<
+                _,
+                component::props::types::ReferentChildren,
+            >(custom_props::ReferentChildren::new()),
         }
     }
 }
@@ -81,11 +93,9 @@ mod custom_props {
 
     pub use display_text::*;
     mod display_text {
-        use std::rc::Rc;
-
-        use crate::state::types::xref_label::XrefLabelPreferredForm;
-
         use super::*;
+        use crate::state::types::xref_label::XrefLabelPreferredForm;
+        use std::rc::Rc;
 
         /// Information about how to reference this component from an `xref`
         #[derive(Debug, Default)]
@@ -154,6 +164,53 @@ mod custom_props {
                         xref_label_data.label, ident
                     )))
                 }
+            }
+        }
+    }
+
+    pub use referent_children::*;
+    mod referent_children {
+        use super::*;
+        use std::rc::Rc;
+
+        /// Information about how to reference this component from an `xref`
+        #[derive(Debug, Default)]
+        pub struct ReferentChildren {}
+
+        impl ReferentChildren {
+            pub fn new() -> Self {
+                ReferentChildren {}
+            }
+        }
+
+        /// Structure to hold data generated from the data queries
+        #[derive(TryFromDataQueryResults, Debug)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData {
+            referent_children: Option<PropView<prop_type::ContentRefs>>,
+        }
+
+        impl DataQueries for RequiredData {
+            fn referent_children_query() -> DataQuery {
+                DataQuery::Prop {
+                    source: PropSource::StaticComponentRef(XrefProps::Referent.local_idx()),
+                    prop_specifier: PropSpecifier::Matching(vec![PropProfile::XrefDisplayContent]),
+                }
+            }
+        }
+
+        impl PropUpdater for ReferentChildren {
+            type PropType = component::props::types::ReferentChildren;
+
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                required_data
+                    .referent_children
+                    .map(|val| PropCalcResult::Calculated(val.value))
+                    .unwrap_or_else(|| PropCalcResult::Calculated(Rc::new(vec![].into())))
             }
         }
     }
