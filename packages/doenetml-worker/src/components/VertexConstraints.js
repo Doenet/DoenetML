@@ -82,7 +82,6 @@ export class VertexConstraints extends CompositeComponent {
         workspace,
         componentInfoObjects,
     }) {
-        console.log("create serialized for vertex constraints");
         let serializedComponents = [];
 
         let numVertices = await component.stateValues.numVertices;
@@ -118,8 +117,6 @@ export class VertexConstraints extends CompositeComponent {
             parentCreatesNewNamespace: newNamespace,
             componentInfoObjects,
         });
-
-        console.log("serializedComponents", processResult.serializedComponents);
 
         return {
             replacements: processResult.serializedComponents,
@@ -389,11 +386,6 @@ export class ConstrainedVertex extends BaseComponent {
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                // console.log(
-                //     "array def of xs of point shadow",
-                //     dependencyValuesByKey,
-                //     arrayKeys,
-                // );
                 let xs = {};
 
                 for (let arrayKey of arrayKeys) {

@@ -463,6 +463,23 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.haveConstrainedVertices = {
+            returnDependencies: () => ({
+                constrainedVertices: {
+                    dependencyType: "child",
+                    childGroups: ["constrainedVertices"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        haveConstrainedVertices:
+                            dependencyValues.constrainedVertices.length > 0,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.vertices = {
             public: true,
             isLocation: true,
@@ -626,16 +643,23 @@ export default class Polyline extends GraphicalComponent {
                     dependencyValues.numDimensions,
                 ];
             },
-            stateVariablesDeterminingDependencies: ["rigid"],
+            stateVariablesDeterminingDependencies: [
+                "rigid",
+                "haveConstrainedVertices",
+            ],
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 let globalDependencies = {
                     rigid: {
                         dependencyType: "stateVariable",
                         variableName: "rigid",
                     },
+                    haveConstrainedVertices: {
+                        dependencyType: "stateVariable",
+                        variableName: "haveConstrainedVertices",
+                    },
                 };
                 let dependenciesByKey = {};
-                if (stateValues.rigid) {
+                if (stateValues.haveConstrainedVertices || stateValues.rigid) {
                     globalDependencies.unconstrainedVertices = {
                         dependencyType: "stateVariable",
                         variableName: "unconstrainedVertices",
@@ -645,23 +669,22 @@ export default class Polyline extends GraphicalComponent {
                         childGroups: ["constrainedVertices"],
                         variableNames: ["xs"],
                     };
-                } else {
+                }
+
+                if (!stateValues.rigid) {
+                    // Even if we have constrained vertices
+                    // we always add dependencies by key for the non-rigid case,
+                    // as we need it for the inverse direction
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding =
                             Number(pointInd) + 1 + "_" + (Number(dim) + 1);
 
                         dependenciesByKey[arrayKey] = {
-                            unconstrainedVertices: {
+                            unconstrainedVertex: {
                                 dependencyType: "stateVariable",
                                 variableName:
                                     "unconstrainedVertexX" + varEnding,
-                            },
-                            constrainedVertex: {
-                                dependencyType: "child",
-                                childGroups: ["constrainedVertices"],
-                                childIndices: [pointInd],
-                                variableNames: ["x" + (Number(dim) + 1)],
                             },
                         };
                     }
@@ -682,11 +705,76 @@ export default class Polyline extends GraphicalComponent {
 
                 let vertices = {};
 
-                if (globalDependencyValues.rigid) {
-                    if (
-                        globalDependencyValues.constrainedVertices.length === 0
+                if (globalDependencyValues.haveConstrainedVertices) {
+                    // since have constrained vertices, and we treat them as constraining
+                    // the polyline as a whole,
+                    // find the minimum deviation non-zero
+                    // from an unconstrained vertex to the corresponding constrained vertex
+                    // and add that deviation to all unconstrained vertices
+                    // to be the new constrained vertices
+                    let minDeviation = [];
+                    let minDeviationMagnitude2 = Infinity;
+                    for (
+                        let pointInd = 0;
+                        pointInd < arraySize[0];
+                        pointInd++
                     ) {
-                        // no constraints, so just give the unconstrained vertices
+                        let deviation = [];
+                        let deviationMag2 = 0;
+
+                        let unconstrainedVertex =
+                            globalDependencyValues.unconstrainedVertices[
+                                pointInd
+                            ];
+                        let constrainedVertex =
+                            globalDependencyValues.constrainedVertices[pointInd]
+                                .stateValues.xs;
+
+                        for (let dim = 0; dim < arraySize[1]; dim++) {
+                            let unconstrainedX =
+                                unconstrainedVertex[dim].evaluate_to_constant();
+                            let constrainedX =
+                                constrainedVertex[dim].evaluate_to_constant();
+                            let dx = constrainedX - unconstrainedX;
+                            deviation.push(dx);
+                            deviationMag2 += dx * dx;
+                        }
+
+                        if (
+                            deviationMag2 < minDeviationMagnitude2 &&
+                            deviationMag2 > 0
+                        ) {
+                            minDeviationMagnitude2 = deviationMag2;
+                            minDeviation = deviation;
+                        }
+                    }
+
+                    if (Number.isFinite(minDeviationMagnitude2)) {
+                        // we had a non-zero deviation from the unconstrained,
+                        // so move all vertices by that amount
+
+                        for (
+                            let pointInd = 0;
+                            pointInd < arraySize[0];
+                            pointInd++
+                        ) {
+                            let unconstrainedVertex =
+                                globalDependencyValues.unconstrainedVertices[
+                                    pointInd
+                                ];
+
+                            for (let dim = 0; dim < arraySize[1]; dim++) {
+                                let arrayKey = pointInd + "," + dim;
+                                vertices[arrayKey] = me.fromAst(
+                                    unconstrainedVertex[
+                                        dim
+                                    ].evaluate_to_constant() +
+                                        minDeviation[dim],
+                                );
+                            }
+                        }
+                    } else {
+                        // there were no deviations so just use the unconstrained vertices
                         for (
                             let pointInd = 0;
                             pointInd < arraySize[0];
@@ -700,117 +788,29 @@ export default class Polyline extends GraphicalComponent {
                                     ][dim];
                             }
                         }
-                    } else {
-                        // since rigid, find the minimum deviation non-zero
-                        // from an unconstrained vertex to the corresponding constrained vertex
-                        // and add that deviation to all unconstrained vertices
-                        // to be the new constrained vertices
-                        let minDeviation = [];
-                        let minDeviationMagnitude2 = Infinity;
-                        for (
-                            let pointInd = 0;
-                            pointInd < arraySize[0];
-                            pointInd++
-                        ) {
-                            let deviation = [];
-                            let deviationMag2 = 0;
-
-                            let unconstrainedVertex =
+                    }
+                } else if (globalDependencyValues.rigid) {
+                    // No constraints, so just give the unconstrained vertices.
+                    // Since, use global dependency values
+                    for (
+                        let pointInd = 0;
+                        pointInd < arraySize[0];
+                        pointInd++
+                    ) {
+                        for (let dim = 0; dim < arraySize[1]; dim++) {
+                            let arrayKey = pointInd + "," + dim;
+                            vertices[arrayKey] =
                                 globalDependencyValues.unconstrainedVertices[
                                     pointInd
-                                ];
-                            let constrainedVertex =
-                                globalDependencyValues.constrainedVertices[
-                                    pointInd
-                                ].stateValues.xs;
-
-                            for (let dim = 0; dim < arraySize[1]; dim++) {
-                                let unconstrainedX =
-                                    unconstrainedVertex[
-                                        dim
-                                    ].evaluate_to_constant();
-                                let constrainedX =
-                                    constrainedVertex[
-                                        dim
-                                    ].evaluate_to_constant();
-                                let dx = constrainedX - unconstrainedX;
-                                deviation.push(dx);
-                                deviationMag2 += dx * dx;
-                            }
-
-                            if (
-                                deviationMag2 < minDeviationMagnitude2 &&
-                                deviationMag2 > 0
-                            ) {
-                                minDeviationMagnitude2 = deviationMag2;
-                                minDeviation = deviation;
-                            }
-                        }
-
-                        if (Number.isFinite(minDeviationMagnitude2)) {
-                            // we had a non-zero deviation from the unconstrained,
-                            // so move all vertices by that amount
-
-                            for (
-                                let pointInd = 0;
-                                pointInd < arraySize[0];
-                                pointInd++
-                            ) {
-                                let unconstrainedVertex =
-                                    globalDependencyValues
-                                        .unconstrainedVertices[pointInd];
-
-                                console.log({
-                                    unconstrainedVertex,
-                                    minDeviation,
-                                });
-
-                                for (let dim = 0; dim < arraySize[1]; dim++) {
-                                    let arrayKey = pointInd + "," + dim;
-                                    vertices[arrayKey] = me.fromAst(
-                                        unconstrainedVertex[
-                                            dim
-                                        ].evaluate_to_constant() +
-                                            minDeviation[dim],
-                                    );
-                                }
-                            }
-                        } else {
-                            // there were no deviations so just use the unconstrained vertices
-                            for (
-                                let pointInd = 0;
-                                pointInd < arraySize[0];
-                                pointInd++
-                            ) {
-                                for (let dim = 0; dim < arraySize[1]; dim++) {
-                                    let arrayKey = pointInd + "," + dim;
-                                    vertices[arrayKey] =
-                                        globalDependencyValues.unconstrainedVertices[
-                                            pointInd
-                                        ][dim];
-                                }
-                            }
+                                ][dim];
                         }
                     }
                 } else {
+                    // if we don't have constrainedVertices and not rigid
+                    // just copy the unconstrained vertices from the dependency values by key
                     for (let arrayKey of arrayKeys) {
-                        let [pointInd, dim] = arrayKey.split(",");
-
-                        let constrainedVertex =
-                            dependencyValuesByKey[arrayKey]
-                                .constrainedVertex[0];
-
-                        if (constrainedVertex) {
-                            vertices[arrayKey] =
-                                constrainedVertex.stateValues[
-                                    "x" + (Number(dim) + 1)
-                                ];
-                        } else {
-                            vertices[arrayKey] =
-                                dependencyValuesByKey[
-                                    arrayKey
-                                ].unconstrainedVertices;
-                        }
+                        vertices[arrayKey] =
+                            dependencyValuesByKey[arrayKey].unconstrainedVertex;
                     }
                 }
 
@@ -833,31 +833,29 @@ export default class Polyline extends GraphicalComponent {
                 // console.log(dependencyValuesByKey);
 
                 let instructions = [];
+
+                let movedJustOneVertex = false;
+
+                // We have to accumulate changed vertices in workspace
+                // as in some cases (such as when moving via an attached point)
+                // the instructions for the components come in separately
+                Object.assign(workspace, desiredStateVariableValues.vertices);
+
+                let nMoved = Object.keys(workspace).length;
+                if (nMoved === 1) {
+                    movedJustOneVertex = true;
+                } else if (nMoved === 2) {
+                    let pointInd1 = Object.keys(workspace)[0].split(",")[0];
+                    let pointInd2 = Object.keys(workspace)[1].split(",")[0];
+                    movedJustOneVertex = pointInd1 === pointInd2;
+                }
+
                 if (globalDependencyValues.rigid) {
                     if (arraySize[1] !== 2) {
                         console.error(
                             "Moving a rigid polyline in inverse direction not implemented in other than 2D",
                         );
                         return { success: false };
-                    }
-
-                    let movedJustOneVertex = false;
-
-                    // We have to accumulate changed vertices in workspace
-                    // as in some cases (such as when moving via an attached point)
-                    // the instructions for the components come in separately
-                    Object.assign(
-                        workspace,
-                        desiredStateVariableValues.vertices,
-                    );
-
-                    let nMoved = Object.keys(workspace).length;
-                    if (nMoved === 1) {
-                        movedJustOneVertex = true;
-                    } else if (nMoved === 2) {
-                        let pointInd1 = Object.keys(workspace)[0].split(",")[0];
-                        let pointInd2 = Object.keys(workspace)[1].split(",")[0];
-                        movedJustOneVertex = pointInd1 === pointInd2;
                     }
 
                     if (movedJustOneVertex) {
@@ -872,8 +870,8 @@ export default class Polyline extends GraphicalComponent {
                             await stateValues.numericalCentroidUnconstrained;
 
                         let vertices =
-                            await stateValues.unconstrainedVertices.map((v) =>
-                                v.map((c) => c.evaluate_to_constant()),
+                            globalDependencyValues.unconstrainedVertices.map(
+                                (v) => v.map((c) => c.evaluate_to_constant()),
                             );
 
                         let [pointInd1, dim1] =
@@ -906,8 +904,6 @@ export default class Polyline extends GraphicalComponent {
                         let theta =
                             Math.atan2(moved_rel[1], moved_rel[0]) -
                             Math.atan2(orig_rel[1], orig_rel[0]);
-
-                        console.log({ theta });
 
                         let sin_theta = Math.sin(theta);
                         let cos_theta = Math.cos(theta);
@@ -1012,17 +1008,57 @@ export default class Polyline extends GraphicalComponent {
                         });
                     }
                 } else {
-                    for (let arrayKey in desiredStateVariableValues.vertices) {
-                        // since for the rigid case, we don't want to go through the constraints
-                        // in the inverse direction,
-                        // for consistency we won't go through the case here in the non-rigid case either.
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey]
-                                    .unconstrainedVertices,
-                            desiredValue:
-                                desiredStateVariableValues.vertices[arrayKey],
-                        });
+                    if (
+                        movedJustOneVertex &&
+                        globalDependencyValues.haveConstrainedVertices
+                    ) {
+                        // for non-rigid case with constraints where move just one vertex,
+                        // go through the constraints so that will set the vertex
+                        // to its constrained value
+
+                        let numericalVertices =
+                            await stateValues.numericalVertices;
+
+                        for (
+                            let pointInd = 0;
+                            pointInd < arraySize[0];
+                            pointInd++
+                        ) {
+                            let desired_vertex = [];
+
+                            let original_vertex = numericalVertices[pointInd];
+
+                            for (let dim = 0; dim < arraySize[1]; dim++) {
+                                let arrayKey = pointInd + "," + dim;
+                                if (arrayKey in workspace) {
+                                    desired_vertex.push(workspace[arrayKey]);
+                                } else {
+                                    desired_vertex.push(original_vertex[dim]);
+                                }
+                            }
+
+                            instructions.push({
+                                setDependency: "constrainedVertices",
+                                childIndex: pointInd,
+                                variableIndex: 0,
+                                desiredValue: desired_vertex,
+                            });
+                        }
+                    } else {
+                        // for every other non-rigid case, we just move the unconstrained vertices
+                        // according to how the vertices were moved
+
+                        for (let arrayKey in desiredStateVariableValues.vertices) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey]
+                                        .unconstrainedVertex,
+                                desiredValue:
+                                    desiredStateVariableValues.vertices[
+                                        arrayKey
+                                    ],
+                            });
+                        }
                     }
                 }
 
