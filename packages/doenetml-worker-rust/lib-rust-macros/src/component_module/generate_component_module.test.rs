@@ -111,14 +111,19 @@ fn test_can_parse_preserve_ref() {
 #[test]
 fn test_can_parse_module3() {
     let input = r#"
-#[component(name = Text, extend_via_default_prop)]
+#[component(name = _External)]
 mod component {
-    use crate::general_prop::BooleanProp;
-
-    enum Attributes {
-        #[attribute(prop = BooleanProp<Foo>)]
-        Hide,
+    enum Props {
+        #[prop(
+            value_type = PropValueType::ContentRefs,
+            profile = PropProfile::RenderedChildren
+        )]
+        RenderedChildren,
     }
+    //enum Attributes {
+    //    #[attribute(prop = BooleanProp<Foo>)]
+    //    Hide,
+    //}
 }
     "#;
 

@@ -1,15 +1,45 @@
 //! An external component is a component not recognized by DoenetML. It is left untouched by the DoenetML processor and returned (mostly)
 //! as-is when converted into `FlatDast`.
 
-use crate::{components::prelude::*, props::UpdaterObject};
+use crate::{
+    components::prelude::*, general_prop::RenderedChildrenPassthroughProp, props::UpdaterObject,
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct _External {
     pub name: String,
 }
 
-#[derive(Debug, Default)]
-pub struct _ExternalProps {}
+impl _External {
+    pub const ATTRIBUTE_NAMES: &'static [&'static str] = &[];
+    const PROPS: &'static [_ExternalProps] = &[_ExternalProps::RenderedChildren];
+    pub const PROP_NAMES: &'static [&'static str] = &["renderedChildren"];
+    const PROP_PROFILES: &'static [Option<PropProfile>] = &[Some(PropProfile::RenderedChildren)];
+    const PROP_FOR_RENDERS: &'static [bool] = &[false];
+    const PROP_IS_PUBLICS: &'static [bool] = &[false];
+    const PROP_VALUE_TYPES: &'static [PropValueType] = &[PropValueType::ContentRefs];
+    const DEFAULT_PROP: Option<LocalPropIdx> = None;
+}
+
+///The props for this component are: `renderedChildren`
+#[derive(Debug, Clone, Copy)]
+pub enum _ExternalProps {
+    /**
+    - Name: `"renderedChildren"`
+    - Private: this prop can only be used internally.
+    - NotForRender: this prop is not rendered.
+    - Profile: [`PropProfile::RenderedChildren`]
+    - Type: [`PropValueType::ContentRefs`]*/
+    RenderedChildren,
+}
+impl _ExternalProps {
+    /// Get the local index of the prop.
+    pub const fn local_idx(&self) -> LocalPropIdx {
+        match self {
+            Self::RenderedChildren => LocalPropIdx::new(0_usize),
+        }
+    }
+}
 
 impl ComponentActions for _External {}
 impl ComponentOnAction for _External {}
@@ -38,6 +68,16 @@ impl ComponentProps for _External {
     }
 }
 
+impl PropGetUpdater for _ExternalProps {
+    fn get_updater(&self) -> UpdaterObject {
+        match self {
+            _ExternalProps::RenderedChildren => as_updater_object::<_, prop_type::ContentRefs>(
+                RenderedChildrenPassthroughProp::new(),
+            ),
+        }
+    }
+}
+
 impl ComponentNode for _External {
     // The main reason we customize the implementation of ComponentNode
     // is to use this custom component type coming from name
@@ -47,31 +87,31 @@ impl ComponentNode for _External {
 }
 
 impl ComponentVariantProps for _External {
-    fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
-        None
+    fn get_prop_updater_object(&self, local_prop_idx: LocalPropIdx) -> crate::props::UpdaterObject {
+        PropGetUpdater::get_updater(&_External::PROPS[local_prop_idx.as_usize()])
     }
     fn get_num_props(&self) -> usize {
-        0
+        _External::PROP_NAMES.len()
     }
-    fn get_prop_is_for_render(&self, _local_prop_idx: LocalPropIdx) -> bool {
-        panic!("No props on _External")
+    fn get_prop_is_for_render(&self, local_prop_idx: LocalPropIdx) -> bool {
+        _External::PROP_FOR_RENDERS[local_prop_idx.as_usize()]
     }
-    fn get_prop_name(&self, _local_prop_idx: LocalPropIdx) -> &'static str {
-        panic!("No props on _External")
-    }
-    fn get_prop_profile(&self, _local_prop_idx: LocalPropIdx) -> Option<PropProfile> {
-        None
-    }
-    fn get_prop_value_type(&self, _local_prop_idx: LocalPropIdx) -> PropValueType {
-        panic!("No props on _External")
-    }
-    fn get_prop_is_public(&self, _local_prop_idx: LocalPropIdx) -> bool {
-        panic!("No props on _External")
+    fn get_prop_name(&self, local_prop_idx: LocalPropIdx) -> &'static str {
+        _External::PROP_NAMES[local_prop_idx.as_usize()]
     }
     fn get_prop_names(&self) -> &'static [&'static str] {
-        &[]
+        _External::PROP_NAMES
     }
-    fn get_prop_updater_object(&self, _local_prop_idx: LocalPropIdx) -> UpdaterObject {
-        panic!("No props on _External")
+    fn get_prop_profile(&self, local_prop_idx: LocalPropIdx) -> Option<PropProfile> {
+        _External::PROP_PROFILES[local_prop_idx.as_usize()]
+    }
+    fn get_prop_is_public(&self, local_prop_idx: LocalPropIdx) -> bool {
+        _External::PROP_IS_PUBLICS[local_prop_idx.as_usize()]
+    }
+    fn get_prop_value_type(&self, local_prop_idx: LocalPropIdx) -> PropValueType {
+        _External::PROP_VALUE_TYPES[local_prop_idx.as_usize()]
+    }
+    fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
+        _External::DEFAULT_PROP
     }
 }

@@ -44,6 +44,14 @@ Consider: <xref ref="$si" />
 
 <xref ref="$deepitem" />
 
+<p>
+  An unordered list
+  <ul>
+    <li>stuff</li>
+    <li>things</li>
+  </ul>
+</p>
+
 <!-- <textInput prefill="hi" name="ti" />
 The value: $ti.immediateValue
 
