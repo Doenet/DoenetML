@@ -313,9 +313,9 @@ impl PropUpdater for MathProp {
 
                 let string_changed = maths_and_strings
                     .iter()
-                    .filter_map(|view| match view.value {
-                        PropValue::Math(_) => None,
-                        PropValue::String(_) => Some(view),
+                    .filter(|view| match view.value {
+                        PropValue::Math(_) => false,
+                        PropValue::String(_) => true,
                         _ => panic!(
                             "Should get math or string dependency for math, found {:?}",
                             view.value
@@ -325,9 +325,9 @@ impl PropUpdater for MathProp {
 
                 let math_changed = maths_and_strings
                     .iter()
-                    .filter_map(|view| match view.value {
-                        PropValue::Math(_) => Some(view),
-                        PropValue::String(_) => None,
+                    .filter(|view| match view.value {
+                        PropValue::Math(_) => true,
+                        PropValue::String(_) => false,
                         _ => unreachable!(),
                     })
                     .any(|view| view.changed);

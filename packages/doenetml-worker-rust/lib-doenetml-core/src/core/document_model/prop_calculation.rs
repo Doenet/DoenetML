@@ -228,14 +228,19 @@ impl DocumentModel {
                 GraphNode::Virtual(_) => {
                     // if we have a virtual node, we resolve its prop node children
                     // TODO: will we need to go yet another level of virtual nodes?
-                    for child_node in self.dependency_graph.borrow().get_children(node).into_iter() {
+                    for child_node in self
+                        .dependency_graph
+                        .borrow()
+                        .get_children(node)
+                        .into_iter()
+                    {
                         match child_node {
                             GraphNode::Prop(_) => self.resolve_prop(child_node),
-                            _ => ()
+                            _ => (),
                         }
                     }
                 }
-                _ => ()
+                _ => (),
             };
         }
         self._execute_data_query_with_resolved_deps(query_node)
@@ -391,7 +396,7 @@ impl DocumentModel {
 
                 // The props for the data query should be the immediate children of the query node
                 let dependency_graph = self.dependency_graph.borrow();
-                let values = 
+                let values =
                     dependency_graph
                     .get_children(query_node)
                     .into_iter()
