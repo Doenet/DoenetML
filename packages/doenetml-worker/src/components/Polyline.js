@@ -658,6 +658,10 @@ export default class Polyline extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: "haveConstrainedVertices",
                     },
+                    rotationReferenceMapping: {
+                        dependencyType: "stateVariable",
+                        variableName: "rotationReferenceMapping",
+                    },
                 };
                 let dependenciesByKey = {};
                 if (stateValues.haveConstrainedVertices || stateValues.rigid) {
@@ -670,12 +674,7 @@ export default class Polyline extends GraphicalComponent {
                         childGroups: ["vertexConstraints"],
                         variableNames: ["constraintFunction"],
                     };
-                }
-
-                if (!stateValues.rigid) {
-                    // Even if we have constrained vertices
-                    // we always add dependencies by key for the non-rigid case,
-                    // as we need it for the inverse direction
+                } else {
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding =
@@ -800,18 +799,40 @@ export default class Polyline extends GraphicalComponent {
                         // causing strange behavior.
                         // The downside is that a rotation starting in a constrained configuration
                         // may translate when the constraint is released.
-                        let centroid =
-                            await stateValues.numericalCentroidUnconstrained;
 
-                        let vertices =
-                            globalDependencyValues.unconstrainedVertices.map(
-                                (v) => v.map((c) => c.evaluate_to_constant()),
-                            );
+                        let numericalCentroidUnconstrained =
+                            await stateValues.numericalCentroidUnconstrained;
+                        let rotationReferenceMapping =
+                            globalDependencyValues.rotationReferenceMapping;
+
+                        let referenceCentroid;
+                        let referenceVertices;
+
+                        if (
+                            Array.isArray(rotationReferenceMapping[0]) &&
+                            rotationReferenceMapping[0][0] ===
+                                numericalCentroidUnconstrained[0] &&
+                            rotationReferenceMapping[0][1] ===
+                                numericalCentroidUnconstrained[1]
+                        ) {
+                            // The numerical centroid is still the same as it was when created rotationReferenceMapping.
+                            // Therefore use the centroid and vertices from the mapping
+                            // (which would be the values before any shift due to a constraint)
+                            referenceCentroid = rotationReferenceMapping[1];
+                            referenceVertices = rotationReferenceMapping[2];
+                        } else {
+                            referenceCentroid = numericalCentroidUnconstrained;
+                            referenceVertices =
+                                globalDependencyValues.unconstrainedVertices.map(
+                                    (v) =>
+                                        v.map((c) => c.evaluate_to_constant()),
+                                );
+                        }
 
                         let [pointInd1, dim1] =
                             Object.keys(workspace)[0].split(",");
 
-                        let original_vertex = vertices[pointInd1];
+                        let original_vertex = referenceVertices[pointInd1];
 
                         let moved_vertex = [...original_vertex];
                         for (let arrayKey in workspace) {
@@ -827,12 +848,12 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         let moved_rel = [
-                            moved_vertex[0] - centroid[0],
-                            moved_vertex[1] - centroid[1],
+                            moved_vertex[0] - referenceCentroid[0],
+                            moved_vertex[1] - referenceCentroid[1],
                         ];
                         let orig_rel = [
-                            original_vertex[0] - centroid[0],
-                            original_vertex[1] - centroid[1],
+                            original_vertex[0] - referenceCentroid[0],
+                            original_vertex[1] - referenceCentroid[1],
                         ];
 
                         let theta =
@@ -853,10 +874,10 @@ export default class Polyline extends GraphicalComponent {
                         ) {
                             desired_vertices.push([]);
 
-                            let original_vertex = vertices[pointInd];
+                            let original_vertex = referenceVertices[pointInd];
                             let orig_rel = [
-                                original_vertex[0] - centroid[0],
-                                original_vertex[1] - centroid[1],
+                                original_vertex[0] - referenceCentroid[0],
+                                original_vertex[1] - referenceCentroid[1],
                             ];
                             let rot_rel = [
                                 cos_theta * orig_rel[0] -
@@ -867,11 +888,31 @@ export default class Polyline extends GraphicalComponent {
 
                             for (let dim = 0; dim < arraySize[1]; dim++) {
                                 desired_vertices[pointInd].push(
-                                    me.fromAst(rot_rel[dim] + centroid[dim]),
+                                    me.fromAst(
+                                        rot_rel[dim] + referenceCentroid[dim],
+                                    ),
                                 );
                             }
                         }
 
+                        if (globalDependencyValues.haveConstrainedVertices) {
+                            desired_vertices =
+                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                    desired_vertices,
+                                );
+
+                            let constrainedCentroid =
+                                calculateNumericalCentroid(desired_vertices);
+
+                            instructions.push({
+                                setDependency: "rotationReferenceMapping",
+                                desiredValue: [
+                                    constrainedCentroid,
+                                    referenceCentroid,
+                                    referenceVertices,
+                                ],
+                            });
+                        }
                         instructions.push({
                             setDependency: "unconstrainedVertices",
                             desiredValue: desired_vertices,
@@ -936,22 +977,31 @@ export default class Polyline extends GraphicalComponent {
                             }
                         }
 
+                        if (globalDependencyValues.haveConstrainedVertices) {
+                            desired_vertices =
+                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                    desired_vertices,
+                                );
+
+                            instructions.push({
+                                setDependency: "rotationReferenceMapping",
+                                desiredValue: [null, null, null],
+                            });
+                        }
                         instructions.push({
                             setDependency: "unconstrainedVertices",
                             desiredValue: desired_vertices,
                         });
                     }
                 } else {
-                    if (
-                        movedJustOneVertex &&
-                        globalDependencyValues.haveConstrainedVertices
-                    ) {
+                    // non-rigid
+                    if (globalDependencyValues.haveConstrainedVertices) {
                         // for non-rigid case with constraints where move just one vertex,
                         // go through the constraints so that will set the vertex
                         // to its constrained value
 
-                        let numericalVertices =
-                            await stateValues.numericalVertices;
+                        let vertices = await stateValues.vertices;
+                        let desired_vertices = [];
 
                         for (
                             let pointInd = 0;
@@ -960,7 +1010,7 @@ export default class Polyline extends GraphicalComponent {
                         ) {
                             let desired_vertex = [];
 
-                            let original_vertex = numericalVertices[pointInd];
+                            let original_vertex = vertices[pointInd];
 
                             for (let dim = 0; dim < arraySize[1]; dim++) {
                                 let arrayKey = pointInd + "," + dim;
@@ -970,16 +1020,25 @@ export default class Polyline extends GraphicalComponent {
                                     desired_vertex.push(original_vertex[dim]);
                                 }
                             }
-
-                            instructions.push({
-                                setDependency: "constrainedVertices",
-                                childIndex: pointInd,
-                                variableIndex: 0,
-                                desiredValue: desired_vertex,
-                            });
+                            desired_vertices.push(desired_vertex);
                         }
+
+                        // If moved just one vertex, allow the shape to distort due to constraints.
+                        // Otherwise, just shift the polyline due to the constraints
+                        let enforceRigid = !movedJustOneVertex;
+
+                        desired_vertices =
+                            globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                desired_vertices,
+                                enforceRigid,
+                            );
+
+                        instructions.push({
+                            setDependency: "unconstrainedVertices",
+                            desiredValue: desired_vertices,
+                        });
                     } else {
-                        // for every other non-rigid case, we just move the unconstrained vertices
+                        // for non-constrained non-rigid case, we just move the unconstrained vertices
                         // according to how the vertices were moved
 
                         for (let arrayKey in desiredStateVariableValues.vertices) {
@@ -1238,20 +1297,40 @@ export default class Polyline extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let x = 0,
-                    y = 0;
-                let verts = dependencyValues.unconstrainedVertices;
-                let numVertices = dependencyValues.unconstrainedVertices.length;
+                return {
+                    setValue: {
+                        numericalCentroidUnconstrained:
+                            calculateNumericalCentroid(
+                                dependencyValues.unconstrainedVertices,
+                            ),
+                    },
+                };
+            },
+        };
 
-                for (let i = 0; i < numVertices; i++) {
-                    x += verts[i][0].evaluate_to_constant();
-                    y += verts[i][1].evaluate_to_constant();
-                }
-
-                x /= numVertices;
-                y /= numVertices;
-
-                return { setValue: { numericalCentroidUnconstrained: [x, y] } };
+        // A mapping from a shifted numerical centroid (first entry)
+        // onto an original centroid (second entry)
+        // and reference position (third entry) used for rotating a rigid polygon.
+        // Used so that if a polygon is shifted from the effective centroid/reference position
+        // onto the shifted numerical centroid, the original centroid and position
+        // will be used to calculate the rotation.
+        stateVariableDefinitions.rotationReferenceMapping = {
+            hasEssential: true,
+            defaultValue: [null, null, null],
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { rotationReferenceMapping: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "rotationReferenceMapping",
+                            value: desiredStateVariableValues.rotationReferenceMapping,
+                        },
+                    ],
+                };
             },
         };
 
@@ -1499,4 +1578,20 @@ export default class Polyline extends GraphicalComponent {
             });
         }
     }
+}
+
+function calculateNumericalCentroid(vertices) {
+    let x = 0,
+        y = 0;
+    let numVertices = vertices.length;
+
+    for (let i = 0; i < numVertices; i++) {
+        x += vertices[i][0].evaluate_to_constant();
+        y += vertices[i][1].evaluate_to_constant();
+    }
+
+    x /= numVertices;
+    y /= numVertices;
+
+    return [x, y];
 }

@@ -5638,9 +5638,11 @@ describe("Polygon Tag Tests", function () {
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
+
+    <point styleNumber="2" name="a1">(1,9)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid >
         <vertexConstraints>
-            <attractTo threshold="2"><point>(1,9)</point></attractTo>
+            <attractTo threshold="2">$a1</attractTo>
         </vertexConstraints>
     </polygon>
   </graph>
@@ -5758,12 +5760,9 @@ describe("Polygon Tag Tests", function () {
         });
 
         cy.log(
-            "move double copied individual vertex, getting rotation around old centroid",
+            "move double copied individual vertex, getting rotation around new centroid",
         );
         cy.window().then(async (win) => {
-            // location of vertices if weren't attracted to point, moves down one and to the right
-            vertices = vertices.map((v) => [v[0] + 1, v[1] - 1]);
-
             let centroid = vertices.reduce(
                 (a, c) => [a[0] + c[0], a[1] + c[1]],
                 [0, 0],
@@ -5805,13 +5804,13 @@ describe("Polygon Tag Tests", function () {
     <point>(-4,-1)</point>
     <point>(8,2)</point>
     <point>(-3,4)</point>
+
+    <point styleNumber="2" name="a1">(1,9)</point>
+    <point styleNumber="2" name="a2">(5,-1)</point>
+    <point styleNumber="2" name="a3">(-9,5)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid >
     <vertexConstraints>
-      <attractTo threshold="2">
-        <point>(1,9)</point>
-        <point>(5,-1)</point>
-        <point>(-9,5)</point>
-      </attractTo>
+      <attractTo threshold="2">$a1$a2$a3</attractTo>
     </vertexConstraints>
     </polygon>
   </graph>
@@ -5929,12 +5928,9 @@ describe("Polygon Tag Tests", function () {
         });
 
         cy.log(
-            "move double copied individual vertex, getting rotation around old centroid, then attracted to point",
+            "move double copied individual vertex, getting rotation around new centroid, then attracted to point",
         );
         cy.window().then(async (win) => {
-            // location of vertices if weren't attracted to point, moves one to the left
-            vertices = vertices.map((v) => [v[0] - 1, v[1]]);
-
             let centroid = vertices.reduce(
                 (a, c) => [a[0] + c[0], a[1] + c[1]],
                 [0, 0],
@@ -5953,8 +5949,8 @@ describe("Polygon Tag Tests", function () {
                 -(v[1] - centroid[1]) + centroid[1],
             ]);
 
-            // since a different vertex is attracted to point (-9,5), moves two to the left
-            vertices = vertices.map((v) => [v[0] - 2, v[1]]);
+            // since a different vertex is attracted to point (1,9), moves one up and to the right
+            vertices = vertices.map((v) => [v[0] + 1, v[1] + 1]);
 
             win.callAction1({
                 actionName: "movePolygon",
@@ -6071,7 +6067,7 @@ $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
 
         cy.log("Moving entire polygon near two points, attracts to just one");
         cy.window().then(async (win) => {
-            let moveX = 2;
+            let moveX = 2.6;
             let moveY = -2;
 
             let requested_vertices = [];
@@ -6081,8 +6077,8 @@ $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
                 requested_vertices.push([vertices[i][0], vertices[i][1]]);
             }
 
-            // since attracted to point (5,-1), moves one to the right
-            vertices = vertices.map((v) => [v[0] + 1, v[1]]);
+            // since attracted to point (5,-1), moves 0.4 to the right
+            vertices = vertices.map((v) => [v[0] + 0.4, v[1]]);
 
             win.callAction1({
                 actionName: "movePolygon",

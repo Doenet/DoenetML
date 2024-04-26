@@ -161,13 +161,14 @@ export class VertexConstraints extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let f = function (unconstrainedVertices) {
+                let f = function (unconstrainedVertices, enforceRigid = true) {
                     let constrainedVertices = [];
-                    let constraintUsed = false;
+                    let constraintUsedForVertex = [];
 
                     for (let unconstrainedVertex of unconstrainedVertices) {
                         // apply constraint to whole array (even if just one array key requested)
                         let variables = {};
+                        let constraintUsed = false;
 
                         for (let ind in unconstrainedVertex) {
                             variables[`x${Number(ind) + 1}`] =
@@ -208,21 +209,28 @@ export class VertexConstraints extends BaseComponent {
                             );
                         }
                         constrainedVertices.push(constrainedVertex);
+                        constraintUsedForVertex.push(constraintUsed);
                     }
 
-                    if (!constraintUsed) {
+                    if (constraintUsedForVertex.every((v) => !v)) {
                         return unconstrainedVertices;
+                    } else if (!enforceRigid) {
+                        return constrainedVertices;
                     }
 
                     // since have constrained vertices, and we treat them as constraining
                     // the vertices as a whole,
-                    // find the minimum deviation non-zero
+                    // find the minimum deviation
                     // from an unconstrained vertex to the corresponding constrained vertex
                     // and add that deviation to all unconstrained vertices
                     // to be the new constrained vertices
                     let minDeviation = [];
                     let minDeviationMagnitude2 = Infinity;
                     for (let vertexInd in unconstrainedVertices) {
+                        if (!constraintUsedForVertex[vertexInd]) {
+                            continue;
+                        }
+
                         let deviation = [];
                         let deviationMag2 = 0;
 
@@ -240,16 +248,13 @@ export class VertexConstraints extends BaseComponent {
                             deviationMag2 += dx * dx;
                         }
 
-                        if (
-                            deviationMag2 < minDeviationMagnitude2 &&
-                            deviationMag2 > 0
-                        ) {
+                        if (deviationMag2 < minDeviationMagnitude2) {
                             minDeviationMagnitude2 = deviationMag2;
                             minDeviation = deviation;
                         }
                     }
 
-                    if (Number.isFinite(minDeviationMagnitude2)) {
+                    if (minDeviationMagnitude2 > 0) {
                         // we had a non-zero deviation from the unconstrained,
                         // so move all vertices by that amount
 
