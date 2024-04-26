@@ -155,13 +155,12 @@ export class VertexConstraints extends BaseComponent {
                     ],
                     variablesOptional: true,
                 },
-                vertices: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "unconstrainedVertices",
-                },
             }),
             definition({ dependencyValues }) {
-                let f = function (unconstrainedVertices, enforceRigid = true) {
+                let constraintFunction = function (
+                    unconstrainedVertices,
+                    enforceRigid = true,
+                ) {
                     let constrainedVertices = [];
                     let constraintUsedForVertex = [];
 
@@ -273,7 +272,7 @@ export class VertexConstraints extends BaseComponent {
                     }
                 };
 
-                return { setValue: { constraintFunction: f } };
+                return { setValue: { constraintFunction } };
             },
         };
 
