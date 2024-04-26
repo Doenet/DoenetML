@@ -1,7 +1,7 @@
 use super::*;
 
 use doenetml_core::{
-    components::doenet::section::SectionProps, dast::FlatDastElementContent, props::prop_type,
+    components::doenet::division::DivisionProps, dast::FlatDastElementContent, props::prop_type,
     state::types::content_refs::ContentRef,
 };
 use test_helpers::*;
@@ -308,7 +308,7 @@ fn can_get_xref_label() {
     // Get the nested section
     let section_idx = 3;
     let xref_label: prop_type::XrefLabel =
-        core.get_prop_value_typed(section_idx, SectionProps::XrefLabel.local_idx());
+        core.get_prop_value_typed(section_idx, DivisionProps::XrefLabel.local_idx());
 
     assert_eq!(xref_label.label, "Section");
     assert_eq!(xref_label.global_ident, "2.1");
@@ -322,15 +322,15 @@ fn can_get_xref_label() {
 mod test_helpers {
 
     use doenetml_core::{
-        components::doenet::{_fragment::_FragmentProps, section::SectionProps},
+        components::doenet::{_fragment::_FragmentProps, division::DivisionProps},
         props::{prop_type, traits::IntoPropView, PropView},
         state::types::content_refs::ContentRef,
     };
 
     use super::*;
 
-    const TITLE_LOCAL_IDX: LocalPropIdx = SectionProps::Title.local_idx();
-    const RENDERED_CHILDREN_LOCAL_IDX: LocalPropIdx = SectionProps::RenderedChildren.local_idx();
+    const TITLE_LOCAL_IDX: LocalPropIdx = DivisionProps::Title.local_idx();
+    const RENDERED_CHILDREN_LOCAL_IDX: LocalPropIdx = DivisionProps::RenderedChildren.local_idx();
 
     /// Resolves `title` from a `<section>` component and returns its value as a `ComponentIdx`
     pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> Option<ComponentIdx> {
@@ -366,7 +366,7 @@ mod test_helpers {
     ) -> prop_type::Integer {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: SectionProps::SerialNumber.local_idx(),
+            local_prop_idx: DivisionProps::SerialNumber.local_idx(),
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
         let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();
@@ -378,7 +378,7 @@ mod test_helpers {
     pub fn get_code_number_prop(component_idx: ComponentIdx, core: &mut Core) -> prop_type::String {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: SectionProps::CodeNumber.local_idx(),
+            local_prop_idx: DivisionProps::CodeNumber.local_idx(),
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
         let prop_view: PropView<prop_type::String> = prop.into_prop_view();
@@ -393,7 +393,7 @@ mod test_helpers {
     ) -> prop_type::Integer {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: SectionProps::DivisionDepth.local_idx(),
+            local_prop_idx: DivisionProps::DivisionDepth.local_idx(),
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
         let prop_view: PropView<prop_type::Integer> = prop.into_prop_view();

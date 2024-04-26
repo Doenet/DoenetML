@@ -2,7 +2,8 @@ use std::{marker::PhantomData, rc::Rc};
 
 use crate::{components::prelude::*, props::UpdaterObject};
 
-/// A prop that represents a value from an enum. The enum must implement `From<&str>`.
+/// A prop that represents a value from an enum. The enum must implement `TryFrom<&str>`.
+/// If the `TryFrom` fails, the default value of the enum is used.
 #[derive(Debug)]
 pub struct EnumProp<T: Default + Clone> {
     /// The data query that indicates how the dependencies of this prop will be created.
@@ -47,7 +48,7 @@ impl DataQueries for RequiredData {
 
 impl<T> PropUpdater for EnumProp<T>
 where
-    for<'a> T: From<&'a str>,
+    for<'a> T: TryFrom<&'a str>,
     T: Default + Clone + TryFrom<PropValue> + std::fmt::Debug,
     PropValue: From<T>,
     <T as TryFrom<PropValue>>::Error: std::fmt::Display + std::fmt::Debug,
@@ -67,7 +68,7 @@ where
                     .iter()
                     .map(|s| (*s.value).clone())
                     .collect::<String>();
-                let ret = T::from(full_string.as_str());
+                let ret = T::try_from(full_string.as_str()).unwrap_or_default();
                 PropCalcResult::Calculated(ret)
             }
         }

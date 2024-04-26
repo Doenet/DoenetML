@@ -3,7 +3,7 @@ export * from "./document";
 export * from "./m";
 export * from "./math";
 export * from "./graph";
-export * from "./section";
+export * from "./division";
 export * from "./problem";
 export * from "./answer";
 export * from "./text-input";

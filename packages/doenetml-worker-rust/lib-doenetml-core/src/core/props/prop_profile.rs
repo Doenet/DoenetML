@@ -38,6 +38,8 @@ pub enum PropProfile {
     /// Matches a prop that indicates the depth of a division in a hierarchy of divisions. E.g.,
     /// how many levels deep a `<section>` is nested.
     DivisionDepth,
+    /// Matches a prop that indicates the type of a division. E.g., `<section>`, `<chapter>`, etc.
+    DivisionType,
     /// Matches a prop that indicates the depth of a list in a hierarchy of lists. E.g.,
     /// how many levels deep a `<ol>` is nested.
     ListDepth,
