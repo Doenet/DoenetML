@@ -168,6 +168,7 @@ import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
 import ContentPicker from "./components/ContentPicker";
+import StickyGroup from "./components/StickyGroup";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -359,6 +360,7 @@ const componentTypeArray = [
     Latex,
     BlockQuote,
     ContentPicker,
+    StickyGroup,
 
     BaseComponent,
     InlineComponent,

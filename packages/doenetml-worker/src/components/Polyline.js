@@ -464,18 +464,75 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.inStickyGroup = {
+            returnDependencies: () => ({
+                stickyParent: {
+                    dependencyType: "parentIdentity",
+                    parentComponentType: "stickyGroup",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        inStickyGroup: Boolean(dependencyValues.stickyParent),
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.stickyVerticesConstraintFunction = {
+            returnDependencies: () => ({
+                verticesConstraintFunction: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "stickyGroup",
+                    variableName: "verticesConstraintFunction",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        stickyVerticesConstraintFunction:
+                            dependencyValues.verticesConstraintFunction,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.stickyObjectIndex = {
+            returnDependencies: () => ({
+                countAmongSiblings: {
+                    dependencyType: "countAmongSiblings",
+                    componentType: "_graphical",
+                    includeInheritedComponentTypes: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        stickyObjectIndex:
+                            dependencyValues.countAmongSiblings - 1,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.haveConstrainedVertices = {
             returnDependencies: () => ({
                 vertexConstraintsChild: {
                     dependencyType: "child",
                     childGroups: ["vertexConstraints"],
                 },
+                inStickyGroup: {
+                    dependencyType: "stateVariable",
+                    variableName: "inStickyGroup",
+                },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
                         haveConstrainedVertices:
-                            dependencyValues.vertexConstraintsChild.length > 0,
+                            dependencyValues.vertexConstraintsChild.length >
+                                0 || dependencyValues.inStickyGroup,
                     },
                 };
             },
@@ -707,9 +764,16 @@ export default class Polyline extends GraphicalComponent {
 
                 if (globalDependencyValues.haveConstrainedVertices) {
                     let constrainedVertices =
-                        globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                            globalDependencyValues.unconstrainedVertices,
-                        );
+                        globalDependencyValues.unconstrainedVertices;
+
+                    if (
+                        globalDependencyValues.vertexConstraintsChild.length > 0
+                    ) {
+                        constrainedVertices =
+                            globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                constrainedVertices,
+                            );
+                    }
 
                     for (
                         let pointInd = 0;
@@ -896,10 +960,28 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         if (globalDependencyValues.haveConstrainedVertices) {
-                            desired_vertices =
-                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                                    desired_vertices,
-                                );
+                            if (
+                                globalDependencyValues.vertexConstraintsChild
+                                    .length > 0
+                            ) {
+                                desired_vertices =
+                                    globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                        desired_vertices,
+                                    );
+                            }
+
+                            if (await stateValues.inStickyGroup) {
+                                let stickyObjectIndex =
+                                    await stateValues.stickyObjectIndex;
+                                let stickyVerticesConstraintFunction =
+                                    await stateValues.stickyVerticesConstraintFunction;
+
+                                desired_vertices =
+                                    stickyVerticesConstraintFunction(
+                                        desired_vertices,
+                                        stickyObjectIndex,
+                                    );
+                            }
 
                             let constrainedCentroid =
                                 calculateNumericalCentroid(desired_vertices);
@@ -978,10 +1060,28 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         if (globalDependencyValues.haveConstrainedVertices) {
-                            desired_vertices =
-                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                                    desired_vertices,
-                                );
+                            if (
+                                globalDependencyValues.vertexConstraintsChild
+                                    .length > 0
+                            ) {
+                                desired_vertices =
+                                    globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                        desired_vertices,
+                                    );
+                            }
+
+                            if (await stateValues.inStickyGroup) {
+                                let stickyObjectIndex =
+                                    await stateValues.stickyObjectIndex;
+                                let stickyVerticesConstraintFunction =
+                                    await stateValues.stickyVerticesConstraintFunction;
+
+                                desired_vertices =
+                                    stickyVerticesConstraintFunction(
+                                        desired_vertices,
+                                        stickyObjectIndex,
+                                    );
+                            }
 
                             instructions.push({
                                 setDependency: "rotationReferenceMapping",
@@ -1027,11 +1127,29 @@ export default class Polyline extends GraphicalComponent {
                         // Otherwise, just shift the polyline due to the constraints
                         let enforceRigid = !movedJustOneVertex;
 
-                        desired_vertices =
-                            globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                        if (
+                            globalDependencyValues.vertexConstraintsChild
+                                .length > 0
+                        ) {
+                            desired_vertices =
+                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                    desired_vertices,
+                                    enforceRigid,
+                                );
+                        }
+
+                        if (await stateValues.inStickyGroup) {
+                            let stickyObjectIndex =
+                                await stateValues.stickyObjectIndex;
+                            let stickyVerticesConstraintFunction =
+                                await stateValues.stickyVerticesConstraintFunction;
+
+                            desired_vertices = stickyVerticesConstraintFunction(
                                 desired_vertices,
+                                stickyObjectIndex,
                                 enforceRigid,
                             );
+                        }
 
                         instructions.push({
                             setDependency: "unconstrainedVertices",
