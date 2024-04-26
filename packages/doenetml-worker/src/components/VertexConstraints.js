@@ -1,15 +1,11 @@
 import { convertValueToMathExpression } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import BaseComponent from "./abstract/BaseComponent";
-import CompositeComponent from "./abstract/CompositeComponent";
+import { applyConstraintFromComponentConstraints } from "../utils/constraints";
+import me from "math-expressions";
 
-export class VertexConstraints extends CompositeComponent {
+export class VertexConstraints extends BaseComponent {
     static componentType = "vertexConstraints";
-
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
-
-    static inSchemaOnlyInheritAs = [];
+    static rendererType = undefined;
 
     static returnChildGroups() {
         return [
@@ -23,432 +19,256 @@ export class VertexConstraints extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.numVertices = {
+        stateVariableDefinitions.scales = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
             returnDependencies: () => ({
-                parentNumVertices: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "polyline",
-                    variableName: "numVertices",
+                graphAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "graph",
+                    variableNames: ["xscale", "yscale"],
+                },
+                shadowedConstraints: {
+                    dependencyType: "shadowSource",
+                    variableNames: ["scales"],
                 },
             }),
             definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        numVertices: dependencyValues.parentNumVertices,
-                    },
-                };
+                if (dependencyValues.graphAncestor) {
+                    let SVs = dependencyValues.graphAncestor.stateValues;
+                    let scales = [SVs.xscale, SVs.yscale, 1];
+
+                    if (scales.every((x) => Number.isFinite(x) && x > 0)) {
+                        return { setValue: { scales } };
+                    }
+                } else if (dependencyValues.shadowedConstraints) {
+                    // if we are shadowing a constraints and not in a graph
+                    // use the scales from the shadow
+                    // Rationale: if we copy a component to a location outside a graph
+                    // (e.g. to display the coordinates of a point)
+                    // we don't intend to remove the constraints imposed by the graph.
+                    return {
+                        setValue: {
+                            scales: dependencyValues.shadowedConstraints
+                                .stateValues.scales,
+                        },
+                    };
+                }
+
+                return { setValue: { scales: [1, 1, 1] } };
             },
         };
 
-        stateVariableDefinitions.constraintNames = {
+        stateVariableDefinitions.graphXmin = {
+            additionalStateVariablesDefined: [
+                "graphXmax",
+                "graphYmin",
+                "graphYmax",
+            ],
+            returnDependencies: () => ({
+                graphAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "graph",
+                    variableNames: ["xmin", "xmax", "ymin", "ymax"],
+                },
+                shadowedConstraints: {
+                    dependencyType: "shadowSource",
+                    variableNames: [
+                        "graphXmin",
+                        "graphXmax",
+                        "graphYmin",
+                        "graphYmax",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (!dependencyValues.graphAncestor) {
+                    if (dependencyValues.shadowedConstraints) {
+                        // if we are shadowing a constraints and not in a graph
+                        // use the limits from the shadow
+                        // Rationale: if we copy a component to a location outside a graph
+                        // (e.g. to display the coordinates of a point)
+                        // we don't intend to remove the constraints imposed by the graph.
+                        let { graphXmin, graphXmax, graphYmin, graphYmax } =
+                            dependencyValues.shadowedConstraints.stateValues;
+                        return {
+                            setValue: {
+                                graphXmin,
+                                graphXmax,
+                                graphYmin,
+                                graphYmax,
+                            },
+                        };
+                    } else {
+                        return {
+                            setValue: {
+                                graphXmin: null,
+                                graphXmax: null,
+                                graphYmin: null,
+                                graphYmax: null,
+                            },
+                        };
+                    }
+                }
+
+                let graphXmin = dependencyValues.graphAncestor.stateValues.xmin;
+                let graphXmax = dependencyValues.graphAncestor.stateValues.xmax;
+                let graphYmin = dependencyValues.graphAncestor.stateValues.ymin;
+                let graphYmax = dependencyValues.graphAncestor.stateValues.ymax;
+
+                if (
+                    [graphXmin, graphXmax, graphYmin, graphYmax].every(
+                        Number.isFinite,
+                    )
+                ) {
+                    return {
+                        setValue: {
+                            graphXmin,
+                            graphXmax,
+                            graphYmin,
+                            graphYmax,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            graphXmin: null,
+                            graphXmax: null,
+                            graphYmin: null,
+                            graphYmax: null,
+                        },
+                    };
+                }
+            },
+        };
+
+        stateVariableDefinitions.constraintFunction = {
             returnDependencies: () => ({
                 constraintChildren: {
                     dependencyType: "child",
                     childGroups: ["constraints"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        constraintNames:
-                            dependencyValues.constraintChildren.map(
-                                (child) => child.componentName,
-                            ),
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                numVertices: {
-                    dependencyType: "stateVariable",
-                    variableName: "numVertices",
-                },
-            }),
-            markStale() {
-                return { updateReplacements: true };
-            },
-            definition() {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
-        return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        workspace,
-        componentInfoObjects,
-    }) {
-        let serializedComponents = [];
-
-        let numVertices = await component.stateValues.numVertices;
-        let constraintNames = await component.stateValues.constraintNames;
-
-        workspace.previousNumVertices = numVertices;
-
-        for (let vertexInd = 0; vertexInd < numVertices; vertexInd++) {
-            let constraintCopies = constraintNames.map((cname) => ({
-                componentType: "copy",
-                doenetAttributes: { target: cname },
-                // attributes: { link: { primitive: false } },
-            }));
-
-            serializedComponents.push({
-                componentType: "_constrainedVertex",
-                state: { vertexNum: vertexInd + 1 },
-                uniqueIdentifier: vertexInd,
-                children: [
-                    {
-                        componentType: "constraints",
-                        children: constraintCopies,
-                    },
-                ],
-            });
-        }
-
-        let newNamespace = component.attributes.newNamespace?.primitive;
-
-        let processResult = processAssignNames({
-            serializedComponents: serializedComponents,
-            parentName: component.componentName,
-            parentCreatesNewNamespace: newNamespace,
-            componentInfoObjects,
-        });
-
-        return {
-            replacements: processResult.serializedComponents,
-            errors: processResult.errors,
-            warnings: processResult.warnings,
-        };
-    }
-
-    static async calculateReplacementChanges({ component, workspace }) {
-        let replacementChanges = [];
-
-        let previousNumVertices = workspace.previousNumVertices;
-        let numVertices = await component.stateValues.numVertices;
-
-        let newReplacementsToWithhold;
-
-        let numReplacementsToAdd = 0;
-
-        // if have fewer replacements than before
-        // mark old replacements as hidden
-        if (numVertices < previousNumVertices) {
-            newReplacementsToWithhold =
-                component.replacements.length - numVertices;
-
-            let replacementInstruction = {
-                changeType: "changeReplacementsToWithhold",
-                replacementsToWithhold: newReplacementsToWithhold,
-            };
-            replacementChanges.push(replacementInstruction);
-        } else if (numVertices > previousNumVertices) {
-            numReplacementsToAdd = numVertices - previousNumVertices;
-
-            if (component.replacementsToWithhold > 0) {
-                if (component.replacementsToWithhold >= numReplacementsToAdd) {
-                    newReplacementsToWithhold =
-                        component.replacementsToWithhold - numReplacementsToAdd;
-                    previousNumVertices += numReplacementsToAdd;
-                    numReplacementsToAdd = 0;
-
-                    let replacementInstruction = {
-                        changeType: "changeReplacementsToWithhold",
-                        replacementsToWithhold: newReplacementsToWithhold,
-                    };
-                    replacementChanges.push(replacementInstruction);
-                } else {
-                    numReplacementsToAdd -= component.replacementsToWithhold;
-                    previousNumVertices += component.replacementsToWithhold;
-                    newReplacementsToWithhold = 0;
-                    // don't need to send changedReplacementsToWithold instructions
-                    // since will send add instructions,
-                    // which will also recalculate replacements in parent
-                }
-            }
-        }
-
-        if (numReplacementsToAdd > 0) {
-            // Need to add more replacement components
-
-            let newSerializedReplacements = [];
-
-            let constraintNames = await component.stateValues.constraintNames;
-
-            for (
-                let vertexInd = previousNumVertices;
-                vertexInd < numVertices;
-                vertexInd++
-            ) {
-                let constraintCopies = constraintNames.map((cname) => ({
-                    componentType: "copy",
-                    doenetAttributes: { target: cname },
-                    // attributes: { link: { primitive: false } },
-                }));
-
-                newSerializedReplacements.push({
-                    componentType: "_constrainedVertex",
-                    state: { vertexNum: vertexInd + 1 },
-                    uniqueIdentifier: vertexInd,
-                    children: [
-                        {
-                            componentType: "constraints",
-                            children: constraintCopies,
-                        },
+                    variableNames: [
+                        "applyConstraint",
+                        "applyComponentConstraint",
                     ],
-                });
-            }
-
-            let replacementInstruction = {
-                changeType: "add",
-                changeTopLevelReplacements: true,
-                firstReplacementInd: previousNumVertices,
-                serializedReplacements: newSerializedReplacements,
-                replacementsToWithhold: 0,
-                assignNamesOffset: previousNumVertices,
-            };
-            replacementChanges.push(replacementInstruction);
-        }
-
-        workspace.previousNumVertices = numVertices;
-
-        return replacementChanges;
-    }
-}
-
-export class ConstrainedVertex extends BaseComponent {
-    static componentType = "_constrainedVertex";
-    static rendererType = undefined;
-
-    static returnChildGroups() {
-        return [
-            {
-                group: "constraints",
-                componentTypes: ["constraints"],
-            },
-        ];
-    }
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.arrayVariableForConstraints = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: { arrayVariableForConstraints: "unconstrainedXs" },
-            }),
-        };
-
-        stateVariableDefinitions.arrayEntryPrefixForConstraints = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: { arrayEntryPrefixForConstraints: "unconstrainedX" },
-            }),
-        };
-
-        stateVariableDefinitions.numDimensionsForConstraints = {
-            isAlias: true,
-            targetVariableName: "numDimensions",
-        };
-
-        stateVariableDefinitions.vertexNum = {
-            defaultValue: 1,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: { vertexNum: true },
-            }),
-        };
-
-        stateVariableDefinitions.numDimensions = {
-            returnDependencies: () => ({
-                parentNumDimensions: {
+                    variablesOptional: true,
+                },
+                vertices: {
                     dependencyType: "parentStateVariable",
-                    parentComponentType: "polyline",
-                    variableName: "numDimensions",
+                    variableName: "unconstrainedVertices",
                 },
             }),
             definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        numDimensions: dependencyValues.parentNumDimensions,
-                    },
-                };
-            },
-        };
+                let f = function (unconstrainedVertices) {
+                    let constrainedVertices = [];
+                    let constraintUsed = false;
 
-        stateVariableDefinitions.unconstrainedXs = {
-            isArray: true,
-            entryPrefixes: ["unconstrainedX"],
-            defaultValueByArrayKey: () => me.fromAst(0),
-            stateVariablesDeterminingDependencies: ["vertexNum"],
-            returnArraySizeDependencies: () => ({
-                numDimensions: {
-                    dependencyType: "stateVariable",
-                    variableName: "numDimensions",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numDimensions];
-            },
-            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
-                let vertexNum = stateValues.vertexNum;
+                    for (let unconstrainedVertex of unconstrainedVertices) {
+                        // apply constraint to whole array (even if just one array key requested)
+                        let variables = {};
 
-                let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    let varEnding = Number(arrayKey) + 1;
-                    dependenciesByKey[arrayKey] = {
-                        x: {
-                            dependencyType: "parentStateVariable",
-                            parentComponentType: "polyline",
-                            variableName:
-                                "unconstrainedVertexX" +
-                                vertexNum +
-                                "_" +
-                                varEnding,
-                        },
-                    };
-                }
+                        for (let ind in unconstrainedVertex) {
+                            variables[`x${Number(ind) + 1}`] =
+                                unconstrainedVertex[ind];
+                        }
 
-                return { dependenciesByKey };
-            },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let newXs = {};
+                        for (let constraintChild of dependencyValues.constraintChildren) {
+                            let constraintResult;
+                            if (constraintChild.stateValues.applyConstraint) {
+                                constraintResult =
+                                    constraintChild.stateValues.applyConstraint(
+                                        variables,
+                                    );
+                            } else {
+                                constraintResult =
+                                    applyConstraintFromComponentConstraints(
+                                        variables,
+                                        constraintChild.stateValues
+                                            .applyComponentConstraint,
+                                    );
+                            }
 
-                for (let arrayKey of arrayKeys) {
-                    newXs[arrayKey] = dependencyValuesByKey[arrayKey].x;
-                }
+                            if (constraintResult.constrained) {
+                                for (let varName in constraintResult.variables) {
+                                    variables[varName] =
+                                        convertValueToMathExpression(
+                                            constraintResult.variables[varName],
+                                        );
+                                }
+                                constraintUsed = true;
+                            }
+                        }
 
-                return {
-                    setValue: { unconstrainedXs: newXs },
-                };
-            },
-            inverseArrayDefinitionByKey({
-                desiredStateVariableValues,
-                dependencyNamesByKey,
-            }) {
-                let instructions = [];
+                        let constrainedVertex = [];
+                        for (let ind in unconstrainedVertex) {
+                            constrainedVertex.push(
+                                variables[`x${Number(ind) + 1}`],
+                            );
+                        }
+                        constrainedVertices.push(constrainedVertex);
+                    }
 
-                for (let arrayKey of Object.keys(
-                    desiredStateVariableValues.unconstrainedXs,
-                ).reverse()) {
-                    let desiredValue = convertValueToMathExpression(
-                        desiredStateVariableValues.unconstrainedXs[arrayKey],
-                    );
-                    instructions.push({
-                        setDependency: dependencyNamesByKey[arrayKey].x,
-                        desiredValue,
-                        childIndex: 0,
-                        variableIndex: 0,
-                    });
-                }
+                    if (!constraintUsed) {
+                        return unconstrainedVertices;
+                    }
 
-                return {
-                    success: true,
-                    instructions,
-                };
-            },
-        };
+                    // since have constrained vertices, and we treat them as constraining
+                    // the vertices as a whole,
+                    // find the minimum deviation non-zero
+                    // from an unconstrained vertex to the corresponding constrained vertex
+                    // and add that deviation to all unconstrained vertices
+                    // to be the new constrained vertices
+                    let minDeviation = [];
+                    let minDeviationMagnitude2 = Infinity;
+                    for (let vertexInd in unconstrainedVertices) {
+                        let deviation = [];
+                        let deviationMag2 = 0;
 
-        stateVariableDefinitions.xs = {
-            isArray: true,
-            entryPrefixes: ["x"],
-            returnArraySizeDependencies: () => ({
-                numDimensions: {
-                    dependencyType: "stateVariable",
-                    variableName: "numDimensions",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numDimensions];
-            },
-            returnArrayDependenciesByKey({ arrayKeys }) {
-                let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    let varEnding = Number(arrayKey) + 1;
+                        let unconstrainedVertex =
+                            unconstrainedVertices[vertexInd];
+                        let constrainedVertex = constrainedVertices[vertexInd];
 
-                    let keyDeps = {};
-                    keyDeps.unconstrainedX = {
-                        dependencyType: "stateVariable",
-                        variableName: `unconstrainedX${varEnding}`,
-                    };
-                    keyDeps.constraintsChild = {
-                        dependencyType: "child",
-                        childGroups: ["constraints"],
-                        variableNames: [`constraintResult${varEnding}`],
-                    };
-                    dependenciesByKey[arrayKey] = keyDeps;
-                }
-                return { dependenciesByKey };
-            },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let xs = {};
+                        for (let dim in unconstrainedVertex) {
+                            let unconstrainedX =
+                                unconstrainedVertex[dim].evaluate_to_constant();
+                            let constrainedX =
+                                constrainedVertex[dim].evaluate_to_constant();
+                            let dx = constrainedX - unconstrainedX;
+                            deviation.push(dx);
+                            deviationMag2 += dx * dx;
+                        }
 
-                for (let arrayKey of arrayKeys) {
-                    if (
-                        dependencyValuesByKey[arrayKey].constraintsChild
-                            .length > 0
-                    ) {
-                        let varEnding = Number(arrayKey) + 1;
-                        xs[arrayKey] = convertValueToMathExpression(
-                            dependencyValuesByKey[arrayKey].constraintsChild[0]
-                                .stateValues["constraintResult" + varEnding],
+                        if (
+                            deviationMag2 < minDeviationMagnitude2 &&
+                            deviationMag2 > 0
+                        ) {
+                            minDeviationMagnitude2 = deviationMag2;
+                            minDeviation = deviation;
+                        }
+                    }
+
+                    if (Number.isFinite(minDeviationMagnitude2)) {
+                        // we had a non-zero deviation from the unconstrained,
+                        // so move all vertices by that amount
+
+                        return unconstrainedVertices.map(
+                            (unconstrainedVertex) =>
+                                unconstrainedVertex.map((v, i) =>
+                                    me.fromAst(
+                                        v.evaluate_to_constant() +
+                                            minDeviation[i],
+                                    ),
+                                ),
                         );
                     } else {
-                        xs[arrayKey] = convertValueToMathExpression(
-                            dependencyValuesByKey[arrayKey].unconstrainedX,
-                        );
+                        // there were no deviations so just use the unconstrained vertices
+                        return unconstrainedVertices;
                     }
-                }
-
-                if (arrayKeys.length > 0) {
-                    return { setValue: { xs } };
-                } else {
-                    return {};
-                }
-            },
-            async inverseArrayDefinitionByKey({
-                desiredStateVariableValues,
-                dependencyValuesByKey,
-                dependencyNamesByKey,
-            }) {
-                let instructions = [];
-                for (let arrayKey of Object.keys(
-                    desiredStateVariableValues.xs,
-                ).reverse()) {
-                    if (!dependencyValuesByKey[arrayKey]) {
-                        continue;
-                    }
-                    if (
-                        dependencyValuesByKey[arrayKey].constraintsChild
-                            .length > 0
-                    ) {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].constraintsChild,
-                            desiredValue:
-                                desiredStateVariableValues.xs[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
-                    } else {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].unconstrainedX,
-                            desiredValue:
-                                desiredStateVariableValues.xs[arrayKey],
-                        });
-                    }
-                }
-
-                return {
-                    success: true,
-                    instructions,
                 };
+
+                return { setValue: { constraintFunction: f } };
             },
         };
 
