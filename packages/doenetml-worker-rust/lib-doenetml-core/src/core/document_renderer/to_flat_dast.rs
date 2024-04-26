@@ -14,7 +14,7 @@ use crate::{
         ForRenderProps,
     },
     graph::directed_graph::Taggable,
-    props::{cache::PropWithMeta, PropProfile, PropValue},
+    props::{cache::PropWithMeta, PropProfile, PropValue, PropValueType},
     state::types::content_refs::ContentRef,
 };
 
@@ -63,6 +63,9 @@ impl DocumentRenderer {
                 self.mark_component_in_render_tree(child_node.into(), document_model);
             }
         }
+        for child_node in self.get_children_from_for_render_props(component_idx, document_model) {
+            self.mark_component_in_render_tree(child_node.into(), document_model);
+        }
     }
 
     /// Convert a component to a `FlatDastElement`.
@@ -91,7 +94,7 @@ impl DocumentRenderer {
     }
 
     /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
-    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
+    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists.
     fn get_rendered_child_nodes(
         &mut self,
         component_idx: ComponentIdx,
@@ -124,6 +127,63 @@ impl DocumentRenderer {
             .into_iter()
             .map(|content_ref| content_ref.into())
             .collect()
+    }
+
+    /// Get any nodes referenced in a `for_render` prop (e.g., because the prop returns `PropType::ComponentRefs` or similar).
+    fn get_children_from_for_render_props(
+        &mut self,
+        component_idx: ComponentIdx,
+        document_model: &DocumentModel,
+    ) -> Vec<GraphNode> {
+        document_model
+            .get_for_render_prop_pointers(component_idx)
+            .flat_map(|prop_pointer| {
+                if !self.prop_may_contain_children(prop_pointer, document_model) {
+                    return vec![];
+                }
+                let prop = self.get_prop_for_render(prop_pointer, document_model);
+                match prop.value {
+                    PropValue::ComponentRefs(refs) => refs
+                        .iter()
+                        .map(|c| GraphNode::Component(c.as_usize()))
+                        .collect(),
+                    PropValue::ComponentRef(c) => {
+                        c.into_iter().map(|c| c.as_graph_node()).collect()
+                    }
+                    PropValue::ContentRef(c) => match c {
+                        ContentRef::Component(c) => {
+                            vec![GraphNode::Component(c.as_usize())]
+                        }
+                        ContentRef::String(_) => vec![],
+                    },
+                    PropValue::ContentRefs(refs) => refs
+                        .iter()
+                        .flat_map(|c| match c {
+                            ContentRef::Component(c) => Some(c.as_graph_node()),
+                            ContentRef::String(_) => None,
+                        })
+                        .collect(),
+                    _ => vec![],
+                }
+            })
+            .collect()
+    }
+
+    /// Returns whether a prop may contain references to components.
+    fn prop_may_contain_children(
+        &self,
+        prop_pointer: PropPointer,
+        document_model: &DocumentModel,
+    ) -> bool {
+        let prop = document_model
+            .get_prop_definition(document_model.prop_pointer_to_prop_node(prop_pointer));
+        matches!(
+            prop.variant,
+            PropValueType::ComponentRef
+                | PropValueType::ComponentRefs
+                | PropValueType::ContentRef
+                | PropValueType::ContentRefs
+        )
     }
 
     /// Convert a component to a `FlatDastElement` without its children. This is can be used

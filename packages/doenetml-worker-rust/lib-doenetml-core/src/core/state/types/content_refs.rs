@@ -26,6 +26,10 @@ impl ContentRefs {
         &self.0
     }
 
+    pub fn iter(&self) -> std::slice::Iter<ContentRef> {
+        self.0.iter()
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
