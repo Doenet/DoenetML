@@ -81,7 +81,7 @@ describe("Normalize dast", async () => {
         source = `<section><![CDATA[foo]]><p>hi</p></section>`;
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            "<document><section>foo<p>hi</p></section></document>",
+            '<document><division type="section">foo<p>hi</p></division></document>',
         );
     });
     it("preserves existing document tag", () => {
