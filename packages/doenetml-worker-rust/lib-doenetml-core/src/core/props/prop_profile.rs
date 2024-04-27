@@ -1,3 +1,5 @@
+use super::PropValueType;
+
 /// A `PropProfile` is used in a `DataQuery` to match a particular type of prop.
 /// It can be used to filter components based on the presence of a prop with the `PropProfile`
 /// or to return the value of the prop that matches the `PropProfile`.
@@ -47,7 +49,7 @@ pub enum PropProfile {
     ListMarker,
     /// Matches a prop that indicates the code number of a list item. I.e., its fully-specified (local) name, like `4.a.ii`.
     ListCodeNumber,
-    /// Matches a prop that can be rendered (e.g., contains `ComponentRefs` but is not `RenderedChildren`.
+    /// Matches a prop that can be rendered (i.e., contains a `ComponentRef` but is not `RenderedChildren`.
     /// This is used on props like `<section>.title` which contain references to content but are not themselves used for
     /// rendering children.)
     Renderable,
@@ -59,4 +61,28 @@ pub enum PropProfile {
     XrefLabel,
     /// Matches a prop that stores `ContentRefs` to any content that should be "expanded" when an xref is clicked.
     XrefDisplayContent,
+}
+
+pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
+    match profile {
+        PropProfile::String => PropValueType::String,
+        PropProfile::LiteralString => PropValueType::String,
+        PropProfile::Number => PropValueType::Number,
+        PropProfile::Math => PropValueType::Math,
+        PropProfile::Integer => PropValueType::Integer,
+        PropProfile::Boolean => PropValueType::Boolean,
+        PropProfile::Hidden => PropValueType::Boolean,
+        PropProfile::SerialNumber => PropValueType::Integer,
+        PropProfile::DivisionCodeNumber => PropValueType::String,
+        PropProfile::DivisionDepth => PropValueType::Integer,
+        PropProfile::ListDepth => PropValueType::ListDepth,
+        PropProfile::ListStartIndex => PropValueType::Integer,
+        PropProfile::ListMarker => PropValueType::ListMarker,
+        PropProfile::ListCodeNumber => PropValueType::String,
+        PropProfile::Renderable => PropValueType::ComponentRef,
+        PropProfile::RenderedChildren => PropValueType::ContentRefs,
+        PropProfile::_Ref => PropValueType::ComponentRef,
+        PropProfile::XrefLabel => PropValueType::XrefLabel,
+        PropProfile::XrefDisplayContent => PropValueType::ContentRefs,
+    }
 }
