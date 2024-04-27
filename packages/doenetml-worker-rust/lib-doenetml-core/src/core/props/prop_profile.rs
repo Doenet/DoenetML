@@ -79,6 +79,7 @@ pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
         PropProfile::SerialNumber => PropValueType::Integer,
         PropProfile::DivisionCodeNumber => PropValueType::String,
         PropProfile::DivisionDepth => PropValueType::Integer,
+        PropProfile::DivisionType => PropValueType::DivisionType,
         PropProfile::ListDepth => PropValueType::ListDepth,
         PropProfile::ListStartIndex => PropValueType::Integer,
         PropProfile::ListMarker => PropValueType::ListMarker,
