@@ -338,6 +338,53 @@ impl PropsEnum {
             };
         }
     }
+
+    /// Generate compile-time checks that the prop_profile and the prop_value are compatible.
+    fn generate_profile_value_checks(&self) -> TokenStream {
+        let prop_profiles = self.get_prop_profiles();
+        let prop_value_types = self.get_prop_value_types();
+        let prop_names = self.get_prop_names();
+        let prop_profiles_and_value_types = prop_profiles
+            .iter()
+            .zip(prop_value_types.iter())
+            .zip(prop_names.iter())
+            .map(|((profile, value_type), name)| {
+                (profile.clone(), value_type.clone(), name.clone())
+            })
+            .filter_map(|(profile, value_type, name)| profile.map(|p| (p, value_type, name)))
+            .map(|(profile, value_type, name)| {
+                // Create the compile-time assertions.
+                // They look like
+                // ```rust
+                // if !matches!(prop_profile_to_type(profile), PropValueType::Foo) {
+                //     panic!("Prop `{name}` has profile `{profile}` but is not of type `PropValueType::Foo`");
+                // }
+                // ```
+                let profile_str = quote! {#profile}.to_string().replace(' ', "");
+                let value_type_str = quote! {#value_type}.to_string().replace(' ', "");
+                let panic_string = format!(
+                    "Prop `{}` has profile `{}` but the type doesn't match that returned by `prop_profile_to_type` (found `{}`)",
+                    name,
+                    profile_str,
+                    value_type_str
+                );
+                quote! {
+                    if !matches!(
+                        crate::props::prop_profile_to_type(#profile),
+                        #value_type
+                    ) {
+                        panic!(#panic_string);
+                    }
+                }
+            });
+
+        quote! {
+            // Compile-time checks that the prop_profile and the prop_value are compatible.
+            const _: () = {
+                #(#prop_profiles_and_value_types)*
+            };
+        }
+    }
 }
 
 //
@@ -351,12 +398,14 @@ impl ComponentModule {
         let impl_props_methods = self.props.impl_props_methods();
         let props_module = self.props.generate_props_module();
         let typescript_extras = self.props.generate_for_render_props_typescript(&self.name);
+        let compile_time_checks = self.props.generate_profile_value_checks();
 
         quote! {
             #enum_props
             #impl_props_methods
             #props_module
             #typescript_extras
+            #compile_time_checks
         }
     }
 
