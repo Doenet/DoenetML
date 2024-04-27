@@ -201,7 +201,7 @@ describe("Error Tests", function () {
             expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(7);
             expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(1);
             expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(7);
-            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(2);
+            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(6);
 
             expect(errorWarnings.errors[2].message).contain(
                 "Error in opening <p> tag",
