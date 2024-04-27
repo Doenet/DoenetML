@@ -356,8 +356,49 @@ pub struct FlatDastRoot {
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum FlatDastElementContent {
-    Element(usize),
+    Element(AnnotatedElementRef),
     Text(String),
+}
+
+impl FlatDastElementContent {
+    /// Create a `FlatDastElementContent::Element` with the annotation set to `Original`
+    pub fn new_original_element(id: usize) -> Self {
+        FlatDastElementContent::Element(AnnotatedElementRef {
+            id,
+            annotation: ElementRefAnnotation::Original,
+        })
+    }
+    /// Create a `FlatDastElementContent::Element` with the annotation set to `Original`
+    pub fn new_duplicate_element(id: usize) -> Self {
+        FlatDastElementContent::Element(AnnotatedElementRef {
+            id,
+            annotation: ElementRefAnnotation::Duplicate,
+        })
+    }
+}
+
+/// A reference to an element that contains additional data.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+pub struct AnnotatedElementRef {
+    /// The id of the referenced element.
+    pub id: usize,
+    /// Additional data associated with this reference (e.g., whether it is the "original" reference)
+    pub annotation: ElementRefAnnotation,
+}
+
+/// Additional data that may be associated with a reference to an element.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+pub enum ElementRefAnnotation {
+    /// The reference to this element is the "original" reference. I.e., it was not
+    /// inherited from some `extend`.
+    Original,
+    /// The reference to this element is a duplicate. The original reference is somewhere else in
+    /// the render tree.
+    Duplicate,
 }
 
 /// A flattened version of DastElement that is easier to serialize

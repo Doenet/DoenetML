@@ -35,9 +35,9 @@ fn p_rendered_children() {
     assert_eq!(
         *p_children,
         vec![
-            FlatDastElementContent::Element(2),
+            FlatDastElementContent::new_original_element(2),
             FlatDastElementContent::Text(" and ".to_string()),
-            FlatDastElementContent::Element(3),
+            FlatDastElementContent::new_original_element(3),
             FlatDastElementContent::Text("!".to_string()),
         ]
     );
@@ -72,7 +72,7 @@ fn p_hidden_children_not_rendered() {
     assert_eq!(
         *p_children,
         vec![
-            FlatDastElementContent::Element(2),
+            FlatDastElementContent::new_original_element(2),
             FlatDastElementContent::Text(" and ".to_string()),
             FlatDastElementContent::Text("!".to_string()),
         ]
@@ -234,7 +234,7 @@ mod test_helpers {
             .map(|child| match child {
                 FlatDastElementContent::Text(s) => Some(s.as_str()),
                 FlatDastElementContent::Element(child_idx) => {
-                    let child_elt = &elements[*child_idx];
+                    let child_elt = &elements[child_idx.id];
                     if child_elt.name == "text" {
                         let prop_values = &child_elt.data.props.as_ref().unwrap().0;
 

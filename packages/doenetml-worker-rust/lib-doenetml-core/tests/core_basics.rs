@@ -16,7 +16,10 @@ fn basic_core_initialization() {
     assert_json_eq!(
         json!({
             "type": "root",
-            "children": [0],
+            "children": [{
+                "annotation": "original",
+                "id": 0,
+            }],
             "elements": [
                 {
                     "type": "element",
@@ -24,7 +27,10 @@ fn basic_core_initialization() {
                     "attributes": {},
                     "children": [
                         "hi there",
-                        1
+                        {
+                            "annotation": "original",
+                            "id": 1,
+                        }
                     ],
                     "data": {
                         "id": 0,

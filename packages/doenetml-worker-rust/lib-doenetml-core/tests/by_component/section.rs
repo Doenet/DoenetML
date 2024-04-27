@@ -28,7 +28,10 @@ fn section_content_excludes_title_tag() {
     let flat_dast = core.to_flat_dast();
     let section_children = &flat_dast.elements[section_idx.as_usize()].children;
 
-    assert_eq!(*section_children, vec![FlatDastElementContent::Element(3),]);
+    assert_eq!(
+        *section_children,
+        vec![FlatDastElementContent::new_original_element(3),]
+    );
 }
 
 #[test]
@@ -59,8 +62,8 @@ fn section_handles_missing_title_tag() {
     assert_eq!(
         *section_children,
         vec![
-            FlatDastElementContent::Element(2),
-            FlatDastElementContent::Element(3),
+            FlatDastElementContent::new_original_element(2),
+            FlatDastElementContent::new_original_element(3),
         ]
     );
 }
@@ -105,10 +108,10 @@ fn section_finds_title_tag_in_middle() {
         *section_children,
         vec![
             FlatDastElementContent::Text("\n".to_string()),
-            FlatDastElementContent::Element(2),
+            FlatDastElementContent::new_original_element(2),
             FlatDastElementContent::Text(" string outside\n".to_string()),
             FlatDastElementContent::Text(" more outside\n".to_string()),
-            FlatDastElementContent::Element(4),
+            FlatDastElementContent::new_original_element(4),
             FlatDastElementContent::Text("\n".to_string()),
         ]
     );
@@ -160,10 +163,10 @@ fn section_with_multiple_title_tags_picks_last() {
         vec![
             FlatDastElementContent::Text("\n".to_string()),
             FlatDastElementContent::Text(" after title 1\n".to_string()),
-            FlatDastElementContent::Element(3),
+            FlatDastElementContent::new_original_element(3),
             FlatDastElementContent::Text(" string outside\n".to_string()),
             FlatDastElementContent::Text(" after title 2\n".to_string()),
-            FlatDastElementContent::Element(5),
+            FlatDastElementContent::new_original_element(5),
             FlatDastElementContent::Text("\n".to_string()),
         ]
     );

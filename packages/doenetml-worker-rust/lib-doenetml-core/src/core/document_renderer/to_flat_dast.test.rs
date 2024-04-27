@@ -46,7 +46,7 @@ fn test_content_ref_prop_values_get_serialized_correctly() {
             .prepare_prop_value_for_render("foo", refs, &core.document_model);
     assert_eq!(
         serde_json::to_string(&prepared.value).unwrap(),
-        r#"["hi",2]"#
+        r#"["hi",{"id":2,"annotation":"original"}]"#
     );
 }
 

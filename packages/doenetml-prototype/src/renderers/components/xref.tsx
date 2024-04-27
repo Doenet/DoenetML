@@ -6,7 +6,7 @@ import type { XrefProps } from "@doenet/doenetml-worker-rust";
 export const Xref: BasicComponentWithPassthroughChildren<{
     props: XrefProps;
 }> = ({ children, node }) => {
-    const referentHtmlId = `division-${node.data.props.referent}`;
+    const referentHtmlId = `doenet-id-${node.data.props.referent}`;
     const label = node.data.props.displayText;
     // XXX: when knowls get figured out, make this code generate a knowl in the correct place.
     //const referentContent = node.data.props.referentChildren;

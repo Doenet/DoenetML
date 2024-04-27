@@ -1,4 +1,4 @@
-import { FlatDastElement } from "@doenet/doenetml-worker-rust";
+import { ElementRefAnnotation, FlatDastElement } from "@doenet/doenetml-worker-rust";
 
 export type BasicComponentProps<Data = {}> = {
     node: FlatDastElement & {
@@ -9,6 +9,11 @@ export type BasicComponentProps<Data = {}> = {
      * will be forwarded to the actual dom node of the child component (if there is any dom node rendered).
      */
     visibilityRef?: React.ForwardedRef<HTMLDivElement>;
+    /**
+     * Additional information provided to this element. Even if two elements have the same id, they
+     * may have different information provided in the annotation.
+     */
+    annotation?: ElementRefAnnotation;
 };
 export type BasicComponent<Data = {}> = React.FunctionComponent<
     BasicComponentProps<Data>

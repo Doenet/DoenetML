@@ -40,7 +40,7 @@ impl DocumentRenderer {
             .collect();
 
         FlatDastRoot {
-            children: vec![FlatDastElementContent::Element(0)],
+            children: vec![FlatDastElementContent::new_original_element(0)],
             elements,
             warnings: vec![],
             position: None,
@@ -79,7 +79,9 @@ impl DocumentRenderer {
         let children = child_nodes
             .into_iter()
             .filter_map(|child| match child {
-                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
+                GraphNode::Component(idx) => {
+                    Some(FlatDastElementContent::new_original_element(idx))
+                }
                 GraphNode::String(_) => Some(FlatDastElementContent::Text(
                     document_model.get_string_value(child),
                 )),
@@ -315,7 +317,7 @@ impl DocumentRenderer {
                 let node = GraphNode::String(s.as_usize());
                 FlatDastElementContent::Text(document_model.get_string_value(node))
             }
-            ContentRef::Component(c) => FlatDastElementContent::Element(c.as_usize()),
+            ContentRef::Component(c) => FlatDastElementContent::new_original_element(c.as_usize()),
         };
 
         let value: ForRenderPropValueOrContent = match value {

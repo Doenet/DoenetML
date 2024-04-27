@@ -4,6 +4,10 @@ import { elementsArraySelector } from "../state/redux-slices/dast";
 import { DastErrorComponent } from "./error";
 import { ComponentConstraint, getComponent } from "./get-component";
 import { VisibilitySensor } from "./visibility-sensor";
+import {
+    ElementRefAnnotation,
+    FlatDastElementContent,
+} from "@doenet/doenetml-worker-rust";
 
 const NO_ELEMENTS = Symbol("NO_ELEMENTS");
 
@@ -11,7 +15,15 @@ const NO_ELEMENTS = Symbol("NO_ELEMENTS");
  * Render a DoenetML element by id. This assumes that the element exists in the Redux store.
  */
 export const Element = React.memo(
-    ({ id, constraint }: { id: number; constraint?: ComponentConstraint }) => {
+    ({
+        id,
+        constraint,
+        annotation,
+    }: {
+        id: number;
+        constraint?: ComponentConstraint;
+        annotation?: ElementRefAnnotation;
+    }) => {
         const value = useAppSelector((state) => {
             const elementsArray = elementsArraySelector(state);
             if (elementsArray.length === 0) {
@@ -31,7 +43,10 @@ export const Element = React.memo(
             return null;
         }
 
+        // XXX: Is this behavior still correct? Do we need to fix the types?
+        // @ts-ignore
         if (value.type === "error") {
+            // @ts-ignore
             return <DastErrorComponent errorNode={value} />;
         }
 
@@ -49,12 +64,19 @@ export const Element = React.memo(
                     id={id}
                     node={value}
                     children={children}
+                    annotation={annotation}
                 />
             );
         }
 
         // If we make it here, the component will handle the rendering of its own children.
-        return <Component.component node={value} children={children} />;
+        return (
+            <Component.component
+                node={value}
+                children={children}
+                annotation={annotation}
+            />
+        );
     },
 );
 
@@ -62,14 +84,20 @@ export const Element = React.memo(
  * Return `React.ReactNode`'s created from a `FlatDastElement`'s children.
  */
 export function flatDastChildrenToReactChildren(
-    children: (number | string)[],
+    children: FlatDastElementContent[],
     constraint?: ComponentConstraint,
 ): React.ReactNode {
     return children.map((child) => {
-        if (typeof child === "number") {
-            return <Element key={child} id={child} constraint={constraint} />;
-        } else {
+        if (typeof child === "string") {
             return child;
-        }
+        } else
+            return (
+                <Element
+                    key={child.id}
+                    id={child.id}
+                    constraint={constraint}
+                    annotation={child.annotation}
+                />
+            );
     });
 }

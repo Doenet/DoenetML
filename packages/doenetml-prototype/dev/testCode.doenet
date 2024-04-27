@@ -1,171 +1,21 @@
-<section name="s">
-  <title>My Cool Section</title>
-  <p>Some content!!</p>
+<section name="s1">
+  <title>The S1 Section</title>
+  <division name="d2">
+    <title>A subdivision</title>
+    <p>Some content</p>
+  </division>
 </section>
-<division extend="$s" name="s2">
-  <title>Second Clone</title>
-  <p>With more content</p>
-  <p>
-    <textInput prefill="hi" name="ti" />
 
-    "<text extend="$ti.immediateValue"> world</text>" "<text extend="$ti.value">
-       world
-    </text>"
-  </p>
-  <chapter name="si">
-    <title>Wow. We will explore this<m>x^2</m></title>
-    <p>Some important content</p>
-  </chapter>
-</division>
+<textInput />
 
-
-See <xref ref="$s2" />, or by its other name <xref ref="$s2">Super Sec</xref>.
-
-<xref ref="$foo" />
-
-Consider: <xref ref="$si" /> that important section.
-
-<ol marker="0">
-  <li>My item</li>
-  <li>My other item</li>
-  <li>
-    Hi
-    <ol>
-      <li>Deeper list</li>
-      <li>
-        Foo
-        <ol>
-          <li>Item</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ol>
-
-<ol start="7">
-  <li>My item</li>
-  <li>My other item</li>
-  <li>
-    Hi
-    <ol>
-      <li name="deepitem">Deeper list</li>
-      <li>
-        Foo
-        <ol marker="A">
-          <li>Item</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ol>
-
-We have a reference to a deep item: <xref ref="$deepitem" />.
+<section extend="$s1">
+  <title>Inheriting section</title>
+  <division name="d3">
+    <title>Additional subdivision</title>
+    <p>More content</p>
+  </division>
+</section>
 
 <p>
-  An unordered list
-  <ul>
-    <li>stuff</li>
-    <li>things</li>
-    <li>
-      <ul>
-        <li>stuff</li>
-        <li>things</li>
-        <li>
-          <ul>
-            <li name="uldeep">stuff</li>
-            <li>things</li>
-          </ul>
-        </li>
-      </ul>
-    </li>
-  </ul>
+  Some references: <xref ref="$s1" />, <xref ref="$d2" />, <xref ref="$d3" />,
 </p>
-
-<xref ref="$uldeep" />
-<ul name="a">
-  <li>
-    there
-    <ol name="b">
-      <li>
-        you
-        <ol name="c">
-          <li>hey</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ul>
-
-<!-- <textInput prefill="hi" name="ti" />
-The value: $ti.immediateValue
-
-"<text extend="$ti.immediateValue"> world</text>"
-"<text extend="$ti.value"> world</text>"
--->
-
-<!--
-
-<text name="t">hello</text> ___
-
-"<text extend="$t"> world</text>"
-
-<textInput name="ti" />
-aaa $ti bbb
-
-"<text extend="$ti.immediateValue"> world</text>"
-
-<p name="p">
-dsaf
-  $ti
-</p>
-
--->
-
-<!--
- "<text extend="<textInput _remaining_path="immediateValue"/>"> world</text>"
- 
-
-
- 
-
-<p>Use this to <m>a < b</m>test DoenetML</p>
-<p>A second paragraph! <text>with text</text></p>
-<choiceInput>
-  <choice>A</choice>
-  <choice>B</choice>
-  <choice>C</choice>
-</choiceInput>
-<graph showNavigation>
-  <line through="(-8,8) (9,6)" />
-  <point>(2,3)</point>
-
-  <line equation="y=2x-8" styleNumber="3" />
-  <line equation="x=-6" styleNumber="4" />
-</graph>
-<section boxed>
-  <p>A lovely section.</p>
-  <problem>
-    <p>
-      This problem is nested inside a section. The default number does not
-      include the parent number.
-    </p>
-  </problem>
-</section>
-
-<section boxed>
-  <p>Another section!</p>
-  <problem includeParentNumber="true">
-    <p>
-      This exercise is nested inside a section. Rendering of the parent section
-      number has been included.
-    </p>
-  </problem>
-</section>
-
-<problem><p><answer>42</answer></p></problem>
-
-<section>
-  <p><lorem generateWords="10" /></p>
-</section>
-
--->

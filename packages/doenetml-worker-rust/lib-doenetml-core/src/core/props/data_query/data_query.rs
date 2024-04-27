@@ -139,6 +139,18 @@ pub enum DataQuery {
         filter: Rc<dyn for<'a> ApplyTest<FilterData<'a>, GraphNode>>,
     },
 
+    /// The same as [`DataQuery::ComponentRefs`], but returns additional information
+    /// about each matching component in the form of a [`ElementRefAnnotation`].
+    AnnotatedComponentRefs {
+        /// Children of this component will be searched
+        container: PropSource,
+        /// How to filter the children. This should be a [`ContentFilter`] or a
+        /// composition of [`ContentFilter`]s.
+        ///
+        /// See [`DataQuery::ComponentRefs`] for an example.
+        filter: Rc<dyn for<'a> ApplyTest<FilterData<'a>, GraphNode>>,
+    },
+
     /// Query for a particular prop of a component
     Prop {
         /// Where to look for the desired prop.
