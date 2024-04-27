@@ -8,6 +8,7 @@ import {
     ElementRefAnnotation,
     FlatDastElementContent,
 } from "@doenet/doenetml-worker-rust";
+import { AncestorChain, extendAncestorChain } from "./utils";
 
 const NO_ELEMENTS = Symbol("NO_ELEMENTS");
 
@@ -19,10 +20,12 @@ export const Element = React.memo(
         id,
         constraint,
         annotation,
+        ancestors,
     }: {
         id: number;
         constraint?: ComponentConstraint;
         annotation?: ElementRefAnnotation;
+        ancestors: AncestorChain | undefined;
     }) => {
         const value = useAppSelector((state) => {
             const elementsArray = elementsArraySelector(state);
@@ -50,11 +53,19 @@ export const Element = React.memo(
             return <DastErrorComponent errorNode={value} />;
         }
 
+        if (ancestors == null) {
+            ancestors = "";
+        }
+
         const Component = getComponent(value, constraint);
 
         // We should render the children and pass them into the component
         const children = Component.passthroughChildren
-            ? flatDastChildrenToReactChildren(value.children, constraint)
+            ? flatDastChildrenToReactChildren(
+                  value.children,
+                  constraint,
+                  extendAncestorChain(ancestors ?? "", id, annotation),
+              )
             : undefined;
 
         if (Component.monitorVisibility) {
@@ -65,6 +76,7 @@ export const Element = React.memo(
                     node={value}
                     children={children}
                     annotation={annotation}
+                    ancestors={ancestors}
                 />
             );
         }
@@ -75,6 +87,7 @@ export const Element = React.memo(
                 node={value}
                 children={children}
                 annotation={annotation}
+                ancestors={ancestors}
             />
         );
     },
@@ -85,19 +98,23 @@ export const Element = React.memo(
  */
 export function flatDastChildrenToReactChildren(
     children: FlatDastElementContent[],
-    constraint?: ComponentConstraint,
+    constraint: ComponentConstraint | undefined,
+    ancestors: AncestorChain | undefined,
 ): React.ReactNode {
     return children.map((child) => {
         if (typeof child === "string") {
             return child;
-        } else
+        } else {
+            ancestors = ancestors ?? "";
             return (
                 <Element
-                    key={child.id}
+                    key={ancestors + child.id}
                     id={child.id}
                     constraint={constraint}
                     annotation={child.annotation}
+                    ancestors={ancestors}
                 />
             );
+        }
     });
 }

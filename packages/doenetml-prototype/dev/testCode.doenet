@@ -3,6 +3,7 @@
   <division name="d2">
     <title>A subdivision</title>
     <p>Some content</p>
+    <division name="dd1">Super deep</division>
   </division>
 </section>
 
@@ -17,5 +18,5 @@
 </section>
 
 <p>
-  Some references: <xref ref="$s1" />, <xref ref="$d2" />, <xref ref="$d3" />,
+  Some references: <xref ref="$s1" />, <xref ref="$d2" />, <xref ref="$d3" />, <xref ref="$dd1" />
 </p>

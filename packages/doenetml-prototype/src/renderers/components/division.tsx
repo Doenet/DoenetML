@@ -2,12 +2,12 @@ import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
 import type { DivisionProps } from "@doenet/doenetml-worker-rust";
-import { generateHtmlId } from "../utils";
+import { extendAncestorChain, generateHtmlId } from "../utils";
 
 export const Division: BasicComponentWithPassthroughChildren<{
     props: DivisionProps;
-}> = ({ children, node, visibilityRef, annotation }) => {
-    const htmlId = generateHtmlId(node, annotation);
+}> = ({ children, node, visibilityRef, annotation, ancestors }) => {
+    const htmlId = generateHtmlId(node, annotation, ancestors);
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
     const xrefLabel = node.data.props.xrefLabel;
@@ -15,14 +15,15 @@ export const Division: BasicComponentWithPassthroughChildren<{
         codeNumber ? ` ${codeNumber}.` : ""
     }`;
 
-    const title = titleElmId != null ? <Element id={titleElmId} /> : "";
+    const title =
+        titleElmId != null ? (
+            <Element id={titleElmId} ancestors={ancestors} />
+        ) : (
+            ""
+        );
 
     return (
-        <div
-            className="section"
-            ref={visibilityRef}
-            id={htmlId}
-        >
+        <div className="section" ref={visibilityRef} id={htmlId}>
             <Header depth={node.data.props.divisionDepth}>
                 {displayName} {title}
             </Header>

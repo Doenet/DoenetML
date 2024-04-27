@@ -60,13 +60,13 @@ mod component {
 
         /// The content that should be displayed when an `<xref>` to this `<li>` is clicked.
         #[prop(
-            value_type = PropValueType::ContentRefs,
+            value_type = PropValueType::AnnotatedContentRefs,
             profile = PropProfile::XrefDisplayContent
         )]
         XrefDisplayContent,
 
         #[prop(
-            value_type = PropValueType::ContentRefs,
+            value_type = PropValueType::AnnotatedContentRefs,
             profile = PropProfile::RenderedChildren
         )]
         RenderedChildren,

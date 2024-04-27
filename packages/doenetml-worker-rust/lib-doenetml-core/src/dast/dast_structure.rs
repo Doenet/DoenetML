@@ -361,6 +361,9 @@ pub enum FlatDastElementContent {
 }
 
 impl FlatDastElementContent {
+    pub fn new_element(id: usize, annotation: ElementRefAnnotation) -> Self {
+        FlatDastElementContent::Element(AnnotatedElementRef { id, annotation })
+    }
     /// Create a `FlatDastElementContent::Element` with the annotation set to `Original`
     pub fn new_original_element(id: usize) -> Self {
         FlatDastElementContent::Element(AnnotatedElementRef {

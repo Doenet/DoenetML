@@ -1,4 +1,8 @@
-import { ElementRefAnnotation, FlatDastElement } from "@doenet/doenetml-worker-rust";
+import {
+    ElementRefAnnotation,
+    FlatDastElement,
+} from "@doenet/doenetml-worker-rust";
+import { AncestorChain } from "./utils";
 
 export type BasicComponentProps<Data = {}> = {
     node: FlatDastElement & {
@@ -14,6 +18,10 @@ export type BasicComponentProps<Data = {}> = {
      * may have different information provided in the annotation.
      */
     annotation?: ElementRefAnnotation;
+    /**
+     * The ancestors of this node, with the closest ancestor first.
+     */
+    ancestors: AncestorChain;
 };
 export type BasicComponent<Data = {}> = React.FunctionComponent<
     BasicComponentProps<Data>

@@ -2,7 +2,9 @@ use super::*;
 
 use doenetml_core::{
     components::doenet::{li::LiProps, ol::OlProps},
+    dast::ElementRefAnnotation,
     props::{prop_type, PropView},
+    state::types::content_refs::{AnnotatedContentRefs, ContentRef},
 };
 
 #[test]
@@ -217,12 +219,18 @@ fn li_can_get_xref_display_children() {
     let mut core = TestCore::new();
     core.init_from_dast_root(&dast_root);
 
-    let pos: prop_type::ContentRefs = core.get_prop_value_typed(
+    let pos: prop_type::AnnotatedContentRefs = core.get_prop_value_typed(
         core.get_component_index_by_name("a"),
         LiProps::XrefDisplayContent.local_idx(),
     );
     assert_eq!(
         *pos,
-        vec![ComponentIdx::new(core.get_component_index_by_name("t")).into()].into()
+        AnnotatedContentRefs::from_vec(
+            vec![(
+                ContentRef::from(ComponentIdx::new(core.get_component_index_by_name("t"))),
+                ElementRefAnnotation::Original
+            )]
+            .into()
+        )
     );
 }

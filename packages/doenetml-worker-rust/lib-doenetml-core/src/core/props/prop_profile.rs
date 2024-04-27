@@ -79,14 +79,15 @@ pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
         PropProfile::SerialNumber => PropValueType::Integer,
         PropProfile::DivisionCodeNumber => PropValueType::String,
         PropProfile::DivisionDepth => PropValueType::Integer,
+        PropProfile::DivisionType => PropValueType::DivisionType,
         PropProfile::ListDepth => PropValueType::ListDepth,
         PropProfile::ListStartIndex => PropValueType::Integer,
         PropProfile::ListMarker => PropValueType::ListMarker,
         PropProfile::ListCodeNumber => PropValueType::String,
         PropProfile::Renderable => PropValueType::ComponentRef,
-        PropProfile::RenderedChildren => PropValueType::ContentRefs,
+        PropProfile::RenderedChildren => PropValueType::AnnotatedContentRefs,
         PropProfile::_Ref => PropValueType::ComponentRef,
         PropProfile::XrefLabel => PropValueType::XrefLabel,
-        PropProfile::XrefDisplayContent => PropValueType::ContentRefs,
+        PropProfile::XrefDisplayContent => PropValueType::AnnotatedContentRefs,
     }
 }

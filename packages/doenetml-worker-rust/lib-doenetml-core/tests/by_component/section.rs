@@ -20,7 +20,7 @@ fn section_content_excludes_title_tag() {
     assert_eq!(get_title_prop(section_idx, &mut core).unwrap(), 2.into());
 
     assert_eq!(
-        get_rendered_children_prop(section_idx, &mut core),
+        get_rendered_children(section_idx, &mut core),
         vec![ContentRef::Component(3.into()),]
     );
 
@@ -48,7 +48,7 @@ fn section_handles_missing_title_tag() {
     assert_eq!(get_title_prop(section_idx, &mut core), None);
 
     assert_eq!(
-        get_rendered_children_prop(section_idx, &mut core),
+        get_rendered_children(section_idx, &mut core),
         vec![
             ContentRef::Component(2.into()),
             ContentRef::Component(3.into()),
@@ -89,7 +89,7 @@ fn section_finds_title_tag_in_middle() {
     // Note we have blank string children between all the component children.
     // When title child gets moved up, we have multiple strings between component children
     assert_eq!(
-        get_rendered_children_prop(section_idx, &mut core),
+        get_rendered_children(section_idx, &mut core),
         vec![
             ContentRef::String(0.into()),
             ContentRef::Component(2.into()),
@@ -142,7 +142,7 @@ fn section_with_multiple_title_tags_picks_last() {
     // Note we have blank string children between all the component children.
     // When title children get removed and moved up, we have multiple strings between component children
     assert_eq!(
-        get_rendered_children_prop(section_idx, &mut core),
+        get_rendered_children(section_idx, &mut core),
         vec![
             ContentRef::String(0.into()),
             ContentRef::String(1.into()),
@@ -348,18 +348,20 @@ mod test_helpers {
     }
 
     /// Resolves `renderedChildren` from a `<section>` component and returns its value
-    pub fn get_rendered_children_prop(
-        component_idx: ComponentIdx,
-        core: &mut Core,
-    ) -> Vec<ContentRef> {
+    pub fn get_rendered_children(component_idx: ComponentIdx, core: &mut Core) -> Vec<ContentRef> {
         let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: RENDERED_CHILDREN_LOCAL_IDX,
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
-        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
+        let prop_view: PropView<prop_type::AnnotatedContentRefs> = prop.into_prop_view();
 
-        (*prop_view.value).clone().into_vec()
+        (*prop_view.value)
+            .clone()
+            .into_vec()
+            .into_iter()
+            .map(|(c, _a)| c)
+            .collect()
     }
 
     /// Resolves `serialNumber` from a `<section>` and returns it.
@@ -414,8 +416,13 @@ mod test_helpers {
             local_prop_idx: _FragmentProps::RenderedChildren.local_idx(),
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
-        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
+        let prop_view: PropView<prop_type::AnnotatedContentRefs> = prop.into_prop_view();
 
-        (*prop_view.value).clone().into_vec()
+        (*prop_view.value)
+            .clone()
+            .into_vec()
+            .into_iter()
+            .map(|(c, _a)| c)
+            .collect()
     }
 }

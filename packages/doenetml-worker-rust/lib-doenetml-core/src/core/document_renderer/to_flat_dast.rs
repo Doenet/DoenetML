@@ -10,8 +10,8 @@ use crate::{
     core::document_model::DocumentModel,
     dast::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
-        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderPropValueOrContent,
-        ForRenderProps,
+        ElementRefAnnotation, FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue,
+        ForRenderPropValueOrContent, ForRenderProps,
     },
     graph::directed_graph::Taggable,
     props::{cache::PropWithMeta, PropProfile, PropValue, PropValueType},
@@ -58,7 +58,7 @@ impl DocumentRenderer {
         }
         self.in_render_tree.set_tag(component_node, true);
 
-        for child_node in self.get_rendered_child_nodes(component_idx, document_model) {
+        for (child_node, _) in self.get_rendered_child_nodes(component_idx, document_model) {
             if let GraphNode::Component(_) = child_node {
                 self.mark_component_in_render_tree(child_node.into(), document_model);
             }
@@ -78,9 +78,9 @@ impl DocumentRenderer {
 
         let children = child_nodes
             .into_iter()
-            .filter_map(|child| match child {
+            .filter_map(|(child, annotation)| match child {
                 GraphNode::Component(idx) => {
-                    Some(FlatDastElementContent::new_original_element(idx))
+                    Some(FlatDastElementContent::new_element(idx, annotation))
                 }
                 GraphNode::String(_) => Some(FlatDastElementContent::Text(
                     document_model.get_string_value(child),
@@ -101,7 +101,7 @@ impl DocumentRenderer {
         &mut self,
         component_idx: ComponentIdx,
         document_model: &DocumentModel,
-    ) -> Vec<GraphNode> {
+    ) -> Vec<(GraphNode, ElementRefAnnotation)> {
         let profs = document_model.get_provided_profiles(component_idx);
         profs
             .into_iter()
@@ -114,9 +114,11 @@ impl DocumentRenderer {
                     let rendered_children_value =
                         &self.get_prop_for_render(prop_pointer, document_model).value;
                     match rendered_children_value {
-                        PropValue::ContentRefs(content_refs) => Some((**content_refs).clone()),
+                        PropValue::AnnotatedContentRefs(content_refs) => {
+                            Some((**content_refs).clone())
+                        }
                         _ => unreachable!(
-                            "RenderedChildren prop must return GraphNodes, found {:?}",
+                            "RenderedChildren prop must return AnnotatedContentRefs, found {:?}",
                             rendered_children_value
                         ),
                     }
@@ -127,7 +129,7 @@ impl DocumentRenderer {
             .unwrap_or_default()
             .into_vec()
             .into_iter()
-            .map(|content_ref| content_ref.into())
+            .map(|(content_ref, annotation)| (content_ref.into(), annotation))
             .collect()
     }
 

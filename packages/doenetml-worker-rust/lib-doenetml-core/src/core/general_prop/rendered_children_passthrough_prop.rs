@@ -50,7 +50,7 @@ impl DataQueries for RequiredData {
 }
 
 impl PropUpdater for RenderedChildrenPassthroughProp {
-    type PropType = prop_type::ContentRefs;
+    type PropType = prop_type::AnnotatedContentRefs;
 
     fn data_queries(&self) -> Vec<DataQuery> {
         RequiredData::data_queries_vec(&self.data_query)
@@ -64,7 +64,6 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
             .as_slice()
             .iter()
             .cloned()
-            .map(|(c, _a)| c)
             .collect_vec();
         PropCalcResult::Calculated(Rc::new(children.into()))
     }

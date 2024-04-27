@@ -83,7 +83,7 @@ mod component {
         XrefLabel,
 
         #[prop(
-            value_type = PropValueType::ContentRefs,
+            value_type = PropValueType::AnnotatedContentRefs,
             profile = PropProfile::RenderedChildren
         )]
         RenderedChildren,
@@ -416,12 +416,12 @@ mod custom_props {
         #[derive(TryFromDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            filtered_children: PropView<prop_type::ContentRefs>,
+            filtered_children: PropView<prop_type::AnnotatedContentRefs>,
         }
 
         impl DataQueries for RequiredData {
             fn filtered_children_query() -> DataQuery {
-                DataQuery::ComponentRefs {
+                DataQuery::AnnotatedComponentRefs {
                     container: PropSource::Me,
                     filter: Rc::new(Op::And(
                         // This is what would be normally included in rendered children
@@ -442,7 +442,7 @@ mod custom_props {
         }
 
         impl PropUpdater for RenderedChildren {
-            type PropType = prop_type::ContentRefs;
+            type PropType = component::props::types::RenderedChildren;
 
             fn data_queries(&self) -> Vec<DataQuery> {
                 RequiredData::to_data_queries()

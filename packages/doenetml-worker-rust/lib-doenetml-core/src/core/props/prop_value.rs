@@ -24,6 +24,7 @@ use crate::utils::rc_serde;
     derive_more::From,
     doenetml_macros::TryFromRef,
     strum_macros::EnumDiscriminants,
+    strum_macros::IntoStaticStr,
 )]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]

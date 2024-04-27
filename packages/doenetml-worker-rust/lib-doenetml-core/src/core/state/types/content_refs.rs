@@ -65,6 +65,10 @@ impl AnnotatedContentRefs {
         Self::default()
     }
 
+    pub fn from_vec(vec: Vec<(ContentRef, ElementRefAnnotation)>) -> Self {
+        AnnotatedContentRefs(vec)
+    }
+
     pub fn into_vec(self) -> Vec<(ContentRef, ElementRefAnnotation)> {
         self.0
     }

@@ -42,7 +42,7 @@ mod component {
         ReferentChildren,
 
         #[prop(
-            value_type = PropValueType::ContentRefs,
+            value_type = PropValueType::AnnotatedContentRefs,
             profile = PropProfile::RenderedChildren
         )]
         RenderedChildren,

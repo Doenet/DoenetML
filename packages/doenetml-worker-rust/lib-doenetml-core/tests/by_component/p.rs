@@ -208,9 +208,14 @@ mod test_helpers {
             local_prop_idx: rendered_children_local_idx,
         });
         let prop = core.get_prop_for_render_untracked(prop_node);
-        let prop_view: PropView<prop_type::ContentRefs> = prop.into_prop_view();
+        let prop_view: PropView<prop_type::AnnotatedContentRefs> = prop.into_prop_view();
 
-        (*prop_view.value).clone().into_vec()
+        (*prop_view.value)
+            .clone()
+            .into_vec()
+            .into_iter()
+            .map(|(c, _a)| c)
+            .collect()
     }
 
     pub fn get_string_children(element: &FlatDastElement) -> Vec<Option<&str>> {
