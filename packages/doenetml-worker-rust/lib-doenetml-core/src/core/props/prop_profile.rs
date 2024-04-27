@@ -63,6 +63,8 @@ pub enum PropProfile {
     XrefDisplayContent,
 }
 
+/// Returns the value type that corresponds to each `PropProfile`.
+/// This function must be `const` so that it can be used for compile-time type checking.
 pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
     match profile {
         PropProfile::String => PropValueType::String,
