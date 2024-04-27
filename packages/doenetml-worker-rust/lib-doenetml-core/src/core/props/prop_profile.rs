@@ -40,6 +40,8 @@ pub enum PropProfile {
     /// Matches a prop that indicates the depth of a division in a hierarchy of divisions. E.g.,
     /// how many levels deep a `<section>` is nested.
     DivisionDepth,
+    /// Matches a prop that indicates the type of a division. E.g., `<section>`, `<chapter>`, etc.
+    DivisionType,
     /// Matches a prop that indicates the depth of a list in a hierarchy of lists. E.g.,
     /// how many levels deep a `<ol>` is nested.
     ListDepth,
@@ -77,6 +79,7 @@ pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
         PropProfile::SerialNumber => PropValueType::Integer,
         PropProfile::DivisionCodeNumber => PropValueType::String,
         PropProfile::DivisionDepth => PropValueType::Integer,
+        PropProfile::DivisionType => PropValueType::DivisionType,
         PropProfile::ListDepth => PropValueType::ListDepth,
         PropProfile::ListStartIndex => PropValueType::Integer,
         PropProfile::ListMarker => PropValueType::ListMarker,

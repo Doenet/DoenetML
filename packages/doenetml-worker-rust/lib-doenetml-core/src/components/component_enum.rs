@@ -10,8 +10,8 @@ pub use super::doenet::document::Document;
 pub use super::doenet::li::Li;
 pub use super::doenet::ol::Ol;
 //pub use super::doenet::math::Math;
+pub use super::doenet::division::Division;
 pub use super::doenet::p::P;
-pub use super::doenet::section::Section;
 pub use super::doenet::text::Text;
 pub use super::doenet::text_input::TextInput;
 pub use super::doenet::title::Title;
@@ -38,7 +38,7 @@ pub enum ComponentEnum {
     TextInput(TextInput),
     //    Math(Math),
     Boolean(Boolean),
-    Section(Section),
+    Division(Division),
     Title(Title),
     P(P),
     Document(Document),

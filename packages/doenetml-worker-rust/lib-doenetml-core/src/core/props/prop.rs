@@ -47,7 +47,8 @@ impl PropDefinition {
             }
             PropValueDiscriminants::XrefLabel
             | PropValueDiscriminants::ListDepth
-            | PropValueDiscriminants::ListMarker => {
+            | PropValueDiscriminants::ListMarker
+            | PropValueDiscriminants::DivisionType => {
                 panic!("no bare references to allowed")
             }
             PropValueDiscriminants::String => Text::NAME,

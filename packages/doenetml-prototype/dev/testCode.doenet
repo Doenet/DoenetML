@@ -2,7 +2,7 @@
   <title>My Cool Section</title>
   <p>Some content!!</p>
 </section>
-<section extend="$s" name="s2">
+<division extend="$s" name="s2">
   <title>Second Clone</title>
   <p>With more content</p>
   <p>
@@ -12,11 +12,11 @@
        world
     </text>"
   </p>
-  <section name="si">
+  <chapter name="si">
     <title>Wow. We will explore this<m>x^2</m></title>
     <p>Some important content</p>
-  </section>
-</section>
+  </chapter>
+</division>
 
 
 See <xref ref="$s2" />, or by its other name <xref ref="$s2">Super Sec</xref>.

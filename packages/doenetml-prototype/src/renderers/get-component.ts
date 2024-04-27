@@ -9,7 +9,7 @@ import {
     P,
     PointInGraph,
     Problem,
-    Section,
+    Division,
     Text,
     TextInput,
     Boolean,
@@ -55,8 +55,8 @@ const TEXT_MODE_COMPONENTS: Record<
     m: { component: M, passthroughChildren: true },
     math: { component: Math },
     graph: { component: Graph },
-    section: {
-        component: Section,
+    division: {
+        component: Division,
         passthroughChildren: true,
         monitorVisibility: true,
     },
