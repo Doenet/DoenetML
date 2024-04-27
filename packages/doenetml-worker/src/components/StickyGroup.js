@@ -1,4 +1,7 @@
-import { returnConstraintGraphInfoDefinitions } from "../utils/constraints";
+import {
+    returnConstraintGraphInfoDefinitions,
+    returnVertexConstraintFunction,
+} from "../utils/constraints";
 import { findFiniteNumericalValue } from "../utils/math";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
@@ -18,11 +21,7 @@ export default class StickyGroup extends GraphicalComponent {
             public: true,
         };
 
-        attributes.pointThreshold = {
-            createComponentOfType: "number",
-        };
-
-        attributes.lineThreshold = {
+        attributes.threshold = {
             createComponentOfType: "number",
         };
 
@@ -82,7 +81,7 @@ export default class StickyGroup extends GraphicalComponent {
                 graphicalChildren: {
                     dependencyType: "child",
                     childGroups: ["graphical"],
-                    variableNames: ["vertices", "xs"],
+                    variableNames: ["numericalVertices", "numericalXs"],
                     variablesOptional: true,
                 },
             }),
@@ -90,12 +89,17 @@ export default class StickyGroup extends GraphicalComponent {
                 let pointsByObject = [];
 
                 for (let object of dependencyValues.graphicalChildren) {
-                    if (object.stateValues.vertices) {
-                        pointsByObject.push(object.stateValues.vertices);
-                    } else if (object.stateValues.xs) {
-                        pointsByObject.push([object.stateValues.xs]);
+                    if (object.stateValues.numericalVertices) {
+                        pointsByObject.push(
+                            object.stateValues.numericalVertices,
+                        );
+                    } else if (object.stateValues.numericalXs) {
+                        pointsByObject.push([object.stateValues.numericalXs]);
+                    } else {
+                        pointsByObject.push([]);
                     }
                 }
+
                 return {
                     setValue: {
                         pointsByObject,
@@ -129,16 +133,82 @@ export default class StickyGroup extends GraphicalComponent {
             },
         };
 
-        stateVariableDefinitions.pointThreshold = {
+        stateVariableDefinitions.segmentsByObject = {
+            returnDependencies: () => ({
+                graphicalChildren: {
+                    dependencyType: "child",
+                    childGroups: ["graphical"],
+                    variableNames: ["numericalVertices", "closed"],
+                    variablesOptional: true,
+                },
+            }),
+
+            definition({ dependencyValues }) {
+                let segmentsByObject = [];
+
+                for (let object of dependencyValues.graphicalChildren) {
+                    if (object.stateValues.numericalVertices) {
+                        let vertices = object.stateValues.numericalVertices;
+                        let numVertices = vertices.length;
+                        let segments = [];
+                        for (let i = 1; i < numVertices; i++) {
+                            segments.push([vertices[i - 1], vertices[i]]);
+                        }
+                        if (object.stateValues.closed) {
+                            segments.push([
+                                vertices[numVertices - 1],
+                                vertices[0],
+                            ]);
+                        }
+
+                        segmentsByObject.push(segments);
+                    } else {
+                        segmentsByObject.push([]);
+                    }
+                }
+                return {
+                    setValue: {
+                        segmentsByObject,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.getSegmentsForObject = {
+            returnDependencies: () => ({
+                segmentsByObject: {
+                    dependencyType: "stateVariable",
+                    variableName: "segmentsByObject",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let getSegmentsForObject = function (objectInd) {
+                    return dependencyValues.segmentsByObject
+                        .filter((v, i) => i !== objectInd)
+                        .reduce((a, c) => {
+                            a.push(...c);
+                            return a;
+                        }, []);
+                };
+
+                return {
+                    setValue: {
+                        getSegmentsForObject,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.threshold = {
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
             hasEssential: true,
             returnDependencies: () => ({
-                pointThresholdAttr: {
+                thresholdAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "pointThreshold",
+                    attributeName: "threshold",
                     variableNames: ["value"],
                 },
 
@@ -152,18 +222,18 @@ export default class StickyGroup extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.pointThresholdAttr) {
+                if (dependencyValues.thresholdAttr) {
                     return {
                         setValue: {
-                            pointThreshold:
-                                dependencyValues.pointThresholdAttr.stateValues
+                            threshold:
+                                dependencyValues.thresholdAttr.stateValues
                                     .value,
                         },
                     };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
-                            pointThreshold: {
+                            threshold: {
                                 get defaultValue() {
                                     let useRelative =
                                         dependencyValues.relativeToGraphScales &&
@@ -180,14 +250,14 @@ export default class StickyGroup extends GraphicalComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                if (dependencyValues.pointThresholdAttr) {
+                if (dependencyValues.thresholdAttr) {
                     return {
                         success: true,
                         instructions: [
                             {
-                                setDependency: "pointThresholdAttr",
+                                setDependency: "thresholdAttr",
                                 desiredValue:
-                                    desiredStateVariableValues.pointThreshold,
+                                    desiredStateVariableValues.threshold,
                             },
                         ],
                     };
@@ -196,8 +266,8 @@ export default class StickyGroup extends GraphicalComponent {
                         success: true,
                         instructions: [
                             {
-                                setEssentialValue: "pointThreshold",
-                                value: desiredStateVariableValues.pointThreshold,
+                                setEssentialValue: "threshold",
+                                value: desiredStateVariableValues.threshold,
                             },
                         ],
                     };
@@ -211,9 +281,13 @@ export default class StickyGroup extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "getPointsForObject",
                 },
-                pointThreshold: {
+                getSegmentsForObject: {
                     dependencyType: "stateVariable",
-                    variableName: "pointThreshold",
+                    variableName: "getSegmentsForObject",
+                },
+                threshold: {
+                    dependencyType: "stateVariable",
+                    variableName: "threshold",
                 },
                 relativeToGraphScales: {
                     dependencyType: "stateVariable",
@@ -233,13 +307,14 @@ export default class StickyGroup extends GraphicalComponent {
                     scales = [1, 1, 1];
                 }
 
-                let verticesConstraintFunction = function (
+                let constraintSub = function (
                     unconstrainedVertices,
                     objectInd,
-                    enforceRigid = true,
                 ) {
                     let pointsToAttract =
                         dependencyValues.getPointsForObject(objectInd);
+                    let segmentsToAttract =
+                        dependencyValues.getSegmentsForObject(objectInd);
 
                     let constrainedVertices = [];
                     let constraintUsedForVertex = [];
@@ -269,90 +344,231 @@ export default class StickyGroup extends GraphicalComponent {
                             }
                         }
 
+                        // first check if attracted to point
                         let constraintUsed = false;
                         let constrainedVertex;
                         if (
                             closestDistance2 <
-                            dependencyValues.pointThreshold *
-                                dependencyValues.pointThreshold
+                            dependencyValues.threshold *
+                                dependencyValues.threshold
                         ) {
                             constraintUsed = true;
                             constrainedVertex = closestPoint.map((v) =>
                                 me.fromAst(v),
                             );
                         } else {
-                            constrainedVertex = unconstrainedVertex;
+                            // if not attracted to point, try attracting to segment
+                            closestDistance2 = Infinity;
+                            closestPoint = {};
+
+                            for (let segment of segmentsToAttract) {
+                                let point = nearestPointForSegment({
+                                    point: numericalVertex,
+                                    segment,
+                                    scales,
+                                });
+
+                                if (point) {
+                                    let distance2 = numericalVertex.reduce(
+                                        (a, c, i) =>
+                                            a +
+                                            Math.pow(
+                                                (c - point[i]) / scales[i],
+                                                2,
+                                            ),
+                                        0,
+                                    );
+
+                                    if (distance2 < closestDistance2) {
+                                        closestPoint = point;
+                                        closestDistance2 = distance2;
+                                    }
+                                }
+                            }
+
+                            if (
+                                closestDistance2 <
+                                dependencyValues.threshold *
+                                    dependencyValues.threshold
+                            ) {
+                                constraintUsed = true;
+                                constrainedVertex = closestPoint.map((v) =>
+                                    me.fromAst(v),
+                                );
+                            } else {
+                                constrainedVertex = unconstrainedVertex;
+                            }
                         }
 
                         constrainedVertices.push(constrainedVertex);
                         constraintUsedForVertex.push(constraintUsed);
                     }
 
-                    if (constraintUsedForVertex.every((v) => !v)) {
-                        return unconstrainedVertices;
-                    } else if (!enforceRigid) {
-                        return constrainedVertices;
-                    }
-
-                    // since have constrained vertices, and we treat them as constraining
-                    // the vertices as a whole,
-                    // find the minimum deviation
-                    // from an unconstrained vertex to the corresponding constrained vertex
-                    // and add that deviation to all unconstrained vertices
-                    // to be the new constrained vertices
-                    let minDeviation = [];
-                    let minDeviationMagnitude2 = Infinity;
-                    for (let vertexInd in unconstrainedVertices) {
-                        if (!constraintUsedForVertex[vertexInd]) {
-                            continue;
-                        }
-
-                        let deviation = [];
-                        let deviationMag2 = 0;
-
-                        let unconstrainedVertex =
-                            unconstrainedVertices[vertexInd];
-                        let constrainedVertex = constrainedVertices[vertexInd];
-
-                        for (let dim in unconstrainedVertex) {
-                            let unconstrainedX =
-                                unconstrainedVertex[dim].evaluate_to_constant();
-                            let constrainedX =
-                                constrainedVertex[dim].evaluate_to_constant();
-                            let dx = constrainedX - unconstrainedX;
-                            deviation.push(dx);
-                            deviationMag2 += dx * dx;
-                        }
-
-                        if (deviationMag2 < minDeviationMagnitude2) {
-                            minDeviationMagnitude2 = deviationMag2;
-                            minDeviation = deviation;
-                        }
-                    }
-
-                    if (minDeviationMagnitude2 > 0) {
-                        // we had a non-zero deviation from the unconstrained,
-                        // so move all vertices by that amount
-
-                        return unconstrainedVertices.map(
-                            (unconstrainedVertex) =>
-                                unconstrainedVertex.map((v, i) =>
-                                    me.fromAst(
-                                        v.evaluate_to_constant() +
-                                            minDeviation[i],
-                                    ),
-                                ),
-                        );
-                    } else {
-                        // there were no deviations so just use the unconstrained vertices
-                        return unconstrainedVertices;
-                    }
+                    return { constrainedVertices, constraintUsedForVertex };
                 };
+
+                let verticesConstraintFunction =
+                    returnVertexConstraintFunction(constraintSub);
 
                 return { setValue: { verticesConstraintFunction } };
             },
         };
 
+        stateVariableDefinitions.pointConstraintFunction = {
+            returnDependencies: () => ({
+                getPointsForObject: {
+                    dependencyType: "stateVariable",
+                    variableName: "getPointsForObject",
+                },
+                getSegmentsForObject: {
+                    dependencyType: "stateVariable",
+                    variableName: "getSegmentsForObject",
+                },
+                threshold: {
+                    dependencyType: "stateVariable",
+                    variableName: "threshold",
+                },
+                relativeToGraphScales: {
+                    dependencyType: "stateVariable",
+                    variableName: "relativeToGraphScales",
+                },
+                scales: {
+                    dependencyType: "stateVariable",
+                    variableName: "scales",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let scales;
+
+                if (dependencyValues.relativeToGraphScales) {
+                    scales = dependencyValues.scales || [1, 1, 1];
+                } else {
+                    scales = [1, 1, 1];
+                }
+
+                let pointConstraintFunction = function (
+                    unconstrainedXs,
+                    objectInd,
+                ) {
+                    let numericalXs = unconstrainedXs.map((v) =>
+                        findFiniteNumericalValue(v),
+                    );
+
+                    let pointsToAttract =
+                        dependencyValues.getPointsForObject(objectInd);
+                    let segmentsToAttract =
+                        dependencyValues.getSegmentsForObject(objectInd);
+
+                    let closestDistance2 = Infinity;
+                    let closestPoint = {};
+
+                    for (let point of pointsToAttract) {
+                        if (numericalXs.length !== point.length) {
+                            continue;
+                        }
+
+                        let distance2 = numericalXs.reduce(
+                            (a, c, i) =>
+                                a + Math.pow((c - point[i]) / scales[i], 2),
+                            0,
+                        );
+
+                        if (distance2 < closestDistance2) {
+                            closestPoint = point;
+                            closestDistance2 = distance2;
+                        }
+                    }
+
+                    if (
+                        closestDistance2 <
+                        dependencyValues.threshold * dependencyValues.threshold
+                    ) {
+                        return closestPoint.map((v) => me.fromAst(v));
+                    } else {
+                        // if not attracted to point, try attracting to segment
+                        closestDistance2 = Infinity;
+                        closestPoint = {};
+
+                        for (let segment of segmentsToAttract) {
+                            let point = nearestPointForSegment({
+                                point: numericalXs,
+                                segment,
+                                scales,
+                            });
+
+                            if (point) {
+                                let distance2 = numericalXs.reduce(
+                                    (a, c, i) =>
+                                        a +
+                                        Math.pow((c - point[i]) / scales[i], 2),
+                                    0,
+                                );
+
+                                if (distance2 < closestDistance2) {
+                                    closestPoint = point;
+                                    closestDistance2 = distance2;
+                                }
+                            }
+                        }
+
+                        if (
+                            closestDistance2 <
+                            dependencyValues.threshold *
+                                dependencyValues.threshold
+                        ) {
+                            return closestPoint.map((v) => me.fromAst(v));
+                        } else {
+                            return unconstrainedXs;
+                        }
+                    }
+                };
+
+                return { setValue: { pointConstraintFunction } };
+            },
+        };
+
         return stateVariableDefinitions;
+    }
+}
+
+// Find the point on `segment` that is closest to `point`,
+// scaling axes according to `scales`.
+function nearestPointForSegment({ point, segment, scales }) {
+    let A1 = segment[0][0];
+    let A2 = segment[0][1];
+    let B1 = segment[1][0];
+    let B2 = segment[1][1];
+
+    let haveConstants =
+        Number.isFinite(A1) &&
+        Number.isFinite(A2) &&
+        Number.isFinite(B1) &&
+        Number.isFinite(B2);
+
+    // only implement for
+    // - 2D
+    // - constant endpoints and
+    // - non-degenerate parameters
+    if (segment[0].length !== 2 || !haveConstants || (B1 === A1 && B2 === A2)) {
+        return null;
+    }
+
+    let xscale = scales[0];
+    let yscale = scales[1];
+
+    let BA1 = (B1 - A1) / xscale;
+    let BA2 = (B2 - A2) / yscale;
+    let denom = BA1 * BA1 + BA2 * BA2;
+
+    let t =
+        (((point[0] - A1) / xscale) * BA1 + ((point[1] - A2) / yscale) * BA2) /
+        denom;
+
+    if (t <= 0) {
+        return [A1, A2];
+    } else if (t >= 1) {
+        return [B1, B2];
+    } else {
+        return [A1 + t * BA1 * xscale, A2 + t * BA2 * yscale];
     }
 }

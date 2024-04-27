@@ -3,6 +3,7 @@ import BaseComponent from "./abstract/BaseComponent";
 import {
     applyConstraintFromComponentConstraints,
     returnConstraintGraphInfoDefinitions,
+    returnVertexConstraintFunction,
 } from "../utils/constraints";
 import me from "math-expressions";
 
@@ -39,10 +40,7 @@ export class VertexConstraints extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let constraintFunction = function (
-                    unconstrainedVertices,
-                    enforceRigid = true,
-                ) {
+                let constraintSub = function (unconstrainedVertices) {
                     let constrainedVertices = [];
                     let constraintUsedForVertex = [];
 
@@ -93,66 +91,11 @@ export class VertexConstraints extends BaseComponent {
                         constraintUsedForVertex.push(constraintUsed);
                     }
 
-                    if (constraintUsedForVertex.every((v) => !v)) {
-                        return unconstrainedVertices;
-                    } else if (!enforceRigid) {
-                        return constrainedVertices;
-                    }
-
-                    // since have constrained vertices, and we treat them as constraining
-                    // the vertices as a whole,
-                    // find the minimum deviation
-                    // from an unconstrained vertex to the corresponding constrained vertex
-                    // and add that deviation to all unconstrained vertices
-                    // to be the new constrained vertices
-                    let minDeviation = [];
-                    let minDeviationMagnitude2 = Infinity;
-                    for (let vertexInd in unconstrainedVertices) {
-                        if (!constraintUsedForVertex[vertexInd]) {
-                            continue;
-                        }
-
-                        let deviation = [];
-                        let deviationMag2 = 0;
-
-                        let unconstrainedVertex =
-                            unconstrainedVertices[vertexInd];
-                        let constrainedVertex = constrainedVertices[vertexInd];
-
-                        for (let dim in unconstrainedVertex) {
-                            let unconstrainedX =
-                                unconstrainedVertex[dim].evaluate_to_constant();
-                            let constrainedX =
-                                constrainedVertex[dim].evaluate_to_constant();
-                            let dx = constrainedX - unconstrainedX;
-                            deviation.push(dx);
-                            deviationMag2 += dx * dx;
-                        }
-
-                        if (deviationMag2 < minDeviationMagnitude2) {
-                            minDeviationMagnitude2 = deviationMag2;
-                            minDeviation = deviation;
-                        }
-                    }
-
-                    if (minDeviationMagnitude2 > 0) {
-                        // we had a non-zero deviation from the unconstrained,
-                        // so move all vertices by that amount
-
-                        return unconstrainedVertices.map(
-                            (unconstrainedVertex) =>
-                                unconstrainedVertex.map((v, i) =>
-                                    me.fromAst(
-                                        v.evaluate_to_constant() +
-                                            minDeviation[i],
-                                    ),
-                                ),
-                        );
-                    } else {
-                        // there were no deviations so just use the unconstrained vertices
-                        return unconstrainedVertices;
-                    }
+                    return { constrainedVertices, constraintUsedForVertex };
                 };
+
+                let constraintFunction =
+                    returnVertexConstraintFunction(constraintSub);
 
                 return { setValue: { constraintFunction } };
             },

@@ -6,6 +6,7 @@ import {
 } from "../utils/rounding";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
+import { returnStickyGroupDefinitions } from "../utils/constraints";
 
 export default class Polyline extends GraphicalComponent {
     constructor(args) {
@@ -76,6 +77,8 @@ export default class Polyline extends GraphicalComponent {
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
         );
+
+        Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
 
         stateVariableDefinitions.styleDescription = {
             public: true,
@@ -464,58 +467,6 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
-        stateVariableDefinitions.inStickyGroup = {
-            returnDependencies: () => ({
-                stickyParent: {
-                    dependencyType: "parentIdentity",
-                    parentComponentType: "stickyGroup",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        inStickyGroup: Boolean(dependencyValues.stickyParent),
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.stickyVerticesConstraintFunction = {
-            returnDependencies: () => ({
-                verticesConstraintFunction: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "stickyGroup",
-                    variableName: "verticesConstraintFunction",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        stickyVerticesConstraintFunction:
-                            dependencyValues.verticesConstraintFunction,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.stickyObjectIndex = {
-            returnDependencies: () => ({
-                countAmongSiblings: {
-                    dependencyType: "countAmongSiblings",
-                    componentType: "_graphical",
-                    includeInheritedComponentTypes: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        stickyObjectIndex:
-                            dependencyValues.countAmongSiblings - 1,
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.haveConstrainedVertices = {
             returnDependencies: () => ({
                 vertexConstraintsChild: {
@@ -772,6 +723,7 @@ export default class Polyline extends GraphicalComponent {
                         constrainedVertices =
                             globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
                                 constrainedVertices,
+                                true,
                             );
                     }
 
@@ -967,6 +919,7 @@ export default class Polyline extends GraphicalComponent {
                                 desired_vertices =
                                     globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
                                         desired_vertices,
+                                        true,
                                     );
                             }
 
@@ -979,6 +932,7 @@ export default class Polyline extends GraphicalComponent {
                                 desired_vertices =
                                     stickyVerticesConstraintFunction(
                                         desired_vertices,
+                                        true,
                                         stickyObjectIndex,
                                     );
                             }
@@ -1067,6 +1021,7 @@ export default class Polyline extends GraphicalComponent {
                                 desired_vertices =
                                     globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
                                         desired_vertices,
+                                        true,
                                     );
                             }
 
@@ -1079,6 +1034,7 @@ export default class Polyline extends GraphicalComponent {
                                 desired_vertices =
                                     stickyVerticesConstraintFunction(
                                         desired_vertices,
+                                        true,
                                         stickyObjectIndex,
                                     );
                             }
@@ -1146,8 +1102,8 @@ export default class Polyline extends GraphicalComponent {
 
                             desired_vertices = stickyVerticesConstraintFunction(
                                 desired_vertices,
-                                stickyObjectIndex,
                                 enforceRigid,
+                                stickyObjectIndex,
                             );
                         }
 
@@ -1384,29 +1340,6 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
-        stateVariableDefinitions.numericalCentroid = {
-            returnDependencies: () => ({
-                numericalVertices: {
-                    dependencyType: "stateVariable",
-                    variableName: "numericalVertices",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let x = 0,
-                    y = 0;
-                let verts = dependencyValues.numericalVertices;
-                let numVertices = dependencyValues.numericalVertices.length;
-                for (let i = 0; i < numVertices; i++) {
-                    x += verts[i][0];
-                    y += verts[i][1];
-                }
-                x /= numVertices;
-                y /= numVertices;
-
-                return { setValue: { numericalCentroid: [x, y] } };
-            },
-        };
-
         stateVariableDefinitions.numericalCentroidUnconstrained = {
             returnDependencies: () => ({
                 unconstrainedVertices: {
@@ -1450,6 +1383,11 @@ export default class Polyline extends GraphicalComponent {
                     ],
                 };
             },
+        };
+
+        stateVariableDefinitions.closed = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { closed: false } }),
         };
 
         return stateVariableDefinitions;
