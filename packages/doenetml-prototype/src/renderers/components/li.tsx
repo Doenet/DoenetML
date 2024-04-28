@@ -6,8 +6,8 @@ import { generateHtmlId } from "../utils";
 
 export const Li: BasicComponentWithPassthroughChildren<{
     props: LiProps;
-}> = ({ children, node, annotation }) => {
-    const htmlId = generateHtmlId(node, annotation);
+}> = ({ children, node, annotation, ancestors }) => {
+    const htmlId = generateHtmlId(node, annotation, ancestors);
     const label = node.data.props.label;
     return (
         <li id={htmlId}>
