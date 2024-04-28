@@ -99,7 +99,7 @@ impl From<Vec<(ContentRef, ElementRefAnnotation)>> for AnnotatedContentRefs {
 impl serde::Serialize for AnnotatedContentRefs {
     fn serialize<S: serde::Serializer>(&self, _serializer: S) -> Result<S::Ok, S::Error> {
         // We cannot properly serialize `ContentRef::String` because we don't have access to the string table here.
-        Err(serde::ser::Error::custom("ContentRefs should not be serialized directly. They should be converted to `FlatDastElementContent` first."))
+        Err(serde::ser::Error::custom("AnnotatedContentRefs should not be serialized directly. They should be converted to `FlatDastElementContent` first."))
     }
 }
 
