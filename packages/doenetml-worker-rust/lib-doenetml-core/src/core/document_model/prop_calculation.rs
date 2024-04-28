@@ -370,7 +370,10 @@ impl DocumentModel {
                         let content_children =
                             self.get_component_content_children_annotated(component_idx);
 
-                        let mut content_refs: Vec<(ContentRef, ElementRefAnnotation)> = Vec::new();
+                        let mut content_refs_and_annotations: Vec<(
+                            ContentRef,
+                            ElementRefAnnotation,
+                        )> = Vec::new();
                         for (node, annotation) in content_children {
                             if filter.apply_test(&FilterData {
                                 node,
@@ -379,16 +382,16 @@ impl DocumentModel {
                             }) {
                                 match node {
                                     GraphNode::Component(_) => {
-                                        content_refs.push((ContentRef::Component(node.component_idx().into()), annotation));
+                                        content_refs_and_annotations.push((ContentRef::Component(node.component_idx().into()), annotation));
                                     }
                                     GraphNode::String(_) => {
-                                        content_refs.push((ContentRef::String(node.idx().into()), annotation));
+                                        content_refs_and_annotations.push((ContentRef::String(node.idx().into()), annotation));
                                     }
                                     GraphNode::Prop(_) => {
                                         // The referent of a PropValue::ContentRef child should be forwarded.
                                         // Note: the filter is *not* applied to the forward referent.
                                         let c_refs: ContentRefs = self._get_prop_unchecked(node, query_node).value.try_into().unwrap();
-                                        content_refs.extend(c_refs.into_vec().into_iter().map(|c_ref| (c_ref, annotation)));
+                                        content_refs_and_annotations.extend(c_refs.into_vec().into_iter().map(|c_ref| (c_ref, annotation)));
                                     }
                                     _ => panic!(
                                         "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
@@ -401,7 +404,7 @@ impl DocumentModel {
                         DataQueryResult {
                             values: vec![PropWithMeta {
                                 value: PropValue::AnnotatedContentRefs(Rc::new(
-                                    content_refs.into(),
+                                    content_refs_and_annotations.into(),
                                 )),
                                 came_from_default: false,
                                 changed: true,

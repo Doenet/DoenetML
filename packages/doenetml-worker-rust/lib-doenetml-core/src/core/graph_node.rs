@@ -145,9 +145,9 @@ impl StructureGraph {
         ContentChildrenIterator::new(self, node)
     }
 
-    /// Similar to `get_content_children`, but also accepts a `mark` [`GraphNodeLookup`]. `mark`
+    /// Similar to `get_content_children`, but also accepts a `marker` [`GraphNodeLookup`]. `marker`
     /// is expected to mark virtual particular nodes. The returned children will be accompanied
-    /// by `true` if they have an ancestor marked by `mark` (which is also a child of `node`), otherwise
+    /// by `true` if they have an ancestor marked by `marker` (which is also a child of `node`), otherwise
     /// they are accompanied by `false`.
     /// For example, consider the graph
     /// ```text
@@ -226,7 +226,7 @@ mod iterators {
     /// all the non-virtual children. If a virtual child is detected,
     /// it's children are recursively iterated over.
     ///
-    /// This also returns a boolean indicating whether the node is marked by `mark`.
+    /// This also returns a boolean indicating whether the node is marked by `marker` (or has a marked ancestor).
     pub struct MarkedContentChildrenIterator<'a> {
         graph: &'a Graph,
         /// Stack storing the nodes for iteration in _reverse_ order.
@@ -234,19 +234,19 @@ mod iterators {
         marker: &'a GraphNodeLookup<bool>,
     }
     impl<'a> MarkedContentChildrenIterator<'a> {
-        pub fn new(graph: &'a Graph, start: GraphNode, mark: &'a GraphNodeLookup<bool>) -> Self {
-            let mut stack = graph
+        pub fn new(graph: &'a Graph, start: GraphNode, marker: &'a GraphNodeLookup<bool>) -> Self {
+            let stack = graph
                 .get_children(start)
                 .into_iter()
                 .map(|n| (n, false))
+                // Order matters and we will be popping values off the end of the stack, so
+                // we reverse it.
+                .rev()
                 .collect::<Vec<_>>();
-            // Order matters and we will be popping values off the end of the stack, so
-            // we reverse it.
-            stack.reverse();
             Self {
                 graph,
                 stack,
-                marker: mark,
+                marker,
             }
         }
     }

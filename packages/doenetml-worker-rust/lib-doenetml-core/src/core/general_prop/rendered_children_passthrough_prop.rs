@@ -1,11 +1,8 @@
-use std::rc::Rc;
-
-use itertools::Itertools;
-
 use crate::{
     components::prelude::*,
     props::{Cond, ContentFilter, Op, OpNot, UpdaterObject},
 };
+use std::rc::Rc;
 
 #[derive(Debug, Default)]
 pub struct RenderedChildrenPassthroughProp {
@@ -58,13 +55,6 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         let required_data = RequiredData::try_from_data_query_results(data).unwrap();
-        let children = required_data
-            .refs
-            .value
-            .as_slice()
-            .iter()
-            .cloned()
-            .collect_vec();
-        PropCalcResult::Calculated(Rc::new(children.into()))
+        PropCalcResult::Calculated(required_data.refs.value)
     }
 }
