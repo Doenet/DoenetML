@@ -59,6 +59,8 @@ mod component {
         DivisionDepth,
 
         /// The type of this `<division />`. E.g. "section", "chapter", "subsection", etc.
+        /// Use this prop instead of `DivisionTypeAttr`; it will correctly handle the case
+        /// where the user omits the `<division type="...">` attribute.
         #[prop(
                value_type = PropValueType::DivisionType,
                profile = PropProfile::DivisionType,
@@ -66,10 +68,11 @@ mod component {
            )]
         DivisionType,
 
-        /// The value of the `division` attribute.
+        /// The value of the `division` attribute. This is for internal use only.
+        /// It is used to calculate the `DivisionType` prop, which is what external components
+        /// should access.
         #[prop(
                value_type = PropValueType::DivisionType,
-               profile = PropProfile::DivisionType,
            )]
         DivisionTypeAttr,
 
@@ -460,8 +463,7 @@ mod custom_props {
     mod division_type {
         use super::*;
 
-        /// The depth of this component in the hierarchy of divisions. E.g., how many
-        /// times this `<section>` is nested in another.
+        /// The type of this division. E.g. `Section`, `Chapter`, etc..
         #[derive(Debug, Default)]
         pub struct DivisionTypeProp {}
 

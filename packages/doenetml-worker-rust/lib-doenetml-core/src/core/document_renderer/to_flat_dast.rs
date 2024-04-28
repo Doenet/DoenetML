@@ -147,16 +147,15 @@ impl DocumentRenderer {
                 }
                 let prop = self.get_prop_for_render(prop_pointer, document_model);
                 match prop.value {
-                    PropValue::ComponentRefs(refs) => refs
-                        .iter()
-                        .map(|c| GraphNode::Component(c.as_usize()))
-                        .collect(),
+                    PropValue::ComponentRefs(refs) => {
+                        refs.iter().map(|c| c.as_graph_node()).collect()
+                    }
                     PropValue::ComponentRef(c) => {
                         c.into_iter().map(|c| c.as_graph_node()).collect()
                     }
                     PropValue::ContentRef(c) => match c {
                         ContentRef::Component(c) => {
-                            vec![GraphNode::Component(c.as_usize())]
+                            vec![c.as_graph_node()]
                         }
                         ContentRef::String(_) => vec![],
                     },
