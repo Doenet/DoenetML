@@ -1,5 +1,5 @@
 use super::content_refs::ContentRef;
-use crate::components::types::ComponentIdx;
+use crate::{components::types::ComponentIdx, graph_node::GraphNode};
 use anyhow::anyhow;
 
 /// A vector of references to components
@@ -9,6 +9,11 @@ use anyhow::anyhow;
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentRefs(pub Vec<ComponentIdx>);
+impl ComponentRefs {
+    pub fn iter(&self) -> std::slice::Iter<ComponentIdx> {
+        self.0.iter()
+    }
+}
 
 /// A reference to a single component
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -18,8 +23,14 @@ pub struct ComponentRefs(pub Vec<ComponentIdx>);
 pub struct ComponentRef(pub ComponentIdx);
 
 impl ComponentRef {
+    pub fn iter(&self) -> std::iter::Once<ComponentIdx> {
+        std::iter::once(self.0)
+    }
     pub fn as_content_ref(&self) -> ContentRef {
         ContentRef::Component(self.0)
+    }
+    pub fn as_graph_node(&self) -> crate::graph_node::GraphNode {
+        GraphNode::Component(self.0.as_usize())
     }
 }
 
