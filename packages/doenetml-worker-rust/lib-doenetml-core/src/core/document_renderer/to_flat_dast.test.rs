@@ -79,3 +79,33 @@ fn test_components_referenced_in_for_render_props_are_marked_as_in_render_tree()
         Some(true)
     );
 }
+
+/// Some components have a `for_render` prop that stores references to other components (which may have
+/// been removed from the children of the component). These references should be marked as in the render tree,
+/// since they may be accessed by the frontend JS.
+#[test]
+fn test_components_referenced_in_for_render_props_are_marked_as_in_render_tree() {
+    let dast_root = dast_root_no_position(r#"<section><title /></section>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    core.to_flat_dast();
+
+    let title_idx = ComponentIdx::from(2);
+    let title_node = GraphNode::Component(title_idx.as_usize());
+    assert_eq!(
+        core.document_model
+            .get_component(title_idx)
+            .get_component_type(),
+        "title"
+    );
+
+    // title component should be in render tree
+    assert_eq!(
+        core.document_renderer
+            .in_render_tree
+            .get_tag(&title_node)
+            .cloned(),
+        Some(true)
+    );
+}
