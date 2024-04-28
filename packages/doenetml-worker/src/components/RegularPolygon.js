@@ -26,7 +26,7 @@ export default class RegularPolygon extends Polygon {
         // if center and vertex or two vertices are specified
         // then the following size attributes are ignored
 
-        // circumradius and radrius are the same thing and either attribute can be used
+        // circumradius and radius are the same thing and either attribute can be used
         // If both specified, circumradius is used
         attributes.circumradius = {
             createComponentOfType: "number",

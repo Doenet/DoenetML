@@ -1,3 +1,4 @@
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -46,9 +47,26 @@ export default class Polyline extends GraphicalComponent {
             forRenderer: true,
         };
 
+        attributes.rigid = {
+            createComponentOfType: "boolean",
+            createStateVariable: "rigid",
+            defaultValue: false,
+            public: true,
+        };
+
         Object.assign(attributes, returnRoundingAttributes());
 
         return attributes;
+    }
+
+    static returnChildGroups() {
+        let groups = super.returnChildGroups();
+        groups.push({
+            group: "vertexConstraints",
+            componentTypes: ["vertexConstraints"],
+        });
+
+        return groups;
     }
 
     static returnStateVariableDefinitions() {
@@ -219,6 +237,250 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.unconstrainedVertices = {
+            isLocation: true,
+            isArray: true,
+            numDimensions: 2,
+            entryPrefixes: ["unconstrainedVertexX", "unconstrainedVertex"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "unconstrainedVertex" ? 1 : 0,
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                if (arrayEntryPrefix === "unconstrainedVertexX") {
+                    // vertexX1_2 is the 2nd component of the first vertex
+                    let indices = varEnding
+                        .split("_")
+                        .map((x) => Number(x) - 1);
+                    if (
+                        indices.length === 2 &&
+                        indices.every((x, i) => Number.isInteger(x) && x >= 0)
+                    ) {
+                        if (arraySize) {
+                            if (indices.every((x, i) => x < arraySize[i])) {
+                                return [String(indices)];
+                            } else {
+                                return [];
+                            }
+                        } else {
+                            // If not given the array size,
+                            // then return the array keys assuming the array is large enough.
+                            // Must do this as it is used to determine potential array entries.
+                            return [String(indices)];
+                        }
+                    } else {
+                        return [];
+                    }
+                } else {
+                    // vertex3 is all components of the third vertex
+
+                    let pointInd = Number(varEnding) - 1;
+                    if (!(Number.isInteger(pointInd) && pointInd >= 0)) {
+                        return [];
+                    }
+
+                    if (!arraySize) {
+                        // If don't have array size, we just need to determine if it is a potential entry.
+                        // Return the first entry assuming array is large enough
+                        return [pointInd + ",0"];
+                    }
+                    if (pointInd < arraySize[0]) {
+                        // array of "pointInd,i", where i=0, ..., arraySize[1]-1
+                        return Array.from(
+                            Array(arraySize[1]),
+                            (_, i) => pointInd + "," + i,
+                        );
+                    } else {
+                        return [];
+                    }
+                }
+            },
+            getAllArrayKeys(arraySize, flatten = true, desiredSize) {
+                function getAllArrayKeysSub(subArraySize) {
+                    if (subArraySize.length === 1) {
+                        // array of numbers from 0 to subArraySize[0], cast to strings
+                        return Array.from(Array(subArraySize[0]), (_, i) =>
+                            String(i),
+                        );
+                    } else {
+                        let currentSize = subArraySize[0];
+                        let subSubKeys = getAllArrayKeysSub(
+                            subArraySize.slice(1),
+                        );
+                        let subKeys = [];
+                        for (let ind = 0; ind < currentSize; ind++) {
+                            if (flatten) {
+                                subKeys.push(
+                                    ...subSubKeys.map((x) => ind + "," + x),
+                                );
+                            } else {
+                                subKeys.push(
+                                    subSubKeys.map((x) => ind + "," + x),
+                                );
+                            }
+                        }
+                        return subKeys;
+                    }
+                }
+
+                if (desiredSize) {
+                    // if have desired size, then assume specify size after wrapping components
+                    // I.e., use actual array size, with first component
+                    // replaced with desired size
+                    if (desiredSize.length === 0 || !arraySize) {
+                        return [];
+                    } else {
+                        let desiredSizeOfWholeArray = [...arraySize];
+                        desiredSizeOfWholeArray[0] = desiredSize[0];
+                        return getAllArrayKeysSub(desiredSizeOfWholeArray);
+                    }
+                } else if (!arraySize || arraySize.length === 0) {
+                    return [];
+                } else {
+                    return getAllArrayKeysSub(arraySize);
+                }
+            },
+            arrayVarNameFromPropIndex(propIndex, varName) {
+                if (varName === "unconstrainedVertices") {
+                    if (propIndex.length === 1) {
+                        return "unconstrainedVertex" + propIndex[0];
+                    } else {
+                        // if propIndex has additional entries, ignore them
+                        return `unconstrainedVertexX${propIndex[0]}_${propIndex[1]}`;
+                    }
+                }
+                if (varName.slice(0, 19) === "unconstrainedVertex") {
+                    // could be vertex or vertexX
+                    let vertexNum = Number(varName.slice(19));
+                    if (Number.isInteger(vertexNum) && vertexNum > 0) {
+                        // if propIndex has additional entries, ignore them
+                        return `unconstrainedVertexX${vertexNum}_${propIndex[0]}`;
+                    }
+                }
+                return null;
+            },
+            returnArraySizeDependencies: () => ({
+                numVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numVertices",
+                },
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [
+                    dependencyValues.numVertices,
+                    dependencyValues.numDimensions,
+                ];
+            },
+            returnArrayDependenciesByKey({ arrayKeys }) {
+                let dependenciesByKey = {};
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    dependenciesByKey[arrayKey] = {
+                        vertices: {
+                            dependencyType: "attributeComponent",
+                            attributeName: "vertices",
+                            variableNames: ["pointX" + varEnding],
+                        },
+                    };
+                }
+                return { dependenciesByKey };
+            },
+            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+                // console.log('array definition of polyline unconstrainedVertices');
+                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)))
+                // console.log(arrayKeys);
+
+                let unconstrainedVertices = {};
+
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    let verticesAttr = dependencyValuesByKey[arrayKey].vertices;
+                    if (
+                        verticesAttr !== null &&
+                        verticesAttr.stateValues["pointX" + varEnding]
+                    ) {
+                        unconstrainedVertices[arrayKey] =
+                            verticesAttr.stateValues["pointX" + varEnding];
+                    } else {
+                        unconstrainedVertices[arrayKey] = me.fromAst("\uff3f");
+                    }
+                }
+
+                return { setValue: { unconstrainedVertices } };
+            },
+            async inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                dependencyValuesByKey,
+                dependencyNamesByKey,
+                initialChange,
+                stateValues,
+            }) {
+                // console.log(`inverseArrayDefinition of unconstrainedVertices of polyline`);
+                // console.log(desiredStateVariableValues)
+                // console.log(JSON.parse(JSON.stringify(stateValues)))
+                // console.log(dependencyValuesByKey);
+
+                let instructions = [];
+                for (let arrayKey in desiredStateVariableValues.unconstrainedVertices) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    if (
+                        dependencyValuesByKey[arrayKey].vertices !== null &&
+                        dependencyValuesByKey[arrayKey].vertices.stateValues[
+                            "pointX" + varEnding
+                        ]
+                    ) {
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey].vertices,
+                            desiredValue:
+                                desiredStateVariableValues
+                                    .unconstrainedVertices[arrayKey],
+                            variableIndex: 0,
+                        });
+                    } else {
+                        return { success: false };
+                    }
+                }
+
+                return {
+                    success: true,
+                    instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.haveConstrainedVertices = {
+            returnDependencies: () => ({
+                vertexConstraintsChild: {
+                    dependencyType: "child",
+                    childGroups: ["vertexConstraints"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        haveConstrainedVertices:
+                            dependencyValues.vertexConstraintsChild.length > 0,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.vertices = {
             public: true,
             isLocation: true,
@@ -382,44 +644,106 @@ export default class Polyline extends GraphicalComponent {
                     dependencyValues.numDimensions,
                 ];
             },
-            returnArrayDependenciesByKey({ arrayKeys }) {
+            stateVariablesDeterminingDependencies: [
+                "rigid",
+                "haveConstrainedVertices",
+            ],
+            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                let globalDependencies = {
+                    rigid: {
+                        dependencyType: "stateVariable",
+                        variableName: "rigid",
+                    },
+                    haveConstrainedVertices: {
+                        dependencyType: "stateVariable",
+                        variableName: "haveConstrainedVertices",
+                    },
+                    rotationReferenceMapping: {
+                        dependencyType: "stateVariable",
+                        variableName: "rotationReferenceMapping",
+                    },
+                };
                 let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
-
-                    dependenciesByKey[arrayKey] = {
-                        vertices: {
-                            dependencyType: "attributeComponent",
-                            attributeName: "vertices",
-                            variableNames: ["pointX" + varEnding],
-                        },
+                if (stateValues.haveConstrainedVertices || stateValues.rigid) {
+                    globalDependencies.unconstrainedVertices = {
+                        dependencyType: "stateVariable",
+                        variableName: "unconstrainedVertices",
                     };
+                    globalDependencies.vertexConstraintsChild = {
+                        dependencyType: "child",
+                        childGroups: ["vertexConstraints"],
+                        variableNames: ["constraintFunction"],
+                    };
+                } else {
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                        dependenciesByKey[arrayKey] = {
+                            unconstrainedVertex: {
+                                dependencyType: "stateVariable",
+                                variableName:
+                                    "unconstrainedVertexX" + varEnding,
+                            },
+                        };
+                    }
                 }
-                return { dependenciesByKey };
+                return { globalDependencies, dependenciesByKey };
             },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                // console.log('array definition of polyline vertices');
-                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)))
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                dependencyValuesByKey,
+                arrayKeys,
+                arraySize,
+            }) {
+                // console.log("array definition of polyline vertices");
+                // console.log(JSON.parse(JSON.stringify(globalDependencyValues)));
+                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
                 // console.log(arrayKeys);
+                // console.log(arraySize);
 
                 let vertices = {};
 
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                if (globalDependencyValues.haveConstrainedVertices) {
+                    let constrainedVertices =
+                        globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                            globalDependencyValues.unconstrainedVertices,
+                        );
 
-                    let verticesAttr = dependencyValuesByKey[arrayKey].vertices;
-                    if (
-                        verticesAttr !== null &&
-                        verticesAttr.stateValues["pointX" + varEnding]
+                    for (
+                        let pointInd = 0;
+                        pointInd < arraySize[0];
+                        pointInd++
                     ) {
+                        for (let dim = 0; dim < arraySize[1]; dim++) {
+                            let arrayKey = pointInd + "," + dim;
+                            vertices[arrayKey] =
+                                constrainedVertices[pointInd][dim];
+                        }
+                    }
+                } else if (globalDependencyValues.rigid) {
+                    // No constraints, so just give the unconstrained vertices.
+                    // Since, use global dependency values
+                    for (
+                        let pointInd = 0;
+                        pointInd < arraySize[0];
+                        pointInd++
+                    ) {
+                        for (let dim = 0; dim < arraySize[1]; dim++) {
+                            let arrayKey = pointInd + "," + dim;
+                            vertices[arrayKey] =
+                                globalDependencyValues.unconstrainedVertices[
+                                    pointInd
+                                ][dim];
+                        }
+                    }
+                } else {
+                    // if we don't have constrainedVertices and not rigid
+                    // just copy the unconstrained vertices from the dependency values by key
+                    for (let arrayKey of arrayKeys) {
                         vertices[arrayKey] =
-                            verticesAttr.stateValues["pointX" + varEnding];
-                    } else {
-                        vertices[arrayKey] = me.fromAst("\uff3f");
+                            dependencyValuesByKey[arrayKey].unconstrainedVertex;
                     }
                 }
 
@@ -427,37 +751,307 @@ export default class Polyline extends GraphicalComponent {
             },
             async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
+                globalDependencyValues,
                 dependencyValuesByKey,
                 dependencyNamesByKey,
                 initialChange,
                 stateValues,
+                arraySize,
+                workspace,
             }) {
                 // console.log(`inverseArrayDefinition of vertices of polyline`);
-                // console.log(desiredStateVariableValues)
-                // console.log(JSON.parse(JSON.stringify(stateValues)))
+                // console.log(desiredStateVariableValues);
+                // console.log(JSON.parse(JSON.stringify(stateValues)));
+                // console.log(globalDependencyValues);
                 // console.log(dependencyValuesByKey);
 
                 let instructions = [];
-                for (let arrayKey in desiredStateVariableValues.vertices) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
 
-                    if (
-                        dependencyValuesByKey[arrayKey].vertices !== null &&
-                        dependencyValuesByKey[arrayKey].vertices.stateValues[
-                            "pointX" + varEnding
-                        ]
-                    ) {
+                let movedJustOneVertex = false;
+
+                // We have to accumulate changed vertices in workspace
+                // as in some cases (such as when moving via an attached point)
+                // the instructions for the components come in separately
+                Object.assign(workspace, desiredStateVariableValues.vertices);
+
+                let nMoved = Object.keys(workspace).length;
+                if (nMoved === 1) {
+                    movedJustOneVertex = true;
+                } else if (nMoved === 2) {
+                    let pointInd1 = Object.keys(workspace)[0].split(",")[0];
+                    let pointInd2 = Object.keys(workspace)[1].split(",")[0];
+                    movedJustOneVertex = pointInd1 === pointInd2;
+                }
+
+                if (globalDependencyValues.rigid) {
+                    if (arraySize[1] !== 2) {
+                        console.error(
+                            "Moving a rigid polyline in inverse direction not implemented in other than 2D",
+                        );
+                        return { success: false };
+                    }
+
+                    if (movedJustOneVertex) {
+                        // we keep the centroid fixed and rotate around the centroid
+
+                        // Note: we need to use the centroid and vertices from the unconstrained vertices.
+                        // Otherwise, the centroid will move around when rotating through a constraint,
+                        // causing strange behavior.
+                        // The downside is that a rotation starting in a constrained configuration
+                        // may translate when the constraint is released.
+
+                        let numericalCentroidUnconstrained =
+                            await stateValues.numericalCentroidUnconstrained;
+                        let rotationReferenceMapping =
+                            globalDependencyValues.rotationReferenceMapping;
+
+                        let referenceCentroid;
+                        let referenceVertices;
+
+                        if (
+                            Array.isArray(rotationReferenceMapping[0]) &&
+                            rotationReferenceMapping[0][0] ===
+                                numericalCentroidUnconstrained[0] &&
+                            rotationReferenceMapping[0][1] ===
+                                numericalCentroidUnconstrained[1]
+                        ) {
+                            // The numerical centroid is still the same as it was when created rotationReferenceMapping.
+                            // Therefore use the centroid and vertices from the mapping
+                            // (which would be the values before any shift due to a constraint)
+                            referenceCentroid = rotationReferenceMapping[1];
+                            referenceVertices = rotationReferenceMapping[2];
+                        } else {
+                            referenceCentroid = numericalCentroidUnconstrained;
+                            referenceVertices =
+                                globalDependencyValues.unconstrainedVertices.map(
+                                    (v) =>
+                                        v.map((c) => c.evaluate_to_constant()),
+                                );
+                        }
+
+                        let [pointInd1, dim1] =
+                            Object.keys(workspace)[0].split(",");
+
+                        let original_vertex = referenceVertices[pointInd1];
+
+                        let moved_vertex = [...original_vertex];
+                        for (let arrayKey in workspace) {
+                            let moved_x = convertValueToMathExpression(
+                                workspace[arrayKey],
+                            ).evaluate_to_constant();
+                            if (!Number.isFinite(moved_x)) {
+                                return { success: false };
+                            }
+
+                            let dim = arrayKey.split(",")[1];
+                            moved_vertex[dim] = moved_x;
+                        }
+
+                        let moved_rel = [
+                            moved_vertex[0] - referenceCentroid[0],
+                            moved_vertex[1] - referenceCentroid[1],
+                        ];
+                        let orig_rel = [
+                            original_vertex[0] - referenceCentroid[0],
+                            original_vertex[1] - referenceCentroid[1],
+                        ];
+
+                        let theta =
+                            Math.atan2(moved_rel[1], moved_rel[0]) -
+                            Math.atan2(orig_rel[1], orig_rel[0]);
+
+                        let sin_theta = Math.sin(theta);
+                        let cos_theta = Math.cos(theta);
+
+                        // rotate all vertices by theta around centroid
+
+                        let desired_vertices = [];
+
+                        for (
+                            let pointInd = 0;
+                            pointInd < arraySize[0];
+                            pointInd++
+                        ) {
+                            desired_vertices.push([]);
+
+                            let original_vertex = referenceVertices[pointInd];
+                            let orig_rel = [
+                                original_vertex[0] - referenceCentroid[0],
+                                original_vertex[1] - referenceCentroid[1],
+                            ];
+                            let rot_rel = [
+                                cos_theta * orig_rel[0] -
+                                    sin_theta * orig_rel[1],
+                                sin_theta * orig_rel[0] +
+                                    cos_theta * orig_rel[1],
+                            ];
+
+                            for (let dim = 0; dim < arraySize[1]; dim++) {
+                                desired_vertices[pointInd].push(
+                                    me.fromAst(
+                                        rot_rel[dim] + referenceCentroid[dim],
+                                    ),
+                                );
+                            }
+                        }
+
+                        if (globalDependencyValues.haveConstrainedVertices) {
+                            desired_vertices =
+                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                    desired_vertices,
+                                );
+
+                            let constrainedCentroid =
+                                calculateNumericalCentroid(desired_vertices);
+
+                            instructions.push({
+                                setDependency: "rotationReferenceMapping",
+                                desiredValue: [
+                                    constrainedCentroid,
+                                    referenceCentroid,
+                                    referenceVertices,
+                                ],
+                            });
+                        }
                         instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].vertices,
-                            desiredValue:
-                                desiredStateVariableValues.vertices[arrayKey],
-                            variableIndex: 0,
+                            setDependency: "unconstrainedVertices",
+                            desiredValue: desired_vertices,
                         });
                     } else {
-                        return { success: false };
+                        // If moved more than one vertex, then translate whole polygon
+                        // by the smallest movement in x and in y
+                        let min_dx = Infinity;
+                        let min_dy = Infinity;
+
+                        // Note: here we're using the (constrained) numericalVertices,
+                        // unlike the case of rotating around one point,
+                        // as the distinction doesn't matter in this case
+                        let numericalVertices =
+                            await stateValues.numericalVertices;
+
+                        for (let arrayKey in workspace) {
+                            let [pointInd, dim] = arrayKey.split(",");
+
+                            let moved_val = convertValueToMathExpression(
+                                workspace[arrayKey],
+                            ).evaluate_to_constant();
+                            let d =
+                                moved_val - numericalVertices[pointInd][dim];
+
+                            if (dim === "0") {
+                                if (Math.abs(d) < Math.abs(min_dx)) {
+                                    min_dx = d;
+                                }
+                            } else if (Math.abs(d) < Math.abs(min_dy)) {
+                                min_dy = d;
+                            }
+                        }
+
+                        if (min_dx === Infinity) {
+                            min_dx = 0;
+                        }
+                        if (min_dy === Infinity) {
+                            min_dy = 0;
+                        }
+
+                        // translate all vertices by (min_dx, min_dy)
+
+                        let desired_vertices = [];
+                        let min_d = [min_dx, min_dy];
+
+                        for (
+                            let pointInd = 0;
+                            pointInd < arraySize[0];
+                            pointInd++
+                        ) {
+                            desired_vertices.push([]);
+
+                            let original_vertex = numericalVertices[pointInd];
+
+                            for (let dim = 0; dim < arraySize[1]; dim++) {
+                                desired_vertices[pointInd].push(
+                                    me.fromAst(
+                                        original_vertex[dim] + min_d[dim],
+                                    ),
+                                );
+                            }
+                        }
+
+                        if (globalDependencyValues.haveConstrainedVertices) {
+                            desired_vertices =
+                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                    desired_vertices,
+                                );
+
+                            instructions.push({
+                                setDependency: "rotationReferenceMapping",
+                                desiredValue: [null, null, null],
+                            });
+                        }
+                        instructions.push({
+                            setDependency: "unconstrainedVertices",
+                            desiredValue: desired_vertices,
+                        });
+                    }
+                } else {
+                    // non-rigid
+                    if (globalDependencyValues.haveConstrainedVertices) {
+                        // for non-rigid case with constraints where move just one vertex,
+                        // go through the constraints so that will set the vertex
+                        // to its constrained value
+
+                        let vertices = await stateValues.vertices;
+                        let desired_vertices = [];
+
+                        for (
+                            let pointInd = 0;
+                            pointInd < arraySize[0];
+                            pointInd++
+                        ) {
+                            let desired_vertex = [];
+
+                            let original_vertex = vertices[pointInd];
+
+                            for (let dim = 0; dim < arraySize[1]; dim++) {
+                                let arrayKey = pointInd + "," + dim;
+                                if (arrayKey in workspace) {
+                                    desired_vertex.push(workspace[arrayKey]);
+                                } else {
+                                    desired_vertex.push(original_vertex[dim]);
+                                }
+                            }
+                            desired_vertices.push(desired_vertex);
+                        }
+
+                        // If moved just one vertex, allow the shape to distort due to constraints.
+                        // Otherwise, just shift the polyline due to the constraints
+                        let enforceRigid = !movedJustOneVertex;
+
+                        desired_vertices =
+                            globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                                desired_vertices,
+                                enforceRigid,
+                            );
+
+                        instructions.push({
+                            setDependency: "unconstrainedVertices",
+                            desiredValue: desired_vertices,
+                        });
+                    } else {
+                        // for non-constrained non-rigid case, we just move the unconstrained vertices
+                        // according to how the vertices were moved
+
+                        for (let arrayKey in desiredStateVariableValues.vertices) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey]
+                                        .unconstrainedVertex,
+                                desiredValue:
+                                    desiredStateVariableValues.vertices[
+                                        arrayKey
+                                    ],
+                            });
+                        }
                     }
                 }
 
@@ -661,14 +1255,82 @@ export default class Polyline extends GraphicalComponent {
             definition({ dependencyValues }) {
                 let length = 0;
                 let verts = dependencyValues.numericalVertices;
-                let nVerts = dependencyValues.numericalVertices.length;
-                for (let i = 0; i < nVerts - 1; i++) {
+                let numVertices = dependencyValues.numericalVertices.length;
+                for (let i = 0; i < numVertices - 1; i++) {
                     let dx = verts[i + 1][0] - verts[i][0];
                     let dy = verts[i + 1][1] - verts[i][1];
                     length += Math.sqrt(dx * dx + dy * dy);
                 }
 
                 return { setValue: { length } };
+            },
+        };
+
+        stateVariableDefinitions.numericalCentroid = {
+            returnDependencies: () => ({
+                numericalVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalVertices",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let x = 0,
+                    y = 0;
+                let verts = dependencyValues.numericalVertices;
+                let numVertices = dependencyValues.numericalVertices.length;
+                for (let i = 0; i < numVertices; i++) {
+                    x += verts[i][0];
+                    y += verts[i][1];
+                }
+                x /= numVertices;
+                y /= numVertices;
+
+                return { setValue: { numericalCentroid: [x, y] } };
+            },
+        };
+
+        stateVariableDefinitions.numericalCentroidUnconstrained = {
+            returnDependencies: () => ({
+                unconstrainedVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "unconstrainedVertices",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        numericalCentroidUnconstrained:
+                            calculateNumericalCentroid(
+                                dependencyValues.unconstrainedVertices,
+                            ),
+                    },
+                };
+            },
+        };
+
+        // A mapping from a shifted numerical centroid (first entry)
+        // onto an original centroid (second entry)
+        // and reference position (third entry) used for rotating a rigid polygon.
+        // Used so that if a polygon is shifted from the effective centroid/reference position
+        // onto the shifted numerical centroid, the original centroid and position
+        // will be used to calculate the rotation.
+        stateVariableDefinitions.rotationReferenceMapping = {
+            hasEssential: true,
+            defaultValue: [null, null, null],
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { rotationReferenceMapping: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "rotationReferenceMapping",
+                            value: desiredStateVariableValues.rotationReferenceMapping,
+                        },
+                    ],
+                };
             },
         };
 
@@ -916,4 +1578,20 @@ export default class Polyline extends GraphicalComponent {
             });
         }
     }
+}
+
+function calculateNumericalCentroid(vertices) {
+    let x = 0,
+        y = 0;
+    let numVertices = vertices.length;
+
+    for (let i = 0; i < numVertices; i++) {
+        x += vertices[i][0].evaluate_to_constant();
+        y += vertices[i][1].evaluate_to_constant();
+    }
+
+    x /= numVertices;
+    y /= numVertices;
+
+    return [x, y];
 }

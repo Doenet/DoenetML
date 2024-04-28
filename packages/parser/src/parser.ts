@@ -428,15 +428,7 @@ export function parseAndCompile(inText: string) {
                 cursor.parent();
             }
 
-            // Note: for some reason if the "/>" of a closing tag occurs at the beginning of a line,
-            // (with only whitespace before it)
-            // then cursor.to is shifted differently compared to other cases.
-            // To compensate, we search for the location of the "/>"
             let selfCloseEnd = cursor.to;
-            let match = inText.substring(cursor.to).match("/>");
-            if (match) {
-                selfCloseEnd += match.index! + 2;
-            }
 
             let doenetMLrange = {
                 selfCloseBegin: tagBegin,

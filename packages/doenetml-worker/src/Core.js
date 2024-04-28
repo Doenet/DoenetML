@@ -12353,6 +12353,13 @@ export default class Core {
                     ][stateVariable][dependencyName];
 
                 if (dep.dependencyType === "child") {
+                    if (newInstruction.childIndex === undefined) {
+                        newInstruction.childIndex = 0;
+                    }
+                    if (newInstruction.variableIndex === undefined) {
+                        newInstruction.variableIndex = 0;
+                    }
+
                     let childInd = newInstruction.childIndex;
 
                     if (dep.downstreamPrimitives[childInd] !== null) {
