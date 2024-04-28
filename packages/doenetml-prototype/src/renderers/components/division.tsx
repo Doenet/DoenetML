@@ -2,7 +2,7 @@ import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
 import type { DivisionProps } from "@doenet/doenetml-worker-rust";
-import { extendAncestorChain, generateHtmlId } from "../utils";
+import { generateHtmlId } from "../utils";
 
 export const Division: BasicComponentWithPassthroughChildren<{
     props: DivisionProps;
