@@ -56,6 +56,7 @@ impl PropDefinition {
             PropValueDiscriminants::Math => "math",
             PropValueDiscriminants::ComponentRef
             | PropValueDiscriminants::ComponentRefs
+            | PropValueDiscriminants::AnnotatedContentRefs
             | PropValueDiscriminants::ContentRefs
             | PropValueDiscriminants::ContentRef => _Fragment::NAME,
         }

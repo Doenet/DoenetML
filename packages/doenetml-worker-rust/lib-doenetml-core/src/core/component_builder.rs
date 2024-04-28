@@ -19,7 +19,7 @@ use crate::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         ref_resolve::RefResolution,
     },
-    graph::directed_graph::DirectedGraph,
+    graph::directed_graph::{DirectedGraph, Taggable},
 };
 
 use super::{
@@ -47,6 +47,9 @@ pub struct ComponentBuilder {
     pub virtual_node_count: usize,
     // Information about each prop sufficient for resolving `DataQuery`s.
     pub props: TiVec<PropDefinitionIdx, PropDefinition>,
+    /// Stores whether a particular virtual node was created to house the children coming from another component
+    /// because it was `extend`ing another component.
+    pub children_came_from_extending_marker: GraphNodeLookup<bool>,
 }
 
 impl Default for ComponentBuilder {
@@ -64,6 +67,7 @@ impl ComponentBuilder {
             strings: StringCache::new(),
             props: TiVec::new(),
             virtual_node_count: 0,
+            children_came_from_extending_marker: GraphNodeLookup::new(),
         }
     }
 
@@ -633,10 +637,15 @@ impl ComponentBuilder {
         let referent_children_virtual_node = self
             .structure_graph
             .get_component_children_virtual_node(referent_idx);
-        self.structure_graph.prepend_edge(
-            component_children_virtual_node,
-            referent_children_virtual_node,
-        );
+        // We create an intermediate virtual node so that we can mark it. This will indicate its descendants
+        // came from extending another component and aren't "original".
+        let intermediate_virtual_node = self.new_virtual_node();
+        self.children_came_from_extending_marker
+            .set_tag(intermediate_virtual_node, true);
+        self.structure_graph
+            .prepend_edge(component_children_virtual_node, intermediate_virtual_node);
+        self.structure_graph
+            .add_edge(intermediate_virtual_node, referent_children_virtual_node);
 
         // Attributes from `referent` with the same name as an attribute from `component`
         // are added as dependency of the attribute from `component`

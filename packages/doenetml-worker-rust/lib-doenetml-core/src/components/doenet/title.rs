@@ -7,7 +7,10 @@ use crate::props::UpdaterObject;
 mod component {
 
     enum Props {
-        #[prop(value_type = PropValueType::ContentRefs, profile = PropProfile::RenderedChildren)]
+        #[prop(
+            value_type = PropValueType::AnnotatedContentRefs,
+            profile = PropProfile::RenderedChildren
+        )]
         RenderedChildren,
     }
 }

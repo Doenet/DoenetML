@@ -24,12 +24,12 @@ impl _External {
 ///The props for this component are: `renderedChildren`
 #[derive(Debug, Clone, Copy)]
 pub enum _ExternalProps {
-    /**
-    - Name: `"renderedChildren"`
-    - Private: this prop can only be used internally.
-    - NotForRender: this prop is not rendered.
-    - Profile: [`PropProfile::RenderedChildren`]
-    - Type: [`PropValueType::ContentRefs`]*/
+    ///
+    /// - Name: `"renderedChildren"`
+    /// - Private: this prop can only be used internally.
+    /// - NotForRender: this prop is not rendered.
+    /// - Profile: [`PropProfile::RenderedChildren`]
+    /// - Type: [`PropValueType::ContentRefs`]*/
     RenderedChildren,
 }
 impl _ExternalProps {
@@ -71,9 +71,11 @@ impl ComponentProps for _External {
 impl PropGetUpdater for _ExternalProps {
     fn get_updater(&self) -> UpdaterObject {
         match self {
-            _ExternalProps::RenderedChildren => as_updater_object::<_, prop_type::ContentRefs>(
-                RenderedChildrenPassthroughProp::new(),
-            ),
+            _ExternalProps::RenderedChildren => {
+                as_updater_object::<_, prop_type::AnnotatedContentRefs>(
+                    RenderedChildrenPassthroughProp::new(),
+                )
+            }
         }
     }
 }

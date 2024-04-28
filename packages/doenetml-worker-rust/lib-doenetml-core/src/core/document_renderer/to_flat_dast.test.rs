@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::{
+        prelude::FlatDastElementContent,
         types::{ComponentIdx, StringIdx},
         ComponentNode,
     },
@@ -46,7 +47,7 @@ fn test_content_ref_prop_values_get_serialized_correctly() {
             .prepare_prop_value_for_render("foo", refs, &core.document_model);
     assert_eq!(
         serde_json::to_string(&prepared.value).unwrap(),
-        r#"["hi",2]"#
+        r#"["hi",{"id":2,"annotation":"original"}]"#
     );
 }
 
@@ -77,5 +78,37 @@ fn test_components_referenced_in_for_render_props_are_marked_as_in_render_tree()
             .get_tag(&title_node)
             .cloned(),
         Some(true)
+    );
+}
+
+#[test]
+fn test_extending_nodes_get_marked_as_duplicates() {
+    let dast_root = dast_root_no_position(
+        r#"<p name="p1"><text>foo</text></p><p name="p2" extend="$p1"><text>bar</text></p>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    let flat_root = core.to_flat_dast();
+
+    let p1_idx = ComponentIdx::from(1);
+    let p2_idx = ComponentIdx::from(3);
+    let p1 = &flat_root.elements[p1_idx.as_usize()];
+    let p2 = &flat_root.elements[p2_idx.as_usize()];
+
+    assert_eq!(p1.name, "p");
+    assert_eq!(p2.name, "p");
+    assert_eq!(
+        &p1.children[0],
+        &FlatDastElementContent::new_original_element(2)
+    );
+    // Because `p2` is extending `p1`, its children (that it gets from extending) should be marked as duplicates
+    assert_eq!(
+        &p2.children[0],
+        &FlatDastElementContent::new_duplicate_element(2)
+    );
+    assert_eq!(
+        &p2.children[1],
+        &FlatDastElementContent::new_original_element(4)
     );
 }

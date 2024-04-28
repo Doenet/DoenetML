@@ -24,6 +24,7 @@ use crate::utils::rc_serde;
     derive_more::From,
     doenetml_macros::TryFromRef,
     strum_macros::EnumDiscriminants,
+    strum_macros::IntoStaticStr,
 )]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -42,6 +43,8 @@ pub enum PropValue {
     ComponentRef(prop_type::ComponentRef),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
+    #[serde(with = "rc_serde")]
+    AnnotatedContentRefs(prop_type::AnnotatedContentRefs),
     #[serde(with = "rc_serde")]
     ContentRefs(prop_type::ContentRefs),
     ContentRef(prop_type::ContentRef),
@@ -80,6 +83,7 @@ pub mod prop_type {
     // so we don't use `tsify_next::declare` on them.
     pub type ComponentRef = Option<component_refs::ComponentRef>;
     pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
+    pub type AnnotatedContentRefs = Rc<content_refs::AnnotatedContentRefs>;
     pub type ContentRefs = Rc<content_refs::ContentRefs>;
     pub type ContentRef = content_refs::ContentRef;
     pub type XrefLabel = Rc<xref_label::XrefLabel>;

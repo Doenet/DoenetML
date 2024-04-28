@@ -28,12 +28,16 @@ where
     }
 
     fn try_from_prop_with_meta(val: PropWithMeta) -> anyhow::Result<Self> {
+        let error_func = {
+            let variant_name: &'static str = (&val.value).into();
+            move |err| anyhow!("{}; found PropValue::{}(..)", err, variant_name,)
+        };
         let value: PropType = val
             .value
             .try_into()
             // Convert the error to an anyhow::Error. This seems to be an issue with derive_more
             // https://users.rust-lang.org/t/the-trait-std-error-is-not-implemented-for-str/44474
-            .map_err(|err| anyhow!("{}", err))?;
+            .map_err(error_func)?;
         Ok(Self {
             value,
             came_from_default: val.came_from_default,

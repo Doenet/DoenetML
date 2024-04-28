@@ -28,5 +28,5 @@ export function PageViewer({
     }
 
     // Render the document element
-    return <Element id={0} />;
+    return <Element id={0} ancestors="" annotation="original" />;
 }
