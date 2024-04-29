@@ -11,6 +11,7 @@ impl DataQuery {
     ///
     /// Note: this function assumes the data query is well formed (E.g., it only uses `PropSpecifier::LocalIdx` in conjunction
     /// with `PropSource::Me`). If the data query is not well formed, this function may return an incorrect type.
+    #[allow(clippy::result_unit_err)]
     pub fn guess_return_type<T: ComponentVariantPropTypes + 'static>(
         &self,
     ) -> Result<Vec<PropValueType>, ()> {
