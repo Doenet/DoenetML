@@ -66,6 +66,10 @@ export default class Polyline extends GraphicalComponent {
             group: "vertexConstraints",
             componentTypes: ["vertexConstraints"],
         });
+        groups.push({
+            group: "edgeConstraints",
+            componentTypes: ["edgeConstraints"],
+        });
 
         return groups;
     }
@@ -473,6 +477,10 @@ export default class Polyline extends GraphicalComponent {
                     dependencyType: "child",
                     childGroups: ["vertexConstraints"],
                 },
+                edgeConstraintsChild: {
+                    dependencyType: "child",
+                    childGroups: ["edgeConstraints"],
+                },
                 inStickyGroup: {
                     dependencyType: "stateVariable",
                     variableName: "inStickyGroup",
@@ -483,7 +491,9 @@ export default class Polyline extends GraphicalComponent {
                     setValue: {
                         haveConstrainedVertices:
                             dependencyValues.vertexConstraintsChild.length >
-                                0 || dependencyValues.inStickyGroup,
+                                0 ||
+                            dependencyValues.edgeConstraintsChild.length > 0 ||
+                            dependencyValues.inStickyGroup,
                     },
                 };
             },
@@ -662,6 +672,10 @@ export default class Polyline extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: "rigid",
                     },
+                    closed: {
+                        dependencyType: "stateVariable",
+                        variableName: "closed",
+                    },
                     haveConstrainedVertices: {
                         dependencyType: "stateVariable",
                         variableName: "haveConstrainedVertices",
@@ -680,6 +694,11 @@ export default class Polyline extends GraphicalComponent {
                     globalDependencies.vertexConstraintsChild = {
                         dependencyType: "child",
                         childGroups: ["vertexConstraints"],
+                        variableNames: ["constraintFunction"],
+                    };
+                    globalDependencies.edgeConstraintsChild = {
+                        dependencyType: "child",
+                        childGroups: ["edgeConstraints"],
                         variableNames: ["constraintFunction"],
                     };
                 } else {
@@ -717,6 +736,19 @@ export default class Polyline extends GraphicalComponent {
                     let constrainedVertices =
                         globalDependencyValues.unconstrainedVertices;
 
+                    if (
+                        globalDependencyValues.edgeConstraintsChild.length > 0
+                    ) {
+                        constrainedVertices =
+                            globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                                {
+                                    unconstrainedVertices: constrainedVertices,
+                                    closed: globalDependencyValues.closed,
+                                    enforceRigid: true,
+                                    allowRotation: false,
+                                },
+                            );
+                    }
                     if (
                         globalDependencyValues.vertexConstraintsChild.length > 0
                     ) {
@@ -913,6 +945,21 @@ export default class Polyline extends GraphicalComponent {
 
                         if (globalDependencyValues.haveConstrainedVertices) {
                             if (
+                                globalDependencyValues.edgeConstraintsChild
+                                    .length > 0
+                            ) {
+                                desired_vertices =
+                                    globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                                        {
+                                            unconstrainedVertices:
+                                                desired_vertices,
+                                            closed: globalDependencyValues.closed,
+                                            enforceRigid: true,
+                                            allowRotation: true,
+                                        },
+                                    );
+                            }
+                            if (
                                 globalDependencyValues.vertexConstraintsChild
                                     .length > 0
                             ) {
@@ -1015,6 +1062,21 @@ export default class Polyline extends GraphicalComponent {
 
                         if (globalDependencyValues.haveConstrainedVertices) {
                             if (
+                                globalDependencyValues.edgeConstraintsChild
+                                    .length > 0
+                            ) {
+                                desired_vertices =
+                                    globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                                        {
+                                            unconstrainedVertices:
+                                                desired_vertices,
+                                            closed: globalDependencyValues.closed,
+                                            enforceRigid: true,
+                                            allowRotation: false,
+                                        },
+                                    );
+                            }
+                            if (
                                 globalDependencyValues.vertexConstraintsChild
                                     .length > 0
                             ) {
@@ -1079,10 +1141,25 @@ export default class Polyline extends GraphicalComponent {
                             desired_vertices.push(desired_vertex);
                         }
 
-                        // If moved just one vertex, allow the shape to distort due to constraints.
+                        // If moved just one vertex, allow the shape to distort due to constraints and the edges to rotate..
                         // Otherwise, just shift the polyline due to the constraints
                         let enforceRigid = !movedJustOneVertex;
+                        let allowRotation = movedJustOneVertex;
 
+                        if (
+                            globalDependencyValues.edgeConstraintsChild.length >
+                            0
+                        ) {
+                            desired_vertices =
+                                globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                                    {
+                                        unconstrainedVertices: desired_vertices,
+                                        closed: globalDependencyValues.closed,
+                                        enforceRigid,
+                                        allowRotation,
+                                    },
+                                );
+                        }
                         if (
                             globalDependencyValues.vertexConstraintsChild
                                 .length > 0

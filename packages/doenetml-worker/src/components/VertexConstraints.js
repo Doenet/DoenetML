@@ -5,9 +5,8 @@ import {
     returnConstraintGraphInfoDefinitions,
     returnVertexConstraintFunction,
 } from "../utils/constraints";
-import me from "math-expressions";
 
-export class VertexConstraints extends BaseComponent {
+export default class VertexConstraints extends BaseComponent {
     static componentType = "vertexConstraints";
     static rendererType = undefined;
 
@@ -23,9 +22,10 @@ export class VertexConstraints extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let graphInfoDefinitions = returnConstraintGraphInfoDefinitions();
-
-        Object.assign(stateVariableDefinitions, graphInfoDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnConstraintGraphInfoDefinitions(),
+        );
 
         stateVariableDefinitions.constraintFunction = {
             returnDependencies: () => ({
