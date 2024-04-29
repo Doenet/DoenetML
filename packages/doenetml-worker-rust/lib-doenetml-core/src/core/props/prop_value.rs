@@ -92,7 +92,7 @@ pub mod prop_type {
     ///   const PROP_VALUE_TYPE: Option<PropValueType> = Some(PropValueType::String);
     /// }
     /// ```
-    macro_rules! with_discriminant {
+    macro_rules! define_type {
         ($name:ident, $type:path) => {
             pub type $name = $type;
 
@@ -110,23 +110,23 @@ pub mod prop_type {
         };
     }
 
-    with_discriminant!(String, Rc<std::string::String>, tsify_next::declare);
-    with_discriminant!(Number, f64, tsify_next::declare);
-    with_discriminant!(Integer, i64, tsify_next::declare);
-    with_discriminant!(Boolean, bool, tsify_next::declare);
-    with_discriminant!(Math, Rc<MathExpr>, tsify_next::declare);
+    define_type!(String, Rc<std::string::String>, tsify_next::declare);
+    define_type!(Number, f64, tsify_next::declare);
+    define_type!(Integer, i64, tsify_next::declare);
+    define_type!(Boolean, bool, tsify_next::declare);
+    define_type!(Math, Rc<MathExpr>, tsify_next::declare);
 
     // The typescript types for these are exported in their respective files,
     // so we don't use `tsify_next::declare` on them.
-    with_discriminant!(ComponentRef, Option<component_refs::ComponentRef>);
-    with_discriminant!(ComponentRefs, Rc<component_refs::ComponentRefs>);
-    with_discriminant!(AnnotatedContentRefs, Rc<content_refs::AnnotatedContentRefs>);
-    with_discriminant!(ContentRefs, Rc<content_refs::ContentRefs>);
-    with_discriminant!(ContentRef, content_refs::ContentRef);
-    with_discriminant!(XrefLabel, Rc<xref_label::XrefLabel>);
-    with_discriminant!(ListDepth, list_depth::ListDepth);
-    with_discriminant!(ListMarker, list_marker::ListMarker);
-    with_discriminant!(DivisionType, division_type::DivisionType);
+    define_type!(ComponentRef, Option<component_refs::ComponentRef>);
+    define_type!(ComponentRefs, Rc<component_refs::ComponentRefs>);
+    define_type!(AnnotatedContentRefs, Rc<content_refs::AnnotatedContentRefs>);
+    define_type!(ContentRefs, Rc<content_refs::ContentRefs>);
+    define_type!(ContentRef, content_refs::ContentRef);
+    define_type!(XrefLabel, Rc<xref_label::XrefLabel>);
+    define_type!(ListDepth, list_depth::ListDepth);
+    define_type!(ListMarker, list_marker::ListMarker);
+    define_type!(DivisionType, division_type::DivisionType);
 
     /// By default, wasm-bindgen won't pick up this module as containing types to export
     /// to Typescript. We force wasm-bindgen to export types in this module by providing a
