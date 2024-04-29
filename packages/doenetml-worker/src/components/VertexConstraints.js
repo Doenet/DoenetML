@@ -45,7 +45,6 @@ export default class VertexConstraints extends BaseComponent {
                     let constraintUsedForVertex = [];
 
                     for (let unconstrainedVertex of unconstrainedVertices) {
-                        // apply constraint to whole array (even if just one array key requested)
                         let variables = {};
                         let constraintUsed = false;
 

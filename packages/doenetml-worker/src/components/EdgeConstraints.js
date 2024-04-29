@@ -2,7 +2,7 @@ import { convertValueToMathExpression } from "@doenet/utils";
 import BaseComponent from "./abstract/BaseComponent";
 import {
     returnConstraintGraphInfoDefinitions,
-    returnEdgeConstraintFunction,
+    returnVertexConstraintFunctionFromEdges,
 } from "../utils/constraints";
 
 export default class EdgeConstraints extends BaseComponent {
@@ -35,16 +35,15 @@ export default class EdgeConstraints extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let constraintSub = function (
+                let constraintSub = function ({
                     unconstrainedEdges,
                     allowRotation,
                     enforceRigid,
-                ) {
+                }) {
                     let constrainedEdges = [];
                     let constraintUsedForEdge = [];
 
                     for (let unconstrainedEdge of unconstrainedEdges) {
-                        // apply constraint to whole array (even if just one array key requested)
                         let constraintUsed = false;
 
                         let edge = [...unconstrainedEdge];
@@ -76,7 +75,7 @@ export default class EdgeConstraints extends BaseComponent {
                 };
 
                 let constraintFunction =
-                    returnEdgeConstraintFunction(constraintSub);
+                    returnVertexConstraintFunctionFromEdges(constraintSub);
 
                 return { setValue: { constraintFunction } };
             },

@@ -1,6 +1,9 @@
 import {
+    attractSegmentEndpoints,
+    findAttractedPoint,
     returnConstraintGraphInfoDefinitions,
     returnVertexConstraintFunction,
+    returnVertexConstraintFunctionFromEdges,
 } from "../utils/constraints";
 import { findFiniteNumericalValue } from "../utils/math";
 import GraphicalComponent from "./abstract/GraphicalComponent";
@@ -307,7 +310,88 @@ export default class StickyGroup extends GraphicalComponent {
                     scales = [1, 1, 1];
                 }
 
-                let constraintSub = function (
+                let threshold2 =
+                    dependencyValues.threshold * dependencyValues.threshold;
+
+                let edgeConstraintSub = function (
+                    { unconstrainedEdges, allowRotation, enforceRigid },
+                    { objectInd },
+                ) {
+                    let segmentsToAttract =
+                        dependencyValues.getSegmentsForObject(objectInd);
+
+                    let constrainedEdges = [];
+                    let constraintUsedForEdge = [];
+
+                    for (let unconstrainedEdge of unconstrainedEdges) {
+                        let numericalNearestPointFunctions = [];
+                        for (let segment of segmentsToAttract) {
+                            numericalNearestPointFunctions.push(
+                                (point, scales) =>
+                                    nearestPointForSegment({
+                                        point,
+                                        segment,
+                                        scales,
+                                    }),
+                            );
+                        }
+
+                        let result = attractSegmentEndpoints(
+                            unconstrainedEdge,
+                            allowRotation,
+                            enforceRigid,
+                            scales,
+                            threshold2,
+                            numericalNearestPointFunctions,
+                        );
+
+                        if (!result.constrained) {
+                            constrainedEdges.push(unconstrainedEdge);
+                            constraintUsedForEdge.push(false);
+                            continue;
+                        }
+
+                        // found a segment where the endpoints were attracted
+                        let attractedSegment = result.segment;
+
+                        // check to see that the midpoint is attracted without moving
+                        let deviationThreshold2 = 1e-6 ** 2;
+                        let midpoint = [
+                            (attractedSegment[0][0] + attractedSegment[1][0]) /
+                                2,
+                            (attractedSegment[0][1] + attractedSegment[1][1]) /
+                                2,
+                        ];
+
+                        let closestMidpoint = findAttractedPoint({
+                            point: midpoint,
+                            scales,
+                            threshold2: deviationThreshold2,
+                            numericalNearestPointFunctions,
+                        });
+
+                        if (closestMidpoint) {
+                            // Midpoint of segment is also attracted without moving, so it on the attractor.
+                            // Return the result from attracting the endpoints
+
+                            constrainedEdges.push(
+                                result.segment.map((vertex) =>
+                                    vertex.map((v) => me.fromAst(v)),
+                                ),
+                            );
+                            constraintUsedForEdge.push(true);
+                        } else {
+                            // The midpoint wasn't on the attractor, so the segment is not considered attracted.
+
+                            constrainedEdges.push(unconstrainedEdge);
+                            constraintUsedForEdge.push(false);
+                        }
+                    }
+
+                    return { constrainedEdges, constraintUsedForEdge };
+                };
+
+                let vertexConstraintSub = function (
                     unconstrainedVertices,
                     objectInd,
                 ) {
@@ -347,11 +431,7 @@ export default class StickyGroup extends GraphicalComponent {
                         // first check if attracted to point
                         let constraintUsed = false;
                         let constrainedVertex;
-                        if (
-                            closestDistance2 <
-                            dependencyValues.threshold *
-                                dependencyValues.threshold
-                        ) {
+                        if (closestDistance2 < threshold2) {
                             constraintUsed = true;
                             constrainedVertex = closestPoint.map((v) =>
                                 me.fromAst(v),
@@ -386,11 +466,7 @@ export default class StickyGroup extends GraphicalComponent {
                                 }
                             }
 
-                            if (
-                                closestDistance2 <
-                                dependencyValues.threshold *
-                                    dependencyValues.threshold
-                            ) {
+                            if (closestDistance2 < threshold2) {
                                 constraintUsed = true;
                                 constrainedVertex = closestPoint.map((v) =>
                                     me.fromAst(v),
@@ -407,8 +483,39 @@ export default class StickyGroup extends GraphicalComponent {
                     return { constrainedVertices, constraintUsedForVertex };
                 };
 
-                let verticesConstraintFunction =
-                    returnVertexConstraintFunction(constraintSub);
+                let edgeConstraintFunction =
+                    returnVertexConstraintFunctionFromEdges(edgeConstraintSub);
+
+                let originalVerticesConstraintFunction =
+                    returnVertexConstraintFunction(vertexConstraintSub);
+
+                let verticesConstraintFunction = function (
+                    {
+                        unconstrainedVertices,
+                        closed,
+                        enforceRigid,
+                        allowRotation,
+                    },
+                    { objectInd },
+                ) {
+                    let constrainedVertices = edgeConstraintFunction(
+                        {
+                            unconstrainedVertices,
+                            closed,
+                            enforceRigid,
+                            allowRotation,
+                        },
+                        { objectInd },
+                    );
+
+                    constrainedVertices = originalVerticesConstraintFunction(
+                        constrainedVertices,
+                        enforceRigid,
+                        objectInd,
+                    );
+
+                    return constrainedVertices;
+                };
 
                 return { setValue: { verticesConstraintFunction } };
             },

@@ -978,9 +978,14 @@ export default class Polyline extends GraphicalComponent {
 
                                 desired_vertices =
                                     stickyVerticesConstraintFunction(
-                                        desired_vertices,
-                                        true,
-                                        stickyObjectIndex,
+                                        {
+                                            unconstrainedVertices:
+                                                desired_vertices,
+                                            closed: globalDependencyValues.closed,
+                                            enforceRigid: true,
+                                            allowRotation: true,
+                                        },
+                                        { objectInd: stickyObjectIndex },
                                     );
                             }
 
@@ -1095,9 +1100,14 @@ export default class Polyline extends GraphicalComponent {
 
                                 desired_vertices =
                                     stickyVerticesConstraintFunction(
-                                        desired_vertices,
-                                        true,
-                                        stickyObjectIndex,
+                                        {
+                                            unconstrainedVertices:
+                                                desired_vertices,
+                                            closed: globalDependencyValues.closed,
+                                            enforceRigid: true,
+                                            allowRotation: false,
+                                        },
+                                        { objectInd: stickyObjectIndex },
                                     );
                             }
 
@@ -1178,9 +1188,13 @@ export default class Polyline extends GraphicalComponent {
                                 await stateValues.stickyVerticesConstraintFunction;
 
                             desired_vertices = stickyVerticesConstraintFunction(
-                                desired_vertices,
-                                enforceRigid,
-                                stickyObjectIndex,
+                                {
+                                    unconstrainedVertices: desired_vertices,
+                                    closed: globalDependencyValues.closed,
+                                    enforceRigid,
+                                    allowRotation,
+                                },
+                                { objectInd: stickyObjectIndex },
                             );
                         }
 
