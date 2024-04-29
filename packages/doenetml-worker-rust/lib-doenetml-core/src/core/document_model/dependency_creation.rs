@@ -68,10 +68,10 @@ impl DocumentModel {
         // _before_ modifying the dependency graph in any way.
         let resolved_component_idx = match &query {
             DataQuery::Prop { source, .. }
-            | DataQuery::ComponentRefs {
+            | DataQuery::ContentRefs {
                 container: source, ..
             }
-            | DataQuery::AnnotatedComponentRefs {
+            | DataQuery::AnnotatedContentRefs {
                 container: source, ..
             } => {
                 // If resolving the prop source requires resolving additional dependencies first,
@@ -231,11 +231,11 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
-            DataQuery::AnnotatedComponentRefs {
+            DataQuery::AnnotatedContentRefs {
                 container: _container,
                 filter,
             }
-            | DataQuery::ComponentRefs {
+            | DataQuery::ContentRefs {
                 container: _container,
                 filter,
             } => {

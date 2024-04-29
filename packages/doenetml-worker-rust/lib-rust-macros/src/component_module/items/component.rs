@@ -11,6 +11,8 @@ impl ComponentModule {
         let impl_component = self.impl_component();
         let impl_component_node_trait = self.impl_component_node_trait();
         let impl_component_variant_props_trait = self.impl_component_variant_props_trait();
+        let impl_component_variant_prop_types_trait =
+            self.impl_component_variant_prop_types_trait();
         let impl_component_attributes_trait = self.impl_component_attributes_trait();
         let impl_component_actions_trait = self.impl_component_actions_trait();
         let impl_component_on_action_trait = self.impl_component_on_action_trait();
@@ -21,6 +23,7 @@ impl ComponentModule {
             #impl_component_attributes_trait
             #impl_component_node_trait
             #impl_component_variant_props_trait
+            #impl_component_variant_prop_types_trait
             #impl_component_actions_trait
             #impl_component_on_action_trait
         }
@@ -179,6 +182,17 @@ impl ComponentModule {
                 fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
                     Component::DEFAULT_PROP
                 }
+            }
+        };
+
+        ret
+    }
+
+    pub fn impl_component_variant_prop_types_trait(&self) -> TokenStream {
+        // Easy to implement because we have all the information in the component already.
+        let ret = quote! {
+            impl ComponentVariantPropTypes for Component {
+                const PROP_VALUE_TYPES: &'static [PropValueType] = Self::PROP_VALUE_TYPES;
             }
         };
 

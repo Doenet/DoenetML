@@ -25,7 +25,7 @@ impl ComponentRefProp {
     /// Creates a ComponentRefs prop that returns the last child with component_type
     pub fn new_from_last_matching_child(component_type: &'static str) -> Self {
         ComponentRefProp {
-            data_query: DataQuery::ComponentRefs {
+            data_query: DataQuery::ContentRefs {
                 container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
@@ -36,7 +36,7 @@ impl ComponentRefProp {
     /// Creates a ComponentRefs prop that returns the first child with component_type
     pub fn new_from_first_matching_child(component_type: &'static str) -> Self {
         ComponentRefProp {
-            data_query: DataQuery::ComponentRefs {
+            data_query: DataQuery::ContentRefs {
                 container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
@@ -100,7 +100,7 @@ impl PropUpdater for ComponentRefProp {
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         // There are different options based on the data query that created us.
         match self.data_query {
-            DataQuery::ComponentRefs { .. } => {
+            DataQuery::ContentRefs { .. } => {
                 let required_data = RequiredDataRefs::try_from_data_query_results(data).unwrap();
                 let content_refs = required_data.refs;
 

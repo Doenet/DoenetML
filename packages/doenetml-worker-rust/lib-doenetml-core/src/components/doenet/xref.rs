@@ -130,6 +130,21 @@ mod custom_props {
             }
         }
 
+        mod tt {
+            use super::*;
+            use crate::props::TypeDiscriminant;
+
+            #[test]
+            fn test_types() {
+                let rc_type =
+                    <PropView<component::props::types::RenderedChildren>>::PROP_VALUE_TYPE;
+                let x: Xref = Xref::default();
+                let dq_type = RequiredData::rendered_children_query().guess_return_type::<Xref>();
+                dbg!(rc_type);
+                dbg!(dq_type);
+            }
+        }
+
         impl PropUpdater for DisplayText {
             type PropType = prop_type::String;
 

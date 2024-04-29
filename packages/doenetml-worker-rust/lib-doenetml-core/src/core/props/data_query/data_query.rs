@@ -129,7 +129,7 @@ pub enum DataQuery {
     /// ```
     /// This query will return all children of the querying component that are `<section>` components
     /// and have a prop matching the `PropProfile::Hidden` profile.
-    ComponentRefs {
+    ContentRefs {
         /// Children of this component will be searched
         container: PropSource,
         /// How to filter the children. This should be a [`ContentFilter`] or a
@@ -141,7 +141,7 @@ pub enum DataQuery {
 
     /// The same as [`DataQuery::ComponentRefs`], but returns additional information
     /// about each matching component in the form of a [`ElementRefAnnotation`].
-    AnnotatedComponentRefs {
+    AnnotatedContentRefs {
         /// Children of this component will be searched
         container: PropSource,
         /// How to filter the children. This should be a [`ContentFilter`] or a

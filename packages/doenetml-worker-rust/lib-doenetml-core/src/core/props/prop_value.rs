@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 #[cfg(feature = "web")]
@@ -101,6 +102,82 @@ pub mod prop_type {
     )]
     #[cfg_attr(feature = "web", tsify(from_wasm_abi, into_wasm_abi))]
     pub struct _DummyForWasmBindgen {}
+}
+
+fn prop_type_to_value_type<T: 'static + TypeDiscriminant>() -> PropValueType {
+    T::PROP_VALUE_TYPE
+}
+
+pub trait TypeDiscriminant {
+    const PROP_VALUE_TYPE: PropValueType;
+}
+mod discriminant {
+    use crate::props::PropView;
+
+    use super::*;
+
+    impl TypeDiscriminant for prop_type::String {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::String;
+    }
+    impl TypeDiscriminant for prop_type::Number {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::Number;
+    }
+    impl TypeDiscriminant for prop_type::Integer {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::Integer;
+    }
+    impl TypeDiscriminant for prop_type::Boolean {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::Boolean;
+    }
+    impl TypeDiscriminant for prop_type::Math {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::Math;
+    }
+    impl TypeDiscriminant for prop_type::ComponentRefs {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::ComponentRefs;
+    }
+    impl TypeDiscriminant for prop_type::ComponentRef {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::ComponentRef;
+    }
+    impl TypeDiscriminant for prop_type::AnnotatedContentRefs {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::AnnotatedContentRefs;
+    }
+    impl TypeDiscriminant for prop_type::ContentRefs {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::ContentRefs;
+    }
+    impl TypeDiscriminant for prop_type::ContentRef {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::ContentRef;
+    }
+    impl TypeDiscriminant for prop_type::XrefLabel {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::XrefLabel;
+    }
+    impl TypeDiscriminant for prop_type::ListDepth {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::ListDepth;
+    }
+    impl TypeDiscriminant for prop_type::ListMarker {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::ListMarker;
+    }
+    impl TypeDiscriminant for prop_type::DivisionType {
+        const PROP_VALUE_TYPE: PropValueType = PropValueType::DivisionType;
+    }
+
+    // helpful impls
+    impl<T: TypeDiscriminant> TypeDiscriminant for PropView<T> {
+        const PROP_VALUE_TYPE: PropValueType = T::PROP_VALUE_TYPE;
+    }
+    impl<T: TypeDiscriminant> TypeDiscriminant for Vec<PropView<T>> {
+        const PROP_VALUE_TYPE: PropValueType = T::PROP_VALUE_TYPE;
+    }
+    impl<T: TypeDiscriminant> TypeDiscriminant for Option<PropView<T>> {
+        const PROP_VALUE_TYPE: PropValueType = T::PROP_VALUE_TYPE;
+    }
+}
+
+#[test]
+fn foo() {
+    let x = std::any::TypeId::of::<prop_type::String>();
+    dbg!(x);
+    dbg!(std::any::TypeId::of::<Rc<String>>());
+    dbg!(std::any::TypeId::of::<String>());
+    dbg!(std::any::type_name::<prop_type::String>());
 }
 
 mod conversions {

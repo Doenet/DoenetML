@@ -261,7 +261,7 @@ mod custom_props {
                 DataQuery::SelfRef
             }
             fn siblings_query() -> DataQuery {
-                DataQuery::ComponentRefs {
+                DataQuery::ContentRefs {
                     container: PropSource::Parent,
                     filter: Rc::new(ContentFilter::IsType(Li::NAME)),
                 }
