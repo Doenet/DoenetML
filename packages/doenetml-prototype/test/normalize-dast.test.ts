@@ -113,7 +113,7 @@ describe("Normalize dast", async () => {
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
             '<document><xref ref="$(foo-bar)" /></document>',
         );
-        
+
         source = `<xref ref="foo-bar" />`;
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
