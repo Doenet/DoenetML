@@ -1,3 +1,4 @@
+import React from "react";
 import nextraConfig from "nextra";
 const withNextra = nextraConfig({
     theme: "nextra-theme-docs",
