@@ -1,7 +1,4 @@
-import {
-    attractSegmentEndpoints,
-    findAttractedPoint,
-} from "../utils/constraints";
+import { attractSegmentEndpoints } from "../utils/constraints";
 import SegmentConstraintComponent from "./abstract/SegmentConstraintComponent";
 import me from "math-expressions";
 
@@ -116,17 +113,22 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
             },
         };
 
+        // nearestPointFunctions: normal nearestPoint functions that graphical component supply
+        // nearestPointAsLineFunctions: use a nearestPointAsLine function if a component supplies it,
+        // otherwise fall back to nearestPoint function
         stateVariableDefinitions.nearestPointFunctions = {
+            additionalStateVariablesDefined: ["nearestPointAsLineFunctions"],
             returnDependencies: () => ({
                 graphicalChildren: {
                     dependencyType: "child",
                     childGroups: ["graphical"],
-                    variableNames: ["nearestPoint"],
+                    variableNames: ["nearestPoint", "nearestPointAsLine"],
                     variablesOptional: true,
                 },
             }),
             definition: function ({ dependencyValues }) {
                 let nearestPointFunctions = [];
+                let nearestPointAsLineFunctions = [];
                 let warnings = [];
 
                 for (let child of dependencyValues.graphicalChildren) {
@@ -138,10 +140,23 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                         continue;
                     }
                     nearestPointFunctions.push(child.stateValues.nearestPoint);
+
+                    if (child.stateValues.nearestPointAsLine) {
+                        nearestPointAsLineFunctions.push(
+                            child.stateValues.nearestPointAsLine,
+                        );
+                    } else {
+                        nearestPointAsLineFunctions.push(
+                            child.stateValues.nearestPoint,
+                        );
+                    }
                 }
 
                 return {
-                    setValue: { nearestPointFunctions },
+                    setValue: {
+                        nearestPointFunctions,
+                        nearestPointAsLineFunctions,
+                    },
                     sendWarnings: warnings,
                 };
             },
@@ -153,6 +168,10 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                     nearestPointFunctions: {
                         dependencyType: "stateVariable",
                         variableName: "nearestPointFunctions",
+                    },
+                    nearestPointAsLineFunctions: {
+                        dependencyType: "stateVariable",
+                        variableName: "nearestPointAsLineFunctions",
                     },
                     threshold: {
                         dependencyType: "stateVariable",
@@ -183,97 +202,31 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
 
                 let numericalNearestPointFunctions =
                     dependencyValues.nearestPointFunctions.map(
-                        (f) =>
-                            function (point, scales) {
-                                let variables = {};
-                                for (let ind = 0; ind < point.length; ind++) {
-                                    let varName = "x" + (ind + 1);
-                                    variables[varName] = me.fromAst(point[ind]);
-                                }
+                        mapToNumericalNearestPointFunction,
+                    );
 
-                                let nearestPointAsVariables = f({
-                                    variables,
-                                    scales,
-                                });
-
-                                if (nearestPointAsVariables === undefined) {
-                                    return null;
-                                }
-
-                                let nearestPoint = [];
-                                for (let ind = 0; ind < point.length; ind++) {
-                                    let varName = "x" + (ind + 1);
-                                    if (
-                                        nearestPointAsVariables[varName] ===
-                                        undefined
-                                    ) {
-                                        break;
-                                    }
-                                    nearestPoint.push(
-                                        nearestPointAsVariables[varName],
-                                    );
-                                }
-                                if (nearestPoint.length !== point.length) {
-                                    return null;
-                                }
-
-                                return nearestPoint;
-                            },
+                let numericalNearestPointAsLineFunctions =
+                    dependencyValues.nearestPointAsLineFunctions.map(
+                        mapToNumericalNearestPointFunction,
                     );
 
                 return {
                     setValue: {
-                        applyConstraint: function (
-                            segment,
-                            allowRotation,
-                            enforceRigid,
-                        ) {
+                        applyConstraint: function (segment, allowRotation) {
                             let threshold2 =
                                 dependencyValues.threshold *
                                 dependencyValues.threshold;
 
-                            let result = attractSegmentEndpoints(
+                            let result = attractSegmentEndpoints({
                                 segment,
                                 allowRotation,
-                                enforceRigid,
                                 scales,
                                 threshold2,
                                 numericalNearestPointFunctions,
-                            );
-
-                            if (!result.constrained) {
-                                return {};
-                            }
-
-                            // found a segment where the endpoints were attracted
-                            let attractedSegment = result.segment;
-
-                            // check to see that the midpoint is attracted without moving
-                            let deviationThreshold2 = 1e-6 ** 2;
-                            let midpoint = [
-                                (attractedSegment[0][0] +
-                                    attractedSegment[1][0]) /
-                                    2,
-                                (attractedSegment[0][1] +
-                                    attractedSegment[1][1]) /
-                                    2,
-                            ];
-
-                            let closestMidpoint = findAttractedPoint({
-                                point: midpoint,
-                                scales,
-                                threshold2: deviationThreshold2,
-                                numericalNearestPointFunctions,
+                                numericalNearestPointAsLineFunctions,
                             });
 
-                            if (closestMidpoint) {
-                                // Midpoint of segment is also attracted without moving, so it on the attractor.
-                                // Return the result from attracting the endpoints
-                                return result;
-                            } else {
-                                // The midpoint wasn't on the attractor, so the segment is not considered attracted.
-                                return {};
-                            }
+                            return result;
                         },
                     },
                 };
@@ -282,4 +235,37 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
 
         return stateVariableDefinitions;
     }
+}
+
+function mapToNumericalNearestPointFunction(nearestPointFunction) {
+    return function (point, scales) {
+        let variables = {};
+        for (let ind = 0; ind < point.length; ind++) {
+            let varName = "x" + (ind + 1);
+            variables[varName] = me.fromAst(point[ind]);
+        }
+
+        let nearestPointAsVariables = nearestPointFunction({
+            variables,
+            scales,
+        });
+
+        if (nearestPointAsVariables === undefined) {
+            return null;
+        }
+
+        let nearestPoint = [];
+        for (let ind = 0; ind < point.length; ind++) {
+            let varName = "x" + (ind + 1);
+            if (nearestPointAsVariables[varName] === undefined) {
+                break;
+            }
+            nearestPoint.push(nearestPointAsVariables[varName]);
+        }
+        if (nearestPoint.length !== point.length) {
+            return null;
+        }
+
+        return nearestPoint;
+    };
 }

@@ -607,39 +607,235 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
 //
 // If did not attract to a point within the threshold return null,
 // else return the attracted point as an array of numbers
-export function findAttractedPoint({
-    point,
+
+function findAttractedSegmentPointsSub({
+    point1,
+    point2,
     scales,
     threshold2,
-    numericalNearestPointFunctions,
+    numericalNearestPointFunction,
+    numericalNearestPointAsLineFunction,
+    verifyNotOneSided = true,
 }) {
-    let closestDistance2 = Infinity;
-    let closestPoint;
+    let eps2 = 1e-6 ** 2;
 
-    for (let nearestPointFunction of numericalNearestPointFunctions) {
-        let nearestPoint = nearestPointFunction(point, scales);
+    // Need both points to be attracted when potentially extending attractor as a line,
+    // with distance less than threshold
+    let nearestPoint1 = numericalNearestPointAsLineFunction(point1, scales);
+    if (!nearestPoint1) {
+        return { success: false };
+    }
 
-        if (!nearestPoint) {
-            continue;
-        }
+    let distance2 = nearestPoint1.reduce(
+        (a, c, i) => a + Math.pow(c - point1[i], 2),
+        0,
+    );
+    if (distance2 >= threshold2) {
+        return { success: false };
+    }
 
-        let distance2 = 0;
+    let nearestPoint2 = numericalNearestPointAsLineFunction(point2, scales);
+    if (!nearestPoint2) {
+        return { success: false };
+    }
+    distance2 = nearestPoint2.reduce(
+        (a, c, i) => a + Math.pow(c - point2[i], 2),
+        0,
+    );
+    if (distance2 >= threshold2) {
+        return { success: false };
+    }
 
-        for (let ind = 0; ind < point.length; ind++) {
-            distance2 += Math.pow(point[ind] - nearestPoint[ind], 2);
-        }
+    if (verifyNotOneSided) {
+        // check if one point is attracted without extending as line
+        // to the same point as when attracting with extending
+        let nearestPoint1NotExtend = numericalNearestPointFunction(
+            point1,
+            scales,
+        );
+        let nearestPoint1Unchanged =
+            nearestPoint1NotExtend &&
+            nearestPoint1NotExtend.every(
+                (v, i) => Math.abs(v - nearestPoint1[i]) < 1e-6,
+            );
 
-        if (distance2 < closestDistance2) {
-            closestPoint = nearestPoint;
-            closestDistance2 = distance2;
+        let nearestPoint2NotExtend = numericalNearestPointFunction(
+            point2,
+            scales,
+        );
+        let nearestPoint2Unchanged =
+            nearestPoint2NotExtend &&
+            nearestPoint2NotExtend.every(
+                (v, i) => Math.abs(v - nearestPoint2[i]) < 1e-6,
+            );
+
+        if (!(nearestPoint1Unchanged || nearestPoint2Unchanged)) {
+            // Both points moved when attracting without extending as line.
+            // If they were both attracted to the same point,
+            // then they were on the same side of the segment (as opposed to straddling the segment),
+            // and we exclude this case.
+            distance2 = nearestPoint1NotExtend.reduce(
+                (a, c, i) => a + Math.pow(c - nearestPoint2NotExtend[i], 2),
+                0,
+            );
+            if (distance2 < eps2) {
+                return { success: false };
+            }
         }
     }
 
-    if (closestDistance2 > threshold2) {
-        closestPoint = null;
+    return {
+        success: true,
+        nearestPoint1,
+        nearestPoint2,
+    };
+}
+
+function findAttractedSegmentPoints({
+    point1,
+    point2,
+    allowRotation,
+    scales,
+    threshold2,
+    numericalNearestPointFunction,
+    numericalNearestPointAsLineFunction,
+}) {
+    let result = findAttractedSegmentPointsSub({
+        point1,
+        point2,
+        scales,
+        threshold2,
+        numericalNearestPointFunction,
+        numericalNearestPointAsLineFunction,
+        verifyNotOneSided: true,
+    });
+
+    if (!result.success) {
+        return { success: false };
     }
 
-    return closestPoint;
+    let { nearestPoint1, nearestPoint2 } = result;
+
+    if (!allowRotation) {
+        let original_rel = [point2[0] - point1[0], point2[1] - point1[1]];
+
+        let moved_rel = [
+            nearestPoint2[0] - nearestPoint1[0],
+            nearestPoint2[1] - nearestPoint1[1],
+        ];
+
+        let dTheta =
+            Math.atan2(moved_rel[1], moved_rel[0]) -
+            Math.atan2(original_rel[1], original_rel[0]);
+
+        // make dTheta be between -pi and pi
+        dTheta = me.math.mod(dTheta + Math.PI, 2 * Math.PI) - Math.PI;
+
+        // we had a rotation, so don't attract
+        if (Math.abs(dTheta) > 1e-6) {
+            return { success: false };
+        }
+    }
+
+    // If the attracted points are the same distances apart as point1 and point2, we're done.
+    let originalDistance2 = point1.reduce(
+        (a, c, i) => a + Math.pow(c - point2[i], 2),
+        0,
+    );
+    let newDistance2 = nearestPoint1.reduce(
+        (a, c, i) => a + Math.pow(c - nearestPoint2[i], 2),
+        0,
+    );
+
+    let deviationThreshold2 = 1e-6 ** 2;
+    if (Math.abs(originalDistance2 - newDistance2) < deviationThreshold2) {
+        let distance2 =
+            nearestPoint1.reduce(
+                (a, c, i) => a + Math.pow(c - point1[i], 2),
+                0,
+            ) +
+            nearestPoint2.reduce(
+                (a, c, i) => a + Math.pow(c - point2[i], 2),
+                0,
+            );
+
+        if (distance2 < threshold2) {
+            return {
+                success: true,
+                distance2,
+                segment: [nearestPoint1, nearestPoint2],
+            };
+        } else {
+            return { success: false };
+        }
+    }
+
+    // If the points were pulled further apart, consider the segment not attracted.
+    if (newDistance2 > originalDistance2) {
+        return { success: false };
+    }
+
+    // In general, the points will be pushed together (unless they started with the same deviation from the line).
+    let expandFactor = Math.sqrt(originalDistance2 / newDistance2);
+
+    // We try expanding both points outward to make the be the correct distance apart
+    // and check to see if they are attracted without moving.
+    // The amount that we move each point outward is proportional to how much it moved
+    // when originally being attracted.
+    // With this algorithm, a point that started on the attractor doesn't move,
+    // preventing observed strange behavior when enforceRigid was false
+    // where the line segment length would keep increasing.
+
+    let deviation1 = Math.sqrt(
+        point1.reduce((a, c, i) => a + Math.pow(c - nearestPoint1[i], 2), 0),
+    );
+    let deviation2 = Math.sqrt(
+        point2.reduce((a, c, i) => a + Math.pow(c - nearestPoint2[i], 2), 0),
+    );
+
+    let p1 = deviation1 / (deviation1 + deviation2);
+    let p2 = 1 - p1;
+
+    let expandFactor1 = (expandFactor - 1) * p1 + 1;
+    let expandFactor2 = (expandFactor - 1) * p2 + 1;
+
+    let extendedPoint1 = nearestPoint2.map(
+        (v, i) => v + (nearestPoint1[i] - v) * expandFactor1,
+    );
+
+    let extendedPoint2 = nearestPoint1.map(
+        (v, i) => v + (nearestPoint2[i] - v) * expandFactor2,
+    );
+
+    let eps2 = 1e-6 ** 2;
+
+    result = findAttractedSegmentPointsSub({
+        point1: extendedPoint1,
+        point2: extendedPoint2,
+        scales,
+        threshold2: eps2,
+        numericalNearestPointFunction,
+        numericalNearestPointAsLineFunction,
+        verifyNotOneSided: false,
+    });
+
+    if (!result.success) {
+        return { success: false };
+    }
+
+    let distance2 =
+        extendedPoint1.reduce((a, c, i) => a + Math.pow(c - point1[i], 2), 0) +
+        extendedPoint2.reduce((a, c, i) => a + Math.pow(c - point2[i], 2), 0);
+
+    if (distance2 < threshold2) {
+        return {
+            success: true,
+            distance2,
+            segment: [extendedPoint1, extendedPoint2],
+        };
+    } else {
+        return { success: false };
+    }
 }
 
 // Attract the points of segment to the closest points
@@ -650,16 +846,14 @@ export function findAttractedPoint({
 //
 // If allowRotation is true, then the segment could have rotated when attracting.
 //
-// If enforceRigid is not true, then stricter controls are made on the resulting segment
-// in order to prevent the segment from extending with repeated applications.
-export function attractSegmentEndpoints(
+export function attractSegmentEndpoints({
     segment,
     allowRotation,
-    enforceRigid,
     scales,
     threshold2,
     numericalNearestPointFunctions,
-) {
+    numericalNearestPointAsLineFunctions,
+}) {
     let point1 = segment[0];
     let point2 = segment[1];
 
@@ -670,198 +864,40 @@ export function attractSegmentEndpoints(
     let numericalPoint1 = point1.map((v) => findFiniteNumericalValue(v));
     let numericalPoint2 = point2.map((v) => findFiniteNumericalValue(v));
 
-    // attempt to find attraction points for point1 and point2
+    let closestSegment;
+    let minDeviation2 = Infinity;
 
-    let closestPoint1 = findAttractedPoint({
-        point: numericalPoint1,
-        scales,
-        threshold2,
-        numericalNearestPointFunctions,
-    });
+    for (let [
+        ind,
+        numericalNearestPointFunction,
+    ] of numericalNearestPointFunctions.entries()) {
+        let numericalNearestPointAsLineFunction =
+            numericalNearestPointAsLineFunctions[ind];
 
-    if (!closestPoint1) {
-        return {};
-    }
-
-    let closestPoint2 = findAttractedPoint({
-        point: numericalPoint2,
-        scales,
-        threshold2,
-        numericalNearestPointFunctions,
-    });
-
-    if (!closestPoint2) {
-        return {};
-    }
-
-    // Succeeded in attracting both point1 and point2.
-
-    if (!allowRotation) {
-        let original_rel = [
-            numericalPoint2[0] - numericalPoint1[0],
-            numericalPoint2[1] - numericalPoint1[1],
-        ];
-
-        let moved_rel = [
-            closestPoint2[0] - closestPoint1[0],
-            closestPoint2[1] - closestPoint1[1],
-        ];
-
-        let dtheta =
-            Math.atan2(moved_rel[1], moved_rel[0]) -
-            Math.atan2(original_rel[1], original_rel[0]);
-
-        // make dtheta be between -pi and pi
-        dtheta = me.math.mod(dtheta + Math.PI, 2 * Math.PI) - Math.PI;
-
-        // we had a rotation, so don't attract
-        if (Math.abs(dtheta) > 1e-6) {
-            return {};
-        }
-    }
-
-    // If the attracted points are the same distances apart as point1 and point2, we're done.
-    let originalDistance2 = numericalPoint1.reduce(
-        (a, c, i) => a + Math.pow(c - numericalPoint2[i], 2),
-        0,
-    );
-
-    let newDistance2 = closestPoint1.reduce(
-        (a, c, i) => a + Math.pow(c - closestPoint2[i], 2),
-        0,
-    );
-
-    let deviationThreshold2 = 1e-6 ** 2;
-
-    if (Math.abs(originalDistance2 - newDistance2) < deviationThreshold2) {
-        return {
-            constrained: true,
-            segment: [closestPoint1, closestPoint2],
-        };
-    }
-
-    // If the points were pulled further apart, consider the segment not attracted.
-    if (newDistance2 > originalDistance2) {
-        return {};
-    }
-
-    // In general, the points will be pushed together (unless they started with the same deviation from the line).
-    let expandFactor = Math.sqrt(originalDistance2 / newDistance2);
-
-    // First we try expanding both points outward to make the be the correct distance apart
-    // and check to see if they are attracted without moving.
-
-    // We start out with a more complex algorithm in choosing how much to move each point.
-    // This is the only algorithm we will allow when enforceRigid is false.
-    // It is designed to make sure a point that started on the attractor doesn't move,
-    // preventing the point not being moved from precessing and increasing the line segment length.
-    // The amount that we move each point outward is proportional to how much it moved
-    // when originally being attracted
-
-    let deviation1 = Math.sqrt(
-        numericalPoint1.reduce(
-            (a, c, i) => a + Math.pow(c - closestPoint1[i], 2),
-            0,
-        ),
-    );
-    let deviation2 = Math.sqrt(
-        numericalPoint2.reduce(
-            (a, c, i) => a + Math.pow(c - closestPoint2[i], 2),
-            0,
-        ),
-    );
-
-    let p1 = deviation1 / (deviation1 + deviation2);
-    let p2 = 1 - p1;
-
-    let expandFactor1 = (expandFactor - 1) * p1 + 1;
-    let expandFactor2 = (expandFactor - 1) * p2 + 1;
-
-    let extendedPoint1 = closestPoint2.map(
-        (v, i) => v + (closestPoint1[i] - v) * expandFactor1,
-    );
-
-    let extendedPoint2 = closestPoint1.map(
-        (v, i) => v + (closestPoint2[i] - v) * expandFactor2,
-    );
-
-    // See if extended point 1 is attracted without moving more than deviation threshold
-    let closestPoint1Extended = findAttractedPoint({
-        point: extendedPoint1,
-        scales,
-        threshold2: deviationThreshold2,
-        numericalNearestPointFunctions,
-    });
-
-    if (closestPoint1Extended) {
-        // See if extended point 2 is attracted without moving more than deviation threshold
-        let closestPoint2Extended = findAttractedPoint({
-            point: extendedPoint2,
+        let result = findAttractedSegmentPoints({
+            point1: numericalPoint1,
+            point2: numericalPoint2,
+            allowRotation,
             scales,
-            threshold2: deviationThreshold2,
-            numericalNearestPointFunctions,
+            threshold2,
+            numericalNearestPointFunction,
+            numericalNearestPointAsLineFunction,
         });
 
-        if (closestPoint2Extended) {
-            // both extended point were still on the attractor,
-            // so consider the points attracted
+        if (!result.success) {
+            continue;
+        }
 
-            return {
-                constrained: true,
-                segment: [closestPoint1Extended, closestPoint2Extended],
-            };
+        if (result.distance2 < minDeviation2) {
+            minDeviation2 = result.distance2;
+            closestSegment = result.segment;
         }
     }
 
-    if (!enforceRigid) {
-        // If we aren't enforcing rigid, then we stop here.
-        // Extending in one direction or the other can lead to the line segment growing
-        // when dragging a point past the end of the attractor, which is strange behavior.
-        return {};
-    }
-
-    // Next check that the segment could still be attracted to a segment/ray,
-    // but that one point started a little past an endpoint.
-    // Try moving either endpoint out to make them the correct distance apart
-    // and then see if they are attracted without moving.
-
-    extendedPoint1 = closestPoint2.map(
-        (v, i) => v + (closestPoint1[i] - v) * expandFactor,
-    );
-
-    // See if extended point 1 is attracted without moving more than deviation threshold
-    closestPoint1Extended = findAttractedPoint({
-        point: extendedPoint1,
-        scales,
-        threshold2: deviationThreshold2,
-        numericalNearestPointFunctions,
-    });
-
-    if (closestPoint1Extended) {
+    if (minDeviation2 < threshold2) {
         return {
             constrained: true,
-            segment: [closestPoint1Extended, closestPoint2],
-        };
-    }
-
-    // We didn't get an unmoved point when extending closest point1, so try extending closest point2
-
-    extendedPoint2 = closestPoint1.map(
-        (v, i) => v + (closestPoint2[i] - v) * expandFactor,
-    );
-
-    // See if extended point 1 is attracted without moving more than deviation threshold
-    let closestPoint2Extended = findAttractedPoint({
-        point: extendedPoint2,
-        scales,
-        threshold2: deviationThreshold2,
-        numericalNearestPointFunctions,
-    });
-
-    if (closestPoint2Extended) {
-        return {
-            constrained: true,
-            segment: [closestPoint1, closestPoint2Extended],
+            segment: closestSegment,
         };
     }
 

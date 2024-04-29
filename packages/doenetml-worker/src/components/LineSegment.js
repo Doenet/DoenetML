@@ -755,6 +755,73 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.nearestPointAsLine = {
+            returnDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+                numericalEndpoints: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalEndpoints",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let A1 = dependencyValues.numericalEndpoints[0][0];
+                let A2 = dependencyValues.numericalEndpoints[0][1];
+                let B1 = dependencyValues.numericalEndpoints[1][0];
+                let B2 = dependencyValues.numericalEndpoints[1][1];
+
+                let haveConstants =
+                    Number.isFinite(A1) &&
+                    Number.isFinite(A2) &&
+                    Number.isFinite(B1) &&
+                    Number.isFinite(B2);
+
+                // only implement for
+                // - 2D
+                // - constant endpoints and
+                // - non-degenerate parameters
+                let skip =
+                    dependencyValues.numDimensions !== 2 ||
+                    !haveConstants ||
+                    (B1 === A1 && B2 === A2);
+
+                return {
+                    setValue: {
+                        nearestPoint: function ({ variables, scales }) {
+                            if (skip) {
+                                return {};
+                            }
+
+                            let xscale = scales[0];
+                            let yscale = scales[1];
+
+                            let BA1 = (B1 - A1) / xscale;
+                            let BA2 = (B2 - A2) / yscale;
+                            let denom = BA1 * BA1 + BA2 * BA2;
+
+                            let t =
+                                (((variables.x1 - A1) / xscale) * BA1 +
+                                    ((variables.x2 - A2) / yscale) * BA2) /
+                                denom;
+
+                            let result = {
+                                x1: A1 + t * BA1 * xscale,
+                                x2: A2 + t * BA2 * yscale,
+                            };
+
+                            if (variables.x3 !== undefined) {
+                                result.x3 = 0;
+                            }
+
+                            return result;
+                        },
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.slope = {
             public: true,
             isLocation: true,
