@@ -895,7 +895,7 @@ export function attractSegment({
         }
     }
 
-    if (attractingPoints) {
+    if (attractingPoints && !closestSegment) {
         for (let attractingPoint of attractingPoints) {
             let closestPoint = nearestPointForSegment({
                 point: attractingPoint,

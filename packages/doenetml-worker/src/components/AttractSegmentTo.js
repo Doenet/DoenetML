@@ -1,4 +1,4 @@
-import { attractSegmentEndpoints } from "../utils/constraints";
+import { attractSegment } from "../utils/constraints";
 import SegmentConstraintComponent from "./abstract/SegmentConstraintComponent";
 import me from "math-expressions";
 
@@ -217,7 +217,7 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                                 dependencyValues.threshold *
                                 dependencyValues.threshold;
 
-                            let result = attractSegmentEndpoints({
+                            let result = attractSegment({
                                 segment,
                                 allowRotation,
                                 scales,
