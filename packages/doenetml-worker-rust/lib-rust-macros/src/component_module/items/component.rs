@@ -193,6 +193,7 @@ impl ComponentModule {
         let ret = quote! {
             impl ComponentVariantPropTypes for Component {
                 const PROP_VALUE_TYPES: &'static [PropValueType] = Self::PROP_VALUE_TYPES;
+                const COMPONENT_NAME: &'static str = Self::COMPONENT_NAME;
             }
         };
 

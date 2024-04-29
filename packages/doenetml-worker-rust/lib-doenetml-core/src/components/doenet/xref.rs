@@ -36,7 +36,7 @@ mod component {
         /// When clicking on the `<xref>`, the desired behavior might be to show the content
         /// of the referent. If so, such content is stored here.
         #[prop(
-            value_type = PropValueType::ContentRefs,
+            value_type = PropValueType::AnnotatedContentRefs,
             for_render,
         )]
         ReferentChildren,
@@ -110,6 +110,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Xref)]
         struct RequiredData {
             rendered_children: PropView<component::props::types::RenderedChildren>,
             label: Option<PropView<prop_type::XrefLabel>>,
@@ -127,21 +129,6 @@ mod custom_props {
                     source: PropSource::StaticComponentRef(XrefProps::Referent.local_idx()),
                     prop_specifier: PropSpecifier::Matching(vec![PropProfile::XrefLabel]),
                 }
-            }
-        }
-
-        mod tt {
-            use super::*;
-            use crate::props::TypeDiscriminant;
-
-            #[test]
-            fn test_types() {
-                let rc_type =
-                    <PropView<component::props::types::RenderedChildren>>::PROP_VALUE_TYPE;
-                let x: Xref = Xref::default();
-                let dq_type = RequiredData::rendered_children_query().guess_return_type::<Xref>();
-                dbg!(rc_type);
-                dbg!(dq_type);
             }
         }
 
@@ -201,8 +188,10 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Xref)]
         struct RequiredData {
-            referent_children: Option<PropView<prop_type::ContentRefs>>,
+            referent_children: Option<PropView<prop_type::AnnotatedContentRefs>>,
         }
 
         impl DataQueries for RequiredData {

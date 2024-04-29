@@ -1,4 +1,3 @@
-use std::marker::PhantomData;
 use std::rc::Rc;
 
 #[cfg(feature = "web")]
@@ -16,6 +15,10 @@ use crate::utils::rc_serde;
 ///////////////////////////////////////////////////////////////////////
 
 /// The value of a prop tagged with its type.
+/// These values follow a naming convention:
+///  1. They are all in the form `PropValue::VariantName(prop_type::VariantName)`.
+///  2. There is a corresponding type alias `VariantName` in the `prop_type` module.
+/// This naming convention is relied upon by macros that implement type checking.
 #[derive(
     Debug,
     Clone,
@@ -69,28 +72,61 @@ pub mod prop_type {
         component_refs, content_refs, division_type, list_depth, list_marker, xref_label,
     };
 
-    #[cfg_attr(feature = "web", tsify_next::declare)]
-    pub type String = Rc<std::string::String>;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
-    pub type Number = f64;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
-    pub type Integer = i64;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
-    pub type Boolean = bool;
-    #[cfg_attr(feature = "web", tsify_next::declare)]
-    pub type Math = Rc<MathExpr>;
+    /// A macro that declares a type and implements `TypeDiscriminant`.
+    ///
+    /// For example, `with_discriminant!(Foo, type::Name)` that expands to
+    /// ```ignore
+    /// pub type Foo = type::Name;
+    /// impl TypeDiscriminant for Foo {
+    ///    const PROP_VALUE_TYPE: Option<PropValueType> = Some(PropValueType::Name);
+    /// }
+    /// ```
+    /// If an optional third argument is supplied, it is included in an attribute macro
+    /// with `#[cfg_attr(feature = "web", ...)]`.
+    ///
+    /// For example, `with_discriminant!(String, prop_type::String, tsify_next::declare)` expands to
+    /// ```ignore
+    /// #[cfg_attr(feature = "web", tsify_next::declare)]
+    /// pub type String = prop_type::String;
+    /// impl TypeDiscriminant for String {
+    ///   const PROP_VALUE_TYPE: Option<PropValueType> = Some(PropValueType::String);
+    /// }
+    /// ```
+    macro_rules! with_discriminant {
+        ($name:ident, $type:path) => {
+            pub type $name = $type;
+
+            impl TypeDiscriminant for $name {
+                const PROP_VALUE_TYPE: Option<PropValueType> = Some(PropValueType::$name);
+            }
+        };
+        ($name:ident, $type:path, $attr:path) => {
+            #[cfg_attr(feature = "web", $attr)]
+            pub type $name = $type;
+
+            impl TypeDiscriminant for $name {
+                const PROP_VALUE_TYPE: Option<PropValueType> = Some(PropValueType::$name);
+            }
+        };
+    }
+
+    with_discriminant!(String, Rc<std::string::String>, tsify_next::declare);
+    with_discriminant!(Number, f64, tsify_next::declare);
+    with_discriminant!(Integer, i64, tsify_next::declare);
+    with_discriminant!(Boolean, bool, tsify_next::declare);
+    with_discriminant!(Math, Rc<MathExpr>, tsify_next::declare);
 
     // The typescript types for these are exported in their respective files,
     // so we don't use `tsify_next::declare` on them.
-    pub type ComponentRef = Option<component_refs::ComponentRef>;
-    pub type ComponentRefs = Rc<component_refs::ComponentRefs>;
-    pub type AnnotatedContentRefs = Rc<content_refs::AnnotatedContentRefs>;
-    pub type ContentRefs = Rc<content_refs::ContentRefs>;
-    pub type ContentRef = content_refs::ContentRef;
-    pub type XrefLabel = Rc<xref_label::XrefLabel>;
-    pub type ListDepth = list_depth::ListDepth;
-    pub type ListMarker = list_marker::ListMarker;
-    pub type DivisionType = division_type::DivisionType;
+    with_discriminant!(ComponentRef, Option<component_refs::ComponentRef>);
+    with_discriminant!(ComponentRefs, Rc<component_refs::ComponentRefs>);
+    with_discriminant!(AnnotatedContentRefs, Rc<content_refs::AnnotatedContentRefs>);
+    with_discriminant!(ContentRefs, Rc<content_refs::ContentRefs>);
+    with_discriminant!(ContentRef, content_refs::ContentRef);
+    with_discriminant!(XrefLabel, Rc<xref_label::XrefLabel>);
+    with_discriminant!(ListDepth, list_depth::ListDepth);
+    with_discriminant!(ListMarker, list_marker::ListMarker);
+    with_discriminant!(DivisionType, division_type::DivisionType);
 
     /// By default, wasm-bindgen won't pick up this module as containing types to export
     /// to Typescript. We force wasm-bindgen to export types in this module by providing a
@@ -104,80 +140,39 @@ pub mod prop_type {
     pub struct _DummyForWasmBindgen {}
 }
 
-fn prop_type_to_value_type<T: 'static + TypeDiscriminant>() -> PropValueType {
-    T::PROP_VALUE_TYPE
-}
-
-pub trait TypeDiscriminant {
-    const PROP_VALUE_TYPE: PropValueType;
-}
-mod discriminant {
+pub use type_discriminant::TypeDiscriminant;
+mod type_discriminant {
+    //! Implementing [`TypeDiscriminant`] allows run-time access to the type variant of a type.
+    //! This works around limitations in Rust's type system where you are not allowed to use types as
+    //! first-class values. This module provides functions for _testing_ and should not be used in
+    //! general.
+    use super::*;
     use crate::props::PropView;
 
-    use super::*;
-
-    impl TypeDiscriminant for prop_type::String {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::String;
-    }
-    impl TypeDiscriminant for prop_type::Number {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::Number;
-    }
-    impl TypeDiscriminant for prop_type::Integer {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::Integer;
-    }
-    impl TypeDiscriminant for prop_type::Boolean {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::Boolean;
-    }
-    impl TypeDiscriminant for prop_type::Math {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::Math;
-    }
-    impl TypeDiscriminant for prop_type::ComponentRefs {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::ComponentRefs;
-    }
-    impl TypeDiscriminant for prop_type::ComponentRef {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::ComponentRef;
-    }
-    impl TypeDiscriminant for prop_type::AnnotatedContentRefs {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::AnnotatedContentRefs;
-    }
-    impl TypeDiscriminant for prop_type::ContentRefs {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::ContentRefs;
-    }
-    impl TypeDiscriminant for prop_type::ContentRef {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::ContentRef;
-    }
-    impl TypeDiscriminant for prop_type::XrefLabel {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::XrefLabel;
-    }
-    impl TypeDiscriminant for prop_type::ListDepth {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::ListDepth;
-    }
-    impl TypeDiscriminant for prop_type::ListMarker {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::ListMarker;
-    }
-    impl TypeDiscriminant for prop_type::DivisionType {
-        const PROP_VALUE_TYPE: PropValueType = PropValueType::DivisionType;
+    /// A trait that gives access to the `PropValueType` corresponding to a prop value.
+    /// This happens _at the type level_. It relies on the following naming convention:
+    ///  - Every declared type `Foo` must have a corresponding `PropValue::Foo(Foo)`.
+    pub trait TypeDiscriminant {
+        /// The discriminating type. If `Some(PropValueType)`, then the type is
+        /// known to be that variant. If `None`, the type's variant cannot be determined (e.g. it is a union
+        /// of multiple types, like `PropValue` itself).
+        const PROP_VALUE_TYPE: Option<PropValueType>;
     }
 
     // helpful impls
     impl<T: TypeDiscriminant> TypeDiscriminant for PropView<T> {
-        const PROP_VALUE_TYPE: PropValueType = T::PROP_VALUE_TYPE;
+        const PROP_VALUE_TYPE: Option<PropValueType> = T::PROP_VALUE_TYPE;
     }
     impl<T: TypeDiscriminant> TypeDiscriminant for Vec<PropView<T>> {
-        const PROP_VALUE_TYPE: PropValueType = T::PROP_VALUE_TYPE;
+        const PROP_VALUE_TYPE: Option<PropValueType> = T::PROP_VALUE_TYPE;
     }
     impl<T: TypeDiscriminant> TypeDiscriminant for Option<PropView<T>> {
-        const PROP_VALUE_TYPE: PropValueType = T::PROP_VALUE_TYPE;
+        const PROP_VALUE_TYPE: Option<PropValueType> = T::PROP_VALUE_TYPE;
     }
-}
-
-#[test]
-fn foo() {
-    let x = std::any::TypeId::of::<prop_type::String>();
-    dbg!(x);
-    dbg!(std::any::TypeId::of::<Rc<String>>());
-    dbg!(std::any::TypeId::of::<String>());
-    dbg!(std::any::type_name::<prop_type::String>());
+    impl TypeDiscriminant for PropValue {
+        // PropValue is a union of all the types, so it doesn't have a specific value type.
+        const PROP_VALUE_TYPE: Option<PropValueType> = None;
+    }
 }
 
 mod conversions {

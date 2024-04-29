@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{components::ComponentVariantPropTypes, props::PropValueType};
 
 use super::TryFromDataQueryResults;
@@ -14,7 +16,9 @@ pub trait TestDataQueryTypes: TryFromDataQueryResults {
     /// }
     /// ```
     /// would result in the list `&[("a", PropValueType::String), ("b", PropValueType::Number)]`.
-    const _DECLARED_DATA_QUERY_TYPES: &'static [(&'static str, PropValueType)];
+    const _DECLARED_DATA_QUERY_TYPES: &'static [(&'static str, Option<PropValueType>)];
+
+    const _STRUCT_NAME: &'static str;
 
     /// Test that the types of the data queries match the types declared in the `RequiredData` struct.
     /// This function should only be used as part of tests.
@@ -24,7 +28,7 @@ pub trait TestDataQueryTypes: TryFromDataQueryResults {
     /// ```ignore
     /// RequiredData::_test_data_query_types::<Text>();
     /// ```
-    fn _test_data_query_types<T: ComponentVariantPropTypes + 'static>() {
+    fn _test_data_query_types<T: ComponentVariantPropTypes + 'static>() -> anyhow::Result<()> {
         let types_from_data_queries = Self::to_data_queries()
             .iter()
             .map(|query| query.guess_return_type::<T>())
@@ -38,13 +42,29 @@ pub trait TestDataQueryTypes: TryFromDataQueryResults {
                 // If we could not determine the type that this data query produces, we won't test it.
                 continue;
             }
+            if expected_type.is_none() {
+                // If the expected type is `None`, it cannot be determined, so we don't do any testing.
+                continue;
+            }
+            let expected_type = expected_type.unwrap();
             let possible_types = possible_types.unwrap();
             if !possible_types.contains(&expected_type) {
-                panic!(
-                    "Based on the data query, `{}` should have one of the following types: {:?}. Based on the `PropValue<...>` definition, the type is {:?}",
-                    field_name, expected_type, possible_types
-                );
+                let struct_name = Self::_STRUCT_NAME;
+                let component_name = T::COMPONENT_NAME;
+                let possible_types_str = possible_types
+                    .iter()
+                    .map(|x| format!("{:?}", x))
+                    .join("`, `");
+                // Note: All whitespace after the `\` at the end of the line is removed, so if we want indented messages,
+                // we need to include the whitespace _before_ the `\`.
+                return Err(anyhow::anyhow!(
+                    "Type error for component `{component_name}`:\n  \
+                      In `{struct_name}.{field_name}`\n    \
+                         DataQuery returns a type of `{possible_types_str}`.\n    \
+                         PropValue<...> definition is of incompatible type `{expected_type:?}`",
+                ));
             }
         }
+        Ok(())
     }
 }

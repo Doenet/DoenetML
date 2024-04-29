@@ -144,6 +144,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Li)]
         struct RequiredData {
             parent_marker: Option<PropView<prop_type::ListMarker>>,
             index: PropView<prop_type::Integer>,
@@ -199,6 +201,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Li)]
         struct RequiredData {
             parent_depth: Option<PropView<prop_type::ListDepth>>,
         }
@@ -251,6 +255,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Li)]
         struct RequiredData {
             siblings: PropView<prop_type::ContentRefs>,
             self_ref: PropView<prop_type::ComponentRef>,
@@ -312,6 +318,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Li)]
         struct RequiredData {
             start_index: Option<PropView<prop_type::Integer>>,
             local_serial_number: PropView<prop_type::Integer>,
@@ -367,6 +375,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Li)]
         struct RequiredData {
             nearest_ancestor_code_number: Option<PropView<prop_type::String>>,
             self_label: PropView<prop_type::String>,
@@ -437,6 +447,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Li)]
         struct RequiredData {
             division_code_number: Option<PropView<prop_type::String>>,
             code_number: PropView<component::props::types::CodeNumber>,

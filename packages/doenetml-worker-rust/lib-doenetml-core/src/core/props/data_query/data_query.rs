@@ -118,7 +118,7 @@ pub enum DataQuery {
     /// ```rust
     /// # use std::rc::Rc;
     /// # use doenetml_core::props::{DataQuery, PropSource, ContentFilter, Op, PropProfile};
-    /// DataQuery::ComponentRefs {
+    /// DataQuery::ContentRefs {
     ///    container: PropSource::Me,
     ///    filter: Rc::new(Op::And(
     ///      ContentFilter::IsType("section"),
