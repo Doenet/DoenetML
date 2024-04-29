@@ -1,5 +1,7 @@
 import {
-    attractSegmentEndpoints,
+    attractSegment,
+    nearestPointForSegment,
+    nearestPointForSegmentAsLine,
     returnConstraintGraphInfoDefinitions,
     returnVertexConstraintFunction,
     returnVertexConstraintFunctionFromEdges,
@@ -316,6 +318,8 @@ export default class StickyGroup extends GraphicalComponent {
                     { unconstrainedEdges, allowRotation, enforceRigid },
                     { objectInd },
                 ) {
+                    let pointsToAttract =
+                        dependencyValues.getPointsForObject(objectInd);
                     let segmentsToAttract =
                         dependencyValues.getSegmentsForObject(objectInd);
 
@@ -345,13 +349,14 @@ export default class StickyGroup extends GraphicalComponent {
                             );
                         }
 
-                        let result = attractSegmentEndpoints({
+                        let result = attractSegment({
                             segment: unconstrainedEdge,
                             allowRotation,
                             scales,
                             threshold2,
                             numericalNearestPointFunctions,
                             numericalNearestPointAsLineFunctions,
+                            attractingPoints: pointsToAttract,
                         });
 
                         if (result.constrained) {
@@ -615,82 +620,4 @@ export default class StickyGroup extends GraphicalComponent {
 
         return stateVariableDefinitions;
     }
-}
-
-// Find the point on `segment` that is closest to `point`,
-// scaling axes according to `scales`.
-function nearestPointForSegment({ point, segment, scales }) {
-    let A1 = segment[0][0];
-    let A2 = segment[0][1];
-    let B1 = segment[1][0];
-    let B2 = segment[1][1];
-
-    let haveConstants =
-        Number.isFinite(A1) &&
-        Number.isFinite(A2) &&
-        Number.isFinite(B1) &&
-        Number.isFinite(B2);
-
-    // only implement for
-    // - 2D
-    // - constant endpoints and
-    // - non-degenerate parameters
-    if (segment[0].length !== 2 || !haveConstants || (B1 === A1 && B2 === A2)) {
-        return null;
-    }
-
-    let xscale = scales[0];
-    let yscale = scales[1];
-
-    let BA1 = (B1 - A1) / xscale;
-    let BA2 = (B2 - A2) / yscale;
-    let denom = BA1 * BA1 + BA2 * BA2;
-
-    let t =
-        (((point[0] - A1) / xscale) * BA1 + ((point[1] - A2) / yscale) * BA2) /
-        denom;
-
-    if (t <= 0) {
-        return [A1, A2];
-    } else if (t >= 1) {
-        return [B1, B2];
-    } else {
-        return [A1 + t * BA1 * xscale, A2 + t * BA2 * yscale];
-    }
-}
-
-// Find the point on extended line of `segment` that is closest to `point`,
-// scaling axes according to `scales`.
-function nearestPointForSegmentAsLine({ point, segment, scales }) {
-    let A1 = segment[0][0];
-    let A2 = segment[0][1];
-    let B1 = segment[1][0];
-    let B2 = segment[1][1];
-
-    let haveConstants =
-        Number.isFinite(A1) &&
-        Number.isFinite(A2) &&
-        Number.isFinite(B1) &&
-        Number.isFinite(B2);
-
-    // only implement for
-    // - 2D
-    // - constant endpoints and
-    // - non-degenerate parameters
-    if (segment[0].length !== 2 || !haveConstants || (B1 === A1 && B2 === A2)) {
-        return null;
-    }
-
-    let xscale = scales[0];
-    let yscale = scales[1];
-
-    let BA1 = (B1 - A1) / xscale;
-    let BA2 = (B2 - A2) / yscale;
-    let denom = BA1 * BA1 + BA2 * BA2;
-
-    let t =
-        (((point[0] - A1) / xscale) * BA1 + ((point[1] - A2) / yscale) * BA2) /
-        denom;
-
-    return [A1 + t * BA1 * xscale, A2 + t * BA2 * yscale];
 }

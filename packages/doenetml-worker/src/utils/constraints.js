@@ -846,13 +846,14 @@ function findAttractedSegmentPoints({
 //
 // If allowRotation is true, then the segment could have rotated when attracting.
 //
-export function attractSegmentEndpoints({
+export function attractSegment({
     segment,
     allowRotation,
     scales,
     threshold2,
     numericalNearestPointFunctions,
     numericalNearestPointAsLineFunctions,
+    attractingPoints,
 }) {
     let point1 = segment[0];
     let point2 = segment[1];
@@ -894,6 +895,38 @@ export function attractSegmentEndpoints({
         }
     }
 
+    if (attractingPoints) {
+        for (let attractingPoint of attractingPoints) {
+            let closestPoint = nearestPointForSegment({
+                point: attractingPoint,
+                segment: [numericalPoint1, numericalPoint2],
+                scales,
+            });
+
+            // multiply distance2 by 2 since it is distance between just one pair of points
+            // rather than two pairs of points.
+            let distance2 =
+                closestPoint.reduce(
+                    (a, c, i) => a + Math.pow(c - attractingPoint[i], 2),
+                    0,
+                ) * 2;
+
+            if (distance2 < minDeviation2) {
+                // translate the points by attractingPoint - closestPoint
+                let newPoint1 = numericalPoint1.map(
+                    (v, i) => v + attractingPoint[i] - closestPoint[i],
+                );
+
+                let newPoint2 = numericalPoint2.map(
+                    (v, i) => v + attractingPoint[i] - closestPoint[i],
+                );
+
+                closestSegment = [newPoint1, newPoint2];
+                minDeviation2 = distance2;
+            }
+        }
+    }
+
     if (minDeviation2 < threshold2) {
         return {
             constrained: true,
@@ -903,4 +936,82 @@ export function attractSegmentEndpoints({
 
     // consider the segment not attracted
     return {};
+}
+
+// Find the point on `segment` that is closest to `point`,
+// scaling axes according to `scales`.
+export function nearestPointForSegment({ point, segment, scales }) {
+    let A1 = segment[0][0];
+    let A2 = segment[0][1];
+    let B1 = segment[1][0];
+    let B2 = segment[1][1];
+
+    let haveConstants =
+        Number.isFinite(A1) &&
+        Number.isFinite(A2) &&
+        Number.isFinite(B1) &&
+        Number.isFinite(B2);
+
+    // only implement for
+    // - 2D
+    // - constant endpoints and
+    // - non-degenerate parameters
+    if (segment[0].length !== 2 || !haveConstants || (B1 === A1 && B2 === A2)) {
+        return null;
+    }
+
+    let xscale = scales[0];
+    let yscale = scales[1];
+
+    let BA1 = (B1 - A1) / xscale;
+    let BA2 = (B2 - A2) / yscale;
+    let denom = BA1 * BA1 + BA2 * BA2;
+
+    let t =
+        (((point[0] - A1) / xscale) * BA1 + ((point[1] - A2) / yscale) * BA2) /
+        denom;
+
+    if (t <= 0) {
+        return [A1, A2];
+    } else if (t >= 1) {
+        return [B1, B2];
+    } else {
+        return [A1 + t * BA1 * xscale, A2 + t * BA2 * yscale];
+    }
+}
+
+// Find the point on extended line of `segment` that is closest to `point`,
+// scaling axes according to `scales`.
+export function nearestPointForSegmentAsLine({ point, segment, scales }) {
+    let A1 = segment[0][0];
+    let A2 = segment[0][1];
+    let B1 = segment[1][0];
+    let B2 = segment[1][1];
+
+    let haveConstants =
+        Number.isFinite(A1) &&
+        Number.isFinite(A2) &&
+        Number.isFinite(B1) &&
+        Number.isFinite(B2);
+
+    // only implement for
+    // - 2D
+    // - constant endpoints and
+    // - non-degenerate parameters
+    if (segment[0].length !== 2 || !haveConstants || (B1 === A1 && B2 === A2)) {
+        return null;
+    }
+
+    let xscale = scales[0];
+    let yscale = scales[1];
+
+    let BA1 = (B1 - A1) / xscale;
+    let BA2 = (B2 - A2) / yscale;
+    let denom = BA1 * BA1 + BA2 * BA2;
+
+    let t =
+        (((point[0] - A1) / xscale) * BA1 + ((point[1] - A2) / yscale) * BA2) /
+        denom;
+
+    return [A1 + t * BA1 * xscale, A2 + t * BA2 * yscale];
 }
