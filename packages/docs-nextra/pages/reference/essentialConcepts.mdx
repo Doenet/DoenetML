@@ -1,0 +1,17 @@
+# How DoenetML works
+
+## Definitions: Components, Attributes, and Properties
+DoenetML is a **markup language** much like HTML. 
+* **Components** - also called "tags" informally, describe the type of content that is being defined or rendered. Typically, a component will consist of an opening tag `<componentName>` and a closing tag `</componentName>`, with content, content specifications, or other components occuring between these two tags. Some components, if they do not require additional information, may be self-closing, `<componentName/>`.
+
+* **Attributes** - provide information necessary to define the component's desired behavior within the opening tag. The syntax for specifying an attribute is: `<componentName attr="value">`.
+
+* **Properties** - information stored internally relating to a component that may be accessed by referencing the component by name, followed by the name of the property. 
+
+The available attributes and properties vary by component. See the [Component Examples](doenetML_components) section for a full listing for each.
+
+## The Computer Algebra System (CAS)
+DoenetML is linked to a CAS which performs the basic computations necessary for the behavior of mathematical and graphical components, as well as answer-checking.
+
+## Basic Language syntax
+Parent-child logic and references.

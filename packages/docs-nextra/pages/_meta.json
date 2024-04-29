@@ -1,10 +1,10 @@
 {
     "index": {
-        "title": "Introduction",
-        "display": "page"
+        "title": "Home",
+        "display": "hidden"
     },
-    "learn": {
-        "title": "Learn",
+    "tutorials": {
+        "title": "Tutorials",
         "type": "page"
     },
     "reference": {
@@ -15,5 +15,8 @@
         "title": "Sandbox",
         "href": "https://www.doenet.org/portfolioviewer/_7KL7tiBBS2MhM6k1OrPt4",
         "type": "page"
+    },
+    "testExDoenetML": {
+        "display": "hidden"
     }
 }
