@@ -334,6 +334,14 @@ impl DocumentRenderer {
                     .collect::<Vec<_>>()
                     .into()
             }
+            PropValue::AnnotatedContentRefs(r) => {
+                // Annotated content refs gets converted into FlatDastElementContent
+                r.as_slice()
+                    .iter()
+                    .map(|(c, _)| ref_to_element_content(c))
+                    .collect::<Vec<_>>()
+                    .into()
+            }
             _ => ForRenderPropValueOrContent::PropValue(value),
         };
         ForRenderPropValue { name, value }

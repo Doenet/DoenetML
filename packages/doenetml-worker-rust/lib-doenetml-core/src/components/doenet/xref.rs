@@ -36,7 +36,7 @@ mod component {
         /// When clicking on the `<xref>`, the desired behavior might be to show the content
         /// of the referent. If so, such content is stored here.
         #[prop(
-            value_type = PropValueType::ContentRefs,
+            value_type = PropValueType::AnnotatedContentRefs,
             for_render,
         )]
         ReferentChildren,
@@ -187,7 +187,7 @@ mod custom_props {
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
         struct RequiredData {
-            referent_children: Option<PropView<prop_type::ContentRefs>>,
+            referent_children: Option<PropView<prop_type::AnnotatedContentRefs>>,
         }
 
         impl DataQueries for RequiredData {
