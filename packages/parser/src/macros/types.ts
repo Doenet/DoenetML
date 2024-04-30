@@ -28,7 +28,7 @@ export type SimplePathPart = {
     };
 };
 export type PathPart = { type: "pathPart"; name: Ident; index: PropIndex[] } & {
-    position: {
+    position?: {
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
     };
@@ -37,13 +37,13 @@ export type SimplePath = [SimplePathPart, ...SimplePathPart[]];
 export type Path = [PathPart, ...PathPart[]];
 export type Macro =
     | (FullAddressMacro & {
-          position: {
+          position?: {
               start: { offset: number; line: number; column: number };
               end: { offset: number; line: number; column: number };
           };
       })
     | (SimpleAddressMacro & {
-          position: {
+          position?: {
               start: { offset: number; line: number; column: number };
               end: { offset: number; line: number; column: number };
           };
@@ -53,7 +53,7 @@ export type SimpleAddressMacro = {
     path: SimplePath;
     attributes: PropAttrs;
 } & {
-    position: {
+    position?: {
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
     };
@@ -63,7 +63,7 @@ export type FullAddressMacro = {
     path: Path;
     attributes: PropAttrs;
 } & {
-    position: {
+    position?: {
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
     };

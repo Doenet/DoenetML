@@ -58,6 +58,7 @@ export const coreThunks = {
                 await worker.setFlags({ flags });
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
+                console.warn("Error while setting flags", e);
             }
         },
     ),
@@ -85,6 +86,7 @@ export const coreThunks = {
                 dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
+                console.warn("Error while retrieving DAST", e);
             }
         },
     ),
@@ -103,7 +105,7 @@ export const coreThunks = {
                 );
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
-                console.warn(e);
+                console.warn("Error while dispatching action", e);
             }
         },
     ),

@@ -10,6 +10,7 @@ import {
 } from "@doenet/parser";
 import { unified } from "unified";
 import { ELEMENT_EXPANSIONS } from "./element-expansions";
+import { pluginConvertPretextAttributes } from "./convert-pretext-attributes";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -20,6 +21,7 @@ export function normalizeDocumentDast(dast: DastRoot) {
         .use(pluginRemoveCommentsInstructionsAndDocStrings)
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement)
+        .use(pluginConvertPretextAttributes)
         .use(pluginExpandAliasedElements);
     return processor.runSync(dast);
 }
