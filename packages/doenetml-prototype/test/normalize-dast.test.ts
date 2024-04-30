@@ -94,4 +94,30 @@ describe("Normalize dast", async () => {
             `<document id="foo"><p>hi</p></document>`,
         );
     });
+    it("converts xml:id to name", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        source = `<p xml:id="foo-bar">hi</p>`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><p name="foo-bar">hi</p></document>',
+        );
+    });
+    it("converts xref ref to dollar-sign form", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        source = `<xref ref="$(foo-bar)" />`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><xref ref="$(foo-bar)" /></document>',
+        );
+
+        source = `<xref ref="foo-bar" />`;
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><xref ref="$(foo-bar)" /></document>',
+        );
+    });
 });
