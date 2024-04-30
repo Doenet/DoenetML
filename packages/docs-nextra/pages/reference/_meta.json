@@ -1,4 +1,8 @@
 {
+    "essentialConcepts": "Essential Concepts",
     "componentIndex": "Component Index",
-    "documentation": "Documentation"
+    "doenetML_components": "Component Examples",
+    "documentStructure": "Document Structure",
+    "componentClasses": "Component Classes",
+    "advancedExamples": "Advanced Examples"
 }
