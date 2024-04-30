@@ -227,16 +227,16 @@ export function returnStickyGroupDefinitions() {
     };
 }
 
-// Create a vertex constraint function that applies the origin constraintFunction
+// Create a vertex constraint function that applies the given constraintFunction
 // to the vertices and optionally find the best rigid translation is closest to the constraint.
 //
-// If enforceRigid is true, then after evaluation constraintFunction,
+// If enforceRigid is true, then after evaluation of constraintFunction,
 // it attempts to find translations that, if applying constraintFunction again,
 // maximizes the number of vertices that are constrained but don't move
 export function returnVertexConstraintFunction(constraintFunction) {
-    return function (unconstrainedVertices, enforceRigid, ...args) {
+    return function ({ unconstrainedVertices, closed, enforceRigid }, ...args) {
         let { constrainedVertices, constraintUsedForVertex } =
-            constraintFunction(unconstrainedVertices, ...args);
+            constraintFunction({ unconstrainedVertices, closed }, ...args);
 
         if (constraintUsedForVertex.every((v) => !v)) {
             return unconstrainedVertices;
@@ -244,10 +244,10 @@ export function returnVertexConstraintFunction(constraintFunction) {
             return constrainedVertices;
         }
 
-        // Since have constrained vertices and we keep the shape rigid,
+        // Since we have constrained vertices and we need to keep the shape rigid,
         // we look for a translation that "best" satisfies the constraints.
         // For each vertex that was constrained,
-        // we translate all vertices to make that vertex's constraint,
+        // we translate all vertices to match that vertex's constraint,
         // apply the constraint again, and count how many vertices were both
         // constrained and did not move.
         // We pick the translation that maximizes this count.
@@ -291,7 +291,10 @@ export function returnVertexConstraintFunction(constraintFunction) {
             let {
                 constrainedVertices: newVertices,
                 constraintUsedForVertex: newConstraintsUsed,
-            } = constraintFunction(translatedVertices, ...args);
+            } = constraintFunction(
+                { unconstrainedVertices: translatedVertices, closed },
+                ...args,
+            );
 
             let numVerticesConstrainedUnmoved = 0;
 
@@ -300,8 +303,7 @@ export function returnVertexConstraintFunction(constraintFunction) {
                     continue;
                 }
 
-                // TODO: make a relative threshold?
-                let threshold = 1e-6;
+                let eps = 1e-6;
 
                 // vertex was constrained, check if each component didn't move more than the threshold
                 let moved = false;
@@ -314,7 +316,7 @@ export function returnVertexConstraintFunction(constraintFunction) {
                     let newX = newVertex[dim].evaluate_to_constant();
                     let dx = newX - translatedVertexX;
 
-                    if (Math.abs(dx) > threshold) {
+                    if (Math.abs(dx) > eps) {
                         moved = true;
                         break;
                     }
@@ -382,11 +384,19 @@ export function returnVertexConstraintFunction(constraintFunction) {
     };
 }
 
+// Create a vertex constraint function that applies the given constraintFunction
+// to the edges, optionally allowing rotations and forcing a rigid transformation.
+//
+// If enforceRigid is false, move edges independently, assuming consistent change for each vertex.
+//
+// If enforceRigid is true, then find the transformation the moves an edge the least amount,
+// and then apply that transformation to all vertices.
 export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
     return function (
         { unconstrainedVertices, closed, enforceRigid, allowRotation },
         ...args
     ) {
+        // calculate the edges and apply the constraint function
         let unconstrainedEdges = [];
         for (let ind = 1; ind < unconstrainedVertices.length; ind++) {
             unconstrainedEdges.push([
@@ -402,7 +412,7 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
         }
 
         let { constrainedEdges, constraintUsedForEdge } = constraintFunction(
-            { unconstrainedEdges, allowRotation, enforceRigid },
+            { unconstrainedEdges, allowRotation },
             ...args,
         );
 
@@ -480,7 +490,7 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
             let constrainedVertices = [...unconstrainedVertices];
 
             let vertexIndsConstrained = [];
-            let diffThreshold2 = 1e-6 ** 2;
+            let eps2 = 1e-6 ** 2;
 
             for (let { edgeInd, deviation2 } of deviation2ByEdge) {
                 let vertexInd1 = Number(edgeInd);
@@ -498,7 +508,7 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
                     if (
                         Math.pow(vec1[0] - vec2[0], 2) +
                             Math.pow(vec1[1] - vec2[1], 2) >
-                        diffThreshold2
+                        eps2
                     ) {
                         // inconsistent position for vertexInd1, so skip
                         continue;
@@ -515,7 +525,7 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
                     if (
                         Math.pow(vec1[0] - vec2[0], 2) +
                             Math.pow(vec1[1] - vec2[1], 2) >
-                        diffThreshold2
+                        eps2
                     ) {
                         // inconsistent position for vertexInd2, so skip
                         continue;
@@ -531,7 +541,12 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
             return constrainedVertices;
         }
 
-        // find the edge that was constrained and moved the minimal amount
+        // We are enforcing a rigid transformation.
+        // We will find the edge that was constrained and moved the minimal amount.
+        // We will then rotate and translate all vertices according to that transformation.
+        // Note: if allowRotation was false, the transformations found by the constraint function, above,
+        // won't contain rotations.
+
         let minDeviationInd = null;
         let minDeviation2 = Infinity;
 
@@ -542,15 +557,12 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
             }
         }
 
-        // We need a rigid transformation.
-        // Rotate and translate all vertices according to the transformation of minDeviationInd
-
         let numericalUnconstrainedEdge =
             numericalUnconstrainedEdges[minDeviationInd];
         let numericalConstrainedEdge =
             numericalConstrainedEdges[minDeviationInd];
 
-        // translate based on how the first vertex moved
+        // translate based on how the first vertex of the edge moved
         let translation = numericalConstrainedEdge[0].map(
             (v, i) => v - numericalUnconstrainedEdge[0][i],
         );
@@ -597,17 +609,13 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
     };
 }
 
-// Attract the point of point/numericalPoint
-// to the closest point based on the nearestPointFunctions.
-// If that point is within sqrt(threshold2) of the original point,
-// return that as the attracted point.
+// Attract the points to the line determined numericalNearestPointAsLineFunction.
+// Succeed only if each point moved less than the distance determined by threshold2.
 //
-// point: an array with values as math-expressions.
-// numericalPoint: point with values converted to numbers
+// If verifyNotOneSide, then also exclude cases where it appears both points
+// are on the same side of the origin object determined by numericalNearestPointFunction.
 //
-// If did not attract to a point within the threshold return null,
-// else return the attracted point as an array of numbers
-
+// Called a a sub function of findAttractedSegmentPoints, below
 function findAttractedSegmentPointsSub({
     point1,
     point2,
@@ -617,7 +625,8 @@ function findAttractedSegmentPointsSub({
     numericalNearestPointAsLineFunction,
     verifyNotOneSided = true,
 }) {
-    let eps2 = 1e-6 ** 2;
+    let eps = 1e-6;
+    let eps2 = eps ** 2;
 
     // Need both points to be attracted when potentially extending attractor as a line,
     // with distance less than threshold
@@ -647,6 +656,9 @@ function findAttractedSegmentPointsSub({
     }
 
     if (verifyNotOneSided) {
+        // We want to exclude the cases where both points are on the same side
+        // of the original object determined by numericalNearestPointFunction
+
         // check if one point is attracted without extending as line
         // to the same point as when attracting with extending
         let nearestPoint1NotExtend = numericalNearestPointFunction(
@@ -656,7 +668,7 @@ function findAttractedSegmentPointsSub({
         let nearestPoint1Unchanged =
             nearestPoint1NotExtend &&
             nearestPoint1NotExtend.every(
-                (v, i) => Math.abs(v - nearestPoint1[i]) < 1e-6,
+                (v, i) => Math.abs(v - nearestPoint1[i]) < eps,
             );
 
         let nearestPoint2NotExtend = numericalNearestPointFunction(
@@ -666,7 +678,7 @@ function findAttractedSegmentPointsSub({
         let nearestPoint2Unchanged =
             nearestPoint2NotExtend &&
             nearestPoint2NotExtend.every(
-                (v, i) => Math.abs(v - nearestPoint2[i]) < 1e-6,
+                (v, i) => Math.abs(v - nearestPoint2[i]) < eps,
             );
 
         if (!(nearestPoint1Unchanged || nearestPoint2Unchanged)) {
@@ -691,6 +703,13 @@ function findAttractedSegmentPointsSub({
     };
 }
 
+// Attract the line segment determined by the points
+// to the object determined by numericalNearestPointFunction and numericalNearestPointAsLineFunction.
+//
+// The attracted line segment must be the same length as the original,
+// potentially rotated if allowRotation is true.
+
+// The total squared distance moved by both points must be less than threshold2.
 function findAttractedSegmentPoints({
     point1,
     point2,
@@ -714,6 +733,9 @@ function findAttractedSegmentPoints({
         return { success: false };
     }
 
+    let eps = 1e-6;
+    let eps2 = eps ** 2;
+
     let { nearestPoint1, nearestPoint2 } = result;
 
     if (!allowRotation) {
@@ -732,7 +754,7 @@ function findAttractedSegmentPoints({
         dTheta = me.math.mod(dTheta + Math.PI, 2 * Math.PI) - Math.PI;
 
         // we had a rotation, so don't attract
-        if (Math.abs(dTheta) > 1e-6) {
+        if (Math.abs(dTheta) > eps) {
             return { success: false };
         }
     }
@@ -747,8 +769,7 @@ function findAttractedSegmentPoints({
         0,
     );
 
-    let deviationThreshold2 = 1e-6 ** 2;
-    if (Math.abs(originalDistance2 - newDistance2) < deviationThreshold2) {
+    if (Math.abs(originalDistance2 - newDistance2) < eps2) {
         let distance2 =
             nearestPoint1.reduce(
                 (a, c, i) => a + Math.pow(c - point1[i], 2),
@@ -807,8 +828,6 @@ function findAttractedSegmentPoints({
         (v, i) => v + (nearestPoint2[i] - v) * expandFactor2,
     );
 
-    let eps2 = 1e-6 ** 2;
-
     result = findAttractedSegmentPointsSub({
         point1: extendedPoint1,
         point2: extendedPoint2,
@@ -845,7 +864,6 @@ function findAttractedSegmentPoints({
 // and the endpoints will have moved less than a total squared distance of threshold2.
 //
 // If allowRotation is true, then the segment could have rotated when attracting.
-//
 export function attractSegment({
     segment,
     allowRotation,
@@ -853,7 +871,6 @@ export function attractSegment({
     threshold2,
     numericalNearestPointFunctions,
     numericalNearestPointAsLineFunctions,
-    attractingPoints,
 }) {
     let point1 = segment[0];
     let point2 = segment[1];
@@ -892,38 +909,6 @@ export function attractSegment({
         if (result.distance2 < minDeviation2) {
             minDeviation2 = result.distance2;
             closestSegment = result.segment;
-        }
-    }
-
-    if (attractingPoints && !closestSegment) {
-        for (let attractingPoint of attractingPoints) {
-            let closestPoint = nearestPointForSegment({
-                point: attractingPoint,
-                segment: [numericalPoint1, numericalPoint2],
-                scales,
-            });
-
-            // multiply distance2 by 2 since it is distance between just one pair of points
-            // rather than two pairs of points.
-            let distance2 =
-                closestPoint.reduce(
-                    (a, c, i) => a + Math.pow(c - attractingPoint[i], 2),
-                    0,
-                ) * 2;
-
-            if (distance2 < minDeviation2) {
-                // translate the points by attractingPoint - closestPoint
-                let newPoint1 = numericalPoint1.map(
-                    (v, i) => v + attractingPoint[i] - closestPoint[i],
-                );
-
-                let newPoint2 = numericalPoint2.map(
-                    (v, i) => v + attractingPoint[i] - closestPoint[i],
-                );
-
-                closestSegment = [newPoint1, newPoint2];
-                minDeviation2 = distance2;
-            }
         }
     }
 

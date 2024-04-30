@@ -315,11 +315,9 @@ export default class StickyGroup extends GraphicalComponent {
                     dependencyValues.threshold * dependencyValues.threshold;
 
                 let edgeConstraintSub = function (
-                    { unconstrainedEdges, allowRotation, enforceRigid },
+                    { unconstrainedEdges, allowRotation },
                     { objectInd },
                 ) {
-                    let pointsToAttract =
-                        dependencyValues.getPointsForObject(objectInd);
                     let segmentsToAttract =
                         dependencyValues.getSegmentsForObject(objectInd);
 
@@ -356,7 +354,6 @@ export default class StickyGroup extends GraphicalComponent {
                             threshold2,
                             numericalNearestPointFunctions,
                             numericalNearestPointAsLineFunctions,
-                            attractingPoints: pointsToAttract,
                         });
 
                         if (result.constrained) {
@@ -376,8 +373,8 @@ export default class StickyGroup extends GraphicalComponent {
                 };
 
                 let vertexConstraintSub = function (
-                    unconstrainedVertices,
-                    objectInd,
+                    { unconstrainedVertices, closed },
+                    { objectInd },
                 ) {
                     let pointsToAttract =
                         dependencyValues.getPointsForObject(objectInd);
@@ -387,10 +384,17 @@ export default class StickyGroup extends GraphicalComponent {
                     let constrainedVertices = [];
                     let constraintUsedForVertex = [];
 
-                    for (let unconstrainedVertex of unconstrainedVertices) {
-                        let numericalVertex = unconstrainedVertex.map((v) =>
-                            findFiniteNumericalValue(v),
+                    let numericalUnconstrainedVertices =
+                        unconstrainedVertices.map((vertex) =>
+                            vertex.map((v) => findFiniteNumericalValue(v)),
                         );
+
+                    for (let [
+                        ind,
+                        unconstrainedVertex,
+                    ] of unconstrainedVertices.entries()) {
+                        let numericalVertex =
+                            numericalUnconstrainedVertices[ind];
 
                         let closestDistance2 = Infinity;
                         let closestPoint = {};
@@ -464,6 +468,111 @@ export default class StickyGroup extends GraphicalComponent {
                         constraintUsedForVertex.push(constraintUsed);
                     }
 
+                    // if any pair of vertices corresponding to an edge have not yet been constrained
+                    // check if the edge between the vertices can be constrained by any pointsToAttract
+
+                    let numVertices = unconstrainedVertices.length;
+                    let stopInd = closed ? numVertices : numVertices - 1;
+
+                    let potentialConstraintsForEdges = [];
+
+                    for (
+                        let vertexInd1 = 0;
+                        vertexInd1 < stopInd;
+                        vertexInd1++
+                    ) {
+                        let vertexInd2 = (vertexInd1 + 1) % numVertices;
+
+                        if (
+                            !(
+                                constraintUsedForVertex[vertexInd1] ||
+                                constraintUsedForVertex[vertexInd2]
+                            )
+                        ) {
+                            let numericalVertex1 =
+                                numericalUnconstrainedVertices[vertexInd1];
+                            let numericalVertex2 =
+                                numericalUnconstrainedVertices[vertexInd2];
+
+                            let closestSegment;
+                            let closestDistance2 = Infinity;
+
+                            for (let attractingPoint of pointsToAttract) {
+                                let closestPoint = nearestPointForSegment({
+                                    point: attractingPoint,
+                                    segment: [
+                                        numericalVertex1,
+                                        numericalVertex2,
+                                    ],
+                                    scales,
+                                });
+
+                                let distance2 = closestPoint.reduce(
+                                    (a, c, i) =>
+                                        a + Math.pow(c - attractingPoint[i], 2),
+                                    0,
+                                );
+
+                                if (distance2 < closestDistance2) {
+                                    // translate the points by attractingPoint - closestPoint
+                                    let newPoint1 = numericalVertex1.map(
+                                        (v, i) =>
+                                            v +
+                                            attractingPoint[i] -
+                                            closestPoint[i],
+                                    );
+
+                                    let newPoint2 = numericalVertex2.map(
+                                        (v, i) =>
+                                            v +
+                                            attractingPoint[i] -
+                                            closestPoint[i],
+                                    );
+
+                                    closestSegment = [newPoint1, newPoint2];
+                                    closestDistance2 = distance2;
+                                }
+                            }
+
+                            if (closestDistance2 < threshold2) {
+                                potentialConstraintsForEdges.push({
+                                    vertexInd1,
+                                    vertexInd2,
+                                    distance2: closestDistance2,
+                                    movedSegment: closestSegment,
+                                });
+                            }
+                        }
+                    }
+
+                    // since constraints could overlap on edges,
+                    // process the constraints starting with the minimal distance,
+                    // and use them only if both vertices are still unconstrained.
+                    potentialConstraintsForEdges.sort(
+                        (a, b) => a.distance2 - b.distance2,
+                    );
+
+                    for (let {
+                        vertexInd1,
+                        vertexInd2,
+                        movedSegment,
+                    } of potentialConstraintsForEdges) {
+                        if (
+                            !(
+                                constraintUsedForVertex[vertexInd1] ||
+                                constraintUsedForVertex[vertexInd2]
+                            )
+                        ) {
+                            constraintUsedForVertex[vertexInd1] = true;
+                            constraintUsedForVertex[vertexInd2] = true;
+
+                            constrainedVertices[vertexInd1] =
+                                movedSegment[0].map((v) => me.fromAst(v));
+                            constrainedVertices[vertexInd2] =
+                                movedSegment[1].map((v) => me.fromAst(v));
+                        }
+                    }
+
                     return { constrainedVertices, constraintUsedForVertex };
                 };
 
@@ -482,6 +591,8 @@ export default class StickyGroup extends GraphicalComponent {
                     },
                     { objectInd },
                 ) {
+                    // first apply the edge constraint function,
+                    // as that may rotate the object
                     let constrainedVertices = edgeConstraintFunction(
                         {
                             unconstrainedVertices,
@@ -492,10 +603,14 @@ export default class StickyGroup extends GraphicalComponent {
                         { objectInd },
                     );
 
+                    // then apply the vertex constraint function to the result
                     constrainedVertices = originalVerticesConstraintFunction(
-                        constrainedVertices,
-                        enforceRigid,
-                        objectInd,
+                        {
+                            unconstrainedVertices: constrainedVertices,
+                            closed,
+                            enforceRigid,
+                        },
+                        { objectInd },
                     );
 
                     return constrainedVertices;
