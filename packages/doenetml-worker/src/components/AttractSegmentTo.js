@@ -1,4 +1,4 @@
-import { attractSegment } from "../utils/constraints";
+import { attractSegment } from "../utils/constraintUtils";
 import SegmentConstraintComponent from "./abstract/SegmentConstraintComponent";
 import me from "math-expressions";
 

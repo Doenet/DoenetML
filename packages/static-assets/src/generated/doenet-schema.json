@@ -1263,7 +1263,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -2299,7 +2302,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -2634,7 +2640,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -2969,7 +2978,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -24199,7 +24211,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -24702,7 +24717,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -25205,7 +25223,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -25708,7 +25729,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -26211,7 +26235,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -26733,7 +26760,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -27236,7 +27266,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -27739,7 +27772,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -28242,7 +28278,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -28745,7 +28784,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -29248,7 +29290,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -29751,7 +29796,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -30254,7 +30302,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -30757,7 +30808,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -31260,7 +31314,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -31773,7 +31830,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -32267,7 +32327,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -33031,7 +33094,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -33493,7 +33559,9 @@
             "children": [
                 "xlabel",
                 "ylabel",
-                "label"
+                "label",
+                "vertexConstraints",
+                "edgeConstraints"
             ],
             "attributes": [
                 {
@@ -33583,6 +33651,13 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "rigid",
                     "values": [
                         "true",
                         "false"
@@ -33686,6 +33761,11 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rigid",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -38056,7 +38136,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -38878,7 +38961,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -39213,7 +39299,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -39548,7 +39637,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -39883,7 +39975,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -40238,7 +40333,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -41346,7 +41444,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -44725,7 +44826,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -46764,7 +46868,9 @@
             "children": [
                 "xlabel",
                 "ylabel",
-                "label"
+                "label",
+                "vertexConstraints",
+                "edgeConstraints"
             ],
             "attributes": [
                 {
@@ -46860,6 +46966,13 @@
                     ]
                 },
                 {
+                    "name": "rigid",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -46929,6 +47042,11 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rigid",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47038,7 +47156,9 @@
             "children": [
                 "xlabel",
                 "ylabel",
-                "label"
+                "label",
+                "vertexConstraints",
+                "edgeConstraints"
             ],
             "attributes": [
                 {
@@ -47134,6 +47254,13 @@
                     ]
                 },
                 {
+                    "name": "rigid",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47210,6 +47337,11 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rigid",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47327,6 +47459,11 @@
                 },
                 {
                     "name": "area",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "numSides",
                     "type": "number",
                     "isArray": false
                 }
@@ -47339,7 +47476,9 @@
             "children": [
                 "xlabel",
                 "ylabel",
-                "label"
+                "label",
+                "vertexConstraints",
+                "edgeConstraints"
             ],
             "attributes": [
                 {
@@ -47435,6 +47574,13 @@
                     ]
                 },
                 {
+                    "name": "rigid",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47511,6 +47657,11 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rigid",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47630,6 +47781,11 @@
                     "name": "area",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numSides",
+                    "type": "number",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -47640,7 +47796,9 @@
             "children": [
                 "xlabel",
                 "ylabel",
-                "label"
+                "label",
+                "vertexConstraints",
+                "edgeConstraints"
             ],
             "attributes": [
                 {
@@ -47730,6 +47888,13 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "rigid",
                     "values": [
                         "true",
                         "false"
@@ -47821,6 +47986,11 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rigid",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47962,6 +48132,11 @@
                     "name": "height",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numSides",
+                    "type": "number",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -47972,7 +48147,9 @@
             "children": [
                 "xlabel",
                 "ylabel",
-                "label"
+                "label",
+                "vertexConstraints",
+                "edgeConstraints"
             ],
             "attributes": [
                 {
@@ -48062,6 +48239,13 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "rigid",
                     "values": [
                         "true",
                         "false"
@@ -48174,6 +48358,11 @@
                 },
                 {
                     "name": "showCoordsWhenDragging",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rigid",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -54089,7 +54278,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -55029,6 +55221,7 @@
                 "regionHalfPlane",
                 "legend",
                 "matrix",
+                "stickyGroup",
                 "image",
                 "topic",
                 "not",
@@ -57296,7 +57489,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -57650,7 +57846,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -58789,7 +58988,10 @@
                 "matchesPattern",
                 "eigenDecomposition",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -60893,7 +61095,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -61900,7 +62105,8 @@
                 "regionBetweenCurveXAxis",
                 "regionHalfPlane",
                 "legend",
-                "matrix"
+                "matrix",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -62102,7 +62308,8 @@
                 "regionBetweenCurveXAxis",
                 "regionHalfPlane",
                 "legend",
-                "matrix"
+                "matrix",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -62494,6 +62701,217 @@
             "acceptsStringChildren": false
         },
         {
+            "name": "attractSegmentTo",
+            "children": [
+                "rightHandSide",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "electronConfiguration",
+                "idx",
+                "math",
+                "collect",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "vector",
+                "angle",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "map",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "selectFromSequence",
+                "select",
+                "group",
+                "evaluate",
+                "substitute",
+                "periodicSet",
+                "module",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionHalfPlane",
+                "legend",
+                "matrix",
+                "stickyGroup"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "relativeToGraphScales",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "threshold"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "relativeToGraphScales",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "threshold",
+                    "type": "number",
+                    "isArray": false
+                }
+            ],
+            "top": false,
+            "acceptsStringChildren": false
+        },
+        {
             "name": "intersection",
             "children": [
                 "equilibriumLine",
@@ -62851,7 +63269,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -63959,7 +64380,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -65818,7 +66242,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -67229,7 +67656,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -68196,7 +68626,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -68529,7 +68962,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -68864,7 +69300,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -70257,7 +70696,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -70734,6 +71176,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup",
                 "customAttribute"
             ],
             "attributes": [
@@ -72086,7 +72531,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -72460,7 +72908,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -73777,7 +74228,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -74840,7 +75294,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -78512,7 +78969,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -78847,7 +79307,10 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker"
+                "contentPicker",
+                "vertexConstraints",
+                "edgeConstraints",
+                "stickyGroup"
             ],
             "attributes": [
                 {
@@ -78979,6 +79442,522 @@
             ],
             "top": true,
             "acceptsStringChildren": true
+        },
+        {
+            "name": "vertexConstraints",
+            "children": [
+                "constrainToGrid",
+                "constrainToGraph",
+                "attractToGrid",
+                "constrainTo",
+                "attractTo",
+                "constraintUnion",
+                "attractToConstraint"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "edgeConstraints",
+            "children": [
+                "attractSegmentTo"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "stickyGroup",
+            "children": [
+                "xlabel",
+                "ylabel",
+                "label",
+                "rightHandSide",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "electronConfiguration",
+                "idx",
+                "math",
+                "collect",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "vector",
+                "angle",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "map",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "selectFromSequence",
+                "select",
+                "group",
+                "evaluate",
+                "substitute",
+                "periodicSet",
+                "module",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionHalfPlane",
+                "legend",
+                "matrix",
+                "stickyGroup"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "applyStyleToLabel",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "layer"
+                },
+                {
+                    "name": "relativeToGraphScales",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "threshold"
+                },
+                {
+                    "name": "angleThreshold"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "applyStyleToLabel",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "relativeToGraphScales",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "angleThreshold",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "threshold",
+                    "type": "number",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
         }
     ]
 }

@@ -2,6 +2,8 @@ import {
     attractSegment,
     nearestPointForSegment,
     nearestPointForSegmentAsLine,
+} from "../utils/constraintUtils";
+import {
     returnConstraintGraphInfoDefinitions,
     returnVertexConstraintFunction,
     returnVertexConstraintFunctionFromEdges,
@@ -27,6 +29,13 @@ export default class StickyGroup extends GraphicalComponent {
 
         attributes.threshold = {
             createComponentOfType: "number",
+        };
+
+        attributes.angleThreshold = {
+            createComponentOfType: "number",
+            createStateVariable: "angleThreshold",
+            defaultValue: Math.PI * 0.02,
+            public: true,
         };
 
         return attributes;
@@ -293,6 +302,10 @@ export default class StickyGroup extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "threshold",
                 },
+                angleThreshold: {
+                    dependencyType: "stateVariable",
+                    variableName: "angleThreshold",
+                },
                 relativeToGraphScales: {
                     dependencyType: "stateVariable",
                     variableName: "relativeToGraphScales",
@@ -313,18 +326,39 @@ export default class StickyGroup extends GraphicalComponent {
 
                 let threshold2 =
                     dependencyValues.threshold * dependencyValues.threshold;
+                let angleThreshold = dependencyValues.angleThreshold;
 
+                // Specify whether or not each edge would be constrained
+                // and what its constrained location would be.
+                // This information will be synthesized across edges by returnVertexConstraintFunctionFromEdges,
+                // which will give the resulting constraints in terms of vertices.
+                //
+                // Most of these constraints are specified independently for each edge,
+                // except for a final possible rotation that occurs only if no other constraints occurred.
                 let edgeConstraintSub = function (
-                    { unconstrainedEdges, allowRotation },
+                    {
+                        numericalUnconstrainedEdges,
+                        closed,
+                        allowRotation,
+                        enforceRigid,
+                    },
                     { objectInd },
                 ) {
                     let segmentsToAttract =
                         dependencyValues.getSegmentsForObject(objectInd);
 
-                    let constrainedEdges = [];
+                    let numericalConstrainedEdges = [];
                     let constraintUsedForEdge = [];
+                    let foundConstraint = false;
 
-                    for (let unconstrainedEdge of unconstrainedEdges) {
+                    let almostConstrained = {
+                        distance2: Infinity,
+                    };
+
+                    for (let [
+                        edgeInd,
+                        numericalUnconstrainedEdge,
+                    ] of numericalUnconstrainedEdges.entries()) {
                         let numericalNearestPointFunctions = [];
                         let numericalNearestPointAsLineFunctions = [];
 
@@ -348,7 +382,7 @@ export default class StickyGroup extends GraphicalComponent {
                         }
 
                         let result = attractSegment({
-                            segment: unconstrainedEdge,
+                            segment: numericalUnconstrainedEdge,
                             allowRotation,
                             scales,
                             threshold2,
@@ -357,23 +391,86 @@ export default class StickyGroup extends GraphicalComponent {
                         });
 
                         if (result.constrained) {
-                            constrainedEdges.push(
-                                result.segment.map((vertex) =>
-                                    vertex.map((v) => me.fromAst(v)),
-                                ),
-                            );
+                            numericalConstrainedEdges.push(result.segment);
                             constraintUsedForEdge.push(true);
+                            foundConstraint = true;
                         } else {
-                            constrainedEdges.push(unconstrainedEdge);
+                            numericalConstrainedEdges.push(
+                                numericalUnconstrainedEdge,
+                            );
                             constraintUsedForEdge.push(false);
+
+                            if (
+                                !foundConstraint &&
+                                result.distance2 < almostConstrained.distance2
+                            ) {
+                                almostConstrained = result;
+                                almostConstrained.edgeInd = edgeInd;
+                            }
                         }
                     }
 
-                    return { constrainedEdges, constraintUsedForEdge };
+                    // If no edges were constrained by being near a segment,
+                    // then if there was an edge that was almost close enough to be attracted,
+                    // rotate that edge if the resulting rotation is small.
+                    // Rotate around the centroid of the object
+                    if (
+                        allowRotation &&
+                        enforceRigid &&
+                        !foundConstraint &&
+                        almostConstrained.distance2 < Infinity
+                    ) {
+                        let attractedEdgeInd = almostConstrained.edgeInd;
+                        let rotateResult = rotateIfClose({
+                            attractedEdgeInd,
+                            attractingSegment: almostConstrained.segment,
+                            angleThreshold,
+                            closed,
+                            numericalUnconstrainedEdges,
+                        });
+
+                        if (rotateResult) {
+                            numericalConstrainedEdges[attractedEdgeInd] =
+                                rotateResult;
+                            constraintUsedForEdge[attractedEdgeInd] = true;
+                            foundConstraint = true;
+                        }
+                    }
+
+                    // If no edges were constrained by being near a segment,
+                    // or rotated because they were close to nearby segment's angle,
+                    // then attempt to attract an edge to the angle 0 or pi/2.
+                    // If an edge is attracted to that angle, rotate around the centroid of the object
+                    if (allowRotation && enforceRigid && !foundConstraint) {
+                        let anglesToAttract = [0, Math.PI / 2];
+
+                        let rotateResult = rotateToAttractAngles({
+                            numericalUnconstrainedEdges,
+                            closed,
+                            anglesToAttract,
+                            angleThreshold,
+                        });
+
+                        if (rotateResult) {
+                            let ind = rotateResult.rotatedEdgeInd;
+                            numericalConstrainedEdges[ind] =
+                                rotateResult.rotatedEdge;
+                            constraintUsedForEdge[ind] = true;
+                            foundConstraint = true;
+                        }
+                    }
+
+                    return {
+                        numericalConstrainedEdges,
+                        constraintUsedForEdge,
+                    };
                 };
 
+                // Specify, independently for each vertex, whether or not it would be constrained
+                // and what its constrained location would be.
+                // This information will be synthesized across vertices by returnVertexConstraintFunction.
                 let vertexConstraintSub = function (
-                    { unconstrainedVertices, closed },
+                    { numericalUnconstrainedVertices, closed },
                     { objectInd },
                 ) {
                     let pointsToAttract =
@@ -381,30 +478,19 @@ export default class StickyGroup extends GraphicalComponent {
                     let segmentsToAttract =
                         dependencyValues.getSegmentsForObject(objectInd);
 
-                    let constrainedVertices = [];
+                    let numericalConstrainedVertices = [];
                     let constraintUsedForVertex = [];
 
-                    let numericalUnconstrainedVertices =
-                        unconstrainedVertices.map((vertex) =>
-                            vertex.map((v) => findFiniteNumericalValue(v)),
-                        );
-
-                    for (let [
-                        ind,
-                        unconstrainedVertex,
-                    ] of unconstrainedVertices.entries()) {
-                        let numericalVertex =
-                            numericalUnconstrainedVertices[ind];
-
+                    for (let unconstrainedVertex of numericalUnconstrainedVertices) {
                         let closestDistance2 = Infinity;
                         let closestPoint = {};
 
                         for (let point of pointsToAttract) {
-                            if (numericalVertex.length !== point.length) {
+                            if (unconstrainedVertex.length !== point.length) {
                                 continue;
                             }
 
-                            let distance2 = numericalVertex.reduce(
+                            let distance2 = unconstrainedVertex.reduce(
                                 (a, c, i) =>
                                     a + Math.pow((c - point[i]) / scales[i], 2),
                                 0,
@@ -421,9 +507,7 @@ export default class StickyGroup extends GraphicalComponent {
                         let constrainedVertex;
                         if (closestDistance2 < threshold2) {
                             constraintUsed = true;
-                            constrainedVertex = closestPoint.map((v) =>
-                                me.fromAst(v),
-                            );
+                            constrainedVertex = closestPoint;
                         } else {
                             // if not attracted to point, try attracting to segment
                             closestDistance2 = Infinity;
@@ -431,13 +515,13 @@ export default class StickyGroup extends GraphicalComponent {
 
                             for (let segment of segmentsToAttract) {
                                 let point = nearestPointForSegment({
-                                    point: numericalVertex,
+                                    point: unconstrainedVertex,
                                     segment,
                                     scales,
                                 });
 
                                 if (point) {
-                                    let distance2 = numericalVertex.reduce(
+                                    let distance2 = unconstrainedVertex.reduce(
                                         (a, c, i) =>
                                             a +
                                             Math.pow(
@@ -456,22 +540,20 @@ export default class StickyGroup extends GraphicalComponent {
 
                             if (closestDistance2 < threshold2) {
                                 constraintUsed = true;
-                                constrainedVertex = closestPoint.map((v) =>
-                                    me.fromAst(v),
-                                );
+                                constrainedVertex = closestPoint;
                             } else {
                                 constrainedVertex = unconstrainedVertex;
                             }
                         }
 
-                        constrainedVertices.push(constrainedVertex);
+                        numericalConstrainedVertices.push(constrainedVertex);
                         constraintUsedForVertex.push(constraintUsed);
                     }
 
                     // if any pair of vertices corresponding to an edge have not yet been constrained
                     // check if the edge between the vertices can be constrained by any pointsToAttract
 
-                    let numVertices = unconstrainedVertices.length;
+                    let numVertices = numericalUnconstrainedVertices.length;
                     let stopInd = closed ? numVertices : numVertices - 1;
 
                     let potentialConstraintsForEdges = [];
@@ -566,14 +648,17 @@ export default class StickyGroup extends GraphicalComponent {
                             constraintUsedForVertex[vertexInd1] = true;
                             constraintUsedForVertex[vertexInd2] = true;
 
-                            constrainedVertices[vertexInd1] =
-                                movedSegment[0].map((v) => me.fromAst(v));
-                            constrainedVertices[vertexInd2] =
-                                movedSegment[1].map((v) => me.fromAst(v));
+                            numericalConstrainedVertices[vertexInd1] =
+                                movedSegment[0];
+                            numericalConstrainedVertices[vertexInd2] =
+                                movedSegment[1];
                         }
                     }
 
-                    return { constrainedVertices, constraintUsedForVertex };
+                    return {
+                        numericalConstrainedVertices,
+                        constraintUsedForVertex,
+                    };
                 };
 
                 let edgeConstraintFunction =
@@ -735,4 +820,139 @@ export default class StickyGroup extends GraphicalComponent {
 
         return stateVariableDefinitions;
     }
+}
+
+// Find the edge whose angle is closest to one of anglesToAttract.
+// If it is closer that angleThreshold, then rotate the edge
+// around the centroid of the shape in order to match the angle
+function rotateToAttractAngles({
+    numericalUnconstrainedEdges,
+    closed,
+    anglesToAttract,
+    angleThreshold,
+}) {
+    // find the edge with minimal deviation from one of the angles to attract
+
+    let minDAngle = Infinity;
+    let attractedEdgeInd;
+
+    for (let [
+        edgeInd,
+        unconstrainedEdge,
+    ] of numericalUnconstrainedEdges.entries()) {
+        let edgeAngle = Math.atan(
+            (unconstrainedEdge[1][1] - unconstrainedEdge[0][1]) /
+                (unconstrainedEdge[1][0] - unconstrainedEdge[0][0]),
+        );
+
+        for (let attractingAngle of anglesToAttract) {
+            let dAngle =
+                me.math.mod(
+                    attractingAngle - edgeAngle + Math.PI / 2,
+                    Math.PI,
+                ) -
+                Math.PI / 2;
+
+            if (Math.abs(dAngle) < Math.abs(minDAngle)) {
+                minDAngle = dAngle;
+                attractedEdgeInd = edgeInd;
+            }
+        }
+    }
+
+    if (!(Math.abs(minDAngle) < angleThreshold)) {
+        return null;
+    }
+
+    // rotate the attracted edge around the centroid
+
+    let [cx, cy] = calculateCentroid(numericalUnconstrainedEdges, closed);
+
+    let cos_theta = Math.cos(minDAngle);
+    let sin_theta = Math.sin(minDAngle);
+
+    let rotatedEdge = numericalUnconstrainedEdges[attractedEdgeInd].map(
+        (point) => {
+            let dx = point[0] - cx;
+            let dy = point[1] - cy;
+
+            return [
+                dx * cos_theta - dy * sin_theta + cx,
+                dx * sin_theta + dy * cos_theta + cy,
+            ];
+        },
+    );
+
+    return { rotatedEdgeInd: attractedEdgeInd, rotatedEdge };
+}
+
+// Rotate the edge of attractedEdgeInd to match the angle of attractingSegment
+// if their angles are similar.
+// Rotate around the centroid of the shape.
+function rotateIfClose({
+    attractedEdgeInd,
+    attractingSegment,
+    angleThreshold,
+    closed,
+    numericalUnconstrainedEdges,
+}) {
+    let attractingAngle = Math.atan(
+        (attractingSegment[1][1] - attractingSegment[0][1]) /
+            (attractingSegment[1][0] - attractingSegment[0][0]),
+    );
+    let edge = numericalUnconstrainedEdges[attractedEdgeInd];
+    let edgeAngle = Math.atan(
+        (edge[1][1] - edge[0][1]) / (edge[1][0] - edge[0][0]),
+    );
+
+    let dAngle =
+        me.math.mod(attractingAngle - edgeAngle + Math.PI / 2, Math.PI) -
+        Math.PI / 2;
+
+    if (!(Math.abs(dAngle) < angleThreshold)) {
+        return null;
+    }
+
+    // rotate the attracted edge around the centroid
+    let [cx, cy] = calculateCentroid(numericalUnconstrainedEdges, closed);
+
+    let cos_theta = Math.cos(dAngle);
+    let sin_theta = Math.sin(dAngle);
+
+    let rotatedEdge = numericalUnconstrainedEdges[attractedEdgeInd].map(
+        (point) => {
+            let dx = point[0] - cx;
+            let dy = point[1] - cy;
+
+            return [
+                dx * cos_theta - dy * sin_theta + cx,
+                dx * sin_theta + dy * cos_theta + cy,
+            ];
+        },
+    );
+
+    return rotatedEdge;
+}
+
+function calculateCentroid(edges, closed) {
+    let cx = 0,
+        cy = 0;
+
+    for (let edge of edges) {
+        let point1 = edge[0];
+        cx += point1[0];
+        cy += point1[1];
+    }
+
+    let numVertices = edges.length;
+    if (!closed) {
+        let lastPoint = edges[numVertices - 1][1];
+        numVertices++;
+        cx += lastPoint[0];
+        cy += lastPoint[1];
+    }
+    cx /= numVertices;
+    cy /= numVertices;
+
+    return [cx, cy];
 }
