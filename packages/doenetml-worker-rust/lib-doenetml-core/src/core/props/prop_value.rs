@@ -74,7 +74,7 @@ pub mod prop_type {
 
     /// A macro that declares a type and implements `TypeDiscriminant`.
     ///
-    /// For example, `with_discriminant!(Foo, type::Name)` that expands to
+    /// For example, `with_discriminant!(Foo, type::Name)` expands to
     /// ```ignore
     /// pub type Foo = type::Name;
     /// impl TypeDiscriminant for Foo {
