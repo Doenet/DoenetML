@@ -74,6 +74,11 @@ const TEXT_MODE_COMPONENTS: Record<
     ol: { component: Ol, passthroughChildren: true },
     ul: { component: Ul, passthroughChildren: true },
     li: { component: Li, passthroughChildren: true },
+
+    // For PreTeXt compatibility
+    pretext: { component: _Fragment, passthroughChildren: true },
+    article: { component: _Fragment, passthroughChildren: true },
+    book: { component: _Fragment, passthroughChildren: true },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<
