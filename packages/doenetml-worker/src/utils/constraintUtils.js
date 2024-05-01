@@ -273,6 +273,8 @@ export function attractSegment({
     let closestSegment;
     let minDeviation2 = Infinity;
 
+    let amplifiedThreshold2 = allowRotation ? threshold2 * 1000 : threshold2;
+
     for (let [
         ind,
         numericalNearestPointFunction,
@@ -285,7 +287,7 @@ export function attractSegment({
             point2: numericalPoint2,
             allowRotation,
             scales,
-            threshold2: 25 * threshold2,
+            threshold2: amplifiedThreshold2,
             numericalNearestPointFunction,
             numericalNearestPointAsLineFunction,
         });
@@ -305,8 +307,8 @@ export function attractSegment({
             constrained: true,
             segment: closestSegment,
         };
-    } else if (minDeviation2 < 25 * threshold2) {
-        // Segment is actually attracted, but it was close to being attracted.
+    } else if (minDeviation2 < amplifiedThreshold2) {
+        // Segment is not actually attracted, but it was somewhat close to being attracted.
         // Report this fact so it could be used to just rotate the edge
         // if no other constraints were found
         return {

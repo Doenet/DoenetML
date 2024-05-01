@@ -233,14 +233,17 @@ export function returnStickyGroupDefinitions() {
 // it attempts to find translations that, if applying constraintFunction again,
 // maximizes the number of vertices that are constrained but don't move
 export function returnVertexConstraintFunction(constraintFunction) {
-    return function ({ unconstrainedVertices, closed, enforceRigid }, ...args) {
+    return function (
+        { unconstrainedVertices, closed, enforceRigid, shrinkThreshold },
+        ...args
+    ) {
         let numericalUnconstrainedVertices = unconstrainedVertices.map(
             (vertex) => vertex.map((v) => v.evaluate_to_constant()),
         );
 
         let { numericalConstrainedVertices, constraintUsedForVertex } =
             constraintFunction(
-                { numericalUnconstrainedVertices, closed },
+                { numericalUnconstrainedVertices, closed, shrinkThreshold },
                 ...args,
             );
 
@@ -300,6 +303,7 @@ export function returnVertexConstraintFunction(constraintFunction) {
                 {
                     numericalUnconstrainedVertices: translatedNumericalVertices,
                     closed,
+                    shrinkThreshold,
                 },
                 ...args,
             );
@@ -313,7 +317,7 @@ export function returnVertexConstraintFunction(constraintFunction) {
 
                 let eps = 1e-6;
 
-                // vertex was constrained, check if each component didn't move more than the threshold
+                // vertex was constrained, check if each component didn't move more than eps
                 let moved = false;
                 let translatedVertex = translatedNumericalVertices[vertexInd2];
                 let newVertex = newVertices[vertexInd2];
@@ -400,7 +404,13 @@ export function returnVertexConstraintFunction(constraintFunction) {
 // and then apply that transformation to all vertices.
 export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
     return function (
-        { unconstrainedVertices, closed, enforceRigid, allowRotation },
+        {
+            unconstrainedVertices,
+            closed,
+            enforceRigid,
+            allowRotation,
+            shrinkThreshold,
+        },
         ...args
     ) {
         let numericalUnconstrainedVertices = unconstrainedVertices.map(
@@ -431,6 +441,7 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
                     closed,
                     allowRotation,
                     enforceRigid,
+                    shrinkThreshold,
                 },
                 ...args,
             );

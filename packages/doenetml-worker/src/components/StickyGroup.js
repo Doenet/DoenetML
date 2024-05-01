@@ -324,8 +324,6 @@ export default class StickyGroup extends GraphicalComponent {
                     scales = [1, 1, 1];
                 }
 
-                let threshold2 =
-                    dependencyValues.threshold * dependencyValues.threshold;
                 let angleThreshold = dependencyValues.angleThreshold;
 
                 // Specify whether or not each edge would be constrained
@@ -341,6 +339,7 @@ export default class StickyGroup extends GraphicalComponent {
                         closed,
                         allowRotation,
                         enforceRigid,
+                        shrinkThreshold,
                     },
                     { objectInd },
                 ) {
@@ -354,6 +353,12 @@ export default class StickyGroup extends GraphicalComponent {
                     let almostConstrained = {
                         distance2: Infinity,
                     };
+
+                    let threshold = dependencyValues.threshold;
+                    if (shrinkThreshold) {
+                        threshold *= 0.2;
+                    }
+                    let threshold2 = threshold * threshold;
 
                     for (let [
                         edgeInd,
@@ -470,7 +475,7 @@ export default class StickyGroup extends GraphicalComponent {
                 // and what its constrained location would be.
                 // This information will be synthesized across vertices by returnVertexConstraintFunction.
                 let vertexConstraintSub = function (
-                    { numericalUnconstrainedVertices, closed },
+                    { numericalUnconstrainedVertices, closed, shrinkThreshold },
                     { objectInd },
                 ) {
                     let pointsToAttract =
@@ -480,6 +485,12 @@ export default class StickyGroup extends GraphicalComponent {
 
                     let numericalConstrainedVertices = [];
                     let constraintUsedForVertex = [];
+
+                    let threshold = dependencyValues.threshold;
+                    if (shrinkThreshold) {
+                        threshold *= 0.2;
+                    }
+                    let threshold2 = threshold * threshold;
 
                     for (let unconstrainedVertex of numericalUnconstrainedVertices) {
                         let closestDistance2 = Infinity;
@@ -673,6 +684,7 @@ export default class StickyGroup extends GraphicalComponent {
                         closed,
                         enforceRigid,
                         allowRotation,
+                        shrinkThreshold,
                     },
                     { objectInd },
                 ) {
@@ -684,6 +696,7 @@ export default class StickyGroup extends GraphicalComponent {
                             closed,
                             enforceRigid,
                             allowRotation,
+                            shrinkThreshold,
                         },
                         { objectInd },
                     );
@@ -694,6 +707,7 @@ export default class StickyGroup extends GraphicalComponent {
                             unconstrainedVertices: constrainedVertices,
                             closed,
                             enforceRigid,
+                            shrinkThreshold,
                         },
                         { objectInd },
                     );

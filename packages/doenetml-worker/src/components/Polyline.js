@@ -984,6 +984,7 @@ export default class Polyline extends GraphicalComponent {
                                             closed: globalDependencyValues.closed,
                                             enforceRigid: true,
                                             allowRotation: true,
+                                            shrinkThreshold: true,
                                         },
                                         { objectInd: stickyObjectIndex },
                                     );
@@ -1106,6 +1107,7 @@ export default class Polyline extends GraphicalComponent {
                                             closed: globalDependencyValues.closed,
                                             enforceRigid: true,
                                             allowRotation: false,
+                                            shrinkThreshold: false,
                                         },
                                         { objectInd: stickyObjectIndex },
                                     );
@@ -1193,6 +1195,7 @@ export default class Polyline extends GraphicalComponent {
                                     closed: globalDependencyValues.closed,
                                     enforceRigid,
                                     allowRotation,
+                                    shrinkThreshold: false,
                                 },
                                 { objectInd: stickyObjectIndex },
                             );
