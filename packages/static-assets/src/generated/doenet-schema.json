@@ -33664,6 +33664,13 @@
                     ]
                 },
                 {
+                    "name": "preserveSimilarity",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -33766,6 +33773,11 @@
                 },
                 {
                     "name": "rigid",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -46973,6 +46985,13 @@
                     ]
                 },
                 {
+                    "name": "preserveSimilarity",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47047,6 +47066,11 @@
                 },
                 {
                     "name": "rigid",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47261,6 +47285,13 @@
                     ]
                 },
                 {
+                    "name": "preserveSimilarity",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47342,6 +47373,11 @@
                 },
                 {
                     "name": "rigid",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47581,6 +47617,13 @@
                     ]
                 },
                 {
+                    "name": "preserveSimilarity",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47662,6 +47705,11 @@
                 },
                 {
                     "name": "rigid",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47901,6 +47949,13 @@
                     ]
                 },
                 {
+                    "name": "preserveSimilarity",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47991,6 +48046,11 @@
                 },
                 {
                     "name": "rigid",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -48481,6 +48541,11 @@
                 {
                     "name": "area",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
