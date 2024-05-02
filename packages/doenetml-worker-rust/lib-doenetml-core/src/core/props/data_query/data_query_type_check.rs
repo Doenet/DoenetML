@@ -7,12 +7,14 @@ use super::{DataQuery, PropSpecifier, PropValueType};
 
 impl DataQuery {
     /// Guess the return type of a data query. Since this return type may depend on
-    /// retrieving a prop from a component, you must pass in a reference to the component.
+    /// retrieving a prop from a component, you must pass in a reference to the component as a type parameter.
     ///
     /// Note: this function assumes the data query is well formed (E.g., it only uses `PropSpecifier::LocalIdx` in conjunction
     /// with `PropSource::Me`). If the data query is not well formed, this function may return an incorrect type.
+    ///
+    /// This function is **only used in tests** and should not be relied upon.
     #[allow(clippy::result_unit_err)]
-    pub fn guess_return_type<T: ComponentVariantPropTypes + 'static>(
+    pub fn _guess_return_type<T: ComponentVariantPropTypes + 'static>(
         &self,
     ) -> Result<Vec<PropValueType>, ()> {
         match self {

@@ -15,7 +15,7 @@ pub trait TestDataQueryTypes: TryFromDataQueryResults {
     ///   b: PropView<prop_type::Number>,
     /// }
     /// ```
-    /// would result in the list `&[("a", PropValueType::String), ("b", PropValueType::Number)]`.
+    /// would result in the list `&[("a", Some(PropValueType::String)), ("b", Some(PropValueType::Number))]`.
     const _DECLARED_DATA_QUERY_TYPES: &'static [(&'static str, Option<PropValueType>)];
 
     const _STRUCT_NAME: &'static str;
@@ -31,7 +31,7 @@ pub trait TestDataQueryTypes: TryFromDataQueryResults {
     fn _test_data_query_types<T: ComponentVariantPropTypes + 'static>() -> anyhow::Result<()> {
         let types_from_data_queries = Self::to_data_queries()
             .iter()
-            .map(|query| query.guess_return_type::<T>())
+            .map(|query| query._guess_return_type::<T>())
             .collect::<Vec<_>>();
 
         for (possible_types, (field_name, expected_type)) in types_from_data_queries
