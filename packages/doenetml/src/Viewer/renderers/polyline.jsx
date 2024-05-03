@@ -28,12 +28,14 @@ export default React.memo(function Polyline(props) {
     let fixed = useRef(false);
     let fixLocation = useRef(false);
     let verticesFixed = useRef(false);
+    let vertexIndicesDraggable = useRef([]);
 
     lastPositionsFromCore.current = SVs.numericalVertices;
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     verticesFixed.current =
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
+    vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
     const { darkMode } = useContext(PageContext) || {};
 
@@ -131,11 +133,15 @@ export default React.memo(function Polyline(props) {
         // create invisible points at endpoints
         pointsJXG.current = [];
         for (let i = 0; i < SVs.numVertices; i++) {
+            let pointAttributes = { ...jsxPointAttributes.current };
+            if (!vertexIndicesDraggable.current.includes(i)) {
+                pointAttributes.visible = false;
+            }
             pointsJXG.current.push(
                 board.create(
                     "point",
                     [...SVs.numericalVertices[i]],
-                    jsxPointAttributes.current,
+                    pointAttributes,
                 ),
             );
         }
@@ -169,6 +175,12 @@ export default React.memo(function Polyline(props) {
         newPolylineJXG.on("keydown", (e) => keyDownHandler(-1, e));
         newPolylineJXG.on("down", (e) => downHandler(-1, e));
         newPolylineJXG.on("hit", (e) => hitHandler());
+        newPolylineJXG.on("over", (e) => {
+            highlightVertices();
+        });
+        newPolylineJXG.on("out", (e) => {
+            unHighlightVertices();
+        });
 
         previousNumVertices.current = SVs.numVertices;
 
@@ -329,6 +341,7 @@ export default React.memo(function Polyline(props) {
     }
 
     function hitHandler() {
+        highlightVertices();
         draggedPoint.current = null;
         callAction({
             action: actions.polylineFocused,
@@ -374,6 +387,7 @@ export default React.memo(function Polyline(props) {
     }
 
     function keyFocusOutHandler(i) {
+        unHighlightVertices();
         if (draggedPoint.current === i) {
             if (i === -1) {
                 callAction({
@@ -420,6 +434,34 @@ export default React.memo(function Polyline(props) {
                 action: actions.polylineClicked,
                 args: { name }, // send name so get original name if adapted
             });
+        }
+    }
+
+    function highlightVertices() {
+        if (!verticesFixed.current) {
+            let mainGray = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+
+            for (let [i, point] of pointsJXG.current.entries()) {
+                if (vertexIndicesDraggable.current.includes(i)) {
+                    point.setAttribute({ fillcolor: mainGray });
+                    point.needsUpdate = true;
+                    point.update();
+                }
+            }
+        }
+    }
+
+    function unHighlightVertices() {
+        if (!verticesFixed.current) {
+            for (let [i, point] of pointsJXG.current.entries()) {
+                if (vertexIndicesDraggable.current.includes(i)) {
+                    point.setAttribute({ fillcolor: "none" });
+                    point.needsUpdate = true;
+                    point.update();
+                }
+            }
         }
     }
 

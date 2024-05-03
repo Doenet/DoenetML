@@ -9,6 +9,7 @@ export default class RegularPolygon extends Polygon {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // remove attribute as preserveSimilarity is always true for regular polygons
         delete attributes.preserveSimilarity;
 
         attributes.numVertices = {
@@ -95,6 +96,7 @@ export default class RegularPolygon extends Polygon {
                 return { setValue: { styleDescriptionWithNoun } };
             };
 
+        // preserveSimilarity is always true for regular polygons
         stateVariableDefinitions.preserveSimilarity = {
             public: true,
             shadowingInstructions: {

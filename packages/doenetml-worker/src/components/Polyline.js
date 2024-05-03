@@ -62,6 +62,14 @@ export default class Polyline extends GraphicalComponent {
             public: true,
         };
 
+        // Vertex displayed for rotations when rigid/preserveSimilarity.
+        // If not a positive integer, then all vertices will be displayed.
+        attributes.rotationVertex = {
+            createComponentOfType: "integer",
+            createStateVariable: "rotationVertex",
+            defaultValue: 1,
+        };
+
         Object.assign(attributes, returnRoundingAttributes());
 
         return attributes;
@@ -192,6 +200,56 @@ export default class Polyline extends GraphicalComponent {
                         },
                     };
                 }
+            },
+        };
+
+        stateVariableDefinitions.vertexIndicesDraggable = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                verticesDraggable: {
+                    dependencyType: "stateVariable",
+                    variableName: "verticesDraggable",
+                },
+                numVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numVertices",
+                },
+                rigid: {
+                    dependencyType: "stateVariable",
+                    variableName: "rigid",
+                },
+                preserveSimilarity: {
+                    dependencyType: "stateVariable",
+                    variableName: "preserveSimilarity",
+                },
+                rotationVertex: {
+                    dependencyType: "stateVariable",
+                    variableName: "rotationVertex",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let vertexIndicesDraggable = [];
+
+                if (dependencyValues.verticesDraggable) {
+                    if (
+                        dependencyValues.rigid ||
+                        dependencyValues.preserveSimilarity
+                    ) {
+                        let vertexInd = dependencyValues.rotationVertex;
+                        if (Number.isInteger(vertexInd) && vertexInd > 0) {
+                            vertexIndicesDraggable.push(vertexInd - 1);
+                        } else {
+                            vertexIndicesDraggable = [
+                                ...Array(dependencyValues.numVertices).keys(),
+                            ];
+                        }
+                    } else {
+                        vertexIndicesDraggable = [
+                            ...Array(dependencyValues.numVertices).keys(),
+                        ];
+                    }
+                }
+                return { setValue: { vertexIndicesDraggable } };
             },
         };
 
