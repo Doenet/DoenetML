@@ -410,6 +410,7 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
             enforceRigid,
             allowRotation,
             shrinkThreshold,
+            rotationPoint,
         },
         ...args
     ) {
@@ -438,10 +439,10 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
             constraintFunction(
                 {
                     numericalUnconstrainedEdges,
-                    closed,
                     allowRotation,
                     enforceRigid,
                     shrinkThreshold,
+                    rotationPoint,
                 },
                 ...args,
             );

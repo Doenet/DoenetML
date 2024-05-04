@@ -34,7 +34,7 @@ export default class StickyGroup extends GraphicalComponent {
         attributes.angleThreshold = {
             createComponentOfType: "number",
             createStateVariable: "angleThreshold",
-            defaultValue: Math.PI * 0.02,
+            defaultValue: Math.PI * 0.03,
             public: true,
         };
 
@@ -336,10 +336,10 @@ export default class StickyGroup extends GraphicalComponent {
                 let edgeConstraintSub = function (
                     {
                         numericalUnconstrainedEdges,
-                        closed,
                         allowRotation,
                         enforceRigid,
                         shrinkThreshold,
+                        rotationPoint,
                     },
                     { objectInd },
                 ) {
@@ -430,7 +430,7 @@ export default class StickyGroup extends GraphicalComponent {
                             attractedEdgeInd,
                             attractingSegment: almostConstrained.segment,
                             angleThreshold,
-                            closed,
+                            rotationPoint,
                             numericalUnconstrainedEdges,
                         });
 
@@ -451,9 +451,9 @@ export default class StickyGroup extends GraphicalComponent {
 
                         let rotateResult = rotateToAttractAngles({
                             numericalUnconstrainedEdges,
-                            closed,
                             anglesToAttract,
                             angleThreshold,
+                            rotationPoint,
                         });
 
                         if (rotateResult) {
@@ -685,6 +685,7 @@ export default class StickyGroup extends GraphicalComponent {
                         enforceRigid,
                         allowRotation,
                         shrinkThreshold,
+                        rotationPoint,
                     },
                     { objectInd },
                 ) {
@@ -697,6 +698,7 @@ export default class StickyGroup extends GraphicalComponent {
                             enforceRigid,
                             allowRotation,
                             shrinkThreshold,
+                            rotationPoint,
                         },
                         { objectInd },
                     );
@@ -841,9 +843,9 @@ export default class StickyGroup extends GraphicalComponent {
 // around the centroid of the shape in order to match the angle
 function rotateToAttractAngles({
     numericalUnconstrainedEdges,
-    closed,
     anglesToAttract,
     angleThreshold,
+    rotationPoint,
 }) {
     // find the edge with minimal deviation from one of the angles to attract
 
@@ -878,9 +880,9 @@ function rotateToAttractAngles({
         return null;
     }
 
-    // rotate the attracted edge around the centroid
+    // rotate the attracted edge around the rotation point
 
-    let [cx, cy] = calculateCentroid(numericalUnconstrainedEdges, closed);
+    let [cx, cy] = rotationPoint;
 
     let cos_theta = Math.cos(minDAngle);
     let sin_theta = Math.sin(minDAngle);
@@ -907,7 +909,7 @@ function rotateIfClose({
     attractedEdgeInd,
     attractingSegment,
     angleThreshold,
-    closed,
+    rotationPoint,
     numericalUnconstrainedEdges,
 }) {
     let attractingAngle = Math.atan(
@@ -927,8 +929,8 @@ function rotateIfClose({
         return null;
     }
 
-    // rotate the attracted edge around the centroid
-    let [cx, cy] = calculateCentroid(numericalUnconstrainedEdges, closed);
+    // rotate the attracted edge around the rotation point
+    let [cx, cy] = rotationPoint;
 
     let cos_theta = Math.cos(dAngle);
     let sin_theta = Math.sin(dAngle);
@@ -946,27 +948,4 @@ function rotateIfClose({
     );
 
     return rotatedEdge;
-}
-
-function calculateCentroid(edges, closed) {
-    let cx = 0,
-        cy = 0;
-
-    for (let edge of edges) {
-        let point1 = edge[0];
-        cx += point1[0];
-        cy += point1[1];
-    }
-
-    let numVertices = edges.length;
-    if (!closed) {
-        let lastPoint = edges[numVertices - 1][1];
-        numVertices++;
-        cx += lastPoint[0];
-        cy += lastPoint[1];
-    }
-    cx /= numVertices;
-    cy /= numVertices;
-
-    return [cx, cy];
 }

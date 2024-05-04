@@ -62,8 +62,22 @@ export default class Polyline extends GraphicalComponent {
             public: true,
         };
 
-        // Vertex displayed for rotations when rigid/preserveSimilarity.
-        // If not a positive integer, then all vertices will be displayed.
+        // Vertices displayed for rotations when rigid/preserveSimilarity.
+        // Entries that don't correspond to vertex indices are ignored.
+        // If no entries match a vertex, then all vertices are used
+        attributes.rotationHandleVertices = {
+            createComponentOfType: "numberList",
+            createStateVariable: "rotationHandleVertices",
+            defaultValue: [1],
+        };
+
+        attributes.rotationPoint = {
+            createComponentOfType: "text",
+            createStateVariable: "rotationPointDescription",
+            validValues: ["centroid", "vertex"],
+            defaultValue: "centroid",
+        };
+
         attributes.rotationVertex = {
             createComponentOfType: "integer",
             createStateVariable: "rotationVertex",
@@ -222,6 +236,14 @@ export default class Polyline extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "preserveSimilarity",
                 },
+                rotationHandleVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "rotationHandleVertices",
+                },
+                rotationPointDescription: {
+                    dependencyType: "stateVariable",
+                    variableName: "rotationPointDescription",
+                },
                 rotationVertex: {
                     dependencyType: "stateVariable",
                     variableName: "rotationVertex",
@@ -235,13 +257,26 @@ export default class Polyline extends GraphicalComponent {
                         dependencyValues.rigid ||
                         dependencyValues.preserveSimilarity
                     ) {
-                        let vertexInd = dependencyValues.rotationVertex;
-                        if (Number.isInteger(vertexInd) && vertexInd > 0) {
-                            vertexIndicesDraggable.push(vertexInd - 1);
-                        } else {
+                        let rotationVertex =
+                            dependencyValues.rotationPointDescription ===
+                            "vertex"
+                                ? dependencyValues.rotationVertex
+                                : null;
+                        for (let vertexNum of dependencyValues.rotationHandleVertices) {
+                            if (
+                                Number.isInteger(vertexNum) &&
+                                vertexNum > 0 &&
+                                vertexNum <= dependencyValues.numVertices &&
+                                vertexNum !== rotationVertex
+                            ) {
+                                vertexIndicesDraggable.push(vertexNum - 1);
+                            }
+                        }
+
+                        if (vertexIndicesDraggable.length === 0) {
                             vertexIndicesDraggable = [
                                 ...Array(dependencyValues.numVertices).keys(),
-                            ];
+                            ].filter((x) => x !== rotationVertex - 1);
                         }
                     } else {
                         vertexIndicesDraggable = [
@@ -252,6 +287,60 @@ export default class Polyline extends GraphicalComponent {
                 return { setValue: { vertexIndicesDraggable } };
             },
         };
+
+        // stateVariableDefinitions.rotationPointNumerical = {
+        //     returnDependencies: () => ({
+        //         rotationPointDescription: {
+        //             dependencyType: "stateVariable",
+        //             variableName: "rotationPointDescription",
+        //         },
+        //         rotationVertex: {
+        //             dependencyType: "stateVariable",
+        //             variableName: "rotationVertex",
+        //         },
+        //         numericalVertices: {
+        //             dependencyType: "stateVariable",
+        //             variableName: "numericalVertices",
+        //         },
+        //     }),
+        //     definition({ dependencyValues }) {
+        //         let rotationPointNumerical = [];
+        //         if (
+        //             dependencyValues.rotationPointDescription === "vertex" &&
+        //             dependencyValues.rotationVertex > 0 &&
+        //             dependencyValues.rotationIndex <=
+        //                 dependencyValues.numericalVertices.length
+        //         ) {
+        //             rotationPointNumerical =
+        //                 dependencyValues.numericalVertices[
+        //                     dependencyValues.rotationVertex - 1
+        //                 ];
+        //         } else {
+        //             // find centroid
+        //         }
+        //     },
+        // };
+
+        // stateVariableDefinitions.rotationPoint = {
+        //     public: true,
+        //     shadowingInstructions: {
+        //         createComponentOfType: "point",
+        //     },
+        //     returnDependencies: () => ({
+        //         rotationPointDescription: {
+        //             dependencyType: "stateVariable",
+        //             variableName: "rotationPointDescription",
+        //         },
+        //         rotationVertex: {
+        //             dependencyType: "stateVariable",
+        //             variableName: "rotationVertex",
+        //         },
+        //         numericalVertices: {
+        //             dependencyType: "stateVariable",
+        //             variableName: "numericalVertices",
+        //         },
+        //     }),
+        // };
 
         stateVariableDefinitions.numVertices = {
             public: true,
@@ -969,6 +1058,23 @@ export default class Polyline extends GraphicalComponent {
                                 );
                         }
 
+                        // Find the rotation point based on the referenceVertices and referenceCentroid.
+                        // If rotationPointDescription is "vertex" and rotationVertex-1 is an index of referenceVertices,
+                        // then use the corresponding vertex as the rotation point.
+                        // Otherwise, use referenceCentroid
+                        let rotationPointDescription =
+                            await stateValues.rotationPointDescription;
+                        let rotationPoint;
+                        if (rotationPointDescription === "vertex") {
+                            let rotationVertex =
+                                await stateValues.rotationVertex;
+                            rotationPoint =
+                                referenceVertices[rotationVertex - 1];
+                        }
+                        if (!rotationPoint) {
+                            rotationPoint = referenceCentroid;
+                        }
+
                         let [pointInd1, dim1] =
                             Object.keys(workspace)[0].split(",");
 
@@ -988,12 +1094,12 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         let moved_rel = [
-                            moved_vertex[0] - referenceCentroid[0],
-                            moved_vertex[1] - referenceCentroid[1],
+                            moved_vertex[0] - rotationPoint[0],
+                            moved_vertex[1] - rotationPoint[1],
                         ];
                         let orig_rel = [
-                            original_vertex[0] - referenceCentroid[0],
-                            original_vertex[1] - referenceCentroid[1],
+                            original_vertex[0] - rotationPoint[0],
+                            original_vertex[1] - rotationPoint[1],
                         ];
 
                         let theta =
@@ -1026,8 +1132,8 @@ export default class Polyline extends GraphicalComponent {
 
                             let original_vertex = referenceVertices[pointInd];
                             let orig_rel = [
-                                original_vertex[0] - referenceCentroid[0],
-                                original_vertex[1] - referenceCentroid[1],
+                                original_vertex[0] - rotationPoint[0],
+                                original_vertex[1] - rotationPoint[1],
                             ];
                             let rot_rel = [
                                 c_cos_theta * orig_rel[0] -
@@ -1039,7 +1145,7 @@ export default class Polyline extends GraphicalComponent {
                             for (let dim = 0; dim < arraySize[1]; dim++) {
                                 desired_vertices[pointInd].push(
                                     me.fromAst(
-                                        rot_rel[dim] + referenceCentroid[dim],
+                                        rot_rel[dim] + rotationPoint[dim],
                                     ),
                                 );
                             }
@@ -1087,6 +1193,7 @@ export default class Polyline extends GraphicalComponent {
                                             enforceRigid: true,
                                             allowRotation: true,
                                             shrinkThreshold: true,
+                                            rotationPoint,
                                         },
                                         { objectInd: stickyObjectIndex },
                                     );
@@ -1556,10 +1663,10 @@ export default class Polyline extends GraphicalComponent {
         };
 
         // A mapping from a shifted numerical centroid (first entry)
-        // onto an original centroid (second entry)
-        // and reference position (third entry) used for rotating a rigid/preserveSimilarity polygon.
-        // Used so that if a polygon is shifted from the effective centroid/reference position
-        // onto the shifted numerical centroid, the original centroid and position
+        // onto an original unconstrained centroid (second entry)
+        // and original unconstrained vertex location (third entry) used for rotating a rigid/preserveSimilarity polygon.
+        // Used so that if a polygon is shifted from the effective centroid
+        // onto the shifted numerical centroid, the original centroid and vertices
         // will be used to calculate the rotation.
         stateVariableDefinitions.rotationReferenceMapping = {
             hasEssential: true,
