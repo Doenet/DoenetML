@@ -16,7 +16,8 @@
             "require": "./dist/doenetml.js"
         },
         "./*": {
-            "import": "./dist/*"
+            "import": "./dist/*",
+            "require": "./dist/*"
         }
     },
     "scripts": {
