@@ -33671,6 +33671,19 @@
                     ]
                 },
                 {
+                    "name": "rotationHandleVertices"
+                },
+                {
+                    "name": "rotationPoint",
+                    "values": [
+                        "centroid",
+                        "vertex"
+                    ]
+                },
+                {
+                    "name": "rotationVertex"
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -46992,6 +47005,19 @@
                     ]
                 },
                 {
+                    "name": "rotationHandleVertices"
+                },
+                {
+                    "name": "rotationPoint",
+                    "values": [
+                        "centroid",
+                        "vertex"
+                    ]
+                },
+                {
+                    "name": "rotationVertex"
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47290,6 +47316,19 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "rotationHandleVertices"
+                },
+                {
+                    "name": "rotationPoint",
+                    "values": [
+                        "centroid",
+                        "vertex"
+                    ]
+                },
+                {
+                    "name": "rotationVertex"
                 },
                 {
                     "name": "displayDigits"
@@ -47624,6 +47663,19 @@
                     ]
                 },
                 {
+                    "name": "rotationHandleVertices"
+                },
+                {
+                    "name": "rotationPoint",
+                    "values": [
+                        "centroid",
+                        "vertex"
+                    ]
+                },
+                {
+                    "name": "rotationVertex"
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -47954,6 +48006,19 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "rotationHandleVertices"
+                },
+                {
+                    "name": "rotationPoint",
+                    "values": [
+                        "centroid",
+                        "vertex"
+                    ]
+                },
+                {
+                    "name": "rotationVertex"
                 },
                 {
                     "name": "displayDigits"
@@ -48310,6 +48375,19 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "rotationHandleVertices"
+                },
+                {
+                    "name": "rotationPoint",
+                    "values": [
+                        "centroid",
+                        "vertex"
+                    ]
+                },
+                {
+                    "name": "rotationVertex"
                 },
                 {
                     "name": "displayDigits"
