@@ -109,9 +109,7 @@ export default React.memo(function Polyline(props) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray"),
+            highlightFillColor: "black",
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
@@ -439,13 +437,9 @@ export default React.memo(function Polyline(props) {
 
     function highlightVertices() {
         if (!verticesFixed.current) {
-            let mainGray = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray");
-
             for (let [i, point] of pointsJXG.current.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
-                    point.setAttribute({ fillcolor: mainGray });
+                    point.setAttribute({ fillcolor: "black" });
                     point.needsUpdate = true;
                     point.update();
                 }
@@ -506,11 +500,15 @@ export default React.memo(function Polyline(props) {
                     i < SVs.numVertices;
                     i++
                 ) {
+                    let pointAttributes = { ...jsxPointAttributes.current };
+                    if (!vertexIndicesDraggable.current.includes(i)) {
+                        pointAttributes.visible = false;
+                    }
                     pointsJXG.current.push(
                         board.create(
                             "point",
                             [...SVs.numericalVertices[i]],
-                            jsxPointAttributes.current,
+                            pointAttributes,
                         ),
                     );
                     polylineJXG.current.dataX.length = SVs.numVertices;
@@ -570,8 +568,11 @@ export default React.memo(function Polyline(props) {
                 let pointsVisible = visible && !verticesFixed.current;
 
                 for (let i = 0; i < SVs.numVertices; i++) {
-                    pointsJXG.current[i].visProp["visible"] = pointsVisible;
-                    pointsJXG.current[i].visPropCalc["visible"] = pointsVisible;
+                    let pointVisible =
+                        pointsVisible &&
+                        vertexIndicesDraggable.current.includes(i);
+                    pointsJXG.current[i].visProp["visible"] = pointVisible;
+                    pointsJXG.current[i].visPropCalc["visible"] = pointVisible;
                     pointsJXG.current[i].visProp.showinfobox =
                         SVs.showCoordsWhenDragging;
                 }

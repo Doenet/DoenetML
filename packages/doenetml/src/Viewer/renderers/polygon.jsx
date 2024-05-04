@@ -77,9 +77,7 @@ export default React.memo(function Polygon(props) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray"),
+            highlightFillColor: "black",
             visible: !verticesFixed.current && !SVs.hidden,
             withLabel: false,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -433,13 +431,9 @@ export default React.memo(function Polygon(props) {
 
     function highlightVertices() {
         if (!verticesFixed.current) {
-            let mainGray = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray");
-
             for (let [i, vertex] of polygonJXG.current.vertices.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
-                    vertex.setAttribute({ fillcolor: mainGray });
+                    vertex.setAttribute({ fillcolor: "black" });
                     vertex.needsUpdate = true;
                     vertex.update();
                 }
