@@ -110,6 +110,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Xref)]
         struct RequiredData {
             rendered_children: PropView<component::props::types::RenderedChildren>,
             label: Option<PropView<prop_type::XrefLabel>>,
@@ -186,6 +188,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Xref)]
         struct RequiredData {
             referent_children: Option<PropView<prop_type::AnnotatedContentRefs>>,
         }

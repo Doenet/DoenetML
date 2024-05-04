@@ -13,7 +13,7 @@ pub struct RenderedChildrenPassthroughProp {
 impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
-            data_query: DataQuery::AnnotatedComponentRefs {
+            data_query: DataQuery::AnnotatedContentRefs {
                 container: PropSource::Me,
                 filter: Rc::new(Op::Or(
                     // Keep things without a "hidden" prop

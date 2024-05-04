@@ -4,9 +4,11 @@ use component_module::generate_component_module;
 use data_query_results::{generate_into_data_query_results, generate_try_from_data_query_results};
 use proc_macro::TokenStream;
 use quote::quote;
+use test_data_query_types::test_data_query_types_derive;
 
 mod component_module;
 mod data_query_results;
+mod test_data_query_types;
 mod try_from_ref;
 
 /// Create a _DoenetML_ _Component_ from a decorated module. This macro creates required structs/enums
@@ -249,6 +251,50 @@ pub fn try_from_ref_derive_wrapper(item: TokenStream) -> TokenStream {
     let item = proc_macro2::TokenStream::from(item);
 
     match try_from_ref::try_from_ref_derive(item) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// On a struct, implement the `TestDataQueryTypes` trait. In addition to the trait implementation,
+/// this macro also implements a `#[test]` test function that checks the consistency between the
+/// declared types of a `PropView<T>` and the types that the specified data queries return.
+///
+/// When not running tests, this macro does nothing.
+///
+/// ## Example
+/// ```ignore
+/// #[derive(TestDataQueryTypes, TryFromDataQueryResults)]
+/// #[data_query(query_trait = RequiredDataQueries)]
+/// #[owning_component(MyComponent)]
+/// struct RequiredData {
+///    rendered_children: PropView<component::props::types::RenderedChildren>,
+/// }
+///
+/// impl RequiredDataQueries for RequiredData {
+///  // ...
+/// }
+/// ```
+///
+/// This macro wll then produce code similar to
+/// ```ignore
+/// impl TestDataQueryTypes for RequiredData {
+///   const _DECLARED_DATA_QUERY_TYPES: &'static [(&'static str, Option<PropValueType>)] = &[
+///       ("rendered_children", <PropView<component::props::types::RenderedChildren>>::PROP_VALUE_TYPE),
+///   ];
+///   const _STRUCT_NAME: &'static str = "RequiredData";
+/// }
+/// #[cfg(test)]
+/// #[test]
+/// fn test_data_query_types() {
+///    RequiredData::_test_data_query_types::<MyComponent>();
+/// }
+/// ```
+#[proc_macro_derive(TestDataQueryTypes, attributes(owning_component))]
+pub fn test_data_query_types_wrapper(item: TokenStream) -> TokenStream {
+    let item = proc_macro2::TokenStream::from(item);
+
+    match test_data_query_types_derive(item) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
     }

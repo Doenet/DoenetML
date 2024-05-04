@@ -13,6 +13,8 @@ impl ValueProp {
 /// Structure to hold data generated from the data queries
 #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries)]
+#[derive(TestDataQueryTypes)]
+#[owning_component(TextInput)]
 struct RequiredData {
     /// An independent state variable (that doesn't have any dependencies)
     /// that stores `value` when it isn't synced with 'immediate_value`

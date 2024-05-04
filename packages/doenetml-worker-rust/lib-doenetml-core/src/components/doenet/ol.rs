@@ -136,6 +136,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Ol)]
         struct RequiredData {
             start_attr: PropView<component::props::types::StartAttr>,
             marker: PropView<component::props::types::Marker>,
@@ -197,6 +199,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Ol)]
         struct RequiredData {
             parent_depth: Option<PropView<prop_type::ListDepth>>,
         }
@@ -245,6 +249,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Ol)]
         struct RequiredData {
             parent_marker: Option<PropView<prop_type::ListMarker>>,
             marker_attr: PropView<component::props::types::MarkerAttr>,

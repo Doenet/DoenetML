@@ -304,8 +304,8 @@ impl DocumentModel {
         };
 
         match query {
-            DataQuery::ComponentRefs { container, filter }
-            | DataQuery::AnnotatedComponentRefs { container, filter } => {
+            DataQuery::ContentRefs { container, filter }
+            | DataQuery::AnnotatedContentRefs { container, filter } => {
                 // Resolve a `PropSource` to a component index.
                 let resolve_prop_source = |prop_source: &PropSource| match prop_source {
                     PropSource::Me => get_prop_pointer().component_idx,
@@ -324,7 +324,7 @@ impl DocumentModel {
                 let component_idx = resolve_prop_source(container);
 
                 match query {
-                    DataQuery::ComponentRefs { .. } => {
+                    DataQuery::ContentRefs { .. } => {
                         let content_children = self.get_component_content_children(component_idx);
 
                         let mut content_refs: Vec<ContentRef> = Vec::new();
@@ -366,7 +366,7 @@ impl DocumentModel {
                     }
                     // `AnnotatedComponentRefs` are very similar to `ComponentRefs`, but they also include
                     // information about whether the content is original or comes from extending some other element.
-                    DataQuery::AnnotatedComponentRefs { .. } => {
+                    DataQuery::AnnotatedContentRefs { .. } => {
                         let content_children =
                             self.get_component_content_children_annotated(component_idx);
 

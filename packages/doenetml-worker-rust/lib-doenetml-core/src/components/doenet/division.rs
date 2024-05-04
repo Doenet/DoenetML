@@ -175,6 +175,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Division)]
         struct RequiredData {
             serial_number: PropView<props::types::SerialNumber>,
             code_number: PropView<props::types::CodeNumber>,
@@ -242,6 +244,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Division)]
         struct RequiredData {
             nearest_ancestor_division_depth: Vec<PropView<prop_type::Integer>>,
         }
@@ -290,6 +294,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Division)]
         struct RequiredData {
             nearest_ancestor_code_number: Vec<PropView<prop_type::String>>,
             self_serial_number: PropView<prop_type::Integer>,
@@ -354,6 +360,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Division)]
         struct RequiredData {
             siblings: PropView<prop_type::ContentRefs>,
             self_ref: PropView<prop_type::ComponentRef>,
@@ -364,7 +372,7 @@ mod custom_props {
                 DataQuery::SelfRef
             }
             fn siblings_query() -> DataQuery {
-                DataQuery::ComponentRefs {
+                DataQuery::ContentRefs {
                     container: PropSource::Parent,
                     filter: Rc::new(ContentFilter::HasPropMatchingProfile(
                         PropProfile::SerialNumber,
@@ -418,13 +426,15 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Division)]
         struct RequiredData {
             filtered_children: PropView<prop_type::AnnotatedContentRefs>,
         }
 
         impl DataQueries for RequiredData {
             fn filtered_children_query() -> DataQuery {
-                DataQuery::AnnotatedComponentRefs {
+                DataQuery::AnnotatedContentRefs {
                     container: PropSource::Me,
                     filter: Rc::new(Op::And(
                         // This is what would be normally included in rendered children
@@ -476,6 +486,8 @@ mod custom_props {
         /// Structure to hold data generated from the data queries
         #[derive(TryFromDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Division)]
         struct RequiredData {
             parent_division: Option<PropView<prop_type::DivisionType>>,
             division_type_attr: PropView<component::props::types::DivisionTypeAttr>,
