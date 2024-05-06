@@ -288,60 +288,6 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
-        // stateVariableDefinitions.rotationPointNumerical = {
-        //     returnDependencies: () => ({
-        //         rotationPointDescription: {
-        //             dependencyType: "stateVariable",
-        //             variableName: "rotationPointDescription",
-        //         },
-        //         rotationVertex: {
-        //             dependencyType: "stateVariable",
-        //             variableName: "rotationVertex",
-        //         },
-        //         numericalVertices: {
-        //             dependencyType: "stateVariable",
-        //             variableName: "numericalVertices",
-        //         },
-        //     }),
-        //     definition({ dependencyValues }) {
-        //         let rotationPointNumerical = [];
-        //         if (
-        //             dependencyValues.rotationPointDescription === "vertex" &&
-        //             dependencyValues.rotationVertex > 0 &&
-        //             dependencyValues.rotationIndex <=
-        //                 dependencyValues.numericalVertices.length
-        //         ) {
-        //             rotationPointNumerical =
-        //                 dependencyValues.numericalVertices[
-        //                     dependencyValues.rotationVertex - 1
-        //                 ];
-        //         } else {
-        //             // find centroid
-        //         }
-        //     },
-        // };
-
-        // stateVariableDefinitions.rotationPoint = {
-        //     public: true,
-        //     shadowingInstructions: {
-        //         createComponentOfType: "point",
-        //     },
-        //     returnDependencies: () => ({
-        //         rotationPointDescription: {
-        //             dependencyType: "stateVariable",
-        //             variableName: "rotationPointDescription",
-        //         },
-        //         rotationVertex: {
-        //             dependencyType: "stateVariable",
-        //             variableName: "rotationVertex",
-        //         },
-        //         numericalVertices: {
-        //             dependencyType: "stateVariable",
-        //             variableName: "numericalVertices",
-        //         },
-        //     }),
-        // };
-
         stateVariableDefinitions.numVertices = {
             public: true,
             shadowingInstructions: {
@@ -994,6 +940,7 @@ export default class Polyline extends GraphicalComponent {
                 let instructions = [];
 
                 let movedJustOneVertex = false;
+                let vertexIndMoved;
 
                 // We have to accumulate changed vertices in workspace
                 // as in some cases (such as when moving via an attached point)
@@ -1003,10 +950,16 @@ export default class Polyline extends GraphicalComponent {
                 let nMoved = Object.keys(workspace).length;
                 if (nMoved === 1) {
                     movedJustOneVertex = true;
+                    vertexIndMoved = Number(
+                        Object.keys(workspace)[0].split(",")[0],
+                    );
                 } else if (nMoved === 2) {
                     let pointInd1 = Object.keys(workspace)[0].split(",")[0];
                     let pointInd2 = Object.keys(workspace)[1].split(",")[0];
-                    movedJustOneVertex = pointInd1 === pointInd2;
+                    if (pointInd1 === pointInd2) {
+                        movedJustOneVertex = true;
+                        vertexIndMoved = Number(pointInd1);
+                    }
                 }
 
                 if (
@@ -1335,9 +1288,9 @@ export default class Polyline extends GraphicalComponent {
                 } else {
                     // non-rigid/preserveSimilarity
                     if (globalDependencyValues.haveConstrainedVertices) {
-                        // for non-rigid/preserveSimilarity case with constraints where move just one vertex,
-                        // go through the constraints so that will set the vertex
-                        // to its constrained value
+                        // for non-rigid/preserveSimilarity case with constraints,
+                        // go through the constraints so that will set the vertices
+                        // to their constrained values
 
                         let vertices = await stateValues.vertices;
                         let desired_vertices = [];
@@ -1405,6 +1358,7 @@ export default class Polyline extends GraphicalComponent {
                                     enforceRigid,
                                     allowRotation,
                                     shrinkThreshold: false,
+                                    vertexIndMoved,
                                 },
                                 { objectInd: stickyObjectIndex },
                             );

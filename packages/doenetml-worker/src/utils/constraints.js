@@ -234,16 +234,29 @@ export function returnStickyGroupDefinitions() {
 // maximizes the number of vertices that are constrained but don't move
 export function returnVertexConstraintFunction(constraintFunction) {
     return function (
-        { unconstrainedVertices, closed, enforceRigid, shrinkThreshold },
+        {
+            unconstrainedVertices,
+            closed,
+            enforceRigid,
+            shrinkThreshold,
+            vertexIndMoved,
+        },
         ...args
     ) {
         let numericalUnconstrainedVertices = unconstrainedVertices.map(
             (vertex) => vertex.map((v) => v.evaluate_to_constant()),
         );
 
+        let onlyMoveVertexInd = enforceRigid ? null : vertexIndMoved;
+
         let { numericalConstrainedVertices, constraintUsedForVertex } =
             constraintFunction(
-                { numericalUnconstrainedVertices, closed, shrinkThreshold },
+                {
+                    numericalUnconstrainedVertices,
+                    closed,
+                    shrinkThreshold,
+                    onlyMoveVertexInd,
+                },
                 ...args,
             );
 

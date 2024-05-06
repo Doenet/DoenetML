@@ -475,7 +475,12 @@ export default class StickyGroup extends GraphicalComponent {
                 // and what its constrained location would be.
                 // This information will be synthesized across vertices by returnVertexConstraintFunction.
                 let vertexConstraintSub = function (
-                    { numericalUnconstrainedVertices, closed, shrinkThreshold },
+                    {
+                        numericalUnconstrainedVertices,
+                        closed,
+                        shrinkThreshold,
+                        onlyMoveVertexInd,
+                    },
                     { objectInd },
                 ) {
                     let pointsToAttract =
@@ -492,7 +497,22 @@ export default class StickyGroup extends GraphicalComponent {
                     }
                     let threshold2 = threshold * threshold;
 
-                    for (let unconstrainedVertex of numericalUnconstrainedVertices) {
+                    for (let [
+                        ind,
+                        unconstrainedVertex,
+                    ] of numericalUnconstrainedVertices.entries()) {
+                        if (
+                            onlyMoveVertexInd !== null &&
+                            ind !== onlyMoveVertexInd
+                        ) {
+                            // we skip this vertex
+                            numericalConstrainedVertices.push(
+                                unconstrainedVertex,
+                            );
+                            constraintUsedForVertex.push(false);
+                            continue;
+                        }
+
                         let closestDistance2 = Infinity;
                         let closestPoint = {};
 
@@ -577,6 +597,16 @@ export default class StickyGroup extends GraphicalComponent {
                         let vertexInd2 = (vertexInd1 + 1) % numVertices;
 
                         if (
+                            onlyMoveVertexInd !== null &&
+                            !(
+                                onlyMoveVertexInd === vertexInd1 ||
+                                onlyMoveVertexInd === vertexInd2
+                            )
+                        ) {
+                            continue;
+                        }
+
+                        if (
                             !(
                                 constraintUsedForVertex[vertexInd1] ||
                                 constraintUsedForVertex[vertexInd2]
@@ -607,23 +637,102 @@ export default class StickyGroup extends GraphicalComponent {
                                 );
 
                                 if (distance2 < closestDistance2) {
-                                    // translate the points by attractingPoint - closestPoint
-                                    let newPoint1 = numericalVertex1.map(
-                                        (v, i) =>
-                                            v +
-                                            attractingPoint[i] -
-                                            closestPoint[i],
-                                    );
+                                    if (onlyMoveVertexInd === null) {
+                                        // translate the points by attractingPoint - closestPoint
+                                        let newPoint1 = numericalVertex1.map(
+                                            (v, i) =>
+                                                v +
+                                                attractingPoint[i] -
+                                                closestPoint[i],
+                                        );
 
-                                    let newPoint2 = numericalVertex2.map(
-                                        (v, i) =>
-                                            v +
-                                            attractingPoint[i] -
-                                            closestPoint[i],
-                                    );
+                                        let newPoint2 = numericalVertex2.map(
+                                            (v, i) =>
+                                                v +
+                                                attractingPoint[i] -
+                                                closestPoint[i],
+                                        );
 
-                                    closestSegment = [newPoint1, newPoint2];
-                                    closestDistance2 = distance2;
+                                        closestSegment = [newPoint1, newPoint2];
+                                        closestDistance2 = distance2;
+                                    } else {
+                                        let fixedVertex, moveableVertex;
+                                        if (onlyMoveVertexInd === vertexInd1) {
+                                            moveableVertex = numericalVertex1;
+                                            fixedVertex = numericalVertex2;
+                                        } else {
+                                            moveableVertex = numericalVertex2;
+                                            fixedVertex = numericalVertex1;
+                                        }
+
+                                        // find line segment through fixedVertex and attractingPoint,
+                                        // with same length as original
+
+                                        let displacement = [
+                                            attractingPoint[0] - fixedVertex[0],
+                                            attractingPoint[1] - fixedVertex[1],
+                                        ];
+
+                                        let displacementLength = Math.sqrt(
+                                            Math.pow(displacement[0], 2) +
+                                                Math.pow(displacement[1], 2),
+                                        );
+
+                                        let desiredLength = Math.sqrt(
+                                            Math.pow(
+                                                numericalVertex1[0] -
+                                                    numericalVertex2[0],
+                                                2,
+                                            ) +
+                                                Math.pow(
+                                                    numericalVertex1[1] -
+                                                        numericalVertex2[1],
+                                                    2,
+                                                ),
+                                        );
+                                        let ratio =
+                                            desiredLength / displacementLength;
+
+                                        let movedPoint = fixedVertex.map(
+                                            (v, i) =>
+                                                v + displacement[i] * ratio,
+                                        );
+
+                                        if (onlyMoveVertexInd === vertexInd1) {
+                                            closestSegment = [
+                                                movedPoint,
+                                                numericalVertex2,
+                                            ];
+                                            closestDistance2 =
+                                                Math.pow(
+                                                    numericalVertex1[0] -
+                                                        movedPoint[0],
+                                                    2,
+                                                ) +
+                                                Math.pow(
+                                                    numericalVertex1[1] -
+                                                        movedPoint[1],
+                                                    2,
+                                                );
+                                        } else {
+                                            closestSegment = [
+                                                numericalVertex1,
+                                                movedPoint,
+                                            ];
+
+                                            closestDistance2 =
+                                                Math.pow(
+                                                    numericalVertex2[0] -
+                                                        movedPoint[0],
+                                                    2,
+                                                ) +
+                                                Math.pow(
+                                                    numericalVertex2[1] -
+                                                        movedPoint[1],
+                                                    2,
+                                                );
+                                        }
+                                    }
                                 }
                             }
 
@@ -684,8 +793,9 @@ export default class StickyGroup extends GraphicalComponent {
                         closed,
                         enforceRigid,
                         allowRotation,
-                        shrinkThreshold,
                         rotationPoint,
+                        shrinkThreshold,
+                        vertexIndMoved,
                     },
                     { objectInd },
                 ) {
@@ -697,8 +807,9 @@ export default class StickyGroup extends GraphicalComponent {
                             closed,
                             enforceRigid,
                             allowRotation,
-                            shrinkThreshold,
                             rotationPoint,
+                            shrinkThreshold,
+                            vertexIndMoved,
                         },
                         { objectInd },
                     );
@@ -710,6 +821,7 @@ export default class StickyGroup extends GraphicalComponent {
                             closed,
                             enforceRigid,
                             shrinkThreshold,
+                            vertexIndMoved,
                         },
                         { objectInd },
                     );
