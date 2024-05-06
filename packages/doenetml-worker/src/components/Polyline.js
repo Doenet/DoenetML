@@ -71,11 +71,17 @@ export default class Polyline extends GraphicalComponent {
             defaultValue: [1],
         };
 
-        attributes.rotationPoint = {
+        attributes.rotateAround = {
             createComponentOfType: "text",
-            createStateVariable: "rotationPointDescription",
-            validValues: ["centroid", "vertex"],
+            createStateVariable: "rotateAround",
+            validValues: ["centroid", "vertex", "point"],
             defaultValue: "centroid",
+        };
+
+        attributes.rotationCenter = {
+            createComponentOfType: "point",
+            createStateVariable: "rotationCenterPrescribed",
+            defaultValue: null,
         };
 
         attributes.rotationVertex = {
@@ -240,9 +246,9 @@ export default class Polyline extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "rotationHandleVertices",
                 },
-                rotationPointDescription: {
+                rotateAround: {
                     dependencyType: "stateVariable",
-                    variableName: "rotationPointDescription",
+                    variableName: "rotateAround",
                 },
                 rotationVertex: {
                     dependencyType: "stateVariable",
@@ -258,8 +264,7 @@ export default class Polyline extends GraphicalComponent {
                         dependencyValues.preserveSimilarity
                     ) {
                         let rotationVertex =
-                            dependencyValues.rotationPointDescription ===
-                            "vertex"
+                            dependencyValues.rotateAround === "vertex"
                                 ? dependencyValues.rotationVertex
                                 : null;
                         for (let vertexNum of dependencyValues.rotationHandleVertices) {
@@ -1012,19 +1017,54 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         // Find the rotation point based on the referenceVertices and referenceCentroid.
-                        // If rotationPointDescription is "vertex" and rotationVertex-1 is an index of referenceVertices,
-                        // then use the corresponding vertex as the rotation point.
-                        // Otherwise, use referenceCentroid
-                        let rotationPointDescription =
-                            await stateValues.rotationPointDescription;
+                        // Calculation is based on the value of rotateAround
+                        // - rotateAround is "vertex": if rotationVertex-1 is an index of referenceVertices,
+                        //   then use the corresponding vertex from referenceVertices as the rotation point,
+                        //   otherwise fall back to referenceCentroid
+                        // - rotationAround is "point": rotate around the point defined by `rotationCenterPrescribed`,
+                        //   falling back to the referenceCentroid if the point is not a valid point
+                        // - rotationAround is "centroid": use referenceCentroid
+                        let rotateAround = await stateValues.rotateAround;
                         let rotationPoint;
-                        if (rotationPointDescription === "vertex") {
+                        if (rotateAround === "vertex") {
                             let rotationVertex =
                                 await stateValues.rotationVertex;
                             rotationPoint =
                                 referenceVertices[rotationVertex - 1];
-                        }
-                        if (!rotationPoint) {
+
+                            if (!rotationPoint) {
+                                rotationPoint = referenceCentroid;
+                            }
+                        } else if (rotateAround === "point") {
+                            let rotationCenter =
+                                await stateValues.rotationCenterPrescribed;
+                            if (
+                                rotationCenter &&
+                                ["vector", "tuple"].includes(
+                                    rotationCenter.tree[0],
+                                ) &&
+                                rotationCenter.tree.length === 3
+                            ) {
+                                rotationPoint = [
+                                    rotationCenter
+                                        .get_component(0)
+                                        .evaluate_to_constant(),
+                                    rotationCenter
+                                        .get_component(1)
+                                        .evaluate_to_constant(),
+                                ];
+
+                                if (
+                                    !rotationPoint.every((v) =>
+                                        Number.isFinite(v),
+                                    )
+                                ) {
+                                    rotationPoint = referenceCentroid;
+                                }
+                            } else {
+                                rotationPoint = referenceCentroid;
+                            }
+                        } else {
                             rotationPoint = referenceCentroid;
                         }
 
