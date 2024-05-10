@@ -1,6 +1,7 @@
 {
-    "quickStart": "Quick Start",
-    "sampleProject1": "Sample Project 1",
-    "sampleProject2": "Sample Project 2",
-    "sampleProject3": "Sample Project 3"
+    "quickStart": "🖥 Quick Start Tutorial (0.5 hr)",
+    "introdTutorial": "📘 Introduction to DoenetML (10 lessons)",
+    "sampleProject1": "🖥 Sample Project 1 (0.5 hr)",
+    "sampleProject2": "📘 Sample Project 2 (0.5 hr)",
+    "sampleProject3": "🖥 Sample Project 3 (1.0 hr)"
 }

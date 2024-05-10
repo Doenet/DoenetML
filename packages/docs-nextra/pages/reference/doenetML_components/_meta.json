@@ -8,5 +8,6 @@
     "aside": "aside",
     "asList": "asList",
     "atom": "atom",
-    "boolean": "boolean"
+    "boolean": "boolean",
+    "mathInput": "mathInput"
 }

@@ -1,0 +1,11 @@
+# Functions and Evaluation
+The `<function>` and `<evaluate>` Tags
+In DoenetML, a function is defined using the `<function>` tag; place the formula defining the function between the opening and closing tags. If you want to evaluate the function at a given input value later, make sure to give your function a name. For example:
+```html
+     <function name="f">x^2+1</function>
+```
+To evaluate your function, use the self-closing `<evaluate>` tag as follows:
+```html
+     <evaluate function="$functionName" input="inputValue" />
+```
+The following code shows this in action, with both numeric and symbolic input.
