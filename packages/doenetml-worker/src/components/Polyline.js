@@ -57,9 +57,6 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.preserveSimilarity = {
             createComponentOfType: "boolean",
-            createStateVariable: "preserveSimilarity",
-            defaultValue: false,
-            public: true,
         };
 
         // Vertices displayed for rotations when rigid/preserveSimilarity.
@@ -88,6 +85,30 @@ export default class Polyline extends GraphicalComponent {
             createComponentOfType: "integer",
             createStateVariable: "rotationVertex",
             defaultValue: 1,
+        };
+
+        attributes.allowRotation = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowRotation",
+            defaultValue: true,
+            public: true,
+        };
+
+        attributes.allowTranslation = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowTranslation",
+            defaultValue: true,
+            public: true,
+        };
+
+        attributes.allowDilation = {
+            createComponentOfType: "boolean",
+        };
+
+        attributes.minShrink = {
+            createComponentOfType: "number",
+            createStateVariable: "minShrink",
+            defaultValue: 0.1,
         };
 
         Object.assign(attributes, returnRoundingAttributes());
@@ -181,6 +202,82 @@ export default class Polyline extends GraphicalComponent {
                     dependencyValues.styleDescription + " polyline";
 
                 return { setValue: { styleDescriptionWithNoun } };
+            },
+        };
+
+        stateVariableDefinitions.preserveSimilarity = {
+            public: true,
+            hasEssential: true,
+            defaultValue: false,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                preserveSimilarityAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "preserveSimilarity",
+                    variableNames: ["value"],
+                },
+                rigid: {
+                    dependencyType: "stateVariable",
+                    variableName: "rigid",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.rigid) {
+                    return { setValue: { preserveSimilarity: true } };
+                }
+
+                if (dependencyValues.preserveSimilarityAttr !== null) {
+                    return {
+                        setValue: {
+                            preserveSimilarity:
+                                dependencyValues.preserveSimilarityAttr
+                                    .stateValues.value,
+                        },
+                    };
+                }
+
+                return {
+                    useEssentialOrDefaultValue: { preserveSimilarity: true },
+                };
+            },
+        };
+
+        stateVariableDefinitions.allowDilation = {
+            public: true,
+            hasEssential: true,
+            defaultValue: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                allowDilationAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "allowDilation",
+                    variableNames: ["value"],
+                },
+                rigid: {
+                    dependencyType: "stateVariable",
+                    variableName: "rigid",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.rigid) {
+                    return { setValue: { allowDilation: false } };
+                }
+
+                if (dependencyValues.allowDilationAttr !== null) {
+                    return {
+                        setValue: {
+                            allowDilation:
+                                dependencyValues.allowDilationAttr.stateValues
+                                    .value,
+                        },
+                    };
+                }
+
+                return { useEssentialOrDefaultValue: { allowDilation: true } };
             },
         };
 
@@ -780,16 +877,11 @@ export default class Polyline extends GraphicalComponent {
                 ];
             },
             stateVariablesDeterminingDependencies: [
-                "rigid",
                 "preserveSimilarity",
                 "haveConstrainedVertices",
             ],
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 let globalDependencies = {
-                    rigid: {
-                        dependencyType: "stateVariable",
-                        variableName: "rigid",
-                    },
                     preserveSimilarity: {
                         dependencyType: "stateVariable",
                         variableName: "preserveSimilarity",
@@ -810,7 +902,6 @@ export default class Polyline extends GraphicalComponent {
                 let dependenciesByKey = {};
                 if (
                     stateValues.haveConstrainedVertices ||
-                    stateValues.rigid ||
                     stateValues.preserveSimilarity
                 ) {
                     globalDependencies.unconstrainedVertices = {
@@ -896,10 +987,7 @@ export default class Polyline extends GraphicalComponent {
                                 constrainedVertices[pointInd][dim];
                         }
                     }
-                } else if (
-                    globalDependencyValues.rigid ||
-                    globalDependencyValues.preserveSimilarity
-                ) {
+                } else if (globalDependencyValues.preserveSimilarity) {
                     // No constraints, so just give the unconstrained vertices.
                     // Since, use global dependency values
                     for (
@@ -916,7 +1004,7 @@ export default class Polyline extends GraphicalComponent {
                         }
                     }
                 } else {
-                    // if we don't have constrainedVertices and not rigid/preserveSimilarity
+                    // if we don't have constrainedVertices and not preserveSimilarity
                     // just copy the unconstrained vertices from the dependency values by key
                     for (let arrayKey of arrayKeys) {
                         vertices[arrayKey] =
@@ -938,9 +1026,7 @@ export default class Polyline extends GraphicalComponent {
             }) {
                 // console.log(`inverseArrayDefinition of vertices of polyline`);
                 // console.log(desiredStateVariableValues);
-                // console.log(JSON.parse(JSON.stringify(stateValues)));
                 // console.log(globalDependencyValues);
-                // console.log(dependencyValuesByKey);
 
                 let instructions = [];
 
@@ -967,10 +1053,7 @@ export default class Polyline extends GraphicalComponent {
                     }
                 }
 
-                if (
-                    globalDependencyValues.rigid ||
-                    globalDependencyValues.preserveSimilarity
-                ) {
+                if (globalDependencyValues.preserveSimilarity) {
                     if (arraySize[1] !== 2) {
                         console.error(
                             "Moving a rigid/preserveSimilarity polyline in inverse direction not implemented in other than 2D",
@@ -978,11 +1061,25 @@ export default class Polyline extends GraphicalComponent {
                         return { success: false };
                     }
 
-                    if (movedJustOneVertex) {
-                        // we keep the centroid fixed and rotate around the centroid
+                    let allowRotation =
+                        movedJustOneVertex && (await stateValues.allowRotation);
+                    let allowDilation =
+                        movedJustOneVertex && (await stateValues.allowDilation);
+                    let allowTranslation = await stateValues.allowTranslation;
 
-                        // Note: we need to use the centroid and vertices from the unconstrained vertices.
-                        // Otherwise, the centroid will move around when rotating through a constraint,
+                    let rotateOrDilate = allowRotation || allowDilation;
+
+                    if (!(rotateOrDilate || allowTranslation)) {
+                        // Since preserve similarity and we don't have a mechanism for reflection,
+                        // there are no changes possible if don't allow rotation, dilation or translation
+                        return { success: false };
+                    }
+
+                    if (rotateOrDilate) {
+                        // we keep the rotation point fixed and rotate and/or dilate around the rotation point
+
+                        // Note: we need to use the rotation point and vertices from the unconstrained vertices.
+                        // Otherwise, the rotation point will move around when rotating through a constraint,
                         // causing strange behavior.
                         // The downside is that a rotation starting in a constrained configuration
                         // may translate when the constraint is released.
@@ -1095,52 +1192,97 @@ export default class Polyline extends GraphicalComponent {
                             original_vertex[1] - rotationPoint[1],
                         ];
 
-                        let theta =
-                            Math.atan2(moved_rel[1], moved_rel[0]) -
-                            Math.atan2(orig_rel[1], orig_rel[0]);
+                        let orig_mag2;
 
-                        let stretchFactor = 1;
-
-                        if (!globalDependencyValues.rigid) {
-                            stretchFactor = Math.sqrt(
-                                (moved_rel[0] ** 2 + moved_rel[1] ** 2) /
-                                    (orig_rel[0] ** 2 + orig_rel[1] ** 2),
-                            );
+                        if (allowDilation) {
+                            orig_mag2 = orig_rel[0] ** 2 + orig_rel[1] ** 2;
                         }
-
-                        let c_sin_theta = stretchFactor * Math.sin(theta);
-                        let c_cos_theta = stretchFactor * Math.cos(theta);
-
-                        // rotate all vertices by theta around centroid,
-                        // possibly stretching by stretch factor
 
                         let desired_vertices = [];
 
-                        for (
-                            let pointInd = 0;
-                            pointInd < arraySize[0];
-                            pointInd++
-                        ) {
-                            desired_vertices.push([]);
+                        if (allowRotation) {
+                            let theta =
+                                Math.atan2(moved_rel[1], moved_rel[0]) -
+                                Math.atan2(orig_rel[1], orig_rel[0]);
 
-                            let original_vertex = referenceVertices[pointInd];
-                            let orig_rel = [
-                                original_vertex[0] - rotationPoint[0],
-                                original_vertex[1] - rotationPoint[1],
-                            ];
-                            let rot_rel = [
-                                c_cos_theta * orig_rel[0] -
-                                    c_sin_theta * orig_rel[1],
-                                c_sin_theta * orig_rel[0] +
-                                    c_cos_theta * orig_rel[1],
-                            ];
+                            let stretchFactor = 1;
 
-                            for (let dim = 0; dim < arraySize[1]; dim++) {
-                                desired_vertices[pointInd].push(
-                                    me.fromAst(
-                                        rot_rel[dim] + rotationPoint[dim],
-                                    ),
+                            if (allowDilation) {
+                                stretchFactor = Math.sqrt(
+                                    (moved_rel[0] ** 2 + moved_rel[1] ** 2) /
+                                        orig_mag2,
                                 );
+                            }
+
+                            let c_sin_theta = stretchFactor * Math.sin(theta);
+                            let c_cos_theta = stretchFactor * Math.cos(theta);
+
+                            // rotate all vertices by theta around centroid,
+                            // possibly stretching by stretch factor
+
+                            for (
+                                let pointInd = 0;
+                                pointInd < arraySize[0];
+                                pointInd++
+                            ) {
+                                desired_vertices.push([]);
+
+                                let original_vertex =
+                                    referenceVertices[pointInd];
+                                let orig_rel = [
+                                    original_vertex[0] - rotationPoint[0],
+                                    original_vertex[1] - rotationPoint[1],
+                                ];
+                                let rot_rel = [
+                                    c_cos_theta * orig_rel[0] -
+                                        c_sin_theta * orig_rel[1],
+                                    c_sin_theta * orig_rel[0] +
+                                        c_cos_theta * orig_rel[1],
+                                ];
+
+                                for (let dim = 0; dim < arraySize[1]; dim++) {
+                                    desired_vertices[pointInd].push(
+                                        me.fromAst(
+                                            rot_rel[dim] + rotationPoint[dim],
+                                        ),
+                                    );
+                                }
+                            }
+                        } else {
+                            // project moved_rel onto orig_rel
+                            let dot_prod =
+                                moved_rel[0] * orig_rel[0] +
+                                moved_rel[1] * orig_rel[1];
+
+                            let orig_mag = Math.sqrt(orig_mag2);
+
+                            let minShrink = await stateValues.minShrink;
+                            let factor;
+
+                            if (orig_mag === 0) {
+                                factor = 1;
+                            } else if (!(dot_prod >= minShrink * orig_mag)) {
+                                // don't allow it to shrink so that the distance between dragged vertex as rotation point
+                                // drops below minShrink
+                                factor = 0.1 / orig_mag;
+                            } else {
+                                factor = dot_prod / orig_mag2;
+                            }
+
+                            for (
+                                let pointInd = 0;
+                                pointInd < arraySize[0];
+                                pointInd++
+                            ) {
+                                let dilated = referenceVertices[pointInd].map(
+                                    (x, i) =>
+                                        me.fromAst(
+                                            (x - rotationPoint[i]) * factor +
+                                                rotationPoint[i],
+                                        ),
+                                );
+
+                                desired_vertices.push(dilated);
                             }
                         }
 
@@ -1156,7 +1298,7 @@ export default class Polyline extends GraphicalComponent {
                                                 desired_vertices,
                                             closed: globalDependencyValues.closed,
                                             enforceRigid: true,
-                                            allowRotation: true,
+                                            allowRotation,
                                         },
                                     );
                             }
@@ -1184,7 +1326,7 @@ export default class Polyline extends GraphicalComponent {
                                                 desired_vertices,
                                             closed: globalDependencyValues.closed,
                                             enforceRigid: true,
-                                            allowRotation: true,
+                                            allowRotation,
                                             shrinkThreshold: true,
                                             rotationPoint,
                                         },
@@ -1209,7 +1351,7 @@ export default class Polyline extends GraphicalComponent {
                             desiredValue: desired_vertices,
                         });
                     } else {
-                        // If moved more than one vertex, then translate whole polygon
+                        // If not rotate or dilate, then translate whole polygon
                         // by the smallest movement in x and in y
                         let min_dx = Infinity;
                         let min_dy = Infinity;
@@ -1765,17 +1907,16 @@ export default class Polyline extends GraphicalComponent {
 
         // we will attempt to preserve the relationship among all the vertices
         // so that we have a rigid translation
-        // when the whole polyline is moved.
-        // This procedure may preserve the rigid translation
+        // when the whole polyline is moved or preserveSimilarity is true.
+        // This procedure may preserve the rigid/similarity transformation
         // even if a subset of the vertices are constrained.
+        // Note: we also check if the essential state of unconstrainedVertices exists.
+        // If it doesn't exist, then the original update was not successful.
         if (
-            numVerticesMoved > 1 ||
-            (await this.stateValues.rigid) ||
-            (await this.stateValues.preserveSimilarity)
+            (numVerticesMoved > 1 ||
+                (await this.stateValues.preserveSimilarity)) &&
+            this.essentialState.unconstrainedVertices
         ) {
-            // whole polyline dragged
-
-            // let desiredNumericalVertices = pointCoords;
             let desiredNumericalVertices =
                 this.essentialState.unconstrainedVertices.map((vertex) =>
                     vertex.map((v) => v.evaluate_to_constant()),

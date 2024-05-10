@@ -630,107 +630,127 @@ export default class StickyGroup extends GraphicalComponent {
                                     scales,
                                 });
 
-                                let distance2 = closestPoint.reduce(
-                                    (a, c, i) =>
-                                        a + Math.pow(c - attractingPoint[i], 2),
-                                    0,
-                                );
+                                if (closestPoint) {
+                                    let distance2 = closestPoint.reduce(
+                                        (a, c, i) =>
+                                            a +
+                                            Math.pow(c - attractingPoint[i], 2),
+                                        0,
+                                    );
 
-                                if (distance2 < closestDistance2) {
-                                    if (onlyMoveVertexInd === null) {
-                                        // translate the points by attractingPoint - closestPoint
-                                        let newPoint1 = numericalVertex1.map(
-                                            (v, i) =>
-                                                v +
-                                                attractingPoint[i] -
-                                                closestPoint[i],
-                                        );
+                                    if (distance2 < closestDistance2) {
+                                        if (onlyMoveVertexInd === null) {
+                                            // translate the points by attractingPoint - closestPoint
+                                            let newPoint1 =
+                                                numericalVertex1.map(
+                                                    (v, i) =>
+                                                        v +
+                                                        attractingPoint[i] -
+                                                        closestPoint[i],
+                                                );
 
-                                        let newPoint2 = numericalVertex2.map(
-                                            (v, i) =>
-                                                v +
-                                                attractingPoint[i] -
-                                                closestPoint[i],
-                                        );
+                                            let newPoint2 =
+                                                numericalVertex2.map(
+                                                    (v, i) =>
+                                                        v +
+                                                        attractingPoint[i] -
+                                                        closestPoint[i],
+                                                );
 
-                                        closestSegment = [newPoint1, newPoint2];
-                                        closestDistance2 = distance2;
-                                    } else {
-                                        let fixedVertex, moveableVertex;
-                                        if (onlyMoveVertexInd === vertexInd1) {
-                                            moveableVertex = numericalVertex1;
-                                            fixedVertex = numericalVertex2;
-                                        } else {
-                                            moveableVertex = numericalVertex2;
-                                            fixedVertex = numericalVertex1;
-                                        }
-
-                                        // find line segment through fixedVertex and attractingPoint,
-                                        // with same length as original
-
-                                        let displacement = [
-                                            attractingPoint[0] - fixedVertex[0],
-                                            attractingPoint[1] - fixedVertex[1],
-                                        ];
-
-                                        let displacementLength = Math.sqrt(
-                                            Math.pow(displacement[0], 2) +
-                                                Math.pow(displacement[1], 2),
-                                        );
-
-                                        let desiredLength = Math.sqrt(
-                                            Math.pow(
-                                                numericalVertex1[0] -
-                                                    numericalVertex2[0],
-                                                2,
-                                            ) +
-                                                Math.pow(
-                                                    numericalVertex1[1] -
-                                                        numericalVertex2[1],
-                                                    2,
-                                                ),
-                                        );
-                                        let ratio =
-                                            desiredLength / displacementLength;
-
-                                        let movedPoint = fixedVertex.map(
-                                            (v, i) =>
-                                                v + displacement[i] * ratio,
-                                        );
-
-                                        if (onlyMoveVertexInd === vertexInd1) {
                                             closestSegment = [
-                                                movedPoint,
-                                                numericalVertex2,
+                                                newPoint1,
+                                                newPoint2,
                                             ];
-                                            closestDistance2 =
+                                            closestDistance2 = distance2;
+                                        } else {
+                                            let fixedVertex, moveableVertex;
+                                            if (
+                                                onlyMoveVertexInd === vertexInd1
+                                            ) {
+                                                moveableVertex =
+                                                    numericalVertex1;
+                                                fixedVertex = numericalVertex2;
+                                            } else {
+                                                moveableVertex =
+                                                    numericalVertex2;
+                                                fixedVertex = numericalVertex1;
+                                            }
+
+                                            // find line segment through fixedVertex and attractingPoint,
+                                            // with same length as original
+
+                                            let displacement = [
+                                                attractingPoint[0] -
+                                                    fixedVertex[0],
+                                                attractingPoint[1] -
+                                                    fixedVertex[1],
+                                            ];
+
+                                            let displacementLength = Math.sqrt(
+                                                Math.pow(displacement[0], 2) +
+                                                    Math.pow(
+                                                        displacement[1],
+                                                        2,
+                                                    ),
+                                            );
+
+                                            let desiredLength = Math.sqrt(
                                                 Math.pow(
                                                     numericalVertex1[0] -
-                                                        movedPoint[0],
+                                                        numericalVertex2[0],
                                                     2,
                                                 ) +
-                                                Math.pow(
-                                                    numericalVertex1[1] -
-                                                        movedPoint[1],
-                                                    2,
-                                                );
-                                        } else {
-                                            closestSegment = [
-                                                numericalVertex1,
-                                                movedPoint,
-                                            ];
+                                                    Math.pow(
+                                                        numericalVertex1[1] -
+                                                            numericalVertex2[1],
+                                                        2,
+                                                    ),
+                                            );
+                                            let ratio =
+                                                desiredLength /
+                                                displacementLength;
 
-                                            closestDistance2 =
-                                                Math.pow(
-                                                    numericalVertex2[0] -
-                                                        movedPoint[0],
-                                                    2,
-                                                ) +
-                                                Math.pow(
-                                                    numericalVertex2[1] -
-                                                        movedPoint[1],
-                                                    2,
-                                                );
+                                            let movedPoint = fixedVertex.map(
+                                                (v, i) =>
+                                                    v + displacement[i] * ratio,
+                                            );
+
+                                            if (
+                                                onlyMoveVertexInd === vertexInd1
+                                            ) {
+                                                closestSegment = [
+                                                    movedPoint,
+                                                    numericalVertex2,
+                                                ];
+                                                closestDistance2 =
+                                                    Math.pow(
+                                                        numericalVertex1[0] -
+                                                            movedPoint[0],
+                                                        2,
+                                                    ) +
+                                                    Math.pow(
+                                                        numericalVertex1[1] -
+                                                            movedPoint[1],
+                                                        2,
+                                                    );
+                                            } else {
+                                                closestSegment = [
+                                                    numericalVertex1,
+                                                    movedPoint,
+                                                ];
+
+                                                closestDistance2 =
+                                                    Math.pow(
+                                                        numericalVertex2[0] -
+                                                            movedPoint[0],
+                                                        2,
+                                                    ) +
+                                                    Math.pow(
+                                                        numericalVertex2[1] -
+                                                            movedPoint[1],
+                                                        2,
+                                                    );
+                                            }
                                         }
                                     }
                                 }
