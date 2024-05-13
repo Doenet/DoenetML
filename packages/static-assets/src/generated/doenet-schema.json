@@ -33674,14 +33674,42 @@
                     "name": "rotationHandleVertices"
                 },
                 {
-                    "name": "rotationPoint",
+                    "name": "rotateAround",
                     "values": [
                         "centroid",
-                        "vertex"
+                        "vertex",
+                        "point"
                     ]
                 },
                 {
+                    "name": "rotationCenter"
+                },
+                {
                     "name": "rotationVertex"
+                },
+                {
+                    "name": "allowRotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowTranslation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowDilation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "minShrink"
                 },
                 {
                     "name": "displayDigits"
@@ -33790,7 +33818,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "preserveSimilarity",
+                    "name": "allowRotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowTranslation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -33872,6 +33905,16 @@
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowDilation",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -47008,14 +47051,42 @@
                     "name": "rotationHandleVertices"
                 },
                 {
-                    "name": "rotationPoint",
+                    "name": "rotateAround",
                     "values": [
                         "centroid",
-                        "vertex"
+                        "vertex",
+                        "point"
                     ]
                 },
                 {
+                    "name": "rotationCenter"
+                },
+                {
                     "name": "rotationVertex"
+                },
+                {
+                    "name": "allowRotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowTranslation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowDilation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "minShrink"
                 },
                 {
                     "name": "displayDigits"
@@ -47096,7 +47167,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "preserveSimilarity",
+                    "name": "allowRotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowTranslation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47158,6 +47234,16 @@
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowDilation",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -47321,14 +47407,42 @@
                     "name": "rotationHandleVertices"
                 },
                 {
-                    "name": "rotationPoint",
+                    "name": "rotateAround",
                     "values": [
                         "centroid",
-                        "vertex"
+                        "vertex",
+                        "point"
                     ]
                 },
                 {
+                    "name": "rotationCenter"
+                },
+                {
                     "name": "rotationVertex"
+                },
+                {
+                    "name": "allowRotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowTranslation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowDilation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "minShrink"
                 },
                 {
                     "name": "displayDigits"
@@ -47416,7 +47530,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "preserveSimilarity",
+                    "name": "allowRotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowTranslation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47483,6 +47602,16 @@
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowDilation",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -47666,14 +47795,42 @@
                     "name": "rotationHandleVertices"
                 },
                 {
-                    "name": "rotationPoint",
+                    "name": "rotateAround",
                     "values": [
                         "centroid",
-                        "vertex"
+                        "vertex",
+                        "point"
                     ]
                 },
                 {
+                    "name": "rotationCenter"
+                },
+                {
                     "name": "rotationVertex"
+                },
+                {
+                    "name": "allowRotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowTranslation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowDilation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "minShrink"
                 },
                 {
                     "name": "displayDigits"
@@ -47761,7 +47918,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "preserveSimilarity",
+                    "name": "allowRotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowTranslation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -47828,6 +47990,16 @@
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowDilation",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -48011,14 +48183,42 @@
                     "name": "rotationHandleVertices"
                 },
                 {
-                    "name": "rotationPoint",
+                    "name": "rotateAround",
                     "values": [
                         "centroid",
-                        "vertex"
+                        "vertex",
+                        "point"
                     ]
                 },
                 {
+                    "name": "rotationCenter"
+                },
+                {
                     "name": "rotationVertex"
+                },
+                {
+                    "name": "allowRotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowTranslation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowDilation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "minShrink"
                 },
                 {
                     "name": "displayDigits"
@@ -48115,7 +48315,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "preserveSimilarity",
+                    "name": "allowRotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowTranslation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -48182,6 +48387,16 @@
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowDilation",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -48380,14 +48595,42 @@
                     "name": "rotationHandleVertices"
                 },
                 {
-                    "name": "rotationPoint",
+                    "name": "rotateAround",
                     "values": [
                         "centroid",
-                        "vertex"
+                        "vertex",
+                        "point"
                     ]
                 },
                 {
+                    "name": "rotationCenter"
+                },
+                {
                     "name": "rotationVertex"
+                },
+                {
+                    "name": "allowRotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowTranslation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "allowDilation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "minShrink"
                 },
                 {
                     "name": "displayDigits"
@@ -48505,6 +48748,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "allowRotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "filled",
                     "type": "boolean",
                     "isArray": false
@@ -48570,6 +48823,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "preserveSimilarity",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowDilation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "verticesDraggable",
                     "type": "boolean",
                     "isArray": false
@@ -48619,11 +48882,6 @@
                 {
                     "name": "area",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "preserveSimilarity",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
