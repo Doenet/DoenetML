@@ -30,11 +30,12 @@ The different types are:
 | **Display Math**     | used to render LaTeX; does not invoke the CAS                                            |
 | **Math**             | used to define mathematical content; can be symbolic or numerical                        |
 | **Math Operator**    | used to perform mathematical operations                                                  |
+| **General Operator**    | used to perform operations on math and non-math components                                  |
 | **Logic**            | used to define boolean conditions                                                        |
 | **Evaluation**       | used with answer validation and awarding of credit                                       |
 | **Text**             | any component that uses text strings outside the context of a paragraph                  |
 
-Some components may belong to more than one functional type, such as a `<sequence>` which can generate either a numerical or a text sequence, or a `<mathInput>` which collects student's mathematical responses and also stores the value as a Math Component for use in computations by the CAS.
+Some components may belong to more than one functional type, such as a `<sequence>`, which can generate either a numerical or a text sequence, or a `<mathInput>` which collects student's mathematical responses and also stores the value as a Math Component for use in computations by the CAS.
 
 ## The Computer Algebra System (CAS)
 DoenetML is linked to a CAS which performs the basic computations necessary for the behavior of mathematical and graphical components, as well as answer-checking.

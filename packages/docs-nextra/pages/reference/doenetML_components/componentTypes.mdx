@@ -1,72 +1,178 @@
 # Index by Component Type
 
 ## Paragraph markup components
-These components can be placed within a `<p>` tag to change the rendered appearance of the enclosed text. (The exception is `<nbsp/>`, which is a self-closing tag that renders a blank space.)
-| Component                                                              | Description                                                                           |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [`<alert>`](alert.mdx)                                                 | bold font                                                                             |
-| [`<em>`](em.mdx)                                                       | italicised font                                                                       |
-| [`<term>`](term.mdx)                                                   | a vocabulary word                                                                     |
-| [`<footnote>`](footnote.mdx)                                           | creates an expandable, in-place footnote                                              |
-| [`<pre>`](pre.mdx)                                                     | preserves verbatim text; renders text as input into the editor                        |
-| [`<nbsp/>`](nbsp.mdx)                                                  | forced white space                                                                    |
-| [`<q>`](q.mdx)                                                         | quotation                                                                             |
-| [`<c>`](https://www.doenet.org/portfolioviewer/_AtGGf77DIkIt1-XUDYQSs) | renders default font for a code example                                               |
-| [`<attr>`](attr.mdx)                                                   | renders default font for an attribute                                                 |
-| [`<m>`](m.mdx)                                                         | inline mathematical display text                                                      |
-| [`<me>`](me.mdx)                                                       | centered mathematical display text                                                    |
-| [`<men>`](men.mdx)                                                     | centered, numbered mathematical display text                                          |
-| [`<md>`](md.mdx)                                                       | block component for centered, aligned equations; container for `<mrow>`               |
-| [`<mdn>`](mdn.mdx)                                                     | block component for centered, numbered, and aligned equations; container for `<mrow>` |
-| [`<mrow>`](mrow.mdx)                                                   | defines individual row content when nested within an `<md>` or `<mdn>`                |
+These components can be placed within a `<p>` tag to change the rendered appearance of the enclosed text. 
+| Component                                                                     | Description                                                                                          |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [`<alert>`](https://www.doenet.org/portfolioviewer/_p6ag34ShuMOnmaYw4GJcU)    | bold text                                                                                            |
+| [`<asList>`](https://www.doenet.org/portfolioviewer/_CHfbDoJ7WA37EqgBROYWW)   | formatting component for sequences and maps                                                          |
+| [`<attr>`](https://www.doenet.org/portfolioviewer/_41KSrjTIFZrKsoTU2M6wZ)     | renders default font for an attribute                                                                |
+| [`<c>`](https://www.doenet.org/portfolioviewer/_AtGGf77DIkIt1-XUDYQSs)        | renders default font for a code example                                                              |
+| [`<ellipsis>`](https://www.doenet.org/portfolioviewer/_ov0lFSKquunnrIXzKEKHt) | renders an ellipsis symbol                                                                           |
+| [`<em>`](https://www.doenet.org/portfolioviewer/_uhp3B9cUPAaDQo_AvLB7T)       | renders italicized text                                                                              |
+| [`<footnote>`](https://www.doenet.org/portfolioviewer/_U3ecmBj7NtwszHhod1Wwv) | renders a numbered footnote above and to the right of the preceeding text which expands when clicked |
+| `<idx>`                                                                       | *under development*                                                                                  |
+| [`<lorem />`](https://www.doenet.org/portfolioviewer/_QFB0qcpHDRlzOS43bhzxM)  | generates random lorem-ipsum filler text                                                             |
+| `<lq>`                                                                        | paragraph markup component for a left-quote mark                                                     |
+| `<lsq>`                                                                       | paragraph markup component for a left-single-quote mark                                              |
+| [`<nbsp/>`](https://www.doenet.org/portfolioviewer/_8HfNwthQOsoK0dpFYty4d)    | renders a blank space                                                                                |
+| `<pluralize>`                                                                 | change text from singular to plural based on context                                                 |
+| [`<pre>`](https://www.doenet.org/portfolioviewer/_mmZvkXHU-OWGLyy0aYxp_)      | preserves verbatim text; renders text as input into the editor                                       |
+| [`<q>`](https://www.doenet.org/portfolioviewer/_PFzz9Ay-SPOHECdsnrz-Z)        | paragraph markup component for a quotation                                                           |
+| `<rq>`                                                                        | paragraph markup component for a right-quote mark                                                    |
+| `<rsq>`                                                                       | paragraph markup component for a right-single-quote mark                                             |
+| [`<sq>`](https://www.doenet.org/portfolioviewer/_sSJL3MmX62-ojegoIscZS)       | renders the enclosed text in single quotation marks                                                  |
+| [`<tag>`](https://www.doenet.org/portfolioviewer/_U8GuYYLb1e2V13bwBsTPs)      | render enclosed text within a pair of tags, `< >` `</ >`                                             |
+| `<tagc>`                                                                      | renders enclosed text within a closing tag, `</ >`                                                   |
+| [`<tage>`](https://www.doenet.org/portfolioviewer/_2nkZuhtho1nX-ouqvUI3r/)    | render enclosed text within a self-closing tag, `< />`                                               |
+| [`<term>`](https://www.doenet.org/portfolioviewer/_qiB5OOUeudnuUI-oOD90Z)     | emphasized styling associated with a defined vocabulary word                                         |
+
 
 ## Sectional components
+Sectional components are blocks of content that serve as containers for other components. Some of these have auto-numbering and/or a default title. General content that is not typically included inside a paragraph are also included here.
+
+| Component                                                                              | Description                                                                           |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `<activity>`                                                                           | a sectional component with auto-numbering and auto-title                              |
+| [`<aside>`](https://www.doenet.org/portfolioviewer/_rxcFBsvdQfBR072H8a1tA)             | renders a collapsible section of content                                              |
+| [`<caption>`](https://www.doenet.org/portfolioviewer/_j5V1Px_kH7szXxcIK8bRz)           | renders a caption inside a `<figure>`                                                 |
+| [`<cell>`](https://www.doenet.org/portfolioviewer/_jN7vEZ4h2eNuuvNYlBO-Q)              | smallest data element in a `<table>`                                                  |
+| `<cellBlock>`                                                                          | a container element for specifying data in a `<spreadsheet>`                          |
+| `<chart>`                                                                              | *under development*                                                                   |
+| [`<choice>`](https://www.doenet.org/portfolioviewer/_twzcSdfjCk9gd6TbzwX_z)            | defines a multiple-choice response                                                    |
+| [`<choiceInput>`](https://www.doenet.org/portfolioviewer/_2H6BxwETaoUOdWj4iovYo)       | defines a multiple-choice block                                                       |
+| `<codeEditor>`                                                                         | renders an embedded doenetML code editor                                              |
+| `<codeViewer>`                                                                         | renders an embedded viewer for a `<codeEditor>` component                             |
+| `<column>`                                                                             | container element for a column of cells in a `<spreadsheet>`                          |
+| `<conclusion>`                                                                         | container element for content that does not have auto-numbering                       |
+| `<contentPicker>`                                                                      | sectional component for selecting blocks of content with a pull-down menu             |
+| `<dataFrame>`                                                                          | *under development*                                                                   |
+| `<definition>`                                                                         | a sectional component with auto-numbering and auto-title                              |
+| [`<div>`](https://www.doenet.org/portfolioviewer/_W2L1qyzVu4dafjnHg62Y_)               | groups doenetML content into an unformatted container that can be named               |
+| [`<document>`](https://www.doenet.org/portfolioviewer/_-xrVXNi2_EW2Fin0N2drJ)          | largest hierarchical sectional component                                              |
+| [`<example>`](https://www.doenet.org/portfolioviewer/_Zr5a-YeJy_9Z7PEOhjWDZ)           | sectional component with default numbering that defines an example                    |
+| [`<exercise>`](https://www.doenet.org/portfolioviewer/_in5xXkP32pFTxpJ9NSaL7)          | sectional component with default numbering that defines an exercise                   |
+| `<exercises>`                                                                          | a container element for multiple `<exercise>` components                              |
+| [`<figure>`](https://www.doenet.org/portfolioviewer/_2KaoB8xx2bDxXab40co9i)            | container element for images, videos, and captions                                    |
+| [`<hint>`](https://www.doenet.org/portfolioviewer/_WtbK-j4mNjDLvmIBO5OVW)              | hidden content triggered by clicking on a banner or by specific user interactions     |
+| [`<image />`](https://www.doenet.org/portfolioviewer/_Y9rAqRFFOPw6BphJ5eErY)           | inserts an image                                                                      |
+| `<introduction>`                                                                       | container element for content that does not have auto-numbering                       |
+| [`<li>`](https://www.doenet.org/portfolioviewer/_1RITl0DcbD_QFSE9VK2Jj)                | list item                                                                             |
+| `<note>`                                                                               | an auto-numbered sectional component with default title                               |
+| `<objectives>`                                                                         | a boxed sectional component with default title and auto-numbering                     |
+| [`<ol>`](https://www.doenet.org/portfolioviewer/_MP-Q8bsNcXgOTRoqD-vFk)                | ordered list                                                                          |
+| [`<p>`](https://www.doenet.org/portfolioviewer/_ZKtFO1M4oFzd4S8zfJj55)                 | create a paragraph or drop down a line                                                |
+| `<paragraphs>`                                                                         | a container element for `<p>` components                                              |
+| [`<problem>`](https://www.doenet.org/portfolioviewer/_OSqdvfYm0vKtv3aKnR3V8)           | sectional component with default numbering that defines a problem                     |
+| `<problems>`                                                                           | a container element for `<problem>` components                                        |
+| [`<proof>`](https://www.doenet.org/portfolioviewer/_KTUI5MLjN9LmpbHsofEOi)             | sectional component designated as a proof                                             |
+| [`<question>`](https://www.doenet.org/portfolioviewer/_NcxKPO7LZCfOTCfR1OlOX)          | a sectional component; similar to a `<problem>`                                       |
+| [`<row> (in a table)`](https://www.doenet.org/portfolioviewer/_yIPAER1RJVVHMNF1Op_7a)  | container element for one or more `<cell>`components within a `<tabular>`             |
+| [`<row> (in a matrix)`](https://www.doenet.org/portfolioviewer/_LCHR59iXJ1u2qFEL3IVRi) | container element for horizontal entries in a single row of a `<matrix>`              |
+| [`<sbsGroup>`](https://www.doenet.org/portfolioviewer/_25jqJs9elpIguM3Jj6ysA)          | a container element for `<sideBySide>` components                                     |
+| [`<section>`](https://www.doenet.org/portfolioviewer/_v17W36JKpVOoCVEw1-1P5)           | sectional component that renders an auto-numbered block of content                    |
+| [`<setup>`](https://www.doenet.org/portfolioviewer/_gHn9-Jhc4JFQpUKxVPCE2)             | defines a block for defining or initializing named content; does not render to viewer |
+| [`<sidebySide>`](https://www.doenet.org/portfolioviewer/_m60eBCbehXNF3VGwAsGO9)        | renders components in a side-by-side horizontal format                                |
+| [`<solution>`](https://www.doenet.org/portfolioviewer/__OoOsUCWGwMR_TF1BTZSB)          | expandable block component which displays a problem solution                          |
+| [`<stack>`](https://www.doenet.org/portfolioviewer/_urmQ5hZeKmwkVMZsyPeZ6)             | vertical container element for organizing content within a `<sideBySide>`             |
+| [`<statement>`](https://www.doenet.org/portfolioviewer/_HFggoMSQFK6p3rfP5DT2C)         | container element for content that does not have auto-numbering                       |
+| [`<table>`](https://www.doenet.org/portfolioviewer/_zRuXlzQ0_iNqNqZHHQMxG)             | container element for a `<tabular>`                                                   |
+| [`<tabular>`](https://www.doenet.org/portfolioviewer/_Bm5kSKo8GvPyl85lokH8_)           | define data arranged in a tabular format                                              |
+| `<theorem>`                                                                            | a sectional component with auto-numbering and auto-title                              |
+| [`<title>`](https://www.doenet.org/portfolioviewer/_5HERf7liZuJ_-NnhzeTaU)             | creates a title within a document, section, or other block component                  |
+| `<topic>`                                                                              | container element for content that does not have auto-numbering                       |
+| [`<ul>`](https://www.doenet.org/portfolioviewer/_NscifFtWYTqus6MOefEoH)                | unordered, or bulleted, list                                                          |
+
 
 ## Input components
-* `<booleanInput/>`  a checkbox
-* `<choiceInput/>` multiple choice selection
-* `<mathInput/>`  a math fill-in-the blank
-* `<matrixInput/>` a 2-dimensional math input structured as a matrix
-* `<textInput/>` a text fill-in-the-blank
-* `<slider/>` a slider bar
-* `<subsetOfRealsInput/>` an interactive number line
+Input components collect responses from students or users of your DoenetML activity. Response values are stored for author/instructor retrieval if the activity is assigned. 
+| Component                                                                                | Description                                                   |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [`<booleanInput>`](https://www.doenet.org/portfolioviewer/_1GOagmW0_QHN4m_zmuE-I)        | renders a checkbox                                            |
+| [`<choice>`](https://www.doenet.org/portfolioviewer/_twzcSdfjCk9gd6TbzwX_z)              | defines a multiple-choice response                            |
+| [`<choiceInput>`](https://www.doenet.org/portfolioviewer/_2H6BxwETaoUOdWj4iovYo)         | defines a multiple-choice block                               |
+| [`<mathInput />`](https://www.doenet.org/portfolioviewer/_p_qPrnY-jhcqqrG2LcodH)         | renders a user-input field that stores mathematical content   |
+| [`<matrixInput />`](https://www.doenet.org/portfolioviewer/_P85LO3VhK-Tcx3Rmi5tIQ)       | renders an empty matrix with blanks for user-input of entries |
+| [`<slider>`](https://www.doenet.org/portfolioviewer/_G0-0FYkeCXVHyRtLxKjMZ)              | renders a sliding bar for interactively adjusting values      |
+| `<subsetOfRealsInput />`                                                                 | *under development*                                           |
+| [`<textInput />`](https://www.doenet.org/portfolioviewer/_9Cg4Vwh5-o0wk7kT98bPI)         | renders an input field for text responses                     |
+| [`<orbitalDiagramInput>`](https://www.doenet.org/portfolioviewer/_e0Mzs8jJ9bE1lXUM9zl27) | renders an interactive table for input of orbital diagrams    |
+| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)         | renders a basic spreadsheet tool                              |
+
 
 ## Graphical components
-* `<angle>`
+Graphical components are any objects that can be placed on a `<graph>`. The following components are not considered Graphical Components, but they may be placed on a graph when given an `anchor` attribute for location:
+* `<textInput/>`
+* `<math>`
+* `<m>` (or any Mathematical Display component)
+* `<image/>`
+* `<booleanInput/>`
+
+
+| Component                                                                                    | Description                                                                                      |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [`<angle>`](https://www.doenet.org/portfolioviewer/_JKwt_GXeExk_vo5PInBfq)                   | angle graphical component                                                                        |
+| [`<attractTo>`](https://www.doenet.org/portfolioviewer/_JBuq_jiO1LUozdRyaVFNu)               | attracts a point to a named graphical component                                                  |
+| [`<attractToGrid>`](https://www.doenet.org/portfolioviewer/_qdNdPGeGxP-ExmNUEMzj6)           | defines snapping behavior of GraphicalComponents to gridlines in a <graph>                       |
+| `<attractToAngles>`                                                                          | *under development*                                                                              |
+| `<attractToConstraint>`                                                                      | *under development*                                                                              |
+| [`<bestFitLine>`](https://www.doenet.org/portfolioviewer/_UqVPaomlz0b_yDvGM9n1X)             | computes a linear regression on a set of points, renders a line when nested inside a `<graph>`   |
+| [`<bezierControls>`](https://www.doenet.org/portfolioviewer/_pJU6QGR9-2YmEuC9LLRaP)          | container element for control vectors of a spline curve                                          |
+| [`<circle>`](https://www.doenet.org/portfolioviewer/_arSFuAF_idMUd6JNCpNKn)                  | circle Graphical Component                                                                       |
+| [`<constrainTo>`](https://www.doenet.org/portfolioviewer/_eixOKMEQspLbn1U2VtSAD)             | constrain a `<point>` to a named component                                                       |
+| `<constrainToAngle>`                                                                         | *under development*                                                                              |
+| [`<constrainToGrid>`](https://www.doenet.org/portfolioviewer/_cq9sOXX7kZFTqxQw2FU1c)         | snap points to a specified grid                                                                  |
+| [`<constraints>`](https://www.doenet.org/portfolioviewer/_DasOYIo38JZmCquq_mcCd)             | container element for constraint components                                                      |
+| [`<constraintUnion>`](https://www.doenet.org/portfolioviewer/_QavqumD7FzWMrngFC3pZO)         | container element for a union of constraint components                                           |
+| [`<controlVectors>`](https://www.doenet.org/portfolioviewer/_25WGTkEZn9FvF3-ezJchf)          | define individual control vectors for a spline curve within a `<bezierControls>` block component |
+| [`<curve>`](https://www.doenet.org/portfolioviewer/_JSO_uz97OhG9cwkK6gxy)                    | spline graphical component                                                                       |
+| [`<endpoint>`](https://www.doenet.org/portfolioviewer/_L4LMjH40kqlZ5U5hR6-og)                | an extension of the `<point>` component which allows open and toggle-open style points           |
+| [`<function>`](https://www.doenet.org/portfolioviewer/_Jwl0ys4sdoUIkguMBx0he)                | mathematical function                                                                            |
+| [`<graph>`](https://www.doenet.org/portfolioviewer/_W7UM-eMckhRS3ktGSUR6B)                   | renders a 2D cartesian graph                                                                     |
+| [`<intersection>`](https://www.doenet.org/portfolioviewer/_c0FH400gJ_AX63F_xXFQp)            | render intersections between graphical objects                                                   |
+| [`<label>`](https://www.doenet.org/portfolioviewer/_oJJwqB34yr6YQf3hkCv81)                   | adds a label to its parent component                                                             |
+| [`<legend>`](https://www.doenet.org/portfolioviewer/_w4VsLMFGK4A5yMAPNU8Rw)                  | renders a legend when nested within a `<graph>`                                                  |
+| [`<line>`](https://www.doenet.org/portfolioviewer/_JoBPIQwjZ5merftAHL5UF)                    | renders a line when nested inside a `<graph>`                                                    |
+| [`<lineSegment>`](https://www.doenet.org/portfolioviewer/_xZCf6we158VNInXfyTw_e)             | renders a line segment when nested inside a `<graph>`                                            |
+| [`<parabola>`](https://www.doenet.org/portfolioviewer/_7V2odJAgabEKmxaIxqt9-)                | parabola Graphical Component                                                                     |
+| `<pegboard>`                                                                                 | a Graphical Component that renders dots at grid intersections                                    |
+| [`<piecewiseFunction>`](https://www.doenet.org/portfolioviewer/_NwfDzKZEkd8fndWkyutym)       | define piecewise functions for graphing and evaluation                                           |
+| [`<point>`](https://www.doenet.org/portfolioviewer/_gN8NlDY3WLRc7jgAvXKXm)                   | point Graphical Component                                                                        |
+| [`<polygon/>`](https://www.doenet.org/portfolioviewer/_gHZxIksVZufxA2ozsqqsK)                | polygon Graphical Component                                                                      |
+| [`<polyline/>`](https://www.doenet.org/portfolioviewer/__o-EPRIVmYmgzUQguNDwv)               | polyline Graphical Component                                                                     |
+| [`<ray>`](https://www.doenet.org/portfolioviewer/_vS-1_a4CjUanl_snhHyKA)                     | ray Graphical Component                                                                          |
+| [`<rectangle>`](https://www.doenet.org/portfolioviewer/_STMxLaf-ic80S9duBU1WK)               | rectangle Graphical Component                                                                    |
+| [`<regionBetweenCurveXAxis>`](https://www.doenet.org/portfolioviewer/_P9Tg0fvhcrmXlX3G5eECF) | shade a region on a graph between a specified function and the x-axis                            |
+| [`<regularPolygon>`](https://www.doenet.org/portfolioviewer/_yRch1NKhq4sWH8E8o7S0x)          | regular polygon graphical component                                                              |
+| [`<triangle>`](https://www.doenet.org/portfolioviewer/_RJW2wne2i7D0KsJjrX5bs)                | triangle Graphical Component                                                                     |
+| [`<vector>`](https://www.doenet.org/portfolioviewer/_zZnE8j9Lz5JcGOrc3CeYi)                  | renders a vector inside a `<graph>`                                                              |
+| [`<xLabel>`](https://www.doenet.org/portfolioviewer/_Haw5CdnyPRyADCmUXM6oz)                  | labels the horizontal axis on a `<graph>`                                                        |
+| [`<yLabel>`](https://www.doenet.org/portfolioviewer/_Woslc1CjEq0NZRHTa8chz)                  | labels the vertical axis on a `<graph>`                                                          |
+
+
+
+
 
 ## Display Math components
-* `<m>`
-* `<me>`
-* `<men>`
-* `<md>`
-* `<mdn>`
+
 
 ## Math components
-| Component          | Description    |
-| ------------------ | -------------- |
-| [`<abs>`](abs.mdx) | absolute value |
-* `<angle>`
-* `<math>`
-* `<mathInput>`
 
 
 
 ## Math operator components
-* `<sum>`
-* `<product>`
-* `<clampNumber>`
-* `<wrapNumberPeriodic>`
-* `<round>`
-* `<ceil>`
-* `<floor>`
-* `<abs>`
-* `<mean>`
-* `<median>`
-* `<variance>`
-* `<standardDeviation>`
-* `<count>`
-* `<min>`
-* `<max>`
-* `<mod>`
-* `<gcd>`
-* `<max>`
+
+
+## General operator components
+
+## Logic components
+
+## Evaluation components
+
+## Text components
+
+## Subject-specific components
+
+
+
+
