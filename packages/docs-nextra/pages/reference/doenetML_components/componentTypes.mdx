@@ -181,7 +181,9 @@ Mathematical content can be defined and rendered with Math Components. These com
 | [`<matrix>`](https://www.doenet.org/portfolioviewer/_g7d9tay1SzmM60QYvmoPo)               | defines a matrix for use in computations                                                     |
 | [`<number>`](https://www.doenet.org/portfolioviewer/_Jwi35-iUB_BaSCNWFGNbh)               | defines numerical content                                                                    |
 | [`<numberList>`](https://www.doenet.org/portfolioviewer/_HdpEyh0Me7x_82esylB5Z)           | defines a list of `<number>` components                                                      |
+| [`<odesystem>`](https://www.doenet.org/portfolioviewer/_JqtXlPC0Y4ayzY0IXEgE7)            | computes a numerical solution to a system of ordinary differential equations                 |
 | `<periodicSet />`                                                                         | a set of numbers defined by their periodicity                                                |
+| `<rightHandSide>`                                                                         | used with `<odeSystem>` to define the right-hand side of a differential equation             |
 | [`<samplePrimeNumbers/>`](https://www.doenet.org/portfolioviewer/_8JE3yhXX5m8aSrvMKH5Om)  | generates randomly sampled prime numbers within a specified range                            |
 | [`<sampleRandomNumbers/>`](https://www.doenet.org/portfolioviewer/_dsZ8b8U8RP2wolpvwnlf6) | generates randomly sampled numbers from a specified distribution                             |
 | [`<select>`](https://www.doenet.org/portfolioviewer/_Gr390ti8Arno_SklfPbUt)               | select values from a list or set of `<option>`s to create document variants                  |
@@ -288,9 +290,28 @@ Logic components define boolean conditions or are used in logical expressions.
 ## Evaluation components
 These components are used in answer validation, evaluation, or the awarding of credit.
 
+| Component                                                                                | Description                                                                                                     |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [`<answer>`](https://www.doenet.org/portfolioviewer/_oqsskIj4WFljMigaogOCM)              | defines an answer block for response validation                                                                 |
+| [`<award>`](https://www.doenet.org/portfolioviewer/_fB4XolOYgmYs6HQXwY-F4)               | specifies conditions for awarding credit where multiple user responses are considered                           |
+| [`<considerAsResponses>`](https://www.doenet.org/portfolioviewer/_opcciAg42vmqXgGcjpxpK) | specifies components involved in response data collection when the component occurs outside an `<answer>` block |
+| [`<feedback>`](https://www.doenet.org/portfolioviewer/_WwagbtTRGpBV7WYO1upAN)            | hidden content triggered in response to specific user interactions                                              |
+| `<feedbackDefinition>`                                                                   | define a recurring feedback for repeated use within a document                                                  |
+| `<feedbackDefinitions>`                                                                  | container element for `<feedback>` definitions                                                                  |
+| [`<hasSameFactoring>`](https://www.doenet.org/portfolioviewer/_kL9zdAlMU3MicSaZVXdDr)    | check to see if two expressions are factored in the same way                                                    |
+| [`<matchesPattern>`](https://www.doenet.org/portfolioviewer/_MkKrJ0wwm5GfJKZn59PEX)      | evaluate whether an expression matches the pattern of a defined mathematical template                           |
+| [`<when>`](https://www.doenet.org/portfolioviewer/_F2RMnsifTVXAXBGUBFhnU)                | defines logical conditions within an `<award>`                                                                  |
+
+
 
 ## Text components
 Text components are values containing strings that are not necessarily embedded in paragraphs.
+
+| Component                                                                     | Description                                 |
+| ----------------------------------------------------------------------------- | ------------------------------------------- |
+| [`<text>`](https://www.doenet.org/portfolioviewer/_u8kT_40fm1lp7fazGqv3Z)     | a stored text value, or string              |
+| [`<textList>`](https://www.doenet.org/portfolioviewer/_r8_Y5l8PUs7J5CNuDs1FO) | list of `<text>` values separated by commas |
+
 
 ## Subject-specific components
 These components are classified based on their relevance to a particular subject.
