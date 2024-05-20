@@ -93,11 +93,12 @@ Input components collect responses from students or users of your DoenetML activ
 | [`<choiceInput>`](https://www.doenet.org/portfolioviewer/_2H6BxwETaoUOdWj4iovYo)         | defines a multiple-choice block                               |
 | [`<mathInput />`](https://www.doenet.org/portfolioviewer/_p_qPrnY-jhcqqrG2LcodH)         | renders a user-input field that stores mathematical content   |
 | [`<matrixInput />`](https://www.doenet.org/portfolioviewer/_P85LO3VhK-Tcx3Rmi5tIQ)       | renders an empty matrix with blanks for user-input of entries |
+| [`<orbitalDiagramInput>`](https://www.doenet.org/portfolioviewer/_e0Mzs8jJ9bE1lXUM9zl27) | renders an interactive table for input of orbital diagrams    |
 | [`<slider>`](https://www.doenet.org/portfolioviewer/_G0-0FYkeCXVHyRtLxKjMZ)              | renders a sliding bar for interactively adjusting values      |
+| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)         | renders a basic spreadsheet tool                              |
 | `<subsetOfRealsInput />`                                                                 | *under development*                                           |
 | [`<textInput />`](https://www.doenet.org/portfolioviewer/_9Cg4Vwh5-o0wk7kT98bPI)         | renders an input field for text responses                     |
-| [`<orbitalDiagramInput>`](https://www.doenet.org/portfolioviewer/_e0Mzs8jJ9bE1lXUM9zl27) | renders an interactive table for input of orbital diagrams    |
-| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)         | renders a basic spreadsheet tool                              |
+
 
 
 ## Graphical components
@@ -113,7 +114,7 @@ Graphical components are any objects that can be placed on a `<graph>`. The foll
 | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | [`<angle>`](https://www.doenet.org/portfolioviewer/_JKwt_GXeExk_vo5PInBfq)                   | angle graphical component                                                                        |
 | [`<attractTo>`](https://www.doenet.org/portfolioviewer/_JBuq_jiO1LUozdRyaVFNu)               | attracts a point to a named graphical component                                                  |
-| [`<attractToGrid>`](https://www.doenet.org/portfolioviewer/_qdNdPGeGxP-ExmNUEMzj6)           | defines snapping behavior of GraphicalComponents to gridlines in a <graph>                       |
+| [`<attractToGrid>`](https://www.doenet.org/portfolioviewer/_qdNdPGeGxP-ExmNUEMzj6)           | defines snapping behavior of GraphicalComponents to gridlines in a `<graph>`                     |
 | `<attractToAngles>`                                                                          | *under development*                                                                              |
 | `<attractToConstraint>`                                                                      | *under development*                                                                              |
 | [`<bestFitLine>`](https://www.doenet.org/portfolioviewer/_UqVPaomlz0b_yDvGM9n1X)             | computes a linear regression on a set of points, renders a line when nested inside a `<graph>`   |
@@ -150,17 +151,84 @@ Graphical components are any objects that can be placed on a `<graph>`. The foll
 | [`<yLabel>`](https://www.doenet.org/portfolioviewer/_Woslc1CjEq0NZRHTa8chz)                  | labels the vertical axis on a `<graph>`                                                          |
 
 
-
-
-
 ## Display Math components
+Display math components take arguments written in LaTeX. No computations or simplifications can be performed with these components, as they do not have access to the CAS. 
+
+Additionaly, Evaluation Components (such as `<answer>`) and Input Components (such as `<mathInput>`) cannot be embedded or nested within Display Math Components.
+
+| Component                                                                 | Description                                                                           |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`<m>`](https://www.doenet.org/portfolioviewer/_GCM8z3SDsbj9yZSkHW3YB)    | inline mathematical display text                                                      |
+| [`<md>`](https://www.doenet.org/portfolioviewer/_WuwD2Nm1sTn0pPSKDpBKx)   | block component for centered, aligned equations; container for `<mrow>`               |
+| [`<mdn>`](https://www.doenet.org/portfolioviewer/_Gjv-tyEF49NHTC6GVVrAs)  | block component for centered, numbered, and aligned equations; container for `<mrow>` |
+| [`<me>`](https://www.doenet.org/portfolioviewer/_XzKxDehzI0Qumvj_3cXJe)   | centered mathematical display text                                                    |
+| [`<men>`](https://www.doenet.org/portfolioviewer/_MBP5nVIrkgzessaoiqdEh)  | centered, numbered mathematical display text                                          |
+| [`<mrow>`](https://www.doenet.org/portfolioviewer/_IDfY5djdaYLObbEv5yWrT) | defines individual row content when nested within an `<md>` or `<mdn>`                |
+
 
 
 ## Math components
+Mathematical content can be defined and rendered with Math Components. These components can be simplified and used in computations.
+| Component                                                                                 | Description                                                                                  |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [`<coords>`](https://www.doenet.org/portfolioviewer/_kd2G1JeKBkFj2R2prRFdG)               | math component that renders a set of coordinates                                             |
+| [`<derivative>`](https://www.doenet.org/portfolioviewer/_6qxuIVB7Blv9erRHt85eY)           | renders or graphs the derivative of basic elementary functions                               |
+| [`<function>`](https://www.doenet.org/portfolioviewer/_Jwl0ys4sdoUIkguMBx0he)             | mathematical function                                                                        |
+| [`<functionIterates>`](https://www.doenet.org/portfolioviewer/_0c4X6ZTyDliZrK-Ow0dYJ)     | evaluate a function over a specified number of iterations of its argument                    |
+| [`<integer>`](https://www.doenet.org/portfolioviewer/_30BB7PzOFepawWqSs43PK)              | defines an integer                                                                           |
+| [`<math>`](https://www.doenet.org/portfolioviewer/_BYXQro7P7NJrtKyTCxJcX)                 | defines a mathematical expression for computations                                           |
+| [`<mathList>`](https://www.doenet.org/portfolioviewer/_H1qFaU-oHHXeqVfm0mhNy)             | list of `<math>` values separated by commas                                                  |
+| [`<matrix>`](https://www.doenet.org/portfolioviewer/_g7d9tay1SzmM60QYvmoPo)               | defines a matrix for use in computations                                                     |
+| [`<number>`](https://www.doenet.org/portfolioviewer/_Jwi35-iUB_BaSCNWFGNbh)               | defines numerical content                                                                    |
+| [`<numberList>`](https://www.doenet.org/portfolioviewer/_HdpEyh0Me7x_82esylB5Z)           | defines a list of `<number>` components                                                      |
+| `<periodicSet />`                                                                         | a set of numbers defined by their periodicity                                                |
+| [`<samplePrimeNumbers/>`](https://www.doenet.org/portfolioviewer/_8JE3yhXX5m8aSrvMKH5Om)  | generates randomly sampled prime numbers within a specified range                            |
+| [`<sampleRandomNumbers/>`](https://www.doenet.org/portfolioviewer/_dsZ8b8U8RP2wolpvwnlf6) | generates randomly sampled numbers from a specified distribution                             |
+| [`<select>`](https://www.doenet.org/portfolioviewer/_Gr390ti8Arno_SklfPbUt)               | select values from a list or set of `<option>`s to create document variants                  |
+| [`<selectFromSequence>`](https://www.doenet.org/portfolioviewer/_HtetAL1AhP13dJyv4sP2H)   | generates immutable random values within a predefined range to create document variants      |
+| [`<selectPrimeNumbers/>`](https://www.doenet.org/portfolioviewer/_xtFsgCMVGLnY2QIdrs6NI)  | generates immutable random prime numbers to create document variants                         |
+| [`<selectRandomNumbers>`](https://www.doenet.org/portfolioviewer/_HFhH7id_K4u5E1OiZTTby)  | generates immutable random numbers from a specified distribution to create document variants |
+| [`<sequence />`](https://www.doenet.org/portfolioviewer/___VgxVIdpE3sN4POU0EKT)           | generate a sequence with predefined parameters                                               |
+| [`<setSmallToZero>`](https://www.doenet.org/portfolioviewer/_1o4bnebi6CB7XkoiYydDV)       | replaces small numerical values with a precise zero value                                    |
+| [`<sign>`](https://www.doenet.org/portfolioviewer/_DQlZ0KZRnI9ppjgzng10T)                 | returns the result of the sign function of the enclosed argument                             |
+| `<solveEquations>`                                                                        | *under development*                                                                          |
+| [`<subsetOfReals>`](https://www.doenet.org/portfolioviewer/_GaLUcM3WpT51EBLYBVasu)        | defines an interval or a subset on the number line                                           |
+| [`<subsetOfRealsInput />`](https://www.doenet.org/portfolioviewer/_OjzGJtfwD4HidwtlSsXE_) | renders an interactive number line applet                                                    |
+| `<tupleList>`                                                                             | a list of tuples (points or intervals)                                                       |
+
 
 
 
 ## Math operator components
+Math Operator components perform computations or take actions on the math components they reference or the values they enclose.
+
+| Component                                                                               | Description                                                                                    |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`<abs>`](https://www.doenet.org/portfolioviewer/_s_ZCiYUOEN9fvngxH36qt)                | absolute value                                                                                 |
+| [`<ceil>`](https://www.doenet.org/portfolioviewer/_wkyG0jI9krl3KS6Z5dfPU)               | ceiling function                                                                               |
+| `<clampFunction>`                                                                       |                                                                                                |
+| [`<clampNumber>`](https://www.doenet.org/portfolioviewer/_AZxvk39SA8oZ-JwONOFq3)        | rounds a number to within a specified interval                                                 |
+| [`<convertSetToList>`](https://www.doenet.org/portfolioviewer/_L_pVo-cw2-9vfZVA59Cvu)   | renders an unformatted set of values as a list enclosed in parentheses and separated by commas |
+| [`<count>`](https://www.doenet.org/portfolioviewer/_PZdL1iczaVsV4Zbm8xTLq)              | renders the length of its list of arguments                                                    |
+| [`<evaluate>`](https://www.doenet.org/portfolioviewer/_7tU6KarDheOBPO-3OtGtd)           | evaluate a function                                                                            |
+| `<extrema>`                                                                             |                                                                                                |
+| [`<floor>`](https://www.doenet.org/portfolioviewer/_Esv6D3nmjs1VWnjPQRHUD)              | renders the result of the floor function applied to the enclosed argument                      |
+| [`<gcd>`](https://www.doenet.org/portfolioviewer/_bZzW77X_cj9F2cWi8as2z)                | renders the greatest common divisor of its arguments                                           |
+| [`<intComma>`](https://www.doenet.org/portfolioviewer/_AqVgHAF6LQlTth-qh6szf)           | inserts commas into a large integer when rendering                                             |
+| [`<max>`](https://www.doenet.org/portfolioviewer/_0Tx36iddpQ2hU-Czi90gk)                | renders the maximum value of its arguments                                                     |
+| [`<mean>`](https://www.doenet.org/portfolioviewer/_IfadvxpopKPklPeV5H1ix)               | renders the arithmetic mean of a list of numerical values                                      |
+| [`<median>`](https://www.doenet.org/portfolioviewer/_CqlQV2ApVYNPK8esIllnj)             | renders the median of the enclosed argument                                                    |
+| [`<min>`](https://www.doenet.org/portfolioviewer/_R50Gl8HQptcdwZ487SroY)                | renders the minimum value of its arguments                                                     |
+| [`<mod>`](https://www.doenet.org/portfolioviewer/_O3OIn6KUNZe5KBaYBHQKq)                | renders the value of $a \mod b$, where $a$ and $b$ are the two listed arguments                |
+| [`<product>`](https://www.doenet.org/portfolioviewer/_HKjT-cKyhEqyCONI4cS-d)            | renders the product of its arguments                                                           |
+| [`<round>`](https://www.doenet.org/portfolioviewer/_XEzrGMRRSUUqUKJ2X3LUe)              | round a number to a specified place value                                                      |
+| [`<standardDeviation>`](https://www.doenet.org/portfolioviewer/_lJITPu0SqeNXjYlX0zqz6)  | renders the standard deviation of its arguments                                                |
+| [`<sum>`](https://www.doenet.org/portfolioviewer/_IXkGW9efgTX59Z1JmnWKG)                | renders the sum of its arguments                                                               |
+| `<summaryStatistics>`                                                                   |                                                                                                |
+| [`<variance>`](https://www.doenet.org/portfolioviewer/_4Sdck4aVqbgC0nRk-XXcD)           | renders the variance of its arguments                                                          |
+| `<wrapFunctionPeriodic>`                                                                |                                                                                                |
+| [`<wrapNumberPeriodic>`](https://www.doenet.org/portfolioviewer/_GfSVUOrjk5hvjQmKA_q4W) | wraps a number line around a circle                                                            |
+
 
 
 ## General operator components

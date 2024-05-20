@@ -1,8 +1,20 @@
 {
     "essentialConcepts": "Essential Concepts",
     "doenetML_components": "Components",
-    "documentStructure": "Document Structure",
-    "advancedExamples": "Advanced Examples",
-    "answerValidation": "Answer Validation",
-    "creditAchieved": "Controlling Credit Awarded"
+    "documentStructure": {
+        "name": "Document Structure",
+        "display": "hidden"
+    },
+    "advancedExamples": {
+        "name": "Advanced Examples",
+        "display": "hidden"
+    },
+    "answerValidation": {
+        "name": "Answer Validation",
+        "display": "hidden"
+    },
+    "creditAchieved": {
+        "name": "Controlling Credit Awarded",
+        "display": "hidden"
+    }
 }
