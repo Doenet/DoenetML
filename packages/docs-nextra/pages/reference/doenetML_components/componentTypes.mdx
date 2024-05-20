@@ -86,18 +86,18 @@ Sectional components are blocks of content that serve as containers for other co
 
 ## Input components
 Input components collect responses from students or users of your DoenetML activity. Response values are stored for author/instructor retrieval if the activity is assigned. 
-| Component                                                                                | Description                                                   |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [`<booleanInput>`](https://www.doenet.org/portfolioviewer/_1GOagmW0_QHN4m_zmuE-I)        | renders a checkbox                                            |
-| [`<choice>`](https://www.doenet.org/portfolioviewer/_twzcSdfjCk9gd6TbzwX_z)              | defines a multiple-choice response                            |
-| [`<choiceInput>`](https://www.doenet.org/portfolioviewer/_2H6BxwETaoUOdWj4iovYo)         | defines a multiple-choice block                               |
-| [`<mathInput />`](https://www.doenet.org/portfolioviewer/_p_qPrnY-jhcqqrG2LcodH)         | renders a user-input field that stores mathematical content   |
-| [`<matrixInput />`](https://www.doenet.org/portfolioviewer/_P85LO3VhK-Tcx3Rmi5tIQ)       | renders an empty matrix with blanks for user-input of entries |
-| [`<orbitalDiagramInput>`](https://www.doenet.org/portfolioviewer/_e0Mzs8jJ9bE1lXUM9zl27) | renders an interactive table for input of orbital diagrams    |
-| [`<slider>`](https://www.doenet.org/portfolioviewer/_G0-0FYkeCXVHyRtLxKjMZ)              | renders a sliding bar for interactively adjusting values      |
-| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)         | renders a basic spreadsheet tool                              |
-| `<subsetOfRealsInput />`                                                                 | *under development*                                           |
-| [`<textInput />`](https://www.doenet.org/portfolioviewer/_9Cg4Vwh5-o0wk7kT98bPI)         | renders an input field for text responses                     |
+| Component                                                                                 | Description                                                   |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [`<booleanInput>`](https://www.doenet.org/portfolioviewer/_1GOagmW0_QHN4m_zmuE-I)         | renders a checkbox                                            |
+| [`<choice>`](https://www.doenet.org/portfolioviewer/_twzcSdfjCk9gd6TbzwX_z)               | defines a multiple-choice response                            |
+| [`<choiceInput>`](https://www.doenet.org/portfolioviewer/_2H6BxwETaoUOdWj4iovYo)          | defines a multiple-choice block                               |
+| [`<mathInput />`](https://www.doenet.org/portfolioviewer/_p_qPrnY-jhcqqrG2LcodH)          | renders a user-input field that stores mathematical content   |
+| [`<matrixInput />`](https://www.doenet.org/portfolioviewer/_P85LO3VhK-Tcx3Rmi5tIQ)        | renders an empty matrix with blanks for user-input of entries |
+| [`<orbitalDiagramInput>`](https://www.doenet.org/portfolioviewer/_e0Mzs8jJ9bE1lXUM9zl27)  | renders an interactive table for input of orbital diagrams    |
+| [`<slider>`](https://www.doenet.org/portfolioviewer/_G0-0FYkeCXVHyRtLxKjMZ)               | renders a sliding bar for interactively adjusting values      |
+| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)          | renders a basic spreadsheet tool                              |
+| [`<subsetOfRealsInput />`](https://www.doenet.org/portfolioviewer/_OjzGJtfwD4HidwtlSsXE_) | renders an interactive number line applet                     |
+| [`<textInput />`](https://www.doenet.org/portfolioviewer/_9Cg4Vwh5-o0wk7kT98bPI)          | renders an input field for text responses                     |
 
 
 
@@ -232,14 +232,68 @@ Math Operator components perform computations or take actions on the math compon
 
 
 ## General operator components
+These components perform actions on Math components as well as other component types.
+| Component                                                                                | Description                                                                                                    |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [`<animateFromSequence>`](https://www.doenet.org/portfolioviewer/_afi_Qx8esJiIu4j-5bO5i) | renders an animation of a changing component or component property                                             |
+| [`<callAction>`](https://www.doenet.org/portfolioviewer/_uwdPIecErHe7lkfW7h2cF)          | triggers an action when clicked or in response to a specified user interaction                                 |
+| [`<case>`](https://www.doenet.org/portfolioviewer/_uA3LPbKbpfK_r65djB8eS)                | defines the condition within a `<conditionalContent>` block                                                    |
+| [`<collect />`](https://www.doenet.org/portfolioviewer/_Yw3tU4PtUpTxWAxaRg7Ff)           | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list |
+| [`<conditionalContent>`](https://www.doenet.org/portfolioviewer/_kJP10VBFmwmiD-6GkaOGt)  | defines a section of content rendered upon a specific condition                                                |
+| [`<customAttribute>`](https://www.doenet.org/portfolioviewer/_TluCNQB_KHnpCY6f6sill)     | used within a `<module>` to create unique custom attributes specific to that module                            |
+| `<displayDoenetML>`                                                                      |                                                                                                                |
+| [`<extract>`](https://www.doenet.org/portfolioviewer/_b4FpzyszLIjBJ1hJ58K8i)             | extract data from a component or group of components                                                           |
+| [`<extractMath>`](https://www.doenet.org/portfolioviewer/_t_rxPmp25KTf8pwuTZFIn)         | extract data (such as number of operands, or individual operands) from mathematical expressions                |
+| `<extractMathOperator>`                                                                  |                                                                                                                |
+| [`<group>`](https://www.doenet.org/portfolioviewer/_aT3lKy62wNnhANTgCXMpG)               | groups multiple components into one component which can be referenced with a single name                       |
+| [`<map>`](https://www.doenet.org/portfolioviewer/_6xVfXS5mHvlZ1La6IyVmP)                 | takes a list of `<sources>` and applies a `<template>` to each source in turn                                  |
+| `<module>`                                                                               | define a local template for a custom doenetML component or widget for re-use within the document               |
+| [`<option>`](https://www.doenet.org/portfolioviewer/_1ZKzsfdRauB1HU6MFSBSM)              | specifies selection items within a `<select>` block                                                            |
+| `<paginator>`                                                                            | define a paginated section of content within a larger `<document>`                                             |
+| `<paginatorControls />`                                                                  | render navigation buttons for progression through content in a `<paginator>`                                   |
+| [`<ref>`](https://www.doenet.org/portfolioviewer/_v9Fd4g-lLDO_e_LsrtgJ9)                 | creates a link to another document, or a referenced component's location within the same document              |
+| [`<shuffle>`](https://www.doenet.org/portfolioviewer/_niXv2jdoVH7DPlohKdyQD)             | shuffle a list, or a listing of referenced components                                                          |
+| [`<sort>`](https://www.doenet.org/portfolioviewer/_sl86id2rJXtKKjLIZ9qT-)                | sort components based on their values in numerical or alphabetical order                                       |
+| [`<sources>`](https://www.doenet.org/portfolioviewer/_7DHdSFMGgXO23YarWCeYj)             | used within a `<map>` to define input values for `<template>` and alias                                        |
+| [`<split>`](https://www.doenet.org/portfolioviewer/_ruoJ6-7CRVGo6U-4n-a-2)               | splits multi-digit numbers or text strings into individual characters                                          |
+| [`<spreadsheet>`](https://www.doenet.org/portfolioviewer/_gUo2iz9wRVPmkLj8qPukz)         | renders a basic spreadsheet tool                                                                               |
+| [`<styleDefinition>`](https://www.doenet.org/portfolioviewer/_fnsFKIfGZm3CZkGNdPL7I)     | defines custom styling for graphical elements outside the default styleNumbers (1-6)                           |
+| [`<styleDefinitions>`](https://www.doenet.org/portfolioviewer/_aiz0YAHTREXJLw4PdCxN5)    | container element for the custom `<styleDefinition>` in a document                                             |
+| [`<substitute>`](https://www.doenet.org/portfolioviewer/_02qOpOUkM7nupgZTHeFfH)          | replace a math, character or string with a user-specified alternative                                          |
+| [`<template>`](https://www.doenet.org/portfolioviewer/_RwwwA15KDsX6ZvjlkZmCm)            | defines operations to apply to individual `<sources>` within a `<map>`                                         |
+| [`<triggerSet>`](https://www.doenet.org/portfolioviewer/_P08LLb1zQh2IHO065jrWZ)          | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition            |
+| [`<updateValue>`](https://www.doenet.org/portfolioviewer/_86tBH9JR_KiY1NrrABnn9)         | changes the value or property of a named component                                                             |
+| `<variantControl>`                                                                       |                                                                                                                |
+| `<variantNames>`                                                                         |                                                                                                                |
+| [`<video />`](https://www.doenet.org/portfolioviewer/_RP5aszii4otUF2WeWeZdF)             | embeds a video                                                                                                 |
+
 
 ## Logic components
+Logic components define boolean conditions or are used in logical expressions.
+| Component                                                                         | Description                                                            |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [`<and>`](https://www.doenet.org/portfolioviewer/_9c3Gkv1h0l0tV8ExsDzm5)          | functions as the boolean operator and or &                             |
+| [`<boolean>`](https://www.doenet.org/portfolioviewer/_NyyVAjdloVrablDyGwaJu)      | renders the boolean true or false value of the enclosed expression     |
+| [`<booleanInput>`](https://www.doenet.org/portfolioviewer/_1GOagmW0_QHN4m_zmuE-I) | renders a checkbox                                                     |
+| [`<booleanList>`](https://www.doenet.org/portfolioviewer/_N4pDiV2t1kZj8tr1rJeoo)  | list of `<boolean>` values separated by commas                         |
+| [`<else>`](https://www.doenet.org/portfolioviewer/_bQs2rRrNFHh2pxhH30mBw)         | defines a logical else condition within a `<conditionalContent>` block |
+| [`<isBetween>`](https://www.doenet.org/portfolioviewer/_MLBOyyp6grZ5yW1YpgibX)    | returns whether a value is within a specified interval                 |
+| [`<isInteger>`](https://www.doenet.org/portfolioviewer/_QJpJH5oeBDGiF0SKha9oT)    | returns whether a value is an integer                                  |
+| [`<isNumber>`](https://www.doenet.org/portfolioviewer/_dIZ6nHEuCjGhrHPSbtH8A)     | returns whether a value is a number                                    |
+| [`<not>`](https://www.doenet.org/portfolioviewer/_dMHGnWFKaEgcXNyoyZRaF)          | used in the construction of boolean conditions                         |
+| [`<or>`](https://www.doenet.org/portfolioviewer/_NaZq4aNTbzhbOaRELVM50)           | functions as the boolean operator `or`                                 |
+| [`<xor>`](https://www.doenet.org/portfolioviewer/_wmIBebzAAjFjLnfsHwBc5)          | functions as the exclusive or boolean operator                         |
+
 
 ## Evaluation components
+These components are used in answer validation, evaluation, or the awarding of credit.
+
 
 ## Text components
+Text components are values containing strings that are not necessarily embedded in paragraphs.
 
 ## Subject-specific components
+These components are classified based on their relevance to a particular subject.
 
 
 
