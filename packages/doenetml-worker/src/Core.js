@@ -10997,7 +10997,7 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate) {
+        if (!skipRendererUpdate || recordItemSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
@@ -11005,8 +11005,6 @@ export default class Core {
             let itemsSubmitted = [
                 ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
             ];
-            let pageCreditAchieved =
-                await this.document.stateValues.creditAchieved;
             let itemCreditAchieved =
                 await this.document.stateValues.itemCreditAchieved;
 
@@ -11029,13 +11027,6 @@ export default class Core {
                 }
                 event.context.pageCreditAchieved =
                     await this.document.stateValues.creditAchieved;
-            }
-
-            // if itemNumber is zero, it means this document wasn't given any weight,
-            // so don't record the submission to the attempt tables
-            // (the event will still get recorded)
-            if (this.itemNumber > 0) {
-                this.saveSubmissions({ pageCreditAchieved });
             }
         }
 
@@ -11118,10 +11109,23 @@ export default class Core {
             }
         }
 
-        if (!doNotSave) {
+        let alreadySaved = false;
+        if (recordItemSubmissions.length > 0) {
+            // if itemNumber is zero, it means this document wasn't given any weight,
+            // so don't record the submission to the attempt tables
+            // (the event will still get recorded)
+            if (this.itemNumber > 0) {
+                let pageCreditAchieved =
+                    await this.document.stateValues.creditAchieved;
+                this.saveState(true);
+                this.saveSubmissions({ pageCreditAchieved });
+                alreadySaved = true;
+            }
+        }
+        if (!alreadySaved && !doNotSave) {
             clearTimeout(this.savePageStateTimeoutID);
 
-            //Debounce the save to database
+            //Debounce the save to localstorage and then to DB with a throttle
             this.savePageStateTimeoutID = setTimeout(() => {
                 this.saveState();
             }, 1000);
@@ -12874,6 +12878,15 @@ export default class Core {
 
         this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
 
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "saveCreditForItem",
+                state: { ...this.pageStateToBeSavedToDatabase },
+                score: await this.document.stateValues.creditAchieved,
+            });
+            return;
+        }
+
         let resp;
 
         this.savingPageState = true;
@@ -12995,7 +13008,6 @@ export default class Core {
                 });
             }
         }
-
         // TODO: send message so that UI can show changes have been synchronized
 
         // console.log(">>>>recordContentInteraction data",data)
@@ -13003,6 +13015,12 @@ export default class Core {
 
     saveSubmissions({ pageCreditAchieved }) {
         if (!this.flags.allowSaveSubmissions) {
+            return;
+        }
+
+        if (this.apiURLs.postMessages) {
+            // do nothing, saving credit is combined with saving page state in the SPLICE api
+            // that is implemented by Runestone
             return;
         }
 
