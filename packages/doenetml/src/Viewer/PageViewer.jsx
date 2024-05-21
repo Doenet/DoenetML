@@ -1015,7 +1015,7 @@ export function PageViewer({
 
     async function saveLoadedLocalStateToDatabase(localInfo) {
         if (!flags.allowSaveState || !apiURLs.savePageState) {
-            return;
+            return {};
         }
 
         let serverSaveId = await idb_get(
