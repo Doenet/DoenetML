@@ -153,6 +153,7 @@ import SubsetOfReals from "./components/SubsetOfReals";
 import Split from "./components/Split";
 import BestFitLine from "./components/BestFitLine";
 import RegionBetweenCurveXAxis from "./components/RegionBetweenCurveXAxis";
+import RegionBetweenCurves from "./components/RegionBetweenCurves";
 import RegionHalfPlane from "./components/RegionHalfPlane";
 import CodeEditor from "./components/CodeEditor";
 import CodeViewer from "./components/CodeViewer";
@@ -348,6 +349,7 @@ const componentTypeArray = [
     Split,
     BestFitLine,
     RegionBetweenCurveXAxis,
+    RegionBetweenCurves,
     RegionHalfPlane,
     CodeEditor,
     CodeViewer,
