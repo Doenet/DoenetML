@@ -192,6 +192,8 @@ export function PageViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
+    const lastGetStateMessageId = useRef("");
+
     let hash = location.hash;
 
     const contextForRenderers = {
@@ -325,6 +327,21 @@ export function PageViewer({
             });
         };
     }, []);
+
+    useEffect(() => {
+        window.addEventListener("message", (e) => {
+            if (typeof e.data !== "object") {
+                return;
+            }
+            if (e.data.subject !== "SPLICE.getState.response") {
+                if (e.data.messageId !== lastGetStateMessageId.current) {
+                    return;
+                }
+
+                processLoadedPageState(e.data);
+            }
+        });
+    });
 
     useEffect(() => {
         if (pageNumber !== null) {
@@ -954,43 +971,7 @@ export function PageViewer({
                 }
 
                 if (resp.data.loadedState) {
-                    let coreInfo = JSON.parse(
-                        resp.data.coreInfo,
-                        serializedComponentsReviver,
-                    );
-
-                    let rendererState = JSON.parse(
-                        resp.data.rendererState,
-                        serializedComponentsReviver,
-                    );
-
-                    if (rendererState.__componentNeedingUpdateValue) {
-                        callAction({
-                            action: {
-                                actionName: "updateValue",
-                                componentName:
-                                    rendererState.__componentNeedingUpdateValue,
-                            },
-                            args: { doNotIgnore: true },
-                        });
-                    }
-
-                    initializeRenderers({
-                        rendererState,
-                        coreInfo,
-                    });
-
-                    initialCoreData.current = {
-                        coreState: JSON.parse(
-                            resp.data.coreState,
-                            serializedComponentsReviver,
-                        ),
-                        serverSaveId: resp.data.saveId,
-                        requestedVariant: JSON.parse(
-                            coreInfo.generatedVariantString,
-                            serializedComponentsReviver,
-                        ),
-                    };
+                    processLoadedPageState(resp);
                 }
             } catch (e) {
                 if (flags.allowLoadState) {
@@ -1011,6 +992,39 @@ export function PageViewer({
                 setStage("readyToCreateCore");
             }
         }
+    }
+
+    function processLoadedPageState(data) {
+        let coreInfo = JSON.parse(data.coreInfo, serializedComponentsReviver);
+
+        let rendererState = JSON.parse(
+            data.rendererState,
+            serializedComponentsReviver,
+        );
+
+        if (rendererState.__componentNeedingUpdateValue) {
+            callAction({
+                action: {
+                    actionName: "updateValue",
+                    componentName: rendererState.__componentNeedingUpdateValue,
+                },
+                args: { doNotIgnore: true },
+            });
+        }
+
+        initializeRenderers({
+            rendererState,
+            coreInfo,
+        });
+
+        initialCoreData.current = {
+            coreState: JSON.parse(data.coreState, serializedComponentsReviver),
+            serverSaveId: data.saveId,
+            requestedVariant: JSON.parse(
+                coreInfo.generatedVariantString,
+                serializedComponentsReviver,
+            ),
+        };
     }
 
     async function saveLoadedLocalStateToDatabase(localInfo) {
