@@ -169,15 +169,11 @@ export default function TestViewer() {
                 key={"doenetml" + updateNumber}
                 doenetML={doenetMLstring}
                 flags={{
-                    // showCorrectness,
-                    // readOnly,
-                    // showFeedback,
-                    // showHints,
-                    showCorrectness: true,
-                    readOnly: false,
+                    showCorrectness,
+                    readOnly,
+                    showFeedback,
+                    showHints,
                     solutionDisplayMode: "button",
-                    showFeedback: true,
-                    showHints: true,
                     allowLoadState: false,
                     allowSaveState: true,
                     allowLocalState: false,
@@ -185,7 +181,7 @@ export default function TestViewer() {
                     allowSaveEvents: false,
                     autoSubmit: false,
                 }}
-                activityId="a thingy"
+                activityId=""
                 apiURLs={{ postMessages: true }}
                 paginate={paginate}
                 addVirtualKeyboard={true}
