@@ -479,7 +479,7 @@ export default class StickyGroup extends GraphicalComponent {
                         numericalUnconstrainedVertices,
                         closed,
                         shrinkThreshold,
-                        onlyMoveVertexInd,
+                        onlyMoveVertexInd = null,
                     },
                     { objectInd },
                 ) {
@@ -663,16 +663,12 @@ export default class StickyGroup extends GraphicalComponent {
                                             ];
                                             closestDistance2 = distance2;
                                         } else {
-                                            let fixedVertex, moveableVertex;
+                                            let fixedVertex;
                                             if (
                                                 onlyMoveVertexInd === vertexInd1
                                             ) {
-                                                moveableVertex =
-                                                    numericalVertex1;
                                                 fixedVertex = numericalVertex2;
                                             } else {
-                                                moveableVertex =
-                                                    numericalVertex2;
                                                 fixedVertex = numericalVertex1;
                                             }
 
