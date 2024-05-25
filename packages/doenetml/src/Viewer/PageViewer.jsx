@@ -185,14 +185,14 @@ export function PageViewer({
     const resolveActionPromises = useRef({});
     const actionTentativelySkipped = useRef(null);
 
+    const saveStatePromises = useRef({});
+
     const previousLocationKeys = useRef([]);
 
     const errorInitializingRenderers = useRef(false);
     const errorInsideRenderers = useRef(false);
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
-
-    const lastGetStateMessageId = useRef("");
 
     let hash = location.hash;
 
@@ -333,12 +333,18 @@ export function PageViewer({
             if (typeof e.data !== "object") {
                 return;
             }
-            if (e.data.subject !== "SPLICE.getState.response") {
-                if (e.data.messageId !== lastGetStateMessageId.current) {
+            if (e.data.subject === "SPLICE.getState.response") {
+                let promiseInfo = saveStatePromises.current[e.data.messageId];
+                if (!promiseInfo) {
                     return;
                 }
+                delete saveStatePromises.current[e.data.messageId];
 
-                processLoadedPageState(e.data);
+                if (e.data.success) {
+                    promiseInfo.resolve(e.data);
+                } else {
+                    promiseInfo.reject(e.data);
+                }
             }
         });
     });
@@ -870,7 +876,7 @@ export function PageViewer({
             if (localInfo) {
                 if (flags.allowSaveState) {
                     // attempt to save local info to database,
-                    // reseting data to that from database if it has changed since last save
+                    // resetting data to that from database if it has changed since last save
 
                     let result =
                         await saveLoadedLocalStateToDatabase(localInfo);
@@ -933,7 +939,26 @@ export function PageViewer({
             }
         }
 
-        if (!loadedState && apiURLs.loadPageState) {
+        if (!loadedState && apiURLs.postMessages) {
+            if (flags.allowLoadState) {
+                try {
+                    let resp = await getStateViaSlice({
+                        cid,
+                        pageNumber,
+                        attemptNumber,
+                        activityId,
+                        userId,
+                    });
+                    if (resp.loadedState) {
+                        processLoadedPageState(JSON.parse(resp.state));
+                    }
+                } catch (e) {
+                    setIsInErrorState?.(true);
+                    setErrMsg(`Error loading page state: ${e.message}`);
+                    return;
+                }
+            }
+        } else if (!loadedState && apiURLs.loadPageState) {
             // if didn't load state from local storage, try to load from database
 
             // even if allowLoadState is false,
@@ -984,7 +1009,7 @@ export function PageViewer({
             }
         }
 
-        //Guard against the possiblity that parameters changed while waiting
+        //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
             if (pageIsActive) {
                 startCore();
@@ -992,6 +1017,48 @@ export function PageViewer({
                 setStage("readyToCreateCore");
             }
         }
+    }
+
+    function getStateViaSlice({
+        cid,
+        pageNumber,
+        attemptNumber,
+        activityId,
+        userId,
+    }) {
+        let messageId = nanoid();
+        let savePromiseResolve, savePromiseReject;
+
+        let savePromise = new Promise((resolve, reject) => {
+            savePromiseResolve = resolve;
+            savePromiseReject = reject;
+            window.postMessage({
+                subject: "SPLICE.getState",
+                messageId,
+                cid,
+                pageNumber,
+                attemptNumber,
+                activityId,
+                userId,
+            });
+        });
+
+        saveStatePromises.current[messageId] = {
+            resolve: savePromiseResolve,
+            reject: savePromiseReject,
+        };
+
+        const MESSAGE_TIMEOUT = 15000;
+
+        setTimeout(() => {
+            if (!saveStatePromises.current[messageId]) {
+                return;
+            }
+            delete saveStatePromises.current[messageId];
+            savePromiseReject({ message: "Time out loading page state" });
+        }, MESSAGE_TIMEOUT);
+
+        return savePromise;
     }
 
     function processLoadedPageState(data) {
@@ -1028,6 +1095,7 @@ export function PageViewer({
     }
 
     async function saveLoadedLocalStateToDatabase(localInfo) {
+        // TODO: handle postMessages case
         if (!flags.allowSaveState || !apiURLs.savePageState) {
             return {};
         }
