@@ -576,6 +576,295 @@ describe("StickyGroup Tag Tests", function () {
         });
     });
 
+    it("attract parallel edges of polygons when translating", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <text>a</text>
+        <graph name="g1" newNamespace>
+            <stickyGroup name="sg" newNamespace>
+                <polygon name="pg1" vertices="(1,2) (4,5) (-2,5)" rigid filled />
+
+                <polygon name="pg2" vertices="(9,8) (3,2) (9,1)" styleNumber="2" filled />
+
+            </stickyGroup>
+        </graph>
+
+        <graph name="g2" newNamespace>
+            <stickyGroup name="sg" newNamespace>
+                <polygon name="pg1" copySource="../../g1/sg/pg1" />
+                <polygon name="pg2" copySource="../../g1/sg/pg2" />
+                <point name="A" copySource="../../g1/sg/A" />
+            </stickyGroup>
+        </graph>
+        <graph name="g3" newNamespace>
+            <stickyGroup name="sg" newNamespace copySource="../g2/sg" />
+        </graph>
+        <graph name="g4" copySource="g3" />
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/_text1")).should("have.text", "a"); // to wait for page to load
+
+        let vertices1 = [
+            [1, 2],
+            [4, 5],
+            [-2, 5],
+        ];
+
+        let vertices2 = [
+            [9, 8],
+            [3, 2],
+            [9, 1],
+        ];
+
+        let point = [];
+
+        testScene({ vertices1, vertices2, point });
+
+        cy.log("move polygon 1 edge near edge of polygon 2");
+        cy.window().then(async (win) => {
+            let moveX = 1.5;
+            let moveY = 0;
+
+            let requested_vertices1 = vertices1.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/sg/pg1",
+                args: {
+                    pointCoords: requested_vertices1,
+                },
+            });
+
+            let actualMoveX = 1.75;
+            let actualMoveY = -0.25;
+
+            vertices1 = vertices1.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log(
+            "move polygon 1 so edge is just past edge of polygon 2, vertices attract",
+        );
+        cy.window().then(async (win) => {
+            let moveX = 0;
+            let moveY = 0.25;
+
+            let requested_vertices1 = vertices1.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/sg/pg1",
+                args: {
+                    pointCoords: requested_vertices1,
+                },
+            });
+
+            let actualMoveX = 0.25;
+            let actualMoveY = 0.25;
+
+            vertices1 = vertices1.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log(
+            "move polygon 1 edge so that polygon 2 edge is just past edge of polygon 1, vertices attract",
+        );
+        cy.window().then(async (win) => {
+            let moveX = 2.9;
+            let moveY = 2.8;
+
+            let requested_vertices1 = vertices1.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/sg/pg1",
+                args: {
+                    pointCoords: requested_vertices1,
+                },
+            });
+
+            let actualMoveX = 3;
+            let actualMoveY = 3;
+
+            vertices1 = vertices1.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log("move polygon 1 edge further so vertices don't attract");
+        cy.window().then(async (win) => {
+            let moveX = -0.5;
+            let moveY = -0.4;
+
+            let requested_vertices1 = vertices1.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g4/sg/pg1",
+                args: {
+                    pointCoords: requested_vertices1,
+                },
+            });
+
+            let actualMoveX = -0.45;
+            let actualMoveY = -0.45;
+
+            vertices1 = vertices1.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log("move polygon 2 edge so just past edge of polygon 1");
+        cy.window().then(async (win) => {
+            let moveX = 2.5;
+            let moveY = 2.0;
+
+            let requested_vertices2 = vertices2.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/sg/pg2",
+                args: {
+                    pointCoords: requested_vertices2,
+                },
+            });
+
+            let actualMoveX = 2.25;
+            let actualMoveY = 2.25;
+
+            vertices2 = vertices2.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log(
+            "move polygon 2 less past edge of polygon 1 so vertices attract",
+        );
+        cy.window().then(async (win) => {
+            let moveX = 0.2;
+            let moveY = 0.0;
+
+            let requested_vertices2 = vertices2.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g4/sg/pg2",
+                args: {
+                    pointCoords: requested_vertices2,
+                },
+            });
+
+            let actualMoveX = 0.3;
+            let actualMoveY = 0.3;
+
+            vertices2 = vertices2.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log(
+            "move polygon 2 edge so that polygon 1 edge is just past edge of polygon 2, vertices attract",
+        );
+        cy.window().then(async (win) => {
+            let moveX = -2.8;
+            let moveY = -2.6;
+
+            let requested_vertices2 = vertices2.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/sg/pg2",
+                args: {
+                    pointCoords: requested_vertices2,
+                },
+            });
+
+            let actualMoveX = -3;
+            let actualMoveY = -3;
+
+            vertices2 = vertices2.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+            testScene({ vertices1, vertices2, point });
+        });
+
+        cy.log("move polygon 2 edge further so vertices don't attract");
+        cy.window().then(async (win) => {
+            let moveX = -0.5;
+            let moveY = -0.3;
+
+            let requested_vertices2 = vertices2.map((vertex) => [
+                vertex[0] + moveX,
+                vertex[1] + moveY,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/sg/pg2",
+                args: {
+                    pointCoords: requested_vertices2,
+                },
+            });
+
+            let actualMoveX = -0.4;
+            let actualMoveY = -0.4;
+
+            vertices2 = vertices2.map((vertex) => [
+                vertex[0] + actualMoveX,
+                vertex[1] + actualMoveY,
+            ]);
+
+            testScene({ vertices1, vertices2, point });
+        });
+    });
+
     it("attract polygons when moving vertices, rigid and non-rigid", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1109,7 +1398,7 @@ describe("StickyGroup Tag Tests", function () {
         });
     });
 
-    it.only("attract rigid polyline and preserveSimilarity polygon when moving vertices", () => {
+    it("attract rigid polyline and preserveSimilarity polygon when moving vertices", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1134,13 +1423,6 @@ describe("StickyGroup Tag Tests", function () {
                 "*",
             );
         });
-
-        let vertices2 = [
-            [7, 8],
-            [5, 4],
-            [9, 1],
-            [7, 3],
-        ];
 
         cy.get(cesc2("#/_text1")).should("have.text", "a"); // to wait for page to load
 
@@ -1213,11 +1495,12 @@ describe("StickyGroup Tag Tests", function () {
             let pl = stateVariables["/pl"].stateValues.numericalVertices;
             let actual_slope = (pl[1][1] - pl[2][1]) / (pl[1][0] - pl[2][0]);
 
+            expect(actual_slope).closeTo(desired_slope, 0.05);
             expect(actual_slope).not.closeTo(desired_slope, 0.001);
         });
 
         cy.log(
-            "missing edge of polyline slope does not attract to polygon edge",
+            "missing edge of polyline does not attract to slope of polygon edge",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -1244,7 +1527,7 @@ describe("StickyGroup Tag Tests", function () {
                 componentName: "/pl",
                 args: {
                     pointCoords: {
-                        1: [2.1, 5.8],
+                        1: [2.1, 5.71],
                     },
                 },
             });
@@ -1257,17 +1540,26 @@ describe("StickyGroup Tag Tests", function () {
             let pl = stateVariables["/pl"].stateValues.numericalVertices;
             let actual_slope = (pl[0][1] - pl[2][1]) / (pl[0][0] - pl[2][0]);
 
-            expect(actual_slope).closeTo(desired_slope, 0.001);
+            expect(actual_slope).closeTo(desired_slope, 0.05);
+            expect(actual_slope).not.closeTo(desired_slope, 0.001);
         });
 
-        cy.log(
-            "move polygon 1 and rotate so vertex is very close to polygon 2 vertex to attract",
-        );
+        cy.log("missing edge of polyline does not attract to polygon vertex");
         cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePolyline",
+                componentName: "/pl",
+                args: {
+                    pointCoords: {
+                        1: [2.1, 4.3],
+                    },
+                },
+            });
+
             let stateVariables = await win.returnAllStateVariables1();
 
-            let moveX = 7;
-            let moveY = -6.5;
+            let moveX = -0.13;
+            let moveY = 0;
 
             let desired_vertices = stateVariables[
                 "/pl"
@@ -1282,16 +1574,6 @@ describe("StickyGroup Tag Tests", function () {
                     pointCoords: desired_vertices,
                 },
             });
-
-            await win.callAction1({
-                actionName: "movePolyline",
-                componentName: "/pl",
-                args: {
-                    pointCoords: {
-                        0: [5.2, -0.8],
-                    },
-                },
-            });
         });
 
         cy.window().then(async (win) => {
@@ -1299,32 +1581,14 @@ describe("StickyGroup Tag Tests", function () {
 
             let pl = stateVariables["/pl"].stateValues.numericalVertices;
 
-            // point3 should be at polygon 2's vertex
-            expect(pl[2][0]).closeTo(9, 1e-12);
-            expect(pl[2][1]).closeTo(1, 1e-12);
-        });
+            // expect point [5,4] of polygon 2 to be nearly but not quite colinear
+            // with the first and last vertex (so would have attracted if edge existed)
 
-        cy.log("small change in rotation stops attraction");
-        cy.window().then(async (win) => {
-            await win.callAction1({
-                actionName: "movePolyline",
-                componentName: "/pl",
-                args: {
-                    pointCoords: {
-                        0: [5.3, -0.8],
-                    },
-                },
-            });
-        });
+            let slope1 = (4 - pl[0][1]) / (5 - pl[0][0]);
+            let slope2 = (4 - pl[2][1]) / (5 - pl[2][0]);
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-
-            let pl = stateVariables["/pl"].stateValues.numericalVertices;
-
-            // point3 should be a small distance from polygon's vertex
-            expect(pl[2][0]).not.closeTo(9, 0.01);
-            expect(pl[2][1]).not.closeTo(1, 0.01);
+            expect(slope1).closeTo(slope2, 0.1);
+            expect(slope1).not.closeTo(slope2, 0.001);
         });
 
         cy.log("rotate polyline to have vertical edge");
@@ -1334,27 +1598,8 @@ describe("StickyGroup Tag Tests", function () {
                 componentName: "/pl",
                 args: {
                     pointCoords: {
-                        0: [4.9, -1.6],
+                        1: [2.3, 6.3],
                     },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-
-            let moveX = -7;
-            let moveY = 0.5;
-
-            let desired_vertices = stateVariables[
-                "/pl"
-            ].stateValues.numericalVertices.map((vertex) => [
-                vertex[0] + moveX,
-                vertex[1] + moveY,
-            ]);
-            await win.callAction1({
-                actionName: "movePolyline",
-                componentName: "/pl",
-                args: {
-                    pointCoords: desired_vertices,
                 },
             });
         });
@@ -1375,27 +1620,8 @@ describe("StickyGroup Tag Tests", function () {
                 componentName: "/pl",
                 args: {
                     pointCoords: {
-                        0: [4.9, -1.6],
+                        1: [5.8, 4.8],
                     },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-
-            let moveX = -7;
-            let moveY = 0.5;
-
-            let desired_vertices = stateVariables[
-                "/pl"
-            ].stateValues.numericalVertices.map((vertex) => [
-                vertex[0] + moveX,
-                vertex[1] + moveY,
-            ]);
-            await win.callAction1({
-                actionName: "movePolyline",
-                componentName: "/pl",
-                args: {
-                    pointCoords: desired_vertices,
                 },
             });
         });
@@ -1406,279 +1632,121 @@ describe("StickyGroup Tag Tests", function () {
             let pl = stateVariables["/pl"].stateValues.numericalVertices;
 
             // edge should be vertical
-            expect(pl[2][0]).closeTo(pl[1][0], 1e-12);
+            expect(pl[2][0]).closeTo(pl[0][0], 0.1);
+            expect(pl[2][0]).not.closeTo(pl[0][0], 0.001);
         });
 
-        cy.log("move polygon 2 vertex so edge attracts to polygon 1 vertex");
+        cy.log("move polygon vertex so edge attracts to polyline vertex");
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePolygon",
                 componentName: "/pg",
                 args: {
-                    pointCoords: { 2: [-0.3, -6] },
+                    pointCoords: { 0: [0, 2.4] },
                 },
             });
 
             let stateVariables = await win.returnAllStateVariables1();
 
-            let pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+            let pl = stateVariables["/pl"].stateValues.numericalVertices;
+            let pg = stateVariables["/pg"].stateValues.numericalVertices;
 
             // vertex 2 of pg1 should be along edge of vertices of 2 and 3 of pg2
-            let slope1 = (pg2[2][1] - pg2[1][1]) / (pg2[2][0] - pg2[1][0]);
-            let slope2 = (pg1[1][1] - pg2[1][1]) / (pg1[1][0] - pg2[1][0]);
+            let slope1 = (pg[1][1] - pg[0][1]) / (pg[1][0] - pg[0][0]);
+            let slope2 = (pl[0][1] - pg[0][1]) / (pl[0][0] - pg[0][0]);
 
             expect(slope2).closeTo(slope1, 1e-12);
 
-            // vertices other than 3 of polygon 2 should be in original positions
-            expect(pg2[0]).eqls(vertices2[0]);
-            expect(pg2[1]).eqls(vertices2[1]);
-            expect(pg2[3]).eqls(vertices2[3]);
-
-            vertices2[2] = pg2[2];
+            // vertex1 should be close to where moved it
+            expect(pg[0][0]).closeTo(0, 0.1);
+            expect(pg[0][1]).closeTo(2.4, 0.1);
         });
 
         cy.log(
-            "move polygon 2 vertex so edge almost attracts to polygon 1 vertex",
+            "move polygon vertex so edge almost attracts to polyline vertex",
         );
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePolygon",
-                componentName: "/pg2",
+                componentName: "/pg",
                 args: {
-                    pointCoords: { 0: [-10, 0.8] },
+                    pointCoords: { 0: [0, 2.2] },
                 },
             });
 
             let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+            let pg = stateVariables["/pg"].stateValues.numericalVertices;
 
             // vertex did not attract
-            expect(pg2[0]).eqls([-10, 0.8]);
-
-            expect(pg2[1]).eqls(vertices2[1]);
-            expect(pg2[2]).eqls(vertices2[2]);
-            expect(pg2[3]).eqls(vertices2[3]);
-
-            vertices2[0] = pg2[0];
+            expect(pg[0][0]).closeTo(0, 1e-10);
+            expect(pg[0][1]).closeTo(2.2, 1e-10);
         });
 
-        cy.log(
-            "move polygon 2 vertex closer so edge does attract to polygon 1 vertex",
-        );
+        cy.log("move polygon vertex so almost attracts to polyline edge");
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePolygon",
-                componentName: "/pg2",
+                componentName: "/pg",
                 args: {
-                    pointCoords: { 0: [-10, 0.6] },
+                    pointCoords: { 0: [4.4, 3.1] },
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+            let pg = stateVariables["/pg"].stateValues.numericalVertices;
+
+            // vertex did not attract
+            expect(pg[0][0]).closeTo(4.4, 1e-10);
+            expect(pg[0][1]).closeTo(3.1, 1e-10);
+        });
+
+        cy.log("move polygon vertex closer so does attract to polyline edge");
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/pg",
+                args: {
+                    pointCoords: { 0: [4.4, 3.3] },
                 },
             });
 
             let stateVariables = await win.returnAllStateVariables1();
 
-            let pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+            let pl = stateVariables["/pl"].stateValues.numericalVertices;
+            let pg = stateVariables["/pg"].stateValues.numericalVertices;
 
-            // vertex 3 of pg1 should be along edge of vertices of 1 and 4 of pg2
-            let slope1 = (pg2[3][1] - pg2[0][1]) / (pg2[3][0] - pg2[0][0]);
-            let slope2 = (pg1[2][1] - pg2[0][1]) / (pg1[2][0] - pg2[0][0]);
+            // vertex 1 of pg should be along edge of vertices of 1 and 2 of pg
+            let slope1 = (pl[1][1] - pl[0][1]) / (pl[1][0] - pl[0][0]);
+            let slope2 = (pg[0][1] - pl[0][1]) / (pg[0][0] - pl[0][0]);
 
             expect(slope2).closeTo(slope1, 1e-12);
-
-            // vertices other than 1 of polygon 2 should be in original positions
-            expect(pg2[1]).eqls(vertices2[1]);
-            expect(pg2[2]).eqls(vertices2[2]);
-            expect(pg2[3]).eqls(vertices2[3]);
-
-            vertices2[0] = pg2[0];
         });
 
-        cy.log("move polygon 2 vertex so almost attracts to polygon 1 edge");
+        cy.log("move polygon vertex does not attract missing polyline edge");
         cy.window().then(async (win) => {
             await win.callAction1({
                 actionName: "movePolygon",
-                componentName: "/pg2",
+                componentName: "/pg",
                 args: {
-                    pointCoords: { 1: [1.7, -1] },
+                    pointCoords: { 0: [2.8, 5.2] },
                 },
             });
 
             let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
+
+            let pl = stateVariables["/pl"].stateValues.numericalVertices;
+            let pg = stateVariables["/pg"].stateValues.numericalVertices;
+
+            // vertex 1 of pg should close but not exactly along edge of vertices of 1 and 3 of pg
+            let invslope1 = (pl[2][0] - pl[0][0]) / (pl[2][1] - pl[0][1]);
+            let invslope2 = (pg[0][0] - pl[0][0]) / (pg[0][1] - pl[0][1]);
+
+            expect(invslope2).closeTo(invslope1, 0.1);
+            expect(invslope2).not.closeTo(invslope1, 0.001);
 
             // vertex did not attract
-            expect(pg2[1]).eqls([1.7, -1]);
-
-            expect(pg2[0]).eqls(vertices2[0]);
-            expect(pg2[2]).eqls(vertices2[2]);
-            expect(pg2[3]).eqls(vertices2[3]);
-
-            vertices2[1] = pg2[1];
-        });
-
-        cy.log(
-            "move polygon 2 vertex closer so does attract to polygon 1 edge",
-        );
-        cy.window().then(async (win) => {
-            await win.callAction1({
-                actionName: "movePolygon",
-                componentName: "/pg2",
-                args: {
-                    pointCoords: { 1: [1.4, -1] },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
-
-            // vertex did attract
-            expect(pg2[1][0]).closeTo(1, 1e-12);
-            expect(pg2[1][1]).closeTo(-1, 1e-12);
-
-            expect(pg2[0]).eqls(vertices2[0]);
-            expect(pg2[2]).eqls(vertices2[2]);
-            expect(pg2[3]).eqls(vertices2[3]);
-
-            vertices2[1] = pg2[1];
-        });
-
-        cy.log("move polygon 2 vertex close so attracts to polygon 1 vertex");
-        cy.window().then(async (win) => {
-            await win.callAction1({
-                actionName: "movePolygon",
-                componentName: "/pg2",
-                args: {
-                    pointCoords: { 3: [1.2, 1.8] },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
-
-            // vertex did attract
-            expect(pg2[3][0]).closeTo(1, 1e-12);
-            expect(pg2[3][1]).closeTo(2, 1e-12);
-
-            expect(pg2[0]).eqls(vertices2[0]);
-            expect(pg2[1]).eqls(vertices2[1]);
-            expect(pg2[2]).eqls(vertices2[2]);
-
-            vertices2[3] = pg2[3];
-        });
-
-        cy.log(
-            "move polygon 2 vertex slightly away so no longer attracts to polygon 1 vertex",
-        );
-        cy.window().then(async (win) => {
-            await win.callAction1({
-                actionName: "movePolygon",
-                componentName: "/pg2",
-                args: {
-                    pointCoords: { 3: [1.7, 2.8] },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
-
-            // vertex did not attract
-            expect(pg2[3]).eqls([1.7, 2.8]);
-
-            expect(pg2[0]).eqls(vertices2[0]);
-            expect(pg2[1]).eqls(vertices2[1]);
-            expect(pg2[2]).eqls(vertices2[2]);
-
-            vertices2[3] = pg2[3];
-        });
-
-        cy.log("move polygon 2 vertex so edge attracts to polygon 1 edge");
-        cy.window().then(async (win) => {
-            await win.callAction1({
-                actionName: "movePolygon",
-                componentName: "/pg2",
-                args: {
-                    pointCoords: { 0: [-6, -5.1] },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-            let pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
-
-            // vertex 1 and 4 of pg2 should be along edge of vertices of 1 and 3 of pg1
-            let slope1 = (pg1[2][1] - pg1[0][1]) / (pg1[2][0] - pg1[0][0]);
-            let slope2 = (pg2[0][1] - pg1[0][1]) / (pg2[0][0] - pg1[0][0]);
-            let slope3 = (pg2[3][1] - pg1[0][1]) / (pg2[3][0] - pg1[0][0]);
-
-            expect(slope2).closeTo(slope1, 1e-12);
-            expect(slope3).closeTo(slope1, 1e-12);
-
-            // vertex 4 moved
-            expect(pg2[3][0]).not.closeTo(vertices2[3][0], 0.01);
-            expect(pg2[3][1]).not.closeTo(vertices2[3][1], 0.01);
-
-            // other vertices did not move
-            expect(pg2[1]).eqls(vertices2[1]);
-            expect(pg2[2]).eqls(vertices2[2]);
-
-            vertices2[0] = pg2[0];
-            vertices2[3] = pg2[3];
-        });
-
-        cy.log(
-            "make sure don't move point along polygon 1 edge when attracting polygon 2 point to vertex",
-        );
-
-        cy.window().then(async (win) => {
-            await win.callAction1({
-                actionName: "movePolygon",
-                componentName: "/pg2",
-                args: {
-                    pointCoords: { 2: [1.2, -4.2] },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
-
-            // vertex did attract
-            expect(pg2[2][0]).closeTo(1, 1e-12);
-            expect(pg2[2][1]).closeTo(-4, 1e-12);
-
-            // other vertices did not move
-            expect(pg2[0][0]).closeTo(vertices2[0][0], 1e-12);
-            expect(pg2[0][1]).closeTo(vertices2[0][1], 1e-12);
-            expect(pg2[1][0]).closeTo(vertices2[1][0], 1e-12);
-            expect(pg2[1][1]).closeTo(vertices2[1][1], 1e-12);
-            expect(pg2[3][0]).closeTo(vertices2[3][0], 1e-12);
-            expect(pg2[3][1]).closeTo(vertices2[3][1], 1e-12);
-
-            vertices2[2] = pg2[2];
-        });
-
-        cy.window().then(async (win) => {
-            // attract from other side of vertex
-            await win.callAction1({
-                actionName: "movePolygon",
-                componentName: "/pg2",
-                args: {
-                    pointCoords: { 2: [0.8, -3.8] },
-                },
-            });
-
-            let stateVariables = await win.returnAllStateVariables1();
-            let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
-
-            // vertices did not move
-            expect(pg2[0][0]).closeTo(vertices2[0][0], 1e-12);
-            expect(pg2[0][1]).closeTo(vertices2[0][1], 1e-12);
-            expect(pg2[1][0]).closeTo(vertices2[1][0], 1e-12);
-            expect(pg2[1][1]).closeTo(vertices2[1][1], 1e-12);
-            expect(pg2[2][0]).closeTo(vertices2[2][0], 1e-12);
-            expect(pg2[2][1]).closeTo(vertices2[2][1], 1e-12);
-            expect(pg2[3][0]).closeTo(vertices2[3][0], 1e-12);
-            expect(pg2[3][1]).closeTo(vertices2[3][1], 1e-12);
+            expect(pg[0][0]).closeTo(2.8, 1e-10);
+            expect(pg[0][1]).closeTo(5.2, 1e-10);
         });
     });
 });
