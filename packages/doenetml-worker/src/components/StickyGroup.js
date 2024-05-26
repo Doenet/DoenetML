@@ -94,7 +94,11 @@ export default class StickyGroup extends GraphicalComponent {
                 graphicalChildren: {
                     dependencyType: "child",
                     childGroups: ["graphical"],
-                    variableNames: ["numericalVertices", "numericalXs"],
+                    variableNames: [
+                        "numericalVertices",
+                        "numericalXs",
+                        "numericalEndpoints",
+                    ],
                     variablesOptional: true,
                 },
             }),
@@ -108,6 +112,10 @@ export default class StickyGroup extends GraphicalComponent {
                         );
                     } else if (object.stateValues.numericalXs) {
                         pointsByObject.push([object.stateValues.numericalXs]);
+                    } else if (object.stateValues.numericalEndpoints) {
+                        pointsByObject.push(
+                            object.stateValues.numericalEndpoints,
+                        );
                     } else {
                         pointsByObject.push([]);
                     }
@@ -151,7 +159,11 @@ export default class StickyGroup extends GraphicalComponent {
                 graphicalChildren: {
                     dependencyType: "child",
                     childGroups: ["graphical"],
-                    variableNames: ["numericalVertices", "closed"],
+                    variableNames: [
+                        "numericalVertices",
+                        "closed",
+                        "numericalEndpoints",
+                    ],
                     variablesOptional: true,
                 },
             }),
@@ -172,6 +184,15 @@ export default class StickyGroup extends GraphicalComponent {
                                 vertices[numVertices - 1],
                                 vertices[0],
                             ]);
+                        }
+
+                        segmentsByObject.push(segments);
+                    } else if (object.stateValues.numericalEndpoints) {
+                        let endpoints = object.stateValues.numericalEndpoints;
+                        let numEndpoints = endpoints.length;
+                        let segments = [];
+                        for (let i = 1; i < numEndpoints; i++) {
+                            segments.push([endpoints[i - 1], endpoints[i]]);
                         }
 
                         segmentsByObject.push(segments);

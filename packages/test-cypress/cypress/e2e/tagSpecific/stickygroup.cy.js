@@ -1749,4 +1749,295 @@ describe("StickyGroup Tag Tests", function () {
             expect(pg[0][1]).closeTo(5.2, 1e-10);
         });
     });
+
+    it("attract line segments", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <text>a</text>
+        <graph name="g1">
+            <stickyGroup name="sg">
+                <lineSegment name="ls1" endpoints="(1,2) (3,4)" />
+                <lineSegment name="ls2" endpoints="(-1,2) (-3,4)" styleNumber="2" />
+            </stickyGroup>
+        </graph>
+
+
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.log("move endpoint of segment 1 to attract to edge of segment 2 ");
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls1",
+                args: {
+                    point1coords: [-2.2, 2.8],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+
+            expect(ls1[0][0]).closeTo(-2, 1e-12);
+            expect(ls1[0][1]).closeTo(3, 1e-12);
+        });
+
+        cy.log(
+            "move endpoint of segment 1 further away so does not attract to edge of segment 2 ",
+        );
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls1",
+                args: {
+                    point1coords: [-2.5, 2.5],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+
+            expect(ls1[0][0]).closeTo(-2.5, 1e-12);
+            expect(ls1[0][1]).closeTo(2.5, 1e-12);
+        });
+
+        cy.log(
+            "move endpoint of segment 1 so edge attracts to endpoint of segment 2 ",
+        );
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls1",
+                args: {
+                    point1coords: [-3.2, 1.2],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+
+            let desired_slope = 0.5;
+            let actual_slope =
+                (ls1[1][1] - ls1[0][1]) / (ls1[1][0] - ls1[0][0]);
+
+            expect(actual_slope).closeTo(desired_slope, 1e-12);
+        });
+
+        cy.log(
+            "move endpoint of segment 1 so edge no longer attracts to endpoint of segment 2 ",
+        );
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls1",
+                args: {
+                    point1coords: [-3.4, 1.4],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+
+            expect(ls1[0][0]).closeTo(-3.4, 1e-12);
+            expect(ls1[0][1]).closeTo(1.4, 1e-12);
+        });
+
+        cy.log(
+            "extension of edge of segment 1 does not attract to endpoint of segment 2 ",
+        );
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls1",
+                args: {
+                    point1coords: [0, 2.45],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+
+            expect(ls1[0][0]).closeTo(0, 1e-12);
+            expect(ls1[0][1]).closeTo(2.45, 1e-12);
+        });
+
+        cy.log(
+            "move endpoint of segment 1 so attracts to endpoint of segment 2 ",
+        );
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls1",
+                args: {
+                    point1coords: [-2.8, 4.2],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
+
+            expect(ls1[0][0]).closeTo(-3, 1e-12);
+            expect(ls1[0][1]).closeTo(4, 1e-12);
+        });
+
+        cy.log("translate segment 2 so edge attracts to endpoint of segment 1");
+        cy.window().then(async (win) => {
+            let dx = 0.2;
+            let dy = 0.2;
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls2",
+                args: {
+                    point1coords: [-2 + dx, 3 + dy],
+                    point2coords: [-4 + dx, 5 + dy],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+
+            expect(ls2[0][0]).closeTo(-2, 1e-12);
+            expect(ls2[0][1]).closeTo(3, 1e-12);
+            expect(ls2[1][0]).closeTo(-4, 1e-12);
+            expect(ls2[1][1]).closeTo(5, 1e-12);
+        });
+
+        cy.log(
+            "translate segment 2 so edge no longer attracts to endpoint of segment 1",
+        );
+        cy.window().then(async (win) => {
+            let dx = 0.4;
+            let dy = 0.4;
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls2",
+                args: {
+                    point1coords: [-2 + dx, 3 + dy],
+                    point2coords: [-4 + dx, 5 + dy],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+
+            expect(ls2[0][0]).closeTo(-2 + dx, 1e-12);
+            expect(ls2[0][1]).closeTo(3 + dy, 1e-12);
+            expect(ls2[1][0]).closeTo(-4 + dx, 1e-12);
+            expect(ls2[1][1]).closeTo(5 + dy, 1e-12);
+        });
+
+        cy.log("translate segment 2 so endpoint attracts to edge of segment 1");
+        cy.window().then(async (win) => {
+            let dx = 0.0;
+            let dy = 0.4;
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls2",
+                args: {
+                    point1coords: [-1 + dx, 4 + dy],
+                    point2coords: [-3 + dx, 6 + dy],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+
+            expect(ls2[0][0]).closeTo(-1, 1e-12);
+            expect(ls2[0][1]).closeTo(4, 1e-12);
+            expect(ls2[1][0]).closeTo(-3, 1e-12);
+            expect(ls2[1][1]).closeTo(6, 1e-12);
+        });
+
+        cy.log(
+            "translate segment 2 so endpoint no longer attracts to edge of segment 1",
+        );
+        cy.window().then(async (win) => {
+            let dx = 0.0;
+            let dy = 0.6;
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls2",
+                args: {
+                    point1coords: [-1 + dx, 4 + dy],
+                    point2coords: [-3 + dx, 6 + dy],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+
+            expect(ls2[0][0]).closeTo(-1 + dx, 1e-12);
+            expect(ls2[0][1]).closeTo(4 + dy, 1e-12);
+            expect(ls2[1][0]).closeTo(-3 + dx, 1e-12);
+            expect(ls2[1][1]).closeTo(6 + dy, 1e-12);
+        });
+
+        cy.log(
+            "translate segment 2 so endpoint attracts to endpoint of segment 1",
+        );
+        cy.window().then(async (win) => {
+            let dx = 0.2;
+            let dy = 0.3;
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls2",
+                args: {
+                    point1coords: [3 + dx, 4 + dy],
+                    point2coords: [1 + dx, 6 + dy],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+
+            expect(ls2[0][0]).closeTo(3, 1e-12);
+            expect(ls2[0][1]).closeTo(4, 1e-12);
+            expect(ls2[1][0]).closeTo(1, 1e-12);
+            expect(ls2[1][1]).closeTo(6, 1e-12);
+        });
+
+        cy.log(
+            "translate segment 2 so endpoint no longer attracts to endpoint of segment 1",
+        );
+        cy.window().then(async (win) => {
+            let dx = 0.5;
+            let dy = 0.3;
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/ls2",
+                args: {
+                    point1coords: [3 + dx, 4 + dy],
+                    point2coords: [1 + dx, 6 + dy],
+                },
+            });
+
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
+
+            expect(ls2[0][0]).closeTo(3 + dx, 1e-12);
+            expect(ls2[0][1]).closeTo(4 + dy, 1e-12);
+            expect(ls2[1][0]).closeTo(1 + dx, 1e-12);
+            expect(ls2[1][1]).closeTo(6 + dy, 1e-12);
+        });
+    });
 });
