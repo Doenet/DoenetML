@@ -446,11 +446,129 @@ export default class Polyline extends GraphicalComponent {
             },
         };
 
+        // Variable to store the desired value when inverting unconstrainedVertices.
+        // Used in movePolygon to detect if constraints changed a value.
+        stateVariableDefinitions.desiredUnconstrainedVertices = {
+            isArray: true,
+            numDimensions: 2,
+            hasEssential: true,
+            doNotShadowEssential: true,
+            entryPrefixes: [
+                "desiredUnconstrainedVertexX",
+                "desiredUnconstrainedVertex",
+            ],
+            defaultValueByArrayKey: () => null,
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                if (arrayEntryPrefix === "desiredUnconstrainedVertexX") {
+                    // vertexX1_2 is the 2nd component of the first vertex
+                    let indices = varEnding
+                        .split("_")
+                        .map((x) => Number(x) - 1);
+                    if (
+                        indices.length === 2 &&
+                        indices.every((x, i) => Number.isInteger(x) && x >= 0)
+                    ) {
+                        if (arraySize) {
+                            if (indices.every((x, i) => x < arraySize[i])) {
+                                return [String(indices)];
+                            } else {
+                                return [];
+                            }
+                        } else {
+                            // If not given the array size,
+                            // then return the array keys assuming the array is large enough.
+                            // Must do this as it is used to determine potential array entries.
+                            return [String(indices)];
+                        }
+                    } else {
+                        return [];
+                    }
+                } else {
+                    // vertex3 is all components of the third vertex
+
+                    let pointInd = Number(varEnding) - 1;
+                    if (!(Number.isInteger(pointInd) && pointInd >= 0)) {
+                        return [];
+                    }
+
+                    if (!arraySize) {
+                        // If don't have array size, we just need to determine if it is a potential entry.
+                        // Return the first entry assuming array is large enough
+                        return [pointInd + ",0"];
+                    }
+                    if (pointInd < arraySize[0]) {
+                        // array of "pointInd,i", where i=0, ..., arraySize[1]-1
+                        return Array.from(
+                            Array(arraySize[1]),
+                            (_, i) => pointInd + "," + i,
+                        );
+                    } else {
+                        return [];
+                    }
+                }
+            },
+            returnArraySizeDependencies: () => ({
+                numVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numVertices",
+                },
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [
+                    dependencyValues.numVertices,
+                    dependencyValues.numDimensions,
+                ];
+            },
+            returnArrayDependenciesByKey() {
+                return { dependenciesByKey: {} };
+            },
+            arrayDefinitionByKey({ arrayKeys }) {
+                let useEssential = {};
+
+                for (let arrayKey of arrayKeys) {
+                    useEssential[arrayKey] = true;
+                }
+
+                return {
+                    useEssentialOrDefaultValue: {
+                        desiredUnconstrainedVertices: useEssential,
+                    },
+                };
+            },
+            async inverseArrayDefinitionByKey({ desiredStateVariableValues }) {
+                let essentialVertices = {};
+
+                for (let arrayKey in desiredStateVariableValues.desiredUnconstrainedVertices) {
+                    essentialVertices[arrayKey] =
+                        desiredStateVariableValues.desiredUnconstrainedVertices[
+                            arrayKey
+                        ];
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "desiredUnconstrainedVertices",
+                            value: essentialVertices,
+                        },
+                    ],
+                };
+            },
+        };
+
         stateVariableDefinitions.unconstrainedVertices = {
             isLocation: true,
             isArray: true,
             numDimensions: 2,
-            hasEssential: true,
             entryPrefixes: ["unconstrainedVertexX", "unconstrainedVertex"],
             returnEntryDimensions: (prefix) =>
                 prefix === "unconstrainedVertex" ? 1 : 0,
@@ -600,6 +718,12 @@ export default class Polyline extends GraphicalComponent {
                             attributeName: "vertices",
                             variableNames: ["pointX" + varEnding],
                         },
+                        // just for inverse definition
+                        desiredUnconstrainedVertices: {
+                            dependencyType: "stateVariable",
+                            variableName:
+                                "desiredUnconstrainedVertexX" + varEnding,
+                        },
                     };
                 }
                 return { dependenciesByKey };
@@ -643,7 +767,6 @@ export default class Polyline extends GraphicalComponent {
                 // console.log(dependencyValuesByKey);
 
                 let instructions = [];
-                let essentialVertices = {};
 
                 for (let arrayKey in desiredStateVariableValues.unconstrainedVertices) {
                     let [pointInd, dim] = arrayKey.split(",");
@@ -664,19 +787,19 @@ export default class Polyline extends GraphicalComponent {
                                     .unconstrainedVertices[arrayKey],
                             variableIndex: 0,
                         });
-                        essentialVertices[arrayKey] =
-                            desiredStateVariableValues.unconstrainedVertices[
-                                arrayKey
-                            ];
+
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey]
+                                    .desiredUnconstrainedVertices,
+                            desiredValue:
+                                desiredStateVariableValues
+                                    .unconstrainedVertices[arrayKey],
+                        });
                     } else {
                         return { success: false };
                     }
                 }
-
-                instructions.push({
-                    setEssentialValue: "unconstrainedVertices",
-                    value: essentialVertices,
-                });
 
                 return {
                     success: true,
@@ -1917,17 +2040,17 @@ export default class Polyline extends GraphicalComponent {
         // when the whole polyline is moved or preserveSimilarity is true.
         // This procedure may preserve the rigid/similarity transformation
         // even if a subset of the vertices are constrained.
-        // Note: we also check if the essential state of unconstrainedVertices exists.
-        // If it doesn't exist, then the original update was not successful.
+        // Note: If desiredUnconstrainedVertices has null components, then the original update was not successful.
+        let desiredUnconstrainedVertices =
+            await this.stateValues.desiredUnconstrainedVertices;
         if (
             (numVerticesMoved > 1 ||
                 (await this.stateValues.preserveSimilarity)) &&
-            this.essentialState.unconstrainedVertices
+            desiredUnconstrainedVertices[0][0] != null
         ) {
-            let desiredNumericalVertices =
-                this.essentialState.unconstrainedVertices.map((vertex) =>
-                    vertex.map((v) => v.evaluate_to_constant()),
-                );
+            let desiredNumericalVertices = desiredUnconstrainedVertices.map(
+                (vertex) => vertex.map((v) => v.evaluate_to_constant()),
+            );
             let resultingNumericalVertices =
                 await this.stateValues.numericalVertices;
             let numVertices = await this.stateValues.numVertices;

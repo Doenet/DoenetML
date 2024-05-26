@@ -1231,6 +1231,56 @@ export default class RegularPolygon extends Polygon {
             },
         };
 
+        // Variables to store the desired values when inverting unconstrainedVertices.
+        // Used in movePolygon to detect if constraints changed these values.
+        stateVariableDefinitions.desiredUnconstrainedCenterComponents = {
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "desiredUnconstrainedDirectionWithRadius",
+                    hasEssential: true,
+                    defaultValue: null,
+                },
+            ],
+            hasEssential: true,
+            defaultValue: null,
+            returnDependencies: () => ({}),
+            definition() {
+                return {
+                    useEssentialOrDefaultValue: {
+                        desiredUnconstrainedCenterComponents: true,
+                        desiredUnconstrainedDirectionWithRadius: true,
+                    },
+                };
+            },
+            inverseDefinition({ desiredStateVariableValues }) {
+                let instructions = [];
+
+                if (
+                    desiredStateVariableValues.desiredUnconstrainedCenterComponents
+                ) {
+                    instructions.push({
+                        setEssentialValue:
+                            "desiredUnconstrainedCenterComponents",
+                        value: desiredStateVariableValues.desiredUnconstrainedCenterComponents,
+                    });
+                }
+                if (
+                    desiredStateVariableValues.desiredUnconstrainedDirectionWithRadius
+                ) {
+                    instructions.push({
+                        setEssentialValue:
+                            "desiredUnconstrainedDirectionWithRadius",
+                        value: desiredStateVariableValues.desiredUnconstrainedDirectionWithRadius,
+                    });
+                }
+
+                return {
+                    success: true,
+                    instructions,
+                };
+            },
+        };
+
         stateVariableDefinitions.unconstrainedVertices = {
             isLocation: true,
             isArray: true,
@@ -1336,6 +1386,16 @@ export default class RegularPolygon extends Polygon {
                     unconstrainedDirectionWithRadius: {
                         dependencyType: "stateVariable",
                         variableName: "unconstrainedDirectionWithRadius",
+                    },
+
+                    // just for inverse definition
+                    desiredUnconstrainedCenterComponents: {
+                        dependencyType: "stateVariable",
+                        variableName: "desiredUnconstrainedCenterComponents",
+                    },
+                    desiredUnconstrainedDirectionWithRadius: {
+                        dependencyType: "stateVariable",
+                        variableName: "desiredUnconstrainedDirectionWithRadius",
                     },
                 };
 
@@ -1522,8 +1582,13 @@ export default class RegularPolygon extends Polygon {
                         desiredValue: desiredDirectionWithRadius,
                     },
                     {
-                        setEssentialValue: "unconstrainedVertices",
-                        value: workspace.allVertices,
+                        setDependency: "desiredUnconstrainedCenterComponents",
+                        desiredValue: desiredCenter,
+                    },
+                    {
+                        setDependency:
+                            "desiredUnconstrainedDirectionWithRadius",
+                        desiredValue: desiredDirectionWithRadius,
                     },
                 ];
 
@@ -1605,21 +1670,21 @@ export default class RegularPolygon extends Polygon {
                 );
 
                 let desired_center_x =
-                    desiredStateVariableValues.center[0].evaluate_to_constant();
-                if (!desired_center_x) {
+                    desiredStateVariableValues.center[0]?.evaluate_to_constant();
+                if (!Number.isFinite(desired_center_x)) {
                     desired_center_x = workspace.desired_center_x;
                 }
-                if (!desired_center_x) {
+                if (!Number.isFinite(desired_center_x)) {
                     desired_center_x = previous_center[0];
                 }
                 workspace.desired_center_x = desired_center_x;
 
                 let desired_center_y =
-                    desiredStateVariableValues.center[1].evaluate_to_constant();
-                if (!desired_center_y) {
+                    desiredStateVariableValues.center[1]?.evaluate_to_constant();
+                if (!Number.isFinite(desired_center_y)) {
                     desired_center_y = workspace.desired_center_y;
                 }
-                if (!desired_center_y) {
+                if (!Number.isFinite(desired_center_y)) {
                     desired_center_y = previous_center[1];
                 }
                 workspace.desired_center_y = desired_center_y;
@@ -1632,7 +1697,7 @@ export default class RegularPolygon extends Polygon {
                 let numericalVertices = await stateValues.numericalVertices;
 
                 let desired_vertices = numericalVertices.map((vertex) =>
-                    vertex.map((v, i) => me.fromAs(v + shift[i])),
+                    vertex.map((v, i) => me.fromAst(v + shift[i])),
                 );
 
                 let instructions = [
@@ -1939,5 +2004,309 @@ export default class RegularPolygon extends Polygon {
         };
 
         return stateVariableDefinitions;
+    }
+
+    async movePolygon({
+        pointCoords,
+        transient,
+        sourceDetails,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        let numVerticesMoved = Object.keys(pointCoords).length;
+
+        if (numVerticesMoved === 1) {
+            // single vertex dragged
+            if (!(await this.stateValues.verticesDraggable)) {
+                return;
+            }
+        } else {
+            // whole polyline dragged
+            if (!(await this.stateValues.draggable)) {
+                return;
+            }
+        }
+
+        let vertexComponents = {};
+        for (let ind in pointCoords) {
+            vertexComponents[ind + ",0"] = me.fromAst(pointCoords[ind][0]);
+            vertexComponents[ind + ",1"] = me.fromAst(pointCoords[ind][1]);
+        }
+
+        // Note: we set skipRendererUpdate to true
+        // so that we can make further adjustments before the renderers are updated
+        if (transient) {
+            await this.coreFunctions.performUpdate({
+                updateInstructions: [
+                    {
+                        updateType: "updateValue",
+                        componentName: this.componentName,
+                        stateVariable: "vertices",
+                        value: vertexComponents,
+                        sourceDetails,
+                    },
+                ],
+                transient,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+            });
+        } else {
+            await this.coreFunctions.performUpdate({
+                updateInstructions: [
+                    {
+                        updateType: "updateValue",
+                        componentName: this.componentName,
+                        stateVariable: "vertices",
+                        value: vertexComponents,
+                        sourceDetails,
+                    },
+                ],
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+                event: {
+                    verb: "interacted",
+                    object: {
+                        componentName: this.componentName,
+                        componentType: this.componentType,
+                    },
+                    result: {
+                        pointCoordinates: pointCoords,
+                    },
+                },
+            });
+        }
+
+        // we will attempt to create a rigid translation of the polygon
+        // even if a subset of the vertices are constrained.
+        let numVerticesSpecified = await this.stateValues.numVerticesSpecified;
+        let haveSpecifiedCenter = await this.stateValues.haveSpecifiedCenter;
+        let desiredUnconstrainedCenter =
+            await this.stateValues.desiredUnconstrainedCenterComponents;
+        let desiredUnconstrainedDirectionWithRadius =
+            await this.stateValues.desiredUnconstrainedDirectionWithRadius;
+
+        if (
+            desiredUnconstrainedCenter !== null &&
+            desiredUnconstrainedDirectionWithRadius !== null
+        ) {
+            let desiredUnconstrainedVertex1 = [
+                desiredUnconstrainedCenter[0] +
+                    desiredUnconstrainedDirectionWithRadius[0],
+                desiredUnconstrainedCenter[1] +
+                    desiredUnconstrainedDirectionWithRadius[1],
+            ];
+
+            if (haveSpecifiedCenter) {
+                if (numVerticesSpecified >= 1) {
+                    // polygon was determined by center and 1 vertex
+
+                    let resultingCenter =
+                        await this.stateValues.unconstrainedCenterComponents;
+
+                    let resultingDirectionWithRadius =
+                        await this.stateValues.unconstrainedDirectionWithRadius;
+                    let resultingVertex1 = [
+                        resultingCenter[0] + resultingDirectionWithRadius[0],
+                        resultingCenter[1] + resultingDirectionWithRadius[1],
+                    ];
+
+                    let tol = 1e-6;
+
+                    let vertex1Changed = !desiredUnconstrainedVertex1.every(
+                        (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
+                    );
+                    let centerChanged = !desiredUnconstrainedCenter.every(
+                        (v, i) => Math.abs(v - resultingCenter[i]) < tol,
+                    );
+
+                    console.log({ vertex1Changed, centerChanged });
+
+                    if (centerChanged) {
+                        if (!vertex1Changed) {
+                            // only center changed
+                            // keep directionWithRadius the same
+                            // and use new center position
+
+                            let newInstructions = [
+                                {
+                                    updateType: "updateValue",
+                                    componentName: this.componentName,
+                                    stateVariable:
+                                        "unconstrainedCenterComponents",
+                                    value: resultingCenter,
+                                },
+                                {
+                                    updateType: "updateValue",
+                                    componentName: this.componentName,
+                                    stateVariable:
+                                        "unconstrainedDirectionWithRadius",
+                                    value: desiredUnconstrainedDirectionWithRadius,
+                                },
+                            ];
+                            return await this.coreFunctions.performUpdate({
+                                updateInstructions: newInstructions,
+                                transient,
+                                actionId,
+                                sourceInformation,
+                                skipRendererUpdate,
+                            });
+                        }
+                    } else if (vertex1Changed) {
+                        // only vertex 1 changed
+                        // keep directionWithRadius the same
+                        // adjust center to put vertex 1 at its new location
+
+                        let newCenter = [
+                            resultingVertex1[0] -
+                                desiredUnconstrainedDirectionWithRadius[0],
+                            resultingVertex1[1] -
+                                desiredUnconstrainedDirectionWithRadius[1],
+                        ];
+
+                        let newInstructions = [
+                            {
+                                updateType: "updateValue",
+                                componentName: this.componentName,
+                                stateVariable: "unconstrainedCenterComponents",
+                                value: newCenter,
+                            },
+                            {
+                                updateType: "updateValue",
+                                componentName: this.componentName,
+                                stateVariable:
+                                    "unconstrainedDirectionWithRadius",
+                                value: desiredUnconstrainedDirectionWithRadius,
+                            },
+                        ];
+                        return await this.coreFunctions.performUpdate({
+                            updateInstructions: newInstructions,
+                            transient,
+                            actionId,
+                            sourceInformation,
+                            skipRendererUpdate,
+                        });
+                    }
+                }
+            } else if (numVerticesSpecified >= 2) {
+                //polygon was determined by two vertices
+
+                // calculate the value of vertex2 calculated from center and vertex1
+                let numVertices = await this.stateValues.numVertices;
+                let angle = (2 * Math.PI) / numVertices;
+
+                let c = Math.cos(angle);
+                let s = Math.sin(angle);
+
+                let directionWithRadius2 = [
+                    desiredUnconstrainedDirectionWithRadius[0] * c -
+                        desiredUnconstrainedDirectionWithRadius[1] * s,
+                    desiredUnconstrainedDirectionWithRadius[0] * s +
+                        desiredUnconstrainedDirectionWithRadius[1] * c,
+                ];
+
+                let vertex2 = [
+                    directionWithRadius2[0] + desiredUnconstrainedCenter[0],
+                    directionWithRadius2[1] + desiredUnconstrainedCenter[1],
+                ];
+
+                let resultingVertices =
+                    await this.stateValues.unconstrainedVertices;
+                let resultingVertex1 = resultingVertices[0].map((x) =>
+                    x.evaluate_to_constant(),
+                );
+                let resultingVertex2 = resultingVertices[1].map((x) =>
+                    x.evaluate_to_constant(),
+                );
+
+                let tol = 1e-6;
+
+                let vertex1Changed = !desiredUnconstrainedVertex1.every(
+                    (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
+                );
+                let vertex2Changed = !vertex2.every(
+                    (v, i) => Math.abs(v - resultingVertex2[i]) < tol,
+                );
+
+                if (vertex1Changed) {
+                    if (!vertex2Changed) {
+                        // only vertex 1 changed
+                        // keep directionWithRadius the same
+                        // adjust center to put vertex 1 at its new location
+
+                        let newCenter = [
+                            resultingVertex1[0] -
+                                desiredUnconstrainedDirectionWithRadius[0],
+                            resultingVertex1[1] -
+                                desiredUnconstrainedDirectionWithRadius[1],
+                        ];
+
+                        let newInstructions = [
+                            {
+                                updateType: "updateValue",
+                                componentName: this.componentName,
+                                stateVariable: "unconstrainedCenterComponents",
+                                value: newCenter,
+                            },
+                            {
+                                updateType: "updateValue",
+                                componentName: this.componentName,
+                                stateVariable:
+                                    "unconstrainedDirectionWithRadius",
+                                value: desiredUnconstrainedDirectionWithRadius,
+                            },
+                        ];
+                        return await this.coreFunctions.performUpdate({
+                            updateInstructions: newInstructions,
+                            transient,
+                            actionId,
+                            sourceInformation,
+                            skipRendererUpdate,
+                        });
+                    }
+                } else if (vertex2Changed) {
+                    // only vertex 2 changed
+                    // keep directionWithRadius the same
+                    // adjust center to put vertex 2 at its new location
+
+                    let newCenter = [
+                        resultingVertex2[0] - directionWithRadius2[0],
+                        resultingVertex2[1] - directionWithRadius2[1],
+                    ];
+
+                    let newInstructions = [
+                        {
+                            updateType: "updateValue",
+                            componentName: this.componentName,
+                            stateVariable: "unconstrainedCenterComponents",
+                            value: newCenter,
+                        },
+                        {
+                            updateType: "updateValue",
+                            componentName: this.componentName,
+                            stateVariable: "unconstrainedDirectionWithRadius",
+                            value: desiredUnconstrainedDirectionWithRadius,
+                        },
+                    ];
+                    return await this.coreFunctions.performUpdate({
+                        updateInstructions: newInstructions,
+                        transient,
+                        actionId,
+                        sourceInformation,
+                        skipRendererUpdate,
+                    });
+                }
+            }
+        }
+
+        // if no modifications were made, still need to update renderers
+        // as original update was performed with skipping renderer update
+        return await this.coreFunctions.updateRenderers({
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
     }
 }

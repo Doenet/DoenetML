@@ -100,6 +100,7 @@ export default class Triangle extends Polygon {
                 }
 
                 let instructions = [];
+                let essentialVertices = {};
                 for (let arrayKey in desiredStateVariableValues.unconstrainedVertices) {
                     let [pointInd, dim] = arrayKey.split(",");
                     let varEnding =
@@ -120,17 +121,27 @@ export default class Triangle extends Polygon {
                             variableIndex: 0,
                         });
                     } else {
-                        instructions.push({
-                            setEssentialValue: "unconstrainedVertices",
-                            value: {
-                                [arrayKey]:
-                                    desiredStateVariableValues.unconstrainedVertices[
-                                        arrayKey
-                                    ].simplify(),
-                            },
-                        });
+                        essentialVertices[arrayKey] =
+                            desiredStateVariableValues.unconstrainedVertices[
+                                arrayKey
+                            ].simplify();
                     }
+
+                    instructions.push({
+                        setDependency:
+                            dependencyNamesByKey[arrayKey]
+                                .desiredUnconstrainedVertices,
+                        desiredValue:
+                            desiredStateVariableValues.unconstrainedVertices[
+                                arrayKey
+                            ],
+                    });
                 }
+
+                instructions.push({
+                    setEssentialValue: "unconstrainedVertices",
+                    value: essentialVertices,
+                });
 
                 return {
                     success: true,
