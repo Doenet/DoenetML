@@ -706,19 +706,27 @@ export default class StickyGroup extends GraphicalComponent {
                                                 desiredLength /
                                                 displacementLength;
 
+                                            // if ratio is less than 1,
+                                            // then the attracting point was beyond the edge of the line segment
+                                            // and so the edge itself was not attracted to it.
+                                            if (ratio < 1) {
+                                                continue;
+                                            }
+
                                             let movedPoint = fixedVertex.map(
                                                 (v, i) =>
                                                     v + displacement[i] * ratio,
                                             );
 
+                                            let potentialClosestSegment;
                                             if (
                                                 onlyMoveVertexInd === vertexInd1
                                             ) {
-                                                closestSegment = [
+                                                potentialClosestSegment = [
                                                     movedPoint,
                                                     numericalVertex2,
                                                 ];
-                                                closestDistance2 =
+                                                distance2 =
                                                     Math.pow(
                                                         numericalVertex1[0] -
                                                             movedPoint[0],
@@ -730,12 +738,12 @@ export default class StickyGroup extends GraphicalComponent {
                                                         2,
                                                     );
                                             } else {
-                                                closestSegment = [
+                                                potentialClosestSegment = [
                                                     numericalVertex1,
                                                     movedPoint,
                                                 ];
 
-                                                closestDistance2 =
+                                                distance2 =
                                                     Math.pow(
                                                         numericalVertex2[0] -
                                                             movedPoint[0],
@@ -746,6 +754,12 @@ export default class StickyGroup extends GraphicalComponent {
                                                             movedPoint[1],
                                                         2,
                                                     );
+                                            }
+
+                                            if (distance2 < closestDistance2) {
+                                                closestDistance2 = distance2;
+                                                closestSegment =
+                                                    potentialClosestSegment;
                                             }
                                         }
                                     }
