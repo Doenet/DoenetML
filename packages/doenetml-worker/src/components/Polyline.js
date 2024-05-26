@@ -894,6 +894,7 @@ export default class Polyline extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: "haveConstrainedVertices",
                     },
+                    // used only in the inverse definition
                     rotationReferenceMapping: {
                         dependencyType: "stateVariable",
                         variableName: "rotationReferenceMapping",
@@ -989,7 +990,7 @@ export default class Polyline extends GraphicalComponent {
                     }
                 } else if (globalDependencyValues.preserveSimilarity) {
                     // No constraints, so just give the unconstrained vertices.
-                    // Since, use global dependency values
+                    // Since we preserve similarity, use global dependency values
                     for (
                         let pointInd = 0;
                         pointInd < arraySize[0];
@@ -1078,7 +1079,7 @@ export default class Polyline extends GraphicalComponent {
                     if (rotateOrDilate) {
                         // we keep the rotation point fixed and rotate and/or dilate around the rotation point
 
-                        // Note: we need to use the rotation point and vertices from the unconstrained vertices.
+                        // Note: we need to use the rotation point and vertices that are unaffected by the constraints.
                         // Otherwise, the rotation point will move around when rotating through a constraint,
                         // causing strange behavior.
                         // The downside is that a rotation starting in a constrained configuration
@@ -1089,9 +1090,10 @@ export default class Polyline extends GraphicalComponent {
                         let rotationReferenceMapping =
                             globalDependencyValues.rotationReferenceMapping;
 
+                        // We use rotationReferenceMapping to attempt to find the centroid/vertices
+                        // from before any shift due to constraints.
                         let referenceCentroid;
                         let referenceVertices;
-
                         if (
                             Array.isArray(rotationReferenceMapping[0]) &&
                             rotationReferenceMapping[0][0] ===
@@ -1337,6 +1339,8 @@ export default class Polyline extends GraphicalComponent {
                             let constrainedCentroid =
                                 calculateNumericalCentroid(desired_vertices);
 
+                            // we record the mapping from the newly constrained centroid
+                            // onto the centroid and vertices that existed before the constraints were applied
                             instructions.push({
                                 setDependency: "rotationReferenceMapping",
                                 desiredValue: [
@@ -1457,6 +1461,9 @@ export default class Polyline extends GraphicalComponent {
                                     );
                             }
 
+                            // Since we moved all the vertices,
+                            // we reset to rotation reference mapping
+                            // so that the actual centroid will be used for the next rotation.
                             instructions.push({
                                 setDependency: "rotationReferenceMapping",
                                 desiredValue: [null, null, null],
@@ -1497,7 +1504,7 @@ export default class Polyline extends GraphicalComponent {
                             desired_vertices.push(desired_vertex);
                         }
 
-                        // If moved just one vertex, allow the shape to distort due to constraints and the edges to rotate..
+                        // If moved just one vertex, allow the shape to distort due to constraints and the edges to rotate.
                         // Otherwise, just shift the polyline due to the constraints
                         let enforceRigid = !movedJustOneVertex;
                         let allowRotation = movedJustOneVertex;
@@ -1803,7 +1810,7 @@ export default class Polyline extends GraphicalComponent {
         // and original unconstrained vertex location (third entry) used for rotating a rigid/preserveSimilarity polygon.
         // Used so that if a polygon is shifted from the effective centroid
         // onto the shifted numerical centroid, the original centroid and vertices
-        // will be used to calculate the rotation.
+        // will be used to calculate the rotation in the inverseDefinition of vertices.
         stateVariableDefinitions.rotationReferenceMapping = {
             hasEssential: true,
             defaultValue: [null, null, null],
