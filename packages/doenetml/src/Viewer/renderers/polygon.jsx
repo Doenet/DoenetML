@@ -27,12 +27,14 @@ export default React.memo(function Polygon(props) {
     let fixed = useRef(false);
     let fixLocation = useRef(false);
     let verticesFixed = useRef(false);
+    let vertexIndicesDraggable = useRef([]);
 
     lastPositionsFromCore.current = SVs.numericalVertices;
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     verticesFixed.current =
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
+    vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
     const { darkMode } = useContext(PageContext) || {};
 
@@ -75,9 +77,7 @@ export default React.memo(function Polygon(props) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray"),
+            highlightFillColor: "black",
             visible: !verticesFixed.current && !SVs.hidden,
             withLabel: false,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -137,8 +137,12 @@ export default React.memo(function Polygon(props) {
 
         let pts = [];
 
-        for (let p of SVs.numericalVertices) {
-            pts.push(board.create("point", [...p], jsxPointAttributes.current));
+        for (let [ind, p] of SVs.numericalVertices.entries()) {
+            let pointAttributes = { ...jsxPointAttributes.current };
+            if (!vertexIndicesDraggable.current.includes(ind)) {
+                pointAttributes.visible = false;
+            }
+            pts.push(board.create("point", [...p], pointAttributes));
         }
 
         let newPolygonJXG = board.create("polygon", pts, jsxPolygonAttributes);
@@ -153,6 +157,13 @@ export default React.memo(function Polygon(props) {
 
         newPolygonJXG.on("down", (e) => downHandler(-1, e));
         newPolygonJXG.on("hit", (e) => hitHandler());
+
+        newPolygonJXG.on("over", (e) => {
+            highlightVertices();
+        });
+        newPolygonJXG.on("out", (e) => {
+            unHighlightVertices();
+        });
 
         board.unsuspendUpdate();
 
@@ -322,6 +333,7 @@ export default React.memo(function Polygon(props) {
     }
 
     function hitHandler() {
+        highlightVertices();
         draggedPoint.current = null;
         callAction({
             action: actions.polygonFocused,
@@ -367,6 +379,7 @@ export default React.memo(function Polygon(props) {
     }
 
     function keyFocusOutHandler(i) {
+        unHighlightVertices();
         if (draggedPoint.current === i) {
             if (i === -1) {
                 callAction({
@@ -416,6 +429,30 @@ export default React.memo(function Polygon(props) {
         }
     }
 
+    function highlightVertices() {
+        if (!verticesFixed.current) {
+            for (let [i, vertex] of polygonJXG.current.vertices.entries()) {
+                if (vertexIndicesDraggable.current.includes(i)) {
+                    vertex.setAttribute({ fillcolor: "black" });
+                    vertex.needsUpdate = true;
+                    vertex.update();
+                }
+            }
+        }
+    }
+
+    function unHighlightVertices() {
+        if (!verticesFixed.current) {
+            for (let [i, vertex] of polygonJXG.current.vertices.entries()) {
+                if (vertexIndicesDraggable.current.includes(i)) {
+                    vertex.setAttribute({ fillcolor: "none" });
+                    vertex.needsUpdate = true;
+                    vertex.update();
+                }
+            }
+        }
+    }
+
     if (board) {
         if (!polygonJXG.current) {
             polygonJXG.current = createPolygonJXG();
@@ -440,10 +477,14 @@ export default React.memo(function Polygon(props) {
                     i < SVs.numVertices;
                     i++
                 ) {
+                    let pointAttributes = { ...jsxPointAttributes.current };
+                    if (!vertexIndicesDraggable.current.includes(i)) {
+                        pointAttributes.visible = false;
+                    }
                     let newPoint = board.create(
                         "point",
                         [...SVs.numericalVertices[i]],
-                        jsxPointAttributes.current,
+                        pointAttributes,
                     );
                     polygonJXG.current.addPoints(newPoint);
                 }
@@ -477,10 +518,13 @@ export default React.memo(function Polygon(props) {
                 polygonJXG.current.vertices[i].needsUpdate = true;
                 polygonJXG.current.vertices[i].update();
                 // // let actuallyChangedVisibility = polygonJXG.current.vertices[i].visProp["visible"] !== verticesVisible;
+                let vertexVisible =
+                    verticesVisible &&
+                    vertexIndicesDraggable.current.includes(i);
                 polygonJXG.current.vertices[i].visProp["visible"] =
-                    verticesVisible;
+                    vertexVisible;
                 polygonJXG.current.vertices[i].visPropCalc["visible"] =
-                    verticesVisible;
+                    vertexVisible;
                 polygonJXG.current.vertices[i].visProp.showinfobox =
                     SVs.showCoordsWhenDragging;
             }

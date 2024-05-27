@@ -487,6 +487,12 @@ export default class Polygon extends Polyline {
                 };
             },
         };
+
+        stateVariableDefinitions.closed = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { closed: true } }),
+        };
+
         return stateVariableDefinitions;
     }
 }
