@@ -325,6 +325,8 @@ export function parseAndCompile(inText: string) {
                     }
                 }
             }
+            element.children = mergeConsecutiveStrings(element.children);
+
             if (adjustedRange) {
                 element.doenetMLrange = adjustedRange;
             } else {
@@ -535,6 +537,8 @@ export function parseAndCompile(inText: string) {
         }
     }
 
+    out = mergeConsecutiveStrings(out);
+
     return { components: out, errors };
 }
 
@@ -557,4 +561,21 @@ export function showNode(node: SyntaxNode) {
         str += "," + showNode(node.nextSibling);
     }
     return str;
+}
+
+// merge consecutive string nodes into one string node
+function mergeConsecutiveStrings(nodes: Node[]) {
+    let mergedNodes: Node[] = [];
+    let prevNode: Node | undefined;
+    for (let node of nodes) {
+        if (typeof node === "string" && typeof prevNode === "string") {
+            prevNode = prevNode + node;
+            mergedNodes[mergedNodes.length - 1] = prevNode;
+        } else {
+            prevNode = node;
+            mergedNodes.push(node);
+        }
+    }
+
+    return mergedNodes;
 }
