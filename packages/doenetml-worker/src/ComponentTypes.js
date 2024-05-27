@@ -92,7 +92,7 @@ import ConstrainTo from "./components/ConstrainTo";
 import AttractTo from "./components/AttractTo";
 import ConstraintUnion from "./components/ConstraintUnion";
 import AttractToConstraint from "./components/AttractToConstraint";
-import AttractSegmentTo from "./components/AttractSegmentTo";
+// import AttractSegmentTo from "./components/AttractSegmentTo";
 import Intersection from "./components/Intersection";
 import Panel from "./components/Panel";
 import ConstrainToAngles from "./components/ConstrainToAngles";
@@ -169,8 +169,8 @@ import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
 import ContentPicker from "./components/ContentPicker";
-import VertexConstraints from "./components/VertexConstraints";
-import EdgeConstraints from "./components/EdgeConstraints";
+// import VertexConstraints from "./components/VertexConstraints";
+// import EdgeConstraints from "./components/EdgeConstraints";
 import StickyGroup from "./components/StickyGroup";
 
 //Extended
@@ -299,7 +299,7 @@ const componentTypeArray = [
     AttractTo,
     ConstraintUnion,
     AttractToConstraint,
-    AttractSegmentTo,
+    // AttractSegmentTo,
     Intersection,
     ConstrainToAngles,
     AttractToAngles,
@@ -365,8 +365,8 @@ const componentTypeArray = [
     Latex,
     BlockQuote,
     ContentPicker,
-    VertexConstraints,
-    EdgeConstraints,
+    // VertexConstraints,
+    // EdgeConstraints,
     StickyGroup,
 
     BaseComponent,

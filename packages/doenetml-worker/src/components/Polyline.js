@@ -118,14 +118,14 @@ export default class Polyline extends GraphicalComponent {
 
     static returnChildGroups() {
         let groups = super.returnChildGroups();
-        groups.push({
-            group: "vertexConstraints",
-            componentTypes: ["vertexConstraints"],
-        });
-        groups.push({
-            group: "edgeConstraints",
-            componentTypes: ["edgeConstraints"],
-        });
+        // groups.push({
+        //     group: "vertexConstraints",
+        //     componentTypes: ["vertexConstraints"],
+        // });
+        // groups.push({
+        //     group: "edgeConstraints",
+        //     componentTypes: ["edgeConstraints"],
+        // });
 
         return groups;
     }
@@ -810,14 +810,14 @@ export default class Polyline extends GraphicalComponent {
 
         stateVariableDefinitions.haveConstrainedVertices = {
             returnDependencies: () => ({
-                vertexConstraintsChild: {
-                    dependencyType: "child",
-                    childGroups: ["vertexConstraints"],
-                },
-                edgeConstraintsChild: {
-                    dependencyType: "child",
-                    childGroups: ["edgeConstraints"],
-                },
+                // vertexConstraintsChild: {
+                //     dependencyType: "child",
+                //     childGroups: ["vertexConstraints"],
+                // },
+                // edgeConstraintsChild: {
+                //     dependencyType: "child",
+                //     childGroups: ["edgeConstraints"],
+                // },
                 inStickyGroup: {
                     dependencyType: "stateVariable",
                     variableName: "inStickyGroup",
@@ -827,9 +827,9 @@ export default class Polyline extends GraphicalComponent {
                 return {
                     setValue: {
                         haveConstrainedVertices:
-                            dependencyValues.vertexConstraintsChild.length >
-                                0 ||
-                            dependencyValues.edgeConstraintsChild.length > 0 ||
+                            // dependencyValues.vertexConstraintsChild.length >
+                            //     0 ||
+                            // dependencyValues.edgeConstraintsChild.length > 0 ||
                             dependencyValues.inStickyGroup,
                     },
                 };
@@ -1032,16 +1032,16 @@ export default class Polyline extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: "unconstrainedVertices",
                     };
-                    globalDependencies.vertexConstraintsChild = {
-                        dependencyType: "child",
-                        childGroups: ["vertexConstraints"],
-                        variableNames: ["constraintFunction"],
-                    };
-                    globalDependencies.edgeConstraintsChild = {
-                        dependencyType: "child",
-                        childGroups: ["edgeConstraints"],
-                        variableNames: ["constraintFunction"],
-                    };
+                    // globalDependencies.vertexConstraintsChild = {
+                    //     dependencyType: "child",
+                    //     childGroups: ["vertexConstraints"],
+                    //     variableNames: ["constraintFunction"],
+                    // };
+                    // globalDependencies.edgeConstraintsChild = {
+                    //     dependencyType: "child",
+                    //     childGroups: ["edgeConstraints"],
+                    //     variableNames: ["constraintFunction"],
+                    // };
                 } else {
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
@@ -1077,28 +1077,28 @@ export default class Polyline extends GraphicalComponent {
                     let constrainedVertices =
                         globalDependencyValues.unconstrainedVertices;
 
-                    if (
-                        globalDependencyValues.edgeConstraintsChild.length > 0
-                    ) {
-                        constrainedVertices =
-                            globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
-                                {
-                                    unconstrainedVertices: constrainedVertices,
-                                    closed: globalDependencyValues.closed,
-                                    enforceRigid: true,
-                                    allowRotation: false,
-                                },
-                            );
-                    }
-                    if (
-                        globalDependencyValues.vertexConstraintsChild.length > 0
-                    ) {
-                        constrainedVertices =
-                            globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                                constrainedVertices,
-                                true,
-                            );
-                    }
+                    // if (
+                    //     globalDependencyValues.edgeConstraintsChild.length > 0
+                    // ) {
+                    //     constrainedVertices =
+                    //         globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                    //             {
+                    //                 unconstrainedVertices: constrainedVertices,
+                    //                 closed: globalDependencyValues.closed,
+                    //                 enforceRigid: true,
+                    //                 allowRotation: false,
+                    //             },
+                    //         );
+                    // }
+                    // if (
+                    //     globalDependencyValues.vertexConstraintsChild.length > 0
+                    // ) {
+                    //     constrainedVertices =
+                    //         globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                    //             constrainedVertices,
+                    //             true,
+                    //         );
+                    // }
 
                     for (
                         let pointInd = 0;
@@ -1412,31 +1412,31 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         if (globalDependencyValues.haveConstrainedVertices) {
-                            if (
-                                globalDependencyValues.edgeConstraintsChild
-                                    .length > 0
-                            ) {
-                                desired_vertices =
-                                    globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
-                                        {
-                                            unconstrainedVertices:
-                                                desired_vertices,
-                                            closed: globalDependencyValues.closed,
-                                            enforceRigid: true,
-                                            allowRotation,
-                                        },
-                                    );
-                            }
-                            if (
-                                globalDependencyValues.vertexConstraintsChild
-                                    .length > 0
-                            ) {
-                                desired_vertices =
-                                    globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                                        desired_vertices,
-                                        true,
-                                    );
-                            }
+                            // if (
+                            //     globalDependencyValues.edgeConstraintsChild
+                            //         .length > 0
+                            // ) {
+                            //     desired_vertices =
+                            //         globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                            //             {
+                            //                 unconstrainedVertices:
+                            //                     desired_vertices,
+                            //                 closed: globalDependencyValues.closed,
+                            //                 enforceRigid: true,
+                            //                 allowRotation,
+                            //             },
+                            //         );
+                            // }
+                            // if (
+                            //     globalDependencyValues.vertexConstraintsChild
+                            //         .length > 0
+                            // ) {
+                            //     desired_vertices =
+                            //         globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                            //             desired_vertices,
+                            //             true,
+                            //         );
+                            // }
 
                             if (await stateValues.inStickyGroup) {
                                 let stickyObjectIndex =
@@ -1538,31 +1538,31 @@ export default class Polyline extends GraphicalComponent {
                         }
 
                         if (globalDependencyValues.haveConstrainedVertices) {
-                            if (
-                                globalDependencyValues.edgeConstraintsChild
-                                    .length > 0
-                            ) {
-                                desired_vertices =
-                                    globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
-                                        {
-                                            unconstrainedVertices:
-                                                desired_vertices,
-                                            closed: globalDependencyValues.closed,
-                                            enforceRigid: true,
-                                            allowRotation: false,
-                                        },
-                                    );
-                            }
-                            if (
-                                globalDependencyValues.vertexConstraintsChild
-                                    .length > 0
-                            ) {
-                                desired_vertices =
-                                    globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                                        desired_vertices,
-                                        true,
-                                    );
-                            }
+                            // if (
+                            //     globalDependencyValues.edgeConstraintsChild
+                            //         .length > 0
+                            // ) {
+                            //     desired_vertices =
+                            //         globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                            //             {
+                            //                 unconstrainedVertices:
+                            //                     desired_vertices,
+                            //                 closed: globalDependencyValues.closed,
+                            //                 enforceRigid: true,
+                            //                 allowRotation: false,
+                            //             },
+                            //         );
+                            // }
+                            // if (
+                            //     globalDependencyValues.vertexConstraintsChild
+                            //         .length > 0
+                            // ) {
+                            //     desired_vertices =
+                            //         globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                            //             desired_vertices,
+                            //             true,
+                            //         );
+                            // }
 
                             if (await stateValues.inStickyGroup) {
                                 let stickyObjectIndex =
@@ -1632,30 +1632,30 @@ export default class Polyline extends GraphicalComponent {
                         let enforceRigid = !movedJustOneVertex;
                         let allowRotation = movedJustOneVertex;
 
-                        if (
-                            globalDependencyValues.edgeConstraintsChild.length >
-                            0
-                        ) {
-                            desired_vertices =
-                                globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
-                                    {
-                                        unconstrainedVertices: desired_vertices,
-                                        closed: globalDependencyValues.closed,
-                                        enforceRigid,
-                                        allowRotation,
-                                    },
-                                );
-                        }
-                        if (
-                            globalDependencyValues.vertexConstraintsChild
-                                .length > 0
-                        ) {
-                            desired_vertices =
-                                globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
-                                    desired_vertices,
-                                    enforceRigid,
-                                );
-                        }
+                        // if (
+                        //     globalDependencyValues.edgeConstraintsChild.length >
+                        //     0
+                        // ) {
+                        //     desired_vertices =
+                        //         globalDependencyValues.edgeConstraintsChild[0].stateValues.constraintFunction(
+                        //             {
+                        //                 unconstrainedVertices: desired_vertices,
+                        //                 closed: globalDependencyValues.closed,
+                        //                 enforceRigid,
+                        //                 allowRotation,
+                        //             },
+                        //         );
+                        // }
+                        // if (
+                        //     globalDependencyValues.vertexConstraintsChild
+                        //         .length > 0
+                        // ) {
+                        //     desired_vertices =
+                        //         globalDependencyValues.vertexConstraintsChild[0].stateValues.constraintFunction(
+                        //             desired_vertices,
+                        //             enforceRigid,
+                        //         );
+                        // }
 
                         if (await stateValues.inStickyGroup) {
                             let stickyObjectIndex =
