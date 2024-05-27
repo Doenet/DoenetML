@@ -111,7 +111,6 @@ export default class RegionBetweenCurves extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                console.log({ dependencyValues });
                 if (
                     dependencyValues.functions.length < 2 ||
                     dependencyValues.functions[0].stateValues.numInputs !== 1 ||
