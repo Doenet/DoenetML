@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.0-alpha1",
+    "version": "0.7.0-alpha2",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": false,
@@ -16,7 +16,8 @@
             "require": "./dist/doenetml.js"
         },
         "./*": {
-            "import": "./dist/*"
+            "import": "./dist/*",
+            "require": "./dist/*"
         }
     },
     "scripts": {

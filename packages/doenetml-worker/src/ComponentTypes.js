@@ -24,7 +24,6 @@ import * as Paginator from "./components/Paginator";
 import * as MatrixInput from "./components/MatrixInput";
 import * as Solution from "./components/Solution";
 import * as ContentBrowser from "./components/ContentBrowser";
-import * as VertexConstraints from "./components/VertexConstraints";
 
 import Document from "./components/Document";
 import Text from "./components/Text";
@@ -93,6 +92,7 @@ import ConstrainTo from "./components/ConstrainTo";
 import AttractTo from "./components/AttractTo";
 import ConstraintUnion from "./components/ConstraintUnion";
 import AttractToConstraint from "./components/AttractToConstraint";
+import AttractSegmentTo from "./components/AttractSegmentTo";
 import Intersection from "./components/Intersection";
 import Panel from "./components/Panel";
 import ConstrainToAngles from "./components/ConstrainToAngles";
@@ -168,6 +168,9 @@ import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
 import ContentPicker from "./components/ContentPicker";
+import VertexConstraints from "./components/VertexConstraints";
+import EdgeConstraints from "./components/EdgeConstraints";
+import StickyGroup from "./components/StickyGroup";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -177,6 +180,7 @@ import InlineComponent from "./components/abstract/InlineComponent";
 import BlockComponent from "./components/abstract/BlockComponent";
 import GraphicalComponent from "./components/abstract/GraphicalComponent";
 import ConstraintComponent from "./components/abstract/ConstraintComponent";
+import SegmentConstraintComponent from "./components/abstract/SegmentConstraintComponent";
 import Input from "./components/abstract/Input";
 import CompositeComponent from "./components/abstract/CompositeComponent";
 import BooleanBaseOperator from "./components/abstract/BooleanBaseOperator";
@@ -221,7 +225,6 @@ const componentTypeArray = [
     ...Object.values(MatrixInput),
     ...Object.values(Solution),
     ...Object.values(ContentBrowser),
-    ...Object.values(VertexConstraints),
     Document,
     Text,
     TextList,
@@ -295,6 +298,7 @@ const componentTypeArray = [
     AttractTo,
     ConstraintUnion,
     AttractToConstraint,
+    AttractSegmentTo,
     Intersection,
     ConstrainToAngles,
     AttractToAngles,
@@ -359,12 +363,16 @@ const componentTypeArray = [
     Latex,
     BlockQuote,
     ContentPicker,
+    VertexConstraints,
+    EdgeConstraints,
+    StickyGroup,
 
     BaseComponent,
     InlineComponent,
     BlockComponent,
     GraphicalComponent,
     ConstraintComponent,
+    SegmentConstraintComponent,
     Input,
     CompositeComponent,
     PointListComponent,
