@@ -62,10 +62,6 @@ export default React.memo(function RegionBetweenCurves(props) {
             fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
             highlight: false,
-
-            // don't display points at left and right endpoints along function
-            // curveLeft: { visible: false },
-            // curveRight: { visible: false },
         };
 
         jsxAttributes.label = {
@@ -81,6 +77,8 @@ export default React.memo(function RegionBetweenCurves(props) {
             visible: false,
         });
 
+        // based on https://jsfiddle.net/migerh/u95pL/
+        // as described in https://groups.google.com/g/jsxgraph/c/umlhu6CkGD0
         var region = board.create("curve", [[], []], jsxAttributes);
 
         region.updateDataArray = function () {
