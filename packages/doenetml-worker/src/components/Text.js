@@ -168,6 +168,24 @@ export default class Text extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.numCharacters = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "integer",
+            },
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: { numCharacters: dependencyValues.value.length },
+                };
+            },
+        };
+
         stateVariableDefinitions.text = {
             public: true,
             shadowingInstructions: {
