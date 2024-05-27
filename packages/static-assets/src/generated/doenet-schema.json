@@ -1249,6 +1249,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -2288,6 +2289,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -2626,6 +2628,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -2964,6 +2967,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -24197,6 +24201,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -24703,6 +24708,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -25209,6 +25215,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -25715,6 +25722,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -26221,6 +26229,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -26746,6 +26755,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -27252,6 +27262,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -27758,6 +27769,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -28264,6 +28276,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -28770,6 +28783,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -29276,6 +29290,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -29782,6 +29797,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -30288,6 +30304,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -30794,6 +30811,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -31300,6 +31318,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -31816,6 +31835,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -32313,6 +32333,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -33080,6 +33101,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -38190,6 +38212,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -39015,6 +39038,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -39353,6 +39377,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -39691,6 +39716,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -40029,6 +40055,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -40387,6 +40414,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -41498,6 +41526,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -44880,6 +44909,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -54665,6 +54695,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -55619,6 +55650,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -57876,6 +57908,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -58233,6 +58266,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -59377,6 +59411,7 @@
                 "subsetOfRealsInput",
                 "split",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -61482,6 +61517,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -62504,6 +62540,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -62707,6 +62744,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -63174,6 +63212,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -63656,6 +63695,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -64767,6 +64807,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -66629,6 +66670,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -68043,6 +68085,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -69013,6 +69056,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -69349,6 +69393,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -69687,6 +69732,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -71083,6 +71129,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -71562,6 +71609,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -72918,6 +72966,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -73295,6 +73344,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -74615,6 +74665,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -75287,6 +75338,186 @@
             "acceptsStringChildren": false
         },
         {
+            "name": "regionBetweenCurves",
+            "children": [
+                "xlabel",
+                "ylabel",
+                "label",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "applyStyleToLabel",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "layer"
+                },
+                {
+                    "name": "boundaryValues"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "applyStyleToLabel",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "boundaryValues",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "styleDescription",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "styleDescriptionWithNoun",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
             "name": "regionHalfPlane",
             "children": [
                 "xlabel",
@@ -75681,6 +75912,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -79356,6 +79588,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -79694,6 +79927,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "codeEditor",
                 "codeViewer",
@@ -80172,6 +80406,7 @@
                 "split",
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
