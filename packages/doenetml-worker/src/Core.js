@@ -5925,7 +5925,7 @@ export default class Core {
 
             args.arraySize = await stateVarObj.arraySize;
 
-            // delete the interally added dependencies from args.stateValues
+            // delete the internally added dependencies from args.stateValues
             for (let key in args.stateValues) {
                 if (key.slice(0, 8) === "__array_") {
                     delete args.stateValues[key];

@@ -209,7 +209,12 @@ export function parseAndCompile(inText: string) {
 
             // Corresponds to the entity non-terminal in the grammar
             while (cursor.nextSibling()) {
-                if (cursor.name === "Text") {
+                if (
+                    cursor.name === "Text" ||
+                    cursor.name === "Ampersand" ||
+                    cursor.name === "EntityReference" ||
+                    cursor.name === "CharacterReference"
+                ) {
                     let txt = inText.substring(cursor.from, cursor.to);
                     if (txt !== "") {
                         element.children.push(txt);
@@ -320,6 +325,8 @@ export function parseAndCompile(inText: string) {
                     }
                 }
             }
+            element.children = mergeConsecutiveStrings(element.children);
+
             if (adjustedRange) {
                 element.doenetMLrange = adjustedRange;
             } else {
@@ -480,8 +487,12 @@ export function parseAndCompile(inText: string) {
                     end: tc.to,
                 },
             };
-        } else if (tc.node.name === "Text") {
-            //TODO probably don't need to trim anymore?
+        } else if (
+            tc.node.name === "Text" ||
+            tc.node.name === "Ampersand" ||
+            tc.node.name === "EntityReference" ||
+            tc.node.name === "CharacterReference"
+        ) {
             let txt = inText.substring(tc.node.from, tc.node.to);
             if (txt !== "") {
                 return txt;
@@ -526,6 +537,8 @@ export function parseAndCompile(inText: string) {
         }
     }
 
+    out = mergeConsecutiveStrings(out);
+
     return { components: out, errors };
 }
 
@@ -548,4 +561,21 @@ export function showNode(node: SyntaxNode) {
         str += "," + showNode(node.nextSibling);
     }
     return str;
+}
+
+// merge consecutive string nodes into one string node
+function mergeConsecutiveStrings(nodes: Node[]) {
+    let mergedNodes: Node[] = [];
+    let prevNode: Node | undefined;
+    for (let node of nodes) {
+        if (typeof node === "string" && typeof prevNode === "string") {
+            prevNode = prevNode + node;
+            mergedNodes[mergedNodes.length - 1] = prevNode;
+        } else {
+            prevNode = node;
+            mergedNodes.push(node);
+        }
+    }
+
+    return mergedNodes;
 }
