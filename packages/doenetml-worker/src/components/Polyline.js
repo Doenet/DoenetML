@@ -1387,9 +1387,9 @@ export default class Polyline extends GraphicalComponent {
                             if (orig_mag === 0) {
                                 factor = 1;
                             } else if (!(dot_prod >= minShrink * orig_mag)) {
-                                // don't allow it to shrink so that the distance between dragged vertex as rotation point
+                                // don't allow it to shrink so that the distance between dragged vertex and rotation point
                                 // drops below minShrink
-                                factor = 0.1 / orig_mag;
+                                factor = minShrink / orig_mag;
                             } else {
                                 factor = dot_prod / orig_mag2;
                             }
