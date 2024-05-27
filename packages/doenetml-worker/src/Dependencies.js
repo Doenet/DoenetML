@@ -1849,9 +1849,8 @@ export class DependencyHandler {
             if (component) {
                 let stateVarObj = component.state[stateVariableNewlyResolved];
                 if (stateVarObj) {
-                    component.state[
-                        stateVariableNewlyResolved
-                    ].isResolved = true;
+                    component.state[stateVariableNewlyResolved].isResolved =
+                        true;
                     component.state[
                         stateVariableNewlyResolved
                     ].initiallyResolved = true;

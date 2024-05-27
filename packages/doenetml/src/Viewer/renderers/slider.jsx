@@ -18,10 +18,10 @@ const SliderContainer = styled.div`
         props.labeled && props.noTicked
             ? "60px"
             : props.labeled
-            ? "80px"
-            : props.noTicked
-            ? "40px"
-            : "60px"};
+              ? "80px"
+              : props.noTicked
+                ? "40px"
+                : "60px"};
     margin-bottom: 12px;
     &:focus {
         outline: 0;

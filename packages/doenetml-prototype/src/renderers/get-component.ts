@@ -116,8 +116,8 @@ export function getComponent(
         constraint === "text"
             ? TEXT_MODE_COMPONENTS
             : constraint === "graph"
-            ? GRAPH_MODE_COMPONENTS
-            : TEXT_MODE_COMPONENTS;
+              ? GRAPH_MODE_COMPONENTS
+              : TEXT_MODE_COMPONENTS;
 
     const component = componentLookup[node?.name];
     if (!component) {

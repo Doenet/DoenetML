@@ -355,8 +355,8 @@ export default class Sort extends CompositeComponent {
                         a.textValue > b.textValue
                             ? 1
                             : a.textValue < b.textValue
-                            ? -1
-                            : 0,
+                              ? -1
+                              : 0,
                     );
                 }
 

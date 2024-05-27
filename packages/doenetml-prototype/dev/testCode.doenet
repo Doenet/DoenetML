@@ -15,8 +15,16 @@
     <title>Additional subdivision</title>
     <p>More content</p>
   </division>
+  <ol>
+    <li name="l">
+      <title>The item</title>
+      My list item
+    </li>
+  </ol>
 </section>
 
 <p>
   Some references: <xref ref="$s1" />, <xref ref="$d2" />, <xref ref="$d3" />, <xref ref="$dd1" />
 </p>
+
+<xref ref="$l" />

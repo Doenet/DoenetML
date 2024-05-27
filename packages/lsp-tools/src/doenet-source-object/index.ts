@@ -120,8 +120,8 @@ export class DoenetSourceObject extends LazyDataObject {
             ("col" in rowCol
                 ? rowCol.col
                 : "column" in rowCol
-                ? rowCol.column
-                : rowCol.character) - 1;
+                  ? rowCol.column
+                  : rowCol.character) - 1;
         // If `character` is in `rowCol`, then we are using the LSP format
         // which is zero-indexed already. Apply an "unfix".
         if ("character" in rowCol) {

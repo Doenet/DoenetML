@@ -669,9 +669,8 @@ export default class Collect extends CompositeComponent {
                             .slice(collectedNum)
                             .forEach(
                                 (v, i) =>
-                                    (workspace.numReplacementsByCollected[
-                                        i
-                                    ] = 0),
+                                    (workspace.numReplacementsByCollected[i] =
+                                        0),
                             );
                     }
 
@@ -761,9 +760,8 @@ export default class Collect extends CompositeComponent {
                             .slice(collectedNum)
                             .forEach(
                                 (v, i) =>
-                                    (workspace.numReplacementsByCollected[
-                                        i
-                                    ] = 0),
+                                    (workspace.numReplacementsByCollected[i] =
+                                        0),
                             );
                     }
                 }
