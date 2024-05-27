@@ -14,6 +14,14 @@ export default class RegionBetweenCurves extends GraphicalComponent {
             public: true,
         };
 
+        attributes.flipFunctions = {
+            createComponentOfType: "boolean",
+            createStateVariable: "flipFunctions",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 

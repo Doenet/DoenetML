@@ -125,8 +125,13 @@ export default React.memo(function RegionBetweenCurves(props) {
             x.push(left.current);
             y.push(c1.Y(left.current));
 
-            this.dataX = x;
-            this.dataY = y;
+            if (SVs.flipFunctions) {
+                this.dataX = y;
+                this.dataY = x;
+            } else {
+                this.dataX = x;
+                this.dataY = y;
+            }
         };
 
         return region;

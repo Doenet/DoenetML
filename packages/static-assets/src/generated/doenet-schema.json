@@ -75420,6 +75420,13 @@
                 },
                 {
                     "name": "boundaryValues"
+                },
+                {
+                    "name": "flipFunctions",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -75471,6 +75478,11 @@
                 {
                     "name": "boundaryValues",
                     "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "flipFunctions",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
