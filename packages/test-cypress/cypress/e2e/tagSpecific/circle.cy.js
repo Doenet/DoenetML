@@ -12039,7 +12039,7 @@ describe("Circle Tag Tests", function () {
             });
         });
 
-        cy.log("shink circle");
+        cy.log("shrink circle");
         cy.window().then(async (win) => {
             let cnx = 5,
                 cny = -2;
@@ -12400,6 +12400,1000 @@ describe("Circle Tag Tests", function () {
                     Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
                 );
                 expect(dist).closeTo(r, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+    });
+
+    it("point constrained to interior of circle", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text>a</text>
+    <math hide name="pX">$_point1.x</math>
+    <point>(3,0)</point><point>(-1,7)</point>
+    <graph>
+      <circle radius="$pX" center="$_point2" filled />
+      <point x="-4" y="-6">
+        <constraints>
+          <constrainToInterior>$_circle1</constrainToInterior>
+        </constraints>
+      </point>
+      </graph>
+    <graph>
+      $_circle1.center{assignNames="centerPoint"}
+      <point x="$(_circle1.radius)" y="0" />
+    </graph>
+    $_circle1.center.coords{assignNames="centerPoint2" displaySmallAsZero}
+    $_circle1.radius{assignNames="radiusNumber" displayDigits="8"}
+    $_graph1{name="graph2" newNamespace}
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let cnx = -1,
+                cny = 7;
+            let r = 3;
+
+            let px = stateVariables["/_point3"].stateValues.xs[0];
+            let py = stateVariables["/_point3"].stateValues.xs[1];
+            let dist = Math.sqrt(Math.pow(px - cnx, 2) + Math.pow(py - cny, 2));
+            expect(dist).closeTo(r, 1e-12);
+            expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(px);
+            expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(py);
+
+            expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
+                cnx,
+                1e-12,
+            );
+            expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
+                cny,
+                1e-12,
+            );
+            expect(
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
+            ).closeTo(cnx, 1e-12);
+            expect(
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
+            ).closeTo(cny, 1e-12);
+            expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                r,
+                1e-12,
+            );
+            expect(
+                stateVariables["/_circle1"].stateValues.numericalRadius,
+            ).closeTo(r, 1e-12);
+            expect(
+                stateVariables["/graph2/_circle1"].stateValues.center[0],
+            ).closeTo(cnx, 1e-12);
+            expect(
+                stateVariables["/graph2/_circle1"].stateValues.center[1],
+            ).closeTo(cny, 1e-12);
+            expect(
+                stateVariables["/graph2/_circle1"].stateValues
+                    .numericalCenter[0],
+            ).closeTo(cnx, 1e-12);
+            expect(
+                stateVariables["/graph2/_circle1"].stateValues
+                    .numericalCenter[1],
+            ).closeTo(cny, 1e-12);
+            expect(
+                await stateVariables["/graph2/_circle1"].stateValues.radius,
+            ).closeTo(r, 1e-12);
+            expect(
+                stateVariables["/graph2/_circle1"].stateValues.numericalRadius,
+            ).closeTo(r, 1e-12);
+            expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                r,
+                1e-12,
+            );
+            expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                0,
+                1e-12,
+            );
+            expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                cnx,
+                1e-12,
+            );
+            expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                cny,
+                1e-12,
+            );
+            expect(
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
+            ).closeTo(cnx, 1e-12);
+            expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
+                cny,
+                1e-12,
+            );
+            expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
+                r,
+                1e-12,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+        });
+
+        cy.log("move circle so original point is in middle");
+        cy.window().then(async (win) => {
+            let cnx = -5,
+                cny = -7;
+            let r = 3;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/_point2",
+                args: { x: cnx, y: cny },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+
+                expect(px).closeTo(-4, 1e-12);
+                expect(py).closeTo(-6, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("move circle away from original point location");
+        cy.window().then(async (win) => {
+            let cnx = 5,
+                cny = -2;
+            let r = 3;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/_point2",
+                args: { x: cnx, y: cny },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                let dist = Math.sqrt(
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
+                );
+                expect(dist).closeTo(r, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("shrink circle");
+        cy.window().then(async (win) => {
+            let cnx = 5,
+                cny = -2;
+            let r = 1;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/_point1",
+                args: { x: r, y: 0 },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                let dist = Math.sqrt(
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
+                );
+                expect(dist).closeTo(r, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("move point into circle");
+        cy.window().then(async (win) => {
+            let cnx = 5,
+                cny = -2;
+            let r = 1;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/_point3",
+                args: { x: 5.3, y: -2.5 },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                expect(px).closeTo(5.3, 1e-12);
+                expect(py).closeTo(-2.5, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("attempt to move point out of circle");
+        cy.window().then(async (win) => {
+            let cnx = 5,
+                cny = -2;
+            let r = 1;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/_point3",
+                args: { x: -9, y: 8 },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                let dist = Math.sqrt(
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
+                );
+                expect(dist).closeTo(r, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("move circle shadow");
+        cy.window().then(async (win) => {
+            let cnx = -3,
+                cny = 7;
+            let r = 1;
+
+            await win.callAction1({
+                actionName: "moveCircle",
+                componentName: "/graph2/_circle1",
+                args: { center: [cnx, cny] },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                let dist = Math.sqrt(
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
+                );
+                expect(dist).closeTo(r, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("attempt to move point shadow out of circle");
+        cy.window().then(async (win) => {
+            let cnx = -3,
+                cny = 7;
+            let r = 1;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/graph2/_point3",
+                args: { x: 11, y: -21 },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                let dist = Math.sqrt(
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
+                );
+                expect(dist).closeTo(r, 1e-12);
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
+                    px,
+                );
+                expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
+                    py,
+                );
+
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalCenter[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
+                ).closeTo(r, 1e-12);
+                expect(
+                    stateVariables["/graph2/_circle1"].stateValues
+                        .numericalRadius,
+                ).closeTo(r, 1e-12);
+                expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
+                    r,
+                    1e-12,
+                );
+                expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
+                    0,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
+                    cnx,
+                    1e-12,
+                );
+                expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
+                    cny,
+                    1e-12,
+                );
+                expect(
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
+                ).closeTo(cnx, 1e-12);
+                expect(
+                    stateVariables["/centerPoint"].stateValues.xs[1],
+                ).closeTo(cny, 1e-12);
+                expect(
+                    stateVariables["/radiusNumber"].stateValues.value,
+                ).closeTo(r, 1e-12);
+            });
+        });
+
+        cy.log("move point shadow into circle");
+        cy.window().then(async (win) => {
+            let cnx = -3,
+                cny = 7;
+            let r = 1;
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/graph2/_point3",
+                args: { x: -2.8, y: 7.7 },
+            });
+
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/centerPoint2")).should(
+                "contain.text",
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
+            );
+            cy.get(cesc("#\\/radiusNumber")).should(
+                "contain.text",
+                nInDOM(Math.trunc(r * 100) / 100),
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point3"].stateValues.xs[0];
+                let py = stateVariables["/_point3"].stateValues.xs[1];
+                expect(px).closeTo(-2.8, 1e-12);
+                expect(py).closeTo(7.7, 1e-12);
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
                     px,
                 );

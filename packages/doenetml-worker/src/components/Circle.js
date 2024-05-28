@@ -2884,6 +2884,43 @@ export default class Circle extends Curve {
             },
         };
 
+        stateVariableDefinitions.containsPoint = {
+            returnDependencies: () => ({
+                numericalRadius: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalRadius",
+                },
+                numericalCenter: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalCenter",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (
+                    !(
+                        dependencyValues.numericalRadius >= 0 &&
+                        dependencyValues.numericalCenter.length == 2 &&
+                        dependencyValues.numericalCenter.every(Number.isFinite)
+                    )
+                ) {
+                    // if don't have a numerical circle in 2D, then don't calculate if contains point
+                    return { setValue: { containsPoint: () => false } };
+                }
+
+                const radius2 = dependencyValues.numericalRadius ** 2;
+                const center = dependencyValues.numericalCenter;
+
+                let containsPoint = function (P) {
+                    return (
+                        (P[0] - center[0]) ** 2 + (P[1] - center[1]) ** 2 <=
+                        radius2
+                    );
+                };
+
+                return { setValue: { containsPoint } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -3188,7 +3225,6 @@ export default class Circle extends Curve {
 }
 
 function circleFromTwoNumericalPoints({ point1, point2 }) {
-    console.log({ point1, point2 });
     let xcenter = (point1[0] + point2[0]) / 2;
     let ycenter = (point1[1] + point2[1]) / 2;
     let numericalCenter = [xcenter, ycenter];

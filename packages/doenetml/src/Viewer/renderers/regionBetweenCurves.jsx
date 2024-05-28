@@ -35,7 +35,9 @@ export default React.memo(function RegionBetweenCurves(props) {
             return null;
         }
 
-        [left.current, right.current] = SVs.boundaryValues.toSorted();
+        [left.current, right.current] = SVs.boundaryValues.toSorted(
+            (a, b) => a - b,
+        );
 
         let lineColor =
             darkMode === "dark"
@@ -168,7 +170,9 @@ export default React.memo(function RegionBetweenCurves(props) {
             regionJXG.current.visProp["visible"] = !SVs.hidden;
             regionJXG.current.visPropCalc["visible"] = !SVs.hidden;
 
-            [left.current, right.current] = SVs.boundaryValues.toSorted();
+            [left.current, right.current] = SVs.boundaryValues.toSorted(
+                (a, b) => a - b,
+            );
 
             let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
             let layerChanged = regionJXG.current.visProp.layer !== layer;

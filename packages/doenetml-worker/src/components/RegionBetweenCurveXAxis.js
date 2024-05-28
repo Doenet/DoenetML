@@ -125,6 +125,54 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.nearestPoint = {
+            returnDependencies: () => ({
+                function: {
+                    dependencyType: "stateVariable",
+                    variableName: "function",
+                },
+                boundaryValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "boundaryValues",
+                },
+                haveFunction: {
+                    dependencyType: "stateVariable",
+                    variableName: "haveFunction",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // if don't have function, then don't return nearest point
+                if (!dependencyValues.haveFunction) {
+                    return { setValue: { nearestPoint: () => ({}) } };
+                }
+                const minx = Math.min(
+                    dependencyValues.boundaryValues[0],
+                    dependencyValues.boundaryValues[1],
+                );
+                const maxx = Math.max(
+                    dependencyValues.boundaryValues[0],
+                    dependencyValues.boundaryValues[1],
+                );
+
+                const f = dependencyValues.function;
+
+                let nearestPoint = function ({ variables }) {
+                    let x1 = variables.x1.evaluate_to_constant();
+                    let x2 = variables.x2.evaluate_to_constant();
+
+                    x1 = Math.max(minx, Math.min(maxx, x1));
+
+                    let [val1, val2] = [0, f(x1)].sort((a, b) => a - b);
+
+                    x2 = Math.max(val1, Math.min(val2, x2));
+
+                    return { x1, x2 };
+                };
+
+                return { setValue: { nearestPoint } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 }
