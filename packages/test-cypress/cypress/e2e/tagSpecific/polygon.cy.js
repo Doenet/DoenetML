@@ -3883,6 +3883,507 @@ describe("Polygon Tag Tests", function () {
         });
     });
 
+    it("constrain to interior of polygon", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph>
+    <polygon vertices=" (3,5) (-4,-1) (5,2)" filled />
+    <point x="7" y="8">
+      <constraints>
+        <constrainToInterior>$_polygon1</constrainToInterior>
+      </constraints>
+    </point>
+  </graph>
+  $_point1{name="p1" displayDigits="8"}
+  $_polygon1.vertices{assignNames="v1 v2 v3" displayDigits="8"}
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let x1 = 3,
+            x2 = -4,
+            x3 = 5;
+        let y1 = 5,
+            y2 = -1,
+            y3 = 2;
+
+        cy.log("point originally constrained");
+
+        cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+            "contain.text",
+            `(${x1},${y1})`,
+        );
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/_point1"].stateValues.coords).eqls([
+                "vector",
+                x1,
+                y1,
+            ]);
+        });
+
+        cy.log("move point near segment 1, outside polygon");
+        cy.window().then(async (win) => {
+            let x = 1;
+            let mseg1 = (y2 - y1) / (x2 - x1);
+            let y = mseg1 * (x - x1) + y1 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(1.14`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
+            });
+        });
+
+        cy.log("move point near segment 2, but inside polygon");
+        cy.window().then(async (win) => {
+            let x = 3;
+            let y = 1.5;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,1.5)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(3, 1e-12);
+                expect(py).closeTo(1.5, 1e-12);
+            });
+        });
+
+        cy.log(
+            "move point near segment between first and last vertices, but outside polygon",
+        );
+        cy.window().then(async (win) => {
+            let x = 4;
+            let mseg3 = (y1 - y3) / (x1 - x3);
+            let y = mseg3 * (x - x3) + y3 + 0.2;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3.90`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
+            });
+        });
+
+        cy.log("move point just past first vertex");
+        cy.window().then(async (win) => {
+            let x = x1 + 0.2;
+            let y = y1 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,5)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x1, 1e-6);
+                expect(py).closeTo(y1, 1e-6);
+            });
+        });
+
+        cy.log(
+            "point along extension of first segment constrained to endpoint",
+        );
+        cy.window().then(async (win) => {
+            let x = 4;
+            let mseg1 = (y2 - y1) / (x2 - x1);
+            let y = mseg1 * (x - x1) + y1 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x1, 1e-6);
+                expect(py).closeTo(y1, 1e-6);
+            });
+        });
+
+        cy.window().then(async (win) => {
+            let x = -5;
+            let mseg1 = (y2 - y1) / (x2 - x1);
+            let y = mseg1 * (x - x1) + y1 - 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x2, 1e-6);
+                expect(py).closeTo(y2, 1e-6);
+            });
+        });
+
+        cy.log("move point just past second vertex");
+        cy.window().then(async (win) => {
+            let x = x2 - 0.2;
+            let y = y2 - 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x2, 1e-6);
+                expect(py).closeTo(y2, 1e-6);
+            });
+        });
+
+        cy.log(
+            "point along extension of second segment constrained to endpoint",
+        );
+        cy.window().then(async (win) => {
+            let x = 6;
+            let mseg2 = (y2 - y3) / (x2 - x3);
+            let y = mseg2 * (x - x2) + y2 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x3, 1e-6);
+                expect(py).closeTo(y3, 1e-6);
+            });
+        });
+
+        cy.log("repeat for other side of second segment");
+        let xsave, ysave;
+        cy.window().then(async (win) => {
+            let x = -5;
+            let mseg2 = (y2 - y3) / (x2 - x3);
+            let y = mseg2 * (x - x2) + y2 - 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x2, 1e-6);
+                expect(py).closeTo(y2, 1e-6);
+            });
+
+            // save point coordinates, as is last time move point
+            xsave = x2;
+            ysave = y2;
+        });
+
+        cy.log("move polygon so point constrained to first segment");
+        cy.window().then(async (win) => {
+            let moveX = -3;
+            let moveY = -5;
+
+            x1 += moveX;
+            x2 += moveX;
+            x3 += moveX;
+            y1 += moveY;
+            y2 += moveY;
+            y3 += moveY;
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/_polygon1",
+                args: {
+                    pointCoords: [
+                        [x1, y1],
+                        [x2, y2],
+                        [x3, y3],
+                    ],
+                },
+            });
+
+            cy.get(cesc("#\\/v1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                let mseg1 = (y2 - y1) / (x2 - x1);
+
+                expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
+            });
+        });
+
+        cy.log("move second vertex so point constrained to second segment");
+        cy.window().then(async (win) => {
+            let moveX = -1;
+            let moveY = 8;
+
+            x2 += moveX;
+            y2 += moveY;
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/_polygon1",
+                args: {
+                    pointCoords: { 1: [x2, y2] },
+                },
+            });
+
+            cy.get(cesc("#\\/v2") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                let mseg2 = (y2 - y3) / (x2 - x3);
+
+                expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
+            });
+        });
+
+        cy.log("move third vertex so point is in interior");
+        cy.window().then(async (win) => {
+            x3 = -4;
+            y3 = -6;
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/_polygon1",
+                args: {
+                    pointCoords: { 2: [x3, y3] },
+                },
+            });
+
+            cy.get(cesc("#\\/v3") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                // point moves to coordinates where last moved the point
+                expect(px).closeTo(xsave, 1e-6);
+                expect(py).closeTo(ysave, 1e-6);
+            });
+        });
+    });
+
+    it("constrain to interior of non-simple polygon", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph>
+    <polygon vertices="(2,0) (8,0) (8,8) (0,8) (0,4) (6,4) (6,2) (4,2) (4,6) (2,6)" filled name="pg" />
+    <point x="7" y="6" name="P">
+      <constraints>
+        <constrainToInterior>$pg</constrainToInterior>
+      </constraints>
+    </point>
+  </graph>
+  $P{name="p1" displayDigits="8"}
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc2("#/_text1")).should("have.text", "a"); //wait for page to load
+
+        cy.log("point originally in interior");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow").should("contain.text", `(7,6)`);
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let px = stateVariables["/P"].stateValues.xs[0];
+            let py = stateVariables["/P"].stateValues.xs[1];
+            expect(px).closeTo(7, 1e-12);
+            expect(py).closeTo(6, 1e-12);
+        });
+
+        cy.log("move point above polygon");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/P`,
+                args: { x: 3, y: 10 },
+            });
+
+            cy.get(cesc2("#/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,8)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/P"].stateValues.xs[0];
+                let py = stateVariables["/P"].stateValues.xs[1];
+                expect(px).closeTo(3, 1e-12);
+                expect(py).closeTo(8, 1e-12);
+            });
+        });
+
+        cy.log("move point inside doubly wound region");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/P`,
+                args: { x: 3, y: 5 },
+            });
+
+            cy.get(cesc2("#/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,5)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/P"].stateValues.xs[0];
+                let py = stateVariables["/P"].stateValues.xs[1];
+                expect(px).closeTo(3, 1e-12);
+                expect(py).closeTo(5, 1e-12);
+            });
+        });
+
+        cy.log("attempt to move point inside zero wound region");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/P`,
+                args: { x: 4.9, y: 3 },
+            });
+
+            cy.get(cesc2("#/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(4,3)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/P"].stateValues.xs[0];
+                let py = stateVariables["/P"].stateValues.xs[1];
+                expect(px).closeTo(4, 1e-12);
+                expect(py).closeTo(3, 1e-12);
+            });
+        });
+    });
+
     it("fixed polygon", () => {
         cy.window().then(async (win) => {
             win.postMessage(
