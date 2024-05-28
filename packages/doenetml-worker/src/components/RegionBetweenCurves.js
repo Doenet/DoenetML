@@ -148,6 +148,67 @@ export default class RegionBetweenCurves extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.nearestPoint = {
+            returnDependencies: () => ({
+                functions: {
+                    dependencyType: "stateVariable",
+                    variableName: "functions",
+                },
+                boundaryValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "boundaryValues",
+                },
+                flipFunctions: {
+                    dependencyType: "stateVariable",
+                    variableName: "flipFunctions",
+                },
+                haveFunctions: {
+                    dependencyType: "stateVariable",
+                    variableName: "haveFunctions",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // if don't have functions, then don't return nearest point
+                if (!dependencyValues.haveFunctions) {
+                    return { setValue: { nearestPoint: () => ({}) } };
+                }
+                const minx = Math.min(
+                    dependencyValues.boundaryValues[0],
+                    dependencyValues.boundaryValues[1],
+                );
+                const maxx = Math.max(
+                    dependencyValues.boundaryValues[0],
+                    dependencyValues.boundaryValues[1],
+                );
+
+                const f1 = dependencyValues.functions[0];
+                const f2 = dependencyValues.functions[1];
+
+                let nearestPoint = function ({ variables }) {
+                    let x1 = variables.x1.evaluate_to_constant();
+                    let x2 = variables.x2.evaluate_to_constant();
+
+                    if (dependencyValues.flipFunctions) {
+                        [x1, x2] = [x2, x1];
+                    }
+
+                    x1 = Math.max(minx, Math.min(maxx, x1));
+
+                    let [val1, val2] = [f1(x1), f2(x1)].sort((a, b) => a - b);
+
+                    x2 = Math.max(val1, Math.min(val2, x2));
+
+                    if (dependencyValues.flipFunctions) {
+                        [x1, x2] = [x2, x1];
+                    }
+
+                    return { x1, x2 };
+                };
+
+                return { setValue: { nearestPoint } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 }
