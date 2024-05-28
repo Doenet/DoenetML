@@ -92,6 +92,7 @@ import ConstrainTo from "./components/ConstrainTo";
 import AttractTo from "./components/AttractTo";
 import ConstraintUnion from "./components/ConstraintUnion";
 import AttractToConstraint from "./components/AttractToConstraint";
+import ConstrainToInterior from "./components/ConstrainToInterior";
 // import AttractSegmentTo from "./components/AttractSegmentTo";
 import Intersection from "./components/Intersection";
 import Panel from "./components/Panel";
@@ -299,6 +300,7 @@ const componentTypeArray = [
     AttractTo,
     ConstraintUnion,
     AttractToConstraint,
+    ConstrainToInterior,
     // AttractSegmentTo,
     Intersection,
     ConstrainToAngles,
