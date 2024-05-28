@@ -942,7 +942,7 @@ export function PageViewer({
         if (!loadedState && apiURLs.postMessages) {
             if (flags.allowLoadState) {
                 try {
-                    let resp = await getStateViaSlice({
+                    let resp = await getStateViaSplice({
                         cid,
                         pageNumber,
                         attemptNumber,
@@ -1019,7 +1019,7 @@ export function PageViewer({
         }
     }
 
-    function getStateViaSlice({
+    function getStateViaSplice({
         cid,
         pageNumber,
         attemptNumber,
