@@ -175,7 +175,7 @@ export default function TestViewer() {
                     showHints,
                     solutionDisplayMode: "button",
                     allowLoadState: false,
-                    allowSaveState: true,
+                    allowSaveState: false,
                     allowLocalState: false,
                     allowSaveSubmissions: true,
                     allowSaveEvents: false,
