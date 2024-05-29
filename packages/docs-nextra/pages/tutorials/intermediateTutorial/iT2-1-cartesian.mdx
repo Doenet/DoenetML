@@ -1,0 +1,17 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Cartesian Grids and Function Graphs
+
+One of the most powerful features of DoenetML is the ability to create complicated graphics with a few lines of code. This section covers the basics of the `<graph>` tag and its attributes, and shows you how to graph a function $y = f(x)$. Later sections will demonstrate how to graph points, lines, polygons, circles, and other objects.
+
+By default, `<graph></graph>` creates the following Cartesian grid, which goes from -10 to 10 in both the $x$ and $y$ directions. (If all we want is a blank graph, we could use the self-closing `<graph/>` tag. In practice, however, we'll almost always include items between the opening and closing `<graph>`and `</graph>` tags, which is why we've used that style here.)
+
+Take a moment to experiment with the controls at the bottom right of the graph. Clicking the arrows will pan left, down, up and right. The `+` and `-` allow you to zoom in and out, and `o` resets the view.
+
+<DoenetML>
+{`
+<graph></graph>
+`}
+</DoenetML>
+
+### Basic Graph Attributes
