@@ -3,10 +3,14 @@
         "title": "🖥 Quick Start Tutorial (0.5 hr)",
         "display": "hidden"
     },
-    "introdTutorial": "📘 Introduction to DoenetML - Basic Syntax and User-Input (10 lessons)",
-    "intermediateTutorial": "📘 Intermediate DoenetML - Graphing (10 lessons)",
+    "introdTutorial": {
+        "title": "📘 Introductory Tutorial: Basic Syntax and User-Input (10 lessons)"
+    },
+    "intermediateTutorial": {
+        "title": "📘 Intermediate Tutorial: Graphing (10 lessons)"
+    },
     "sampleProject1": {
-        "title": "🖥 Sample Project 1 (0.5 hr)",
+        "title": "📘 Sample Project 1 (0.5 hr)",
         "display": "hidden"
     },
     "sampleProject2": {

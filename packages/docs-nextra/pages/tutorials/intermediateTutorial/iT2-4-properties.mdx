@@ -1,0 +1,31 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Properties and Lists
+
+Throughout this tutorial we've used "attributes" to adjust the behavior of components in DoenetML. Often you don't want to change the value of an attribute, though; you just want to know what that value is. You can do this with "properties" in DoenetML. The general syntax to retrieve the value of a property in DoenetML is:
+
+```html
+     $objectName.propertyName
+```
+
+For example, if you have a line named `PQ`, you can access its `slope` by typing the following in your code:
+```html
+     $PQ.slope
+```
+
+You might recall that `slope `is one of the attributes of `<line>`. It's often the case that the values of attributes can be accessed as properties. For example, if you define a line as
+```html
+     <line name="PQ" through="(0,1)" slope="2"/>
+```
+then, unsurprisingly, `$PQ.slope` is $2$. However, even if you define the same line using different attributes, such as
+```html
+     <line name="PQ" through="(-1,1) (1,3)"/>
+```
+or
+```html
+     <line name="PQ" equation="2x-y=-1"/>,
+```
+Doenet will still calculate the slope of $\overset{\longleftrightarrow}{PQ}$ and set `$PQ.slope` equal to $2$. Furthermore, if the line changes because of some user interaction, the value of `$PQ.slope` will be updated.
+
+The documentation page for each DoenetML component shows which attributes can be accessed as properties, as well as any additional properties that are available. It's always worth checking the documentation before you write code to do a basic computation; it's possible that Doenet is already doing that calculation for you!
+
