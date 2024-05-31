@@ -11,9 +11,10 @@
         "/dist"
     ],
     "scripts": {
-        "dev": "next",
-        "build": "next build",
-        "start": "next start"
+        "dev": "npm run build:pre && next",
+        "build": "npm run build:pre && next build",
+        "start": "next start",
+        "build:pre": "mkdir -p ./public/bundle && cp ../standalone/dist/* ./public/bundle/ && mkdir -p ./public/bundle/fonts/files && cp ../doenetml/dist/fonts/files/* ./public/bundle/fonts/files/"
     },
     "dependencies": {
         "doenet-standalone-test": "^0.6.0",
