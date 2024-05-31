@@ -1,0 +1,69 @@
+# Introductory Tutorial: Basic Syntax and User-Input
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**What's covered:**
+* basics of markup languages
+* creating a Doenet account and your first DoenetML documents
+* writing documents with text and mathematical equations
+* gathering input from users with input boxes and sliders
+* creating and evaluating mathematical functions
+</Callout>
+
+*This tutorial is in a text-based format with embedded code examples, and contains 10 lessons.*
+
+1. [**Writing Mathematics with DoenetML**](iT1-1-writing-mathematics.mdx)
+Covers the basics of markup languages, and how to write paragraphs and mathematical equations in DoenetML.
+
+    Tags covered: `<p>`, `<em>`, `<m>`, `<me>`, `<alert>`, `<ol>`, `<ul>`, `<li>`, `<ref>`, `<section>`, `<subsection>`
+
+1. [**Creating Your own Doenet Documents**](iT1-2-creating-docs.mdx)
+How to create an account on doenet.org, create a DoenetML document, and share it with others.
+
+1. [**Variables, Numbers, Arithmetic and Algebra**](iT1-3-variables-numbers.mdx)
+Explains how to define numbers and mathematical expressions which can be used for computations within DoenetML. Also introduces the important concepts of attributes and the references.
+
+    Tags covered: `<math>`, `<number>`
+
+    Attributes covered: `simplify`, `name`, `displayDigits`, `displayDecimals`
+
+1. [**A Comparison of Mathematical Tags**](iT1-4-comparison-math.mdx)
+Discusses the (sometimes subtle) differences between the `<m>` and `<math>` tags, and when to choose one instead of the other.
+
+1. [**Setup Blocks**](iT1-5-setup-blocks.mdx)
+Explains how to define numbers and do computations in a setup block of code, which is hidden from the reader.
+
+    Tags covered: `<setup>`
+
+1. [**User Input and Basic Answer Checking**](iT1-6-user-input.mdx)
+Covers the basics of getting input from the user and incorporating it into your document, or (say, for a homework problem) comparing it to a correct answer.
+
+    Tags covered: `<mathInput>`, `<answer>`, `<mathList>`
+
+    Attributes covered: `prefill`, `unorderedCompare`
+
+1. [**Functions and Function Evaluation**](iT1-7-functions.mdx)
+Explains how to define a function in DoenetML and evaluate it with numeric or symbolic input. Introduces the `$$` macro, and covers the differences between `$` and `$$`. Also discusses how to create a user-defined function, and the differences between symbolic and numeric evaluations.
+
+    Tags covered: `<function>`, `<evaluate>` (and `$$`)
+
+    Attributes covered: `function`, `input`, `symbolic`
+
+1. [**Domains, Derivatives and Variables**](iT1-8-domains.mdx)
+Covers more features related to functions, including: specifying domains; defining functions with variabls other than $x$, derivatives, multivariable functions, and partial derivatives.
+
+    Tags covered: `<derivative>`
+
+    Attributes covered: `domain`, `derivVariables`, `variables`
+
+1. [**Sliders**](iT1-9-sliders.mdx)
+Gives an introduction to sliders, which allow a user to control a value by dragging a handle back and forth. Also demonstrates how to bind the values of a slider and an input box together, so that a user can adjust a given value using either method.
+
+    Tags covered: `<slider>`, `<label>`
+
+    Attributes covered: `from`, `to`, `step`, `showValue`, `showTicks`, `initialValue`, `bindValueTo`
+
+1.  [**DoenetML Authoring Advice**](iT1-10-advice.mdx)
+Gives general advice for authors including common errors, tips for debugging, and and an overview of Doenet's philosphy of how to deal with errors. Also includes a short discussion of attributes and children.
+
