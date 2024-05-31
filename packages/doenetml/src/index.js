@@ -17,3 +17,4 @@ export {
 export { doenetSchema } from "@doenet/static-assets";
 
 export { CodeMirror } from "@doenet/codemirror";
+export { parseAndCompile } from "@doenet/parser";
