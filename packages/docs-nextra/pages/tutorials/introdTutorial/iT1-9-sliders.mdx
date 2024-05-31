@@ -1,0 +1,90 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Sliders
+
+Earlier you learned how to use `<mathInput>` to allow users to input text. Sliders are another common way for readers to input values or control an on-screen activity. By default, the (self-closing) tag `<slider/>` creates the following generic slider:
+
+<DoenetML>
+{`
+<slider />
+`}
+</DoenetML>
+
+You can drag the point right and left to choose a value from 0 to 10. The default value is 0, and the "step size" is 1; in other words, the value changes by $\pm 1$ as you drag back and forth. All of these options (and more!) can be adjusted using attributes.
+
+### Common Slider Options
+
+The following example illustrates how to adjust the minimum and maximum values of a slider, the step size, and more. In the test editor, be sure to experiment with the code and click "update" to see how these attributes work.
+
+```html
+<slider showValue="false" />
+
+<slider from="5" to="20" step="3" initialValue="8"/>
+
+<slider from="0" to="1" step="0.001" showTicks="false" />
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+For completeness, here's a rundown of the attributes in those examples:
+
+* `from` and `to` specify the minimum and maximum values of the slider. The defaults are 0 and 10, respectively.
+
+* `step` adjusts the step size, i.e. how much the slider changes at a time. The default value is 1.
+  
+    Thus a "generic" `<slider/>` (equivalent to `<slider from="0" to="10" step="1"/>` will always have a value in the set $\{0,1,2,...,10\}$, whereas `<slider from="0" to="10" step="5" />` can only equal $0$, $5$, or $10$.
+
+* `initialValue` sets the initial value of the slider; if you don't use this attribute, the slider will default to the value specified with the `from` attribute. If your initial value is not in the range defined by `from` and `to`, Doenet will choose one of those "endpoints" as the starting value of the slider.
+
+* `showValue` tells Doenet whether to display the current value of the slider; by default, it is displayed above the left endpoint of the slider. Possible values are `showValue="false"` and `showValue="true"` (or, equivalently, just `showValue`). The default is `showValue="true"`.
+
+* `showTicks` adjusts whether Doenet displays intermediate numbers along the bottom of the slider, e.g. the numbers $0, 1, 2, ..., 10$ in the default slider. Possible values are `showTicks="false"` and `showTicks="true"` (or, equivalently, just `showTicks`). The default is `showTicks="true"`.
+
+### Customized Slider Labels
+We can adjust the label on a slider using the `<label>` tag. This is a separate tag, not an attribute, and it must be nested between `<slider>` and `</slider>`; we can't use the "self-closing" style tag in this situation. This is demonstrated in the code below. We've also given the slider a name attribute, so that we can use its value in a calculation.
+
+```html
+<slider from="-40" to="40" step="1" 
+  initialValue="0" name="tempC">
+  <label>Temp (<m>{}^{\circ}C</m>)</label>
+</slider>
+
+<p>Temperature in Fahrenheit: </p>
+<p><m>\dfrac{9}{5} ($tempC) + 32 = 
+    <number>9*$tempC/5+32</number>
+  </m>
+</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+*(For those who don't live in a climate where the Celsius and Fahrenheit temperatures can be the same: the from and to values were chosen to reflect common temperatures in Minnesota. Yes, it gets cold. Yes, we're ok with that. No, we don't want to move!)*
+
+### Binding Sliders and Inputs
+Sometimes you want to provide your readers with maximum flexibility, and allow them to change a value using an input box *or* a slider! We can do that with the following code. The `<mathInput/>` is named $x$, and its value is used in the computation of `$$f($x)`. But we've used the `bindValueTo` attribute to ensure that the value of $x$ will always match the value of `xSlider`.
+
+```html
+<p>Let <m>f(x) = <function name="f">x^2+1</function></m>.</p>
+
+<p>Choose a value of <m>x</m> (or adjust slider):</p>
+<p><m>x = </m> <mathInput name="x" bindValueTo="$xSlider"/></p>
+
+<slider from="0" to="5" step="1" name="xSlider" /> 
+
+<p><m>f($x) = $$f($x)</m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Try adjusting the slider, and notice that the value in the `<mathInput/>` box is updated as well. Conversely, if you enter a number like $3$ or $4$ in the box, the value of the slider will be updated. Finally, try entering some numbers in the box which are not possible values for the slider (e.g. $1.7$, $\frac{3}{2}$, or $2 \pi$). Notice that DoenetML will choose the closest valid value of the slider, and update both the slider and input box accordingly.
+
+**Warning!** You can also bind the value of a slider to an input box... but you shouldn't! That approach leads to the following unexpected behavior. In the code below, instead of including the `bindValueTo="$xSlider"` attribute in the `<mathInput/>` tag, we've bound the slider to the input box instead:
+
+```html
+<p><m>x = </m> <mathInput name="x" /></p>
+
+<slider from="0" to="5" step="1" name="xSlider" bindValueTo="$x" /> 
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+If you adjust the slider, you'll see that the value of the input box is updated as well. Similarly, if you enter $1$ or $2$ in the input box, the slider will be updated. But now enter $3.8$ in the input box. You'll see that the slider will choose the closest valid value, but the input box will not update to $4$. Its value stays at $3.8$. At best this would be confusing to your readers, because two values which are supposed to be the same are actually different. At worst it could cause other parts of your code to break!
+
+### Next Steps
+At this point you've learned the basics of working with text, mathematical functions and computations, and interactive elements in DoenetML. It's time to make things more visual, and learn how to incorporate graphics into DoenetML documents!

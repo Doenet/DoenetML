@@ -1,11 +1,10 @@
 {
-    "name": "@doenet/standalone",
+    "name": "doenet-standalone-test",
     "type": "module",
     "description": "Standalone renderer for DoenetML suitable for being included in a web page",
-    "version": "*",
+    "version": "0.6.0",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"

@@ -1,0 +1,52 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Setup Blocks
+
+You might have noticed on previous pages that, every time we defined a `<math>` or `<number>` object, the value was displayed on screen. You can avoid that by using the `<setup>` tag; anything between `<setup>` and `</setup>` will be defined and available to use throughout your document, but will not be displayed on screen.
+
+In the following example, the numbers $a$, $b$, and $c$ are defined as `<math>` objects; then they're used to compute the discriminant 
+$b^2 - 4 a c$
+. None of those definitions and computation are displayed on screen, but all four numbers are used later on.
+
+```html {1,9}
+<setup>  
+  <math name="a">2</math>
+  <math name="b">8</math>
+  <math name="c">6</math>
+
+  <math name="discr" simplify>
+    $b^2 - 4*$a*$c
+  </math>
+</setup>
+
+<p>Equation: <m><math simplify>
+  $a*x^2+$b*x+$c
+</math> = 0</m></p>
+
+<p>Discriminant: $discr</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+For comparison, here's the same code with `<setup>` and `</setup>` removed. The four numbers from the `<setup>` block are all displayed on screen, which is confusing to the user!
+
+```html
+<math name="a">2</math>
+<math name="b">8</math>
+<math name="c">6</math>
+
+<math name="discr" simplify>
+    $b^2 - 4*$a*$c
+</math>
+
+<p>Equation: <m><math simplify>
+  $a*x^2+$b*x+$c
+</math> = 0</m></p>
+
+<p>Discriminant: $discr</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Throughout the rest of this tutorial, we'll frequently use `<setup>` for definitions and computations that don't need to appear on screen.
+
+### Next Steps
+It's time to make our documents interactive! In the next section we'll learn the basics of how to get user input in a DoenetML document.
