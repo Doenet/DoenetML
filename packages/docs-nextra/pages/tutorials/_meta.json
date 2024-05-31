@@ -1,7 +1,7 @@
 {
+    "starting": "Tutorials",
     "quickStart": {
-        "title": "🖥 Quick Start Tutorial (0.5 hr)",
-        "display": "hidden"
+        "title": "📘 Quick Start Tutorial (0.5 hr)"
     },
     "introdTutorial": {
         "title": "📘 Introductory Tutorial: Basic Syntax and User-Input (10 lessons)"

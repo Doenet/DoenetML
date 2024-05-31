@@ -1,29 +1,47 @@
-# Quick Start
-
-### Welcome to the **DoenetML** documentation! This page will provide you with some quick pointers to enable you to start creating content today! 
-
+import { DoenetML} from "../../components/doenet"
 import { Callout } from 'nextra/components'
 
+# Quick Start Tutorial
+
+### Writing Your First DoenetML Document
+DoenetML is an easy way to author interactive math activities for the web. In the next few minutes this guide will show you how to make a math assessment that can give your students instant feedback.
+
+Here is an example math question with a place for students to type in and check their answers. Go ahead and answer the question and check your work.
+
+<DoenetML>
+{`
+Simplify
+<math>3/3+3</math>
+<answer symbolicEquality>4</answer>
+`}
+</DoenetML>
+
+Now lets look at the DoenetML you need to write to make this question.
+
+```html
+Simplify
+<math>3 / 3 + 3</math>
+<answer symbolicEquality>4</answer>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### Markup Languages
+DoenetML documents are written in plain text; the language is similar to HTML. The parts of the document that are written like `<math>` and `<answer>` are called *tags*. Tags allow you to create everything in your document that isn't just regular written text. Just like HTML, tags are denoted with angle brackets, `<` and `>`. The closing tag includes an extra slash.
+
+Note that the DoenetML code is written on 3 lines, but the rendered version of the question is shown all on 1 line. It can be helpful to break up complex parts of your document onto separate lines to make the code easier to read, and by default this won't move your content onto a new line. If you want to make a new line in the document you can put some of the content in a paragraph `<p>` tag.
+
+
 <Callout type="info">
-### You will learn:
-* What components are in DoenetML and their basic syntax
-* How to create text, math formulas, images, and external links for your lessons
-* How to define mathematical objects for use in question posing
-* How to quickly create basic questions using defined mathematical objects
-* How to generate graphs with interactive geometry
-* How to award credit for specific student interactions with graph geometry
-* How to rapidly create activities with random variants
+All of code examples in this tutorial have a link to a two panel editor below. You can copy the code into the right-hand side of the editor, and click the "Update" button on the right hand side to see the results. Try editing the code above to put the answer box on its own line after the expression.
 </Callout>
 
-## Components: Definition and basic syntax
 
-**Components** in DoenetML are the basic building blocks of the set of instructions the author provides to 
-the what is known as the Doenet **core**. These instructions tell the **core** what content should be rendered (or displayed on the page to the viewer), as well as how that content should behave. 
 
-## Creating text, math formulas, images, and external links
 
-Text content in doenetML can be created using the component, for paragraphs of text, or 
-the  component, which are analagous to string variables.
+
+
+
+
 
 
 
@@ -45,4 +63,12 @@ the  component, which are analagous to string variables.
 
 
  
+
+
+
+
+
+
+
+
 
