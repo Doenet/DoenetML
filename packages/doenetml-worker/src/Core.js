@@ -11229,11 +11229,18 @@ export default class Core {
             version: "0.1.1",
         };
 
-        try {
-            let resp = await axios.post(this.apiURLs.recordEvent, payload);
-            // console.log(">>>>resp from record event", resp.data)
-        } catch (e) {
-            console.error(`Error saving event: ${e.message}`);
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "sendEvent",
+                data: payload,
+            });
+        } else {
+            try {
+                let resp = await axios.post(this.apiURLs.recordEvent, payload);
+                // console.log(">>>>resp from record event", resp.data)
+            } catch (e) {
+                console.error(`Error saving event: ${e.message}`);
+            }
         }
     }
 

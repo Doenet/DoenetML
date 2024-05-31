@@ -2218,6 +2218,9 @@ export default class Answer extends InlineComponent {
                 result: {
                     response: currentResponses,
                     responseText,
+                    componentTypes:
+                        this.state.currentResponses.shadowingInstructions
+                            .createComponentOfType,
                     creditAchieved,
                 },
             },
