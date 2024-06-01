@@ -18,7 +18,6 @@
         "build:pre": "mkdir -p ./public/bundle && cp ../standalone/dist/* ./public/bundle/ && mkdir -p ./public/bundle/fonts/files && cp ../doenetml/dist/fonts/files/* ./public/bundle/fonts/files/"
     },
     "dependencies": {
-        "doenet-standalone-test": "^0.6.0",
         "nextra": "^3.0.0-alpha.24",
         "nextra-theme-docs": "^3.0.0-alpha.24",
         "react": "^18.2.0",
