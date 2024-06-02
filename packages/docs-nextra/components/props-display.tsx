@@ -1,3 +1,4 @@
+import { Link } from "nextra-theme-docs";
 import React from "react";
 
 export type PropAttrType =
@@ -37,9 +38,11 @@ export type PropInfo = {
 export function AttrDisplay({
     name,
     attrs = [],
+    links = {},
 }: {
     name: string;
     attrs: AttrInfo[];
+    links?: Record<string, string>;
 }) {
     attrs.sort((a, b) => a.name.localeCompare(b.name));
     const commonAttrs = attrs.filter((attr) => attr.common);
@@ -63,26 +66,36 @@ export function AttrDisplay({
                 </tr>
             </thead>
             <tbody>
-                {componentAttrs.map((attr) => (
-                    <tr key={attr.name}>
-                        <td>
-                            <code>
-                                <span className="attr-name">{attr.name}</span>
-                                 = "…"
-                            </code>
-                        </td>
-                        <td className="attr-type">
-                            {formatType(attr.type, attr.isArray)}
-                        </td>
-                        <td className="attr-values">
-                            {attr.values?.map((v) => (
-                                <React.Fragment key={v}>
-                                    <code className="attr-value">"{v}"</code>{" "}
-                                </React.Fragment>
-                            )) || ""}
-                        </td>
-                    </tr>
-                ))}
+                {componentAttrs.map((attr) => {
+                    const linkTarget = links[attr.name];
+                    const nameElm = linkTarget ? (
+                        <Link href={linkTarget}>{attr.name}</Link>
+                    ) : (
+                        attr.name
+                    );
+                    return (
+                        <tr key={attr.name}>
+                            <td>
+                                <code>
+                                    <span className="attr-name">{nameElm}</span>
+                                     = "…"
+                                </code>
+                            </td>
+                            <td className="attr-type">
+                                {formatType(attr.type, attr.isArray)}
+                            </td>
+                            <td className="attr-values">
+                                {attr.values?.map((v) => (
+                                    <React.Fragment key={v}>
+                                        <code className="attr-value">
+                                            "{v}"
+                                        </code>{" "}
+                                    </React.Fragment>
+                                )) || ""}
+                            </td>
+                        </tr>
+                    );
+                })}
             </tbody>
         </table>
     );
@@ -91,9 +104,11 @@ export function AttrDisplay({
 export function PropDisplay({
     name,
     props = [],
+    links = {},
 }: {
     name: string;
     props: PropInfo[];
+    links?: Record<string, string>;
 }) {
     props.sort((a, b) => a.name.localeCompare(b.name));
     const commonProps = props.filter((attr) => attr.common);
@@ -116,19 +131,25 @@ export function PropDisplay({
                 </tr>
             </thead>
             <tbody>
-                {componentProps.map((prop) => (
-                    <tr key={prop.name}>
+                {componentProps.map((prop) => {
+                    const linkTarget = links[prop.name];
+                    const nameElm = linkTarget ? (
+                        <Link href={linkTarget}>{prop.name}</Link>
+                    ) : (
+                        prop.name
+                    );
+                    return <tr key={prop.name}>
                         <td>
                             <code>
                                 ${refName}.
-                                <span className="prop-name">{prop.name}</span>
+                                <span className="prop-name">{nameElm}</span>
                             </code>
                         </td>
                         <td className="prop-type">
                             {formatType(prop.type, prop.isArray)}
                         </td>
                     </tr>
-                ))}
+                })}
             </tbody>
         </table>
     );

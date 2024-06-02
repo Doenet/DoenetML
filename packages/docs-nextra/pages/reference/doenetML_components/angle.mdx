@@ -12,29 +12,28 @@ When reference lines or points are used to specify the `<angle>`, two possibliti
 
 ## Attributes and Properties
 
-<AttrDisplay name="angle" />
-<PropDisplay name="angle" />
+<AttrDisplay name="angle" links={{
+  radius: "#radius-ex",
+  chooseReflexAngle: "#chooseReflexAngle-ex",
+  inDegrees: "#inDegrees-ex",
+  through: "#threePoints-ex",
+  radians: "#radians-ex",
+  betweenLines: "#twoLines-ex",
+  emphasizeRightAngle: "#emphasizeRightAngle-ex",
+}} />
 
-**Attributes**
-* [radius](#radius-ex)
-* [chooseReflexAngle](#chooseReflexAngle-ex)
-* [inDegrees](#inDegrees-ex)
-* [radians](#radians-ex)
-* [through](#threePoints-ex)
-* [betweenLines](#twoLines-ex)
-* [emphasizeRightAngle](#emphasizeRightAngle-ex)
+<PropDisplay name="angle" links={{
+  angle: "#angle-ex",
+  value: "#angle-ex",
+}} />
 
-**Properties**
-* [attributes as properties](#attributesAsProps-ex)
-* [angle, value](#angle-ex)
-
-## Example list
+## Examples
 1. [`<angle>` between two lines](#twoLines-ex)
 2. [`<angle>` between three points](#threePoints-ex)
 3. [`<angle>` specified by user-input](#userInput-ex)
 
 <a id="twoLines-ex"></a>
-### Example: `<angle>` between two lines
+### Example: `<angle>{:html}` between two lines
 ```html {4}
 <graph size="small" xmax="6" ymin="-6">
   <line name="line1">y = 1/2 x + 4</line>
