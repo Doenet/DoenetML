@@ -1,7 +1,56 @@
-# Build an Algebra Quiz
+import { DoenetML} from "../../components/doenet"
 
-1. Step 1 create a setup block with relevant variables
-2. Step 2 build questions
-3. Step 3 add in feedback and hints
-4. Step 4 create a solution
-5. Step 5 test it out
+# DoenetML that doesn't work in Nextra
+
+First, any `<answer>` tag with a full response button
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<p>Enter 2 + 2: <mathInput name="mi"/> </p>
+<answer>
+    <award>
+        <when>$mi = 2 + 2</when>
+    </award>
+</answer>
+</codeEditor>
+`}
+</DoenetML>
+
+
+
+Second, the knowl elements such as aside, hint, etc...
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<aside>Stuff</aside>
+<hint>More stuff</hint>
+</codeEditor>
+`}
+</DoenetML>
+
+Graph #1
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<graph name="g1">
+    <line>y = 2x + 2</line>
+</graph>
+</codeEditor>
+`}
+</DoenetML>
+
+Graph #2
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<graph name="g1">
+    <line>y = -2x + 3</line>
+</graph>
+</codeEditor>
+`}
+</DoenetML>
+
+
