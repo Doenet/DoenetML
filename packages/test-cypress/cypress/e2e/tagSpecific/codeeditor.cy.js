@@ -36,7 +36,7 @@ describe("Code Editor Tag Tests", function () {
 
         cy.log("type text in editor");
         cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type("Hello!", {
-            delay: 0,
+            delay: 10,
         });
 
         cy.get(cesc("#\\/_p1")).should("have.text", "Hello!");
@@ -68,7 +68,7 @@ describe("Code Editor Tag Tests", function () {
         cy.log("type more in editor");
         cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
             "{enter}More here.",
-            { delay: 0 },
+            { delay: 10 },
         );
 
         cy.get(cesc("#\\/_p1")).should("have.text", "Hello!\nMore here.");
@@ -145,7 +145,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "<p>Hello!</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
 
@@ -202,7 +202,7 @@ describe("Code Editor Tag Tests", function () {
             cy.log("type more content");
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "{ctrl+end}{enter}<p><math simplify>1+1</math></p>",
-                { delay: 0 },
+                { delay: 10 },
             );
 
             cy.get(cesc("#\\/_p1")).should(
@@ -335,7 +335,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "<p>Hello!</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
 
@@ -422,7 +422,7 @@ describe("Code Editor Tag Tests", function () {
             cy.log("type more content");
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "{ctrl+end}{enter}<p><math simplify>1+1</math></p>",
-                { delay: 0 },
+                { delay: 10 },
             );
 
             cy.get(cesc("#\\/_p1")).should(
@@ -1263,7 +1263,7 @@ describe("Code Editor Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/ce") + " .cm-content").type("hello", { delay: 0 });
+        cy.get(cesc("#\\/ce") + " .cm-content").type("hello", { delay: 10 });
 
         cy.get(cesc("#\\/piv")).should("have.text", "immediate value: hello");
         cy.get(cesc("#\\/pv")).should("have.text", "value: ");
@@ -1310,7 +1310,7 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/pv2")).should("have.text", "value: Hello!");
 
         cy.get(cesc2("#/ti_input")).type("{ctrl+end}{enter}Selam!", {
-            delay: 0,
+            delay: 10,
         });
         cy.get(cesc2("#/piv2")).should(
             "have.text",
@@ -1337,7 +1337,7 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc("#\\/ce") + " .cm-content").type(
             "{ctrl+end}{enter}Kaixo!",
             {
-                delay: 0,
+                delay: 10,
             },
         );
         cy.get(cesc2("#/piv")).should(
@@ -1409,7 +1409,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "<p>Hello!</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
             cy.get(updateAnchor).click();
@@ -1439,14 +1439,14 @@ describe("Code Editor Tag Tests", function () {
                 cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                     "{command+a}<alert>Ovewritten!</alert>",
                     {
-                        delay: 0,
+                        delay: 10,
                     },
                 );
             } else {
                 cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                     "{control+a}<alert>Ovewritten!</alert>",
                     {
-                        delay: 0,
+                        delay: 10,
                     },
                 );
             }
@@ -1522,7 +1522,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "<p>Hello!</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
 
@@ -1538,7 +1538,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "{ctrl+end}<text name='ti'>$ti</text>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
             // Note: for some reason, have to type {enter} more slowly
@@ -1557,7 +1557,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "{ctrl+end}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}Bye",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
 
@@ -1620,7 +1620,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "<p>Apple</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
             // Note: for some reason, have to type {enter} more slowly
@@ -1637,7 +1637,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor2") + " .cm-content").type(
                 "<p>Banana</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
             // Note: for some reason, have to type {enter} more slowly
@@ -1653,7 +1653,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_codeeditor3") + " .cm-content").type(
                 "<p>Cherry</p>",
                 {
-                    delay: 0,
+                    delay: 10,
                 },
             );
             // Note: for some reason, have to type {enter} more slowly

@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetMLExample } from "../../../components"
 
 # All about Points
 
@@ -82,7 +82,7 @@ Labels are printed in plain text, unless you use `<m>` or `<math>` inside of a `
 ### Style Points
 Earlier, you learned how to use `styleNumber` to distinguish between function graphs. The `styleNumber` attribute can be used with essentially any geometric object inside of a `<graph>` component, including points; when applied to a `<point>` object, `styleNumber` will not only change the color, but also the shape of a point. Here are points rendered with `styleNumber="n"` for $n \in \{1,2, \dots , 6\}$.
 
-<DoenetML>
+<DoenetMLExample>
 {`
 <graph xmin="0" xmax="7" ymin="-1" ymax="1" 
            showNavigation="false" identicalAxisScales
@@ -98,7 +98,7 @@ Earlier, you learned how to use `styleNumber` to distinguish between function gr
 
     </graph>
 `}
-</DoenetML>
+</DoenetMLExample>
 
 Before continuing, try adjusting the `styleNumber` of a point in one of the examples above. Click "update" and make sure the point's style changes.
 
@@ -144,3 +144,4 @@ and then click "update." As you can guess, the `fixed` attribute tells Doenet th
 
 ### Next Steps
 In the next section, we'll move up from points to line segments, rays, and lines. Then we'll learn about so-called "properties" in Doenet, before moving on to more complicated shapes like polygons.
+import { DoenetMLExample } from "../../../components"

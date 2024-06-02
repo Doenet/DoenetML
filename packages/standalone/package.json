@@ -1,10 +1,11 @@
 {
-    "name": "doenet-standalone-test",
+    "name": "@doenet/standalone",
     "type": "module",
     "description": "Standalone renderer for DoenetML suitable for being included in a web page",
-    "version": "0.6.0",
+    "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -21,6 +22,7 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
                 "tsconfig.json"
             ],
             "output": [

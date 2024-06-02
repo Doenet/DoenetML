@@ -6,6 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnStickyGroupDefinitions } from "../utils/constraints";
 
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
@@ -68,6 +69,8 @@ export default class LineSegment extends GraphicalComponent {
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
         );
+
+        Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
 
         stateVariableDefinitions.styleDescription = {
             public: true,
@@ -204,6 +207,226 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.unconstrainedEndpoints = {
+            isLocation: true,
+            isArray: true,
+            numDimensions: 2,
+            entryPrefixes: ["unconstrainedEndpointX", "unconstrainedEndpoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "unconstrainedEndpoint" ? 1 : 0,
+            hasEssential: true,
+            set: convertValueToMathExpression,
+            defaultValueByArrayKey: (arrayKey) =>
+                me.fromAst(arrayKey === "0,0" ? 1 : 0),
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                if (arrayEntryPrefix === "unconstrainedEndpointX") {
+                    // pointX1_2 is the 2nd component of the first point
+                    let indices = varEnding
+                        .split("_")
+                        .map((x) => Number(x) - 1);
+                    if (
+                        indices.length === 2 &&
+                        indices.every((x, i) => Number.isInteger(x) && x >= 0)
+                    ) {
+                        if (arraySize) {
+                            if (indices.every((x, i) => x < arraySize[i])) {
+                                return [String(indices)];
+                            } else {
+                                return [];
+                            }
+                        } else {
+                            // If not given the array size,
+                            // then return the array keys assuming the array is large enough.
+                            // Must do this as it is used to determine potential array entries.
+                            return [String(indices)];
+                        }
+                    } else {
+                        return [];
+                    }
+                } else {
+                    // unconstrainedEndpoint3 is all components of the third point
+
+                    let pointInd = Number(varEnding) - 1;
+                    if (!(Number.isInteger(pointInd) && pointInd >= 0)) {
+                        return [];
+                    }
+
+                    if (!arraySize) {
+                        // If don't have array size, we just need to determine if it is a potential entry.
+                        // Return the first entry assuming array is large enough
+                        return [pointInd + ",0"];
+                    }
+                    if (pointInd < arraySize[0]) {
+                        // array of "pointInd,i", where i=0, ..., arraySize[1]-1
+                        return Array.from(
+                            Array(arraySize[1]),
+                            (_, i) => pointInd + "," + i,
+                        );
+                    } else {
+                        return [];
+                    }
+                }
+            },
+            arrayVarNameFromPropIndex(propIndex, varName) {
+                if (varName === "unconstrainedEndpoints") {
+                    if (propIndex.length === 1) {
+                        return "unconstrainedEndpoint" + propIndex[0];
+                    } else {
+                        // if propIndex has additional entries, ignore them
+                        return `unconstrainedEndpointX${propIndex[0]}_${propIndex[1]}`;
+                    }
+                }
+                if (varName.slice(0, 21) === "unconstrainedEndpoint") {
+                    // could be endpoint or endpointX
+                    let endpointNum = Number(varName.slice(8));
+                    if (Number.isInteger(endpointNum) && endpointNum > 0) {
+                        // if propIndex has additional entries, ignore them
+                        return `unconstrainedEndpointX${endpointNum}_${propIndex[0]}`;
+                    }
+                }
+                return null;
+            },
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [2, dependencyValues.numDimensions];
+            },
+            returnArrayDependenciesByKey({ arrayKeys }) {
+                let dependenciesByKey = {};
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    dependenciesByKey[arrayKey] = {
+                        endpointsAttr: {
+                            dependencyType: "attributeComponent",
+                            attributeName: "endpoints",
+                            variableNames: ["pointX" + varEnding],
+                        },
+                    };
+                }
+                return { dependenciesByKey };
+            },
+            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+                // console.log("array definition of lineSegment endpoints");
+                // console.log(dependencyValuesByKey);
+                // console.log(arrayKeys);
+
+                let unconstrainedEndpoints = {};
+                let essentialUnconstrainedEndpoints = {};
+
+                for (let arrayKey of arrayKeys) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    if (
+                        dependencyValuesByKey[arrayKey].endpointsAttr !==
+                            null &&
+                        dependencyValuesByKey[arrayKey].endpointsAttr
+                            .stateValues["pointX" + varEnding]
+                    ) {
+                        unconstrainedEndpoints[arrayKey] =
+                            dependencyValuesByKey[
+                                arrayKey
+                            ].endpointsAttr.stateValues["pointX" + varEnding];
+                    } else {
+                        essentialUnconstrainedEndpoints[arrayKey] = true;
+                    }
+                }
+
+                let result = {};
+
+                if (Object.keys(unconstrainedEndpoints).length > 0) {
+                    result.setValue = { unconstrainedEndpoints };
+                }
+                if (Object.keys(essentialUnconstrainedEndpoints).length > 0) {
+                    result.useEssentialOrDefaultValue = {
+                        unconstrainedEndpoints: essentialUnconstrainedEndpoints,
+                    };
+                }
+
+                return result;
+            },
+            async inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                dependencyValuesByKey,
+                dependencyNamesByKey,
+                initialChange,
+                stateValues,
+            }) {
+                // console.log(`inverse array definition of unconstrainedEndpoints of lineSegment`);
+                // console.log(desiredStateVariableValues)
+                // console.log(JSON.parse(JSON.stringify(stateValues)))
+                // console.log(dependencyValuesByKey);
+
+                let instructions = [];
+
+                for (let arrayKey in desiredStateVariableValues.unconstrainedEndpoints) {
+                    let [pointInd, dim] = arrayKey.split(",");
+                    let varEnding =
+                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                    if (
+                        dependencyValuesByKey[arrayKey].endpointsAttr !==
+                            null &&
+                        dependencyValuesByKey[arrayKey].endpointsAttr
+                            .stateValues["pointX" + varEnding]
+                    ) {
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey].endpointsAttr,
+                            desiredValue:
+                                desiredStateVariableValues
+                                    .unconstrainedEndpoints[arrayKey],
+                            childIndex: 0,
+                            variableIndex: 0,
+                        });
+                    } else {
+                        instructions.push({
+                            setEssentialValue: "unconstrainedEndpoints",
+                            value: {
+                                [arrayKey]:
+                                    desiredStateVariableValues
+                                        .unconstrainedEndpoints[arrayKey],
+                            },
+                        });
+                    }
+                }
+
+                return {
+                    success: true,
+                    instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.haveConstrainedEndpoints = {
+            returnDependencies: () => ({
+                inStickyGroup: {
+                    dependencyType: "stateVariable",
+                    variableName: "inStickyGroup",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        haveConstrainedEndpoints:
+                            dependencyValues.inStickyGroup,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.endpoints = {
             public: true,
             isLocation: true,
@@ -319,74 +542,83 @@ export default class LineSegment extends GraphicalComponent {
             returnArraySize({ dependencyValues }) {
                 return [2, dependencyValues.numDimensions];
             },
-            returnArrayDependenciesByKey({ arrayKeys }) {
+            stateVariablesDeterminingDependencies: ["haveConstrainedEndpoints"],
+            returnArrayDependenciesByKey({ stateValues, arrayKeys }) {
+                let globalDependencies = {
+                    haveConstrainedEndpoints: {
+                        dependencyType: "stateVariable",
+                        variableName: "haveConstrainedEndpoints",
+                    },
+                };
                 let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
-
-                    dependenciesByKey[arrayKey] = {
-                        endpointsAttr: {
-                            dependencyType: "attributeComponent",
-                            attributeName: "endpoints",
-                            variableNames: ["pointX" + varEnding],
-                        },
+                if (stateValues.haveConstrainedEndpoints) {
+                    globalDependencies.unconstrainedEndpoints = {
+                        dependencyType: "stateVariable",
+                        variableName: "unconstrainedEndpoints",
                     };
+                } else {
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                        dependenciesByKey[arrayKey] = {
+                            unconstrainedEndpoint: {
+                                dependencyType: "stateVariable",
+                                variableName:
+                                    "unconstrainedEndpointX" + varEnding,
+                            },
+                        };
+                    }
                 }
-                return { dependenciesByKey };
+                return { globalDependencies, dependenciesByKey };
             },
             arrayDefinitionByKey({
+                globalDependencyValues,
                 dependencyValuesByKey,
                 arrayKeys,
                 arraySize,
             }) {
-                // console.log('array definition of linesegment endpoints');
-                // console.log(dependencyValuesByKey)
+                // console.log("array definition of lineSegment endpoints");
+                // console.log(dependencyValuesByKey);
+                // console.log(globalDependencyValues);
                 // console.log(arrayKeys);
 
                 let endpoints = {};
-                let essentialEndpoints = {};
 
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                if (globalDependencyValues.haveConstrainedEndpoints) {
+                    let constrainedEndpoints =
+                        globalDependencyValues.unconstrainedEndpoints;
 
-                    if (
-                        dependencyValuesByKey[arrayKey].endpointsAttr !==
-                            null &&
-                        dependencyValuesByKey[arrayKey].endpointsAttr
-                            .stateValues["pointX" + varEnding]
-                    ) {
+                    // TODO: add edge or endpoint constraints?
+
+                    for (let pointInd = 0; pointInd < 2; pointInd++) {
+                        for (let dim = 0; dim < arraySize[1]; dim++) {
+                            let arrayKey = pointInd + "," + dim;
+                            endpoints[arrayKey] =
+                                constrainedEndpoints[pointInd][dim];
+                        }
+                    }
+                } else {
+                    for (let arrayKey of arrayKeys) {
                         endpoints[arrayKey] =
                             dependencyValuesByKey[
                                 arrayKey
-                            ].endpointsAttr.stateValues["pointX" + varEnding];
-                    } else {
-                        essentialEndpoints[arrayKey] = true;
+                            ].unconstrainedEndpoint;
                     }
                 }
 
-                let result = {};
-
-                if (Object.keys(endpoints).length > 0) {
-                    result.setValue = { endpoints };
-                }
-                if (Object.keys(essentialEndpoints).length > 0) {
-                    result.useEssentialOrDefaultValue = {
-                        endpoints: essentialEndpoints,
-                    };
-                }
-
-                return result;
+                return { setValue: { endpoints } };
             },
             async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
+                globalDependencyValues,
                 dependencyValuesByKey,
                 dependencyNamesByKey,
                 initialChange,
                 stateValues,
+                workspace,
+                arraySize,
             }) {
                 // console.log(`inverse array definition of endpoints of linesegment`);
                 // console.log(desiredStateVariableValues)
@@ -395,38 +627,100 @@ export default class LineSegment extends GraphicalComponent {
 
                 let instructions = [];
 
-                for (let arrayKey in desiredStateVariableValues.endpoints) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                if (globalDependencyValues.haveConstrainedEndpoints) {
+                    let movedJustOneEndpoint = false;
+                    let endpointIndMoved;
 
-                    if (
-                        dependencyValuesByKey[arrayKey].endpointsAttr !==
-                            null &&
-                        dependencyValuesByKey[arrayKey].endpointsAttr
-                            .stateValues["pointX" + varEnding]
+                    // We have to accumulate changed endpoints in workspace
+                    // as in some cases (such as when moving via an attached point)
+                    // the instructions for the components come in separately
+                    Object.assign(
+                        workspace,
+                        desiredStateVariableValues.endpoints,
+                    );
+
+                    let nMoved = Object.keys(workspace).length;
+                    if (nMoved === 1) {
+                        movedJustOneEndpoint = true;
+                        endpointIndMoved = Number(
+                            Object.keys(workspace)[0].split(",")[0],
+                        );
+                    } else if (nMoved === 2) {
+                        let pointInd1 = Object.keys(workspace)[0].split(",")[0];
+                        let pointInd2 = Object.keys(workspace)[1].split(",")[0];
+                        if (pointInd1 === pointInd2) {
+                            movedJustOneEndpoint = true;
+                            endpointIndMoved = Number(pointInd1);
+                        }
+                    }
+
+                    // go through the constraints so that will set the endpoints
+                    // to their constrained values
+
+                    let endpoints = await stateValues.endpoints;
+                    let desired_endpoints = [];
+
+                    for (
+                        let pointInd = 0;
+                        pointInd < arraySize[0];
+                        pointInd++
                     ) {
+                        let desired_endpoint = [];
+
+                        let original_endpoint = endpoints[pointInd];
+
+                        for (let dim = 0; dim < arraySize[1]; dim++) {
+                            let arrayKey = pointInd + "," + dim;
+                            if (arrayKey in workspace) {
+                                desired_endpoint.push(workspace[arrayKey]);
+                            } else {
+                                desired_endpoint.push(original_endpoint[dim]);
+                            }
+                        }
+                        desired_endpoints.push(desired_endpoint);
+                    }
+
+                    // If moved just one endpoint, allow the shape to distort due to constraints and the segment to rotate.
+                    // Otherwise, just shift the line segment due to the constraints
+                    let enforceRigid = !movedJustOneEndpoint;
+                    let allowRotation = movedJustOneEndpoint;
+
+                    if (await stateValues.inStickyGroup) {
+                        let stickyObjectIndex =
+                            await stateValues.stickyObjectIndex;
+                        let stickyVerticesConstraintFunction =
+                            await stateValues.stickyVerticesConstraintFunction;
+
+                        desired_endpoints = stickyVerticesConstraintFunction(
+                            {
+                                unconstrainedVertices: desired_endpoints,
+                                closed: false,
+                                enforceRigid,
+                                allowRotation,
+                                shrinkThreshold: false,
+                                vertexIndMoved: endpointIndMoved,
+                            },
+                            { objectInd: stickyObjectIndex },
+                        );
+                    }
+                    instructions.push({
+                        setDependency: "unconstrainedEndpoints",
+                        desiredValue: desired_endpoints,
+                    });
+                } else {
+                    // for non-constrained case, we just move the unconstrained endpoints
+                    // according to how the endpoints were moved
+
+                    for (let arrayKey in desiredStateVariableValues.endpoints) {
                         instructions.push({
                             setDependency:
-                                dependencyNamesByKey[arrayKey].endpointsAttr,
+                                dependencyNamesByKey[arrayKey]
+                                    .unconstrainedEndpoint,
                             desiredValue:
                                 desiredStateVariableValues.endpoints[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
-                    } else {
-                        instructions.push({
-                            setEssentialValue: "endpoints",
-                            value: {
-                                [arrayKey]:
-                                    desiredStateVariableValues.endpoints[
-                                        arrayKey
-                                    ],
-                            },
                         });
                     }
                 }
-
                 return {
                     success: true,
                     instructions,
@@ -743,6 +1037,73 @@ export default class LineSegment extends GraphicalComponent {
                                     x2: A2 + t * BA2 * yscale,
                                 };
                             }
+
+                            if (variables.x3 !== undefined) {
+                                result.x3 = 0;
+                            }
+
+                            return result;
+                        },
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.nearestPointAsLine = {
+            returnDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+                numericalEndpoints: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalEndpoints",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let A1 = dependencyValues.numericalEndpoints[0][0];
+                let A2 = dependencyValues.numericalEndpoints[0][1];
+                let B1 = dependencyValues.numericalEndpoints[1][0];
+                let B2 = dependencyValues.numericalEndpoints[1][1];
+
+                let haveConstants =
+                    Number.isFinite(A1) &&
+                    Number.isFinite(A2) &&
+                    Number.isFinite(B1) &&
+                    Number.isFinite(B2);
+
+                // only implement for
+                // - 2D
+                // - constant endpoints and
+                // - non-degenerate parameters
+                let skip =
+                    dependencyValues.numDimensions !== 2 ||
+                    !haveConstants ||
+                    (B1 === A1 && B2 === A2);
+
+                return {
+                    setValue: {
+                        nearestPointAsLine: function ({ variables, scales }) {
+                            if (skip) {
+                                return {};
+                            }
+
+                            let xscale = scales[0];
+                            let yscale = scales[1];
+
+                            let BA1 = (B1 - A1) / xscale;
+                            let BA2 = (B2 - A2) / yscale;
+                            let denom = BA1 * BA1 + BA2 * BA2;
+
+                            let t =
+                                (((variables.x1 - A1) / xscale) * BA1 +
+                                    ((variables.x2 - A2) / yscale) * BA2) /
+                                denom;
+
+                            let result = {
+                                x1: A1 + t * BA1 * xscale,
+                                x2: A2 + t * BA2 * yscale,
+                            };
 
                             if (variables.x3 !== undefined) {
                                 result.x3 = 0;

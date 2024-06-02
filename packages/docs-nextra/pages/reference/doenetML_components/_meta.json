@@ -29,7 +29,7 @@
         "display": "hidden"
     },
     "boolean": {
-        "display": "visible"
+        "display": "hidden"
     },
     "mathInput": {
         "display": "hidden"

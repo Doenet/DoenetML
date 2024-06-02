@@ -1,4 +1,5 @@
 import { DoenetML} from "../../../components/doenet"
+import { AttrDisplay, PropDisplay } from "../../../components"
 
 # `<angle>`
 
@@ -10,6 +11,10 @@ A geometric angle may be defined by specifying three reference points, or two in
 When reference lines or points are used to specify the `<angle>`, two possiblities usually arise: an angle greater than 180 degrees, and an angle less than 180 degrees.  By default, the angle less than 180 degrees is rendered, but the reflex angle may be selected using the `chooseReflexAngle` attribute.
 
 ## Attributes and Properties
+
+<AttrDisplay name="angle" />
+<PropDisplay name="angle" />
+
 **Attributes**
 * [radius](#radius-ex)
 * [chooseReflexAngle](#chooseReflexAngle-ex)
@@ -156,10 +161,3 @@ The attributes listed above are also accessible as properties. Test code [here](
 Both the `angle` and `value` properties return the value of the angle in default radians. Test code [here](#test-code).
 
 <a id="test-code"></a>
-### Test Code
-<DoenetML>
-{`
-<codeEditor showResults resultsLocation="bottom" height="700">
-</codeEditor>
-`}
-</DoenetML>
