@@ -463,7 +463,14 @@ describe("Regular Polygon Tag Tests 3", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            expect(stateVariables["/p"].stateValues.vertices[0]).eqls([4, 7]);
+            expect(stateVariables["/p"].stateValues.vertices[0][0]).closeTo(
+                4,
+                1e-12,
+            );
+            expect(stateVariables["/p"].stateValues.vertices[0][1]).closeTo(
+                7,
+                1e-12,
+            );
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
         });
@@ -502,40 +509,50 @@ describe("Regular Polygon Tag Tests 3", function () {
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
         });
 
+        let vertices;
         cy.log("can move all vertices");
         cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            vertices = stateVariables["/p"].stateValues.vertices;
+
+            let dx = 4;
+            let dy = -5;
+            vertices = vertices.map((vertex) => [
+                vertex[0] + dx,
+                vertex[1] + dy,
+            ]);
             await win.callAction1({
                 actionName: "movePolygon",
                 componentName: "/p",
                 args: {
-                    pointCoords: [
-                        [3, 8],
-                        [5, 8],
-                        [4, 8 + Math.sqrt(3)],
-                    ],
+                    pointCoords: vertices,
                 },
             });
         });
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(3,8)",
+            "(1,−3)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
         cy.get(cesc("#\\/vd2")).should("have.text", "true");
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(3,8)");
-        cy.get(cesc("#\\/pvert") + " .mjx-mrow")
             .eq(2)
-            .should("have.text", "(5,8)");
+            .should("have.text", "(1,−3)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(true);
+            for (let vertInd = 0; vertInd < 3; vertInd++) {
+                for (let dim = 0; dim < 2; dim++) {
+                    expect(
+                        stateVariables["/p"].stateValues.vertices[vertInd][dim],
+                    ).closeTo(vertices[vertInd][dim], 1e-12);
+                }
+            }
         });
 
         cy.log("polygon but not vertices draggable");
@@ -562,11 +579,8 @@ describe("Regular Polygon Tag Tests 3", function () {
         cy.get(cesc("#\\/vd2")).should("have.text", "false");
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(3,8)");
-        cy.get(cesc("#\\/pvert") + " .mjx-mrow")
             .eq(2)
-            .should("have.text", "(5,8)");
+            .should("have.text", "(1,−3)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -574,37 +588,43 @@ describe("Regular Polygon Tag Tests 3", function () {
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
                 false,
             );
+            for (let vertInd = 0; vertInd < 3; vertInd++) {
+                for (let dim = 0; dim < 2; dim++) {
+                    expect(
+                        stateVariables["/p"].stateValues.vertices[vertInd][dim],
+                    ).closeTo(vertices[vertInd][dim], 1e-12);
+                }
+            }
         });
 
         cy.log("can move all vertices");
         cy.window().then(async (win) => {
+            let dx = -8;
+            let dy = 4;
+            vertices = vertices.map((vertex) => [
+                vertex[0] + dx,
+                vertex[1] + dy,
+            ]);
             await win.callAction1({
                 actionName: "movePolygon",
                 componentName: "/p",
                 args: {
-                    pointCoords: [
-                        [-4, 1],
-                        [-4, 5],
-                        [-4 - 2 * Math.sqrt(3), 3],
-                    ],
+                    pointCoords: vertices,
                 },
             });
         });
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,1)",
+            "(−7,1)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
         cy.get(cesc("#\\/vd2")).should("have.text", "false");
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(−4,1)");
-        cy.get(cesc("#\\/pvert") + " .mjx-mrow")
             .eq(2)
-            .should("have.text", "(−4,5)");
+            .should("have.text", "(−7,1)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -612,6 +632,13 @@ describe("Regular Polygon Tag Tests 3", function () {
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
                 false,
             );
+            for (let vertInd = 0; vertInd < 3; vertInd++) {
+                for (let dim = 0; dim < 2; dim++) {
+                    expect(
+                        stateVariables["/p"].stateValues.vertices[vertInd][dim],
+                    ).closeTo(vertices[vertInd][dim], 1e-12);
+                }
+            }
         });
     });
 
@@ -678,6 +705,69 @@ describe("Regular Polygon Tag Tests 3", function () {
             .should("have.text", "(0,1)");
     });
 
+    it("two vertices, second vertex constrained to grid", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <graph>
+    <point name="P">(1,3)
+      <constraints>
+         <constrainToGrid dx="3" dy="2" />
+      </constraints>
+    </point>
+    <point name="Q">(6,5)</point>
+    <regularPolygon numSides="5" vertices="$Q $P" name="p" />
+  </graph>
+  <p name="pvert">First two vertices: $p.vertex1{assignNames="v1"} $p.vertex2{assignNames="v2" displaySmallAsZero}</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/v1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(6,5)");
+        cy.get(cesc2("#/v2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(0,4)");
+
+        cy.log("move pentagon");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let numericalVertices =
+                stateVariables["/p"].stateValues.numericalVertices;
+
+            let dx = -7;
+            let dy = -5;
+
+            let pointCoords = numericalVertices.map((v) => [
+                v[0] + dx,
+                v[1] + dy,
+            ]);
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/p",
+                args: {
+                    pointCoords,
+                },
+            });
+        });
+
+        cy.get(cesc2("#/v2") + " .mjx-mrow").should("contain.text", "(−6,0)");
+
+        cy.get(cesc2("#/v1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(0,1)");
+        cy.get(cesc2("#/v2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−6,0)");
+    });
+
     it("center and vertex, vertex constrained to grid", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -692,7 +782,7 @@ describe("Regular Polygon Tag Tests 3", function () {
     <point name="Q">(6,5)</point>
     <regularPolygon numSides="5" vertices="$P" center="$Q" name="p" />
   </graph>
-  <p name="pvert">First two vertex: $p.vertex1{assignNames="v1"}</p>
+  <p name="pvert">First vertex: $p.vertex1{assignNames="v1"}</p>
   <p name="pcenter">Center: $p.center{assignNames="c"}</p>
   `,
                 },

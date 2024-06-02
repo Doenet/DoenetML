@@ -173,7 +173,16 @@ export default function TestViewer() {
                     readOnly,
                     showFeedback,
                     showHints,
+                    solutionDisplayMode: "button",
+                    allowLoadState: false,
+                    allowSaveState: false,
+                    allowLocalState: false,
+                    allowSaveSubmissions: true,
+                    allowSaveEvents: false,
+                    autoSubmit: false,
                 }}
+                activityId=""
+                apiURLs={{ postMessages: true }}
                 paginate={paginate}
                 addVirtualKeyboard={true}
             />

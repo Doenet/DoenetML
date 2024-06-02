@@ -3883,6 +3883,507 @@ describe("Polygon Tag Tests", function () {
         });
     });
 
+    it("constrain to interior of polygon", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph>
+    <polygon vertices=" (3,5) (-4,-1) (5,2)" filled />
+    <point x="7" y="8">
+      <constraints>
+        <constrainToInterior>$_polygon1</constrainToInterior>
+      </constraints>
+    </point>
+  </graph>
+  $_point1{name="p1" displayDigits="8"}
+  $_polygon1.vertices{assignNames="v1 v2 v3" displayDigits="8"}
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let x1 = 3,
+            x2 = -4,
+            x3 = 5;
+        let y1 = 5,
+            y2 = -1,
+            y3 = 2;
+
+        cy.log("point originally constrained");
+
+        cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+            "contain.text",
+            `(${x1},${y1})`,
+        );
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/_point1"].stateValues.coords).eqls([
+                "vector",
+                x1,
+                y1,
+            ]);
+        });
+
+        cy.log("move point near segment 1, outside polygon");
+        cy.window().then(async (win) => {
+            let x = 1;
+            let mseg1 = (y2 - y1) / (x2 - x1);
+            let y = mseg1 * (x - x1) + y1 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(1.14`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
+            });
+        });
+
+        cy.log("move point near segment 2, but inside polygon");
+        cy.window().then(async (win) => {
+            let x = 3;
+            let y = 1.5;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,1.5)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(3, 1e-12);
+                expect(py).closeTo(1.5, 1e-12);
+            });
+        });
+
+        cy.log(
+            "move point near segment between first and last vertices, but outside polygon",
+        );
+        cy.window().then(async (win) => {
+            let x = 4;
+            let mseg3 = (y1 - y3) / (x1 - x3);
+            let y = mseg3 * (x - x3) + y3 + 0.2;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3.90`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
+            });
+        });
+
+        cy.log("move point just past first vertex");
+        cy.window().then(async (win) => {
+            let x = x1 + 0.2;
+            let y = y1 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,5)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x1, 1e-6);
+                expect(py).closeTo(y1, 1e-6);
+            });
+        });
+
+        cy.log(
+            "point along extension of first segment constrained to endpoint",
+        );
+        cy.window().then(async (win) => {
+            let x = 4;
+            let mseg1 = (y2 - y1) / (x2 - x1);
+            let y = mseg1 * (x - x1) + y1 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x1, 1e-6);
+                expect(py).closeTo(y1, 1e-6);
+            });
+        });
+
+        cy.window().then(async (win) => {
+            let x = -5;
+            let mseg1 = (y2 - y1) / (x2 - x1);
+            let y = mseg1 * (x - x1) + y1 - 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x2, 1e-6);
+                expect(py).closeTo(y2, 1e-6);
+            });
+        });
+
+        cy.log("move point just past second vertex");
+        cy.window().then(async (win) => {
+            let x = x2 - 0.2;
+            let y = y2 - 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x2, 1e-6);
+                expect(py).closeTo(y2, 1e-6);
+            });
+        });
+
+        cy.log(
+            "point along extension of second segment constrained to endpoint",
+        );
+        cy.window().then(async (win) => {
+            let x = 6;
+            let mseg2 = (y2 - y3) / (x2 - x3);
+            let y = mseg2 * (x - x2) + y2 + 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x3, 1e-6);
+                expect(py).closeTo(y3, 1e-6);
+            });
+        });
+
+        cy.log("repeat for other side of second segment");
+        let xsave, ysave;
+        cy.window().then(async (win) => {
+            let x = -5;
+            let mseg2 = (y2 - y3) / (x2 - x3);
+            let y = mseg2 * (x - x2) + y2 - 0.3;
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/_point1`,
+                args: { x, y },
+            });
+
+            cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                expect(px).closeTo(x2, 1e-6);
+                expect(py).closeTo(y2, 1e-6);
+            });
+
+            // save point coordinates, as is last time move point
+            xsave = x2;
+            ysave = y2;
+        });
+
+        cy.log("move polygon so point constrained to first segment");
+        cy.window().then(async (win) => {
+            let moveX = -3;
+            let moveY = -5;
+
+            x1 += moveX;
+            x2 += moveX;
+            x3 += moveX;
+            y1 += moveY;
+            y2 += moveY;
+            y3 += moveY;
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/_polygon1",
+                args: {
+                    pointCoords: [
+                        [x1, y1],
+                        [x2, y2],
+                        [x3, y3],
+                    ],
+                },
+            });
+
+            cy.get(cesc("#\\/v1") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                let mseg1 = (y2 - y1) / (x2 - x1);
+
+                expect(py).closeTo(mseg1 * (px - x1) + y1, 1e-6);
+            });
+        });
+
+        cy.log("move second vertex so point constrained to second segment");
+        cy.window().then(async (win) => {
+            let moveX = -1;
+            let moveY = 8;
+
+            x2 += moveX;
+            y2 += moveY;
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/_polygon1",
+                args: {
+                    pointCoords: { 1: [x2, y2] },
+                },
+            });
+
+            cy.get(cesc("#\\/v2") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                let mseg2 = (y2 - y3) / (x2 - x3);
+
+                expect(py).closeTo(mseg2 * (px - x2) + y2, 1e-6);
+            });
+        });
+
+        cy.log("move third vertex so point is in interior");
+        cy.window().then(async (win) => {
+            x3 = -4;
+            y3 = -6;
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/_polygon1",
+                args: {
+                    pointCoords: { 2: [x3, y3] },
+                },
+            });
+
+            cy.get(cesc("#\\/v3") + " .mjx-mrow").should(
+                "contain.text",
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/_point1"].stateValues.xs[0];
+                let py = stateVariables["/_point1"].stateValues.xs[1];
+
+                // point moves to coordinates where last moved the point
+                expect(px).closeTo(xsave, 1e-6);
+                expect(py).closeTo(ysave, 1e-6);
+            });
+        });
+    });
+
+    it("constrain to interior of non-simple polygon", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph>
+    <polygon vertices="(2,0) (8,0) (8,8) (0,8) (0,4) (6,4) (6,2) (4,2) (4,6) (2,6)" filled name="pg" />
+    <point x="7" y="6" name="P">
+      <constraints>
+        <constrainToInterior>$pg</constrainToInterior>
+      </constraints>
+    </point>
+  </graph>
+  $P{name="p1" displayDigits="8"}
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc2("#/_text1")).should("have.text", "a"); //wait for page to load
+
+        cy.log("point originally in interior");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow").should("contain.text", `(7,6)`);
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let px = stateVariables["/P"].stateValues.xs[0];
+            let py = stateVariables["/P"].stateValues.xs[1];
+            expect(px).closeTo(7, 1e-12);
+            expect(py).closeTo(6, 1e-12);
+        });
+
+        cy.log("move point above polygon");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/P`,
+                args: { x: 3, y: 10 },
+            });
+
+            cy.get(cesc2("#/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,8)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                let px = stateVariables["/P"].stateValues.xs[0];
+                let py = stateVariables["/P"].stateValues.xs[1];
+                expect(px).closeTo(3, 1e-12);
+                expect(py).closeTo(8, 1e-12);
+            });
+        });
+
+        cy.log("move point inside doubly wound region");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/P`,
+                args: { x: 3, y: 5 },
+            });
+
+            cy.get(cesc2("#/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(3,5)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/P"].stateValues.xs[0];
+                let py = stateVariables["/P"].stateValues.xs[1];
+                expect(px).closeTo(3, 1e-12);
+                expect(py).closeTo(5, 1e-12);
+            });
+        });
+
+        cy.log("attempt to move point inside zero wound region");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: `/P`,
+                args: { x: 4.9, y: 3 },
+            });
+
+            cy.get(cesc2("#/p1") + " .mjx-mrow").should(
+                "contain.text",
+                `(4,3)`,
+            );
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let px = stateVariables["/P"].stateValues.xs[0];
+                let py = stateVariables["/P"].stateValues.xs[1];
+                expect(px).closeTo(4, 1e-12);
+                expect(py).closeTo(3, 1e-12);
+            });
+        });
+    });
+
     it("fixed polygon", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -5457,6 +5958,2438 @@ describe("Polygon Tag Tests", function () {
                 "have.text",
                 `${Math.round(perimeter * 100) / 100}`,
             );
+        });
+    });
+
+    it("Rigid polygon", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees counterclockwise around centroid
+            // (shrinking by 1/2, but that will be ignored)
+            let requested_vertex_1 = [
+                -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+                0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -(v[1] - centroid[1]) + centroid[0],
+                v[0] - centroid[0] + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move double copied individual vertex, getting rotation");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 180 degrees around centroid
+            // (doubling length, but that will be ignored)
+            let requested_vertex_2 = [
+                -2 * (vertices[2][0] - centroid[0]) + centroid[0],
+                -2 * (vertices[2][1] - centroid[1]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -(v[0] - centroid[0]) + centroid[0],
+                -(v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex gets rotation");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees clockwise around centroid
+            // (shrinking by 1/4, but that will be ignored)
+            let requested_vertex_3 = [
+                0.25 * (vertices[3][1] - centroid[1]) + centroid[0],
+                -0.25 * (vertices[3][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                v[1] - centroid[1] + centroid[0],
+                -(v[0] - centroid[0]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    //     it("Rigid polygon, vertex constraint", () => {
+    //         cy.window().then(async (win) => {
+    //             win.postMessage(
+    //                 {
+    //                     doenetML: `
+    //   <text>a</text>
+    //   <graph name="g1" newNamespace>
+    //     <point>(3,7)</point>
+    //     <point>(-4,-1)</point>
+    //     <point>(8,2)</point>
+    //     <point>(-3,4)</point>
+
+    //     <point styleNumber="2" name="a1">(1,9)</point>
+    //     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid >
+    //         <vertexConstraints>
+    //             <attractTo threshold="2">$a1</attractTo>
+    //         </vertexConstraints>
+    //     </polygon>
+    //   </graph>
+    //   <graph name="g2" newNamespace>
+    //     $(../g1/pg{name="pg"})
+    //   </graph>
+    //   $g2{name="g3"}
+    //   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+    //   `,
+    //                 },
+    //                 "*",
+    //             );
+    //         });
+    //         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+    //         let vertices = [
+    //             [3, 7],
+    //             [-4, -1],
+    //             [8, 2],
+    //             [-3, 4],
+    //         ];
+
+    //         let centroid = vertices.reduce(
+    //             (a, c) => [a[0] + c[0], a[1] + c[1]],
+    //             [0, 0],
+    //         );
+    //         centroid[0] /= 4;
+    //         centroid[1] /= 4;
+
+    //         testPolygonCopiedTwice({ vertices });
+
+    //         cy.log("move individual vertex rotates, attracts to point");
+    //         cy.window().then(async (win) => {
+    //             // rotate by 90 degrees counterclockwise around centroid
+    //             // (shrinking by 1/2, but that will be ignored)
+    //             let requested_vertex_1 = [
+    //                 -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+    //                 0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 -(v[1] - centroid[1]) + centroid[0],
+    //                 v[0] - centroid[0] + centroid[1],
+    //             ]);
+    //             // since attracted to point, moves down one and to the left
+    //             vertices = vertices.map((v) => [v[0] - 1, v[1] - 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("rotating further so no attraction preserves old centroid");
+    //         cy.window().then(async (win) => {
+    //             // location of vertices if weren't attracted to point, moves up one and to the right
+    //             vertices = vertices.map((v) => [v[0] + 1, v[1] + 1]);
+
+    //             // rotate by another 90 degrees counterclockwise around centroid
+    //             // (doubling but that will be ignored)
+    //             let requested_vertex_1 = [
+    //                 -2 * (vertices[1][1] - centroid[1]) + centroid[0],
+    //                 2 * (vertices[1][0] - centroid[0]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 -(v[1] - centroid[1]) + centroid[0],
+    //                 v[0] - centroid[0] + centroid[1],
+    //             ]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log(
+    //             "move copied polygon up and to the left chooses minimum moved and gets attracted",
+    //         );
+    //         cy.window().then(async (win) => {
+    //             let moveX = -4;
+    //             let moveY = 1;
+
+    //             // add extra movement to requested vertices, which will be ignored
+    //             let requested_vertices = [];
+    //             for (let i = 0; i < vertices.length; i++) {
+    //                 vertices[i][0] = vertices[i][0] + moveX;
+    //                 vertices[i][1] = vertices[i][1] + moveY;
+    //                 requested_vertices.push([
+    //                     vertices[i][0] - i,
+    //                     vertices[i][1] + 2 * i,
+    //                 ]);
+    //             }
+
+    //             // since attracted to point, moves up one and to the left
+    //             vertices = vertices.map((v) => [v[0] - 1, v[1] + 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g2/pg",
+    //                 args: {
+    //                     pointCoords: requested_vertices,
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log(
+    //             "move double copied individual vertex, getting rotation around new centroid",
+    //         );
+    //         cy.window().then(async (win) => {
+    //             let centroid = vertices.reduce(
+    //                 (a, c) => [a[0] + c[0], a[1] + c[1]],
+    //                 [0, 0],
+    //             );
+    //             centroid[0] /= 4;
+    //             centroid[1] /= 4;
+
+    //             // rotate by 180 degrees around centroid
+    //             // (doubling length, but that will be ignored)
+    //             let requested_vertex_2 = [
+    //                 -2 * (vertices[2][0] - centroid[0]) + centroid[0],
+    //                 -2 * (vertices[2][1] - centroid[1]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 -(v[0] - centroid[0]) + centroid[0],
+    //                 -(v[1] - centroid[1]) + centroid[1],
+    //             ]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g3/pg",
+    //                 args: {
+    //                     pointCoords: { 2: requested_vertex_2 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+    //     });
+
+    //     it("Rigid polygon, three vertex constraints", () => {
+    //         cy.window().then(async (win) => {
+    //             win.postMessage(
+    //                 {
+    //                     doenetML: `
+    //   <text>a</text>
+    //   <graph name="g1" newNamespace>
+    //     <point>(3,7)</point>
+    //     <point>(-4,-1)</point>
+    //     <point>(8,2)</point>
+    //     <point>(-3,4)</point>
+
+    //     <point styleNumber="2" name="a1">(1,9)</point>
+    //     <point styleNumber="2" name="a2">(5,-1)</point>
+    //     <point styleNumber="2" name="a3">(-9,5)</point>
+    //     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid >
+    //     <vertexConstraints>
+    //       <attractTo threshold="2">$a1$a2$a3</attractTo>
+    //     </vertexConstraints>
+    //     </polygon>
+    //   </graph>
+    //   <graph name="g2" newNamespace>
+    //     $(../g1/pg{name="pg"})
+    //   </graph>
+    //   $g2{name="g3"}
+    //   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+    //   `,
+    //                 },
+    //                 "*",
+    //             );
+    //         });
+    //         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+    //         let vertices = [
+    //             [3, 7],
+    //             [-4, -1],
+    //             [8, 2],
+    //             [-3, 4],
+    //         ];
+
+    //         let centroid = vertices.reduce(
+    //             (a, c) => [a[0] + c[0], a[1] + c[1]],
+    //             [0, 0],
+    //         );
+    //         centroid[0] /= 4;
+    //         centroid[1] /= 4;
+
+    //         testPolygonCopiedTwice({ vertices });
+
+    //         cy.log("move individual vertex rotates, attracts to closest point");
+    //         cy.window().then(async (win) => {
+    //             // rotate by 90 degrees counterclockwise around centroid
+    //             // (shrinking by 1/2, but that will be ignored)
+    //             let requested_vertex_1 = [
+    //                 -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+    //                 0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 -(v[1] - centroid[1]) + centroid[0],
+    //                 v[0] - centroid[0] + centroid[1],
+    //             ]);
+    //             // since attracted to closest point (5,-2), moves up one
+    //             vertices = vertices.map((v) => [v[0], v[1] + 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("rotating further so no attraction preserves old centroid");
+    //         cy.window().then(async (win) => {
+    //             // location of vertices if weren't attracted to point, moves down one
+    //             vertices = vertices.map((v) => [v[0], v[1] - 1]);
+
+    //             // rotate by another 90 degrees counterclockwise around centroid
+    //             // (doubling but that will be ignored)
+    //             let requested_vertex_1 = [
+    //                 -2 * (vertices[1][1] - centroid[1]) + centroid[0],
+    //                 2 * (vertices[1][0] - centroid[0]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 -(v[1] - centroid[1]) + centroid[0],
+    //                 v[0] - centroid[0] + centroid[1],
+    //             ]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log(
+    //             "move copied polygon up and to the left chooses minimum moved and gets attracted",
+    //         );
+    //         cy.window().then(async (win) => {
+    //             let moveX = -4;
+    //             let moveY = 1;
+
+    //             // add extra movement to requested vertices, which will be ignored
+    //             let requested_vertices = [];
+    //             for (let i = 0; i < vertices.length; i++) {
+    //                 vertices[i][0] = vertices[i][0] + moveX;
+    //                 vertices[i][1] = vertices[i][1] + moveY;
+    //                 requested_vertices.push([
+    //                     vertices[i][0] - i,
+    //                     vertices[i][1] + 2 * i,
+    //                 ]);
+    //             }
+
+    //             // since attracted to point (-9,5), moves one to the right
+    //             vertices = vertices.map((v) => [v[0] + 1, v[1]]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g2/pg",
+    //                 args: {
+    //                     pointCoords: requested_vertices,
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log(
+    //             "move double copied individual vertex, getting rotation around new centroid, then attracted to point",
+    //         );
+    //         cy.window().then(async (win) => {
+    //             let centroid = vertices.reduce(
+    //                 (a, c) => [a[0] + c[0], a[1] + c[1]],
+    //                 [0, 0],
+    //             );
+    //             centroid[0] /= 4;
+    //             centroid[1] /= 4;
+
+    //             // rotate by 180 degrees around centroid
+    //             // (doubling length, but that will be ignored)
+    //             let requested_vertex_2 = [
+    //                 -2 * (vertices[2][0] - centroid[0]) + centroid[0],
+    //                 -2 * (vertices[2][1] - centroid[1]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 -(v[0] - centroid[0]) + centroid[0],
+    //                 -(v[1] - centroid[1]) + centroid[1],
+    //             ]);
+
+    //             // since a different vertex is attracted to point (1,9), moves one up and to the right
+    //             vertices = vertices.map((v) => [v[0] + 1, v[1] + 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g3/pg",
+    //                 args: {
+    //                     pointCoords: { 2: requested_vertex_2 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+    //     });
+
+    //     it("Non-rigid polygon, three vertex constraints", () => {
+    //         cy.window().then(async (win) => {
+    //             win.postMessage(
+    //                 {
+    //                     doenetML: `
+    // <text>a</text>
+    // <graph name="g1" newNamespace>
+    //   <point>(3,7)</point>
+    //   <point>(-4,-1)</point>
+    //   <point>(8,2)</point>
+    //   <point>(-3,4)</point>
+
+    //   <point styleNumber="2" name="a1">(1,9)</point>
+    //   <point styleNumber="2" name="a2">(5,-1)</point>
+    //   <point styleNumber="2" name="a3">(-9,5)</point>
+    //   <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" >
+    //   <vertexConstraints>
+    //     <attractTo threshold="2">$a1$a2$a3</attractTo>
+    //   </vertexConstraints>
+    //   </polygon>
+    // </graph>
+    // <graph name="g2" newNamespace>
+    //   $(../g1/pg{name="pg"})
+    //   $pg.vertices{assignNames="v1 v2 v3 v4"}
+    // </graph>
+    // $g2{name="g3"}
+    // $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+    // `,
+    //                 },
+    //                 "*",
+    //             );
+    //         });
+    //         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+    //         let vertices = [
+    //             [3, 7],
+    //             [-4, -1],
+    //             [8, 2],
+    //             [-3, 4],
+    //         ];
+
+    //         testPolygonCopiedTwice({ vertices });
+
+    //         cy.log("move individual vertex, attracts to closest point");
+    //         cy.window().then(async (win) => {
+    //             let requested_vertex_1 = [-10, 6];
+
+    //             vertices[1] = [-9, 5];
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("Moving entire polygon up attract to another point");
+
+    //         cy.window().then(async (win) => {
+    //             let moveX = -1;
+    //             let moveY = 1;
+
+    //             let requested_vertices = [];
+    //             for (let i = 0; i < vertices.length; i++) {
+    //                 vertices[i][0] = vertices[i][0] + moveX;
+    //                 vertices[i][1] = vertices[i][1] + moveY;
+    //                 requested_vertices.push([vertices[i][0], vertices[i][1]]);
+    //             }
+
+    //             // since attracted to point (1,9), moves one up and to the left
+    //             vertices = vertices.map((v) => [v[0] - 1, v[1] + 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g2/pg",
+    //                 args: {
+    //                     pointCoords: requested_vertices,
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("move double copied individual vertex");
+    //         cy.window().then(async (win) => {
+    //             vertices[2] = [2, 1];
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g3/pg",
+    //                 args: {
+    //                     pointCoords: { 2: vertices[2] },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("Moving entire polygon near two points, attracts to just one");
+    //         cy.window().then(async (win) => {
+    //             let moveX = 2.6;
+    //             let moveY = -2;
+
+    //             let requested_vertices = [];
+    //             for (let i = 0; i < vertices.length; i++) {
+    //                 vertices[i][0] = vertices[i][0] + moveX;
+    //                 vertices[i][1] = vertices[i][1] + moveY;
+    //                 requested_vertices.push([vertices[i][0], vertices[i][1]]);
+    //             }
+
+    //             // since attracted to point (5,-1), moves 0.4 to the right
+    //             vertices = vertices.map((v) => [v[0] + 0.4, v[1]]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g2/pg",
+    //                 args: {
+    //                     pointCoords: requested_vertices,
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log(
+    //             "Moving just one vertex attracts to other nearby vertex to attractor",
+    //         );
+    //         cy.window().then(async (win) => {
+    //             let requested_vertex_0 = [0, 10];
+    //             vertices[0] = [1, 9];
+    //             vertices[1] = [-9, 5];
+
+    //             win.callAction1({
+    //                 actionName: "movePoint",
+    //                 componentName: "/g2/v1",
+    //                 args: { x: requested_vertex_0[0], y: requested_vertex_0[1] },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+    //     });
+
+    //     it("Rigid polygon, vertices attracted to polygon", () => {
+    //         cy.window().then(async (win) => {
+    //             win.postMessage(
+    //                 {
+    //                     doenetML: `
+    //   <text>a</text>
+    //   <graph name="g1" newNamespace>
+    //     <polygon name="pa" vertices="(0,0) (12,0) (6,9)" stylenumber="2" />
+
+    //     <point name="v1">(-1,0)</point>
+    //     <point name="v2">(3,0)</point>
+    //     <point name="v3">(1,-3)</point>
+    //     <polygon name="pg" vertices="$v1 $v2 $v3" rigid layer="2">
+    //        <vertexConstraints>
+    //          <attractTo threshold="2">$pa</attractTo>
+    //       </vertexConstraints>
+    //     </polygon>
+    //   </graph>
+    //   <graph name="g2" newNamespace>
+    //     $(../g1/pg{name="pg"})
+    //   </graph>
+    //   $g2{name="g3"}
+    //   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+    //   `,
+    //                 },
+    //                 "*",
+    //             );
+    //         });
+    //         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+    //         cy.log("start shifted so that two vertices are attracted");
+
+    //         let vertices = [
+    //             [0, 0],
+    //             [4, 0],
+    //             [2, -3],
+    //         ];
+
+    //         testPolygonCopiedTwice({ vertices });
+
+    //         cy.log("move individual vertex rotates, attracts to edge of polygon");
+
+    //         let centroid = vertices.reduce(
+    //             (a, c) => [a[0] + c[0], a[1] + c[1]],
+    //             [0, 0],
+    //         );
+    //         centroid[0] /= 3;
+    //         centroid[1] /= 3;
+
+    //         cy.window().then(async (win) => {
+    //             // shift 1 to left to give original before attraction
+    //             centroid[0] -= 1;
+    //             vertices = vertices.map((v) => [v[0] - 1, v[1]]);
+
+    //             // rotate by 90 degrees clockwise around centroid
+    //             // (shrinking by 1/2, but that will be ignored)
+    //             let requested_vertex_1 = [
+    //                 0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+    //                 -0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 v[1] - centroid[1] + centroid[0],
+    //                 -(v[0] - centroid[0]) + centroid[1],
+    //             ]);
+    //             // since attracted to edge, moves down one and to the left
+    //             vertices = vertices.map((v) => [v[0], v[1] - 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("move copied polygon up and to the right");
+    //         cy.window().then(async (win) => {
+    //             // Move so that bottom right gets attracted to (4,6).
+    //             // Slope of orthogonal to attractor edge is -6/9.
+    //             // So move bottom right to (4,6) + (9,-6)/10
+
+    //             let requested_bottom_right = [4 + 0.9, 6 - 0.6];
+    //             let actual_bottom_right = [4, 6];
+
+    //             let moveX = requested_bottom_right[0] - vertices[1][0];
+    //             let moveY = requested_bottom_right[1] - vertices[1][1];
+
+    //             // add extra movement to requested vertices, which will be ignored
+    //             let requested_vertices = [];
+    //             for (let i = 0; i < vertices.length; i++) {
+    //                 vertices[i][0] = vertices[i][0] + moveX;
+    //                 vertices[i][1] = vertices[i][1] + moveY;
+    //                 requested_vertices.push([
+    //                     vertices[i][0] + i,
+    //                     vertices[i][1] + 2 * i,
+    //                 ]);
+    //             }
+
+    //             // since attracted to point, moves up one and to the left
+    //             vertices = vertices.map((v) => [
+    //                 v[0] + actual_bottom_right[0] - requested_bottom_right[0],
+    //                 v[1] + actual_bottom_right[1] - requested_bottom_right[1],
+    //             ]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g2/pg",
+    //                 args: {
+    //                     pointCoords: requested_vertices,
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+    //     });
+
+    //     it("Rigid polygon, vertices attracted to polyline", () => {
+    //         cy.window().then(async (win) => {
+    //             win.postMessage(
+    //                 {
+    //                     doenetML: `
+    //   <text>a</text>
+    //   <graph name="g1" newNamespace>
+    //     <polyline name="pa" vertices="(0,0) (12,0) (6,9)" stylenumber="2" />
+
+    //     <point name="v1">(-1,0)</point>
+    //     <point name="v2">(3,0)</point>
+    //     <point name="v3">(1,-3)</point>
+    //     <polygon name="pg" vertices="$v1 $v2 $v3" rigid layer="2">
+    //        <vertexConstraints>
+    //          <attractTo threshold="2">$pa</attractTo>
+    //       </vertexConstraints>
+    //     </polygon>
+    //   </graph>
+    //   <graph name="g2" newNamespace>
+    //     $(../g1/pg{name="pg"})
+    //   </graph>
+    //   $g2{name="g3"}
+    //   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+    //   `,
+    //                 },
+    //                 "*",
+    //             );
+    //         });
+    //         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+    //         cy.log("start shifted so that two vertices are attracted");
+
+    //         let vertices = [
+    //             [0, 0],
+    //             [4, 0],
+    //             [2, -3],
+    //         ];
+
+    //         testPolygonCopiedTwice({ vertices });
+
+    //         cy.log("move individual vertex rotates, attracts to edge of polygon");
+
+    //         let centroid = vertices.reduce(
+    //             (a, c) => [a[0] + c[0], a[1] + c[1]],
+    //             [0, 0],
+    //         );
+    //         centroid[0] /= 3;
+    //         centroid[1] /= 3;
+
+    //         cy.window().then(async (win) => {
+    //             // shift 1 to left to give original before attraction
+    //             centroid[0] -= 1;
+    //             vertices = vertices.map((v) => [v[0] - 1, v[1]]);
+
+    //             // rotate by 90 degrees clockwise around centroid
+    //             // (shrinking by 1/2, but that will be ignored)
+    //             let requested_vertex_1 = [
+    //                 0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+    //                 -0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+    //             ];
+    //             vertices = vertices.map((v) => [
+    //                 v[1] - centroid[1] + centroid[0],
+    //                 -(v[0] - centroid[0]) + centroid[1],
+    //             ]);
+    //             // since attracted to edge, moves down one and to the left
+    //             vertices = vertices.map((v) => [v[0], v[1] - 1]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g1/pg",
+    //                 args: {
+    //                     pointCoords: { 1: requested_vertex_1 },
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+
+    //         cy.log("move copied polygon up and to the right");
+    //         cy.window().then(async (win) => {
+    //             // Move so that bottom right would get attracted to (4,6) if it where a polygon.
+    //             // But since it is a polyline, that edge doesn't exist
+    //             // and instead the upper right gets attracted to other edge.
+
+    //             // If had polygon,
+    //             // slope of orthogonal to attractor edge would be -6/9.
+    //             // So move bottom right to (4,6) + (9,-6)/10
+
+    //             let requested_bottom_right = [4 + 0.9, 6 - 0.6];
+    //             let actual_bottom_right = [6, 5];
+
+    //             let moveX = requested_bottom_right[0] - vertices[1][0];
+    //             let moveY = requested_bottom_right[1] - vertices[1][1];
+
+    //             // add extra movement to requested vertices, which will be ignored
+    //             let requested_vertices = [];
+    //             for (let i = 0; i < vertices.length; i++) {
+    //                 vertices[i][0] = vertices[i][0] + moveX;
+    //                 vertices[i][1] = vertices[i][1] + moveY;
+    //                 requested_vertices.push([
+    //                     vertices[i][0] + i,
+    //                     vertices[i][1] + 2 * i,
+    //                 ]);
+    //             }
+
+    //             // since attracted to point, moves up one and to the left
+    //             vertices = vertices.map((v) => [
+    //                 v[0] + actual_bottom_right[0] - requested_bottom_right[0],
+    //                 v[1] + actual_bottom_right[1] - requested_bottom_right[1],
+    //             ]);
+
+    //             win.callAction1({
+    //                 actionName: "movePolygon",
+    //                 componentName: "/g2/pg",
+    //                 args: {
+    //                     pointCoords: requested_vertices,
+    //                 },
+    //             });
+
+    //             testPolygonCopiedTwice({ vertices });
+    //         });
+    //     });
+
+    it("Preserve similarity", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates and dilates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees counterclockwise around centroid
+            // and shrinking by 1/2
+            let requested_vertex_1 = [
+                -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+                0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -0.5 * (v[1] - centroid[1]) + centroid[0],
+                0.5 * (v[0] - centroid[0]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "move double copied individual vertex, getting rotation and dilation",
+        );
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 180 degrees around centroid
+            // and doubling length
+            let requested_vertex_2 = [
+                -2 * (vertices[2][0] - centroid[0]) + centroid[0],
+                -2 * (vertices[2][1] - centroid[1]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -2 * (v[0] - centroid[0]) + centroid[0],
+                -2 * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex gets rotation and dilation");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees clockwise around centroid
+            // and shrinking by 1/4
+            let requested_vertex_3 = [
+                0.25 * (vertices[3][1] - centroid[1]) + centroid[0],
+                -0.25 * (vertices[3][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                0.25 * (v[1] - centroid[1]) + centroid[0],
+                -0.25 * (v[0] - centroid[0]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Preserve similarity and don't allow dilation equals rigid", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowDilation="false" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees counterclockwise around centroid
+            // (shrinking by 1/2, but that will be ignored)
+            let requested_vertex_1 = [
+                -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+                0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -(v[1] - centroid[1]) + centroid[0],
+                v[0] - centroid[0] + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Rigid supersedes setting preserveSimilarity to false or allowDilation to true", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity="false" rigid allowDilation="true" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees counterclockwise around centroid
+            // (shrinking by 1/2, but that will be ignored)
+            let requested_vertex_1 = [
+                -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+                0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -(v[1] - centroid[1]) + centroid[0],
+                v[0] - centroid[0] + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Don't allow rotation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowRotation="false" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4" displayDigits="6"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex only dilates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // shrink to half size by moving vertex so projects to half
+            // on the segment from centroid to original vertex
+            let midpoint = [
+                (centroid[0] + vertices[1][0]) / 2,
+                (centroid[1] + vertices[1][1]) / 2,
+            ];
+            let vector_to_v1 = [
+                vertices[1][0] - centroid[0],
+                vertices[1][1] - centroid[1],
+            ];
+            let rotate_vector = [-3 * vector_to_v1[1], 3 * vector_to_v1[0]];
+
+            let requested_vertex_1 = [
+                midpoint[0] + rotate_vector[0],
+                midpoint[1] + rotate_vector[1],
+            ];
+            vertices = vertices.map((v) => [
+                0.5 * (v[0] - centroid[0]) + centroid[0],
+                0.5 * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "move double copied individual vertex, attempting to rotation 90 degrees shrinks to minimum",
+        );
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // attempt to rotate by 90 degrees around centroid
+            let requested_vertex_2 = [
+                2 * (vertices[2][1] - centroid[1]) + centroid[0],
+                -2 * (vertices[2][0] - centroid[0]) + centroid[1],
+            ];
+
+            // distance from vertex 2 and centroid becomes minShrink = 0.1
+            let shrink_factor =
+                0.1 /
+                Math.sqrt(
+                    (vertices[2][1] - centroid[1]) ** 2 +
+                        (vertices[2][0] - centroid[0]) ** 2,
+                );
+
+            vertices = vertices.map((v) => [
+                shrink_factor * (v[0] - centroid[0]) + centroid[0],
+                shrink_factor * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex to dilate");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // Make 10 times larger by moving vertex so projects to 10 times the length on
+            // on the segment from centroid to original vertex
+            let extended_point = [
+                10 * vertices[3][0] - 9 * centroid[0],
+                10 * vertices[3][1] - 9 * centroid[1],
+            ];
+            let vector_to_v3 = [
+                vertices[3][0] - centroid[0],
+                vertices[3][1] - centroid[1],
+            ];
+            let rotate_vector = [0.5 * vector_to_v3[1], -0.5 * vector_to_v3[0]];
+
+            let requested_vertex_3 = [
+                extended_point[0] + rotate_vector[0],
+                extended_point[1] + rotate_vector[1],
+            ];
+            vertices = vertices.map((v) => [
+                10 * (v[0] - centroid[0]) + centroid[0],
+                10 * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Don't allow rotation, large minShrink", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowRotation="false" minShrink="2" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4" displayDigits="8"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex only dilates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // shrink to half size by moving vertex so projects to half
+            // on the segment from centroid to original vertex
+            let midpoint = [
+                (centroid[0] + vertices[1][0]) / 2,
+                (centroid[1] + vertices[1][1]) / 2,
+            ];
+            let vector_to_v1 = [
+                vertices[1][0] - centroid[0],
+                vertices[1][1] - centroid[1],
+            ];
+            let rotate_vector = [-3 * vector_to_v1[1], 3 * vector_to_v1[0]];
+
+            let requested_vertex_1 = [
+                midpoint[0] + rotate_vector[0],
+                midpoint[1] + rotate_vector[1],
+            ];
+            vertices = vertices.map((v) => [
+                0.5 * (v[0] - centroid[0]) + centroid[0],
+                0.5 * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "move double copied individual vertex, attempting to rotation 90 degrees shrinks to minimum",
+        );
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // attempt to rotate by 90 degrees around centroid
+            let requested_vertex_2 = [
+                2 * (vertices[2][1] - centroid[1]) + centroid[0],
+                -2 * (vertices[2][0] - centroid[0]) + centroid[1],
+            ];
+
+            // distance from vertex 2 and centroid becomes minShrink = 0.1
+            let shrink_factor =
+                2 /
+                Math.sqrt(
+                    (vertices[2][1] - centroid[1]) ** 2 +
+                        (vertices[2][0] - centroid[0]) ** 2,
+                );
+
+            vertices = vertices.map((v) => [
+                shrink_factor * (v[0] - centroid[0]) + centroid[0],
+                shrink_factor * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex to dilate");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // Make 10 times larger by moving vertex so projects to 10 times the length on
+            // on the segment from centroid to original vertex
+            let extended_point = [
+                10 * vertices[3][0] - 9 * centroid[0],
+                10 * vertices[3][1] - 9 * centroid[1],
+            ];
+            let vector_to_v3 = [
+                vertices[3][0] - centroid[0],
+                vertices[3][1] - centroid[1],
+            ];
+            let rotate_vector = [0.5 * vector_to_v3[1], -0.5 * vector_to_v3[0]];
+
+            let requested_vertex_3 = [
+                extended_point[0] + rotate_vector[0],
+                extended_point[1] + rotate_vector[1],
+            ];
+            vertices = vertices.map((v) => [
+                10 * (v[0] - centroid[0]) + centroid[0],
+                10 * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Don't allow translation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowTranslation="false" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates and dilates");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees counterclockwise around centroid
+            // and shrinking by 1/2
+            let requested_vertex_1 = [
+                -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+                0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -0.5 * (v[1] - centroid[1]) + centroid[0],
+                0.5 * (v[0] - centroid[0]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up does not move");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // this translation will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                requested_vertices.push([
+                    vertices[i][0] + moveX,
+                    vertices[i][1] + moveY,
+                ]);
+            }
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "move double copied individual vertex, getting rotation and dilation",
+        );
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 180 degrees around centroid
+            // and doubling length
+            let requested_vertex_2 = [
+                -2 * (vertices[2][0] - centroid[0]) + centroid[0],
+                -2 * (vertices[2][1] - centroid[1]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                -2 * (v[0] - centroid[0]) + centroid[0],
+                -2 * (v[1] - centroid[1]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex gets rotation and dilation");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees clockwise around centroid
+            // and shrinking by 1/4
+            let requested_vertex_3 = [
+                0.25 * (vertices[3][1] - centroid[1]) + centroid[0],
+                -0.25 * (vertices[3][0] - centroid[0]) + centroid[1],
+            ];
+            vertices = vertices.map((v) => [
+                0.25 * (v[1] - centroid[1]) + centroid[0],
+                -0.25 * (v[0] - centroid[0]) + centroid[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Only translation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowRotation="false" allowDilation="false" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex translates");
+        cy.window().then(async (win) => {
+            let moveX = -1;
+            let moveY = -3;
+            let requested_vertex_1 = [
+                vertices[1][0] + moveX,
+                vertices[1][1] + moveY,
+            ];
+
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to right");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move double copied individual vertex, getting translation");
+        cy.window().then(async (win) => {
+            let moveX = -8;
+            let moveY = 4;
+            let requested_vertex_2 = [
+                vertices[2][0] + moveX,
+                vertices[2][1] + moveY,
+            ];
+
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex gets translation");
+        cy.window().then(async (win) => {
+            let moveX = 2;
+            let moveY = -5;
+            let requested_vertex_3 = [
+                vertices[3][0] + moveX,
+                vertices[3][1] + moveY,
+            ];
+
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+            }
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Don't allow any transformations", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity allowTranslation="false" allowRotation="false" allowDilation="false" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex doesn't move");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees counterclockwise around centroid
+            // and shrinking by 1/2
+            // but no effect
+            let requested_vertex_1 = [
+                -0.5 * (vertices[1][1] - centroid[1]) + centroid[0],
+                0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
+            ];
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 1: requested_vertex_1 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up does not move");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // this translation will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                requested_vertices.push([
+                    vertices[i][0] + moveX,
+                    vertices[i][1] + moveY,
+                ]);
+            }
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move double copied individual vertex doesn't move");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 180 degrees around centroid
+            // and doubling length
+            // but no effect
+            let requested_vertex_2 = [
+                -2 * (vertices[2][0] - centroid[0]) + centroid[0],
+                -2 * (vertices[2][1] - centroid[1]) + centroid[1],
+            ];
+
+            await win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex doesn't move");
+        cy.window().then(async (win) => {
+            let centroid = vertices.reduce(
+                (a, c) => [a[0] + c[0], a[1] + c[1]],
+                [0, 0],
+            );
+            centroid[0] /= 4;
+            centroid[1] /= 4;
+
+            // rotate by 90 degrees clockwise around centroid
+            // and shrinking by 1/4
+            // but no effect
+            let requested_vertex_3 = [
+                0.25 * (vertices[3][1] - centroid[1]) + centroid[0],
+                -0.25 * (vertices[3][0] - centroid[0]) + centroid[1],
+            ];
+
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Rotate around vertex", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity rotateAround="vertex" rotationVertex="2" />
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates and dilates");
+        cy.window().then(async (win) => {
+            let rotationPoint = vertices[1];
+
+            // rotate by 90 degrees counterclockwise around rotationPoint
+            // and shrinking by 1/2
+            let requested_vertex_0 = [
+                -0.5 * (vertices[0][1] - rotationPoint[1]) + rotationPoint[0],
+                0.5 * (vertices[0][0] - rotationPoint[0]) + rotationPoint[1],
+            ];
+            vertices = vertices.map((v) => [
+                -0.5 * (v[1] - rotationPoint[1]) + rotationPoint[0],
+                0.5 * (v[0] - rotationPoint[0]) + rotationPoint[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 0: requested_vertex_0 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "move double copied individual vertex, getting rotation and dilation",
+        );
+        cy.window().then(async (win) => {
+            let rotationPoint = vertices[1];
+
+            // rotate by 180 degrees around rotationPoint
+            // and doubling length
+            let requested_vertex_2 = [
+                -2 * (vertices[2][0] - rotationPoint[0]) + rotationPoint[0],
+                -2 * (vertices[2][1] - rotationPoint[1]) + rotationPoint[1],
+            ];
+            vertices = vertices.map((v) => [
+                -2 * (v[0] - rotationPoint[0]) + rotationPoint[0],
+                -2 * (v[1] - rotationPoint[1]) + rotationPoint[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving single copied vertex gets rotation and dilation");
+        cy.window().then(async (win) => {
+            let rotationPoint = vertices[1];
+
+            // rotate by 90 degrees clockwise around rotationPoint
+            // and shrinking by 1/4
+            let requested_vertex_3 = [
+                0.25 * (vertices[3][1] - rotationPoint[1]) + rotationPoint[0],
+                -0.25 * (vertices[3][0] - rotationPoint[0]) + rotationPoint[1],
+            ];
+            vertices = vertices.map((v) => [
+                0.25 * (v[1] - rotationPoint[1]) + rotationPoint[0],
+                -0.25 * (v[0] - rotationPoint[0]) + rotationPoint[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+    });
+
+    it("Rotate around exterior point", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g1" newNamespace>
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <point name="rotationPoint" styleNumber="2">(-1,3)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" preserveSimilarity rotateAround="point" rotationCenter="$rotationPoint" />
+
+  </graph>
+  <graph name="g2" newNamespace>
+    $(../g1/pg{name="pg"})
+    $pg.vertices{assignNames="v1 v2 v3 v4"}
+  </graph>
+  $g2{name="g3"}
+  $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        testPolygonCopiedTwice({ vertices });
+
+        cy.log("move individual vertex rotates and dilates");
+        cy.window().then(async (win) => {
+            let rotationPoint = [-1, 3];
+
+            // rotate by 90 degrees counterclockwise around rotationPoint
+            // and shrinking by 1/2
+            let requested_vertex_0 = [
+                -0.5 * (vertices[0][1] - rotationPoint[1]) + rotationPoint[0],
+                0.5 * (vertices[0][0] - rotationPoint[0]) + rotationPoint[1],
+            ];
+            vertices = vertices.map((v) => [
+                -0.5 * (v[1] - rotationPoint[1]) + rotationPoint[0],
+                0.5 * (v[0] - rotationPoint[0]) + rotationPoint[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g1/pg",
+                args: {
+                    pointCoords: { 0: requested_vertex_0 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("move copied polygon up and to the right chooses minimum moved");
+        cy.window().then(async (win) => {
+            let moveX = 3;
+            let moveY = 2;
+
+            // add extra movement to requested vertices, which will be ignored
+            let requested_vertices = [];
+            for (let i = 0; i < vertices.length; i++) {
+                vertices[i][0] = vertices[i][0] + moveX;
+                vertices[i][1] = vertices[i][1] + moveY;
+                requested_vertices.push([
+                    vertices[i][0] + i,
+                    vertices[i][1] + 2 * i,
+                ]);
+            }
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g2/pg",
+                args: {
+                    pointCoords: requested_vertices,
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "move double copied individual vertex, getting rotation and dilation",
+        );
+        cy.window().then(async (win) => {
+            let rotationPoint = [-1, 3];
+
+            // rotate by 180 degrees around rotationPoint
+            // and doubling length
+            let requested_vertex_2 = [
+                -2 * (vertices[2][0] - rotationPoint[0]) + rotationPoint[0],
+                -2 * (vertices[2][1] - rotationPoint[1]) + rotationPoint[1],
+            ];
+            vertices = vertices.map((v) => [
+                -2 * (v[0] - rotationPoint[0]) + rotationPoint[0],
+                -2 * (v[1] - rotationPoint[1]) + rotationPoint[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePolygon",
+                componentName: "/g3/pg",
+                args: {
+                    pointCoords: { 2: requested_vertex_2 },
+                },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log(
+            "change rotation point, then moving single copied vertex gets rotation and dilation",
+        );
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/rotationPoint",
+                args: { x: 6, y: -2 },
+            });
+
+            let rotationPoint = [6, -2];
+
+            // rotate by 90 degrees clockwise around rotationPoint
+            // and shrinking by 1/4
+            let requested_vertex_3 = [
+                0.25 * (vertices[3][1] - rotationPoint[1]) + rotationPoint[0],
+                -0.25 * (vertices[3][0] - rotationPoint[0]) + rotationPoint[1],
+            ];
+            vertices = vertices.map((v) => [
+                0.25 * (v[1] - rotationPoint[1]) + rotationPoint[0],
+                -0.25 * (v[0] - rotationPoint[0]) + rotationPoint[1],
+            ]);
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/v4",
+                args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
+        });
+
+        cy.log("moving defining vertex deforms polygon");
+        cy.window().then(async (win) => {
+            vertices[0] = [4, 6];
+
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/_point1",
+                args: { x: vertices[0][0], y: vertices[0][1] },
+            });
+
+            testPolygonCopiedTwice({ vertices });
         });
     });
 });

@@ -11,15 +11,21 @@
         "/dist"
     ],
     "scripts": {
-        "dev": "next",
-        "build": "next build",
-        "start": "next start"
+        "test": "echo \"no tests\" && exit 0",
+        "dev": "npm run build:pre && next",
+        "build": "npm run build:pre && next build",
+        "start": "next start",
+        "build:pre": "npm run build:pre-copy && npm run build:pre-scripts",
+        "build:pre-copy": "mkdir -p ./public/bundle && cp ../standalone/dist/* ./public/bundle/ && mkdir -p ./public/bundle/fonts/files && cp ../doenetml/dist/fonts/files/* ./public/bundle/fonts/files/",
+        "build:pre-scripts": "vite build"
     },
     "dependencies": {
-        "next": "^14.1.4",
-        "nextra": "^2.13.4",
-        "nextra-theme-docs": "^2.13.4",
+        "nextra": "^3.0.0-alpha.24",
+        "nextra-theme-docs": "^3.0.0-alpha.24",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+        "@types/esprima": "^4.0.6"
     }
 }

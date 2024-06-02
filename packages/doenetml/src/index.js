@@ -14,5 +14,6 @@ export {
     parseActivityDefinition,
     returnNumberOfActivityVariantsForCid,
 } from "./utils/activityUtils";
+export { doenetSchema } from "@doenet/static-assets";
 
 export { CodeMirror } from "@doenet/codemirror";

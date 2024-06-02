@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetMLExample } from "../../../components"
 
 # Lines, Segments and Rays
 
@@ -118,7 +118,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 ### Stylish Segments
 As with lines, you can change how rays and segments are displayed on screen using the `styleNumber` attributes. You've already seen how points are displayed with each `styleNumber`. Below you can see points combined with a line segment.
 
-<DoenetML>
+<DoenetMLExample>
 {`
 <graph xmin="0" xmax="7.5" ymin="-1" ymax="2" 
            showNavigation="false" identicalAxisScales
@@ -136,7 +136,7 @@ As with lines, you can change how rays and segments are displayed on screen usin
 
     </graph>
 `}
-</DoenetML>
+</DoenetMLExample>
 
 ### Geometry Example
 Now that we have points, segments, and rays, we can use DoenetML to create an interactive example which shows the medians and centroid of $\triangle{ABC}$ for any points $A$, $B$, and $C$. The code below does the following:

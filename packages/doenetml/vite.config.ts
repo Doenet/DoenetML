@@ -4,6 +4,7 @@ import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
 import * as path from "node:path";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
+import dts from "vite-plugin-dts";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom", "styled-components"];
@@ -13,6 +14,7 @@ export default defineConfig({
     base: "./",
     plugins: [
         react(),
+        dts({ rollupTypes: true }),
         viteStaticCopy({
             targets: [
                 {

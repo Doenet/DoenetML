@@ -697,7 +697,7 @@ export function ActivityViewer({
 
     async function saveLoadedLocalStateToDatabase(localInfo) {
         if (!flags.allowSaveState || !apiURLs.saveActivityState) {
-            return;
+            return {};
         }
 
         let serverSaveId = await idb_get(

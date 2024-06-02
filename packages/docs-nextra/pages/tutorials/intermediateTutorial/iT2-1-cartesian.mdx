@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetMLExample } from "../../../components"
 
 # Cartesian Grids and Function Graphs
 
@@ -22,7 +22,7 @@ DoenetML has attributes to adjust various features of a graph: the range of $x$ 
 
 Rather that listing out all of the possible attributes and values, documentation-style, you can learn these options by experimenting with the controls below. Try adjusting values and see how the graph changes. Doenet also provides you with the corresponding code to create the graph; you can copy and paste that code into your own documents.
 
-<DoenetML>
+<DoenetMLExample>
 {`
  <tabular top="minor" bottom="minor">
     <row>
@@ -89,7 +89,7 @@ Rather that listing out all of the possible attributes and values, documentation
     showBorder="$showBorder"
     horizontalAlign="$alignChoice"/>
 `}
-</DoenetML>
+</DoenetMLExample>
 
 Notice that the `<graph></graph>` code above includes `grid` (which is equivalent to `grid="true"`) when you check the grid box, but the tag does not include `grid="false"` if the grid is turned off. That's because `false` is the default value for `grid`; hence the attribute doesn't need to be included in that case. Similarly, the other attributes are suppressed if their default values are chosen:
 

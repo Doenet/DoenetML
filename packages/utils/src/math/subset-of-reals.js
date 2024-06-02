@@ -741,7 +741,7 @@ function buildSubsetFromIntervals(tree, variable) {
                     if (Number.isFinite(right)) {
                         return new Singleton(right);
                     } else {
-                        return new InvalidSet();
+                        return new EmptySet();
                     }
                 } else {
                     // operator === "ne"
@@ -751,7 +751,8 @@ function buildSubsetFromIntervals(tree, variable) {
                             new OpenInterval(right, Infinity),
                         ]);
                     } else {
-                        return new InvalidSet();
+                        // var != Infinity or -Infinity is whole real line
+                        return new RealLine();
                     }
                 }
             }
@@ -769,7 +770,7 @@ function buildSubsetFromIntervals(tree, variable) {
                     if (Number.isFinite(left)) {
                         return new Singleton(left);
                     } else {
-                        return new InvalidSet();
+                        return new EmptySet();
                     }
                 } else {
                     // operator === "ne"
@@ -779,7 +780,8 @@ function buildSubsetFromIntervals(tree, variable) {
                             new OpenInterval(left, Infinity),
                         ]);
                     } else {
-                        return new InvalidSet();
+                        // var != Infinity or -Infinity is whole real line
+                        return new RealLine();
                     }
                 }
             } else {
@@ -960,6 +962,8 @@ export function mathExpressionFromSubsetValue({
                 }
             } else if (subset instanceof Singleton) {
                 return ["=", variable, subset.element];
+            } else if (!subset.isValid()) {
+                return "\uff3f";
             } else if (subset.isEmpty()) {
                 return ["in", variable, "∅"];
             } else if (subset instanceof RealLine) {

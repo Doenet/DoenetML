@@ -19,6 +19,7 @@ export { React, ReactDOM, DoenetML };
 export function renderDoenetToContainer(
     container: Element,
     doenetMLSource?: string,
+    config?: object,
 ) {
     if (!(container instanceof Element)) {
         throw new Error("Container must be an DOM element");
@@ -53,6 +54,7 @@ export function renderDoenetToContainer(
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
             flags={rest}
+            {...config}
         />,
     );
 }

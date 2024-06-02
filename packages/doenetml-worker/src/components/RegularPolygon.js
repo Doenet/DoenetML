@@ -9,6 +9,9 @@ export default class RegularPolygon extends Polygon {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // remove attribute as preserveSimilarity is always true for regular polygons
+        delete attributes.preserveSimilarity;
+
         attributes.numVertices = {
             createComponentOfType: "integer",
         };
@@ -26,7 +29,7 @@ export default class RegularPolygon extends Polygon {
         // if center and vertex or two vertices are specified
         // then the following size attributes are ignored
 
-        // circumradius and radrius are the same thing and either attribute can be used
+        // circumradius and radius are the same thing and either attribute can be used
         // If both specified, circumradius is used
         attributes.circumradius = {
             createComponentOfType: "number",
@@ -92,6 +95,16 @@ export default class RegularPolygon extends Polygon {
 
                 return { setValue: { styleDescriptionWithNoun } };
             };
+
+        // preserveSimilarity is always true for regular polygons
+        stateVariableDefinitions.preserveSimilarity = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { preserveSimilarity: true } }),
+        };
 
         stateVariableDefinitions.numVertices = {
             isLocation: true,
@@ -742,12 +755,14 @@ export default class RegularPolygon extends Polygon {
             },
         };
 
-        // Note: we create the non-array centerComponents
+        // Note: we create the non-array unconstrainedCenterComponents
         // because we currently can't use additionalStateVariablesDefined with arrays
         // unless all state variables are arrays of the same size
-        stateVariableDefinitions.centerComponents = {
+        stateVariableDefinitions.unconstrainedCenterComponents = {
             isLocation: true,
-            additionalStateVariablesDefined: ["directionWithRadius"],
+            additionalStateVariablesDefined: [
+                "unconstrainedDirectionWithRadius",
+            ],
             returnDependencies: () => ({
                 numVertices: {
                     dependencyType: "stateVariable",
@@ -812,7 +827,7 @@ export default class RegularPolygon extends Polygon {
                 let numVertices = dependencyValues.numVertices;
 
                 let center;
-                let directionWithRadius;
+                let unconstrainedDirectionWithRadius;
 
                 if (dependencyValues.numVerticesSpecified === 0) {
                     // with no vertices, use center (specified or essential), direction, and a measure of size
@@ -849,7 +864,7 @@ export default class RegularPolygon extends Polygon {
                         circumradius = dependencyValues.essentialCircumradius;
                     }
 
-                    directionWithRadius =
+                    unconstrainedDirectionWithRadius =
                         dependencyValues.essentialDirection.map(
                             (x) => x * circumradius,
                         );
@@ -863,7 +878,7 @@ export default class RegularPolygon extends Polygon {
                             (x) => x.evaluate_to_constant(),
                         );
 
-                    directionWithRadius = [
+                    unconstrainedDirectionWithRadius = [
                         vertex[0] - center[0],
                         vertex[1] - center[1],
                     ];
@@ -897,7 +912,7 @@ export default class RegularPolygon extends Polygon {
                         circumradius = dependencyValues.essentialCircumradius;
                     }
 
-                    directionWithRadius =
+                    unconstrainedDirectionWithRadius =
                         dependencyValues.essentialDirection.map(
                             (x) => x * circumradius,
                         );
@@ -908,8 +923,8 @@ export default class RegularPolygon extends Polygon {
                         );
 
                     center = [
-                        vertex[0] - directionWithRadius[0],
-                        vertex[1] - directionWithRadius[1],
+                        vertex[0] - unconstrainedDirectionWithRadius[0],
+                        vertex[1] - unconstrainedDirectionWithRadius[1],
                     ];
                 } else {
                     // have at least two vertices specified, use the first 2
@@ -948,14 +963,17 @@ export default class RegularPolygon extends Polygon {
                         midpoint[1] + inradiusDirection[1] * inradius,
                     ];
 
-                    directionWithRadius = [
+                    unconstrainedDirectionWithRadius = [
                         vertex1[0] - center[0],
                         vertex1[1] - center[1],
                     ];
                 }
 
                 return {
-                    setValue: { centerComponents: center, directionWithRadius },
+                    setValue: {
+                        unconstrainedCenterComponents: center,
+                        unconstrainedDirectionWithRadius,
+                    },
                 };
             },
             async inverseDefinition({
@@ -968,7 +986,8 @@ export default class RegularPolygon extends Polygon {
 
                 let instructions = [];
 
-                let desiredCenter = desiredStateVariableValues.centerComponents;
+                let desiredCenter =
+                    desiredStateVariableValues.unconstrainedCenterComponents;
                 if (!desiredCenter) {
                     desiredCenter = workspace.desiredCenter;
                 }
@@ -979,7 +998,7 @@ export default class RegularPolygon extends Polygon {
                 }
 
                 let desiredDirectionWithRadius =
-                    desiredStateVariableValues.directionWithRadius;
+                    desiredStateVariableValues.unconstrainedDirectionWithRadius;
                 if (!desiredDirectionWithRadius) {
                     desiredDirectionWithRadius =
                         workspace.desiredDirectionWithRadius;
@@ -1212,43 +1231,71 @@ export default class RegularPolygon extends Polygon {
             },
         };
 
-        stateVariableDefinitions.vertices = {
-            isLocation: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "math",
-                addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
-                returnWrappingComponents(prefix) {
-                    if (prefix === "vertexX") {
-                        return [];
-                    } else {
-                        // vertex or entire array
-                        // wrap inner dimension by both <point> and <xs>
-                        // don't wrap outer dimension (for entire array)
-                        return [
-                            [
-                                "point",
-                                {
-                                    componentType: "mathList",
-                                    isAttributeNamed: "xs",
-                                },
-                            ],
-                        ];
-                    }
+        // Variables to store the desired values when inverting unconstrainedVertices.
+        // Used in movePolygon to detect if constraints changed these values.
+        stateVariableDefinitions.desiredUnconstrainedCenterComponents = {
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "desiredUnconstrainedDirectionWithRadius",
+                    hasEssential: true,
+                    defaultValue: null,
                 },
+            ],
+            hasEssential: true,
+            defaultValue: null,
+            returnDependencies: () => ({}),
+            definition() {
+                return {
+                    useEssentialOrDefaultValue: {
+                        desiredUnconstrainedCenterComponents: true,
+                        desiredUnconstrainedDirectionWithRadius: true,
+                    },
+                };
             },
+            inverseDefinition({ desiredStateVariableValues }) {
+                let instructions = [];
+
+                if (
+                    desiredStateVariableValues.desiredUnconstrainedCenterComponents
+                ) {
+                    instructions.push({
+                        setEssentialValue:
+                            "desiredUnconstrainedCenterComponents",
+                        value: desiredStateVariableValues.desiredUnconstrainedCenterComponents,
+                    });
+                }
+                if (
+                    desiredStateVariableValues.desiredUnconstrainedDirectionWithRadius
+                ) {
+                    instructions.push({
+                        setEssentialValue:
+                            "desiredUnconstrainedDirectionWithRadius",
+                        value: desiredStateVariableValues.desiredUnconstrainedDirectionWithRadius,
+                    });
+                }
+
+                return {
+                    success: true,
+                    instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.unconstrainedVertices = {
+            isLocation: true,
             isArray: true,
             numDimensions: 2,
-            entryPrefixes: ["vertexX", "vertex"],
-            returnEntryDimensions: (prefix) => (prefix === "vertex" ? 1 : 0),
+            hasEssential: true,
+            entryPrefixes: ["unconstrainedVertexX", "unconstrainedVertex"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "unconstrainedVertex" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
                 arraySize,
             }) {
-                if (arrayEntryPrefix === "vertexX") {
-                    // vertexX1_2 is the 2nd component of the first vertex
+                if (arrayEntryPrefix === "unconstrainedVertexX") {
+                    // unconstrainedVertexX1_2 is the 2nd component of the first unconstrainedVertex
                     let indices = varEnding
                         .split("_")
                         .map((x) => Number(x) - 1);
@@ -1272,7 +1319,7 @@ export default class RegularPolygon extends Polygon {
                         return [];
                     }
                 } else {
-                    // vertex3 is all components of the third vertex
+                    // unconstrainedVertex3 is all components of the third unconstrainedVertex
 
                     let pointInd = Number(varEnding) - 1;
                     if (!(Number.isInteger(pointInd) && pointInd >= 0)) {
@@ -1296,20 +1343,23 @@ export default class RegularPolygon extends Polygon {
                 }
             },
             arrayVarNameFromPropIndex(propIndex, varName) {
-                if (varName === "vertices") {
+                if (varName === "unconstrainedVertices") {
                     if (propIndex.length === 1) {
-                        return "vertex" + propIndex[0];
+                        return "unconstrainedVertex" + propIndex[0];
                     } else {
                         // if propIndex has additional entries, ignore them
-                        return `vertexX${propIndex[0]}_${propIndex[1]}`;
+                        return `unconstrainedVertexX${propIndex[0]}_${propIndex[1]}`;
                     }
                 }
-                if (varName.slice(0, 6) === "vertex") {
-                    // could be vertex or vertexX
-                    let vertexNum = Number(varName.slice(6));
-                    if (Number.isInteger(vertexNum) && vertexNum > 0) {
+                if (varName.slice(0, 19) === "unconstrainedVertex") {
+                    // could be unconstrainedVertex or unconstrainedVertexX
+                    let unconstrainedVertexNum = Number(varName.slice(19));
+                    if (
+                        Number.isInteger(unconstrainedVertexNum) &&
+                        unconstrainedVertexNum > 0
+                    ) {
                         // if propIndex has additional entries, ignore them
-                        return `vertexX${vertexNum}_${propIndex[0]}`;
+                        return `unconstrainedVertexX${unconstrainedVertexNum}_${propIndex[0]}`;
                     }
                 }
                 return null;
@@ -1329,13 +1379,23 @@ export default class RegularPolygon extends Polygon {
                         dependencyType: "stateVariable",
                         variableName: "numVertices",
                     },
-                    centerComponents: {
+                    unconstrainedCenterComponents: {
                         dependencyType: "stateVariable",
-                        variableName: "centerComponents",
+                        variableName: "unconstrainedCenterComponents",
                     },
-                    directionWithRadius: {
+                    unconstrainedDirectionWithRadius: {
                         dependencyType: "stateVariable",
-                        variableName: "directionWithRadius",
+                        variableName: "unconstrainedDirectionWithRadius",
+                    },
+
+                    // just for inverse definition
+                    desiredUnconstrainedCenterComponents: {
+                        dependencyType: "stateVariable",
+                        variableName: "desiredUnconstrainedCenterComponents",
+                    },
+                    desiredUnconstrainedDirectionWithRadius: {
+                        dependencyType: "stateVariable",
+                        variableName: "desiredUnconstrainedDirectionWithRadius",
                     },
                 };
 
@@ -1349,23 +1409,28 @@ export default class RegularPolygon extends Polygon {
 
                 let numVertices = globalDependencyValues.numVertices;
 
-                let center = globalDependencyValues.centerComponents;
-                let directionWithRadius =
-                    globalDependencyValues.directionWithRadius;
+                let center =
+                    globalDependencyValues.unconstrainedCenterComponents;
+                let unconstrainedDirectionWithRadius =
+                    globalDependencyValues.unconstrainedDirectionWithRadius;
 
-                let vertices = {};
+                let unconstrainedVertices = {};
 
                 if (
                     center.some((x) => !Number.isFinite(x)) ||
-                    directionWithRadius.some((x) => !Number.isFinite(x))
+                    unconstrainedDirectionWithRadius.some(
+                        (x) => !Number.isFinite(x),
+                    )
                 ) {
                     for (
                         let vertexInd = 0;
                         vertexInd < numVertices;
                         vertexInd++
                     ) {
-                        vertices[`${vertexInd},0`] = me.fromAst("\uff3f");
-                        vertices[`${vertexInd},1`] = me.fromAst("\uff3f");
+                        unconstrainedVertices[`${vertexInd},0`] =
+                            me.fromAst("\uff3f");
+                        unconstrainedVertices[`${vertexInd},1`] =
+                            me.fromAst("\uff3f");
                     }
                 } else {
                     for (
@@ -1378,20 +1443,20 @@ export default class RegularPolygon extends Polygon {
                         let s = Math.sin(rotation);
                         let c = Math.cos(rotation);
 
-                        vertices[`${vertexInd},0`] = me.fromAst(
+                        unconstrainedVertices[`${vertexInd},0`] = me.fromAst(
                             center[0] +
-                                directionWithRadius[0] * c -
-                                directionWithRadius[1] * s,
+                                unconstrainedDirectionWithRadius[0] * c -
+                                unconstrainedDirectionWithRadius[1] * s,
                         );
-                        vertices[`${vertexInd},1`] = me.fromAst(
+                        unconstrainedVertices[`${vertexInd},1`] = me.fromAst(
                             center[1] +
-                                directionWithRadius[0] * s +
-                                directionWithRadius[1] * c,
+                                unconstrainedDirectionWithRadius[0] * s +
+                                unconstrainedDirectionWithRadius[1] * c,
                         );
                     }
                 }
 
-                return { setValue: { vertices } };
+                return { setValue: { unconstrainedVertices } };
             },
 
             async inverseArrayDefinitionByKey({
@@ -1407,7 +1472,7 @@ export default class RegularPolygon extends Polygon {
                 }
                 Object.assign(
                     workspace.desiredVertices,
-                    desiredStateVariableValues.vertices,
+                    desiredStateVariableValues.unconstrainedVertices,
                 );
 
                 let desiredKeys = Object.keys(workspace.desiredVertices);
@@ -1415,6 +1480,26 @@ export default class RegularPolygon extends Polygon {
                 let changingJustOneVertex = desiredKeys.every(
                     (v) => v.split(",")[0] === vertexInd1String,
                 );
+
+                // record all desired vertices in allVertices,
+                // falling back to the original unconstrained vertices,
+                if (!workspace.allVertices) {
+                    workspace.allVertices = {};
+                }
+
+                Object.assign(workspace.allVertices, workspace.desiredVertices);
+                let unconstrainedVertices =
+                    await stateValues.unconstrainedVertices;
+
+                for (let vertexInd = 0; vertexInd < numVertices; vertexInd++) {
+                    for (let dim = 0; dim < 2; dim++) {
+                        let arrayKey = vertexInd + "," + dim;
+                        if (!workspace.allVertices[arrayKey]) {
+                            workspace.allVertices[arrayKey] =
+                                unconstrainedVertices[vertexInd][dim];
+                        }
+                    }
+                }
 
                 let desiredCenter;
 
@@ -1427,15 +1512,6 @@ export default class RegularPolygon extends Polygon {
                 } else {
                     // if change multiple vertices, then calculate center as average of all vertices
 
-                    if (!workspace.allVertices) {
-                        workspace.allVertices = {};
-                    }
-
-                    Object.assign(
-                        workspace.allVertices,
-                        workspace.desiredVertices,
-                    );
-
                     let center_x = 0,
                         center_y = 0;
 
@@ -1445,18 +1521,7 @@ export default class RegularPolygon extends Polygon {
                         vertexInd++
                     ) {
                         let v_x = workspace.allVertices[vertexInd + ",0"];
-                        if (!v_x) {
-                            let vertices = await stateValues.vertices;
-                            v_x = vertices[vertexInd][0];
-                            workspace.allVertices[vertexInd + ",0"] = v_x;
-                        }
-
                         let v_y = workspace.allVertices[vertexInd + ",1"];
-                        if (!v_y) {
-                            let vertices = await stateValues.vertices;
-                            v_y = vertices[vertexInd][1];
-                            workspace.allVertices[vertexInd + ",1"] = v_y;
-                        }
 
                         center_x += v_x.evaluate_to_constant();
                         center_y += v_y.evaluate_to_constant();
@@ -1468,21 +1533,23 @@ export default class RegularPolygon extends Polygon {
                     desiredCenter = [center_x, center_y];
                 }
 
-                // use the first index found in desired indices to determine directionWithRadius
+                // use the first index found in desired indices to determine unconstrainedDirectionWithRadius
                 let vertexInd1 = Number(vertexInd1String);
 
                 let desiredVertex_x =
                     workspace.desiredVertices[vertexInd1String + ",0"];
                 if (!desiredVertex_x) {
-                    let vertices = await stateValues.vertices;
-                    desiredVertex_x = vertices[vertexInd1][0];
+                    let unconstrainedVertices =
+                        await stateValues.unconstrainedVertices;
+                    desiredVertex_x = unconstrainedVertices[vertexInd1][0];
                 }
 
                 let desiredVertex_y =
                     workspace.desiredVertices[vertexInd1String + ",1"];
                 if (!desiredVertex_y) {
-                    let vertices = await stateValues.vertices;
-                    desiredVertex_y = vertices[vertexInd1][1];
+                    let unconstrainedVertices =
+                        await stateValues.unconstrainedVertices;
+                    desiredVertex_y = unconstrainedVertices[vertexInd1][1];
                 }
 
                 let desiredVertex = [
@@ -1507,11 +1574,20 @@ export default class RegularPolygon extends Polygon {
 
                 let instructions = [
                     {
-                        setDependency: "centerComponents",
+                        setDependency: "unconstrainedCenterComponents",
                         desiredValue: desiredCenter,
                     },
                     {
-                        setDependency: "directionWithRadius",
+                        setDependency: "unconstrainedDirectionWithRadius",
+                        desiredValue: desiredDirectionWithRadius,
+                    },
+                    {
+                        setDependency: "desiredUnconstrainedCenterComponents",
+                        desiredValue: desiredCenter,
+                    },
+                    {
+                        setDependency:
+                            "desiredUnconstrainedDirectionWithRadius",
                         desiredValue: desiredDirectionWithRadius,
                     },
                 ];
@@ -1556,9 +1632,9 @@ export default class RegularPolygon extends Polygon {
 
             returnArrayDependenciesByKey() {
                 let globalDependencies = {
-                    centerComponents: {
+                    vertices: {
                         dependencyType: "stateVariable",
-                        variableName: "centerComponents",
+                        variableName: "vertices",
                     },
                 };
 
@@ -1566,11 +1642,20 @@ export default class RegularPolygon extends Polygon {
             },
 
             arrayDefinitionByKey({ globalDependencyValues }) {
+                let centerComponents = [0, 0];
+
+                for (let vertex of globalDependencyValues.vertices) {
+                    centerComponents[0] += vertex[0].evaluate_to_constant();
+                    centerComponents[1] += vertex[1].evaluate_to_constant();
+                }
+
+                let numVertices = globalDependencyValues.vertices.length;
+                centerComponents[0] /= numVertices;
+                centerComponents[1] /= numVertices;
+
                 return {
                     setValue: {
-                        center: globalDependencyValues.centerComponents.map(
-                            (x) => me.fromAst(x),
-                        ),
+                        center: centerComponents.map((x) => me.fromAst(x)),
                     },
                 };
             },
@@ -1580,31 +1665,45 @@ export default class RegularPolygon extends Polygon {
                 stateValues,
                 workspace,
             }) {
-                let desired_center_x = desiredStateVariableValues.center[0];
-                if (!desired_center_x) {
+                let previous_center = (await stateValues.center).map((v) =>
+                    v.evaluate_to_constant(),
+                );
+
+                let desired_center_x =
+                    desiredStateVariableValues.center[0]?.evaluate_to_constant();
+                if (!Number.isFinite(desired_center_x)) {
                     desired_center_x = workspace.desired_center_x;
                 }
-                if (!desired_center_x) {
-                    desired_center_x = (await stateValues.center)[0];
+                if (!Number.isFinite(desired_center_x)) {
+                    desired_center_x = previous_center[0];
                 }
                 workspace.desired_center_x = desired_center_x;
 
-                let desired_center_y = desiredStateVariableValues.center[1];
-                if (!desired_center_y) {
+                let desired_center_y =
+                    desiredStateVariableValues.center[1]?.evaluate_to_constant();
+                if (!Number.isFinite(desired_center_y)) {
                     desired_center_y = workspace.desired_center_y;
                 }
-                if (!desired_center_y) {
-                    desired_center_y = (await stateValues.center)[1];
+                if (!Number.isFinite(desired_center_y)) {
+                    desired_center_y = previous_center[1];
                 }
                 workspace.desired_center_y = desired_center_y;
 
+                let shift = [
+                    desired_center_x - previous_center[0],
+                    desired_center_y - previous_center[1],
+                ];
+
+                let numericalVertices = await stateValues.numericalVertices;
+
+                let desired_vertices = numericalVertices.map((vertex) =>
+                    vertex.map((v, i) => me.fromAst(v + shift[i])),
+                );
+
                 let instructions = [
                     {
-                        setDependency: "centerComponents",
-                        desiredValue: [
-                            desired_center_x.evaluate_to_constant(),
-                            desired_center_y.evaluate_to_constant(),
-                        ],
+                        setDependency: "vertices",
+                        desiredValue: desired_vertices,
                     },
                 ];
 
@@ -1919,127 +2018,35 @@ export default class RegularPolygon extends Polygon {
 
         if (numVerticesMoved === 1) {
             // single vertex dragged
-
             if (!(await this.stateValues.verticesDraggable)) {
                 return;
             }
-
-            // Since the case where drag the entire regular polygon is complicated,
-            // we perform the entire move for a single vertex here and return.
-
-            // If a single vertex is dragged, we perform update on the vertex,
-            // as one typically does for a polygon
-            let vertexComponents = {};
-            for (let ind in pointCoords) {
-                vertexComponents[ind + ",0"] = me.fromAst(pointCoords[ind][0]);
-                vertexComponents[ind + ",1"] = me.fromAst(pointCoords[ind][1]);
-            }
-
-            if (transient) {
-                return await this.coreFunctions.performUpdate({
-                    updateInstructions: [
-                        {
-                            updateType: "updateValue",
-                            componentName: this.componentName,
-                            stateVariable: "vertices",
-                            value: vertexComponents,
-                            sourceDetails,
-                        },
-                    ],
-                    transient,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                });
-            } else {
-                return await this.coreFunctions.performUpdate({
-                    updateInstructions: [
-                        {
-                            updateType: "updateValue",
-                            componentName: this.componentName,
-                            stateVariable: "vertices",
-                            value: vertexComponents,
-                            sourceDetails,
-                        },
-                    ],
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                    event: {
-                        verb: "interacted",
-                        object: {
-                            componentName: this.componentName,
-                            componentType: this.componentType,
-                        },
-                        result: {
-                            pointCoordinates: pointCoords,
-                        },
-                    },
-                });
+        } else {
+            // whole polyline dragged
+            if (!(await this.stateValues.draggable)) {
+                return;
             }
         }
 
-        // whole polyline dragged
-        if (!(await this.stateValues.draggable)) {
-            return;
+        let vertexComponents = {};
+        for (let ind in pointCoords) {
+            vertexComponents[ind + ",0"] = me.fromAst(pointCoords[ind][0]);
+            vertexComponents[ind + ",1"] = me.fromAst(pointCoords[ind][1]);
         }
-
-        // In order to detect if one of the points used to defined the regular polygon is constrained
-        // (so that we can adjust to keep the shape in that case)
-        // we perform that calculations of the inverseDefinition of vertices here
-        // and perform that update directly on centerComponents and directionWithRadius.
-        // (The inverse definition of vertices will still be used if other components
-        // are connected to the vertices.)
-        // We just want this special behavior for the case when the entire polygon
-        // is moved by the renderer.
-
-        let numVertices = await this.stateValues.numVertices;
-
-        // First calculate the desired centers as the average of all points
-
-        let center_x = 0,
-            center_y = 0;
-
-        for (let vertexInd = 0; vertexInd < numVertices; vertexInd++) {
-            center_x += pointCoords[vertexInd][0];
-            center_y += pointCoords[vertexInd][1];
-        }
-
-        center_x /= numVertices;
-        center_y /= numVertices;
-
-        let center = [center_x, center_y];
-
-        // use the first index determine directionWithRadius
-        let vertex1 = pointCoords[0];
-
-        let directionWithRadius = [
-            vertex1[0] - center[0],
-            vertex1[1] - center[1],
-        ];
-
-        let updateInstructions = [
-            {
-                updateType: "updateValue",
-                componentName: this.componentName,
-                stateVariable: "centerComponents",
-                value: center,
-                sourceDetails,
-            },
-            {
-                updateType: "updateValue",
-                componentName: this.componentName,
-                stateVariable: "directionWithRadius",
-                value: directionWithRadius,
-                sourceDetails,
-            },
-        ];
 
         // Note: we set skipRendererUpdate to true
         // so that we can make further adjustments before the renderers are updated
         if (transient) {
             await this.coreFunctions.performUpdate({
-                updateInstructions,
+                updateInstructions: [
+                    {
+                        updateType: "updateValue",
+                        componentName: this.componentName,
+                        stateVariable: "vertices",
+                        value: vertexComponents,
+                        sourceDetails,
+                    },
+                ],
                 transient,
                 actionId,
                 sourceInformation,
@@ -2047,7 +2054,15 @@ export default class RegularPolygon extends Polygon {
             });
         } else {
             await this.coreFunctions.performUpdate({
-                updateInstructions,
+                updateInstructions: [
+                    {
+                        updateType: "updateValue",
+                        componentName: this.componentName,
+                        stateVariable: "vertices",
+                        value: vertexComponents,
+                        sourceDetails,
+                    },
+                ],
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
@@ -2068,47 +2083,102 @@ export default class RegularPolygon extends Polygon {
         // even if a subset of the vertices are constrained.
         let numVerticesSpecified = await this.stateValues.numVerticesSpecified;
         let haveSpecifiedCenter = await this.stateValues.haveSpecifiedCenter;
+        let desiredUnconstrainedCenter =
+            await this.stateValues.desiredUnconstrainedCenterComponents;
+        let desiredUnconstrainedDirectionWithRadius =
+            await this.stateValues.desiredUnconstrainedDirectionWithRadius;
 
-        if (haveSpecifiedCenter) {
-            if (numVerticesSpecified >= 1) {
-                // polygon was determined by center and 1 vertex
+        if (
+            desiredUnconstrainedCenter !== null &&
+            desiredUnconstrainedDirectionWithRadius !== null
+        ) {
+            let desiredUnconstrainedVertex1 = [
+                desiredUnconstrainedCenter[0] +
+                    desiredUnconstrainedDirectionWithRadius[0],
+                desiredUnconstrainedCenter[1] +
+                    desiredUnconstrainedDirectionWithRadius[1],
+            ];
 
-                let resultingCenter = await this.stateValues.centerComponents;
+            if (haveSpecifiedCenter) {
+                if (numVerticesSpecified >= 1) {
+                    // polygon was determined by center and 1 vertex
 
-                let resultingDirectionWithRadius =
-                    await this.stateValues.directionWithRadius;
-                let resultingVertex1 = [
-                    resultingCenter[0] + resultingDirectionWithRadius[0],
-                    resultingCenter[1] + resultingDirectionWithRadius[1],
-                ];
+                    let resultingCenter =
+                        await this.stateValues.unconstrainedCenterComponents;
 
-                let tol = 1e-6;
+                    let resultingDirectionWithRadius =
+                        await this.stateValues.unconstrainedDirectionWithRadius;
+                    let resultingVertex1 = [
+                        resultingCenter[0] + resultingDirectionWithRadius[0],
+                        resultingCenter[1] + resultingDirectionWithRadius[1],
+                    ];
 
-                let vertex1Changed = !vertex1.every(
-                    (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
-                );
-                let centerChanged = !center.every(
-                    (v, i) => Math.abs(v - resultingCenter[i]) < tol,
-                );
+                    let tol = 1e-6;
 
-                if (centerChanged) {
-                    if (!vertex1Changed) {
-                        // only center changed
+                    let vertex1Changed = !desiredUnconstrainedVertex1.every(
+                        (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
+                    );
+                    let centerChanged = !desiredUnconstrainedCenter.every(
+                        (v, i) => Math.abs(v - resultingCenter[i]) < tol,
+                    );
+
+                    console.log({ vertex1Changed, centerChanged });
+
+                    if (centerChanged) {
+                        if (!vertex1Changed) {
+                            // only center changed
+                            // keep directionWithRadius the same
+                            // and use new center position
+
+                            let newInstructions = [
+                                {
+                                    updateType: "updateValue",
+                                    componentName: this.componentName,
+                                    stateVariable:
+                                        "unconstrainedCenterComponents",
+                                    value: resultingCenter,
+                                },
+                                {
+                                    updateType: "updateValue",
+                                    componentName: this.componentName,
+                                    stateVariable:
+                                        "unconstrainedDirectionWithRadius",
+                                    value: desiredUnconstrainedDirectionWithRadius,
+                                },
+                            ];
+                            return await this.coreFunctions.performUpdate({
+                                updateInstructions: newInstructions,
+                                transient,
+                                actionId,
+                                sourceInformation,
+                                skipRendererUpdate,
+                            });
+                        }
+                    } else if (vertex1Changed) {
+                        // only vertex 1 changed
                         // keep directionWithRadius the same
-                        // and use new center position
+                        // adjust center to put vertex 1 at its new location
+
+                        let newCenter = [
+                            resultingVertex1[0] -
+                                desiredUnconstrainedDirectionWithRadius[0],
+                            resultingVertex1[1] -
+                                desiredUnconstrainedDirectionWithRadius[1],
+                        ];
 
                         let newInstructions = [
                             {
                                 updateType: "updateValue",
                                 componentName: this.componentName,
-                                stateVariable: "centerComponents",
-                                value: resultingCenter,
+                                stateVariable: "unconstrainedCenterComponents",
+                                value: newCenter,
                             },
                             {
                                 updateType: "updateValue",
                                 componentName: this.componentName,
-                                stateVariable: "directionWithRadius",
-                                value: directionWithRadius,
+                                stateVariable:
+                                    "unconstrainedDirectionWithRadius",
+                                value: desiredUnconstrainedDirectionWithRadius,
                             },
                         ];
                         return await this.coreFunctions.performUpdate({
@@ -2119,28 +2189,105 @@ export default class RegularPolygon extends Polygon {
                             skipRendererUpdate,
                         });
                     }
-                } else if (vertex1Changed) {
-                    // only vertex 1 changed
+                }
+            } else if (numVerticesSpecified >= 2) {
+                //polygon was determined by two vertices
+
+                // calculate the value of vertex2 calculated from center and vertex1
+                let numVertices = await this.stateValues.numVertices;
+                let angle = (2 * Math.PI) / numVertices;
+
+                let c = Math.cos(angle);
+                let s = Math.sin(angle);
+
+                let directionWithRadius2 = [
+                    desiredUnconstrainedDirectionWithRadius[0] * c -
+                        desiredUnconstrainedDirectionWithRadius[1] * s,
+                    desiredUnconstrainedDirectionWithRadius[0] * s +
+                        desiredUnconstrainedDirectionWithRadius[1] * c,
+                ];
+
+                let vertex2 = [
+                    directionWithRadius2[0] + desiredUnconstrainedCenter[0],
+                    directionWithRadius2[1] + desiredUnconstrainedCenter[1],
+                ];
+
+                let resultingVertices =
+                    await this.stateValues.unconstrainedVertices;
+                let resultingVertex1 = resultingVertices[0].map((x) =>
+                    x.evaluate_to_constant(),
+                );
+                let resultingVertex2 = resultingVertices[1].map((x) =>
+                    x.evaluate_to_constant(),
+                );
+
+                let tol = 1e-6;
+
+                let vertex1Changed = !desiredUnconstrainedVertex1.every(
+                    (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
+                );
+                let vertex2Changed = !vertex2.every(
+                    (v, i) => Math.abs(v - resultingVertex2[i]) < tol,
+                );
+
+                if (vertex1Changed) {
+                    if (!vertex2Changed) {
+                        // only vertex 1 changed
+                        // keep directionWithRadius the same
+                        // adjust center to put vertex 1 at its new location
+
+                        let newCenter = [
+                            resultingVertex1[0] -
+                                desiredUnconstrainedDirectionWithRadius[0],
+                            resultingVertex1[1] -
+                                desiredUnconstrainedDirectionWithRadius[1],
+                        ];
+
+                        let newInstructions = [
+                            {
+                                updateType: "updateValue",
+                                componentName: this.componentName,
+                                stateVariable: "unconstrainedCenterComponents",
+                                value: newCenter,
+                            },
+                            {
+                                updateType: "updateValue",
+                                componentName: this.componentName,
+                                stateVariable:
+                                    "unconstrainedDirectionWithRadius",
+                                value: desiredUnconstrainedDirectionWithRadius,
+                            },
+                        ];
+                        return await this.coreFunctions.performUpdate({
+                            updateInstructions: newInstructions,
+                            transient,
+                            actionId,
+                            sourceInformation,
+                            skipRendererUpdate,
+                        });
+                    }
+                } else if (vertex2Changed) {
+                    // only vertex 2 changed
                     // keep directionWithRadius the same
-                    // adjust center to put vertex 1 at its new location
+                    // adjust center to put vertex 2 at its new location
 
                     let newCenter = [
-                        resultingVertex1[0] - directionWithRadius[0],
-                        resultingVertex1[1] - directionWithRadius[1],
+                        resultingVertex2[0] - directionWithRadius2[0],
+                        resultingVertex2[1] - directionWithRadius2[1],
                     ];
 
                     let newInstructions = [
                         {
                             updateType: "updateValue",
                             componentName: this.componentName,
-                            stateVariable: "centerComponents",
+                            stateVariable: "unconstrainedCenterComponents",
                             value: newCenter,
                         },
                         {
                             updateType: "updateValue",
                             componentName: this.componentName,
-                            stateVariable: "directionWithRadius",
-                            value: directionWithRadius,
+                            stateVariable: "unconstrainedDirectionWithRadius",
+                            value: desiredUnconstrainedDirectionWithRadius,
                         },
                     ];
                     return await this.coreFunctions.performUpdate({
@@ -2151,107 +2298,6 @@ export default class RegularPolygon extends Polygon {
                         skipRendererUpdate,
                     });
                 }
-            }
-        } else if (numVerticesSpecified >= 2) {
-            //polygon was determined by two vertices
-
-            // calculate the value of vertex2 calculated from center and vertex1
-            let angle = (2 * Math.PI) / numVertices;
-
-            let c = Math.cos(angle);
-            let s = Math.sin(angle);
-
-            let directionWithRadius2 = [
-                directionWithRadius[0] * c - directionWithRadius[1] * s,
-                directionWithRadius[0] * s + directionWithRadius[1] * c,
-            ];
-
-            let vertex2 = [
-                directionWithRadius2[0] + center[0],
-                directionWithRadius2[1] + center[1],
-            ];
-
-            let resultingVertices = await this.stateValues.vertices;
-            let resultingVertex1 = resultingVertices[0].map((x) =>
-                x.evaluate_to_constant(),
-            );
-            let resultingVertex2 = resultingVertices[1].map((x) =>
-                x.evaluate_to_constant(),
-            );
-
-            let tol = 1e-6;
-
-            let vertex1Changed = !vertex1.every(
-                (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
-            );
-            let vertex2Changed = !vertex2.every(
-                (v, i) => Math.abs(v - resultingVertex2[i]) < tol,
-            );
-
-            if (vertex1Changed) {
-                if (!vertex2Changed) {
-                    // only vertex 1 changed
-                    // keep directionWithRadius the same
-                    // adjust center to put vertex 1 at its new location
-
-                    let newCenter = [
-                        resultingVertex1[0] - directionWithRadius[0],
-                        resultingVertex1[1] - directionWithRadius[1],
-                    ];
-
-                    let newInstructions = [
-                        {
-                            updateType: "updateValue",
-                            componentName: this.componentName,
-                            stateVariable: "centerComponents",
-                            value: newCenter,
-                        },
-                        {
-                            updateType: "updateValue",
-                            componentName: this.componentName,
-                            stateVariable: "directionWithRadius",
-                            value: directionWithRadius,
-                        },
-                    ];
-                    return await this.coreFunctions.performUpdate({
-                        updateInstructions: newInstructions,
-                        transient,
-                        actionId,
-                        sourceInformation,
-                        skipRendererUpdate,
-                    });
-                }
-            } else if (vertex2Changed) {
-                // only vertex 2 changed
-                // keep directionWithRadius the same
-                // adjust center to put vertex 2 at its new location
-
-                let newCenter = [
-                    resultingVertex2[0] - directionWithRadius2[0],
-                    resultingVertex2[1] - directionWithRadius2[1],
-                ];
-
-                let newInstructions = [
-                    {
-                        updateType: "updateValue",
-                        componentName: this.componentName,
-                        stateVariable: "centerComponents",
-                        value: newCenter,
-                    },
-                    {
-                        updateType: "updateValue",
-                        componentName: this.componentName,
-                        stateVariable: "directionWithRadius",
-                        value: directionWithRadius,
-                    },
-                ];
-                return await this.coreFunctions.performUpdate({
-                    updateInstructions: newInstructions,
-                    transient,
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate,
-                });
             }
         }
 
