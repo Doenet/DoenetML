@@ -1,11 +1,11 @@
 import React from "react";
 import { IframeDoenetML } from "./iframe-doenetml";
-import { Tab, Tabs } from "nextra/components";
+import { Tabs } from "nextra/components";
 
 /**
  * Render DoenetML as an example in documentation.
  */
-export function DoenetMLExample({ children }) {
+export function DoenetMLExample({ children }: React.PropsWithChildren<{}>) {
     if (typeof children !== "string") {
         console.error(
             "Error with DoenetML component. Expected a string child containing DoenetML source code, but found",

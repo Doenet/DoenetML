@@ -3,7 +3,7 @@ import React from "react";
 /**
  * Render DoenetML in an iframe so that its styling/state is completely isolated from the page.
  */
-export function IframeDoenetML({ children }) {
+export function IframeDoenetML({ children }: React.PropsWithChildren<{}>) {
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [height, setHeight] = React.useState("0px");
 
