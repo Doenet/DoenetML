@@ -28,7 +28,8 @@
             "output": [
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
-                "dist/**/*.json"
+                "dist/**/*.json",
+                "dist/fonts/**/*"
             ],
             "dependencies": [
                 "../doenetml:build"

@@ -16,8 +16,40 @@
         "build": "npm run build:pre && next build",
         "start": "next start",
         "build:pre": "npm run build:pre-copy && npm run build:pre-scripts",
-        "build:pre-copy": "mkdir -p ./public/bundle && cp ../standalone/dist/* ./public/bundle/ && mkdir -p ./public/bundle/fonts/files && cp ../doenetml/dist/fonts/files/* ./public/bundle/fonts/files/",
-        "build:pre-scripts": "vite build"
+        "build:pre-copy": "wireit",
+        "build:pre-scripts": "wireit"
+    },
+    "wireit": {
+        "build:pre-copy" :{
+            "command": "mkdir -p ./public/bundle && cp -r ../standalone/dist/* ./public/bundle/",
+            "files": [
+                "../standalone/dist/*",
+                "../doenetml/dist/fonts/files/*"
+            ],
+            "output": [
+                "public/bundle/**/*"
+            ],
+            "dependencies": [
+                "../standalone:build",
+                "../doenetml:build"
+            ]
+        },
+        "build:pre-scripts": {
+            "command": "vite build",
+            "files": [
+                "scripts/**/*.ts",
+                "scripts/**/*.tsx",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../static-assets:build"
+            ]
+        }
     },
     "dependencies": {
         "nextra": "^3.0.0-alpha.24",
