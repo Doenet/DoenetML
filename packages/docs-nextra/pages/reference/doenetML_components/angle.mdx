@@ -12,41 +12,40 @@ When reference lines or points are used to specify the `<angle>`, two possibliti
 
 ## Attributes and Properties
 
-<AttrDisplay name="angle" />
-<PropDisplay name="angle" />
+<AttrDisplay name="angle" links={{
+  radius: "#radius-ex",
+  chooseReflexAngle: "#chooseReflexAngle-ex",
+  inDegrees: "#inDegrees-ex",
+  through: "#threePoints-ex",
+  radians: "#radians-ex",
+  betweenLines: "#twoLines-ex",
+  emphasizeRightAngle: "#emphasizeRightAngle-ex",
+}} />
 
-**Attributes**
-* [radius](#radius-ex)
-* [chooseReflexAngle](#chooseReflexAngle-ex)
-* [inDegrees](#inDegrees-ex)
-* [radians](#radians-ex)
-* [through](#threePoints-ex)
-* [betweenLines](#twoLines-ex)
-* [emphasizeRightAngle](#emphasizeRightAngle-ex)
+<PropDisplay name="angle" links={{
+  angle: "#angle-ex",
+  value: "#angle-ex",
+}} />
 
-**Properties**
-* [attributes as properties](#attributesAsProps-ex)
-* [angle, value](#angle-ex)
-
-## Example list
+## Examples
 1. [`<angle>` between two lines](#twoLines-ex)
 2. [`<angle>` between three points](#threePoints-ex)
 3. [`<angle>` specified by user-input](#userInput-ex)
 
 <a id="twoLines-ex"></a>
-### Example: `<angle>` between two lines
-```html {4}
+### Example: `<angle>{:dn}` between two lines
+```dn {4}
 <graph size="small" xmax="6" ymin="-6">
   <line name="line1">y = 1/2 x + 4</line>
   <line name="line2">y = -x  - 1</line>
   <angle betweenLines="$line1 $line2" radius="3"/>
 </graph>
 ```
-Two lines are created within a `<graph>` using the `<line>` component. The `<angle>` component is specified by referencing those lines by name with the betweenLines attribute. Test code [here](#test-code).
+Two lines are created within a `<graph>{:dn}` using the `<line>{:dn}` component. The `<angle>{:dn}` component is specified by referencing those lines by name with the betweenLines attribute. Test code [here](#test-code).
 
 <a id="threePoints-ex"></a>
 ### Example: `<angle>` between three points
-```html
+```dn
 <graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
   <angle through="(5,-3) (0,0) (5,4)"/>
 </graph>
@@ -55,17 +54,17 @@ Three points define the angle with the `through` attribute. Test code [here](#te
 
 <a id="userInput-ex"></a>
 ### Example: `<angle>` specified by user-input
-```html {3}
+```dn {3}
 Angle in radians: <mathInput name="userAngle"/>
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle>$userAngle</angle>
 </graph>
 ```
-The user is prompted to enter an angle with the `<mathInput/>` component. This angle is then referenced by name within the opening and closing `<angle>` tags. Test code [here](#test-code).
+The user is prompted to enter an angle with the `<mathInput/>{:dn}` component. This angle is then referenced by name within the opening and closing `<angle>{:dn}` tags. Test code [here](#test-code).
 
 <a id="radius-ex"></a>
 ### Example: `radius` attribute
-```html
+```dn
 <graph size="small">
   <angle degrees="65" radius="5"/>
 </graph>
@@ -74,7 +73,7 @@ The `radius` attribute is used to change the radius of the angle symbol shown on
 
 <a id="chooseReflexAngle-ex"></a>
 ### Example: `chooseReflexAngle` attribute
-```html {5,6,7}
+```dn {5,6,7}
 <graph>
   <point name="A" fixed>(5, -3)</point>
   <point name="B" fixed>(0, 0)</point>
@@ -95,7 +94,7 @@ Finally, the orange angle takes the specified through-points in a counter-clockw
 
 <a id="inDegrees-ex"></a>
 ### Example: `inDegrees` attribute
-```html
+```dn
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle name="a" inDegrees degrees="30"/>
 </graph>
@@ -105,7 +104,7 @@ The `inDegrees` attribute specifies that the output of the angle when defined or
 
 <a id="degrees-ex"></a>
 ### Example: `degrees` attribute
-```html
+```dn
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle degrees="30"/>
 </graph>
@@ -114,7 +113,7 @@ The `degrees` attribute specifies the measure of the angle in degrees; type = ma
 
 <a id="radians-ex"></a>
 ### Example: `radians` attribute
-```html
+```dn
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle radians="pi/2"/>
 </graph>
@@ -124,7 +123,7 @@ The `radians` attribute specifies the measure of the angle in radians; type = ma
 
 <a id="emphasizeRightAngle-ex"></a>
 ### Example: `emphasizeRightAngle` attribute
-```html
+```dn
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle radians="pi/2" emphasizeRightAngle="false"/>
 </graph>
@@ -133,7 +132,7 @@ By default, right angles are shown with a square symbol. Use the emphasizeRightA
 
 <a id="attributesAsProps-ex"></a>
 ### Example: attributes as properties
-```html
+```dn
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle name="alpha" radians="pi/2"/>
 </graph>
@@ -149,7 +148,7 @@ The attributes listed above are also accessible as properties. Test code [here](
 
 <a id="angle-ex"></a>
 ### Example: angle, value properties
-```html
+```dn
 <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
   <angle name="alpha" radians="pi/2"/>
 </graph>

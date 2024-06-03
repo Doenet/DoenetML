@@ -1,5 +1,7 @@
 import nextraConfig from "nextra";
 import { autoInsertAttrPropDescriptions } from "./dist/index.js";
+import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
+import fs from "node:fs";
 
 const withNextra = nextraConfig({
     theme: "nextra-theme-docs",
@@ -7,6 +9,55 @@ const withNextra = nextraConfig({
     defaultShowCopyCode: true,
     latex: true,
     mdxOptions: {
+        rehypePrettyCodeOptions: {
+            /**
+             * Add DoenetML syntax highlighting to the list of languages available under the alias
+             * `doenet` and `dn`.
+             */
+            getHighlighter: async (options) => {
+                const { langAlias = {}, themes = [], ...rest } = options;
+                // Add `dn` to the language aliases.
+                langAlias.dn = "doenet";
+
+                // Add doenet-specific colors to the themes (github-light and github-dark).
+                const modifiedThemes = [];
+                for (const themeName of themes) {
+                    const theme = await bundledThemes[themeName]();
+
+                    // Add doenet-specific colors to the themes (github-light and github-dark).
+                    theme.default.tokenColors.push({
+                        scope: [
+                            "string.quoted.single.xml",
+                            "string.quoted.double.xml",
+                            "punctuation.definition.string.begin.xml",
+                            "punctuation.definition.string.end.xml",
+                        ],
+                        settings: {
+                            foreground:
+                                theme.default.colors["terminal.ansiRed"],
+                        },
+                    });
+                    modifiedThemes.push(theme);
+                }
+
+                const highlighter = getHighlighter({
+                    langAlias,
+                    themes: modifiedThemes,
+                    ...rest,
+                    langs: [
+                        ...Object.keys(bundledLanguages),
+                        JSON.parse(
+                            fs.readFileSync(
+                                "../vscode-extension/extension/config/doenet.tmLanguage.json",
+                                "utf8",
+                            ),
+                        ),
+                    ],
+                });
+
+                return await highlighter;
+            },
+        },
         remarkPlugins: [autoInsertAttrPropDescriptions],
         rehypePlugins: [
             /**
