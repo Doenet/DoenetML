@@ -238,6 +238,8 @@ export default class Core {
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
+        numberAnswers(serializedComponents);
+
         this.componentIndexArray =
             extractComponentNamesAndIndices(serializedComponents);
 
@@ -13605,4 +13607,20 @@ function calculateAllComponentsShadowing(component) {
     }
 
     return allShadowing;
+}
+
+function numberAnswers(components, numSoFar = 0) {
+    let count = numSoFar;
+
+    for (let comp of components) {
+        if (comp.componentType === "answer") {
+            count++;
+            comp.answerNumber = count;
+        } else if (comp.children) {
+            const result = numberAnswers(comp.children, count);
+            count = result.count;
+        }
+    }
+
+    return { count };
 }

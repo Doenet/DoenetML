@@ -2214,6 +2214,7 @@ export default class Answer extends InlineComponent {
                 object: {
                     componentName: this.componentName,
                     componentType: this.componentType,
+                    answerNumber: this.answerNumber,
                 },
                 result: {
                     response: currentResponses,
