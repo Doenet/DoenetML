@@ -251,6 +251,9 @@
                 },
                 {
                     "include": "#bare-ampersand"
+                },
+                {
+                    "include": "#variable"
                 }
             ]
         },
@@ -319,6 +322,9 @@
                 },
                 {
                     "include": "#bare-ampersand"
+                },
+                {
+                    "include": "#variable"
                 }
             ]
         },
@@ -385,7 +391,7 @@
         },
         "variable": {
             "match": "(\\$)(\\w+(\\[.*?\\])?)(\\.(\\w+(\\[.*?\\])?))*(\\{.*?\\})?",
-            "name": "variable.other.doenet"
+            "name": "variable.language.doenet"
         }
     }
 }
