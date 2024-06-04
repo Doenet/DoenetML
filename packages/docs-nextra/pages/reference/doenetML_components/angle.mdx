@@ -1,10 +1,10 @@
 import { DoenetML} from "../../../components/doenet"
 import { AttrDisplay, PropDisplay } from "../../../components"
 
-# `<angle>`
+# `<angle>{:dn}`
 
 ## What it does
-`<angle>` renders a geometric angle when nested inside a `<graph>` component. It is both a [Graphical Component](../componentClasses), as well as a [Math](../componentClasses). 
+`<angle>{:dn}` renders a geometric angle when nested inside a `<graph>{:dn}` component. It is both a [Graphical Component](../componentClasses), as well as a [Math](../componentClasses). 
 
 A geometric angle may be defined by specifying three reference points, or two intersecting reference lines. A numerical value may be specified using the `degrees` or `radians` attributes, together with one more through-points using the `through` attribute.
 
@@ -20,12 +20,16 @@ When reference lines or points are used to specify the `<angle>`, two possibliti
   radians: "#radians-ex",
   betweenLines: "#twoLines-ex",
   emphasizeRightAngle: "#emphasizeRightAngle-ex",
-}} />
+}}>
+`<angle>{:dn}`
+</AttrDisplay>
 
 <PropDisplay name="angle" links={{
   angle: "#angle-ex",
   value: "#angle-ex",
-}} />
+}}>
+`<angle name="a">{:dn}`
+</PropDisplay>
 
 ## Examples
 1. [`<angle>` between two lines](#twoLines-ex)
