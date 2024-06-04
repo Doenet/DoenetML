@@ -1,4 +1,4 @@
-export { DoenetML } from "./DoenetML";
+export { DoenetML } from "./doenetml";
 
 export {
     mathjaxConfig,
