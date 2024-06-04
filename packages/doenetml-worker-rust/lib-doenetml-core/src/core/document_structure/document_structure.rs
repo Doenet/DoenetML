@@ -13,7 +13,8 @@ use crate::{
         types::{ComponentIdx, PropDefinitionIdx, PropPointer},
         Component, ComponentAttributes, ComponentCommon,
     },
-    graph_node::{GraphNode, StructureGraph},
+    dast::ElementRefAnnotation,
+    graph_node::{GraphNode, GraphNodeLookup, StructureGraph},
     props::{cache::PropWithMeta, PropDefinition, PropProfile, StringCache},
 };
 
@@ -37,6 +38,9 @@ pub struct DocumentStructure {
     virtual_node_count: usize,
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
     prop_definitions: TiVec<PropDefinitionIdx, PropDefinition>,
+    /// Stores whether a particular virtual node was created to house the children coming from another component
+    /// because it was `extend`ing another component.
+    pub children_came_from_extending_marker: GraphNodeLookup<bool>,
 }
 
 impl DocumentStructure {
@@ -48,6 +52,7 @@ impl DocumentStructure {
             strings: StringCache::new(),
             virtual_node_count: 0,
             prop_definitions: TiVec::new(),
+            children_came_from_extending_marker: GraphNodeLookup::new(),
         }
     }
 
@@ -62,6 +67,7 @@ impl DocumentStructure {
         self.strings = builder.strings;
         self.virtual_node_count = builder.virtual_node_count;
         self.prop_definitions = builder.props;
+        self.children_came_from_extending_marker = builder.children_came_from_extending_marker;
     }
 
     /// Add an edge to the structure graph.
@@ -169,6 +175,38 @@ impl DocumentStructure {
         let content_children = self
             .structure_graph
             .get_content_children(children_virtual_node)
+            .collect::<Vec<_>>();
+        content_children
+    }
+
+    /// Returns a vector of all the _content_ children of a component. That is,
+    /// any virtual nodes that are listed in the children are expanded down to their content.
+    /// Each child comes with an [`ElementRefAnnotation`] indicating whether it is an original child
+    /// or whether it came from extending another component.
+    pub fn get_component_content_children_annotated<T: Into<GraphNode>>(
+        &self,
+        pointer: T,
+    ) -> Vec<(GraphNode, ElementRefAnnotation)> {
+        let component_idx: ComponentIdx = pointer.into().into();
+        let children_virtual_node = self
+            .structure_graph
+            .get_component_children_virtual_node(component_idx);
+
+        // create vector of content children so that we don't borrow core in loop
+        // and can make a mutable borrow of core to create a virtual node
+        let content_children = self
+            .structure_graph
+            .get_content_children_with_mark(
+                children_virtual_node,
+                &self.children_came_from_extending_marker,
+            )
+            .map(|(node, came_from_extending)| {
+                if !came_from_extending {
+                    (node, ElementRefAnnotation::Original)
+                } else {
+                    (node, ElementRefAnnotation::Duplicate)
+                }
+            })
             .collect::<Vec<_>>();
         content_children
     }

@@ -45,14 +45,18 @@ impl PropDefinition {
             PropValueDiscriminants::Number => {
                 unimplemented!("haven't yet created a number component")
             }
-            PropValueDiscriminants::XrefLabel => {
-                panic!("no bare references to xref labels allowed")
+            PropValueDiscriminants::XrefLabel
+            | PropValueDiscriminants::ListDepth
+            | PropValueDiscriminants::ListMarker
+            | PropValueDiscriminants::DivisionType => {
+                panic!("no bare references to allowed")
             }
             PropValueDiscriminants::String => Text::NAME,
             PropValueDiscriminants::Boolean => Boolean::NAME,
             PropValueDiscriminants::Math => "math",
             PropValueDiscriminants::ComponentRef
             | PropValueDiscriminants::ComponentRefs
+            | PropValueDiscriminants::AnnotatedContentRefs
             | PropValueDiscriminants::ContentRefs
             | PropValueDiscriminants::ContentRef => _Fragment::NAME,
             PropValueDiscriminants::PropVec => {

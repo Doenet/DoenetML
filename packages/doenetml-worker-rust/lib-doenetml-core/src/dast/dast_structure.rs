@@ -148,7 +148,41 @@ impl Serialize for ForRenderProps {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ForRenderPropValue {
     pub name: &'static str,
-    pub value: PropValue,
+    pub value: ForRenderPropValueOrContent,
+}
+
+/// Some data may be pre-processed into `FlatDastElementContent`
+/// and other data may be left as a `PropValue` to be serialized by
+/// its own serializer. This enum stores both types of data.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(untagged)]
+pub enum ForRenderPropValueOrContent {
+    PropValue(PropValue),
+    Content(Vec<FlatDastElementContent>),
+}
+
+impl From<PropValue> for ForRenderPropValueOrContent {
+    fn from(prop_value: PropValue) -> Self {
+        ForRenderPropValueOrContent::PropValue(prop_value)
+    }
+}
+
+impl From<FlatDastElementContent> for ForRenderPropValueOrContent {
+    fn from(content: FlatDastElementContent) -> Self {
+        ForRenderPropValueOrContent::Content(vec![content])
+    }
+}
+
+impl From<Vec<FlatDastElementContent>> for ForRenderPropValueOrContent {
+    fn from(content: Vec<FlatDastElementContent>) -> Self {
+        ForRenderPropValueOrContent::Content(content)
+    }
+}
+
+impl From<&str> for ForRenderPropValueOrContent {
+    fn from(s: &str) -> Self {
+        ForRenderPropValueOrContent::PropValue(s.into())
+    }
 }
 
 /// A text node
@@ -322,8 +356,52 @@ pub struct FlatDastRoot {
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub enum FlatDastElementContent {
-    Element(usize),
+    Element(AnnotatedElementRef),
     Text(String),
+}
+
+impl FlatDastElementContent {
+    pub fn new_element(id: usize, annotation: ElementRefAnnotation) -> Self {
+        FlatDastElementContent::Element(AnnotatedElementRef { id, annotation })
+    }
+    /// Create a `FlatDastElementContent::Element` with the annotation set to `Original`
+    pub fn new_original_element(id: usize) -> Self {
+        FlatDastElementContent::Element(AnnotatedElementRef {
+            id,
+            annotation: ElementRefAnnotation::Original,
+        })
+    }
+    /// Create a `FlatDastElementContent::Element` with the annotation set to `Original`
+    pub fn new_duplicate_element(id: usize) -> Self {
+        FlatDastElementContent::Element(AnnotatedElementRef {
+            id,
+            annotation: ElementRefAnnotation::Duplicate,
+        })
+    }
+}
+
+/// A reference to an element that contains additional data.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+pub struct AnnotatedElementRef {
+    /// The id of the referenced element.
+    pub id: usize,
+    /// Additional data associated with this reference (e.g., whether it is the "original" reference)
+    pub annotation: ElementRefAnnotation,
+}
+
+/// Additional data that may be associated with a reference to an element.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+pub enum ElementRefAnnotation {
+    /// The reference to this element is the "original" reference. I.e., it was not
+    /// inherited from some `extend`.
+    Original,
+    /// The reference to this element is a duplicate. The original reference is somewhere else in
+    /// the render tree.
+    Duplicate,
 }
 
 /// A flattened version of DastElement that is easier to serialize

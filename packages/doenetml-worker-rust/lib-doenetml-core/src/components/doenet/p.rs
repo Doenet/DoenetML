@@ -12,7 +12,7 @@ mod component {
         /// Whether the `<p>` should be hidden.
         #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
         Hidden,
-        #[prop(value_type = PropValueType::ContentRefs, profile = PropProfile::RenderedChildren)]
+        #[prop(value_type = PropValueType::AnnotatedContentRefs, profile = PropProfile::RenderedChildren)]
         RenderedChildren,
     }
 

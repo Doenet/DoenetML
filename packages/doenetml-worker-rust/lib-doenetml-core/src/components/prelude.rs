@@ -22,6 +22,11 @@ pub use crate::props::PropView;
 pub use crate::props::{DataQueryResult, DataQueryResults};
 pub use crate::props::{PropSource, PropSpecifier};
 pub use crate::utils::KeyValueIgnoreCase;
+pub use doenetml_macros::TestDataQueryTypes;
+
+// This trait is only used when running tests involving `TestDataQueryTypes`
+#[cfg(test)]
+pub use crate::props::TypeDiscriminant;
 
 pub use crate::components::{
     AttributeProp, ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode,

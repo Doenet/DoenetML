@@ -26,10 +26,11 @@ impl Expander {
     /// Expand all refs and function refs into their "xml" form. After expansion,
     /// the resulting tree may not be serializable as XML since element attributes may contain
     /// other elements.
-    pub fn expand(flat_root: &mut FlatRoot) {
+    pub fn expand(flat_root: &mut FlatRoot) -> Resolver {
         let resolver = Resolver::from_flat_root(flat_root);
         Expander::expand_refs(flat_root, &resolver);
         Expander::consume_extend_attributes(flat_root);
+        resolver
     }
 
     /// Expand all refs and function refs into their "xml" form.

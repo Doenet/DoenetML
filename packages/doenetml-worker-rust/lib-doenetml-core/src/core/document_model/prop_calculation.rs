@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
+    dast::ElementRefAnnotation,
     props::{DataQuery, DataQueryResults, FilterData, PropSource, PropValue},
     state::types::content_refs::{ContentRef, ContentRefs},
 };
@@ -320,7 +321,8 @@ impl DocumentModel {
         };
 
         match query {
-            DataQuery::ComponentRefs { container, filter } => {
+            DataQuery::ContentRefs { container, filter }
+            | DataQuery::AnnotatedContentRefs { container, filter } => {
                 // Resolve a `PropSource` to a component index.
                 let resolve_prop_source = |prop_source: &PropSource| match prop_source {
                     PropSource::Me => get_prop_pointer().component_idx,
@@ -337,43 +339,97 @@ impl DocumentModel {
 
                 // Get the correct "root" for the query.
                 let component_idx = resolve_prop_source(container);
-                let content_children = self.get_component_content_children(component_idx);
 
-                let mut content_refs: Vec<ContentRef> = Vec::new();
-                for node in content_children {
-                    if filter.apply_test(&FilterData {
-                        node,
-                        origin: query_node,
-                        document_model: self,
-                    }) {
-                        match node {
-                            GraphNode::Component(_) => {
-                                content_refs.push(ContentRef::Component(node.component_idx().into()));
+                match query {
+                    DataQuery::ContentRefs { .. } => {
+                        let content_children = self.get_component_content_children(component_idx);
+
+                        let mut content_refs: Vec<ContentRef> = Vec::new();
+                        for node in content_children {
+                            if filter.apply_test(&FilterData {
+                                node,
+                                origin: query_node,
+                                document_model: self,
+                            }) {
+                                match node {
+                                    GraphNode::Component(_) => {
+                                        content_refs.push(ContentRef::Component(node.component_idx().into()));
+                                    }
+                                    GraphNode::String(_) => {
+                                        content_refs.push(ContentRef::String(node.idx().into()));
+                                    }
+                                    GraphNode::Prop(_) => {
+                                        // The referent of a PropValue::ContentRef child should be forwarded.
+                                        // Note: the filter is *not* applied to the forward referent.
+                                        let c_refs: ContentRefs = self._get_prop_unchecked(node, query_node).value.try_into().unwrap();
+                                        content_refs.extend(c_refs.into_vec());
+                                    }
+                                    _ => panic!(
+                                        "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
+                                        node
+                                    ),
+                                }
                             }
-                            GraphNode::String(_) => {
-                                content_refs.push(ContentRef::String(node.idx().into()));
-                            }
-                            GraphNode::Prop(_) => {
-                                // The referent of a PropValue::ContentRef child should be forwarded.
-                                // Note: the filter is *not* applied to the forward referent.
-                                let c_refs: ContentRefs = self._get_prop_unchecked(node, query_node).value.try_into().unwrap();
-                                content_refs.extend(c_refs.into_vec());
-                            }
-                            _ => panic!(
-                                "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
-                                node
-                            ),
+                        }
+
+                        DataQueryResult {
+                            values: vec![PropWithMeta {
+                                value: PropValue::ContentRefs(Rc::new(content_refs.into())),
+                                came_from_default: false,
+                                changed: true,
+                                origin: Some(query_node),
+                            }],
                         }
                     }
-                }
+                    // `AnnotatedComponentRefs` are very similar to `ComponentRefs`, but they also include
+                    // information about whether the content is original or comes from extending some other element.
+                    DataQuery::AnnotatedContentRefs { .. } => {
+                        let content_children =
+                            self.get_component_content_children_annotated(component_idx);
 
-                DataQueryResult {
-                    values: vec![PropWithMeta {
-                        value: PropValue::ContentRefs(Rc::new(content_refs.into())),
-                        came_from_default: false,
-                        changed: true,
-                        origin: Some(query_node),
-                    }],
+                        let mut content_refs_and_annotations: Vec<(
+                            ContentRef,
+                            ElementRefAnnotation,
+                        )> = Vec::new();
+                        for (node, annotation) in content_children {
+                            if filter.apply_test(&FilterData {
+                                node,
+                                origin: query_node,
+                                document_model: self,
+                            }) {
+                                match node {
+                                    GraphNode::Component(_) => {
+                                        content_refs_and_annotations.push((ContentRef::Component(node.component_idx().into()), annotation));
+                                    }
+                                    GraphNode::String(_) => {
+                                        content_refs_and_annotations.push((ContentRef::String(node.idx().into()), annotation));
+                                    }
+                                    GraphNode::Prop(_) => {
+                                        // The referent of a PropValue::ContentRef child should be forwarded.
+                                        // Note: the filter is *not* applied to the forward referent.
+                                        let c_refs: ContentRefs = self._get_prop_unchecked(node, query_node).value.try_into().unwrap();
+                                        content_refs_and_annotations.extend(c_refs.into_vec().into_iter().map(|c_ref| (c_ref, annotation)));
+                                    }
+                                    _ => panic!(
+                                        "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
+                                        node
+                                    ),
+                                }
+                            }
+                        }
+
+                        DataQueryResult {
+                            values: vec![PropWithMeta {
+                                value: PropValue::AnnotatedContentRefs(Rc::new(
+                                    content_refs_and_annotations.into(),
+                                )),
+                                came_from_default: false,
+                                changed: true,
+                                origin: Some(query_node),
+                            }],
+                        }
+                    }
+                    _ => unreachable!(),
                 }
             }
             DataQuery::SelfRef => {

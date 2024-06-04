@@ -9,13 +9,16 @@ import {
     P,
     PointInGraph,
     Problem,
-    Section,
+    Division,
     Text,
     TextInput,
     Boolean,
     Title,
     _Fragment,
     Xref,
+    Ol,
+    Li,
+    Ul,
 } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 import { ChoiceInput } from "./components/choice-input";
@@ -52,8 +55,8 @@ const TEXT_MODE_COMPONENTS: Record<
     m: { component: M, passthroughChildren: true },
     math: { component: Math },
     graph: { component: Graph },
-    section: {
-        component: Section,
+    division: {
+        component: Division,
         passthroughChildren: true,
         monitorVisibility: true,
     },
@@ -68,6 +71,14 @@ const TEXT_MODE_COMPONENTS: Record<
     title: { component: Title, passthroughChildren: true },
     _fragment: { component: _Fragment, passthroughChildren: true },
     xref: { component: Xref, passthroughChildren: true },
+    ol: { component: Ol, passthroughChildren: true },
+    ul: { component: Ul, passthroughChildren: true },
+    li: { component: Li, passthroughChildren: true },
+
+    // For PreTeXt compatibility
+    pretext: { component: _Fragment, passthroughChildren: true },
+    article: { component: _Fragment, passthroughChildren: true },
+    book: { component: _Fragment, passthroughChildren: true },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<

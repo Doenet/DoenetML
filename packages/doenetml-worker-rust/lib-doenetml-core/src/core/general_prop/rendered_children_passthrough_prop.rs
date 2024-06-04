@@ -1,9 +1,8 @@
-use std::rc::Rc;
-
 use crate::{
     components::prelude::*,
     props::{Cond, ContentFilter, Op, OpNot, UpdaterObject},
 };
+use std::rc::Rc;
 
 #[derive(Debug, Default)]
 pub struct RenderedChildrenPassthroughProp {
@@ -14,7 +13,7 @@ pub struct RenderedChildrenPassthroughProp {
 impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
-            data_query: DataQuery::ComponentRefs {
+            data_query: DataQuery::AnnotatedContentRefs {
                 container: PropSource::Me,
                 filter: Rc::new(Op::Or(
                     // Keep things without a "hidden" prop
@@ -37,21 +36,21 @@ impl RenderedChildrenPassthroughProp {
 
 /// Structure to hold data generated from the data queries
 #[derive(TryFromDataQueryResults, Debug)]
-#[data_query(query_trait = DataQueries, pass_data = &RenderedChildrenPassthroughProp)]
+#[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
-    refs: PropView<prop_type::ContentRefs>,
+    refs: PropView<prop_type::AnnotatedContentRefs>,
 }
 impl DataQueries for RequiredData {
-    fn refs_query(arg: &RenderedChildrenPassthroughProp) -> DataQuery {
-        arg.data_query.clone()
+    fn refs_query(data_query: &DataQuery) -> DataQuery {
+        data_query.clone()
     }
 }
 
 impl PropUpdater for RenderedChildrenPassthroughProp {
-    type PropType = prop_type::ContentRefs;
+    type PropType = prop_type::AnnotatedContentRefs;
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        vec![self.data_query.clone()]
+        RequiredData::data_queries_vec(&self.data_query)
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {

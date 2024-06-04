@@ -144,6 +144,30 @@ impl StructureGraph {
     pub fn get_content_children(&self, node: GraphNode) -> ContentChildrenIterator<'_> {
         ContentChildrenIterator::new(self, node)
     }
+
+    /// Similar to `get_content_children`, but also accepts a `marker` [`GraphNodeLookup`]. `marker`
+    /// is expected to mark virtual particular nodes. The returned children will be accompanied
+    /// by `true` if they have an ancestor marked by `marker` (which is also a child of `node`), otherwise
+    /// they are accompanied by `false`.
+    /// For example, consider the graph
+    /// ```text
+    /// v_0 -> v_1
+    /// v_1 -> s_2
+    /// v_1 -> v_2
+    /// v_2 -> s_3
+    /// v_0 -> s_0
+    /// v_0 -> s_1
+    /// ```
+    /// where `v_*` are virtual nodes, and assume that `v_1` is marked and `v_0` is not. Then,
+    /// `get_content_children_with_mark(v_0, mark)` will return
+    /// `(s_2, true), (s_3, true), (s_0, false), (s_1, false)`.
+    pub fn get_content_children_with_mark<'a>(
+        &'a self,
+        node: GraphNode,
+        marker: &'a GraphNodeLookup<bool>,
+    ) -> MarkedContentChildrenIterator<'_> {
+        MarkedContentChildrenIterator::new(self, node, marker)
+    }
 }
 
 use iterators::*;
@@ -155,7 +179,7 @@ mod iterators {
 
     use crate::{
         core::graph_node::{GraphNode, GraphNodeLookup},
-        graph::directed_graph::DirectedGraph,
+        graph::directed_graph::{DirectedGraph, Taggable},
     };
     /// Iterate through the "content" children of a node. That is,
     /// all the non-virtual children. If a virtual child is detected,
@@ -197,10 +221,72 @@ mod iterators {
             }
         }
     }
+
+    /// Iterate through the "content" children of a node. That is,
+    /// all the non-virtual children. If a virtual child is detected,
+    /// it's children are recursively iterated over.
+    ///
+    /// This also returns a boolean indicating whether the node is marked by `marker` (or has a marked ancestor).
+    pub struct MarkedContentChildrenIterator<'a> {
+        graph: &'a Graph,
+        /// Stack storing the nodes for iteration in _reverse_ order.
+        stack: Vec<(GraphNode, bool)>,
+        marker: &'a GraphNodeLookup<bool>,
+    }
+    impl<'a> MarkedContentChildrenIterator<'a> {
+        pub fn new(graph: &'a Graph, start: GraphNode, marker: &'a GraphNodeLookup<bool>) -> Self {
+            let stack = graph
+                .get_children(start)
+                .into_iter()
+                .map(|n| (n, false))
+                // Order matters and we will be popping values off the end of the stack, so
+                // we reverse it.
+                .rev()
+                .collect::<Vec<_>>();
+            Self {
+                graph,
+                stack,
+                marker,
+            }
+        }
+    }
+    impl<'a> Iterator for MarkedContentChildrenIterator<'a> {
+        type Item = (GraphNode, bool);
+        fn next(&mut self) -> Option<Self::Item> {
+            let node = self.stack.pop();
+            match node {
+                Some((GraphNode::Virtual(idx), prev_mark)) => {
+                    // A mark is sticky. That is, once it becomes true, it remains true.
+                    let mark = if prev_mark {
+                        true
+                    } else {
+                        self.marker
+                            .get_tag(&GraphNode::Virtual(idx))
+                            .copied()
+                            .unwrap_or(false)
+                    };
+
+                    // A virtual node's only job is to hold children.
+                    // So if we encounter one, push its children onto the stack.
+                    self.stack.extend(
+                        self.graph
+                            .get_children(GraphNode::Virtual(idx))
+                            .into_iter()
+                            .map(|n| (n, mark))
+                            .rev(),
+                    );
+                    self.next()
+                }
+                _ => node,
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use crate::graph::directed_graph::Taggable;
+
     use super::*;
 
     #[test]
@@ -239,6 +325,58 @@ mod test {
                 GraphNode::String(4),
                 GraphNode::String(0),
                 GraphNode::String(1),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_can_iterate_marked_content_children() {
+        // Set up a graph
+        // v_0 -> v_1
+        // v_0 -> s_0
+        // v_0 -> s_1 -> s_2
+        // v_1 -> s_3
+        // v_1 -> s_4
+        // v_1 -> v_2
+        // v_2 -> s_5
+
+        let mut graph: DirectedGraph<GraphNode, GraphNodeLookup<usize>> = DirectedGraph::new();
+        graph.add_edge(GraphNode::Virtual(0), GraphNode::Virtual(1));
+        graph.add_edge(GraphNode::Virtual(0), GraphNode::String(0));
+        graph.add_edge(GraphNode::Virtual(0), GraphNode::String(1));
+        graph.add_edge(GraphNode::String(1), GraphNode::String(2));
+        graph.add_edge(GraphNode::Virtual(1), GraphNode::String(3));
+        graph.add_edge(GraphNode::Virtual(1), GraphNode::String(4));
+        graph.add_edge(GraphNode::Virtual(1), GraphNode::Virtual(2));
+        graph.add_edge(GraphNode::Virtual(2), GraphNode::String(5));
+
+        let mut marker = GraphNodeLookup::new();
+        marker.set_tag(GraphNode::Virtual(1), true);
+        assert_eq!(
+            graph
+                .get_content_children_with_mark(GraphNode::Virtual(0), &marker)
+                .collect::<Vec<_>>(),
+            vec![
+                (GraphNode::String(3), true),
+                (GraphNode::String(4), true),
+                (GraphNode::String(5), true),
+                (GraphNode::String(0), false),
+                (GraphNode::String(1), false),
+            ]
+        );
+
+        let mut marker = GraphNodeLookup::new();
+        marker.set_tag(GraphNode::Virtual(2), true);
+        assert_eq!(
+            graph
+                .get_content_children_with_mark(GraphNode::Virtual(0), &marker)
+                .collect::<Vec<_>>(),
+            vec![
+                (GraphNode::String(3), false),
+                (GraphNode::String(4), false),
+                (GraphNode::String(5), true),
+                (GraphNode::String(0), false),
+                (GraphNode::String(1), false),
             ]
         );
     }

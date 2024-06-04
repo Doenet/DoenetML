@@ -18,6 +18,7 @@ const THOUSAND_STAR: &str = include_str!("./samples/thousand_star.doenet");
 const THOUSAND_CHAIN: &str = include_str!("./samples/thousand_chain.doenet");
 const THOUSAND_CHAIN_FLIPPED: &str = include_str!("./samples/thousand_chain_flipped.doenet");
 const REVERSE_THOUSAND_CHAIN: &str = include_str!("./samples/reverse_thousand_chain.doenet");
+const PRETEXT_SAMPLE_ARTICLE: &str = include_str!("./samples/pretext-sample-article.xml");
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Benchmark initializing Core
@@ -47,6 +48,12 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     let dast_root = dast_root_no_position(REVERSE_THOUSAND_CHAIN);
     c.bench_function("init core with reverse thousand chain", |b| {
+        let mut core = Core::new();
+        b.iter(|| core.init_from_dast_root(black_box(&dast_root)));
+    });
+
+    let dast_root = dast_root_no_position(PRETEXT_SAMPLE_ARTICLE);
+    c.bench_function("init core with pretext sample article", |b| {
         let mut core = Core::new();
         b.iter(|| core.init_from_dast_root(black_box(&dast_root)));
     });
@@ -84,6 +91,13 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
     c.bench_function("get_flat_dast with reverse thousand chain", |b| {
+        b.iter(|| core.to_flat_dast());
+    });
+
+    let dast_root = dast_root_no_position(PRETEXT_SAMPLE_ARTICLE);
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+    c.bench_function("get_flat_dast with pretext sample article", |b| {
         b.iter(|| core.to_flat_dast());
     });
 

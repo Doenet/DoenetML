@@ -122,7 +122,7 @@ fn can_filter_by_profile() {
     let document_model = &core.document_model;
     let content_children = document_model.get_component_content_children(0);
 
-    let filter = ContentFilter::IsType("section").bind(query_node, document_model);
+    let filter = ContentFilter::IsType("division").bind(query_node, document_model);
     let section_node = content_children
         .iter()
         .cloned()

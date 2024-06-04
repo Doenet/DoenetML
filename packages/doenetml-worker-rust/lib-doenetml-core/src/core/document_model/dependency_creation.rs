@@ -70,14 +70,21 @@ impl DocumentModel {
         // _before_ modifying the dependency graph in any way.
         let resolved_component_idx = match &query {
             DataQuery::Prop { source, .. }
-            | DataQuery::ComponentRefs {
+            | DataQuery::ContentRefs {
+                container: source, ..
+            }
+            | DataQuery::AnnotatedContentRefs {
                 container: source, ..
             } => {
                 // If resolving the prop source requires resolving additional dependencies first,
                 // we get an `Err` object here, which is passed to the caller so that they can resolve the dependency for us.
                 self.resolve_prop_source(source, prop_node)?
             }
-            _ => None,
+            DataQuery::PickProp { .. }
+            | DataQuery::Attribute { .. }
+            | DataQuery::State
+            | DataQuery::SelfRef
+            | DataQuery::Null => None,
         };
 
         self._create_state_for_query(prop_node, &query);
@@ -296,7 +303,11 @@ impl DocumentModel {
                 };
             }
 
-            DataQuery::ComponentRefs {
+            DataQuery::AnnotatedContentRefs {
+                container: _container,
+                filter,
+            }
+            | DataQuery::ContentRefs {
                 container: _container,
                 filter,
             } => {
@@ -304,6 +315,7 @@ impl DocumentModel {
                     Some(idx) => idx,
                     None => {
                         // If we can't resolve the component, then we can't resolve the prop.
+                        // This may happen if an invalid component ref is given. E.g. from `<xref ref=""/>` where the ref is not actually specified.
                         // Avoid a hard panic here.
                         return Ok(linked_nodes);
                     }

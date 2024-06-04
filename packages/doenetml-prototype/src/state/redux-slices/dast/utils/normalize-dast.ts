@@ -1,12 +1,16 @@
 import { Plugin } from "unified";
 import {
+    DastAttribute,
     DastElement,
     DastElementContent,
     DastRoot,
     DastRootContent,
+    isDastElement,
     visit,
 } from "@doenet/parser";
 import { unified } from "unified";
+import { ELEMENT_EXPANSIONS } from "./element-expansions";
+import { pluginConvertPretextAttributes } from "./convert-pretext-attributes";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -16,7 +20,9 @@ export function normalizeDocumentDast(dast: DastRoot) {
     const processor = unified()
         .use(pluginRemoveCommentsInstructionsAndDocStrings)
         .use(pluginChangeCdataToText)
-        .use(pluginEnsureDocumentElement);
+        .use(pluginEnsureDocumentElement)
+        .use(pluginConvertPretextAttributes)
+        .use(pluginExpandAliasedElements);
     return processor.runSync(dast);
 }
 
@@ -86,6 +92,40 @@ const pluginEnsureDocumentElement: Plugin<[], DastRoot, DastRoot> = () => {
                 },
             ];
         }
+    };
+};
+
+/**
+ * Some elements are aliases for other elements. E.g. `<section>` is an alias for `<division type="section">`.
+ * This plugin expands these aliases so that the DAST tree only contains the expanded elements.
+ */
+const pluginExpandAliasedElements: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (isDastElement(node)) {
+                const expansion = ELEMENT_EXPANSIONS[node.name];
+                if (expansion) {
+                    let newAttributes: Record<string, DastAttribute> =
+                        Object.fromEntries(
+                            Object.entries(expansion.attributes || {}).map(
+                                ([key, value]) => {
+                                    let newAttr: DastAttribute = {
+                                        type: "attribute",
+                                        name: key,
+                                        children: [{ type: "text", value }],
+                                    };
+                                    return [key, newAttr];
+                                },
+                            ),
+                        );
+                    node.name = expansion.to;
+                    node.attributes = {
+                        ...node.attributes,
+                        ...newAttributes,
+                    };
+                }
+            }
+        });
     };
 };
 

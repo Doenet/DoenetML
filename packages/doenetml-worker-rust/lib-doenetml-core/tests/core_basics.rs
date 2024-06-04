@@ -16,7 +16,10 @@ fn basic_core_initialization() {
     assert_json_eq!(
         json!({
             "type": "root",
-            "children": [0],
+            "children": [{
+                "annotation": "original",
+                "id": 0,
+            }],
             "elements": [
                 {
                     "type": "element",
@@ -24,7 +27,10 @@ fn basic_core_initialization() {
                     "attributes": {},
                     "children": [
                         "hi there",
-                        1
+                        {
+                            "annotation": "original",
+                            "id": 1,
+                        }
                     ],
                     "data": {
                         "id": 0,
@@ -50,4 +56,17 @@ fn basic_core_initialization() {
         }),
         processed_string
     );
+}
+
+#[test]
+fn test_core_can_get_component_index_by_name() {
+    let dast_root =
+        dast_root_no_position(r#"<text name="t1"/><text name="t2"><text name="t3"/></text>"#);
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    assert_eq!(core.get_component_index_by_name("t1"), 1);
+    assert_eq!(core.get_component_index_by_name("t2"), 2);
+    assert_eq!(core.get_component_index_by_name("t3"), 3);
 }

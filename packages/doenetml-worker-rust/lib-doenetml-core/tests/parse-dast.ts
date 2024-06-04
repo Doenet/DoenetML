@@ -8,6 +8,7 @@ import {
     DastMacroPathPart,
     filterPositionInfo,
 } from "../../../parser/dist";
+import fs from "node:fs";
 import { normalizeDocumentDast } from "../../../doenetml-prototype/src/state/redux-slices/dast/utils/normalize-dast";
 import yargs from "yargs";
 
@@ -25,14 +26,22 @@ const argv = yargs(process.argv.slice(2))
         description: "Input for toDast function",
         type: "string",
     })
+    .option("fileInput", {
+        alias: "f",
+        description: "Read input from a file",
+        type: "string",
+    })
     .option("strip-position", {
         description: "Strip position data from the DAST tree",
         type: "boolean",
-    })
-    .demandOption("input").argv;
+    }).argv;
 
 // Do the actual processing
-const parsed = toDast(argv.input);
+if (argv.input == null && argv.fileInput == null) {
+    throw new Error("Must provide an input via -i or -f");
+}
+const input = argv.input ?? fs.readFileSync(argv.fileInput, "utf8");
+const parsed = toDast(input);
 if (argv.stripPosition) {
     filterPositionInfo(parsed);
 }

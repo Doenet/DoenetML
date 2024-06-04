@@ -17,7 +17,7 @@ impl ComponentRefsProp {
     /// Creates a ComponentRefs prop that returns all children with component_type
     pub fn new_from_all_matching_children(component_type: &'static str) -> Self {
         ComponentRefsProp {
-            data_query: DataQuery::ComponentRefs {
+            data_query: DataQuery::ContentRefs {
                 container: PropSource::Me,
                 filter: Rc::new(ContentFilter::IsType(component_type)),
             },
@@ -27,7 +27,7 @@ impl ComponentRefsProp {
     /// Creates a ComponentRefs prop that returns all children with component_type
     pub fn new_from_all_matching_siblings(profile: PropProfile) -> Self {
         ComponentRefsProp {
-            data_query: DataQuery::ComponentRefs {
+            data_query: DataQuery::ContentRefs {
                 container: PropSource::Parent,
                 filter: Rc::new(ContentFilter::HasPropMatchingProfile(profile)),
             },

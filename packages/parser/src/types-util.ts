@@ -1,8 +1,9 @@
 import { DastElement, DastElementContent, DastRootContent } from "./types";
 
-export const isDastElement = (
-    rootContent: DastRootContent,
-): rootContent is DastElement => rootContent.type === "element";
+export const isDastElement = (rootContent: any): rootContent is DastElement =>
+    rootContent &&
+    typeof rootContent === "object" &&
+    rootContent.type === "element";
 
 export const isDastElementContent = (
     rootContent: DastRootContent,

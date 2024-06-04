@@ -11,6 +11,7 @@ use crate::{
         types::{ComponentIdx, LocalPropIdx, PropPointer},
         Component, ComponentNode, ComponentProps,
     },
+    dast::ElementRefAnnotation,
     graph_node::{DependencyGraph, GraphNode},
     props::{
         cache::{PropCache, PropStatus, PropWithMeta},
@@ -263,6 +264,17 @@ impl DocumentModel {
         let component_idx: ComponentIdx = component_idx.into();
         let document_structure = self.document_structure.borrow();
         document_structure.get_component_content_children(component_idx)
+    }
+
+    /// Get the children of a component bit include information about whether they are
+    /// "original" or whether they came from extending another component.
+    pub fn get_component_content_children_annotated<T: Into<ComponentIdx>>(
+        &self,
+        component_idx: T,
+    ) -> Vec<(GraphNode, ElementRefAnnotation)> {
+        let component_idx: ComponentIdx = component_idx.into();
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_component_content_children_annotated(component_idx)
     }
 
     /// Walk up the ancestor tree of `node` until a `GraphNode::Prop` is found.

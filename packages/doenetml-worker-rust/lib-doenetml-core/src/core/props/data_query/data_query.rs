@@ -122,7 +122,7 @@ pub enum DataQuery {
     /// ```rust
     /// # use std::rc::Rc;
     /// # use doenetml_core::props::{DataQuery, PropSource, ContentFilter, Op, PropProfile};
-    /// DataQuery::ComponentRefs {
+    /// DataQuery::ContentRefs {
     ///    container: PropSource::Me,
     ///    filter: Rc::new(Op::And(
     ///      ContentFilter::IsType("section"),
@@ -133,7 +133,19 @@ pub enum DataQuery {
     /// ```
     /// This query will return all children of the querying component that are `<section>` components
     /// and have a prop matching the `PropProfile::Hidden` profile.
-    ComponentRefs {
+    ContentRefs {
+        /// Children of this component will be searched
+        container: PropSource,
+        /// How to filter the children. This should be a [`ContentFilter`] or a
+        /// composition of [`ContentFilter`]s.
+        ///
+        /// See [`DataQuery::ComponentRefs`] for an example.
+        filter: Rc<dyn for<'a> ApplyTest<FilterData<'a>, GraphNode>>,
+    },
+
+    /// The same as [`DataQuery::ComponentRefs`], but returns additional information
+    /// about each matching component in the form of a [`ElementRefAnnotation`].
+    AnnotatedContentRefs {
         /// Children of this component will be searched
         container: PropSource,
         /// How to filter the children. This should be a [`ContentFilter`] or a

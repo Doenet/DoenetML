@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use super::{super::graph_node::GraphNode, DocumentRenderer};
 use crate::{
     components::{
         prelude::{ComponentIdx, ElementData, FlatDastElement, FlatDastElementContent},
@@ -9,13 +10,21 @@ use crate::{
     core::document_model::DocumentModel,
     dast::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
-        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderProps,
+        ElementRefAnnotation, FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue,
+        ForRenderPropValueOrContent, ForRenderProps,
     },
     graph::directed_graph::Taggable,
-    props::{cache::PropWithMeta, PropProfile, PropValue},
+    props::{cache::PropWithMeta, PropProfile, PropValue, PropValueType},
+    state::types::content_refs::ContentRef,
 };
 
-use super::{super::graph_node::GraphNode, DocumentRenderer};
+/// When to include a prop in the serialized rendered props.
+pub enum SerializeCondition {
+    /// Always include the prop in the serialized rendered props.
+    Always,
+    /// Only include the prop if it has changed since the last time it was serialized.
+    IfChanged,
+}
 
 impl DocumentRenderer {
     /// Output all components as a flat dast,
@@ -31,7 +40,7 @@ impl DocumentRenderer {
             .collect();
 
         FlatDastRoot {
-            children: vec![FlatDastElementContent::Element(0)],
+            children: vec![FlatDastElementContent::new_original_element(0)],
             elements,
             warnings: vec![],
             position: None,
@@ -49,10 +58,13 @@ impl DocumentRenderer {
         }
         self.in_render_tree.set_tag(component_node, true);
 
-        for child_node in self.get_rendered_child_nodes(component_idx, document_model) {
+        for (child_node, _) in self.get_rendered_child_nodes(component_idx, document_model) {
             if let GraphNode::Component(_) = child_node {
                 self.mark_component_in_render_tree(child_node.into(), document_model);
             }
+        }
+        for child_node in self.get_children_from_for_render_props(component_idx, document_model) {
+            self.mark_component_in_render_tree(child_node.into(), document_model);
         }
     }
 
@@ -66,8 +78,10 @@ impl DocumentRenderer {
 
         let children = child_nodes
             .into_iter()
-            .filter_map(|child| match child {
-                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
+            .filter_map(|(child, annotation)| match child {
+                GraphNode::Component(idx) => {
+                    Some(FlatDastElementContent::new_element(idx, annotation))
+                }
                 GraphNode::String(_) => Some(FlatDastElementContent::Text(
                     document_model.get_string_value(child),
                 )),
@@ -82,12 +96,12 @@ impl DocumentRenderer {
     }
 
     /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
-    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
+    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists.
     fn get_rendered_child_nodes(
         &mut self,
         component_idx: ComponentIdx,
         document_model: &DocumentModel,
-    ) -> Vec<GraphNode> {
+    ) -> Vec<(GraphNode, ElementRefAnnotation)> {
         let profs = document_model.get_provided_profiles(component_idx);
         profs
             .into_iter()
@@ -100,9 +114,11 @@ impl DocumentRenderer {
                     let rendered_children_value =
                         &self.get_prop_for_render(prop_pointer, document_model).value;
                     match rendered_children_value {
-                        PropValue::ContentRefs(content_refs) => Some((**content_refs).clone()),
+                        PropValue::AnnotatedContentRefs(content_refs) => {
+                            Some((**content_refs).clone())
+                        }
                         _ => unreachable!(
-                            "RenderedChildren prop must return GraphNodes, found {:?}",
+                            "RenderedChildren prop must return AnnotatedContentRefs, found {:?}",
                             rendered_children_value
                         ),
                     }
@@ -113,8 +129,64 @@ impl DocumentRenderer {
             .unwrap_or_default()
             .into_vec()
             .into_iter()
-            .map(|content_ref| content_ref.into())
+            .map(|(content_ref, annotation)| (content_ref.into(), annotation))
             .collect()
+    }
+
+    /// Get any nodes referenced in a `for_render` prop (e.g., because the prop returns `PropType::ComponentRefs` or similar).
+    fn get_children_from_for_render_props(
+        &mut self,
+        component_idx: ComponentIdx,
+        document_model: &DocumentModel,
+    ) -> Vec<GraphNode> {
+        document_model
+            .get_for_render_prop_pointers(component_idx)
+            .flat_map(|prop_pointer| {
+                if !self.prop_may_contain_children(prop_pointer, document_model) {
+                    return vec![];
+                }
+                let prop = self.get_prop_for_render(prop_pointer, document_model);
+                match prop.value {
+                    PropValue::ComponentRefs(refs) => {
+                        refs.iter().map(|c| c.as_graph_node()).collect()
+                    }
+                    PropValue::ComponentRef(c) => {
+                        c.into_iter().map(|c| c.as_graph_node()).collect()
+                    }
+                    PropValue::ContentRef(c) => match c {
+                        ContentRef::Component(c) => {
+                            vec![c.as_graph_node()]
+                        }
+                        ContentRef::String(_) => vec![],
+                    },
+                    PropValue::ContentRefs(refs) => refs
+                        .iter()
+                        .flat_map(|c| match c {
+                            ContentRef::Component(c) => Some(c.as_graph_node()),
+                            ContentRef::String(_) => None,
+                        })
+                        .collect(),
+                    _ => vec![],
+                }
+            })
+            .collect()
+    }
+
+    /// Returns whether a prop may contain references to components.
+    fn prop_may_contain_children(
+        &self,
+        prop_pointer: PropPointer,
+        document_model: &DocumentModel,
+    ) -> bool {
+        let prop = document_model
+            .get_prop_definition(document_model.prop_pointer_to_prop_node(prop_pointer));
+        matches!(
+            prop.variant,
+            PropValueType::ComponentRef
+                | PropValueType::ComponentRefs
+                | PropValueType::ContentRef
+                | PropValueType::ContentRefs
+        )
     }
 
     /// Convert a component to a `FlatDastElement` without its children. This is can be used
@@ -130,7 +202,13 @@ impl DocumentRenderer {
             .get_tag(&component_idx.as_graph_node())
             .copied()
             .and_then(|in_tree| {
-                in_tree.then(|| self.get_rendered_props(component_idx, false, document_model))
+                in_tree.then(|| {
+                    self.get_rendered_props(
+                        component_idx,
+                        SerializeCondition::Always,
+                        document_model,
+                    )
+                })
             });
 
         let component = document_model.get_component(component_idx);
@@ -202,7 +280,7 @@ impl DocumentRenderer {
     fn get_rendered_props(
         &mut self,
         component_idx: ComponentIdx,
-        only_changed_props: bool,
+        serialize_condition: SerializeCondition,
         document_model: &DocumentModel,
     ) -> ForRenderProps {
         let rendered_prop_pointers = document_model.get_for_render_prop_pointers(component_idx);
@@ -210,13 +288,12 @@ impl DocumentRenderer {
         let rendered_prop_value_vec = rendered_prop_pointers
             .filter_map(|prop_pointer| {
                 let prop = self.get_prop_for_render(prop_pointer, document_model);
-                if !only_changed_props || prop.changed {
-                    let prop_value = (prop.value).clone();
+                let should_serialize =
+                    prop.changed || matches!(serialize_condition, SerializeCondition::Always);
+                if should_serialize {
+                    let prop_value = prop.value;
                     let prop_name = document_model.get_prop_name(prop_pointer);
-                    Some(ForRenderPropValue {
-                        name: prop_name,
-                        value: prop_value,
-                    })
+                    Some(self.prepare_prop_value_for_render(prop_name, prop_value, document_model))
                 } else {
                     None
                 }
@@ -224,6 +301,50 @@ impl DocumentRenderer {
             .collect::<Vec<_>>();
 
         ForRenderProps(rendered_prop_value_vec)
+    }
+
+    /// Turns a `PropValue` into a `ForRenderPropValueOrContent` that is ready for serialization.
+    /// In particular, this will substitute in any `PropValue::ContentRefs` that are strings with an
+    /// appropriate `FlatDastElementContent::Text`.
+    #[inline(always)]
+    fn prepare_prop_value_for_render(
+        &self,
+        name: &'static str,
+        value: PropValue,
+        document_model: &DocumentModel,
+    ) -> ForRenderPropValue {
+        let ref_to_element_content = |r: &ContentRef| match r {
+            ContentRef::String(s) => {
+                let node = GraphNode::String(s.as_usize());
+                FlatDastElementContent::Text(document_model.get_string_value(node))
+            }
+            ContentRef::Component(c) => FlatDastElementContent::new_original_element(c.as_usize()),
+        };
+
+        let value: ForRenderPropValueOrContent = match value {
+            PropValue::ContentRef(r) => {
+                // A content ref gets converted into FlatDastElementContent
+                ref_to_element_content(&r).into()
+            }
+            PropValue::ContentRefs(r) => {
+                // Content refs gets converted into FlatDastElementContent
+                r.as_slice()
+                    .iter()
+                    .map(ref_to_element_content)
+                    .collect::<Vec<_>>()
+                    .into()
+            }
+            PropValue::AnnotatedContentRefs(r) => {
+                // Annotated content refs gets converted into FlatDastElementContent
+                r.as_slice()
+                    .iter()
+                    .map(|(c, _)| ref_to_element_content(c))
+                    .collect::<Vec<_>>()
+                    .into()
+            }
+            _ => ForRenderPropValueOrContent::PropValue(value),
+        };
+        ForRenderPropValue { name, value }
     }
 
     /// Output updates for any elements with changed for_render props
@@ -237,7 +358,11 @@ impl DocumentRenderer {
         for component_idx in changed_components {
             let component_node = component_idx.as_graph_node();
             if let Some(true) = self.in_render_tree.get_tag(&component_node) {
-                let rendered_props = self.get_rendered_props(component_idx, true, document_model);
+                let rendered_props = self.get_rendered_props(
+                    component_idx,
+                    SerializeCondition::IfChanged,
+                    document_model,
+                );
 
                 if !rendered_props.is_empty() {
                     flat_dast_updates.insert(
