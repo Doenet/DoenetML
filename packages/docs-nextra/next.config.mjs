@@ -89,7 +89,7 @@ const withNextra = nextraConfig({
                     for (const [key, val] of Object.entries(
                         file.data.structurizedData,
                     )) {
-                        if (val.match(/({:dn})|({:doenet})/)) {
+                        if (val?.match(/({:dn})|({:doenet})/)) {
                             const replaced = val.replace(
                                 /({:dn})|({:doenet})/g,
                                 "",
@@ -98,7 +98,7 @@ const withNextra = nextraConfig({
                         }
                         // The key also might need replacing. It is of the form `id#Title`. We only want to replace things in `Title`.
                         const [id, title] = key.split("#");
-                        if (title.match(/({:dn})|({:doenet})/)) {
+                        if (title?.match(/({:dn})|({:doenet})/)) {
                             const replaced = title.replace(
                                 /({:dn})|({:doenet})/ig,
                                 "",
