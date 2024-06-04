@@ -100,10 +100,9 @@ const withNextra = nextraConfig({
                         const [id, title] = key.split("#");
                         if (title?.match(/({:dn})|({:doenet})/)) {
                             const replaced = title.replace(
-                                /({:dn})|({:doenet})/ig,
+                                /({:dn})|({:doenet})/gi,
                                 "",
                             );
-                            console.log("replacing", title, replaced, key)
                             const newKey = `${id}#${replaced}`;
                             file.data.structurizedData[newKey] =
                                 file.data.structurizedData[key];
