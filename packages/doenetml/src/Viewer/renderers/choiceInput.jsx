@@ -158,6 +158,15 @@ export default React.memo(function ChoiceInput(props) {
             width: "24px",
         };
 
+        if (disabled) {
+            // Disable the checkWorkButton
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+        }
+
         //Assume we don't have a check work button
         let checkWorkButton = null;
         if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
@@ -337,6 +346,15 @@ export default React.memo(function ChoiceInput(props) {
             cursor: "pointer",
             // fontWeight: "bold",
         };
+
+        if (disabled) {
+            // Disable the checkWorkButton
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+        }
 
         let checkworkComponent = null;
 

@@ -91,6 +91,8 @@ export default React.memo(function Answer(props) {
             checkWorkStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
         }
 
         let checkWorkText = SVs.submitLabel;
