@@ -82,6 +82,10 @@ export default class BaseComponent {
             this.doenetMLrange = serializedComponent.doenetMLrange;
         }
 
+        if (serializedComponent.answerNumber) {
+            this.answerNumber = serializedComponent.answerNumber;
+        }
+
         this.actions = {
             copyDoenetMLToClipboard: this.copyDoenetMLToClipboard.bind(this),
         };

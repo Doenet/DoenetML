@@ -238,6 +238,8 @@ export default class Core {
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
+        numberAnswers(serializedComponents);
+
         this.componentIndexArray =
             extractComponentNamesAndIndices(serializedComponents);
 
@@ -11229,11 +11231,18 @@ export default class Core {
             version: "0.1.1",
         };
 
-        try {
-            let resp = await axios.post(this.apiURLs.recordEvent, payload);
-            // console.log(">>>>resp from record event", resp.data)
-        } catch (e) {
-            console.error(`Error saving event: ${e.message}`);
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "sendEvent",
+                data: payload,
+            });
+        } else {
+            try {
+                let resp = await axios.post(this.apiURLs.recordEvent, payload);
+                // console.log(">>>>resp from record event", resp.data)
+            } catch (e) {
+                console.error(`Error saving event: ${e.message}`);
+            }
         }
     }
 
@@ -13598,4 +13607,20 @@ function calculateAllComponentsShadowing(component) {
     }
 
     return allShadowing;
+}
+
+function numberAnswers(components, numSoFar = 0) {
+    let count = numSoFar;
+
+    for (let comp of components) {
+        if (comp.componentType === "answer") {
+            count++;
+            comp.answerNumber = count;
+        } else if (comp.children) {
+            const result = numberAnswers(comp.children, count);
+            count = result.count;
+        }
+    }
+
+    return { count };
 }

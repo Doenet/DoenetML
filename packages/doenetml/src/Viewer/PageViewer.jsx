@@ -314,6 +314,11 @@ export function PageViewer({
                     ...e.data,
                     subject: "SPLICE.reportScoreAndState",
                 });
+            } else if (e.data.messageType === "sendEvent") {
+                window.postMessage({
+                    ...e.data,
+                    subject: "SPLICE.sendEvent",
+                });
             } else if (e.data.messageType === "terminated") {
                 reinitializeCoreAndTerminateAnimations();
             }
