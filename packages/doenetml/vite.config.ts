@@ -14,7 +14,7 @@ export default defineConfig({
     base: "./",
     plugins: [
         react(),
-        dts({ rollupTypes: true }),
+        dts({ rollupTypes: false }),
         viteStaticCopy({
             targets: [
                 {
