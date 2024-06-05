@@ -21,7 +21,7 @@ use crate::{
 ///   falling back to `default_value` if there are no matching children.
 /// - `new_from_attribute(attr_name, default_value)`: base the value on the component's `attr_name` attribute.
 ///   The calculation will use the `String` and `Math` components of the attribute,
-///   falling back to `default_value` if there are no matching components.
+///   falling back to `default_value` if there are no matching components. (Currently unimplemented)
 ///
 /// The math prop can be modified by chaining:
 /// - `.dont_propagate_came_from_default()`: change the behavior so that if this prop ends up having a single dependency,
@@ -30,7 +30,7 @@ use crate::{
 ///   Instead this prop's `came_from_default` flag will always be `false` whenever it is based on one or more dependency.
 #[derive(Debug)]
 pub struct MathProp {
-    /// The data query that giving the math and strings upon which to base the math
+    /// The data query that returns the math and string values used to create the math value
     math_strings_data_query: DataQuery,
 
     /// The data query that includes the fixed prop along with the math/strings prop
@@ -71,7 +71,7 @@ pub struct MathPropCache {
     /// saved here in order to prevent the need for its recalculation if only math values change
     expression_template: Option<MathExpr>,
 
-    /// The codes that are embedded int the expression template that represent the math values,
+    /// The codes that are embedded in the expression template that represent the math values,
     /// saved here as a companion to the cached `expression_template`.
     math_codes: Vec<String>,
 }
@@ -250,12 +250,16 @@ impl PropUpdater for MathProp {
                 // if the math expression is based just one component,
                 // then either propagate the value of a math
                 // or parse a string into a math
-                match &maths_and_strings[0].value {
-                    PropValue::Math(math_value) => {
-                        if maths_and_strings[0].changed {
-                            if self.propagate_came_from_default
-                                && maths_and_strings[0].came_from_default
-                            {
+                match &maths_and_strings[0] {
+                    PropView {
+                        value: PropValue::Math(math_value),
+                        came_from_default,
+                        changed,
+                        ..
+                    } => {
+                        // PropValue::Math(math_value) => {
+                        if *changed {
+                            if self.propagate_came_from_default && *came_from_default {
                                 // if we are basing it on a single variable and propagating came_from_default,
                                 // then we propagate came_from_default as well as the value.
                                 PropCalcResult::FromDefault(math_value.clone())
@@ -266,10 +270,14 @@ impl PropUpdater for MathProp {
                             PropCalcResult::NoChange
                         }
                     }
-                    PropValue::String(string_value) => {
+                    PropView {
+                        value: PropValue::String(string_value),
+                        changed,
+                        ..
+                    } => {
                         // TODO: once `function_symbols` is based on data query,
                         // check if that changed as well
-                        if maths_and_strings[0].changed || split_symbols.changed {
+                        if *changed || split_symbols.changed {
                             // If we are basing a math on a single string value,
                             // then parse that string into a math expression.
                             let math_expr = match self.parser {
@@ -323,12 +331,7 @@ impl PropUpdater for MathProp {
 
                 let math_changed = maths_and_strings
                     .iter()
-                    .filter(|view| match view.value {
-                        PropValue::Math(_) => true,
-                        PropValue::String(_) => false,
-                        _ => unreachable!(),
-                    })
-                    .any(|view| view.changed);
+                    .any(|view| matches!(view.value, PropValue::Math(_)) && view.changed);
 
                 if string_changed || split_symbols.changed {
                     // Either a string child has changed or split_symbols changed

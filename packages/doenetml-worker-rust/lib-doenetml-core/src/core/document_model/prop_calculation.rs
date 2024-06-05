@@ -237,11 +237,11 @@ impl DocumentModel {
                     {
                         match child_node {
                             GraphNode::Prop(_) => self.resolve_prop(child_node),
-                            _ => (),
+                            _ => {}
                         }
                     }
                 }
-                _ => (),
+                _ => {}
             };
         }
         self._execute_data_query_with_resolved_deps(query_node)
@@ -477,16 +477,15 @@ impl DocumentModel {
                                 origin: Some(node),
                             },
                             GraphNode::Virtual(_) => {
-                                // if we have a virtual node, it means we have a multiple props returned,
-                                // which will be the children of the virtual node
+                                // If we have a virtual node, it means we have a multiple props returned
+                                // which will be the children of the virtual node.
                                 let mut found_change = false;
-                                let values= dependency_graph.get_children(node).into_iter().map(|child_node| {
+                                let values = dependency_graph.get_children(node).into_iter().map(|child_node| {
                                     match child_node {
                                         GraphNode::Prop(_) => {
-                                            let prop_to_calculate = child_node;
                                             // The prop should be fresh, so `unreachable_calculate` should never be called
                                             let with_meta = self.prop_cache
-                                                .get_prop_unchecked(prop_to_calculate, query_node);
+                                                .get_prop_unchecked(child_node, query_node);
                                             if with_meta.changed {
                                                 found_change = true;
                                             }
@@ -514,7 +513,6 @@ impl DocumentModel {
                                             PropValue::None(())
                                         }
                                         _ => panic!("Unexpected child of `GraphNode::Virtual` coming from `DataQuery`. Got node `{:?}`", child_node),
-
                                     }
                                 }).collect();
                                 PropWithMeta {

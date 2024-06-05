@@ -54,6 +54,16 @@ impl DocumentModel {
         }
     }
 
+    /// Returns the virtual node used to represent null,
+    /// i.e., the lack of a node in that spot in the dependency graph.
+    ///
+    /// Since we initialize `self.virtual_node_count` to `1`,
+    /// we can use node `0` to represent null.
+    #[inline(always)]
+    fn get_null_node() -> GraphNode {
+        GraphNode::Virtual(0)
+    }
+
     /// Creates all necessary dependencies for a `DataQuery`.
     /// Returns:
     ///  - `Ok(vec)` where `vec` is a vector of all graph nodes directly linked to the data query.
@@ -263,12 +273,12 @@ impl DocumentModel {
                             .filter_map(|(p1, p2)| match (p1, p2) {
                                 (Some(prop1), Some(prop2)) => Some((prop1, prop2)),
                                 // if only one prop is missing, substitute the null virtual node
-                                (Some(prop1), None) => Some((prop1, GraphNode::Virtual(0))),
-                                (None, Some(prop2)) => Some((GraphNode::Virtual(0), prop2)),
+                                (Some(prop1), None) => Some((prop1, Self::get_null_node())),
+                                (None, Some(prop2)) => Some((Self::get_null_node(), prop2)),
                                 (None, None) => None,
                             })
                             .map(|(prop1, prop2)| {
-                                // Note: this virtual node will be created only if these props will be used
+                                // Note: because of lazy evaluation, this virtual node will be created only if these props will be used
                                 let virtual_node = self.add_virtual_node(query_node);
                                 (virtual_node, prop1, prop2)
                             });

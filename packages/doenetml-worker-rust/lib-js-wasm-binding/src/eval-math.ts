@@ -71,7 +71,7 @@ export function parseTextIntoMath(
  * Return a text string that corresponds to a mathematical expression.
  *
  * Arguments:
- * @mathObject - the stringify math expression
+ * @mathObject - the stringified math expression
  * @padToDecimals - If present, then pad numbers with zeros so they have at least
  *    this many decimal places after the decimal point displayed.
  * @padToDigits - If present, then pad numbers with zeros so they have at least

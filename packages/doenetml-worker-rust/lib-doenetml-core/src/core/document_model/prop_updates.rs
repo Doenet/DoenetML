@@ -64,15 +64,14 @@ impl DocumentModel {
 
         let mut changes_to_make = GraphNodeLookup::new();
 
-        // We collect all the nodes to visit into a vector and then drop the dependency graph
+        // We collect all the nodes to visit into a vector and then let the dependency graph drop
         // so that we can look up values of arbitrary props in the invert loop
         // (which might add to the dependency graph if the prop was unresolved)
-        let dep_graph = self.get_dependency_graph();
-        let nodes_to_visit = dep_graph
+        let nodes_to_visit = self
+            .get_dependency_graph()
             .descendants_topological_multiroot(&props_to_update)
             .cloned()
             .collect_vec();
-        drop(dep_graph);
 
         for node in nodes_to_visit {
             // If there is no requested value for the node, then there is nothing to do that node so skip it.
@@ -112,17 +111,12 @@ impl DocumentModel {
             if let Some(fixed_prop_pointer) = fixed_option {
                 let fixed_prop_node = self.prop_pointer_to_prop_node(fixed_prop_pointer);
                 let fixed_value = self.get_prop_untracked(fixed_prop_node, prop_node).value;
-                match fixed_value {
-                    PropValue::Boolean(fixed) => {
-                        if fixed {
-                            // component was fixed, so skip invert (i.e., make it fail)
-                            continue;
-                        }
-                    }
-                    _ => panic!(
-                        "fixed prop profile should be boolean, found {:?}",
-                        fixed_value
-                    ),
+                let fixed: bool = fixed_value
+                    .try_into()
+                    .expect("fixed prop profile should be boolean");
+                if fixed {
+                    // component was fixed, so skip invert (i.e., make it fail)
+                    continue;
                 }
             }
 

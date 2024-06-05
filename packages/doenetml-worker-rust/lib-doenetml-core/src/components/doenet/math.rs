@@ -1,4 +1,5 @@
 use crate::components::prelude::*;
+use crate::general_prop::BooleanProp;
 use crate::general_prop::LatexProp;
 use crate::general_prop::MathProp;
 use crate::props::UpdaterObject;
@@ -10,21 +11,10 @@ use crate::state::types::math_expr::MathParser;
 #[component(name = Math, extend_via_default_prop)]
 mod component {
 
-    use crate::general_prop::BooleanProp;
+    use super::*;
 
     enum Props {
-        /// The value of the `<math>` component.
-        ///
-        /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
-        ///
-        /// It is marked `for_renderer` to send this value to the renderer of the `<math>` component.
-        ///
-        /// It is marked as a component profile state variable,
-        /// which means this state variable will be used if a parent of a `<math>` component
-        /// queries for children with the `Math` component profile.
-        ///
-        /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
-        /// means the `value` prop will be used if a `<math>` is extended to another component type.
+        /// The value of the `<math>` component as a math-expression.
         #[prop(
             value_type = PropValueType::Math,
             profile = PropProfile::Math,
@@ -42,8 +32,7 @@ mod component {
         )]
         Latex,
 
-        /// If true, then split multi-characters symbols that don't contain numbers into the product of their characters.
-        #[is_public]
+        /// If true, then split multi-characters symbols that don't contain numbers into the product of their characters, e.g., "xy" and "x*y" are interpreted in the same way.
         #[prop(
             value_type = PropValueType::Boolean,
             is_public,
@@ -51,7 +40,6 @@ mod component {
         SplitSymbols,
 
         /// If true, then props are prevented from being changed through calling `invert()` on them.
-        #[is_public]
         #[prop(
             value_type = PropValueType::Boolean,
             profile = PropProfile::Fixed,
@@ -60,7 +48,6 @@ mod component {
         Fixed,
 
         /// Whether the `<math>` should be hidden.
-        #[is_public]
         #[prop(
             value_type = PropValueType::Boolean,
             profile = PropProfile::Hidden,
