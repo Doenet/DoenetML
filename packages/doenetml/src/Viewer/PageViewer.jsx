@@ -66,6 +66,7 @@ export function PageViewer({
     errorsActivitySpecific = {},
     scrollableContainer,
     darkMode,
+    showAnswerTitles,
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
         ({ snapshot, set }) =>
@@ -202,6 +203,7 @@ export function PageViewer({
         linkSettings,
         scrollableContainer,
         darkMode,
+        showAnswerTitles,
     };
 
     const postfixForWindowFunctions =

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 // import me from 'math-expressions';
 import { ActionButton } from "@doenet/ui-components";
@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import "./mathInput.css";
+import { PageContext } from "../PageViewer";
 
 const Matrix = styled.div`
     position: relative;
@@ -73,6 +74,8 @@ export default React.memo(function MatrixInput(props) {
         useDoenetRenderer(props);
 
     let validationState = useRef(null);
+
+    const { showAnswerTitles } = useContext(PageContext) || {};
 
     function updateValidationState() {
         validationState.current = "unvalidated";
@@ -136,6 +139,11 @@ export default React.memo(function MatrixInput(props) {
                             });
                         }
                     }}
+                    title={
+                        showAnswerTitles
+                            ? `Answer name: ${actions.submitAnswer.componentName}`
+                            : null
+                    }
                 >
                     <FontAwesomeIcon
                         icon={faLevelDownAlt}

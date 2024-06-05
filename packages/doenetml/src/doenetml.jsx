@@ -89,6 +89,7 @@ export function DoenetML({
     linkSettings,
     scrollableContainer,
     darkMode,
+    showAnswerTitles = false,
 }) {
     const thisPropSet = [
         doenetML,
@@ -204,6 +205,7 @@ export function DoenetML({
                         addBottomPadding={addBottomPadding}
                         scrollableContainer={scrollableContainer}
                         darkMode={darkMode}
+                        showAnswerTitles={showAnswerTitles}
                     />
                     <div className="before-keyboard" />
                     {keyboard}
