@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
@@ -21,6 +21,7 @@ import { MathJax } from "better-react-mathjax";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
+import { PageContext } from "../PageViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -63,6 +64,8 @@ export default function MathInput(props) {
     const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
+
+    const { showAnswerTitles } = useContext(PageContext) || {};
 
     let rendererValue = useRef(SVs.rawRendererValue);
 
@@ -275,6 +278,11 @@ export default function MathInput(props) {
                             });
                         }
                     }}
+                    title={
+                        showAnswerTitles
+                            ? `Answer name: ${actions.submitAnswer.componentName}`
+                            : null
+                    }
                 >
                     <FontAwesomeIcon
                         icon={faLevelDownAlt}

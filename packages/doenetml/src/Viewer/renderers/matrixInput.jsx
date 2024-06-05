@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 // import me from 'math-expressions';
 import { ActionButton } from "@doenet/ui-components";
@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import "./mathInput.css";
+import { PageContext } from "../PageViewer";
 
 const Matrix = styled.div`
     position: relative;
@@ -74,6 +75,8 @@ export default React.memo(function MatrixInput(props) {
 
     let validationState = useRef(null);
 
+    const { showAnswerTitles } = useContext(PageContext) || {};
+
     function updateValidationState() {
         validationState.current = "unvalidated";
         if (SVs.valueHasBeenValidated || SVs.numAttemptsLeft < 1) {
@@ -109,15 +112,19 @@ export default React.memo(function MatrixInput(props) {
         padding: "1px 6px 1px 6px",
     };
 
+    if (disabled) {
+        // Disable the checkWorkButton
+        checkWorkStyle.backgroundColor = getComputedStyle(
+            document.documentElement,
+        ).getPropertyValue("--mainGray");
+        checkWorkStyle.color = "black";
+        checkWorkStyle.cursor = "not-allowed";
+    }
+
     //Assume we don't have a check work button
     let checkWorkButton = null;
     if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
         if (validationState.current === "unvalidated") {
-            if (disabled) {
-                checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue("--mainGray");
-            }
             checkWorkButton = (
                 <Button
                     id={id + "_submit"}
@@ -136,6 +143,11 @@ export default React.memo(function MatrixInput(props) {
                             });
                         }
                     }}
+                    title={
+                        showAnswerTitles
+                            ? `Answer name: ${actions.submitAnswer.componentName}`
+                            : null
+                    }
                 >
                     <FontAwesomeIcon
                         icon={faLevelDownAlt}
