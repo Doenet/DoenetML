@@ -44,5 +44,9 @@
         "vite": "^4.5.0",
         "vite-plugin-dts": "^3.6.0",
         "vscode-languageserver": "^9.0.1"
+    },
+    "dependencies": {
+        "mdast-util-to-markdown": "^2.1.0",
+        "mdast-util-to-string": "^4.0.0"
     }
 }
