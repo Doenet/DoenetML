@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import util from "util";
 
 import { DoenetSourceObject } from "../src/doenet-source-object";
-import { convertDoenetToMarkdown, textContent } from "../src";
+import { doenetToMarkdown, textContent } from "../src";
 import { trimLeadingWhitespace } from "../src/doenet-to-markdown/trim";
 
 const origLog = console.log;
@@ -32,15 +32,13 @@ describe("doenet-to-markdown", () => {
         let source: string;
 
         source = `abc`;
-        expect(convertDoenetToMarkdown(source)).toEqual("abc\n");
+        expect(doenetToMarkdown(source)).toEqual("abc\n");
     });
     it("Can convert section into markdown heading", () => {
         let source: string;
 
         source = `<section><title>My Title</title>Some text</section>`;
-        expect(convertDoenetToMarkdown(source)).toEqual(
-            "# My Title\n\nSome text\n",
-        );
+        expect(doenetToMarkdown(source)).toEqual("# My Title\n\nSome text\n");
     });
     it("Can convert section and title", () => {
         let source: string;
@@ -59,12 +57,30 @@ describe("doenet-to-markdown", () => {
       </section>
       
       `;
-        expect(convertDoenetToMarkdown(source)).toEqual(
+        expect(doenetToMarkdown(source)).toEqual(
             `# \`<angle>\`
 
 ## What it does
 
 \`<angle>\` renders a geometric angle when nested inside a \`<graph>\` component.
+`,
+        );
+    });
+    it("Can convert lists", () => {
+        let source: string;
+
+        source = `<ol><li>Item 1</li><li>Item 2</li></ol>`;
+        expect(doenetToMarkdown(source)).toEqual(
+            `1. Item 1
+
+2. Item 2
+`,
+        );
+        source = `<ul><li>Item 1</li><li>Item 2</li></ul>`;
+        expect(doenetToMarkdown(source)).toEqual(
+            `* Item 1
+
+* Item 2
 `,
         );
     });

@@ -1,9 +1,11 @@
 import { DastNodes, DastNodesV6, DastRoot, toXml } from "@doenet/parser";
-import {
+import type {
     Root as MdastRoot,
     Nodes as MdastNodes,
     RootContent as MdastRootContent,
     PhrasingContent as MdastPhrasingContent,
+    BlockContent as MdastBlockContent,
+    ListItem as MdastListItem,
 } from "mdast";
 import { toMarkdown } from "mdast-util-to-markdown";
 import { DoenetSourceObject } from "../doenet-source-object";
@@ -23,7 +25,7 @@ const DIVISIONS = [
     "aside",
 ];
 
-export function convertDoenetToMarkdown(source: DoenetSourceObject | string) {
+export function doenetToMarkdown(source: DoenetSourceObject | string) {
     const sourceObj =
         typeof source === "string" ? new DoenetSourceObject(source) : source;
     const dast = sourceObj.dast as DastRoot;
@@ -131,7 +133,27 @@ function doenetToMdast(
                             value: textContent(node),
                         },
                     ];
+                case "ol":
+                    return [
+                        {
+                            type: "list",
+                            ordered: true,
+                            children: mapChildren(node.children).filter(
+                                (n) => n.type === "listItem",
+                            ) as MdastListItem[],
+                        },
+                    ];
+                case "li":
+                    return [
+                        {
+                            type: "listItem",
+                            children: mapChildren(
+                                node.children,
+                            ) as MdastBlockContent[],
+                        },
+                    ];
                 case "m":
+                case "math":
                     return [
                         {
                             type: "text",
@@ -174,7 +196,7 @@ function doenetToMdast(
                         doenetToMdast(n, sourceObj),
                     );
             }
-            return node.children.flatMap((n) => doenetToMdast(n, sourceObj));
+            return mapChildren(node.children);
         case "text": {
             if (node.value.trim() === "") {
                 if (node.value.match(/\n/)) {

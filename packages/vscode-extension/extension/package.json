@@ -60,6 +60,11 @@
                 "enablement": "resourceLangId == doenet",
                 "command": "doenet.formatAsXML",
                 "title": "Format Doenet Source as XML"
+            },
+            {
+                "enablement": "resourceLangId == doenet",
+                "command": "doenet.formatAsMarkdown",
+                "title": "Format Doenet Source as Markdown (experimental)"
             }
         ],
         "menus": {
