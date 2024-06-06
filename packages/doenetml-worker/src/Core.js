@@ -11119,7 +11119,7 @@ export default class Core {
             if (this.itemNumber > 0) {
                 let pageCreditAchieved =
                     await this.document.stateValues.creditAchieved;
-                this.saveState(true);
+                this.saveState(true, true);
                 this.saveSubmissions({ pageCreditAchieved });
                 alreadySaved = true;
             }
@@ -11133,7 +11133,7 @@ export default class Core {
             }, 1000);
         }
 
-        // evalute itemCreditAchieved so that will be fresh
+        // evaluate itemCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
         await this.document.stateValues.itemCreditAchieved;
 
@@ -12789,7 +12789,7 @@ export default class Core {
         });
     }
 
-    async saveState(overrideThrottle = false) {
+    async saveState(overrideThrottle = false, onSubmission = false) {
         this.savePageStateTimeoutID = null;
 
         if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
@@ -12836,6 +12836,7 @@ export default class Core {
             saveId,
             serverSaveId: this.serverSaveId,
             updateDataOnContentChange: this.updateDataOnContentChange,
+            onSubmission,
         };
 
         // mark presence of changes
