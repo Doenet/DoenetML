@@ -62,13 +62,10 @@ export default React.memo(function subsetOfReals(props) {
     function handleTogglePoints(val) {
         // setTogglePoints(val);
         if (val === 0) {
-            console.log(val);
             setMode("add remove points");
         } else if (val === 1) {
-            console.log(val);
             setMode("toggle");
         } else if (val === 2) {
-            console.log(val);
             setMode("move points");
         }
     }
@@ -267,7 +264,6 @@ export default React.memo(function subsetOfReals(props) {
                             transient: false,
                         },
                     });
-                    pointGrabbed.current = null;
                 }
             }
             if (mode === "add remove points") {
@@ -303,6 +299,7 @@ export default React.memo(function subsetOfReals(props) {
                     });
                 }
             }
+            pointGrabbed.current = null;
         } else if (inputState === "down") {
             let pointInd = null;
             for (let [ind, pt] of SVs.points.entries()) {
