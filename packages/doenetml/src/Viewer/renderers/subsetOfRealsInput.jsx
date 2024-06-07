@@ -169,7 +169,7 @@ export default React.memo(function subsetOfReals(props) {
     for (let intervalObj of SVs.intervals) {
         if (intervalObj.right < intervalObj.left || !intervalObj.inSubset) {
             continue;
-        } // Ignore imposible Intervals
+        } // Ignore impossible Intervals
         let lowerXPosition = xValueToXPosition(intervalObj.left);
         let higherXPosition = xValueToXPosition(intervalObj.right);
         const lowerPointKey = `lowerIntervalPoint${lowerXPosition}`;
