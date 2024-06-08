@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import styled from "styled-components";
-import { addCommasForCompositeRanges } from "./utils/composites";
 const SpanStyling = styled.span`
     // display: block;
     // margin: SVs.open ? 12px 4px 0px 4px : 12px 4px 12px 4px;
@@ -56,16 +55,6 @@ export default React.memo(function Solution(props) {
     let onKeyPressFunction;
 
     if (SVs.open) {
-        if (SVs._compositeReplacementActiveRange) {
-            children = addCommasForCompositeRanges({
-                children,
-                compositeReplacementActiveRange:
-                    SVs._compositeReplacementActiveRange,
-                startInd: 0,
-                endInd: children.length - 1,
-            });
-        }
-
         icon = <FontAwesomeIcon icon={puzzle} />;
         openCloseText = "close";
         childrenToRender = children;

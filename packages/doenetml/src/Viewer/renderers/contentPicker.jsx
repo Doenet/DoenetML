@@ -4,7 +4,6 @@ import VisibilitySensor from "react-visibility-sensor-v2";
 import { useEffect } from "react";
 import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
-import { addCommasForCompositeRanges } from "./utils/composites";
 
 export default React.memo(function ContentPicker(props) {
     let {
@@ -149,16 +148,6 @@ export default React.memo(function ContentPicker(props) {
             </label>
         </p>
     );
-
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
-    }
 
     return (
         <VisibilitySensor

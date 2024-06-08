@@ -1,6 +1,5 @@
 import React from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import { addCommasForCompositeRanges } from "./utils/composites";
 
 export default React.memo(function Cell(props) {
     let { name, id, SVs, children } = useDoenetRenderer(props);
@@ -38,20 +37,10 @@ export default React.memo(function Cell(props) {
         }
     }
 
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
-    }
-
     let content = children;
 
     if (content.length === 0) {
-        content = SVs.text;
+        content = String(SVs.text);
     }
 
     if (SVs.inHeader) {

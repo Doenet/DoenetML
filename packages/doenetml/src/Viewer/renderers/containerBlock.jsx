@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import { addCommasForCompositeRanges } from "./utils/composites";
 
 export default React.memo(function Container(props) {
     let { name, id, SVs, children, actions, callAction } =
@@ -29,16 +28,6 @@ export default React.memo(function Container(props) {
 
     if (SVs.hidden) {
         return null;
-    }
-
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
     }
 
     return (

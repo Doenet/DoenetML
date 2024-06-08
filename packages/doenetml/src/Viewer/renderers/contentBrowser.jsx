@@ -150,16 +150,6 @@ export default React.memo(function ContentBrowser(props) {
         </div>
     );
 
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
-    }
-
     return (
         <VisibilitySensor
             partialVisibility={true}
