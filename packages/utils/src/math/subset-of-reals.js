@@ -976,6 +976,22 @@ export function mathExpressionFromSubsetValue({
 
     let expression;
 
+    let mathSubsets = mergeIntervals(subsetValue).map(subsetToMath);
+
+    if (mathSubsets.length > 1) {
+        if (displayMode === "intervals") {
+            expression = me.fromAst(["union", ...mathSubsets]);
+        } else {
+            expression = me.fromAst(["or", ...mathSubsets]);
+        }
+    } else {
+        expression = me.fromAst(mathSubsets[0]);
+    }
+
+    return expression;
+}
+
+export function mergeIntervals(subsetValue) {
     // merge any singletons to create closed intervals
     if (subsetValue instanceof Union) {
         let singletons = subsetValue.subsets.filter(
@@ -1026,26 +1042,12 @@ export function mathExpressionFromSubsetValue({
             }
         }
 
-        let mathSubsets = [...intervals, ...singletons]
-            .sort(
-                (a, b) =>
-                    (a.left === undefined ? a.element : a.left) -
-                    (b.left === undefined ? b.element : b.left),
-            )
-            .map((x) => subsetToMath(x));
-
-        if (mathSubsets.length > 1) {
-            if (displayMode === "intervals") {
-                expression = me.fromAst(["union", ...mathSubsets]);
-            } else {
-                expression = me.fromAst(["or", ...mathSubsets]);
-            }
-        } else {
-            expression = me.fromAst(mathSubsets[0]);
-        }
+        return [...intervals, ...singletons].sort(
+            (a, b) =>
+                (a.left === undefined ? a.element : a.left) -
+                (b.left === undefined ? b.element : b.left),
+        );
     } else {
-        expression = me.fromAst(subsetToMath(subsetValue));
+        return [subsetValue];
     }
-
-    return expression;
 }

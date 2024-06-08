@@ -139,7 +139,7 @@ export default React.memo(function subsetOfReals(props) {
     // Build points
     let storedPoints = [];
 
-    for (let pt of SVs.points) {
+    for (let pt of SVs.pointsDisplayed) {
         let closed = pt.inSubset;
 
         let xPosition = xValueToXPosition(pt.value);
@@ -166,7 +166,7 @@ export default React.memo(function subsetOfReals(props) {
 
     // Build lines
     let storedLines = [];
-    for (let intervalObj of SVs.intervals) {
+    for (let intervalObj of SVs.intervalsDisplayed) {
         if (intervalObj.right < intervalObj.left || !intervalObj.inSubset) {
             continue;
         } // Ignore impossible Intervals
@@ -273,7 +273,7 @@ export default React.memo(function subsetOfReals(props) {
                         args: { pointInd: pointGrabbed.current },
                     });
                 } else if (
-                    !SVs.points.map((x) => x.value).includes(xPosition)
+                    !SVs.pointsDisplayed.map((x) => x.value).includes(xPosition)
                 ) {
                     callAction({
                         action: actions.addPoint,
@@ -288,7 +288,7 @@ export default React.memo(function subsetOfReals(props) {
                     });
                 } else {
                     let intervalInd = 0;
-                    for (let pt of SVs.points) {
+                    for (let pt of SVs.pointsDisplayed) {
                         if (pt.value < xPosition) {
                             intervalInd++;
                         }
@@ -302,7 +302,7 @@ export default React.memo(function subsetOfReals(props) {
             pointGrabbed.current = null;
         } else if (inputState === "down") {
             let pointInd = null;
-            for (let [ind, pt] of SVs.points.entries()) {
+            for (let [ind, pt] of SVs.pointsDisplayed.entries()) {
                 if (Math.abs(pt.value - xPosition) < pointHitTolerance) {
                     pointInd = ind;
                     break;
