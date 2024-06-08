@@ -115,7 +115,7 @@ class EmptySet extends Subset {
     }
 
     toMathExpression() {
-        return me.fromAst("∅");
+        return me.fromAst("emptyset");
     }
 }
 
@@ -590,12 +590,7 @@ function buildSubsetFromIntervals(tree, variable) {
             return new Singleton(tree);
         } else if (tree === "R") {
             return new RealLine();
-        } else if (
-            tree === "varnothing" ||
-            tree === "emptyset" ||
-            tree === "\u2205"
-        ) {
-            // TODO: eliminate \u2205 once have varnothing integrated into latex parser
+        } else if (tree === "emptyset") {
             return new EmptySet();
         } else {
             return new InvalidSet();
@@ -965,7 +960,7 @@ export function mathExpressionFromSubsetValue({
             } else if (!subset.isValid()) {
                 return "\uff3f";
             } else if (subset.isEmpty()) {
-                return ["in", variable, "∅"];
+                return ["in", variable, "emptyset"];
             } else if (subset instanceof RealLine) {
                 return ["in", variable, "R"];
             } else {
