@@ -64,3 +64,7 @@ web-logging = ['web']
 # Passing `--features testing` allows wasm-dependent functions
 # to be avoided during testing.
 testing = []
+
+[lints.clippy]
+# Because of https://github.com/rustwasm/wasm-bindgen/issues/3945 we need to allow this lint for now
+empty_docs = "allow"
