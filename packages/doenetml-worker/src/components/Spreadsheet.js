@@ -333,15 +333,8 @@ export default class Spreadsheet extends BlockComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numRows, dependencyValues.numColumns];
             },
-            returnEntryDimensions: (prefix) => {
-                if (prefix === "cell") {
-                    return 0;
-                } else if (["range", "rows", "columns"].includes(prefix)) {
-                    return 2;
-                } else {
-                    return 1;
-                }
-            },
+            returnEntryDimensions: (prefix) =>
+                ["range", "rows", "columns"].includes(prefix) ? 2 : 1,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -750,21 +743,14 @@ export default class Spreadsheet extends BlockComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numRows, dependencyValues.numColumns];
             },
-            returnEntryDimensions: (prefix) => {
-                if (prefix === "evaluatedCell") {
-                    return 0;
-                } else if (
-                    [
-                        "evaluatedRange",
-                        "evaluatedRows",
-                        "evaluatedColumns",
-                    ].includes(prefix)
-                ) {
-                    return 2;
-                } else {
-                    return 1;
-                }
-            },
+            returnEntryDimensions: (prefix) =>
+                [
+                    "evaluatedRange",
+                    "evaluatedRows",
+                    "evaluatedColumns",
+                ].includes(prefix)
+                    ? 2
+                    : 1,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -1096,21 +1082,12 @@ export default class Spreadsheet extends BlockComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numRows, dependencyValues.numColumns];
             },
-            returnEntryDimensions: (prefix) => {
-                if (prefix === "pointsInCell") {
-                    return 0;
-                } else if (
-                    [
-                        "pointsInRange",
-                        "pointsInRows",
-                        "pointsInColumns",
-                    ].includes(prefix)
-                ) {
-                    return 2;
-                } else {
-                    return 1;
-                }
-            },
+            returnEntryDimensions: (prefix) =>
+                ["pointsInRange", "pointsInRows", "pointsInColumns"].includes(
+                    prefix,
+                )
+                    ? 2
+                    : 1,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

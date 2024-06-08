@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 
 export default class Split extends CompositeComponent {
     static componentType = "split";

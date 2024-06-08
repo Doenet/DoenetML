@@ -1,4 +1,3 @@
-import { textFromChildren } from "../../utils/text";
 import InlineComponent from "./InlineComponent";
 
 export default class TextOrInline extends InlineComponent {
@@ -34,8 +33,14 @@ export default class TextOrInline extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let value = textFromChildren(dependencyValues.inlineChildren);
-
+                let value = "";
+                for (let comp of dependencyValues.inlineChildren) {
+                    if (typeof comp !== "object") {
+                        value += comp.toString();
+                    } else if (typeof comp.stateValues.text === "string") {
+                        value += comp.stateValues.text;
+                    }
+                }
                 return { setValue: { value } };
             },
         };

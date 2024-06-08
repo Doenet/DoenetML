@@ -98,7 +98,7 @@ export default class CobwebPolyline extends Polyline {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -129,10 +129,7 @@ export default class CobwebPolyline extends Polyline {
                 let essentialInitialPoint = {};
                 for (let arrayKey of arrayKeys) {
                     let varEnding = Number(arrayKey) + 1;
-                    if (
-                        dependencyValuesByKey[arrayKey].initialPointAttr
-                            ?.stateValues["x" + varEnding]
-                    ) {
+                    if (dependencyValuesByKey[arrayKey].initialPointAttr) {
                         initialPoint[arrayKey] =
                             dependencyValuesByKey[
                                 arrayKey
@@ -260,8 +257,6 @@ export default class CobwebPolyline extends Polyline {
             numDimensions: 2,
             hasEssential: true,
             entryPrefixes: ["originalVertexX", "originalVertex"],
-            returnEntryDimensions: (prefix) =>
-                prefix === "originalVertex" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -937,7 +932,7 @@ export default class CobwebPolyline extends Polyline {
         //     } else {
         //       // entire array
         //       // wrap by both <point> and <xs>
-        //       return [["point", { componentType: "mathList", isAttributeNamed: "xs" }]];
+        //       return [["point", { componentType: "mathList", isAttribute: "xs" }]];
         //     }
         //   },
         //   returnArraySizeDependencies: () => ({}),

@@ -3,7 +3,7 @@ import {
     find_effective_domain,
     find_effective_domains_piecewise_children,
 } from "@doenet/utils";
-import { mathExpressionFromSubsetValue } from "@doenet/utils";
+import { mathExpressionFromSubsetValue } from "./subset-of-reals";
 
 export function find_local_global_minima({
     domain,

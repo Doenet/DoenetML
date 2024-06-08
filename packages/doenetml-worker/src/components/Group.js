@@ -1,11 +1,11 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import {
     convertAttributesForComponentType,
     verifyReplacementsMatchSpecifiedType,
 } from "../utils/copy";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import { processAssignNames } from "../utils/naming";
 
 export default class Group extends CompositeComponent {
     static componentType = "group";
@@ -51,13 +51,6 @@ export default class Group extends CompositeComponent {
         attributes.numComponents = {
             createPrimitiveOfType: "number",
         };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: false,
-        };
-
         return attributes;
     }
 
@@ -231,7 +224,7 @@ export default class Group extends CompositeComponent {
         component,
         components,
         componentInfoObjects,
-
+        flags,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
         let errors = [];
@@ -265,6 +258,7 @@ export default class Group extends CompositeComponent {
                             componentType: repl.componentType,
                             componentInfoObjects,
                             compositeCreatesNewNamespace: newNamespace,
+                            flags,
                         });
                     if (!repl.attributes) {
                         repl.attributes = {};
@@ -304,7 +298,7 @@ export default class Group extends CompositeComponent {
                     assignNames: component.doenetAttributes.assignNames,
                     componentInfoObjects,
                     compositeAttributesObj: this.createAttributesObject(),
-
+                    flags,
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
                 },
@@ -326,6 +320,7 @@ export default class Group extends CompositeComponent {
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        flags,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -360,6 +355,7 @@ export default class Group extends CompositeComponent {
                 let createResult = await this.createSerializedReplacements({
                     component,
                     componentInfoObjects,
+                    flags,
                 });
 
                 let replacements = createResult.replacements;

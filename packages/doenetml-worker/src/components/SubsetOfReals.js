@@ -2,7 +2,7 @@ import MathComponent from "./Math";
 import {
     buildSubsetFromMathExpression,
     mathExpressionFromSubsetValue,
-} from "@doenet/utils";
+} from "../utils/subset-of-reals";
 import { renameStateVariable } from "../utils/stateVariables";
 import me from "math-expressions";
 export default class SubsetOfReals extends MathComponent {
@@ -11,7 +11,6 @@ export default class SubsetOfReals extends MathComponent {
 
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "subsetValue";
-    static stateVariableToBeShadowed = "subsetValue";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

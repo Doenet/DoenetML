@@ -3,12 +3,11 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
+import { getFromLatex, getFromText } from "../utils/math";
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
-import { textFromChildren } from "../utils/text";
-import { getLatexToMathConverter, getTextToMathConverter } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
@@ -26,8 +25,8 @@ export default class Text extends InlineComponent {
 
     static includeBlankStringChildren = true;
 
-    static variableForImplicitProp = "value";
-    static implicitPropReturnsSameType = true;
+    static variableForPlainMacro = "value";
+    static plainMacroReturnsSameType = true;
 
     // even if inside a component that turned on descendantCompositesMustHaveAReplacement
     // don't required composite replacements
@@ -126,9 +125,14 @@ export default class Text extends InlineComponent {
                         },
                     };
                 }
-
-                let value = textFromChildren(dependencyValues.textLikeChildren);
-
+                let value = "";
+                for (let comp of dependencyValues.textLikeChildren) {
+                    if (typeof comp === "string") {
+                        value += comp;
+                    } else {
+                        value += comp.stateValues.text;
+                    }
+                }
                 return { setValue: { value } };
             },
             inverseDefinition: function ({
@@ -164,24 +168,6 @@ export default class Text extends InlineComponent {
                                     : String(desiredStateVariableValues.value),
                         },
                     ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.numCharacters = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: { numCharacters: dependencyValues.value.length },
                 };
             },
         };
@@ -230,8 +216,8 @@ export default class Text extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 let parser = dependencyValues.isLatex
-                    ? getLatexToMathConverter()
-                    : getTextToMathConverter();
+                    ? getFromLatex()
+                    : getFromText();
                 let expression;
                 try {
                     expression = parser(dependencyValues.value);

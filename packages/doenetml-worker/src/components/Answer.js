@@ -34,7 +34,8 @@ export default class Answer extends InlineComponent {
 
     static renderChildren = true;
 
-    static variableForImplicitProp = "submittedResponses";
+    static variableForPlainMacro = "submittedResponses";
+    static variableForPlainCopy = "submittedResponses";
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -2214,17 +2215,14 @@ export default class Answer extends InlineComponent {
                 object: {
                     componentName: this.componentName,
                     componentType: this.componentType,
-                    answerNumber: this.answerNumber,
                 },
                 result: {
                     response: currentResponses,
                     responseText,
-                    componentTypes:
-                        this.state.currentResponses.shadowingInstructions
-                            .createComponentOfType,
                     creditAchieved,
                 },
             },
+            suppressAlerts: await this.stateValues.suppressAlerts, // temporary
         });
 
         return await this.coreFunctions.triggerChainedActions({

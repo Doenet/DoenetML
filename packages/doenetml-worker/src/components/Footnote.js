@@ -1,4 +1,3 @@
-import { textFromChildren } from "../utils/text";
 import InlineComponent from "./abstract/InlineComponent";
 
 export default class Footnote extends InlineComponent {
@@ -34,7 +33,16 @@ export default class Footnote extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let text = textFromChildren(dependencyValues.inlineChildren);
+                let text = "";
+                for (let child of dependencyValues.inlineChildren) {
+                    if (typeof child !== "object") {
+                        text += child.toString();
+                    } else if (typeof child.stateValues.text === "string") {
+                        text += child.stateValues.text;
+                    } else {
+                        text += " ";
+                    }
+                }
 
                 return { setValue: { text } };
             },

@@ -131,10 +131,10 @@ export class Extremum extends BaseComponent {
         ];
     }
 
-    static returnStateVariableDefinitions(numerics) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions(
+    static returnStateVariableDefinitions({ numerics }) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions({
             numerics,
-        );
+        });
 
         let componentClass = this;
 

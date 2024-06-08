@@ -1,11 +1,11 @@
 import checkEquality from "./checkEquality";
 import me from "math-expressions";
-import { buildSubsetFromMathExpression, deepCompare } from "@doenet/utils";
 import {
+    getFromText,
     appliedFunctionSymbolsDefault,
-    getTextToMathConverter,
     numberToMathExpression,
 } from "./math";
+import { deepCompare } from "@doenet/utils";
 
 const appliedFunctionSymbolsWithBooleanOperators = [
     ...appliedFunctionSymbolsDefault,
@@ -13,13 +13,13 @@ const appliedFunctionSymbolsWithBooleanOperators = [
     "isinteger",
 ];
 
-var fromTextUnsplit = getTextToMathConverter({
+var fromTextUnsplit = getFromText({
     splitSymbols: false,
     appliedFunctionSymbols: appliedFunctionSymbolsWithBooleanOperators,
     parseScientificNotation: false,
 });
 
-var fromTextSplit = getTextToMathConverter({
+var fromTextSplit = getFromText({
     parseScientificNotation: false,
 });
 
@@ -218,9 +218,6 @@ export function evaluateLogic({
         }
     }
 
-    // Note: foundMath, foundText, foundBoolean, and foundOther will all be false
-    // if all operands are strings.
-    // In this case, we will default to treating the strings as math
     let foundMath = false;
     let foundText = false;
     let foundBoolean = false;
@@ -328,10 +325,6 @@ export function evaluateLogic({
             "gts",
             "in",
             "notin",
-            "subset",
-            "notsubset",
-            "superset",
-            "notsuperset",
         ].includes(operator)
     ) {
         if (foundText || foundBoolean || foundOther) {
@@ -441,65 +434,6 @@ export function evaluateLogic({
             }).fraction_equal;
 
             return fraction_equal === 0 ? 1 : 0;
-        } else if (operator === "in" || operator === "notin") {
-            let boolean1 = operands[0];
-            if (
-                !(
-                    operands.length === 2 &&
-                    typeof boolean1 === "boolean" &&
-                    Array.isArray(operands[1]) &&
-                    operands[1].every((b) => typeof b === "boolean")
-                )
-            ) {
-                return valueOnInvalid;
-            }
-
-            // Have: [boolean1] in/notin [booleanlist]
-            // check if one of the elements in booleanlist is boolean1
-            let isInList = operands[1].includes(boolean1);
-            if (operator === "in") {
-                return isInList ? 1 : 0;
-            } else {
-                // notin
-                return isInList ? 0 : 1;
-            }
-        } else if (
-            ["subset", "notsubset", "superset", "notsuperset"].includes(
-                operator,
-            )
-        ) {
-            let booleanList1 = operands[0];
-            let booleanList2 = operands[1];
-
-            if (
-                !(
-                    operands.length === 2 &&
-                    Array.isArray(booleanList1) &&
-                    booleanList1.every((b) => typeof b === "boolean") &&
-                    Array.isArray(booleanList2) &&
-                    booleanList2.every((b) => typeof b === "boolean")
-                )
-            ) {
-                return valueOnInvalid;
-            }
-
-            // Have: [booleanList1] operator [booleanList2],
-            // where operator is subset, notsubset, superset, or notsuperset
-
-            if (operator === "superset" || operator === "notsuperset") {
-                // swap operands so can use subset convention
-                [booleanList1, booleanList2] = [booleanList2, booleanList1];
-            }
-
-            // check if every element of booleanList1 is in booleanList2
-            let haveContainment = booleanList1.every((b) =>
-                booleanList2.includes(b),
-            );
-            if (operator.substring(0, 3) === "not") {
-                return haveContainment ? 0 : 1;
-            } else {
-                return haveContainment ? 1 : 0;
-            }
         } else {
             return valueOnInvalid;
         }
@@ -508,9 +442,10 @@ export function evaluateLogic({
             return valueOnInvalid;
         }
 
+        let foundInvalidFormat = false;
         let foundUnorderedList = false;
 
-        let replaceTextAndFindUnordered = function (tree, recurse = true) {
+        let extractText = function (tree, recurse = false) {
             if (typeof tree === "string") {
                 let child = dependencyValues.textChildrenByCode[tree];
                 if (child !== undefined) {
@@ -534,19 +469,17 @@ export function evaluateLogic({
 
             // multiple words would become multiplication
             if (!(recurse && Array.isArray(tree) && tree[0] === "*")) {
-                throw Error("Invalid format");
+                foundInvalidFormat = true;
+                return "";
             }
 
-            return tree
-                .slice(1)
-                .map((x) => replaceTextAndFindUnordered(x, false))
-                .join(" ");
+            return tree.slice(1).map(extractText).join(" ");
         };
 
-        try {
-            // every operand must be a text or string
-            operands = operands.map(replaceTextAndFindUnordered);
-        } catch (e) {
+        // every operand must be a text or string
+        operands = operands.map((x) => extractText(x, true));
+
+        if (foundInvalidFormat) {
             return valueOnInvalid;
         }
 
@@ -608,91 +541,6 @@ export function evaluateLogic({
             }).fraction_equal;
 
             return fraction_equal === 0 ? 1 : 0;
-        } else if (operator === "in" || operator === "notin") {
-            let text1 = operands[0];
-            if (operands.length !== 2 || typeof text1 !== "string") {
-                return valueOnInvalid;
-            }
-
-            if (dependencyValues.caseInsensitiveMatch) {
-                text1 = text1.toLowerCase();
-            }
-
-            if (typeof operands[1] === "string") {
-                let text2 = operands[1];
-                if (dependencyValues.caseInsensitiveMatch) {
-                    text2 = text2.toLowerCase();
-                }
-                // Have: [text1] in/notin [text2]
-                // check if text1 is a substring of text2
-                let isSubstring = text2.includes(text1);
-                if (operator === "in") {
-                    return isSubstring ? 1 : 0;
-                } else {
-                    // notin
-                    return isSubstring ? 0 : 1;
-                }
-            } else if (
-                Array.isArray(operands[1]) &&
-                operands[1].every((s) => typeof s === "string")
-            ) {
-                let textlist = operands[1];
-                if (dependencyValues.caseInsensitiveMatch) {
-                    textlist = textlist.map((s) => s.toLowerCase());
-                }
-
-                // Have: [text1] in/notin [textlist]
-                // check if one of the elements in textlist is text1
-                let isInList = textlist.includes(text1);
-                if (operator === "in") {
-                    return isInList ? 1 : 0;
-                } else {
-                    // notin
-                    return isInList ? 0 : 1;
-                }
-            } else {
-                return valueOnInvalid;
-            }
-        } else if (
-            ["subset", "notsubset", "superset", "notsuperset"].includes(
-                operator,
-            )
-        ) {
-            let textList1 = operands[0];
-            let textList2 = operands[1];
-
-            if (
-                !(
-                    operands.length === 2 &&
-                    Array.isArray(textList1) &&
-                    textList1.every((b) => typeof b === "string") &&
-                    Array.isArray(textList2) &&
-                    textList2.every((b) => typeof b === "string")
-                )
-            ) {
-                return valueOnInvalid;
-            }
-
-            if (dependencyValues.caseInsensitiveMatch) {
-                textList1 = textList1.map((s) => s.toLowerCase());
-                textList2 = textList2.map((s) => s.toLowerCase());
-            }
-
-            // Have: [textList1] operator [textList2],
-            // where operator is subset, notsubset, superset, or notsuperset
-
-            if (operator === "superset" || operator === "notsuperset") {
-                // swap operands so can use subset convention
-                [textList1, textList2] = [textList2, textList1];
-            }
-
-            // check if every element of textList1 is in textList2
-            let haveContainment = textList1.every((b) => textList2.includes(b));
-            if (operator.substring(0, 3) === "not") {
-                return haveContainment ? 0 : 1;
-            } else {
-                return haveContainment ? 1 : 0;
-            }
         } else {
             return valueOnInvalid;
         }
@@ -892,16 +740,51 @@ export function evaluateLogic({
     }
 
     if (operator === "in" || operator === "notin") {
-        if (mathOperands.length !== 2) {
-            return valueOnInvalid;
-        }
-
         let element = mathOperands[0];
         let set = mathOperands[1];
         let set_tree = set.tree;
-        if (Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0])) {
-            if (dependencyValues.matchPartial) {
-                let results = set_tree.slice(1).map((x) =>
+        if (!(Array.isArray(set_tree) && set_tree[0] === "set")) {
+            return valueOnInvalid;
+        }
+
+        if (dependencyValues.matchPartial) {
+            let results = set_tree.slice(1).map((x) =>
+                checkEquality({
+                    object1: element,
+                    object2: me.fromAst(x),
+                    isUnordered: unorderedCompare,
+                    partialMatches: dependencyValues.matchPartial,
+                    matchByExactPositions:
+                        dependencyValues.matchByExactPositions,
+                    symbolicEquality: dependencyValues.symbolicEquality,
+                    simplify: dependencyValues.simplifyOnCompare,
+                    expand: dependencyValues.expandOnCompare,
+                    allowedErrorInNumbers:
+                        dependencyValues.allowedErrorInNumbers,
+                    includeErrorInNumberExponents:
+                        dependencyValues.includeErrorInNumberExponents,
+                    allowedErrorIsAbsolute:
+                        dependencyValues.allowedErrorIsAbsolute,
+                    numSignErrorsMatched: dependencyValues.numSignErrorsMatched,
+                    numPeriodicSetMatchesRequired:
+                        dependencyValues.numPeriodicSetMatchesRequired,
+                    caseInsensitiveMatch: dependencyValues.caseInsensitiveMatch,
+                    matchBlanks: dependencyValues.matchBlanks,
+                }),
+            );
+
+            let max_fraction = results.reduce(
+                (a, c) => Math.max(a, c.fraction_equal),
+                0,
+            );
+            if (operator === "in") {
+                return max_fraction;
+            } else {
+                return 1 - max_fraction;
+            }
+        } else {
+            let result = set_tree.slice(1).some(
+                (x) =>
                     checkEquality({
                         object1: element,
                         object2: me.fromAst(x),
@@ -925,173 +808,15 @@ export function evaluateLogic({
                         caseInsensitiveMatch:
                             dependencyValues.caseInsensitiveMatch,
                         matchBlanks: dependencyValues.matchBlanks,
-                    }),
-                );
-
-                let max_fraction = results.reduce(
-                    (a, c) => Math.max(a, c.fraction_equal),
-                    0,
-                );
-                if (operator === "in") {
-                    return max_fraction;
-                } else {
-                    return 1 - max_fraction;
-                }
-            } else {
-                let result = set_tree.slice(1).some(
-                    (x) =>
-                        checkEquality({
-                            object1: element,
-                            object2: me.fromAst(x),
-                            isUnordered: unorderedCompare,
-                            partialMatches: dependencyValues.matchPartial,
-                            matchByExactPositions:
-                                dependencyValues.matchByExactPositions,
-                            symbolicEquality: dependencyValues.symbolicEquality,
-                            simplify: dependencyValues.simplifyOnCompare,
-                            expand: dependencyValues.expandOnCompare,
-                            allowedErrorInNumbers:
-                                dependencyValues.allowedErrorInNumbers,
-                            includeErrorInNumberExponents:
-                                dependencyValues.includeErrorInNumberExponents,
-                            allowedErrorIsAbsolute:
-                                dependencyValues.allowedErrorIsAbsolute,
-                            numSignErrorsMatched:
-                                dependencyValues.numSignErrorsMatched,
-                            numPeriodicSetMatchesRequired:
-                                dependencyValues.numPeriodicSetMatchesRequired,
-                            caseInsensitiveMatch:
-                                dependencyValues.caseInsensitiveMatch,
-                            matchBlanks: dependencyValues.matchBlanks,
-                        }).fraction_equal === 1,
-                );
-
-                if (operator === "in") {
-                    return result ? 1 : 0;
-                } else {
-                    return result ? 0 : 1;
-                }
-            }
-        }
-
-        // operator is in or notin, but second operand is not a set or list
-        // If first operand is a number and second operand can be turned into a subset of reals,
-        // then we can check for inclusion.
-
-        let number1 = element.evaluate_to_constant();
-        let number2 = set.evaluate_to_constant();
-
-        // Note: since buildSubsetFromMathExpression will create a subset from a number,
-        // we exclude this case to make it consistent with the fact that non-numerical
-        // single values are not treated as sets.
-        if (Number.isFinite(number1) && !Number.isFinite(number2)) {
-            let subsetOfReals = buildSubsetFromMathExpression(set);
-
-            if (subsetOfReals.isValid()) {
-                let containsNumber = subsetOfReals.containsElement(number1);
-                if (operator === "in") {
-                    return containsNumber ? 1 : 0;
-                } else {
-                    // notin
-                    return containsNumber ? 0 : 1;
-                }
-            }
-        }
-
-        return valueOnInvalid;
-    }
-
-    if (["subset", "notsubset", "superset", "notsuperset"].includes(operator)) {
-        if (mathOperands.length !== 2) {
-            return valueOnInvalid;
-        }
-
-        let set1 = mathOperands[0];
-        let set2 = mathOperands[1];
-
-        if (operator === "superset" || operator === "notsuperset") {
-            // swap operands so can use subset convention
-            [set1, set2] = [set2, set1];
-        }
-
-        let set1_tree = set1.tree;
-        let set2_tree = set2.tree;
-
-        if (
-            Array.isArray(set1_tree) &&
-            ["set", "list"].includes(set1_tree[0]) &&
-            Array.isArray(set2_tree) &&
-            ["set", "list"].includes(set2_tree[0])
-        ) {
-            // check if every element in set 1 is equal to an element in set 2
-            let haveContainment = set1_tree.slice(1).every((elt1) =>
-                set2_tree.slice(1).some(
-                    (elt2) =>
-                        checkEquality({
-                            object1: me.fromAst(elt1),
-                            object2: me.fromAst(elt2),
-                            isUnordered: unorderedCompare,
-                            partialMatches: dependencyValues.matchPartial,
-                            matchByExactPositions:
-                                dependencyValues.matchByExactPositions,
-                            symbolicEquality: dependencyValues.symbolicEquality,
-                            simplify: dependencyValues.simplifyOnCompare,
-                            expand: dependencyValues.expandOnCompare,
-                            allowedErrorInNumbers:
-                                dependencyValues.allowedErrorInNumbers,
-                            includeErrorInNumberExponents:
-                                dependencyValues.includeErrorInNumberExponents,
-                            allowedErrorIsAbsolute:
-                                dependencyValues.allowedErrorIsAbsolute,
-                            numSignErrorsMatched:
-                                dependencyValues.numSignErrorsMatched,
-                            numPeriodicSetMatchesRequired:
-                                dependencyValues.numPeriodicSetMatchesRequired,
-                            caseInsensitiveMatch:
-                                dependencyValues.caseInsensitiveMatch,
-                            matchBlanks: dependencyValues.matchBlanks,
-                        }).fraction_equal === 1,
-                ),
+                    }).fraction_equal === 1,
             );
 
-            if (operator.substring(0, 3) === "not") {
-                return haveContainment ? 0 : 1;
+            if (operator === "in") {
+                return result ? 1 : 0;
             } else {
-                return haveContainment ? 1 : 0;
+                return result ? 0 : 1;
             }
         }
-
-        // operator is subset, notsubset, superset, or notsuperset,
-        // but operands are not lists or sets
-        // If both operands can be turned into a subset of reals,
-        // then we can check for inclusion.
-
-        // Note: since buildSubsetFromMathExpression will create a subset from a number,
-        // we exclude this case to make it consistent with the fact that non-numerical
-        // single values are not treated as sets.
-        let number1 = set1.evaluate_to_constant();
-        let number2 = set2.evaluate_to_constant();
-
-        if (!(Number.isFinite(number1) || Number.isFinite(number2))) {
-            let subsetOfReals1 = buildSubsetFromMathExpression(set1);
-
-            if (subsetOfReals1.isValid()) {
-                let subsetOfReals2 = buildSubsetFromMathExpression(set2);
-
-                if (subsetOfReals2.isValid()) {
-                    let haveContainment =
-                        subsetOfReals2.containsSubset(subsetOfReals1);
-
-                    if (operator.substring(0, 3) === "not") {
-                        return haveContainment ? 0 : 1;
-                    } else {
-                        return haveContainment ? 1 : 0;
-                    }
-                }
-            }
-        }
-
-        return valueOnInvalid;
     }
 
     // since have inequality, all operands must be numbers

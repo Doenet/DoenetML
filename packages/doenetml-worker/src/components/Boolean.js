@@ -4,8 +4,8 @@ import { evaluateLogic, buildParsedExpression } from "../utils/booleanLogic";
 export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
 
-    static variableForImplicitProp = "value";
-    static implicitPropReturnsSameType = true;
+    static variableForPlainMacro = "value";
+    static plainMacroReturnsSameType = true;
 
     static descendantCompositesMustHaveAReplacement = true;
     static descendantCompositesDefaultReplacementType = "math";

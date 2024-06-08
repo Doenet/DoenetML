@@ -1,6 +1,8 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
-import { subsets, buildSubsetFromMathExpression } from "@doenet/utils";
+import subsets, {
+    buildSubsetFromMathExpression,
+} from "../utils/subset-of-reals";
 
 export default class SubsetOfRealsInput extends BlockComponent {
     constructor(args) {
@@ -19,7 +21,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
     }
     static componentType = "subsetOfRealsInput";
 
-    static variableForImplicitProp = "subsetValue";
+    static variableForPlainMacro = "subsetValue";
+    static variableForPlainCopy = "subsetValue";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -79,8 +82,6 @@ export default class SubsetOfRealsInput extends BlockComponent {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
-            toLowerCase: true,
-            validValues: ["text", "latex"],
         };
         attributes.prefill = {
             createComponentOfType: "text",

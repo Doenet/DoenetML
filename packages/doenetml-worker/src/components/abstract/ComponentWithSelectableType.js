@@ -394,9 +394,6 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
 export class ComponentListOfListsWithSelectableType extends ComponentWithSelectableType {
     static componentType = "_componentListOfListsWithSelectableType";
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["_base"];
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.type = {

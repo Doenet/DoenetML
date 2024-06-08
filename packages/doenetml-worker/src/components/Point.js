@@ -13,7 +13,6 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import { roundForDisplay } from "../utils/math";
-import { returnStickyGroupDefinitions } from "../utils/constraints";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {
@@ -27,8 +26,6 @@ export default class Point extends GraphicalComponent {
         });
     }
     static componentType = "point";
-
-    static canBeInList = true;
 
     // Note: for other components with public point state variables,
     // the recommended course of action is not to have
@@ -256,8 +253,6 @@ export default class Point extends GraphicalComponent {
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
         );
-
-        Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
 
         let styleDescriptionDefinitions =
             returnTextStyleDescriptionDefinitions();
@@ -885,7 +880,6 @@ export default class Point extends GraphicalComponent {
                 dependencyNamesByKey,
                 initialChange,
                 stateValues,
-                workspace,
             }) {
                 // console.log('invert xs')
                 // console.log(desiredStateVariableValues);
@@ -898,33 +892,6 @@ export default class Point extends GraphicalComponent {
                 }
 
                 let instructions = [];
-
-                let desiredXs;
-
-                if (await stateValues.inStickyGroup) {
-                    // We have to accumulate changed components in workspace
-                    // if in sticky group as the constrain function only works on whole vector of xs
-                    Object.assign(workspace, desiredStateVariableValues.xs);
-
-                    desiredXs = [...(await stateValues.xs)];
-
-                    for (let arrayKey in workspace) {
-                        desiredXs[arrayKey] = workspace[arrayKey];
-                    }
-
-                    let stickyObjectIndex = await stateValues.stickyObjectIndex;
-
-                    let stickyPointConstraintFunction =
-                        await stateValues.stickyPointConstraintFunction;
-
-                    desiredXs = stickyPointConstraintFunction(
-                        desiredXs,
-                        stickyObjectIndex,
-                    );
-                } else {
-                    desiredXs = desiredStateVariableValues.xs;
-                }
-
                 for (let arrayKey of Object.keys(
                     desiredStateVariableValues.xs,
                 ).reverse()) {
@@ -938,7 +905,8 @@ export default class Point extends GraphicalComponent {
                         instructions.push({
                             setDependency:
                                 dependencyNamesByKey[arrayKey].constraintsChild,
-                            desiredValue: desiredXs[arrayKey],
+                            desiredValue:
+                                desiredStateVariableValues.xs[arrayKey],
                             childIndex: 0,
                             variableIndex: 0,
                         });
@@ -946,7 +914,8 @@ export default class Point extends GraphicalComponent {
                         instructions.push({
                             setDependency:
                                 dependencyNamesByKey[arrayKey].unconstrainedX,
-                            desiredValue: desiredXs[arrayKey],
+                            desiredValue:
+                                desiredStateVariableValues.xs[arrayKey],
                         });
                     }
                 }

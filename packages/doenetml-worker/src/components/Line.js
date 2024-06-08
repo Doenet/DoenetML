@@ -24,7 +24,6 @@ export default class Line extends GraphicalComponent {
         });
     }
     static componentType = "line";
-    static canBeInList = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -470,7 +469,7 @@ export default class Line extends GraphicalComponent {
 
         stateVariableDefinitions.essentialPoints = {
             isArray: true,
-            numDimensions: 2,
+            numDimensions: "2",
             isLocation: true,
             hasEssential: true,
             entryPrefixes: ["essentialPointX", "essentialPoint"],
@@ -590,7 +589,7 @@ export default class Line extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -600,7 +599,6 @@ export default class Line extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["pointX", "point"],
-            returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

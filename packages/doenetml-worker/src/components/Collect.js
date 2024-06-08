@@ -3,8 +3,8 @@ import {
     convertAttributesForComponentType,
     postProcessCopy,
 } from "../utils/copy";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import { replacementFromProp } from "./Copy";
-import { processAssignNames } from "../utils/naming";
 
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
@@ -66,12 +66,6 @@ export default class Collect extends CompositeComponent {
 
         attributes.componentTypes = {
             createComponentOfType: "textList",
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
         };
 
         return attributes;
@@ -365,6 +359,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        flags,
     }) {
         // console.log(`create serialized replacements for ${component.componentName}`)
         // console.log(await component.stateValues.collectedComponents)
@@ -411,6 +406,7 @@ export default class Collect extends CompositeComponent {
                     compositeAttributesObj,
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
+                    flags,
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
@@ -450,6 +446,7 @@ export default class Collect extends CompositeComponent {
         compositeAttributesObj,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        flags,
     }) {
         // console.log(`create replacement for collected ${collectedNum}, ${numReplacementsSoFar}`)
 
@@ -508,7 +505,7 @@ export default class Collect extends CompositeComponent {
 
             let serializedCopy = [
                 await collectedComponent.serialize({
-                    primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
+                    sourceAttributesToIgnore,
                 }),
             ];
 
@@ -531,6 +528,7 @@ export default class Collect extends CompositeComponent {
                         componentInfoObjects,
                         compositeAttributesObj,
                         compositeCreatesNewNamespace: newNamespace,
+                        flags,
                     },
                 );
                 Object.assign(repl.attributes, attributesFromComposite);
@@ -566,6 +564,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        flags,
     }) {
         // console.log("Calculating replacement changes for " + component.componentName);
         // console.log((await component.stateValues.collectedComponents).map(x => x.componentName))
@@ -720,6 +719,7 @@ export default class Collect extends CompositeComponent {
                     compositeAttributesObj,
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
+                    flags,
                 });
                 errors.push(...results.errors);
                 warnings.push(...results.warnings);
@@ -798,6 +798,7 @@ export default class Collect extends CompositeComponent {
                 compositeAttributesObj,
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
+                flags,
             });
             errors.push(...results.errors);
             warnings.push(...results.warnings);
@@ -903,6 +904,7 @@ export default class Collect extends CompositeComponent {
         compositeAttributesObj,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        flags,
     }) {
         let errors = [];
         let warnings = [];
@@ -917,6 +919,7 @@ export default class Collect extends CompositeComponent {
             compositeAttributesObj,
             numComponentsForSource,
             publicCaseInsensitiveAliasSubstitutions,
+            flags,
         });
         errors.push(...results.errors);
         warnings.push(...results.warnings);

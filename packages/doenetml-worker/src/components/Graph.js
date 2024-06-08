@@ -1,4 +1,4 @@
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {

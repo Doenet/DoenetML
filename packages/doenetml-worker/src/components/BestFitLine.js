@@ -21,9 +21,6 @@ export default class BestFitLine extends Line {
         return attributes;
     }
 
-    // Include children that can be added due to sugar (delete those from line)
-    static additionalSchemaChildren = [];
-
     static returnSugarInstructions() {
         return [];
     }
@@ -210,7 +207,7 @@ export default class BestFitLine extends Line {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -220,7 +217,6 @@ export default class BestFitLine extends Line {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["datumX", "datum"],
-            returnEntryDimensions: (prefix) => (prefix === "datum" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

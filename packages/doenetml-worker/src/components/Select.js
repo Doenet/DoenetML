@@ -5,11 +5,11 @@ import {
     enumerateCombinations,
 } from "@doenet/utils";
 import {
-    processAssignNames,
     markToCreateAllUniqueNames,
-} from "../utils/naming";
-import { gatherVariantComponents } from "../utils/variants";
+    processAssignNames,
+} from "../utils/serializedStateProcessing";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { gatherVariantComponents } from "../utils/variants";
 
 export default class Select extends CompositeComponent {
     static componentType = "select";
@@ -48,12 +48,6 @@ export default class Select extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "addLevelToAssignNames",
             defaultValue: false,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
         };
 
         return attributes;

@@ -39,7 +39,8 @@ export default class Textinput extends Input {
     }
     static componentType = "textInput";
 
-    static variableForImplicitProp = "value";
+    static variableForPlainMacro = "value";
+    static variableForPlainCopy = "value";
 
     static processWhenJustUpdatedForNewComponent = true;
 

@@ -19,9 +19,6 @@ export default class DirectionComponent extends BaseComponent {
 
     static primaryStateVariableForDefinition = "directionShadow";
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["math", "string"];
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         Object.assign(attributes, returnRoundingAttributeComponentShadowing());
@@ -205,7 +202,7 @@ export default class DirectionComponent extends BaseComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];

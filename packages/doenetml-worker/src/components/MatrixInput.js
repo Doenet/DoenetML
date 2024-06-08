@@ -14,7 +14,7 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import {
-    getLatexToMathConverter,
+    getFromLatex,
     normalizeLatexString,
     roundForDisplay,
     stripLatex,
@@ -52,7 +52,8 @@ export class MatrixInput extends Input {
 
     static componentType = "matrixInput";
 
-    static variableForImplicitProp = "value";
+    static variableForPlainMacro = "value";
+    static variableForPlainCopy = "value";
 
     static processWhenJustUpdatedForNewComponent = true;
 
@@ -105,8 +106,6 @@ export class MatrixInput extends Input {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
-            toLowerCase: true,
-            validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
             createComponentOfType: "textList",
@@ -2406,6 +2405,7 @@ export class MatrixInput extends Input {
                     } else {
                         // entire matrix
                         // wrap inner dimension by matrixRow and outer dimension by matrix
+                        // don't wrap outer dimension (for entire array)
                         return [["matrixRow"], ["matrix"]];
                     }
                 },
@@ -2413,15 +2413,6 @@ export class MatrixInput extends Input {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
-            returnEntryDimensions: (prefix) => {
-                if (prefix === "matrixEntry") {
-                    return 0;
-                } else if (prefix === "rows" || prefix === "columns") {
-                    return 2;
-                } else {
-                    return 1;
-                }
-            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -3148,7 +3139,8 @@ export default class MatrixComponentInput extends BaseComponent {
     static componentType = "_matrixComponentInput";
     static rendererType = "mathInput";
 
-    static variableForImplicitProp = "value";
+    static variableForPlainMacro = "value";
+    static variableForPlainCopy = "value";
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -3589,7 +3581,7 @@ export default class MatrixComponentInput extends BaseComponent {
                     // unlike math-expression's latex parser
                     text = text.replace(/\^(\w)/g, "^{$1}");
 
-                    let fromLatex = getLatexToMathConverter({
+                    let fromLatex = getFromLatex({
                         functionSymbols: await stateValues.functionSymbols,
                         splitSymbols: await stateValues.splitSymbols,
                         parseScientificNotation:

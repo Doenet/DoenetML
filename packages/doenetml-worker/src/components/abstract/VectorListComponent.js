@@ -9,9 +9,6 @@ export default class VectorListComponent extends BaseComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["string", "math"];
-
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -95,7 +92,6 @@ export default class VectorListComponent extends BaseComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["vectorX", "vector"],
-            returnEntryDimensions: (prefix) => (prefix === "vector" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

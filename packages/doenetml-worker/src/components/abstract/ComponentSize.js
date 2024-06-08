@@ -505,9 +505,6 @@ export class ComponentSizeList extends BaseComponent {
     // use the componentSizes state variable to populate that attribute
     static stateVariableToBeShadowed = "componentSizes";
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["string", "number"];
-
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 

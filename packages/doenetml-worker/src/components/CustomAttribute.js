@@ -1,10 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames, setTNamesToAbsolute } from "../utils/naming";
-import {
-    applyMacros,
-    applySugar,
-    componentFromAttribute,
-} from "../utils/expandDoenetML";
+import * as serializeFunctions from "../utils/serializedStateProcessing";
 
 export default class CustomAttribute extends CompositeComponent {
     static componentType = "customAttribute";
@@ -166,7 +161,7 @@ export default class CustomAttribute extends CompositeComponent {
             createComponentOfType: componentType,
         };
 
-        let res = componentFromAttribute({
+        let res = serializeFunctions.componentFromAttribute({
             attrObj,
             value: attributeValue,
             componentInfoObjects,
@@ -177,7 +172,10 @@ export default class CustomAttribute extends CompositeComponent {
         warnings.push(...res.warnings);
 
         if (serializedComponent.children) {
-            applyMacros(serializedComponent.children, componentInfoObjects);
+            serializeFunctions.applyMacros(
+                serializedComponent.children,
+                componentInfoObjects,
+            );
             if (newNamespace) {
                 // modify targets to go back one namespace
                 for (let child of serializedComponent.children) {
@@ -191,15 +189,15 @@ export default class CustomAttribute extends CompositeComponent {
             }
         }
 
-        applySugar({
+        serializeFunctions.applySugar({
             serializedComponents: [serializedComponent],
             isAttributeComponent: true,
             componentInfoObjects,
         });
 
-        setTNamesToAbsolute([serializedComponent]);
+        serializeFunctions.setTNamesToAbsolute([serializedComponent]);
 
-        let processResult = processAssignNames({
+        let processResult = serializeFunctions.processAssignNames({
             assignNames: component.doenetAttributes.assignNames,
             serializedComponents: [serializedComponent],
             parentName: component.componentName,

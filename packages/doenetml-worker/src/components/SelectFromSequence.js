@@ -1,15 +1,14 @@
 import Sequence from "./Sequence";
+import { processAssignNames } from "../utils/serializedStateProcessing";
+import { getFromText } from "../utils/math";
 import {
     calculateSequenceParameters,
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
 import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
-
 import { convertAttributesForComponentType } from "../utils/copy";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { getTextToMathConverter } from "../utils/math";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -233,6 +232,7 @@ export default class SelectFromSequence extends Sequence {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        flags,
     }) {
         let errors = [];
         let warnings = [];
@@ -282,6 +282,7 @@ export default class SelectFromSequence extends Sequence {
                 componentType,
                 componentInfoObjects,
                 compositeCreatesNewNamespace: newNamespace,
+                flags,
             });
         }
 
@@ -414,7 +415,7 @@ export default class SelectFromSequence extends Sequence {
                         return { success: false };
                     }
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = getFromText({
                         functionSymbols: ["f", "g"],
                     });
                     try {
@@ -463,7 +464,7 @@ export default class SelectFromSequence extends Sequence {
                         return { success: false };
                     }
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = getFromText({
                         functionSymbols: ["f", "g"],
                     });
                     try {
@@ -510,7 +511,7 @@ export default class SelectFromSequence extends Sequence {
                         return { success: false };
                     }
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = getFromText({
                         functionSymbols: ["f", "g"],
                     });
                     try {

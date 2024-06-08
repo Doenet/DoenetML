@@ -11,8 +11,8 @@ export default class OrbitalDiagram extends BlockComponent {
 
     static componentType = "orbitalDiagram";
 
-    static variableForImplicitProp = "value";
-    static implicitPropReturnsSameType = true;
+    static variableForPlainMacro = "value";
+    static plainMacroReturnsSameType = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -23,9 +23,6 @@ export default class OrbitalDiagram extends BlockComponent {
         };
         return attributes;
     }
-
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["string", "math", "number"];
 
     static returnSugarInstructions() {
         let sugarInstructions = [

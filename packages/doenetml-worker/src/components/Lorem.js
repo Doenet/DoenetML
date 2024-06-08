@@ -1,6 +1,6 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { LoremIpsum } from "lorem-ipsum";
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 
 export default class Lorem extends CompositeComponent {

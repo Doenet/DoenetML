@@ -79,9 +79,20 @@ export default React.memo(function CobwebPolyline(props) {
             diagonalAttributes,
         );
 
+        let validCoords = true;
+
+        for (let coords of SVs.numericalVertices) {
+            if (!Number.isFinite(coords[0])) {
+                validCoords = false;
+            }
+            if (!Number.isFinite(coords[1])) {
+                validCoords = false;
+            }
+        }
+
         let jsxPolylineAttributes = {
             name: SVs.labelForGraph,
-            visible: !SVs.hidden,
+            visible: !SVs.hidden && validCoords,
             withLabel: SVs.labelForGraph !== "",
             fixed: true,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
@@ -101,7 +112,7 @@ export default React.memo(function CobwebPolyline(props) {
 
         jsxPointAttributes.current = {
             fixed: !SVs.draggable || SVs.fixed,
-            visible: !SVs.hidden && SVs.draggable,
+            visible: !SVs.hidden && validCoords && SVs.draggable,
             withLabel: true,
             name: "A",
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -131,13 +142,13 @@ export default React.memo(function CobwebPolyline(props) {
             if (i === 0) {
                 pointAttributes.name = `(${varName}_0,0)`;
             } else if (i % 2 === 1) {
-                pointAttributes.name = `(${varName}_{${
+                pointAttributes.name = `(${varName}_${
                     (i - 1) / 2
-                }}, ${varName}_{${(i + 1) / 2}})`;
+                }, ${varName}_${(i + 1) / 2})`;
             } else {
-                pointAttributes.name = `(${varName}_{${i / 2}}, ${varName}_{${
+                pointAttributes.name = `(${varName}_${i / 2}, ${varName}_${
                     i / 2
-                }})`;
+                })`;
             }
             if (i !== SVs.numPoints - 1) {
                 pointAttributes.visible = false;
@@ -288,6 +299,17 @@ export default React.memo(function CobwebPolyline(props) {
             curveJXG.current.needsUpdate = true;
             curveJXG.current.updateCurve();
 
+            let validCoords = true;
+
+            for (let coords of SVs.numericalVertices) {
+                if (!Number.isFinite(coords[0])) {
+                    validCoords = false;
+                }
+                if (!Number.isFinite(coords[1])) {
+                    validCoords = false;
+                }
+            }
+
             let varName = SVs.variable.toString();
 
             // add or delete points as required and change data array size
@@ -300,13 +322,13 @@ export default React.memo(function CobwebPolyline(props) {
                     if (i === 0) {
                         pointAttributes.name = `(${varName}_0,0)`;
                     } else if (i % 2 === 1) {
-                        pointAttributes.name = `(${varName}_{${
+                        pointAttributes.name = `(${varName}_${
                             (i - 1) / 2
-                        }}, ${varName}_{${(i + 1) / 2}})`;
+                        }, ${varName}_${(i + 1) / 2})`;
                     } else {
-                        pointAttributes.name = `(${varName}_{${
+                        pointAttributes.name = `(${varName}_${
                             i / 2
-                        }}, ${varName}_{${i / 2}})`;
+                        }, ${varName}_${i / 2})`;
                     }
                     if (i !== SVs.numPoints - 1) {
                         pointAttributes.visible = false;
@@ -364,21 +386,33 @@ export default React.memo(function CobwebPolyline(props) {
 
             let visible = !SVs.hidden;
 
-            polylineJXG.current.visProp["visible"] = visible;
-            polylineJXG.current.visPropCalc["visible"] = visible;
-            // polylineJXG.current.setAttribute({visible: visible})
+            if (validCoords) {
+                polylineJXG.current.visProp["visible"] = visible;
+                polylineJXG.current.visPropCalc["visible"] = visible;
+                // polylineJXG.current.setAttribute({visible: visible})
 
-            for (let i = 0; i < SVs.numPoints - 1; i++) {
-                pointsJXG.current[i].visProp["visible"] = false;
-                pointsJXG.current[i].visPropCalc["visible"] = false;
-            }
-            if (SVs.numPoints > 0) {
-                if (SVs.draggable) {
-                    pointsJXG.current[SVs.numPoints - 1].visProp["visible"] =
-                        visible;
-                    pointsJXG.current[SVs.numPoints - 1].visPropCalc[
-                        "visible"
-                    ] = visible;
+                for (let i = 0; i < SVs.numPoints - 1; i++) {
+                    pointsJXG.current[i].visProp["visible"] = false;
+                    pointsJXG.current[i].visPropCalc["visible"] = false;
+                }
+                if (SVs.numPoints > 0) {
+                    if (SVs.draggable) {
+                        pointsJXG.current[SVs.numPoints - 1].visProp[
+                            "visible"
+                        ] = visible;
+                        pointsJXG.current[SVs.numPoints - 1].visPropCalc[
+                            "visible"
+                        ] = visible;
+                    }
+                }
+            } else {
+                polylineJXG.current.visProp["visible"] = false;
+                polylineJXG.current.visPropCalc["visible"] = false;
+                // polylineJXG.current.setAttribute({visible: false})
+
+                for (let i = 0; i < SVs.numPoints; i++) {
+                    pointsJXG.current[i].visProp["visible"] = false;
+                    pointsJXG.current[i].visPropCalc["visible"] = false;
                 }
             }
 

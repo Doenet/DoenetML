@@ -1,11 +1,11 @@
-import { getUniqueIdentifierFromBase } from "@doenet/utils";
+import { getUniqueIdentifierFromBase } from "./naming";
 import {
     applyMacros,
     applySugar,
     componentFromAttribute,
+    processAssignNames,
     removeBlankStringChildren,
-} from "./expandDoenetML";
-import { processAssignNames } from "./naming";
+} from "./serializedStateProcessing";
 
 export function postProcessCopy({
     serializedComponents,
@@ -257,8 +257,8 @@ export function convertAttributesForComponentType({
     componentType,
     componentInfoObjects,
     compositeAttributesObj = {},
-    dontSkipAttributes = [],
     compositeCreatesNewNamespace,
+    flags,
 }) {
     let errors = [];
     let warnings = [];
@@ -275,12 +275,10 @@ export function convertAttributesForComponentType({
     for (let attrName in attributes) {
         if (
             attrName in compositeAttributesObj &&
-            !compositeAttributesObj[attrName].leaveRaw &&
-            !dontSkipAttributes.includes(attrName)
+            !compositeAttributesObj[attrName].leaveRaw
         ) {
             // skip any attributes in the composite itself
             // unless specifically marked to not be processed for the composite
-            // or argument is passed in to not skip
             continue;
         }
 
@@ -347,6 +345,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     workspace = {},
     componentInfoObjects,
     compositeAttributesObj,
+    flags,
     components,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
@@ -558,6 +557,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 componentInfoObjects,
                 compositeAttributesObj,
                 compositeCreatesNewNamespace: newNamespace,
+                flags,
             });
 
             let uniqueIdentifierBase = requiredComponentType + "|empty" + i;
@@ -678,12 +678,10 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         replacements = processResult.serializedComponents;
 
-        if (!wrapExistingReplacements) {
-            workspace.numReplacementsBySource.push(replacements.length);
-            workspace.numNonStringReplacementsBySource.push(
-                replacements.filter((x) => typeof x !== "string").length,
-            );
-        }
+        workspace.numReplacementsBySource.push(replacements.length);
+        workspace.numNonStringReplacementsBySource.push(
+            replacements.filter((x) => typeof x !== "string").length,
+        );
 
         if (replacementChanges) {
             replacementChanges = [];
@@ -710,267 +708,4 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     return { replacements, replacementChanges, errors, warnings };
-}
-
-export function countRegularComponentTypesInNamespace(
-    serializedComponents,
-    componentCounts = {},
-) {
-    for (let serializedComponent of serializedComponents) {
-        if (typeof serializedComponent === "object") {
-            let componentType = serializedComponent.componentType;
-
-            let count = componentCounts[componentType];
-            if (count === undefined) {
-                count = 0;
-            }
-
-            let doenetAttributes = serializedComponent.doenetAttributes;
-
-            // if created from a attribute/sugar/macro, don't include in component counts
-            if (
-                !(
-                    doenetAttributes?.isAttributeChildFor ||
-                    doenetAttributes?.createdFromSugar ||
-                    doenetAttributes?.createdFromMacro ||
-                    doenetAttributes?.excludeFromComponentCounts
-                )
-            ) {
-                componentCounts[componentType] = ++count;
-            }
-
-            if (
-                serializedComponent.children &&
-                !serializedComponent.attributes?.newNamespace?.primitive
-            ) {
-                // if don't have new namespace, recurse to children
-                componentCounts = countRegularComponentTypesInNamespace(
-                    serializedComponent.children,
-                    componentCounts,
-                );
-            }
-        }
-    }
-
-    return componentCounts;
-}
-
-export function renameAutonameBasedOnNewCounts(
-    serializedComponents,
-    newComponentCounts = {},
-) {
-    let componentCounts = { ...newComponentCounts };
-
-    for (let serializedComponent of serializedComponents) {
-        if (typeof serializedComponent === "object") {
-            let componentType = serializedComponent.componentType;
-
-            let count = componentCounts[componentType];
-            if (count === undefined) {
-                count = 0;
-            }
-
-            let doenetAttributes = serializedComponent.doenetAttributes;
-
-            // if created from a attribute/sugar/macro, don't include in component counts
-            if (
-                !(
-                    doenetAttributes?.isAttributeChildFor ||
-                    doenetAttributes?.createdFromSugar ||
-                    doenetAttributes?.createdFromMacro ||
-                    doenetAttributes?.excludeFromComponentCounts
-                )
-            ) {
-                componentCounts[componentType] = ++count;
-
-                // check if name was created from counting components
-
-                if (serializedComponent.componentName) {
-                    let lastSlash =
-                        serializedComponent.componentName.lastIndexOf("/");
-                    let originalName =
-                        serializedComponent.componentName.substring(
-                            lastSlash + 1,
-                        );
-                    let nameStartFromComponentType =
-                        "_" + componentType.toLowerCase();
-                    if (
-                        originalName.substring(
-                            0,
-                            nameStartFromComponentType.length,
-                        ) === nameStartFromComponentType
-                    ) {
-                        // recreate using new count
-                        serializedComponent.componentName =
-                            serializedComponent.componentName.substring(
-                                0,
-                                lastSlash + 1,
-                            ) +
-                            nameStartFromComponentType +
-                            count;
-                    }
-                }
-            }
-
-            if (
-                serializedComponent.children &&
-                !serializedComponent.attributes?.newNamespace?.primitive
-            ) {
-                // if don't have new namespace, recurse to children
-                componentCounts = renameAutonameBasedOnNewCounts(
-                    serializedComponent.children,
-                    componentCounts,
-                );
-            }
-        }
-    }
-
-    return componentCounts;
-}
-
-export function restrictTNamesToNamespace({
-    components,
-    namespace,
-    parentNamespace,
-    parentIsCopy = false,
-    invalidateReferencesToBaseNamespace = false,
-}) {
-    if (parentNamespace === undefined) {
-        parentNamespace = namespace;
-    }
-
-    let nSpace = namespace.length;
-
-    for (let component of components) {
-        if (component.doenetAttributes && component.doenetAttributes.target) {
-            let target = component.doenetAttributes.target;
-
-            if (target[0] === "/") {
-                if (target.substring(0, nSpace) !== namespace) {
-                    // if left part of target matches the left part of the namespace, delete matched part from larget
-                    // else if left part of target matches the right part of the namespace, delete matched part
-
-                    let namespaceParts = namespace.split("/").slice(1);
-                    let targetParts = target.split("/").slice(1);
-                    let foundAMatch = false;
-                    let targetComponentName = namespace + target.slice(1);
-
-                    while (
-                        namespaceParts.length > 0 &&
-                        namespaceParts[0] === targetParts[0]
-                    ) {
-                        namespaceParts = namespaceParts.slice(1);
-                        targetParts = targetParts.slice(1);
-                        foundAMatch = true;
-                    }
-
-                    if (foundAMatch) {
-                        targetComponentName = namespace + targetParts.join("/");
-                    } else {
-                        let namespaceParts = namespace.split("/").slice(1);
-                        for (let ind = 1; ind < namespaceParts.length; ind++) {
-                            let namespacePiece =
-                                "/" + namespaceParts.slice(ind).join("/");
-                            if (
-                                target.substring(0, namespacePiece.length) ===
-                                namespacePiece
-                            ) {
-                                targetComponentName =
-                                    "/" +
-                                    namespaceParts.slice(0, ind).join("/") +
-                                    target;
-                                break;
-                            }
-                        }
-                    }
-
-                    component.doenetAttributes.target = targetComponentName;
-                    component.doenetAttributes.targetComponentName =
-                        targetComponentName;
-                } else if (invalidateReferencesToBaseNamespace) {
-                    let lastSlash = target.lastIndexOf("/");
-                    if (target.slice(0, lastSlash + 1) === namespace) {
-                        component.doenetAttributes.target = "";
-                        component.doenetAttributes.targetComponentName = "";
-                    }
-                }
-            } else if (target.substring(0, 3) === "../") {
-                let tNamePart = target;
-                let namespacePart = parentNamespace;
-                while (tNamePart.substring(0, 3) === "../") {
-                    tNamePart = tNamePart.substring(3);
-                    let lastSlash = namespacePart
-                        .substring(0, namespacePart.length - 1)
-                        .lastIndexOf("/");
-                    namespacePart = namespacePart.substring(0, lastSlash + 1);
-                    if (namespacePart.substring(0, nSpace) !== namespace) {
-                        while (tNamePart.substring(0, 3) === "../") {
-                            tNamePart = tNamePart.substring(3);
-                        }
-
-                        let targetComponentName = namespace + tNamePart;
-                        component.doenetAttributes.target = targetComponentName;
-                        component.doenetAttributes.targetComponentName =
-                            targetComponentName;
-                        break;
-                    }
-                }
-                if (invalidateReferencesToBaseNamespace) {
-                    let targetComponentName =
-                        component.doenetAttributes.targetComponentName;
-                    let lastSlash = targetComponentName.lastIndexOf("/");
-                    if (
-                        targetComponentName.slice(0, lastSlash + 1) ===
-                        namespace
-                    ) {
-                        component.doenetAttributes.target = "";
-                        component.doenetAttributes.targetComponentName = "";
-                    }
-                }
-            }
-        }
-
-        if (component.children) {
-            let adjustedNamespace = namespace;
-            if (parentIsCopy && component.componentType === "externalContent") {
-                // if have a external content inside a copy,
-                // then restrict children to the namespace of the externalContent
-                adjustedNamespace = component.componentName + "/";
-            }
-            let namespaceForChildren = parentNamespace;
-            if (
-                component.attributes &&
-                component.attributes.newNamespace?.primitive
-            ) {
-                namespaceForChildren = component.componentName;
-            }
-            restrictTNamesToNamespace({
-                components: component.children,
-                namespace: adjustedNamespace,
-                parentNamespace: namespaceForChildren,
-                parentIsCopy: component.componentType === "copy",
-                invalidateReferencesToBaseNamespace,
-            });
-        }
-        if (component.attributes) {
-            for (let attrName in component.attributes) {
-                let attribute = component.attributes[attrName];
-                if (attribute.component) {
-                    restrictTNamesToNamespace({
-                        components: [attribute.component],
-                        namespace,
-                        parentNamespace,
-                        invalidateReferencesToBaseNamespace,
-                    });
-                } else if (attribute.childrenForComponent) {
-                    restrictTNamesToNamespace({
-                        components: attribute.childrenForComponent,
-                        namespace,
-                        parentNamespace,
-                        invalidateReferencesToBaseNamespace,
-                    });
-                }
-            }
-        }
-    }
 }

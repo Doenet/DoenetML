@@ -1,6 +1,6 @@
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
@@ -63,12 +63,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             createStateVariable: "variantDeterminesSeed",
             defaultValue: false,
             public: true,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
         };
 
         return attributes;

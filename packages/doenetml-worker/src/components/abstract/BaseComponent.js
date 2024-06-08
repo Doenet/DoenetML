@@ -2,10 +2,7 @@ import createStateProxyHandler from "../../StateProxyHandler";
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
-import {
-    returnDefaultArrayVarNameFromPropIndex,
-    returnDefaultGetArrayKeysFromVarName,
-} from "../../utils/stateVariables";
+import { returnDefaultGetArrayKeysFromVarName } from "../../utils/stateVariables";
 
 export default class BaseComponent {
     constructor({
@@ -879,12 +876,18 @@ export default class BaseComponent {
         return stateVariableDefinitions;
     }
 
-    static returnNormalizedStateVariableDefinitions(numerics) {
+    static returnNormalizedStateVariableDefinitions({
+        attributeNames,
+        numerics,
+    }) {
         // return state variable definitions
         // where have added additionalStateVariablesDefined
 
         //  add state variable definitions from component class
-        let newDefinitions = this.returnStateVariableDefinitions(numerics);
+        let newDefinitions = this.returnStateVariableDefinitions({
+            attributeNames,
+            numerics,
+        });
 
         if (!newDefinitions) {
             throw Error(
@@ -1017,19 +1020,17 @@ export default class BaseComponent {
                         stateVariableDescriptions[varName] = {
                             createComponentOfType,
                             public: true,
-                            isArray: false,
                         };
                     } else {
-                        stateVariableDescriptions[varName] = {
-                            public: false,
-                            isArray: false,
-                        };
+                        stateVariableDescriptions[varName] = {};
                     }
                 }
             }
         }
 
-        let stateDef = this.returnNormalizedStateVariableDefinitions();
+        let stateDef = this.returnNormalizedStateVariableDefinitions({
+            attributeNames: Object.keys(stateVariableDescriptions),
+        });
 
         for (let varName in stateDef) {
             let theStateDef = stateDef[varName];
@@ -1047,13 +1048,9 @@ export default class BaseComponent {
                             theStateDef.shadowingInstructions
                                 .createComponentOfType,
                         public: true,
-                        isArray: Boolean(theStateDef.isArray),
                     };
                 } else {
-                    stateVariableDescriptions[varName] = {
-                        public: false,
-                        isArray: Boolean(theStateDef.isArray),
-                    };
+                    stateVariableDescriptions[varName] = {};
                 }
                 if (theStateDef.isArray) {
                     stateVariableDescriptions[varName].isArray = true;
@@ -1066,7 +1063,6 @@ export default class BaseComponent {
                             ?.returnWrappingComponents
                             ? theStateDef.shadowingInstructions.returnWrappingComponents()
                             : [];
-
                     let entryPrefixes;
                     if (theStateDef.entryPrefixes) {
                         entryPrefixes = theStateDef.entryPrefixes;
@@ -1078,7 +1074,7 @@ export default class BaseComponent {
                             arrayVariableName: varName,
                             numDimensions: theStateDef.returnEntryDimensions
                                 ? theStateDef.returnEntryDimensions(prefix)
-                                : 0,
+                                : 1,
                             wrappingComponents: theStateDef
                                 .shadowingInstructions?.returnWrappingComponents
                                 ? theStateDef.shadowingInstructions.returnWrappingComponents(
@@ -1099,21 +1095,6 @@ export default class BaseComponent {
                             returnDefaultGetArrayKeysFromVarName(
                                 stateVariableDescriptions[varName]
                                     .numDimensions,
-                            );
-                    }
-                    if (theStateDef.arrayVarNameFromPropIndex) {
-                        stateVariableDescriptions[
-                            varName
-                        ].arrayVarNameFromPropIndex =
-                            theStateDef.arrayVarNameFromPropIndex;
-                    } else {
-                        stateVariableDescriptions[
-                            varName
-                        ].arrayVarNameFromPropIndex =
-                            returnDefaultArrayVarNameFromPropIndex(
-                                stateVariableDescriptions[varName]
-                                    .numDimensions,
-                                entryPrefixes[0],
                             );
                     }
                 }
@@ -1192,12 +1173,11 @@ export default class BaseComponent {
 
         let parametersForChildren = { ...parameters };
 
-        let primitiveSourceAttributesToIgnore;
-        if (parameters.primitiveSourceAttributesToIgnore) {
-            primitiveSourceAttributesToIgnore =
-                parameters.primitiveSourceAttributesToIgnore;
+        let sourceAttributesToIgnore;
+        if (parameters.sourceAttributesToIgnore) {
+            sourceAttributesToIgnore = parameters.sourceAttributesToIgnore;
         } else {
-            primitiveSourceAttributesToIgnore = [];
+            sourceAttributesToIgnore = [];
         }
 
         if (includeDefiningChildren) {
@@ -1240,7 +1220,7 @@ export default class BaseComponent {
             } else {
                 // copy others if copy all or not set to be ignored
                 if (
-                    !primitiveSourceAttributesToIgnore.includes(attrName) ||
+                    !sourceAttributesToIgnore.includes(attrName) ||
                     parameters.copyAll
                 ) {
                     serializedComponent.attributes[attrName] = JSON.parse(
@@ -1320,8 +1300,6 @@ export default class BaseComponent {
 
         delete serializedComponent.doenetAttributes.prescribedName;
         delete serializedComponent.doenetAttributes.assignNames;
-        delete serializedComponent.doenetAttributes
-            .assignNamesForCompositeReplacement;
 
         return serializedComponent;
     }

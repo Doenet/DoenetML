@@ -11,10 +11,10 @@ import {
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
 import {
-    getLatexToMathConverter,
-    normalizeLatexString,
+    getFromLatex,
     roundForDisplay,
     stripLatex,
+    normalizeLatexString,
 } from "../utils/math";
 
 export default class MathInput extends Input {
@@ -46,7 +46,8 @@ export default class MathInput extends Input {
     }
     static componentType = "mathInput";
 
-    static variableForImplicitProp = "value";
+    static variableForPlainMacro = "value";
+    static variableForPlainCopy = "value";
 
     static processWhenJustUpdatedForNewComponent = true;
 
@@ -75,8 +76,6 @@ export default class MathInput extends Input {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
-            toLowerCase: true,
-            validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
             createComponentOfType: "textList",
@@ -961,7 +960,7 @@ function calculateMathExpressionFromLatex({
         unionFromU,
     });
 
-    let fromLatex = getLatexToMathConverter({
+    let fromLatex = getFromLatex({
         functionSymbols,
         splitSymbols,
         parseScientificNotation,

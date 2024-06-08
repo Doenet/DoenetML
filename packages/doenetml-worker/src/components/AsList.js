@@ -1,4 +1,3 @@
-import { textFromComponent } from "../utils/text";
 import InlineComponent from "./abstract/InlineComponent";
 
 export default class AsList extends InlineComponent {
@@ -36,9 +35,16 @@ export default class AsList extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let textpieces =
-                    dependencyValues.inlineChildren.map(textFromComponent);
-
+                let textpieces = [];
+                for (let child of dependencyValues.inlineChildren) {
+                    if (typeof child !== "object") {
+                        textpieces.push(child.toString());
+                    } else if (typeof child.stateValues.text === "string") {
+                        textpieces.push(child.stateValues.text);
+                    } else {
+                        textpieces.push("");
+                    }
+                }
                 let text = textpieces.join(", ");
 
                 return { setValue: { text } };
@@ -62,11 +68,11 @@ export default class AsList extends InlineComponent {
                 let latexpieces = [];
                 for (let child of dependencyValues.inlineChildren) {
                     if (typeof child !== "object") {
-                        latexpieces.push(child.toString().trim());
+                        latexpieces.push(child.toString());
                     } else if (typeof child.stateValues.latex === "string") {
-                        latexpieces.push(child.stateValues.latex.trim());
+                        latexpieces.push(child.stateValues.latex);
                     } else if (typeof child.stateValues.text === "string") {
-                        latexpieces.push(child.stateValues.text.trim());
+                        latexpieces.push(child.stateValues.text);
                     } else {
                         latexpieces.push("");
                     }

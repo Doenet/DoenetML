@@ -13,9 +13,9 @@ export default class Evaluate extends MathComponent {
     static componentType = "evaluate";
     static rendererType = "math";
 
-    // remove variableForImplicitProp so that an evaluate copied into a function
+    // remove variableForPlainMacro so that an evaluate copied into a function via a macro
     // behaves like an evaluate (not just the value property) and can be reevaluated
-    static variableForImplicitProp = undefined;
+    static variableForPlainMacro = undefined;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

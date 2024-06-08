@@ -5,9 +5,6 @@ export default class IntervalListComponent extends BaseComponent {
     static rendererType = "containerInline";
     static renderChildren = true;
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["math", "string"];
-
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 

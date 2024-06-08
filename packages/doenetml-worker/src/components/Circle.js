@@ -57,9 +57,9 @@ export default class Circle extends Curve {
         return GraphicalComponent.returnChildGroups();
     }
 
-    static returnStateVariableDefinitions(numerics) {
+    static returnStateVariableDefinitions(args) {
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(numerics);
+            GraphicalComponent.returnStateVariableDefinitions(args);
 
         Object.assign(
             stateVariableDefinitions,
@@ -436,7 +436,7 @@ export default class Circle extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -446,8 +446,6 @@ export default class Circle extends Curve {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["throughPointX", "throughPoint"],
-            returnEntryDimensions: (prefix) =>
-                prefix === "throughPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -2436,7 +2434,7 @@ export default class Circle extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -2881,43 +2879,6 @@ export default class Circle extends Curve {
                         },
                     },
                 };
-            },
-        };
-
-        stateVariableDefinitions.containsPoint = {
-            returnDependencies: () => ({
-                numericalRadius: {
-                    dependencyType: "stateVariable",
-                    variableName: "numericalRadius",
-                },
-                numericalCenter: {
-                    dependencyType: "stateVariable",
-                    variableName: "numericalCenter",
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (
-                    !(
-                        dependencyValues.numericalRadius >= 0 &&
-                        dependencyValues.numericalCenter.length == 2 &&
-                        dependencyValues.numericalCenter.every(Number.isFinite)
-                    )
-                ) {
-                    // if don't have a numerical circle in 2D, then don't calculate if contains point
-                    return { setValue: { containsPoint: () => false } };
-                }
-
-                const radius2 = dependencyValues.numericalRadius ** 2;
-                const center = dependencyValues.numericalCenter;
-
-                let containsPoint = function (P) {
-                    return (
-                        (P[0] - center[0]) ** 2 + (P[1] - center[1]) ** 2 <=
-                        radius2
-                    );
-                };
-
-                return { setValue: { containsPoint } };
             },
         };
 

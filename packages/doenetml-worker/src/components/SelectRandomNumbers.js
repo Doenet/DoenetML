@@ -1,7 +1,7 @@
 import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 
 export default class SelectRandomNumbers extends SampleRandomNumbers {
@@ -187,6 +187,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
+        flags,
     }) {
         let errors = [];
         let warnings = [];
@@ -211,6 +212,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     componentType: "number",
                     componentInfoObjects,
                     compositeCreatesNewNamespace: newNamespace,
+                    flags,
                 });
             }
 

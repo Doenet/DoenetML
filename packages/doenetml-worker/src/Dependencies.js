@@ -2565,9 +2565,9 @@ export class DependencyHandler {
                 relativeName = comp.doenetAttributes?.prescribedName;
             }
             uniqueComponentNames = [relativeName];
-            // TODO: which of these two options to use or do we need to test for both?
-            componentTypesForUniqueNames = [comp.componentType];
-            // componentTypesForUniqueNames = [this.components[name].componentType];
+            componentTypesForUniqueNames = [
+                this.components[name].componentType,
+            ];
         }
 
         let message = "";
@@ -3829,8 +3829,7 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
                             stateVarObj.componentType;
 
                         if (stateVarObj.isArray) {
-                            // If array, use componentType from wrapping components, if exist.
-                            // See description of returnWrappingComponents in Core.js.
+                            // if array, use componentType from wrapping components, if exist
                             if (stateVarObj.wrappingComponents?.length > 0) {
                                 let wrapCT =
                                     stateVarObj.wrappingComponents[
@@ -4528,7 +4527,7 @@ class AttributeComponentDependency extends Dependency {
         while (comp.shadows) {
             let shadows = comp.shadows;
             let propVariable = comp.shadows.propVariable;
-            let fromImplicitProp = comp.doenetAttributes.fromImplicitProp;
+            let fromPlainMacro = comp.doenetAttributes.fromPlainMacro;
 
             if (
                 this.dontRecurseToShadowsIfHaveAttribute &&
@@ -4542,15 +4541,12 @@ class AttributeComponentDependency extends Dependency {
                 break;
             }
 
-            // if a prop variable was created from a plain copy that is marked as returning the same type
+            // if a prop variable was created from a plain macro that is marked as returning the same type
             // then treat it like a regular copy (as if there was no prop variable)
             // and shadow all attributes
             if (
                 propVariable &&
-                !(
-                    fromImplicitProp &&
-                    comp.constructor.implicitPropReturnsSameType
-                )
+                !(fromPlainMacro && comp.constructor.plainMacroReturnsSameType)
             ) {
                 if (
                     !(
@@ -4968,56 +4964,53 @@ class ChildDependency extends Dependency {
         } else {
             // translate parent.compositeReplacementActiveRange
             // so that indices refer to index from activeChildrenMatched
+            // and that only first composite is included
 
             if (
                 parent.compositeReplacementActiveRange &&
                 activeChildrenMatched.length > 0
             ) {
-                for (let compositeInfo of parent.compositeReplacementActiveRange) {
-                    let translatedFirstInd, translatedLastInd;
+                let ind = 0;
+                while (ind < activeChildrenIndices.length) {
+                    let activeInd = activeChildrenIndices[ind];
+                    for (let compositeInfo of parent.compositeReplacementActiveRange) {
+                        if (
+                            compositeInfo.firstInd <= activeInd &&
+                            compositeInfo.lastInd >= activeInd
+                        ) {
+                            let firstInd = ind;
+                            let lastInd = ind;
+                            while (
+                                compositeInfo.lastInd > activeInd &&
+                                ind < activeChildrenIndices.length - 1
+                            ) {
+                                ind++;
+                                activeInd = activeChildrenIndices[ind];
+                                if (compositeInfo.lastInd >= activeInd) {
+                                    lastInd = ind;
+                                } else {
+                                    break;
+                                }
+                            }
 
-                    let translatedPotentialListComponents = [];
+                            this.compositeReplacementRange.push({
+                                compositeName: compositeInfo.compositeName,
+                                target: compositeInfo.target,
+                                firstInd,
+                                lastInd,
+                            });
 
-                    for (let [
-                        ind,
-                        activeInd,
-                    ] of activeChildrenIndices.entries()) {
-                        if (compositeInfo.firstInd > activeInd) {
-                            continue;
+                            ind++;
+
+                            if (ind === activeChildrenIndices.length) {
+                                break;
+                            }
+
+                            activeInd = activeChildrenIndices[ind];
                         }
-                        if (compositeInfo.lastInd < activeInd) {
-                            break;
-                        }
-
-                        // activeInd is matched by compositeInfo
-
-                        if (translatedFirstInd === undefined) {
-                            // this is the first activeInd to match, so translate first ind
-                            // to the index of activeInd
-                            translatedFirstInd = ind;
-                        }
-
-                        // last one to match will be picked
-                        translatedLastInd = ind;
-
-                        translatedPotentialListComponents.push(
-                            compositeInfo.potentialListComponents[
-                                activeInd - compositeInfo.firstInd
-                            ],
-                        );
                     }
 
-                    if (translatedLastInd !== undefined) {
-                        this.compositeReplacementRange.push({
-                            compositeName: compositeInfo.compositeName,
-                            target: compositeInfo.target,
-                            firstInd: translatedFirstInd,
-                            lastInd: translatedLastInd,
-                            asList: compositeInfo.asList,
-                            potentialListComponents:
-                                translatedPotentialListComponents,
-                        });
-                    }
+                    ind++;
                 }
             }
 
@@ -6296,7 +6289,6 @@ class ReplacementDependency extends Dependency {
             this.targetSubnames = this.definition.targetSubnames;
         }
 
-        // Note: it appears that targetSubnamesComponentIndex is not yet implemented
         if (this.definition.targetSubnamesComponentIndex) {
             if (
                 this.definition.targetSubnamesComponentIndex.every(
@@ -6503,17 +6495,11 @@ class ReplacementDependency extends Dependency {
         }
 
         if (this.componentIndex !== undefined) {
-            // Note: strings that are not blank do take up a slot for component index.
-            // However, this non-blank strings that do take up a slot
-            // will not be returned as a replacement (instead the replacement will be empty).
-            // Rationale: we do not have a mechanism for linking a string to its replacement source,
-            // so returning the string would it unlinked and inconsistent with other cases.
-            let nonBlankStringReplacements = replacements.filter(
-                (x) => typeof x !== "string" || x.trim() !== "",
+            let nonStringReplacements = replacements.filter(
+                (x) => typeof x !== "string",
             );
-            let theReplacement =
-                nonBlankStringReplacements[this.componentIndex - 1];
-            if (theReplacement && typeof theReplacement !== "string") {
+            let theReplacement = nonStringReplacements[this.componentIndex - 1];
+            if (theReplacement) {
                 replacements = [theReplacement];
             } else {
                 replacements = [];
@@ -6554,15 +6540,40 @@ class ReplacementDependency extends Dependency {
                             dependenciesMissingComponent.push(dep);
                         }
                     } else {
-                        // TODO: implement subNamesComponentIndex and additional subNames
-                        // (as well as allowing componentIndex/subNamesComponentIndex to be multi-dimensional).
-                        // These additional levels would involve recursing to the replacements
-                        // of additional composites.
-
-                        // For now, we return newComponet only if we don't have additional subNames
-                        // and we ignore subNamesComponentIndex
-                        if (remainingSubnames.length === 0) {
-                            newComponents.push(newComp);
+                        if (
+                            dep.dependencyHandler.componentInfoObjects.isInheritedComponentType(
+                                {
+                                    inheritedComponentType:
+                                        newComp.componentType,
+                                    baseComponentType: "_composite",
+                                },
+                            )
+                        ) {
+                            // TODO: recurse to more composites
+                            dep.dependencyHandler.core.errorWarnings.warnings.push(
+                                {
+                                    message:
+                                        "Have not yet implemented recursing subnames to multiple levels of composites",
+                                    doenetMLrange:
+                                        dep.dependencyHandler._components[
+                                            dep.upstreamComponentName
+                                        ].doenetMLrange,
+                                    level: 1,
+                                },
+                            );
+                        } else {
+                            // don't have a composite
+                            // so add only if there are no more subnames and either no more component indices
+                            // or just one index of 1 left
+                            if (
+                                remainingSubnames.length === 0 &&
+                                (subNamesComponentIndex?.length ||
+                                    0 === 0 ||
+                                    (subNamesComponentIndex.lenght === 1 &&
+                                        subNamesComponentIndex[0] === 1))
+                            ) {
+                                newComponents.push(newComp);
+                            }
                         }
                     }
                 }

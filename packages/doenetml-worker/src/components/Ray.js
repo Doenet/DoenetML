@@ -731,7 +731,7 @@ export default class Ray extends GraphicalComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -990,7 +990,7 @@ export default class Ray extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -1211,7 +1211,7 @@ export default class Ray extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];

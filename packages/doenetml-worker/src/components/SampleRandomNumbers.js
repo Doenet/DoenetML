@@ -1,7 +1,7 @@
 import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
@@ -106,12 +106,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createStateVariable: "variantDeterminesSeed",
             defaultValue: false,
             public: true,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
         };
 
         return attributes;
@@ -626,6 +620,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         startNum = 0,
+        flags,
     }) {
         let errors = [];
         let warnings = [];
@@ -652,6 +647,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     componentType: "number",
                     componentInfoObjects,
                     compositeCreatesNewNamespace: newNamespace,
+                    flags,
                 });
             }
 
@@ -683,6 +679,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static async calculateReplacementChanges({
         component,
         componentInfoObjects,
+        flags,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -719,6 +716,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     component,
                     componentInfoObjects,
                     startNum: component.replacements.length,
+                    flags,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);

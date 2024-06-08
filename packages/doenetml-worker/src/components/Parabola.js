@@ -33,9 +33,9 @@ export default class Parabola extends Curve {
         return GraphicalComponent.returnChildGroups();
     }
 
-    static returnStateVariableDefinitions(numerics) {
+    static returnStateVariableDefinitions(args) {
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(numerics);
+            GraphicalComponent.returnStateVariableDefinitions(args);
 
         Object.assign(
             stateVariableDefinitions,
@@ -43,7 +43,7 @@ export default class Parabola extends Curve {
         );
 
         let curveStateVariableDefinitions =
-            super.returnStateVariableDefinitions(numerics);
+            super.returnStateVariableDefinitions(args);
 
         // also defines graphXmax, graphYmin, and graphYmax
         stateVariableDefinitions.graphXmin =
@@ -172,7 +172,7 @@ export default class Parabola extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -182,8 +182,6 @@ export default class Parabola extends Curve {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["throughPointX", "throughPoint"],
-            returnEntryDimensions: (prefix) =>
-                prefix === "throughPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -1204,7 +1202,7 @@ export default class Parabola extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];

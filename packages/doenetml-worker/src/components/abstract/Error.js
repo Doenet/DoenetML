@@ -37,12 +37,6 @@ export default class ErrorComponent extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // error components can never be hidden
-        stateVariableDefinitions.hidden = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { hidden: false } }),
-        };
-
         stateVariableDefinitions.rangeMessage = {
             forRenderer: true,
             public: true,

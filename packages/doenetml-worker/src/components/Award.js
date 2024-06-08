@@ -1,7 +1,7 @@
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
 import { evaluateLogic } from "../utils/booleanLogic";
-import { getNamespaceFromName } from "@doenet/utils";
+import { getNamespaceFromName } from "../utils/naming";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -10,7 +10,8 @@ export default class Award extends BaseComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
-    static variableForImplicitProp = "awarded";
+    static variableForPlainMacro = "awarded";
+    static variableForPlainCopy = "awarded";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -202,9 +203,6 @@ export default class Award extends BaseComponent {
             }
         }
     }
-
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["string"];
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();

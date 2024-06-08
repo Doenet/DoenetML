@@ -1,5 +1,4 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -8,6 +7,7 @@ import {
 } from "../utils/excludeCombinations";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import CompositeComponent from "./abstract/CompositeComponent";
 
 export default class SelectPrimeNumbers extends CompositeComponent {
@@ -65,12 +65,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_listOfNumberLists",
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
         };
 
         return attributes;
@@ -165,14 +159,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             immutable: true,
             hasEssential: true,
             shadowVariable: true,
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "errorMessage",
-                    hasEssential: true,
-                    shadowVariable: true,
-                    immutable: true,
-                },
-            ],
             returnDependencies: ({ sharedParameters }) => ({
                 numToSelect: {
                     dependencyType: "stateVariable",
@@ -250,23 +236,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     }) {
         let errors = [];
         let warnings = [];
-
-        let errorMessage = await component.stateValues.errorMessage;
-        if (errorMessage) {
-            errors.push({
-                message: errorMessage,
-            });
-            return {
-                replacements: [
-                    {
-                        componentType: "_error",
-                        state: { message: errorMessage },
-                    },
-                ],
-                errors,
-                warnings,
-            };
-        }
 
         let newNamespace = component.attributes.newNamespace?.primitive;
 
@@ -565,12 +534,12 @@ function makeSelection({ dependencyValues }) {
     if (dependencyValues.numToSelect < 1) {
         return {
             setEssentialValue: {
-                errorMessage: "",
                 selectedValues: [],
+                selectedIndices: [],
             },
             setValue: {
-                errorMessage: "",
                 selectedValues: [],
+                selectedIndices: [],
             },
         };
     }
@@ -584,21 +553,12 @@ function makeSelection({ dependencyValues }) {
     let numValues = possibleValues.length;
 
     if (numUniqueRequired > numValues) {
-        let errorMessage =
+        throw Error(
             "Cannot select " +
-            numUniqueRequired +
-            " values from a list of primes of length " +
-            numValues;
-        return {
-            setEssentialValue: {
-                errorMessage,
-                selectedValues: null,
-            },
-            setValue: {
-                errorMessage,
-                selectedValues: null,
-            },
-        };
+                numUniqueRequired +
+                " values from a list of primes of length " +
+                numValues,
+        );
     }
 
     // if desiredIndices is specfied, use those
@@ -609,35 +569,17 @@ function makeSelection({ dependencyValues }) {
         let desiredValues = dependencyValues.variants.desiredVariant.values;
         if (desiredValues !== undefined) {
             if (desiredValues.length !== dependencyValues.numToSelect) {
-                let errorMessage =
-                    "Number of values specified for select must match number to select";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                };
+                throw Error(
+                    "Number of values specified for select must match number to select",
+                );
             }
 
             desiredValues = desiredValues.map(Number);
 
             if (!desiredValues.every((x) => possibleValues.includes(x))) {
-                let errorMessage =
-                    "All values specified for select prime number must be in the list of primes";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                };
+                throw Error(
+                    "All values specified for select prime number must be in the list of primes",
+                );
             }
 
             if (
@@ -647,26 +589,14 @@ function makeSelection({ dependencyValues }) {
                     values: desiredValues,
                 })
             ) {
-                let errorMessage =
-                    "Specified values of selectPrimeNumbers was an excluded combination";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                };
+                throw Error(
+                    "Specified values of selectPrimeNumbers was an excluded combination",
+                );
             }
 
             return {
-                setEssentialValue: {
-                    errorMessage: "",
-                    selectedValues: desiredValues,
-                },
-                setValue: { errorMessage: "", selectedValues: desiredValues },
+                setEssentialValue: { selectedValues: desiredValues },
+                setValue: { selectedValues: desiredValues },
             };
         }
     }
@@ -717,32 +647,14 @@ function makeSelection({ dependencyValues }) {
                 numCombinationsExcluded -= numberDuplicated;
 
                 if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                    let errorMessage =
-                        "Excluded over 70% of combinations in selectPrimeNumbers";
-                    return {
-                        setEssentialValue: {
-                            errorMessage,
-                            selectedValues: null,
-                        },
-                        setValue: {
-                            errorMessage,
-                            selectedValues: null,
-                        },
-                    };
+                    throw Error(
+                        "Excluded over 70% of combinations in selectPrimeNumbers",
+                    );
                 }
             } else {
-                let errorMessage =
-                    "Excluded over 70% of combinations in selectPrimeNumbers";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                    },
-                };
+                throw Error(
+                    "Excluded over 70% of combinations in selectPrimeNumbers",
+                );
             }
         }
 
@@ -774,18 +686,9 @@ function makeSelection({ dependencyValues }) {
 
         if (!foundValidCombination) {
             // this won't happen, as occurs with prob < 10^(-30)
-            let errorMessage =
-                "By extremely unlikely fluke, couldn't select combination of random values";
-            return {
-                setEssentialValue: {
-                    errorMessage,
-                    selectedValues: null,
-                },
-                setValue: {
-                    errorMessage,
-                    selectedValues: null,
-                },
-            };
+            throw Error(
+                "By extremely unlikely fluke, couldn't select combination of random values",
+            );
         }
     }
 
@@ -794,7 +697,7 @@ function makeSelection({ dependencyValues }) {
     }
 
     return {
-        setEssentialValue: { errorMessage: "", selectedValues },
-        setValue: { errorMessage: "", selectedValues },
+        setEssentialValue: { selectedValues },
+        setValue: { selectedValues },
     };
 }

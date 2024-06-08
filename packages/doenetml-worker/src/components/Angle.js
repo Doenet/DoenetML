@@ -11,11 +11,6 @@ import { returnWrapNonLabelsSugarFunction } from "../utils/label";
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
 
-    static canBeInList = true;
-
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["number", "math", "string"];
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.radius = {
@@ -132,7 +127,6 @@ export default class Angle extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["pointX", "point"],
-            returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
             stateVariablesDeterminingDependencies: ["betweenLinesName"],
             returnArraySizeDependencies: () => ({}),
             returnArraySize() {

@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "../utils/naming";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import { replacementFromProp } from "./Copy";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 
@@ -51,12 +51,6 @@ export default class Extract extends CompositeComponent {
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
         };
         return attributes;
     }
@@ -383,10 +377,8 @@ export default class Extract extends CompositeComponent {
 
         let newNamespace = component.attributes.newNamespace?.primitive;
 
-        let assignNames = component.doenetAttributes.assignNames;
-
         let processResult = processAssignNames({
-            assignNames,
+            assignNames: component.doenetAttributes.assignNames,
             serializedComponents: serializedReplacements,
             parentName: component.componentName,
             indOffset: numReplacementsSoFar,

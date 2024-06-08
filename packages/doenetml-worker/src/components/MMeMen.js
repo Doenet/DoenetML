@@ -24,6 +24,8 @@ export class M extends InlineComponent {
     static componentType = "m";
     static rendererType = "math";
 
+    static includeBlankStringChildren = true;
+
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "latex";
 
@@ -102,23 +104,15 @@ export class M extends InlineComponent {
                     };
                 }
 
-                let pieces = [];
+                let latex = "";
+
                 for (let child of dependencyValues.inlineChildren) {
                     if (typeof child !== "object") {
-                        let childtrim = String(child).trim();
-                        if (childtrim) {
-                            pieces.push(childtrim);
-                        }
+                        latex += child;
                     } else if (typeof child.stateValues.latex === "string") {
-                        let latex = child.stateValues.latex.trim();
-                        if (latex) {
-                            pieces.push(latex);
-                        }
+                        latex += child.stateValues.latex;
                     } else if (typeof child.stateValues.text === "string") {
-                        let text = child.stateValues.text.trim();
-                        if (text) {
-                            pieces.push(text);
-                        }
+                        latex += child.stateValues.text;
                     } else {
                         warnings.push({
                             message: `Child <${child.componentType}> of <${componentClass.componentType}> ignored as it does not have a string "text" or "latex" state variable.`,
@@ -126,7 +120,6 @@ export class M extends InlineComponent {
                         });
                     }
                 }
-                let latex = pieces.join(" ");
 
                 return { setValue: { latex }, sendWarnings: warnings };
             },
@@ -222,44 +215,33 @@ export class M extends InlineComponent {
                 }
 
                 let latexWithInputChildren = [];
-                let lastLatexPieces = [];
+                let lastLatex = "";
                 let inputInd = 0;
                 for (let child of dependencyValues.inlineChildren) {
                     if (typeof child !== "object") {
-                        let childtrim = String(child).trim();
-                        if (childtrim) {
-                            lastLatexPieces.push(childtrim);
-                        }
+                        lastLatex += child;
                     } else if (
                         componentInfoObjects.isInheritedComponentType({
                             inheritedComponentType: child.componentType,
                             baseComponentType: "input",
                         })
                     ) {
-                        if (lastLatexPieces.length > 0) {
-                            latexWithInputChildren.push(
-                                lastLatexPieces.join(" "),
-                            );
-                            lastLatexPieces = [];
+                        if (lastLatex.length > 0) {
+                            latexWithInputChildren.push(lastLatex);
+                            lastLatex = "";
                         }
                         latexWithInputChildren.push(inputInd);
                         inputInd++;
                     } else {
                         if (typeof child.stateValues.latex === "string") {
-                            let latex = child.stateValues.latex.trim();
-                            if (latex) {
-                                lastLatexPieces.push(latex);
-                            }
+                            lastLatex += child.stateValues.latex;
                         } else if (typeof child.stateValues.text === "string") {
-                            let text = child.stateValues.text.trim();
-                            if (text) {
-                                lastLatexPieces.push(text);
-                            }
+                            lastLatex += child.stateValues.text;
                         }
                     }
                 }
-                if (lastLatexPieces.length > 0) {
-                    latexWithInputChildren.push(lastLatexPieces.join(" "));
+                if (lastLatex.length > 0) {
+                    latexWithInputChildren.push(lastLatex);
                 }
 
                 return { setValue: { latexWithInputChildren } };

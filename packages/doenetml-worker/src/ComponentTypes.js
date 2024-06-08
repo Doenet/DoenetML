@@ -92,8 +92,6 @@ import ConstrainTo from "./components/ConstrainTo";
 import AttractTo from "./components/AttractTo";
 import ConstraintUnion from "./components/ConstraintUnion";
 import AttractToConstraint from "./components/AttractToConstraint";
-import ConstrainToInterior from "./components/ConstrainToInterior";
-// import AttractSegmentTo from "./components/AttractSegmentTo";
 import Intersection from "./components/Intersection";
 import Panel from "./components/Panel";
 import ConstrainToAngles from "./components/ConstrainToAngles";
@@ -154,7 +152,6 @@ import SubsetOfReals from "./components/SubsetOfReals";
 import Split from "./components/Split";
 import BestFitLine from "./components/BestFitLine";
 import RegionBetweenCurveXAxis from "./components/RegionBetweenCurveXAxis";
-import RegionBetweenCurves from "./components/RegionBetweenCurves";
 import RegionHalfPlane from "./components/RegionHalfPlane";
 import CodeEditor from "./components/CodeEditor";
 import CodeViewer from "./components/CodeViewer";
@@ -170,9 +167,6 @@ import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
 import ContentPicker from "./components/ContentPicker";
-// import VertexConstraints from "./components/VertexConstraints";
-// import EdgeConstraints from "./components/EdgeConstraints";
-import StickyGroup from "./components/StickyGroup";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -182,7 +176,6 @@ import InlineComponent from "./components/abstract/InlineComponent";
 import BlockComponent from "./components/abstract/BlockComponent";
 import GraphicalComponent from "./components/abstract/GraphicalComponent";
 import ConstraintComponent from "./components/abstract/ConstraintComponent";
-import SegmentConstraintComponent from "./components/abstract/SegmentConstraintComponent";
 import Input from "./components/abstract/Input";
 import CompositeComponent from "./components/abstract/CompositeComponent";
 import BooleanBaseOperator from "./components/abstract/BooleanBaseOperator";
@@ -300,8 +293,6 @@ const componentTypeArray = [
     AttractTo,
     ConstraintUnion,
     AttractToConstraint,
-    ConstrainToInterior,
-    // AttractSegmentTo,
     Intersection,
     ConstrainToAngles,
     AttractToAngles,
@@ -351,7 +342,6 @@ const componentTypeArray = [
     Split,
     BestFitLine,
     RegionBetweenCurveXAxis,
-    RegionBetweenCurves,
     RegionHalfPlane,
     CodeEditor,
     CodeViewer,
@@ -367,16 +357,12 @@ const componentTypeArray = [
     Latex,
     BlockQuote,
     ContentPicker,
-    // VertexConstraints,
-    // EdgeConstraints,
-    StickyGroup,
 
     BaseComponent,
     InlineComponent,
     BlockComponent,
     GraphicalComponent,
     ConstraintComponent,
-    SegmentConstraintComponent,
     Input,
     CompositeComponent,
     PointListComponent,

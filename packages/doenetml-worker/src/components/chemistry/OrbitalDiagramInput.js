@@ -21,7 +21,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
 
     static componentType = "orbitalDiagramInput";
 
-    static variableForImplicitProp = "value";
+    static variableForPlainMacro = "value";
+    static variableForPlainCopy = "value";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

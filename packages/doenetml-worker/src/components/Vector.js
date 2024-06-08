@@ -4,12 +4,12 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import { roundForDisplay } from "../utils/math";
 import {
     convertValueToMathExpression,
+    roundForDisplay,
     vectorOperators,
-    returnTextStyleDescriptionDefinitions,
-} from "@doenet/utils";
+} from "../utils/math";
+import { returnTextStyleDescriptionDefinitions } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -27,8 +27,6 @@ export default class Vector extends GraphicalComponent {
         });
     }
     static componentType = "vector";
-
-    static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
 
@@ -90,9 +88,6 @@ export default class Vector extends GraphicalComponent {
 
         return attributes;
     }
-
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["number", "math", "string"];
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
@@ -1123,7 +1118,7 @@ export default class Vector extends GraphicalComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -1571,7 +1566,7 @@ export default class Vector extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -1777,7 +1772,7 @@ export default class Vector extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];

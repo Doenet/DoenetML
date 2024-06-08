@@ -3,6 +3,7 @@ import ParameterStack from "./ParameterStack";
 import Numerics from "./Numerics";
 import { prng_alea } from "esm-seedrandom";
 import me from "math-expressions";
+import * as serializeFunctions from "./utils/serializedStateProcessing";
 import createStateProxyHandler from "./StateProxyHandler";
 import {
     serializedComponentsReplacer,
@@ -20,8 +21,6 @@ import {
     convertToErrorComponent,
 } from "@doenet/utils";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
-import { deprecatedPropertySubstitutions } from "./utils/expandDoenetML";
-import { createComponentNames, processAssignNames } from "./utils/naming";
 import {
     removeFunctionsMathExpressionClass,
     preprocessMathInverseDefinition,
@@ -32,10 +31,7 @@ import {
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
 import { DependencyHandler } from "./Dependencies";
-import {
-    returnDefaultArrayVarNameFromPropIndex,
-    returnDefaultGetArrayKeysFromVarName,
-} from "./utils/stateVariables";
+import { returnDefaultGetArrayKeysFromVarName } from "./utils/stateVariables";
 import { nanoid } from "nanoid";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
@@ -110,9 +106,14 @@ export default class Core {
         for (let cName in stateVariableChanges) {
             let componentSVChanges = stateVariableChanges[cName];
             for (let varName in componentSVChanges) {
-                if (varName in deprecatedPropertySubstitutions) {
+                if (
+                    varName in
+                    serializeFunctions.deprecatedPropertySubstitutions
+                ) {
                     componentSVChanges[
-                        deprecatedPropertySubstitutions[varName]
+                        serializeFunctions.deprecatedPropertySubstitutions[
+                            varName
+                        ]
                     ] = componentSVChanges[varName];
                     delete componentSVChanges[varName];
                 }
@@ -225,7 +226,7 @@ export default class Core {
 
         let serializedComponents = [deepClone(this.serializedDocument)];
 
-        let res = createComponentNames({
+        let res = serializeFunctions.createComponentNames({
             serializedComponents,
             componentInfoObjects: this.componentInfoObjects,
         });
@@ -241,9 +242,11 @@ export default class Core {
         numberAnswers(serializedComponents);
 
         this.componentIndexArray =
-            extractComponentNamesAndIndices(serializedComponents);
+            serializeFunctions.extractComponentNamesAndIndices(
+                serializedComponents,
+            );
 
-        let { rangePieces } = extractRangeIndexPieces({
+        let { rangePieces } = serializeFunctions.extractRangeIndexPieces({
             componentArray: this.componentIndexArray,
         });
 
@@ -1407,7 +1410,10 @@ export default class Core {
                     message,
                     doenetMLrange,
                 });
-                convertToErrorComponent(serializedComponent, message);
+                serializeFunctions.convertToErrorComponent(
+                    serializedComponent,
+                    message,
+                );
 
                 lastErrorMessage = message;
 
@@ -1531,7 +1537,10 @@ export default class Core {
                 }
 
                 let message = `Duplicate component name: ${originalName}.`;
-                convertToErrorComponent(serializedComponent, message);
+                serializeFunctions.convertToErrorComponent(
+                    serializedComponent,
+                    message,
+                );
                 componentClass =
                     this.componentInfoObjects.allComponentClasses[
                         serializedComponent.componentType
@@ -1705,41 +1714,26 @@ export default class Core {
                 let attribute = serializedComponent.attributes[attrName];
 
                 if (attribute.component) {
-                    try {
-                        let attrResult = await this.createIsolatedComponentsSub(
-                            {
-                                serializedComponents: [
-                                    serializedComponent.attributes[attrName]
-                                        .component,
-                                ],
-                                ancestors: ancestorsForChildren,
-                                shadow,
-                                namespaceForUnamed,
-                                componentsReplacementOf,
-                                createNameContext: `attribute|${attrName}`,
-                            },
-                        );
+                    let attrResult = await this.createIsolatedComponentsSub({
+                        serializedComponents: [
+                            serializedComponent.attributes[attrName].component,
+                        ],
+                        ancestors: ancestorsForChildren,
+                        shadow,
+                        namespaceForUnamed,
+                        componentsReplacementOf,
+                        createNameContext: `attribute|${attrName}`,
+                    });
 
-                        if (attrResult.lastErrorMessage) {
-                            lastErrorMessage = attrResult.lastErrorMessage;
-                            lastErrorMessageFromAttribute =
-                                attrResult.lastErrorMessage;
-                        }
-
-                        attributes[attrName] = {
-                            component: attrResult.components[0],
-                        };
-                    } catch (e) {
-                        if (e.message.includes("Circular dependency")) {
-                            throw Error(
-                                this.dependencies.getCircularDependencyMessage([
-                                    serializedComponent,
-                                ]),
-                            );
-                        } else {
-                            throw e;
-                        }
+                    if (attrResult.lastErrorMessage) {
+                        lastErrorMessage = attrResult.lastErrorMessage;
+                        lastErrorMessageFromAttribute =
+                            attrResult.lastErrorMessage;
                     }
+
+                    attributes[attrName] = {
+                        component: attrResult.components[0],
+                    };
                 } else {
                     attributes[attrName] =
                         serializedComponent.attributes[attrName];
@@ -1758,7 +1752,10 @@ export default class Core {
             // 2. this component cannot display errors from children
             // In these cases, we turn this component into an error component
             // to ensure the error message is displayed.
-            convertToErrorComponent(serializedComponent, lastErrorMessage);
+            serializeFunctions.convertToErrorComponent(
+                serializedComponent,
+                lastErrorMessage,
+            );
             attributes = {};
             componentClass =
                 this.componentInfoObjects.allComponentClasses[
@@ -1781,11 +1778,13 @@ export default class Core {
                     prescribedDependencies[name] =
                         serializedComponent.downstreamDependencies[name];
                 } else {
-                    throw Error(
+                    let message =
                         this.dependencies.getCircularDependencyMessage([
                             serializedComponent,
-                        ]),
-                    );
+                        ]);
+
+                    message = "Possible c" + message.substring(1);
+                    throw Error(message);
                 }
             }
         }
@@ -1843,10 +1842,6 @@ export default class Core {
                     delete shadowInfo.dependencyType;
                     // newComponent.shadows = new Proxy(shadowInfo, readOnlyProxyHandler);
                     newComponent.shadows = shadowInfo;
-
-                    if (dep.firstLevelReplacement) {
-                        newComponent.firstLevelReplacement = true;
-                    }
 
                     let shadowedComponent = this._components[name];
                     if (!shadowedComponent.shadowedBy) {
@@ -2573,14 +2568,7 @@ export default class Core {
             }
         }
 
-        if (
-            component.shadows
-            //&&
-            // this.componentInfoObjects.isCompositeComponent({
-            //   componentType: component.componentType,
-            //   includeNonStandard: false,
-            // })
-        ) {
+        if (component.shadows) {
             return await this.expandShadowingComposite(component);
         }
 
@@ -2690,7 +2678,7 @@ export default class Core {
     }
 
     async expandShadowingComposite(component) {
-        // console.log(`expand shadowing composite, ${component.componentName}`);
+        // console.log(`expand shadowing composite, ${component.componentName}`)
 
         if (
             this.updateInfo.compositesBeingExpanded.includes(
@@ -2739,8 +2727,7 @@ export default class Core {
             if (typeof repl === "object") {
                 serializedReplacements.push(
                     await repl.serialize({
-                        primitiveSourceAttributesToIgnore:
-                            sourceAttributesToIgnore,
+                        sourceAttributesToIgnore,
                     }),
                 );
             } else {
@@ -2760,8 +2747,6 @@ export default class Core {
             (component.replacementsWorkspace.uniqueIdentifiersUsed = []);
 
         let nameOfCompositeMediatingTheShadow = component.shadows.compositeName;
-        let compositeMediatingTheShadow =
-            this.components[nameOfCompositeMediatingTheShadow];
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentName: nameOfCompositeMediatingTheShadow,
@@ -2770,71 +2755,42 @@ export default class Core {
 
         let newNamespace = component.attributes.newNamespace?.primitive;
 
-        let compositeAttributesObj =
-            compositeMediatingTheShadow.constructor.createAttributesObject();
-
-        let attributesToConvert = {};
+        // TODO: is isResponse the only attribute to convert?
         if (component.attributes.isResponse) {
-            // We include a special case of copying isResponse from
-            // the shadowing composite.
-            // Rationale: when we serialize a component to copy it,
-            // we set primitiveSourceAttributesToIgnore=sourceAttributesToIgnore, above,
-            // which by default is ["isResponse"]
-            // so that isResponse, is not, in general copied.
-            // (We don't want copies of responses to be responses.)
-            // However, if an award has sourcesAreResponses set, then we want
-            // copies of the award to also set those sources to be responses.
-            // The award accomplishes this through preprocessSerializedChildren,
-            // which adds isResponse to copies of those targets.
-            // Those copies are the shadowing composites, and we want those
-            // isResponse attributes to be added to their replacements.
-            // TODO: Is this too confusing?
-            // Can/should we give up this functionality for the sake of simplicity?
-            // A test that fails without this intervention is
-            // "full answer tag, copied in awards, shorter form" from answer.cy.js
-            attributesToConvert.isResponse = component.attributes.isResponse;
+            let compositeAttributesObj =
+                component.constructor.createAttributesObject();
+
+            for (let repl of serializedReplacements) {
+                if (typeof repl !== "object") {
+                    continue;
+                }
+
+                // add attributes
+                if (!repl.attributes) {
+                    repl.attributes = {};
+                }
+                let attributesFromComposite = convertAttributesForComponentType(
+                    {
+                        attributes: {
+                            isResponse: component.attributes.isResponse,
+                        },
+                        componentType: repl.componentType,
+                        componentInfoObjects: this.componentInfoObjects,
+                        compositeAttributesObj,
+                        compositeCreatesNewNamespace: newNamespace,
+                    },
+                );
+                Object.assign(repl.attributes, attributesFromComposite);
+            }
         }
 
-        // // if the shadowing component is a first level replacement of compositeMediatingTheShadow,
-        // // then the attributes of compositeMediatingTheShadow should be passed on
-        // if (component.firstLevelReplacement) {
-        //   Object.assign(
-        //     attributesToConvert,
-        //     compositeMediatingTheShadow.attributes,
-        //   );
-        // }
+        // console.log('--------------')
+        // console.log(`name of composite mediating shadow: ${nameOfCompositeMediatingTheShadow}`)
+        // console.log(`name of composite shadowing: ${component.componentName}`)
+        // console.log(`name of shadowed composite: ${shadowedComposite.componentName}`)
 
-        // console.log(component.attributes);
-        // console.log(compositeMediatingTheShadow.attributes);
-        // console.log("attributesToConvert:", Object.keys(attributesToConvert));
-
-        for (let repl of serializedReplacements) {
-            if (typeof repl !== "object") {
-                continue;
-            }
-
-            // add attributes
-            if (!repl.attributes) {
-                repl.attributes = {};
-            }
-            let attributesFromComposite = convertAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: repl.componentType,
-                componentInfoObjects: this.componentInfoObjects,
-                compositeAttributesObj,
-                compositeCreatesNewNamespace: newNamespace,
-            });
-            Object.assign(repl.attributes, attributesFromComposite);
-        }
-
-        // console.log("--------------");
-        // console.log(
-        //   `name of composite mediating shadow: ${nameOfCompositeMediatingTheShadow}`,
-        // );
-        // console.log(`name of composite shadowing: ${component.componentName}`);
-        // console.log(
-        //   `name of shadowed composite: ${shadowedComposite.componentName}`,
-        // );
+        let compositeMediatingTheShadow =
+            this.components[nameOfCompositeMediatingTheShadow];
 
         // If shadowed composite mediates the shadow of compositeMediatingTheShadow,
         // then we have a circular reference.
@@ -2891,16 +2847,59 @@ export default class Core {
         }
 
         if (component.constructor.assignNamesToReplacements) {
-            let originalNamesAreConsistent =
-                this.determineOriginalNamesConsistentForShadowingComposite(
-                    component,
-                );
-
+            let mediatingNewNamespace =
+                compositeMediatingTheShadow.attributes.newNamespace?.primitive;
+            let mediatingAssignNames =
+                compositeMediatingTheShadow.doenetAttributes.assignNames;
+            let mediatingSubAssignNames = mediatingAssignNames?.some(
+                Array.isArray,
+            );
+            let assignNewNamespaces =
+                compositeMediatingTheShadow.attributes.assignNewNamespaces
+                    ?.primitive;
             let target =
                 this._components[
                     compositeMediatingTheShadow.doenetAttributes
                         .targetComponentName
                 ];
+            let nonCompositeTargetWithNewNamespace;
+            if (target) {
+                nonCompositeTargetWithNewNamespace =
+                    !this.componentInfoObjects.isCompositeComponent({
+                        componentType: target.componentType,
+                        includeNonStandard: false,
+                    }) && target.attributes.newNamespace?.primitive;
+            }
+
+            // Note: originalNamesAreConsistent means that processAssignNames should leave
+            // the original names in the serializedComponents as is
+            // (unless their names are assigned or have been marked to create unique)
+            // If originalNamesAreConsistent is false, then all components
+            // that don't have names assigned will be renamed to random names
+
+            // We set originalNamesAreConsistent to true if we can be sure
+            // that we won't create any duplicate names.
+            // If the component shadowing (or the original non-composite target) has a newNamespace,
+            // or the composite mediating the shadow is assigning new namespaces,
+            // or we get a new namespace from the composite mediating the shadow,
+            // that will, in most cases, be enough to prevent name collisions.
+
+            // One edge case is when the composite mediating the shadow also assigns names,
+            // in which case the assigned names could collide with the original names
+            // even if it makes a new namespace,
+            // so we can't keep the original names.
+
+            // Another edge case is when the composite mediating the shadow
+            // assign names to sub-replacements.
+            // In that case, all bets are off and we cannot determine if those names
+            // could collide with existing names, so we can't keep the original names.
+
+            let originalNamesAreConsistent =
+                !mediatingSubAssignNames &&
+                (newNamespace ||
+                    nonCompositeTargetWithNewNamespace ||
+                    (mediatingNewNamespace && !mediatingAssignNames) ||
+                    assignNewNamespaces);
 
             let assignNames = component.doenetAttributes.assignNames;
             if (
@@ -2910,41 +2909,14 @@ export default class Core {
                 assignNames = assignNames.map((x) => [x]);
             }
 
-            let parentName = component.componentName;
-            let parentCreatesNewNamespace = newNamespace;
-            if (component.doenetAttributes.parentNameForAssignNames) {
-                parentName =
-                    component.doenetAttributes.parentNameForAssignNames;
-                parentCreatesNewNamespace =
-                    this._components[parentName].attributes.newNamespace
-                        ?.primitive;
-            }
-
-            // If we added a level to assignNames, that means that this composite won't be assigning names
-            // but that we are delegating that to the next composite.
-            // But, we want to use the current parent name for assigning name
-            // (which is particularly relevant when parentCreatesNewNamespace, as parent name becomes the new namespace).
-            // We set compositesParentNameForAssignNames to the current parent name.
-            // Since we've added a level to assignNames, each name will be an array
-            // and processAssignNames will set parentNameForAssignNames to be compositesParentNameForAssignNames
-            let compositesParentNameForAssignNames;
-            if (await component.stateValues.addLevelToAssignNames) {
-                compositesParentNameForAssignNames = parentName;
-            }
-
-            let processResult = processAssignNames({
+            let processResult = serializeFunctions.processAssignNames({
                 assignNames,
-                assignNamesForCompositeReplacement:
-                    component.doenetAttributes
-                        .assignNamesForCompositeReplacement,
                 serializedComponents: serializedReplacements,
-                parentName,
-                parentNameForUniqueNames: component.componentName,
-                parentCreatesNewNamespace,
+                parentName: component.componentName,
+                parentCreatesNewNamespace: newNamespace,
                 componentInfoObjects: this.componentInfoObjects,
                 originalNamesAreConsistent,
                 shadowingComposite: true,
-                compositesParentNameForAssignNames,
             });
 
             let doenetMLrange = compositeMediatingTheShadow.doenetMLrange;
@@ -2975,18 +2947,16 @@ export default class Core {
                     );
                 }
 
-                let processResult = processAssignNames({
+                let processResult = serializeFunctions.processAssignNames({
                     assignNames,
                     serializedComponents: newReplacements,
-                    parentName,
-                    parentNameForUniqueNames: component.componentName,
+                    parentName: component.componentName,
                     parentCreatesNewNamespace:
                         compositeMediatingTheShadow.attributes
                             .assignNewNamespaces?.primitive,
                     indOffset: serializedReplacements.length,
                     componentInfoObjects: this.componentInfoObjects,
                     originalNamesAreConsistent: true,
-                    compositesParentNameForAssignNames,
                 });
 
                 let doenetMLrange = compositeMediatingTheShadow.doenetMLrange;
@@ -3006,7 +2976,7 @@ export default class Core {
             // we can use them only if we created a new namespace
             let originalNamesAreConsistent = newNamespace;
 
-            let processResult = processAssignNames({
+            let processResult = serializeFunctions.processAssignNames({
                 // assignNames: component.doenetAttributes.assignNames,
                 serializedComponents: serializedReplacements,
                 parentName: component.componentName,
@@ -3036,6 +3006,7 @@ export default class Core {
                     componentInfoObjects: this.componentInfoObjects,
                     compositeAttributesObj:
                         component.constructor.createAttributesObject(),
+                    flags: this.flags,
                     components: this._components,
                     publicCaseInsensitiveAliasSubstitutions:
                         this.publicCaseInsensitiveAliasSubstitutions.bind(this),
@@ -3056,9 +3027,7 @@ export default class Core {
             serializedReplacements = verificationResult.replacements;
         }
 
-        // console.log(
-        //   `serialized replacements for ${component.componentName} who is shadowing ${shadowedComposite.componentName}`,
-        // );
+        // console.log(`serialized replacements for ${component.componentName} who is shadowing ${shadowedComposite.componentName}`);
         // console.log(deepClone(serializedReplacements));
 
         await this.createAndSetReplacements({
@@ -3085,89 +3054,6 @@ export default class Core {
         compositesExpanded.push(component.componentName);
 
         return { success: true, compositesExpanded };
-    }
-
-    determineOriginalNamesConsistentForShadowingComposite(shadowingComposite) {
-        // originalNamesAreConsistent means that processAssignNames should leave
-        // the original names in the serializedComponents as is
-        // (unless their names are assigned or have been marked to create unique)
-        // If originalNamesAreConsistent is false, then all components
-        // that don't have names assigned will be renamed to random names
-
-        // We set originalNamesAreConsistent to true if we can be sure (with an exception, see below)
-        // that we won't create any duplicate names.
-        // If the component shadowing has a newNamespace,
-        // or the composite mediating the shadow has a new namespace or assigns a new namespaces,
-        // or the namespace of the composite shadowing was due to the composite mediating the shadow
-        // that will, in most cases, be enough to prevent name collisions.
-
-        // If the composite mediating the shadow also assign names (or subnames)
-        // it is possible that those names will collide with the original names
-        // but we don't protect against that.
-
-        let compositeMediatingTheShadow =
-            this.components[shadowingComposite.shadows.compositeName];
-
-        let newNamespace =
-            shadowingComposite.attributes.newNamespace?.primitive;
-        let mediatingNewNamespace =
-            compositeMediatingTheShadow.attributes.newNamespace?.primitive;
-        let assignNewNamespaces =
-            compositeMediatingTheShadow.attributes.assignNewNamespaces
-                ?.primitive;
-
-        // check if the component that created the namespace for the shadowing composite
-        // is a replacement of the composite mediating the shadow
-        let lastSlash = shadowingComposite.componentName.lastIndexOf("/");
-        let nameForNamespaceOfShadowing =
-            shadowingComposite.componentName.slice(0, lastSlash);
-        let componentCreatingNamespace =
-            this._components[nameForNamespaceOfShadowing];
-
-        let checkIfReplacementOfMediating = (comp) => {
-            if (!comp) {
-                return false;
-            }
-            let replacementOf = comp.replacementOf;
-            if (replacementOf) {
-                if (
-                    replacementOf.componentName ===
-                    compositeMediatingTheShadow.componentName
-                ) {
-                    return true;
-                }
-                if (checkIfReplacementOfMediating(replacementOf)) {
-                    return true;
-                }
-            }
-            if (
-                checkIfReplacementOfMediating(this._components[comp.parentName])
-            ) {
-                return true;
-            }
-
-            return false;
-        };
-
-        let namespaceFromReplacementOfMediating = checkIfReplacementOfMediating(
-            componentCreatingNamespace,
-        );
-
-        let originalNamesAreConsistent =
-            newNamespace ||
-            namespaceFromReplacementOfMediating ||
-            mediatingNewNamespace ||
-            assignNewNamespaces;
-
-        // console.log(`for shadowing composite: ${shadowingComposite.componentName}`);
-        // console.log({
-        //   newNamespace,
-        //   namespaceFromReplacementOfMediating,
-        //   mediatingNewNamespace,
-        //   assignNewNamespaces,
-        //   originalNamesAreConsistent,
-        // });
-        return originalNamesAreConsistent;
     }
 
     async createAndSetReplacements({ component, serializedReplacements }) {
@@ -3325,30 +3211,9 @@ export default class Core {
                     parent.compositeReplacementActiveRange = [];
                 }
 
-                // Record whether or not each component can be considered an element of a list.
-                // If this composite or a containing composite has asList set,
-                // then it may be turned into a list if all the components can be list elements.
-
-                // All inline components and any components with canBeInList set
-                // are considered potential components for a list.
-                let replacementsCanBeInList = replacements.map(
-                    (repl) =>
-                        typeof repl !== "object" ||
-                        this.componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: repl.componentType,
-                            baseComponentType: "_inline",
-                        }) ||
-                        repl.constructor.canBeInList,
-                );
-
                 for (let otherCompositeObject of parent.compositeReplacementActiveRange) {
                     if (otherCompositeObject.lastInd >= childInd) {
                         otherCompositeObject.lastInd += replacements.length - 1;
-                        otherCompositeObject.potentialListComponents.splice(
-                            childInd,
-                            1,
-                            ...replacementsCanBeInList,
-                        );
                     }
                 }
 
@@ -3376,17 +3241,11 @@ export default class Core {
                     undisplayableErrorChildren.push(...errorReplacements);
                 }
 
-                // compositeReplacementActiveRange will be used
-                // - in renderers to determined if they should add commas
-                // - in child dependencies, where they will be translated for matched children
-                //   and used in some components to determine if thsoe children can be formed into a list
                 parent.compositeReplacementActiveRange.push({
                     compositeName: child.componentName,
                     target: await child.stateValues.target,
                     firstInd: childInd,
                     lastInd: childInd + replacements.length - 1,
-                    asList: await child.stateValues.asList,
-                    potentialListComponents: replacementsCanBeInList,
                 });
 
                 parent.activeChildren.splice(childInd, 1, ...replacements);
@@ -3616,7 +3475,7 @@ export default class Core {
                             targetName: name,
                             compositeName: dep.compositeName,
                             propVariable: dep.propVariable,
-                            fromImplicitProp: dep.fromImplicitProp,
+                            fromPlainMacro: dep.fromPlainMacro,
                             arrayStateVariable: dep.arrayStateVariable,
                             arrayKey: dep.arrayKey,
                             ignorePrimaryStateVariable:
@@ -3652,9 +3511,10 @@ export default class Core {
 
         //  add state variable definitions from component class
         let newDefinitions =
-            componentClass.returnNormalizedStateVariableDefinitions(
-                this.numerics,
-            );
+            componentClass.returnNormalizedStateVariableDefinitions({
+                attributeNames: Object.keys(stateVariableDefinitions),
+                numerics: this.numerics,
+            });
 
         Object.assign(stateVariableDefinitions, newDefinitions);
 
@@ -3692,7 +3552,7 @@ export default class Core {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true, // Note: isAttribute is not accessed anywhere
+                isAttribute: true,
                 hasEssential: true,
             });
 
@@ -3961,7 +3821,7 @@ export default class Core {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true, // Note: isAttribute is not accessed anywhere
+                isAttribute: true,
                 hasEssential: true,
             });
 
@@ -4189,7 +4049,7 @@ export default class Core {
             }
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true, // Note: isAttribute is not accessed anywhere
+                isAttribute: true,
                 hasEssential: true,
             });
 
@@ -4586,8 +4446,8 @@ export default class Core {
 
             let shadowStandardVariables = false;
             let stateVariablesToShadow = [];
-            if (targetComponent.constructor.implicitPropReturnsSameType) {
-                if (redefineDependencies.fromImplicitProp) {
+            if (targetComponent.constructor.plainMacroReturnsSameType) {
+                if (redefineDependencies.fromPlainMacro) {
                     shadowStandardVariables = true;
                 }
 
@@ -4601,19 +4461,14 @@ export default class Core {
             }
 
             if (redefineDependencies.additionalStateVariableShadowing) {
-                // since using parallel arrays, start with empty array to match next indices
-                let differentStateVariablesInTarget = Array(
-                    stateVariablesToShadow.length,
-                );
+                let differentStateVariablesInTarget = [];
                 for (let varName in redefineDependencies.additionalStateVariableShadowing) {
-                    if (!stateVariablesToShadow.includes(varName)) {
-                        stateVariablesToShadow.push(varName);
-                        differentStateVariablesInTarget.push(
-                            redefineDependencies
-                                .additionalStateVariableShadowing[varName]
-                                .stateVariableToShadow,
-                        );
-                    }
+                    stateVariablesToShadow.push(varName);
+                    differentStateVariablesInTarget.push(
+                        redefineDependencies.additionalStateVariableShadowing[
+                            varName
+                        ].stateVariableToShadow,
+                    );
                 }
 
                 this.modifyStateDefsToBeShadows({
@@ -5265,7 +5120,6 @@ export default class Core {
         if (arrayStateVarObj.shadowingInstructions) {
             stateVarObj.shadowingInstructions = {};
 
-            // See description of returnWrappingComponents in initializeArrayStateVariable, below.
             stateVarObj.wrappingComponents =
                 arrayStateVarObj.shadowingInstructions.returnWrappingComponents(
                     arrayEntryPrefix,
@@ -5505,19 +5359,6 @@ export default class Core {
             stateVarObj.numDimensions = 1;
         }
 
-        let entryPrefixes = stateVarObj.entryPrefixes;
-
-        if (!entryPrefixes) {
-            entryPrefixes = stateVarObj.entryPrefixes = [stateVariable];
-        }
-
-        if (!component.arrayEntryPrefixes) {
-            component.arrayEntryPrefixes = {};
-        }
-        for (let prefix of entryPrefixes) {
-            component.arrayEntryPrefixes[prefix] = stateVariable;
-        }
-
         if (stateVarObj.numDimensions > 1) {
             // for multiple dimensions, have to convert from arrayKey
             // to multi-index when getting or setting
@@ -5729,23 +5570,21 @@ export default class Core {
                 };
             }
 
-            // arrayVarNameFromPropIndex is a function that calculates the name
-            // an array entry state variable that corresponds to the specified propIndex.
-            // It is a consequence of retrofitting the ability to index an array (e.g., $a.b[1])
-            // onto a system that was designed with just array entry variables (e..g, $a.b1).
-            // arrayVarNameFromPropIndex can be specified in the definition of the array state variable.
-            // Since numDimensions > 1 here, the default arrayVarNameFromPropIndex
-            // is to turn $a.b[1][2][3] to $a.p1_2_3,
-            // where "p" is the first entry prefix of the array "b".
-
-            // TODO: if we redesign arrays to be based on indices (or even slices),
-            // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
-                stateVarObj.arrayVarNameFromPropIndex =
-                    returnDefaultArrayVarNameFromPropIndex(
-                        stateVarObj.numDimensions,
-                        entryPrefixes[0],
+                stateVarObj.arrayVarNameFromPropIndex = function (
+                    propIndex,
+                    varName,
+                ) {
+                    return (
+                        entryPrefixes[0] +
+                        [
+                            ...propIndex.map((x) => Math.round(Number(x))),
+                            ...Array(
+                                stateVarObj.numDimensions - propIndex.length,
+                            ).fill(1),
+                        ].join("_")
                     );
+                };
             }
 
             stateVarObj.adjustArrayToNewArraySize = async function () {
@@ -5829,20 +5668,13 @@ export default class Core {
                 };
             }
 
-            // arrayVarNameFromPropIndex is a function that calculates the name
-            // an array entry state variable that corresponds to the specified propIndex.
-            // It is a consequence of retrofitting the ability to index an array (e.g., $a.b[1])
-            // onto a system that was designed with just array entry variables (e..g, $a.b1).
-            // arrayVarNameFromPropIndex can be specified in the definition of the array state variable.
-            // Since numDimensions = 1 here, the default arrayVarNameFromPropIndex
-            // is to turn $a.b[1] to $a.p1,
-            // where "p" is the first entry prefix of the array "b".
-
-            // TODO: if we redesign arrays to be based on indices (or even slices),
-            // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
-                stateVarObj.arrayVarNameFromPropIndex =
-                    returnDefaultArrayVarNameFromPropIndex(1, entryPrefixes[0]);
+                stateVarObj.arrayVarNameFromPropIndex = function (
+                    propIndex,
+                    varName,
+                ) {
+                    return entryPrefixes[0] + propIndex[0];
+                };
             }
 
             stateVarObj.adjustArrayToNewArraySize = async function () {
@@ -5861,42 +5693,25 @@ export default class Core {
         // dimensions, as we just want the string representation
         stateVarObj.indexToKey = (index) => String(index);
 
+        let entryPrefixes = stateVarObj.entryPrefixes;
+
+        if (!entryPrefixes) {
+            entryPrefixes = stateVarObj.entryPrefixes = [stateVariable];
+        }
+
+        if (!component.arrayEntryPrefixes) {
+            component.arrayEntryPrefixes = {};
+        }
+        for (let prefix of entryPrefixes) {
+            component.arrayEntryPrefixes[prefix] = stateVariable;
+        }
+
         if (!stateVarObj.returnEntryDimensions) {
-            stateVarObj.returnEntryDimensions = () => 0;
+            stateVarObj.returnEntryDimensions = () => 1;
         }
 
         if (stateVarObj.shadowingInstructions) {
-            // returnWrappingComponents is a function that returns the wrapping components for
-            // - the whole array (if called with no arguments), or
-            // - an array entry (if called with an array entry prefix as the argument)
-            // It returns wrappingComponents, which is an array of arrays.
-            // Each inner array corresponds to a dimension of the array,
-            // starting with the inner dimension,
-            // so that wrappingComponents[numDimensions-1], if it exists,
-            // corresponds to the wrapping of the entire array (or array entry),
-            // leading to the return of a single component.
-            // Each element of the inner array indicates a wrapping of the corresponding dimension,
-            // and they are applied in reverse order.
-            // Each element can be either:
-            // - a string corresponding to the component type used to wrap
-            // - an object with fields:
-            //   - componentType: a string corresponding to the component type used to wrap
-            //   - isAttributeNamed: a string giving the name of the attribute that this
-            //     wrapping component should be for the wrapping component immediately preceding
-            //     (no effect if isAttributeNamed appears in the first wrapping component)
-            // Unless the subsequent wrapping component has been designated isAttributeNamed,
-            // each wrapping component takes as children either
-            // - the subsequent wrapping component if it exists,
-            // - else the original array components.
-            //
-            // TODO: wrapping components (like most array features) was designed before
-            // we had array indexing such as $a.b[1].
-            // Hence it is based on array entries such as $a.b1, where b is the "prefix".
-            // $a.b[1] has to be converted to something like $a.b1
-            // before calculating wrapping components.
-            // We should rework wrapping components (and other array features)
-            // to make array indexing (maybe even including slices) be the basis.
-
+            // function that returns wrapping components for whole array or entries (if given prefix)
             if (!stateVarObj.shadowingInstructions.returnWrappingComponents) {
                 stateVarObj.shadowingInstructions.returnWrappingComponents = (
                     prefix,
@@ -5927,7 +5742,7 @@ export default class Core {
 
             args.arraySize = await stateVarObj.arraySize;
 
-            // delete the internally added dependencies from args.stateValues
+            // delete the interally added dependencies from args.stateValues
             for (let key in args.stateValues) {
                 if (key.slice(0, 8) === "__array_") {
                     delete args.stateValues[key];
@@ -6622,13 +6437,6 @@ export default class Core {
         });
     }
 
-    // arrayEntryNamesFromPropIndex is essentially a wrapper around
-    // stateVarObj.arrayVarNameFromPropIndex.
-    // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
-    // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
-    // first creating any missing array entry state variables,
-    // logs warnings,
-    // and returns an array of the resulting state variables.
     async arrayEntryNamesFromPropIndex({
         stateVariables,
         component,
@@ -8921,19 +8729,7 @@ export default class Core {
 
         for (let childName in component.allChildren) {
             let unproxiedChild = this._components[childName];
-            // Note: when add and deleting replacements of shadowed composites,
-            // it is possible that we end up processing the defining children of ancestors of the composite
-            // while we were delaying processing the defining children of the composite's parent,
-            // which could lead to an attempt to set the ancestors of that composite's parent's children
-            // while the booking variable allChildren is in an inconsistent state.
-            // To avoid an error, we don't set ancestors in the case
-            // (See test "references to internal and external components, inconsistent new namespaces"
-            // from conditionalcontent.cy.js for an example that triggered the need for this check.)
-            // TODO: can we avoid the need for this check by preventing the algorithm from
-            // attempting to set ancestors in this case?
-            if (unproxiedChild) {
-                this.setAncestors(unproxiedChild, ancestorsForChildren);
-            }
+            this.setAncestors(unproxiedChild, ancestorsForChildren);
         }
 
         for (let attrName in component.attributes) {
@@ -8985,8 +8781,7 @@ export default class Core {
                     if (typeof child === "object") {
                         shadowingSerializeChildren.push(
                             await child.serialize({
-                                primitiveSourceAttributesToIgnore:
-                                    sourceAttributesToIgnore,
+                                sourceAttributesToIgnore,
                             }),
                         );
                     } else {
@@ -9003,7 +8798,7 @@ export default class Core {
                 // we can use original only if we created a new namespace
                 let originalNamesAreConsistent = shadowingNewNamespace;
 
-                let processResult = processAssignNames({
+                let processResult = serializeFunctions.processAssignNames({
                     indOffset: assignNamesOffset,
                     serializedComponents: shadowingSerializeChildren,
                     parentName: shadowingParent.componentName,
@@ -9543,19 +9338,6 @@ export default class Core {
                             component.componentName,
                         );
                     }
-
-                    let doenetMLrange =
-                        this.components[component.componentName].doenetMLrange;
-                    let overwriteDoenetMLRange =
-                        component.componentType === "copy";
-
-                    this.gatherErrorsAndAssignDoenetMLRange({
-                        components: serializedReplacements,
-                        errors: [],
-                        warnings: [],
-                        doenetMLrange,
-                        overwriteDoenetMLRange,
-                    });
 
                     try {
                         let createResult =
@@ -10112,8 +9894,7 @@ export default class Core {
                     if (typeof repl === "object") {
                         newSerializedReplacements.push(
                             await repl.serialize({
-                                primitiveSourceAttributesToIgnore:
-                                    sourceAttributesToIgnore,
+                                sourceAttributesToIgnore,
                             }),
                         );
                     } else {
@@ -10164,10 +9945,16 @@ export default class Core {
                 let compositeMediatingTheShadow =
                     this.components[nameOfCompositeMediatingTheShadow];
                 if (shadowingComponent.constructor.assignNamesToReplacements) {
+                    let mediatingNewNamespace =
+                        compositeMediatingTheShadow.attributes.newNamespace
+                            ?.primitive;
+                    let mediatingAssignNames =
+                        compositeMediatingTheShadow.doenetAttributes
+                            .assignNames;
+
                     let originalNamesAreConsistent =
-                        this.determineOriginalNamesConsistentForShadowingComposite(
-                            shadowingComponent,
-                        );
+                        shadowingNewNamespace ||
+                        (mediatingNewNamespace && !mediatingAssignNames);
 
                     let assignNames =
                         shadowingComponent.doenetAttributes.assignNames;
@@ -10179,46 +9966,14 @@ export default class Core {
                         assignNames = assignNames.map((x) => [x]);
                     }
 
-                    let parentName = shadowingComponent.componentName;
-                    let parentCreatesNewNamespace = shadowingNewNamespace;
-                    if (
-                        shadowingComponent.doenetAttributes
-                            .parentNameForAssignNames
-                    ) {
-                        parentName =
-                            shadowingComponent.doenetAttributes
-                                .parentNameForAssignNames;
-                        parentCreatesNewNamespace =
-                            this._components[parentName].attributes.newNamespace
-                                ?.primitive;
-                    }
-
-                    // If we added a level to assignNames, that means that this composite won't be assigning names
-                    // but that we are delegating that to the next composite.
-                    // But, we want to use the current parent name for assigning name
-                    // (which is particularly relevant when parentCreatesNewNamespace, as parent name becomes the new namespace).
-                    // We set compositesParentNameForAssignNames to the current parent name.
-                    // Since we've added a level to assignNames, each name will be an array
-                    // and processAssignNames will set parentNameForAssignNames to be compositesParentNameForAssignNames
-                    let compositesParentNameForAssignNames;
-                    if (
-                        await shadowingComponent.stateValues
-                            .addLevelToAssignNames
-                    ) {
-                        compositesParentNameForAssignNames = parentName;
-                    }
-                    let processResult = processAssignNames({
+                    let processResult = serializeFunctions.processAssignNames({
                         assignNames,
-                        assignNamesForCompositeReplacement:
-                            shadowingComponent.doenetAttributes
-                                .assignNamesForCompositeReplacement,
                         indOffset: assignNamesOffset,
                         serializedComponents: newSerializedReplacements,
-                        parentName,
-                        parentCreatesNewNamespace,
+                        parentName: shadowingComponent.componentName,
+                        parentCreatesNewNamespace: shadowingNewNamespace,
                         componentInfoObjects: this.componentInfoObjects,
                         originalNamesAreConsistent,
-                        compositesParentNameForAssignNames,
                     });
 
                     let doenetMLrange =
@@ -10237,7 +9992,7 @@ export default class Core {
                     // we can use them only if we created a new namespace
                     let originalNamesAreConsistent = shadowingNewNamespace;
 
-                    let processResult = processAssignNames({
+                    let processResult = serializeFunctions.processAssignNames({
                         // assignNames: shadowingComponent.doenetAttributes.assignNames,
                         indOffset: assignNamesOffset,
                         serializedComponents: newSerializedReplacements,
@@ -10709,51 +10464,39 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateActionChaining = {};
 
-        let actionsToChain = [];
+        let id = componentName;
 
-        let cName = componentName;
+        while (id.substring(0, 3) === "/__") {
+            // if component was has a unreachable component name
+            // check if it is shadowing another component and use that component name instead
+            let comp = this._components[id];
 
-        while (true) {
-            let comp = this._components[cName];
-            let id = cName;
-
-            if (triggeringAction) {
-                id += "|" + triggeringAction;
-            }
-
-            if (this.actionsChangedToActions[id]) {
-                actionsToChain.push(...this.actionsChangedToActions[id]);
-            }
-
-            if (comp?.shadows && cName.substring(0, 3) === "/__") {
-                // We propagate to shadows if the copied component doesn't have a name.
-                // In this way, if we include $P in a graph,
-                // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
-                // will be triggered by that copy (as only as copy not given a name).
-                // Another use case is defining an <updateValue name="uv">,
-                // along with other triggered actions using triggerWith="uv",
-                // inside a <setup> and then including an unamed $uv
-                // where we want the button to be.
-                // TODO: if <point copySource="P" /> no longer has a name like "_point1",
-                // should triggerWhenObjectsClicked="P" be triggered from that point?
-                // Currently (Oct 2, 2023), it is not triggered.
-                cName = comp.shadows.componentName;
+            if (comp?.shadows) {
+                id = comp.shadows.componentName;
             } else {
                 break;
             }
         }
 
-        for (let chainedActionInstructions of actionsToChain) {
-            chainedActionInstructions = { ...chainedActionInstructions };
-            if (chainedActionInstructions.args) {
-                chainedActionInstructions.args = {
-                    ...chainedActionInstructions.args,
-                };
-            } else {
-                chainedActionInstructions.args = {};
+        if (triggeringAction) {
+            id += "|" + triggeringAction;
+        }
+
+        if (this.actionsChangedToActions[id]) {
+            for (let chainedActionInstructions of this.actionsChangedToActions[
+                id
+            ]) {
+                chainedActionInstructions = { ...chainedActionInstructions };
+                if (chainedActionInstructions.args) {
+                    chainedActionInstructions.args = {
+                        ...chainedActionInstructions.args,
+                    };
+                } else {
+                    chainedActionInstructions.args = {};
+                }
+                chainedActionInstructions.args.skipRendererUpdate = true;
+                await this.performAction(chainedActionInstructions);
             }
-            chainedActionInstructions.args.skipRendererUpdate = true;
-            await this.performAction(chainedActionInstructions);
         }
 
         if (!skipRendererUpdate) {
@@ -11007,6 +10750,8 @@ export default class Core {
             let itemsSubmitted = [
                 ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
             ];
+            let pageCreditAchieved =
+                await this.document.stateValues.creditAchieved;
             let itemCreditAchieved =
                 await this.document.stateValues.itemCreditAchieved;
 
@@ -12304,15 +12049,15 @@ export default class Core {
                     // We find the original component and the recurse on all the components
                     // that shadow it.
                     // Don't include shadows due to propVariable
-                    // unless it is a plain copy marked as returning the same type
+                    // unless it is a plain macro marked as returning the same type
                     let baseComponent = component;
                     while (
                         baseComponent.shadows &&
                         (baseComponent.shadows.propVariable === undefined ||
-                            (baseComponent.doenetAttributes.fromImplicitProp &&
+                            (baseComponent.doenetAttributes.fromPlainMacro &&
                                 this._components[
                                     baseComponent.shadows.componentName
-                                ].constructor.implicitPropReturnsSameType))
+                                ].constructor.plainMacroReturnsSameType))
                     ) {
                         baseComponent =
                             this._components[
@@ -12717,11 +12462,11 @@ export default class Core {
         if (recurseToShadows && component.shadowedBy) {
             for (let shadow of component.shadowedBy) {
                 // Don't include shadows due to propVariable
-                // unless it is a plain copy marked as returning the same type
+                // unless it is a plain macro marked as returning the same type
                 if (
                     shadow.shadows.propVariable === undefined ||
-                    (shadow.doenetAttributes.fromImplicitProp &&
-                        component.constructor.implicitPropReturnsSameType)
+                    (shadow.doenetAttributes.fromPlainMacro &&
+                        component.constructor.plainMacroReturnsSameType)
                 ) {
                     this.calculateEssentialVariableChanges({
                         component: shadow,

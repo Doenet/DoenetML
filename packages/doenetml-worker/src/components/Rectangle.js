@@ -378,7 +378,7 @@ export default class Rectangle extends Polygon {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -614,7 +614,7 @@ export default class Rectangle extends Polygon {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttributeNamed: "xs",
+                                    isAttribute: "xs",
                                 },
                             ],
                         ];
@@ -624,7 +624,6 @@ export default class Rectangle extends Polygon {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["vertexX", "vertex"],
-            returnEntryDimensions: (prefix) => (prefix === "vertex" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

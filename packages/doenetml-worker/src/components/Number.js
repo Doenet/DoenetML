@@ -1,10 +1,17 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import {
+    getFromText,
+    mathStateVariableFromNumberStateVariable,
+    numberToMathExpression,
+    roundForDisplay,
+    textToAst,
+} from "../utils/math";
+import { buildParsedExpression, evaluateLogic } from "../utils/booleanLogic";
+import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
-import { buildParsedExpression, evaluateLogic } from "../utils/booleanLogic";
 import {
     moveGraphicalObjectWithAnchorAction,
     returnAnchorAttributes,
@@ -15,13 +22,6 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import {
-    textToAst,
-    getTextToMathConverter,
-    mathStateVariableFromNumberStateVariable,
-    numberToMathExpression,
-    roundForDisplay,
-} from "../utils/math";
 
 export default class NumberComponent extends InlineComponent {
     constructor(args) {
@@ -35,8 +35,8 @@ export default class NumberComponent extends InlineComponent {
     }
     static componentType = "number";
 
-    static variableForImplicitProp = "value";
-    static implicitPropReturnsSameType = true;
+    static variableForPlainMacro = "value";
+    static plainMacroReturnsSameType = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -881,7 +881,7 @@ export default class NumberComponent extends InlineComponent {
                         ],
                     };
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = getFromText({
                         parseScientificNotation: false,
                     });
 

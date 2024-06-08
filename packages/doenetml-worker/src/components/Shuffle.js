@@ -1,10 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import me from "math-expressions";
+import { processAssignNames } from "../utils/serializedStateProcessing";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
-import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
@@ -24,85 +23,7 @@ export default class Shuffle extends CompositeComponent {
             createPrimitiveOfType: "number",
         };
 
-        attributes.type = {
-            createPrimitiveOfType: "string",
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-        };
-
         return attributes;
-    }
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        function breakStringsMacrosIntoTypeBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-        }) {
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro,
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            if (componentAttributes.type) {
-                type = componentAttributes.type;
-            } else {
-                return { success: false };
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                console.warn(`Invalid type ${type}`);
-                return { success: false };
-            }
-
-            // break any string by white space and wrap pieces with type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-            });
-
-            if (result.success) {
-                let newChildren = result.newChildren;
-
-                let newAttributes = {
-                    addLevelToAssignNames: {
-                        primitive: true,
-                    },
-                };
-
-                return {
-                    success: true,
-                    newChildren,
-                    newAttributes,
-                };
-            } else {
-                return { success: false };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoTypeBySpaces,
-        });
-
-        return sugarInstructions;
     }
 
     static returnChildGroups() {
@@ -130,7 +51,7 @@ export default class Shuffle extends CompositeComponent {
             definition({ dependencyValues }) {
                 let originalComponentNames = [];
                 for (let child of dependencyValues.children) {
-                    if (child.stateValues?.componentNamesInList) {
+                    if (child.stateValues.componentNamesInList) {
                         originalComponentNames.push(
                             ...child.stateValues.componentNamesInList,
                         );
@@ -351,7 +272,7 @@ export default class Shuffle extends CompositeComponent {
 
                 replacements.push(
                     await replacementSource.serialize({
-                        primitiveSourceAttributesToIgnore: ["isResponse"],
+                        sourceAttributesToIgnore: ["isResponse"],
                     }),
                 );
             }
