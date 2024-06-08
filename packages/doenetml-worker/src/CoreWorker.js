@@ -4,7 +4,7 @@ import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import {
     addDocumentIfItsMissing,
     expandDoenetMLsToFullSerializedComponents,
-} from "./utils/expandDoenetML";
+} from "./utils/serializedStateProcessing";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import { countComponentTypes } from "@doenet/utils";
 

@@ -406,6 +406,7 @@ export function addDocumentIfItsMissing(serializedComponents) {
             children: components,
         });
     }
+    return serializedComponents;
 }
 
 function substituteAttributeDeprecations(serializedComponents) {
