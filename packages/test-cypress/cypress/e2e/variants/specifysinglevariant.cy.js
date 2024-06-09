@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2, numberToLetters } from "@doenet/utils";
+import { numberToLetters, cesc, cesc2 } from "@doenet/utils";
 
 describe("Specifying single variant document tests", function () {
     beforeEach(() => {
@@ -1187,8 +1187,8 @@ describe("Specifying single variant document tests", function () {
       <option selectForVariants="broccoli"><math>b</math></option>
     </select>
     </p>
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $_select1{name="x3"}</p>
+    <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+    <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
     `,
                     requestedVariantIndex: 1,
                 },
@@ -1212,7 +1212,10 @@ describe("Specifying single variant document tests", function () {
                     ].replacements[0].componentName
                 ].stateValues.value;
             expect(xorig).eq(expectedx);
-            let x2 = stateVariables["/x2"].stateValues.value;
+            let x2 =
+                stateVariables[
+                    stateVariables["/x2"].replacements[0].componentName
+                ].stateValues.value;
             expect(x2).eq(expectedx);
             let x3 =
                 stateVariables[
@@ -1264,8 +1267,8 @@ describe("Specifying single variant document tests", function () {
       <option selectForVariants="broccoli"><math>b</math></option>
     </select>
     </p>
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $_select1{name="x3"}</p>
+    <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+    <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
     `,
                     requestedVariantIndex: 3,
                 },
@@ -1289,7 +1292,10 @@ describe("Specifying single variant document tests", function () {
                     ].replacements[0].componentName
                 ].stateValues.value;
             expect(xorig).eq(expectedx);
-            let x2 = stateVariables["/x2"].stateValues.value;
+            let x2 =
+                stateVariables[
+                    stateVariables["/x2"].replacements[0].componentName
+                ].stateValues.value;
             expect(x2).eq(expectedx);
             let x3 =
                 stateVariables[
@@ -1337,8 +1343,8 @@ describe("Specifying single variant document tests", function () {
         //   <option selectForVariants="broccoli"><math>b</math></option>
         // </select>
         // </p>
-        // <p>Selected variable repeated: <copy name="x2" source="x" /></p>
-        // <p>Selected variable repeated again: <copy name="x3" source="_select1" /></p>
+        // <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+        // <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
         // `,
         //     requestedVariant: { name: 'bRoccoli' },
         //   }, "*");
@@ -1391,8 +1397,8 @@ describe("Specifying single variant document tests", function () {
         //   <option selectForVariants="broccoli"><math>b</math></option>
         // </select>
         // </p>
-        // <p>Selected variable repeated: <copy name="x2" source="x" /></p>
-        // <p>Selected variable repeated again: <copy name="x3" source="_select1" /></p>
+        // <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+        // <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
         // `,
         //     requestedVariant: generatedVariantInfo,
         //   }, "*");
@@ -1444,8 +1450,8 @@ describe("Specifying single variant document tests", function () {
         //   <option selectForVariants="broccoli"><math>b</math></option>
         // </select>
         // </p>
-        // <p>Selected variable repeated: <copy name="x2" source="x" /></p>
-        // <p>Selected variable repeated again: <copy name="x3" source="_select1" /></p>
+        // <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+        // <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
         // `,
         //     requestedVariant: { name: 'dill' },
         //   }, "*");
@@ -1498,8 +1504,8 @@ describe("Specifying single variant document tests", function () {
       <option selectForVariants="broccoli"><math>b</math></option>
     </select>
     </p>
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $_select1{name="x3"}</p>
+    <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+    <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
     `,
                     requestedVariantIndex: 20582310,
                 },
@@ -1523,7 +1529,10 @@ describe("Specifying single variant document tests", function () {
                     ].replacements[0].componentName
                 ].stateValues.value;
             expect(xorig).eq(expectedx);
-            let x2 = stateVariables["/x2"].stateValues.value;
+            let x2 =
+                stateVariables[
+                    stateVariables["/x2"].replacements[0].componentName
+                ].stateValues.value;
             expect(x2).eq(expectedx);
             let x3 =
                 stateVariables[
@@ -1571,8 +1580,8 @@ describe("Specifying single variant document tests", function () {
       <option selectForVariants="broccoli"><math>b</math></option>
     </select>
     </p>
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $_select1{name="x3"}</p>
+    <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+    <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
     `,
                     requestedVariantIndex: "-20582308",
                 },
@@ -1596,7 +1605,10 @@ describe("Specifying single variant document tests", function () {
                     ].replacements[0].componentName
                 ].stateValues.value;
             expect(xorig).eq(expectedx);
-            let x2 = stateVariables["/x2"].stateValues.value;
+            let x2 =
+                stateVariables[
+                    stateVariables["/x2"].replacements[0].componentName
+                ].stateValues.value;
             expect(x2).eq(expectedx);
             let x3 =
                 stateVariables[
@@ -1644,8 +1656,8 @@ describe("Specifying single variant document tests", function () {
       <option selectForVariants="broccoli"><math>b</math></option>
     </select>
     </p>
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $_select1{name="x3"}</p>
+    <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+    <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
     `,
                     requestedVariantIndex: "wrong",
                 },
@@ -1669,7 +1681,10 @@ describe("Specifying single variant document tests", function () {
                     ].replacements[0].componentName
                 ].stateValues.value;
             expect(xorig).eq(expectedx);
-            let x2 = stateVariables["/x2"].stateValues.value;
+            let x2 =
+                stateVariables[
+                    stateVariables["/x2"].replacements[0].componentName
+                ].stateValues.value;
             expect(x2).eq(expectedx);
             let x3 =
                 stateVariables[
@@ -1716,8 +1731,8 @@ describe("Specifying single variant document tests", function () {
         //   <option selectForVariants="broccoli"><math>b</math></option>
         // </select>
         // </p>
-        // <p>Selected variable repeated: <copy name="x2" source="x" /></p>
-        // <p>Selected variable repeated again: <copy name="x3" source="_select1" /></p>
+        // <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+        // <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
         // `,
         //     requestedVariant: { name: 'rotten' },
         //   }, "*");
@@ -1770,8 +1785,8 @@ describe("Specifying single variant document tests", function () {
       <option selectForVariants="broccoli"><math>b</math></option>
     </select>
     </p>
-    <p>Selected variable repeated: $x{name="x2"}</p>
-    <p>Selected variable repeated again: $_select1{name="x3"}</p>
+    <p>Selected variable repeated: <copy name="x2" target="x" /></p>
+    <p>Selected variable repeated again: <copy name="x3" target="_select1" /></p>
     `,
                     requestedVariantIndex: 4.5,
                 },
@@ -1795,7 +1810,10 @@ describe("Specifying single variant document tests", function () {
                     ].replacements[0].componentName
                 ].stateValues.value;
             expect(xorig).eq(expectedx);
-            let x2 = stateVariables["/x2"].stateValues.value;
+            let x2 =
+                stateVariables[
+                    stateVariables["/x2"].replacements[0].componentName
+                ].stateValues.value;
             expect(x2).eq(expectedx);
             let x3 =
                 stateVariables[
@@ -4746,7 +4764,7 @@ describe("Specifying single variant document tests", function () {
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
     </choiceinput></p>
-    <p>$c1.selectedValue{assignNames="c1v"}</p>
+    <p><copy prop="selectedValue" target="c1" assignNames="c1v" /></p>
     `;
 
         // let generatedVariantInfo;
@@ -5205,9 +5223,9 @@ describe("Specifying single variant document tests", function () {
       <p>Enter <selectFromSequence assignNames="n" />. <answer name="ans">$n</answer></p>
     </group>
 
-    $g{name="g2"}
+    <copy target="g" assignNames="g2" />
 
-    $g{name="g3" link="false"}
+    <copy target="g" assignNames="g3" link="false" />
 
     <p>Enter <selectFromSequence assignNames="m" />. <answer name="ans">$m</answer></p>
     `;

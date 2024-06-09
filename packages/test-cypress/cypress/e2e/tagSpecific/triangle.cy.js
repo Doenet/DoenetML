@@ -15,9 +15,9 @@ describe("Triangle Tag Tests", function () {
   <text>a</text>
   <graph>
     <triangle/>
-    $_triangle1.vertex1{name="vertex1"}
-    $_triangle1.vertex2{name="vertex2"}
-    $_triangle1.vertex3{name="vertex3"}
+    <copy name="vertex1" prop="vertex1" target="_triangle1" />
+    <copy name="vertex2" prop="vertex2" target="_triangle1" />
+    <copy name="vertex3" prop="vertex3" target="_triangle1" />
   </graph>
   `,
                 },
@@ -160,9 +160,9 @@ describe("Triangle Tag Tests", function () {
   <text>a</text>
   <graph>
     <triangle vertices="" />
-    $_triangle1.vertex1{name="vertex1"}
-    $_triangle1.vertex2{name="vertex2"}
-    $_triangle1.vertex3{name="vertex3"}
+    <copy name="vertex1" prop="vertex1" target="_triangle1" />
+    <copy name="vertex2" prop="vertex2" target="_triangle1" />
+    <copy name="vertex3" prop="vertex3" target="_triangle1" />
   </graph>
   `,
                 },
@@ -304,9 +304,9 @@ describe("Triangle Tag Tests", function () {
   <text>a</text>
   <graph>
     <triangle vertices="(-8,5)" />
-    $_triangle1.vertex1{name="vertex1"}
-    $_triangle1.vertex2{name="vertex2"}
-    $_triangle1.vertex3{name="vertex3"}
+    <copy name="vertex1" prop="vertex1" target="_triangle1" />
+    <copy name="vertex2" prop="vertex2" target="_triangle1" />
+    <copy name="vertex3" prop="vertex3" target="_triangle1" />
   </graph>
   `,
                 },
@@ -448,9 +448,9 @@ describe("Triangle Tag Tests", function () {
   <text>a</text>
   <graph>
     <triangle vertices="(-8,5) (6,2)" />
-    $_triangle1.vertex1{name="vertex1"}
-    $_triangle1.vertex2{name="vertex2"}
-    $_triangle1.vertex3{name="vertex3"}
+    <copy name="vertex1" prop="vertex1" target="_triangle1" />
+    <copy name="vertex2" prop="vertex2" target="_triangle1" />
+    <copy name="vertex3" prop="vertex3" target="_triangle1" />
   </graph>
   `,
                 },
@@ -592,9 +592,9 @@ describe("Triangle Tag Tests", function () {
   <text>a</text>
   <graph>
     <triangle vertices="(-8,5) (6,2) (5,-4)" />
-    $_triangle1.vertex1{name="vertex1"}
-    $_triangle1.vertex2{name="vertex2"}
-    $_triangle1.vertex3{name="vertex3"}
+    <copy name="vertex1" prop="vertex1" target="_triangle1" />
+    <copy name="vertex2" prop="vertex2" target="_triangle1" />
+    <copy name="vertex3" prop="vertex3" target="_triangle1" />
   </graph>
   `,
                 },
@@ -740,18 +740,18 @@ describe("Triangle Tag Tests", function () {
         <triangle name="t1" />
       </graph>
       <graph width="180" height="180">
-        <triangle copySource="t1" vertices="(3,-2)" name="t2" />
+        <copy target="t1" vertices="(3,-2)" assignNames="t2" />
       </graph>
       <graph width="180" height="180">
-        <triangle copySource="t1" vertices="(5,2) (6, -1)" name="t3" />
+        <copy target="t1" vertices="(5,2) (6, -1)" assignNames="t3" />
       </graph>
       <graph width="180" height="180">
-        <triangle copySource="t1" vertices="(9,0) (-4, 5) (2, -3)" name="t4" />
+        <copy target="t1" vertices="(9,0) (-4, 5) (2, -3)" assignNames="t4" />
       </graph>
     </sideBySide>
   </group>
   
-  $g1{name="g2"}
+  <copy target="g1" assignNames="g2" />
 
   `,
                 },
@@ -1279,7 +1279,7 @@ describe("Triangle Tag Tests", function () {
     <triangle vertices="(0,0) (6,0) (0,6)" />
     <point x="10" y="10">
       <constraints>
-      <constrainTo>$_triangle1</constrainTo>
+      <constrainTo><copy target="_triangle1" /></constrainTo>
       </constraints>
     </point>
   </graph>
@@ -1435,8 +1435,8 @@ describe("Triangle Tag Tests", function () {
   </graph>
 
   <point name="flip3">
-    (<extract prop="y">$_triangle1.vertex3</extract>,
-    <extract prop="x">$_triangle1.vertex3</extract>)
+    (<extract prop="y"><copy prop="vertex3" target="_triangle1" /></extract>,
+    <extract prop="x"><copy prop="vertex3" target="_triangle1" /></extract>)
   </point>
 
   `,
@@ -1570,8 +1570,8 @@ describe("Triangle Tag Tests", function () {
   </graph>
 
   <point name="flip3">
-    (<extract prop="y">$_triangle1.vertex3</extract>,
-    <extract prop="x">$_triangle1.vertex3</extract>)
+    (<extract prop="y"><copy prop="vertex3" target="_triangle1" /></extract>,
+    <extract prop="x"><copy prop="vertex3" target="_triangle1" /></extract>)
   </point>
 
   `,
@@ -1701,8 +1701,8 @@ describe("Triangle Tag Tests", function () {
   <text>a</text>
   <graph>
   <point name="A" hide>
-    ($B.y,
-    $B.x)
+    (<copy prop="y" target="B" />,
+    <copy prop="x" target="B" />)
   </point>
   <point name="B" hide>(3,5)</point>
   <point name="C" hide>(-5,2)</point>
@@ -2020,308 +2020,4 @@ describe("Triangle Tag Tests", function () {
             );
         });
     });
-
-    it("Rigid triangle", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
-  <graph>
-    <triangle vertices="(0,6) (3,0)" rigid />
-    $_triangle1.vertex1{name="vertex1"}
-    $_triangle1.vertex2{name="vertex2"}
-    $_triangle1.vertex3{name="vertex3"}
-  </graph>
-  `,
-                },
-                "*",
-            );
-        });
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            let v1x = 0,
-                v1y = 6;
-            let v2x = 3,
-                v2y = 0;
-            let v3x = 0,
-                v3y = 0;
-
-            let vertices = [
-                stateVariables["/vertex1"].replacements[0],
-                stateVariables["/vertex2"].replacements[0],
-                stateVariables["/vertex3"].replacements[0],
-            ];
-
-            cy.window().then(async (win) => {
-                let pxs = [v1x, v2x, v3x];
-                let pys = [v1y, v2y, v3y];
-
-                for (let i = 0; i < 3; i++) {
-                    expect(
-                        stateVariables["/_triangle1"].stateValues.vertices[i],
-                    ).eqls([pxs[i], pys[i]]);
-                    expect(
-                        stateVariables[vertices[i].componentName].stateValues
-                            .coords,
-                    ).eqls(["vector", pxs[i], pys[i]]);
-                }
-            });
-
-            cy.log("move triangle up and to the right");
-            cy.window().then(async (win) => {
-                let stateVariables = await win.returnAllStateVariables1();
-
-                let moveX = 3;
-                let moveY = 2;
-
-                let desiredVertices = [];
-                for (
-                    let i = 0;
-                    i < stateVariables["/_triangle1"].stateValues.numVertices;
-                    i++
-                ) {
-                    desiredVertices.push([
-                        me
-                            .fromAst(
-                                stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][0],
-                            )
-                            .add(moveX).tree,
-                        me
-                            .fromAst(
-                                stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][1],
-                            )
-                            .add(moveY).tree,
-                    ]);
-                }
-
-                await win.callAction1({
-                    actionName: "movePolygon",
-                    componentName: "/_triangle1",
-                    args: { pointCoords: desiredVertices },
-                });
-
-                v1x += moveX;
-                v2x += moveX;
-                v3x += moveX;
-                v1y += moveY;
-                v2y += moveY;
-                v3y += moveY;
-
-                let pxs = [v1x, v2x, v3x];
-                let pys = [v1y, v2y, v3y];
-
-                cy.window().then(async (win) => {
-                    let stateVariables = await win.returnAllStateVariables1();
-
-                    for (let i = 0; i < vertices.length; i++) {
-                        expect(
-                            stateVariables["/_triangle1"].stateValues.vertices[
-                                i
-                            ],
-                        ).eqls([pxs[i], pys[i]]);
-                        expect(
-                            stateVariables[vertices[i].componentName]
-                                .stateValues.coords,
-                        ).eqls(["vector", pxs[i], pys[i]]);
-                    }
-                });
-            });
-
-            cy.log("move a point rotates");
-            cy.window().then(async (win) => {
-                (v1x = 0), (v2x = 6), (v3x = 6);
-                (v1y = 3), (v2y = 6), (v3y = 3);
-
-                let pxs = [v1x, v2x, v3x];
-                let pys = [v1y, v2y, v3y];
-
-                await win.callAction1({
-                    actionName: "movePoint",
-                    componentName: vertices[0].componentName,
-                    args: { x: -12, y: 0 },
-                });
-                cy.window().then(async (win) => {
-                    let stateVariables = await win.returnAllStateVariables1();
-
-                    for (let i = 0; i < 3; i++) {
-                        expect(
-                            stateVariables["/_triangle1"].stateValues.vertices[
-                                i
-                            ].map((x) => Math.round(x * 1e10) / 1e10),
-                        ).eqls([pxs[i], pys[i]]);
-                        expect(
-                            stateVariables[
-                                vertices[i].componentName
-                            ].stateValues.coords.map((x) =>
-                                Number.isFinite(x)
-                                    ? Math.round(x * 1e10) / 1e10
-                                    : x,
-                            ),
-                        ).eqls(["vector", pxs[i], pys[i]]);
-                    }
-                });
-            });
-        });
-    });
-
-    //     it("Rigid triangle, vertex constraints", () => {
-    //         cy.window().then(async (win) => {
-    //             win.postMessage(
-    //                 {
-    //                     doenetML: `
-    //   <text>a</text>
-    //   <graph>
-
-    //   <point styleNumber="2" name="a1">(1,9)</point>
-    //   <point styleNumber="2" name="a2">(5,8)</point>
-    //     <triangle vertices="(0,6) (3,0)" rigid >
-    //         <vertexConstraints>
-    //             <attractTo threshold="2">$a1$a2</attractTo>
-    //         </vertexConstraints>
-    //     </triangle>
-    //     $_triangle1.vertex1{name="vertex1"}
-    //     $_triangle1.vertex2{name="vertex2"}
-    //     $_triangle1.vertex3{name="vertex3"}
-    //   </graph>
-    //   `,
-    //                 },
-    //                 "*",
-    //             );
-    //         });
-    //         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-    //         cy.window().then(async (win) => {
-    //             let stateVariables = await win.returnAllStateVariables1();
-    //             let v1x = 0,
-    //                 v1y = 6;
-    //             let v2x = 3,
-    //                 v2y = 0;
-    //             let v3x = 0,
-    //                 v3y = 0;
-
-    //             let vertices = [
-    //                 stateVariables["/vertex1"].replacements[0],
-    //                 stateVariables["/vertex2"].replacements[0],
-    //                 stateVariables["/vertex3"].replacements[0],
-    //             ];
-
-    //             cy.window().then(async (win) => {
-    //                 let pxs = [v1x, v2x, v3x];
-    //                 let pys = [v1y, v2y, v3y];
-
-    //                 for (let i = 0; i < 3; i++) {
-    //                     expect(
-    //                         stateVariables["/_triangle1"].stateValues.vertices[i],
-    //                     ).eqls([pxs[i], pys[i]]);
-    //                     expect(
-    //                         stateVariables[vertices[i].componentName].stateValues
-    //                             .coords,
-    //                     ).eqls(["vector", pxs[i], pys[i]]);
-    //                 }
-    //             });
-
-    //             cy.log("move triangle up and to the right, attracts to one point");
-    //             cy.window().then(async (win) => {
-    //                 let stateVariables = await win.returnAllStateVariables1();
-
-    //                 let moveX = 2;
-    //                 let moveY = 2;
-
-    //                 let desiredVertices = [];
-    //                 for (
-    //                     let i = 0;
-    //                     i < stateVariables["/_triangle1"].stateValues.numVertices;
-    //                     i++
-    //                 ) {
-    //                     desiredVertices.push([
-    //                         me
-    //                             .fromAst(
-    //                                 stateVariables["/_triangle1"].stateValues
-    //                                     .vertices[i][0],
-    //                             )
-    //                             .add(moveX).tree,
-    //                         me
-    //                             .fromAst(
-    //                                 stateVariables["/_triangle1"].stateValues
-    //                                     .vertices[i][1],
-    //                             )
-    //                             .add(moveY).tree,
-    //                     ]);
-    //                 }
-
-    //                 await win.callAction1({
-    //                     actionName: "movePolygon",
-    //                     componentName: "/_triangle1",
-    //                     args: { pointCoords: desiredVertices },
-    //                 });
-
-    //                 // shifts one up and to the left being attracted by (1,9)
-    //                 v1x += moveX - 1;
-    //                 v2x += moveX - 1;
-    //                 v3x += moveX - 1;
-    //                 v1y += moveY + 1;
-    //                 v2y += moveY + 1;
-    //                 v3y += moveY + 1;
-
-    //                 let pxs = [v1x, v2x, v3x];
-    //                 let pys = [v1y, v2y, v3y];
-
-    //                 cy.window().then(async (win) => {
-    //                     let stateVariables = await win.returnAllStateVariables1();
-
-    //                     for (let i = 0; i < vertices.length; i++) {
-    //                         expect(
-    //                             stateVariables["/_triangle1"].stateValues.vertices[
-    //                                 i
-    //                             ],
-    //                         ).eqls([pxs[i], pys[i]]);
-    //                         expect(
-    //                             stateVariables[vertices[i].componentName]
-    //                                 .stateValues.coords,
-    //                         ).eqls(["vector", pxs[i], pys[i]]);
-    //                     }
-    //                 });
-    //             });
-
-    //             cy.log("move a point rotates, attracts to other point");
-    //             cy.window().then(async (win) => {
-    //                 (v1x = -1), (v2x = 5), (v3x = 5);
-    //                 (v1y = 5), (v2y = 8), (v3y = 5);
-
-    //                 let pxs = [v1x, v2x, v3x];
-    //                 let pys = [v1y, v2y, v3y];
-
-    //                 await win.callAction1({
-    //                     actionName: "movePoint",
-    //                     componentName: vertices[0].componentName,
-    //                     args: { x: -18, y: 0 },
-    //                 });
-    //                 cy.window().then(async (win) => {
-    //                     let stateVariables = await win.returnAllStateVariables1();
-
-    //                     for (let i = 0; i < 3; i++) {
-    //                         expect(
-    //                             stateVariables["/_triangle1"].stateValues.vertices[
-    //                                 i
-    //                             ].map((x) => Math.round(x * 1e10) / 1e10),
-    //                         ).eqls([pxs[i], pys[i]]);
-    //                         expect(
-    //                             stateVariables[
-    //                                 vertices[i].componentName
-    //                             ].stateValues.coords.map((x) =>
-    //                                 Number.isFinite(x)
-    //                                     ? Math.round(x * 1e10) / 1e10
-    //                                     : x,
-    //                             ),
-    //                         ).eqls(["vector", pxs[i], pys[i]]);
-    //                     }
-    //                 });
-    //             });
-    //         });
-    //     });
 });

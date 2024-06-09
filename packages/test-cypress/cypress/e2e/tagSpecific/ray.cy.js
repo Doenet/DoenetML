@@ -93,14 +93,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -250,14 +250,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -407,14 +407,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -564,14 +564,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -721,14 +721,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -874,14 +874,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -1027,14 +1027,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
  `,
                 },
                 "*",
@@ -1188,16 +1188,16 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph newNamespace name="g2">
-    $(/g1/ray1{name="ray1"})
-    $(/g1/ray2{name="ray2"})
-    $(/g1/ray3{name="ray3"})
+    <copy target="/g1/ray1" assignNames="ray1" />
+    <copy target="/g1/ray2" assignNames="ray2" />
+    <copy target="/g1/ray3" assignNames="ray3" />
   </graph>
 
-  $g2{name="g3"}
+  <copy target="g2" assignNames="g3" />
 
-  $(g3/ray1.direction{assignNames="dir1"})
-  $(g3/ray2.direction{assignNames="dir2"})
-  $(g3/ray3.direction{assignNames="dir3"})
+  <copy prop="direction" target="g3/ray1" assignNames="dir1" />
+  <copy prop="direction" target="g3/ray2" assignNames="dir2" />
+  <copy prop="direction" target="g3/ray3" assignNames="dir3" />
   `,
                 },
                 "*",
@@ -1871,19 +1871,19 @@ describe("Ray Tag Tests", function () {
   </graph>
   
   <graph>
-  $ray1{name="ray2"}
+  <copy target="ray1" assignNames="ray2" />
   </graph>
 
   <graph>
-  $ray1.direction{assignNames="dir1"}
+  <copy prop="direction" target="ray1" assignNames="dir1" />
   </graph>
     
   <graph>
-  $ray1.direction{assignNames="dir2"}
+  <copy prop="direction" target="ray1" assignNames="dir2" />
   </graph>
 
 
-  $ray1.direction{assignNames="dir1a"}
+  <copy prop="direction" target="ray1" assignNames="dir1a" />
   `,
                 },
                 "*",
@@ -2099,12 +2099,12 @@ describe("Ray Tag Tests", function () {
 
   <point x="-5" y="2">
     <constraints>
-      <constrainTo>$_ray1</constrainTo>
+      <constrainTo><copy target="_ray1" /></constrainTo>
     </constraints>
   </point>
   </graph>
-  $_ray1.direction{assignNames="dir1"}
-  $_point3{name="p3a"}
+  <copy target="_ray1" prop="direction" assignNames="dir1" />
+  <copy target="_point3" assignNames="p3a" />
   `,
                 },
                 "*",
@@ -2295,12 +2295,12 @@ describe("Ray Tag Tests", function () {
 
   <point x="-5" y="2">
     <constraints>
-      <attractTo>$_ray1</attractTo>
+      <attractTo><copy target="_ray1" /></attractTo>
     </constraints>
   </point>
   </graph>
-  $_ray1.direction{assignNames="dir1"}
-  $_point3{name="p3a"}
+  <copy prop="direction" target="_ray1" assignNames="dir1" />
+  <copy target="_point3" assignNames="p3a" />
   `,
                 },
                 "*",
@@ -2543,11 +2543,11 @@ describe("Ray Tag Tests", function () {
     <ray through="(-1,-0.05)" endpoint="(1,0.05)" name="l" />
     <point x="100" y="0" name="P">
       <constraints>
-        <constrainTo relativeToGraphScales>$l</constrainTo>
+        <constrainTo relativeToGraphScales><copy target="l" /></constrainTo>
       </constraints>
     </point>
   </graph>
-  $P{name="Pa" displayDigits="8"}
+  <copy target="P" assignNames="Pa" displayDigits="8" />
   `,
                 },
                 "*",
@@ -2795,7 +2795,7 @@ describe("Ray Tag Tests", function () {
   <copy prop="endpoint" assignNames="vt" target="v" />
   <point name="c" x="$(vh.x)" y="$(vt.y)"/>
   </graph>
-  $v.direction{assignNames="va"}
+  <copy prop="direction" target="v" assignNames="va" />
   `,
                 },
                 "*",
@@ -3087,12 +3087,12 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $vt{name="vt2"}
-  $vh{name="vh2"}
-  $vd{name="vd2"}
-  $vth{name="vth2"}
-  $vtd{name="vtd2"}
-  $vhd{name="vhd2"}
+  <copy assignNames="vt2" target="vt" />
+  <copy assignNames="vh2" target="vh" />
+  <copy assignNames="vd2" target="vd" />
+  <copy assignNames="vth2" target="vth" />
+  <copy assignNames="vtd2" target="vtd" />
+  <copy assignNames="vhd2" target="vhd" />
   </graph>
 
   <graph>
@@ -3122,19 +3122,19 @@ describe("Ray Tag Tests", function () {
 
   </graph>
 
-  $dfvhd2.head{assignNames="dfvhd2_hdom"}
-  $hfvhd2{name="hfvhd2_dom"}
-  $tfvhd2{name="tfvhd2_dom"}
-  $vhd2.through{assignNames="vhd2_hdom"}
-  $vhd2.endpoint{assignNames="vhd2_tdom"}
-  $dfvhd.head{assignNames="dfvhd_hdom"}
-  $hfvhd{name="hfvhd_dom"}
-  $tfvhd{name="tfvhd_dom"}
-  $dvhd{name="dvhd_dom"}
-  $hvhd{name="hvhd_dom"}
-  $tvtd{name="tvtd_dom"}
-  $vhd.through{assignNames="vhd_hdom"}
-  $vhd.endpoint{assignNames="vhd_tdom"}
+  <copy prop="head" target="dfvhd2" assignNames="dfvhd2_hdom" />
+  <copy target="hfvhd2" assignNames="hfvhd2_dom" />
+  <copy target="tfvhd2" assignNames="tfvhd2_dom" />
+  <copy prop="through" target="vhd2" assignNames="vhd2_hdom" />
+  <copy prop="endpoint" target="vhd2" assignNames="vhd2_tdom" />
+  <copy prop="head" target="dfvhd" assignNames="dfvhd_hdom" />
+  <copy target="hfvhd" assignNames="hfvhd_dom" />
+  <copy target="tfvhd" assignNames="tfvhd_dom" />
+  <copy target="dvhd" assignNames="dvhd_dom" />
+  <copy target="hvhd" assignNames="hvhd_dom" />
+  <copy target="tvtd" assignNames="tvtd_dom" />
+  <copy prop="through" target="vhd" assignNames="vhd_hdom" />
+  <copy prop="endpoint" target="vhd" assignNames="vhd_tdom" />
 
   `,
                 },
@@ -9249,12 +9249,12 @@ describe("Ray Tag Tests", function () {
   <ray endpoint="$(_ray3.endpoint)" through="(3,2)" />
   <ray through="$(_ray1.endpoint)" endpoint="(-1,4)" />
   </graph>
-  $_ray1.through{assignNames="v1h"}
-  $_ray1.endpoint{assignNames="v1t"}
-  $_ray2.through{assignNames="v2h"}
-  $_ray2.endpoint{assignNames="v2t"}
-  $_ray3.through{assignNames="v3h"}
-  $_ray3.endpoint{assignNames="v3t"}
+  <copy prop="through" target="_ray1" assignNames="v1h" />
+  <copy prop="endpoint" target="_ray1" assignNames="v1t" />
+  <copy prop="through" target="_ray2" assignNames="v2h" />
+  <copy prop="endpoint" target="_ray2" assignNames="v2t" />
+  <copy prop="through" target="_ray3" assignNames="v3h" />
+  <copy prop="endpoint" target="_ray3" assignNames="v3t" />
   `,
                 },
                 "*",
@@ -9573,7 +9573,7 @@ describe("Ray Tag Tests", function () {
   <graph>
   <ray direction="(-8,1)" endpoint="(4,1)" />
   </graph>
-  $_ray1.direction{assignNames="v1a"}
+  <copy prop="direction" target="_ray1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -9658,7 +9658,7 @@ describe("Ray Tag Tests", function () {
   <graph>
   <ray direction="(-8,1)" through="(-4,2)" />
   </graph>
-  $_ray1.direction{assignNames="v1a"}
+  <copy prop="direction" target="_ray1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -9743,7 +9743,7 @@ describe("Ray Tag Tests", function () {
   <graph>
   <ray direction="(-8,1)" />
   </graph>
-  $_ray1.direction{assignNames="v1a"}
+  <copy prop="direction" target="_ray1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -9849,12 +9849,12 @@ describe("Ray Tag Tests", function () {
   <graph>
     <ray name="v6" direction="$(v6.endpoint)" endpoint="(3,4)" />
   </graph>
-  $v1.through{assignNames="v1h"}
-  $v2.through{assignNames="v2h"}
-  $v3.through{assignNames="v3h"}
-  $v4.through{assignNames="v4h"}
-  $v5.through{assignNames="v5h"}
-  $v6.through{assignNames="v6h"}
+  <copy target="v1" prop="through" assignNames="v1h" />
+  <copy target="v2" prop="through" assignNames="v2h" />
+  <copy target="v3" prop="through" assignNames="v3h" />
+  <copy target="v4" prop="through" assignNames="v4h" />
+  <copy target="v5" prop="through" assignNames="v5h" />
+  <copy target="v6" prop="through" assignNames="v6h" />
   `,
                 },
                 "*",
@@ -10181,30 +10181,30 @@ describe("Ray Tag Tests", function () {
   <text>a</text>
   <graph name="g0" newNamespace>
     <ray name="v0" />
-    $v0{through="(3,4)" name="v1"}
-    $v1{endpoint="(-1,0)" name="v2"}
-    $v0{endpoint="(2,-6)" name="v3"}
-    $v3{direction="(-3,4)" name="v4"}
-    $v0{direction="(5,-1)" name="v5"}
-    $v5{through="(6,2)" name="v6"}
+    <copy target="v0" through="(3,4)" assignNames="v1" />
+    <copy target="v1" endpoint="(-1,0)" assignNames="v2" />
+    <copy target="v0" endpoint="(2,-6)" assignNames="v3" />
+    <copy target="v3" direction="(-3,4)" assignNames="v4" />
+    <copy target="v0" direction="(5,-1)" assignNames="v5" />
+    <copy target="v5" through="(6,2)" assignNames="v6" />
   </graph>
 
-  $g0{name="g1"}
+  <copy target="g0" assignNames="g1" />
 
-  $(g0/v0.endpoint{assignNames="v0t"})
-  $(g0/v0.through{assignNames="v0h"})
-  $(g0/v1.endpoint{assignNames="v1t"})
-  $(g0/v1.through{assignNames="v1h"})
-  $(g0/v2.endpoint{assignNames="v2t"})
-  $(g0/v2.through{assignNames="v2h"})
-  $(g0/v3.endpoint{assignNames="v3t"})
-  $(g0/v3.through{assignNames="v3h"})
-  $(g0/v4.endpoint{assignNames="v4t"})
-  $(g0/v4.through{assignNames="v4h"})
-  $(g0/v5.endpoint{assignNames="v5t"})
-  $(g0/v5.through{assignNames="v5h"})
-  $(g0/v6.endpoint{assignNames="v6t"})
-  $(g0/v6.through{assignNames="v6h"})
+  <copy target="g0/v0" prop="endpoint" assignNames="v0t" />
+  <copy target="g0/v0" prop="through" assignNames="v0h" />
+  <copy target="g0/v1" prop="endpoint" assignNames="v1t" />
+  <copy target="g0/v1" prop="through" assignNames="v1h" />
+  <copy target="g0/v2" prop="endpoint" assignNames="v2t" />
+  <copy target="g0/v2" prop="through" assignNames="v2h" />
+  <copy target="g0/v3" prop="endpoint" assignNames="v3t" />
+  <copy target="g0/v3" prop="through" assignNames="v3h" />
+  <copy target="g0/v4" prop="endpoint" assignNames="v4t" />
+  <copy target="g0/v4" prop="through" assignNames="v4h" />
+  <copy target="g0/v5" prop="endpoint" assignNames="v5t" />
+  <copy target="g0/v5" prop="through" assignNames="v5h" />
+  <copy target="g0/v6" prop="endpoint" assignNames="v6t" />
+  <copy target="g0/v6" prop="through" assignNames="v6h" />
 
   `,
                 },
@@ -11311,14 +11311,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",
@@ -11482,14 +11482,14 @@ describe("Ray Tag Tests", function () {
   </graph>
 
   <graph>
-  $_ray1.endpoint{assignNames="endpoint"}
-  $_ray1.through{assignNames="through"}
-  $_ray1.direction{assignNames="direction"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint" />
+  <copy prop="through" target="_ray1" assignNames="through" />
+  <copy prop="direction" target="_ray1" assignNames="direction" />
   </graph>
   
-  $_ray1.endpoint{assignNames="endpoint2"}
-  $_ray1.through{assignNames="through2"}
-  $_ray1.direction{assignNames="direction2"}
+  <copy prop="endpoint" target="_ray1" assignNames="endpoint2" />
+  <copy prop="through" target="_ray1" assignNames="through2" />
+  <copy prop="direction" target="_ray1" assignNames="direction2" />
   `,
                 },
                 "*",

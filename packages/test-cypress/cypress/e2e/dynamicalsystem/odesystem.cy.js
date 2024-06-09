@@ -1,4 +1,4 @@
-import { cesc, createFunctionFromDefinition } from "@doenet/utils";
+import { createFunctionFromDefinition, cesc } from "@doenet/utils";
 
 describe("ODEsystem Tag Tests", function () {
     beforeEach(() => {
@@ -21,7 +21,7 @@ describe("ODEsystem Tag Tests", function () {
     </odesystem>
 
     <graph>
-    $ode.numericalsolution{assignNames="f"}
+    <copy prop="numericalsolution" target="ode" assignNames="f" />
     <point x='$zeroFixed' y='$ic' />
     </graph>
 
@@ -33,7 +33,7 @@ describe("ODEsystem Tag Tests", function () {
     </map></aslist></p>
 
     <number fixed hide name="zeroFixed">0</number>
-    $tol.value{assignNames="tol2"}
+    <copy prop="value" target="tol" assignNames="tol2" />
   `,
                 },
                 "*",
@@ -353,10 +353,10 @@ describe("ODEsystem Tag Tests", function () {
   </m></p>
 
 
-  $tol.value{assignNames="tol2"}
-  $T.value{assignNames="T2"}
-  $maxiter.value{assignNames="maxiter2"}
-  $chunksize.value{assignNames="chunksize2"}
+  <copy prop="value" target="tol" assignNames="tol2" />
+  <copy prop="value" target="T" assignNames="T2" />
+  <copy prop="value" target="maxiter" assignNames="maxiter2" />
+  <copy prop="value" target="chunksize" assignNames="chunksize2" />
   `,
                 },
                 "*",
@@ -598,7 +598,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
 
   <graph>
-  $ode.numericalsolution{assignNames="f"}
+  <copy prop="numericalsolution" target="ode" assignNames="f" />
   </graph>
 
 
@@ -609,8 +609,8 @@ describe("ODEsystem Tag Tests", function () {
     </sources>
   </map></aslist></p>
 
-  $ivar.value{assignNames="ivar2"}
-  $dvar.value{assignNames="dvar2"}
+  <copy prop="value" target="ivar" assignNames="ivar2" />
+  <copy prop="value" target="dvar" assignNames="dvar2" />
   `,
                 },
                 "*",
@@ -1134,7 +1134,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
 
   <p>We started with 
-  <m>x($ode.initialindependentvariablevalue) = 1</m>.</p>
+  <m>x(<copy prop="initialindependentvariablevalue" target="ode"/>) = 1</m>.</p>
 
   <p>We end with
   <m>x($tf) = $$(ode.numericalSolution)($tf)</m></p>
@@ -1322,7 +1322,7 @@ describe("ODEsystem Tag Tests", function () {
 
   <graph>
     <curve parmin="0" parmax="10">
-      $ode.numericalsolutions{assignNames="f1 f2"}
+      <copy prop="numericalsolutions" target="ode" assignNames="f1 f2" />
     </curve>
     <point x="$ic1" y="$ic2" />
   </graph>
@@ -1729,25 +1729,25 @@ describe("ODEsystem Tag Tests", function () {
   <righthandside>x/y</righthandside>
   </odesystem>
 
-  <p>RHS1: $ode.rhs1{name="rhs1a"}</p>
-  <p>RHS2: $ode.rhs2{name="rhs2a"}</p>
-  <p>RHS1: $ode.rhs{name="rhs1b"}</p>
-  <p>Both RHSs: <aslist>$ode.rhss{name="rhssa"}</aslist></p>
-  <p>RHS1: $ode.righthandside1{name="rhs1c"}</p>
-  <p>RHS2: $ode.righthandside2{name="rhs2b"}</p>
-  <p>RHS1: $ode.righthandside{name="rhs1d"}</p>
-  <p>Both RHSs: <aslist>$ode.righthandsides{name="rhssb"}</aslist></p>
+  <p>RHS1: <copy name="rhs1a" prop="rhs1" target="ode" /></p>
+  <p>RHS2: <copy name="rhs2a" prop="rhs2" target="ode" /></p>
+  <p>RHS1: <copy name="rhs1b" prop="rhs" target="ode" /></p>
+  <p>Both RHSs: <aslist><copy name="rhssa" prop="rhss" target="ode" /></aslist></p>
+  <p>RHS1: <copy name="rhs1c" prop="righthandside1" target="ode" /></p>
+  <p>RHS2: <copy name="rhs2b" prop="righthandside2" target="ode" /></p>
+  <p>RHS1: <copy name="rhs1d" prop="righthandside" target="ode" /></p>
+  <p>Both RHSs: <aslist><copy name="rhssb" prop="righthandsides" target="ode" /></aslist></p>
   
-  <p>IC1: $ode.initialcondition1{name="ic1a"}</p>
-  <p>IC2: $ode.initialcondition2{name="ic2a"}</p>
-  <p>IC1: $ode.initialcondition{name="ic1b"}</p>
-  <p>Both ICs: <aslist>$ode.initialconditions{name="icsa"}</aslist></p>
+  <p>IC1: <copy name="ic1a" prop="initialcondition1" target="ode" /></p>
+  <p>IC2: <copy name="ic2a" prop="initialcondition2" target="ode" /></p>
+  <p>IC1: <copy name="ic1b" prop="initialcondition" target="ode" /></p>
+  <p>Both ICs: <aslist><copy name="icsa" prop="initialconditions" target="ode" /></aslist></p>
 
   <p>Swap right hand sides and keep initial conditions</p>
 
   <odesystem name="odeswap" initialconditions="$(ode.initialconditions)">
-    <righthandside>$ode.rhs2</righthandside>
-    <righthandside>$ode.rhs1</righthandside>
+    <righthandside><copy prop="rhs2" target="ode" /></righthandside>
+    <righthandside><copy prop="rhs1" target="ode" /></righthandside>
   </odesystem>
   `,
                 },

@@ -15,8 +15,8 @@ describe("BooleanInput Tag Tests", function () {
     <booleaninput name="bi1" >
       <label>hello</label>
     </booleaninput>
-    $bi1.value{assignNames="v1"}
-    $v1{name="v2"}
+    <copy prop="value" target="bi1" assignNames="v1" />
+    <copy target="_copy1" assignNames="v2" />
     `,
                 },
                 "*",
@@ -77,7 +77,7 @@ describe("BooleanInput Tag Tests", function () {
                     doenetML: `
     <text>a</text>
     <booleaninput prefill="true"/>
-    $_booleaninput1.value{assignNames="v1"}
+    <copy prop="value" target="_booleaninput1" assignNames="v1" />
     `,
                 },
                 "*",
@@ -139,11 +139,11 @@ describe("BooleanInput Tag Tests", function () {
       <label>green</label>
     </booleaninput></p>
     <p><booleanInput copySource="bi1" name="bi1a" /></p>
-    <p>$bi1.value{assignNames="v1"}</p>
+    <p><copy prop="value" target="bi1" assignNames="v1" /></p>
     <p><booleaninput name="bi2" >
       <label>red</label>
     </booleaninput></p>
-    <p>$bi2.value{assignNames="v2"}</p>
+    <p><copy prop="value" target="bi2" assignNames="v2" /></p>
     `,
                 },
                 "*",
@@ -213,8 +213,8 @@ describe("BooleanInput Tag Tests", function () {
     <text>a</text>
     <p>Original boolean: <boolean>true</boolean></p>
     <p>booleaninput based on boolean: <booleaninput bindValueTo="$_boolean1" /></p>
-    <p>Copied boolean: $_boolean1{name="b2"}</p>
-    <p>Copied boolean input: $_booleaninput1.value{assignNames="b3"}</p>
+    <p>Copied boolean: <copy target="_boolean1" assignNames="b2" /></p>
+    <p>Copied boolean input: <copy prop="value" target="_booleaninput1" assignNames="b3" /></p>
     `,
                 },
                 "*",
@@ -334,8 +334,8 @@ describe("BooleanInput Tag Tests", function () {
     <text>a</text>
     <p>Original boolean: <boolean>true</boolean></p>
     <p>booleaninput based on boolean: <booleaninput>$_boolean1</booleaninput></p>
-    <p>Copied boolean: $_boolean1{name="b2"}</p>
-    <p>Copied boolean input: $_booleaninput1.value{assignNames="b3"}</p>
+    <p>Copied boolean: <copy target="_boolean1" assignNames="b2" /></p>
+    <p>Copied boolean input: <copy prop="value" target="_booleaninput1" assignNames="b3" /></p>
     `,
                 },
                 "*",
@@ -507,8 +507,8 @@ describe("BooleanInput Tag Tests", function () {
       <label>hello</label>
     </booleaninput></p>
 
-    $bi.value{assignNames="v1"}
-    $v1{name="v2"}
+    <copy prop="value" target="bi" assignNames="v1" />
+    <copy target="_copy1" assignNames="v2" />
     `,
                 },
                 "*",
@@ -620,7 +620,7 @@ describe("BooleanInput Tag Tests", function () {
     <p><booleanInput name="atb" ><label>It is <m>\\int_a^b f(x)\\,dx</m></label></booleaninput></p>
     <p><booleanInput name="bi" asToggleButton="$atb"><label>Hello <math>a/b</math></label></booleaninput></p>
 
-    $atb.value{assignNames="v"}
+    <copy prop="value" target="atb" assignNames="v" />
 
     <p><updateValue target="_label1.hide" newValue="!$_label1.hide" type="boolean" name="toggleLabels"><label>Toggle labels</label></updateValue>
     <updateValue triggerWith="toggleLabels" target="_label2.hide" newValue="!$_label2.hide" type="boolean" /></p>

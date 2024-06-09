@@ -27,7 +27,7 @@ describe("Collect Tag Tests", function () {
     </graph>
 
     <graph>
-      $_point1{name="p1a"}
+      <copy source="_point1" assignNames="p1a" />
       <point>(4,2)</point>
       <point>
         (<copy prop="y" source="_point2" />,
@@ -1369,8 +1369,8 @@ describe("Collect Tag Tests", function () {
       <collect componentTypes="point vector" source="_panel1" assignNames="v1 v2 v3 v4 v5 v6" />
     </graph>
 
-    $_vector1.head{assignNames="h1"}
-    $_vector2.head{assignNames="h2"}
+    <copy prop="head" source="_vector1" assignNames="h1" />
+    <copy prop="head" source="_vector2" assignNames="h2" />
     `,
                 },
                 "*",
@@ -2100,7 +2100,7 @@ describe("Collect Tag Tests", function () {
   </p>
  
   <p name="p_original">Enter expressions:
-    <map asList="false">
+    <map>
       <template>
         <mathinput />
       </template>
@@ -2115,26 +2115,26 @@ describe("Collect Tag Tests", function () {
 
   <p name="p_1a">Copied: <aslist name="al1a"><copy name="values1a" source="values1" /></aslist></p>
   <p name="p_1b">Copy aslist: <copy name="al1b" source="al1" /></p>
-  <p name="p_1c">Copy copied: <aslist>$values1a</aslist></p>
-  <p name="p_1d">Copy aslist containing copy: $al1a</p>
-  <p name="p_1e">Copy copied aslist: $al1b</p>
+  <p name="p_1c">Copy copied: <aslist><copy source="values1a" /></aslist></p>
+  <p name="p_1d">Copy aslist containing copy: <copy source="al1a" /></p>
+  <p name="p_1e">Copy copied aslist: <copy source="al1b" /></p>
 
   <p name="p_2">Values collected: 
     <aslist name="al2"><collect prop="value" name="values2" componentTypes="mathinput" source="p_original"/></aslist></p>
     
   <p name="p_2a">Copied: <aslist name="al2a"><copy name="values2a" source="values2" /></aslist></p>
   <p name="p_2b">Copy aslist: <copy name="al2b" source="al2" /></p>
-  <p name="p_2c">Copy copied: <aslist>$values2a</aslist></p>
-  <p name="p_2d">Copy aslist containing copy: $al2a</p>
-  <p name="p_2e">Copy copied aslist: $al2b</p>
+  <p name="p_2c">Copy copied: <aslist><copy source="values2a" /></aslist></p>
+  <p name="p_2d">Copy aslist containing copy: <copy source="al2a" /></p>
+  <p name="p_2e">Copy copied aslist: <copy source="al2b" /></p>
 
   <p name="p_3">Inputs collected: <aslist name="al3"><collect name="col" componentTypes="mathinput" source="p_original"/></aslist></p>
   
   <p name="p_3a">Copied: <aslist name="al3a"><copy name="cola" source="col" /></aslist></p>
   <p name="p_3b">Copy aslist: <copy name="al3b" source="al3" /></p>
-  <p name="p_3c">Copy copied: <aslist>$cola</aslist></p>
-  <p name="p_3d">Copy aslist containing copy: $al3a</p>
-  <p name="p_3e">Copy copied aslist: $al3b</p>
+  <p name="p_3c">Copy copied: <aslist><copy source="cola" /></aslist></p>
+  <p name="p_3d">Copy aslist containing copy: <copy source="al3a" /></p>
+  <p name="p_3e">Copy copied aslist: <copy source="al3b" /></p>
   
     `,
                 },
@@ -2171,7 +2171,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2185,14 +2185,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2214,7 +2214,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2228,14 +2228,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2254,16 +2254,16 @@ describe("Collect Tag Tests", function () {
             force: true,
         });
 
-        cy.get(cesc("#\\/p_original") + " span:nth-of-type(2) textarea")
+        cy.get(cesc("#\\/p_original") + " > span:nth-of-type(2) textarea")
             .type("{end}{backspace}y", { force: true })
             .blur();
-        cy.get(cesc("#\\/p_original") + " span:nth-of-type(3) textarea")
+        cy.get(cesc("#\\/p_original") + " > span:nth-of-type(3) textarea")
             .type("{end}{backspace}z", { force: true })
             .blur();
-        cy.get(cesc("#\\/p_original") + " span:nth-of-type(4) textarea")
+        cy.get(cesc("#\\/p_original") + " > span:nth-of-type(4) textarea")
             .type("{end}{backspace}u", { force: true })
             .blur();
-        cy.get(cesc("#\\/p_original") + " span:nth-of-type(5) textarea")
+        cy.get(cesc("#\\/p_original") + " > span:nth-of-type(5) textarea")
             .type("{end}{backspace}v", { force: true })
             .blur();
 
@@ -2288,7 +2288,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2302,14 +2302,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2331,7 +2331,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2345,14 +2345,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2383,7 +2383,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2397,14 +2397,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2426,7 +2426,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2440,14 +2440,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2478,7 +2478,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2492,14 +2492,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2521,7 +2521,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2535,14 +2535,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2573,7 +2573,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2587,14 +2587,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2616,7 +2616,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2630,14 +2630,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2668,7 +2668,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2682,14 +2682,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2711,7 +2711,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2725,14 +2725,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2761,18 +2761,18 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/p_1a") + " > span:nth-of-type(3) .mjx-mrow").should(
             "not.exist",
         );
-        cy.get(
-            cesc("#\\/p_1b") + " > span > span:nth-of-type(3) .mjx-mrow",
-        ).should("not.exist");
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(3) .mjx-mrow").should(
+            "not.exist",
+        );
         cy.get(cesc("#\\/p_1c") + " > span:nth-of-type(3) .mjx-mrow").should(
             "not.exist",
         );
-        cy.get(
-            cesc("#\\/p_1d") + " > span > span:nth-of-type(3) .mjx-mrow",
-        ).should("not.exist");
-        cy.get(
-            cesc("#\\/p_1e") + " > span > span:nth-of-type(3) .mjx-mrow",
-        ).should("not.exist");
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(3) .mjx-mrow").should(
+            "not.exist",
+        );
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(3) .mjx-mrow").should(
+            "not.exist",
+        );
 
         cy.get(cesc("#\\/p_2") + " > span:nth-of-type(3) .mjx-mrow").should(
             "not.exist",
@@ -2780,18 +2780,18 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/p_2a") + " > span:nth-of-type(3) .mjx-mrow").should(
             "not.exist",
         );
-        cy.get(
-            cesc("#\\/p_2b") + " > span > span:nth-of-type(3) .mjx-mrow",
-        ).should("not.exist");
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(3) .mjx-mrow").should(
+            "not.exist",
+        );
         cy.get(cesc("#\\/p_2c") + " > span:nth-of-type(3) .mjx-mrow").should(
             "not.exist",
         );
-        cy.get(
-            cesc("#\\/p_2d") + " > span > span:nth-of-type(3) .mjx-mrow",
-        ).should("not.exist");
-        cy.get(
-            cesc("#\\/p_2e") + " > span > span:nth-of-type(3) .mjx-mrow",
-        ).should("not.exist");
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(3) .mjx-mrow").should(
+            "not.exist",
+        );
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(3) .mjx-mrow").should(
+            "not.exist",
+        );
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(1) .mjx-mrow").should(
             "contain.text",
@@ -2814,7 +2814,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2828,14 +2828,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2857,7 +2857,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2871,14 +2871,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("x");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2909,7 +2909,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2923,14 +2923,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2952,7 +2952,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -2966,14 +2966,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("y");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3018,7 +3018,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3032,14 +3032,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3061,7 +3061,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3075,14 +3075,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3113,7 +3113,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3127,14 +3127,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3156,7 +3156,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3170,14 +3170,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3217,7 +3217,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3231,14 +3231,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3260,7 +3260,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3274,14 +3274,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3312,7 +3312,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3326,14 +3326,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3355,7 +3355,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3369,14 +3369,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3407,7 +3407,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3421,14 +3421,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3450,7 +3450,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3464,14 +3464,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("z");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3502,7 +3502,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3516,14 +3516,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3545,7 +3545,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3559,14 +3559,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("u");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3597,7 +3597,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3611,14 +3611,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3640,7 +3640,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3654,14 +3654,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("v");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3676,16 +3676,18 @@ describe("Collect Tag Tests", function () {
         // cy.get(cesc('#\\/p_3d') + ' > span:nth-of-type(5) input').should('have.value', 'v');
         // cy.get(cesc('#\\/p_3e') + ' > span:nth-of-type(5) input').should('have.value', 'v');
 
-        cy.get(
-            cesc("#\\/p_3b") + " > span > span:nth-of-type(3) textarea",
-        ).type("{end}{backspace}c{enter}", { force: true });
+        cy.get(cesc("#\\/p_3b") + " > span:nth-of-type(3) textarea").type(
+            "{end}{backspace}c{enter}",
+            { force: true },
+        );
         cy.get(cesc("#\\/p_3c") + " > span:nth-of-type(4) textarea").type(
             "{end}{backspace}d{enter}",
             { force: true },
         );
-        cy.get(
-            cesc("#\\/p_3d") + " > span > span:nth-of-type(5) textarea",
-        ).type("{end}{backspace}e{enter}", { force: true });
+        cy.get(cesc("#\\/p_3d") + " > span:nth-of-type(5) textarea").type(
+            "{end}{backspace}e{enter}",
+            { force: true },
+        );
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(5) .mjx-mrow").should(
             "contain.text",
@@ -3708,7 +3710,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3722,14 +3724,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3751,7 +3753,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3765,14 +3767,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("a");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(1)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(1)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3803,7 +3805,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3817,14 +3819,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3846,7 +3848,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3860,14 +3862,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("b");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(2)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(2)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3898,7 +3900,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("c");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3912,14 +3914,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("c");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("c");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3941,7 +3943,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("c");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3955,14 +3957,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("c");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("c");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(3)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(3)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -3993,7 +3995,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("d");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4007,14 +4009,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("d");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("d");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4036,7 +4038,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("d");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4050,14 +4052,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("d");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("d");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(4)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(4)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4088,7 +4090,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("e");
             });
-        cy.get(cesc("#\\/p_1b") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1b") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4102,14 +4104,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("e");
             });
-        cy.get(cesc("#\\/p_1d") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1d") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("e");
             });
-        cy.get(cesc("#\\/p_1e") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_1e") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4131,7 +4133,7 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("e");
             });
-        cy.get(cesc("#\\/p_2b") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2b") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4145,14 +4147,14 @@ describe("Collect Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("e");
             });
-        cy.get(cesc("#\\/p_2d") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2d") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal("e");
             });
-        cy.get(cesc("#\\/p_2e") + " > span > span:nth-of-type(5)")
+        cy.get(cesc("#\\/p_2e") + " > span:nth-of-type(5)")
             .find(".mjx-mrow")
             .eq(0)
             .invoke("text")
@@ -4188,8 +4190,8 @@ describe("Collect Tag Tests", function () {
     <p name="pcollect1"><collect source="_group1" componentTypes="_input math text boolean" /></p>
     <p name="pcollect2">$_collect1</p>
     <p name="pgroup2">$_group1</p>
-    <p name="pcollect3">$_collect1</p>
-    <p name="pgroup3">$_group1</p>
+    <p name="pcollect3"><copy source="_collect1" /></p>
+    <p name="pgroup3"><copy source="_group1" /></p>
     `,
                 },
                 "*",
@@ -4437,7 +4439,7 @@ describe("Collect Tag Tests", function () {
         );
         cy.get(cesc("#\\/_p2")).should(
             "have.text",
-            "Force to reveal: secret, public",
+            "Force to reveal: secretpublic",
         );
     });
 
@@ -4449,9 +4451,9 @@ describe("Collect Tag Tests", function () {
     <text>a</text>
     <section>
       <p name="theP1" newNamespace>Hidden text: <text name="hidden" hide>secret</text></p>
-      $theP1{name="theP2"}
+      <copy source="theP1" assignNames="theP2" />
       <p hide name="theP3" newNamespace>Hidden paragraph with hidden text: <text name="hidden" hide>top secret</text></p>
-      $theP3{name="theP4"}
+      <copy source="theP3" assignNames="theP4" />
     </section>
     <collect componentTypes="p" source="_section1" assignNames="cp1 cp2 cp3 cp4" />
     <collect componentTypes="p" source="_section1" hide="false" assignNames="cp5 cp6 cp7 cp8" />
@@ -4491,9 +4493,9 @@ describe("Collect Tag Tests", function () {
     <text>a</text>
     <section hide>
       <p name="theP1" newNamespace>Hidden text: <text name="hidden" hide>secret</text></p>
-      $theP1{name="theP2"}
+      <copy source="theP1" assignNames="theP2" />
       <p hide name="theP3" newNamespace>Hidden paragraph with hidden text: <text name="hidden" hide>top secret</text></p>
-      $theP3{name="theP4"}
+      <copy source="theP3" assignNames="theP4" />
     </section>
     <collect componentTypes="p" source="_section1" assignNames="cp1 cp2 cp3 cp4" />
     <collect componentTypes="p" source="_section1" hide="false" assignNames="cp5 cp6 cp7 cp8" />
@@ -4547,8 +4549,8 @@ describe("Collect Tag Tests", function () {
     </booleaninput>
     <p>Number of points <mathinput name="n" prefill="4" /></p>
 
-    <p name="c1">collect 1: <collect hide="$h1" componentTypes="text" source="_p1" asList="false" /></p>
-    <p name="c2">collect 2: <collect hide="$h2" componentTypes="text" prop="value" source="_p1" asList="false" /></p>
+    <p name="c1">collect 1: <collect hide="$h1" componentTypes="text" source="_p1" /></p>
+    <p name="c2">collect 2: <collect hide="$h2" componentTypes="text" prop="value" source="_p1" /></p>
     `,
                 },
                 "*",
@@ -4629,29 +4631,6 @@ describe("Collect Tag Tests", function () {
             "have.text",
             "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! ",
         );
-    });
-
-    it("asList", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p name="p">We an <text>apple</text>, a <text>banana</text>, and a <text>cherry</text>.</p> 
-
-    <p name="pdefault"><collect componentTypes="text" source="p" /></p>
-    <p name="pnolist"><collect componentTypes="text" source="p" aslist="false"/></p>
-
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(cesc2("#/pdefault")).should(
-            "have.text",
-            "apple, banana, cherry",
-        );
-        cy.get(cesc2("#/pnolist")).should("have.text", "applebananacherry");
     });
 
     it("collect warnings", () => {
@@ -4832,7 +4811,7 @@ describe("Collect Tag Tests", function () {
 
     <copy source="al" name="al2" newNamespace />
 
-    $A2.fixed{assignNames="A2fixed"}
+    <copy prop="fixed" source="A2" assignNames="A2fixed" />
     `,
                 },
                 "*",
@@ -5518,7 +5497,7 @@ describe("Collect Tag Tests", function () {
     </graph>
 
     <graph>
-      $_point1{name="p1a"}
+      <copy source="_point1" assignNames="p1a" />
       <point>(4,2)</point>
       <point>
         (<copy prop="y" source="_point2" />,

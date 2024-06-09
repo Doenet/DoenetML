@@ -23,15 +23,15 @@ describe("Parabola Tag Tests", function () {
     <text>a</text>
     <graph>
     <parabola />
-    $_parabola1.vertex{assignNames="v"}
+    <copy prop="vertex" name="v" target="_parabola1" />
     </graph>
     <graph name="g2">
-    $_parabola1{name="p2"}
-    $v{name="v2"}
+    <copy name="p2" target="_parabola1" />
+    <copy name="v2" target="v" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy name="g3" target="g2"/>
 
-    $p2.equation{assignNames="e2"}
+    <copy prop="equation" name="e2" target="p2" />
 
     <p>a = <mathinput name="a" bindValueTo="$(_parabola1.a)"/></p>
     <p>b = <mathinput name="b" bindValueTo="$(_parabola1.b)"/></p>
@@ -51,6 +51,17 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let equationAnchor = cesc2(
+                "#" + stateVariables["/e2"].replacements[0].componentName,
+            );
+            let parabola3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[0].componentName;
+            let vertex3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[1].componentName;
 
             cy.window().then(async (win) => {
                 let a = 1,
@@ -62,7 +73,7 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -109,101 +120,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -225,8 +282,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=−2x2");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -275,101 +332,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -391,8 +494,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -441,101 +544,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -557,8 +706,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+9");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+9");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -607,101 +756,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -723,8 +918,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2+3x+9");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2+3x+9");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -773,101 +968,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -889,8 +1130,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2−1.7x+9");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2−1.7x+9");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -939,101 +1180,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -1055,11 +1342,11 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should(
+                cy.get(equationAnchor).should(
                     "contain.text",
                     "y=0.2x2−1.7x−4.5",
                 );
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -1108,101 +1395,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -1214,7 +1547,8 @@ describe("Parabola Tag Tests", function () {
 
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -1269,101 +1603,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -1374,7 +1754,8 @@ describe("Parabola Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v2",
+                    componentName:
+                        stateVariables["/v2"].replacements[0].componentName,
                     args: { x: 5, y: -6 },
                 });
 
@@ -1429,101 +1810,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -1533,7 +1960,7 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/g3/v2",
+                    componentName: vertex3Name,
                     args: { x: -3, y: -2 },
                 });
 
@@ -1588,101 +2015,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -1698,15 +2171,15 @@ describe("Parabola Tag Tests", function () {
     <text>a</text>
     <graph>
     <parabola through="" />
-    $_parabola1.vertex{assignNames="v"}
+    <copy prop="vertex" name="v" target="_parabola1" />
     </graph>
     <graph name="g2">
-    $_parabola1{name="p2"}
-    $v{name="v2"}
+    <copy name="p2" target="_parabola1" />
+    <copy name="v2" target="v" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy name="g3" target="g2"/>
 
-    $p2.equation{assignNames="e2"}
+    <copy prop="equation" name="e2" target="p2" />
 
     <p>a = <mathinput name="a" bindValueTo="$(_parabola1.a)"/></p>
     <p>b = <mathinput name="b" bindValueTo="$(_parabola1.b)"/></p>
@@ -1726,6 +2199,17 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let equationAnchor = cesc2(
+                "#" + stateVariables["/e2"].replacements[0].componentName,
+            );
+            let parabola3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[0].componentName;
+            let vertex3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[1].componentName;
 
             cy.window().then(async (win) => {
                 let a = 1,
@@ -1737,7 +2221,7 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -1786,101 +2270,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -1902,9 +2432,9 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2");
 
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -1953,101 +2483,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -2069,8 +2645,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -2119,101 +2695,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -2235,8 +2857,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+9");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+9");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -2285,101 +2907,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -2401,8 +3069,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2+3x+9");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2+3x+9");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -2451,101 +3119,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -2567,8 +3281,8 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2−1.7x+9");
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2−1.7x+9");
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -2617,101 +3331,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -2733,11 +3493,11 @@ describe("Parabola Tag Tests", function () {
 
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
-                cy.get(cesc2("#/e2")).should(
+                cy.get(equationAnchor).should(
                     "contain.text",
                     "y=0.2x2−1.7x−4.5",
                 );
-                cy.get(cesc2("#/e2"))
+                cy.get(equationAnchor)
                     .find(".mjx-mrow")
                     .eq(0)
                     .invoke("text")
@@ -2786,101 +3546,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -2890,7 +3696,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -2945,101 +3752,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -3049,7 +3902,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v2",
+                    componentName:
+                        stateVariables["/v2"].replacements[0].componentName,
                     args: { x: 5, y: -6 },
                 });
 
@@ -3104,101 +3958,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -3208,7 +4108,7 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/g3/v2",
+                    componentName: vertex3Name,
                     args: { x: -3, y: -2 },
                 });
 
@@ -3263,101 +4163,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                 });
@@ -3374,15 +4320,15 @@ describe("Parabola Tag Tests", function () {
     <graph>
     <point>(1,2)</point>
     <parabola through="$_point1"/>
-    $_parabola1.vertex{assignNames="v"}
+    <copy prop="vertex" name="v" target="_parabola1" />
     </graph>
     <graph name="g2">
-    $_parabola1{name="p2"}
-    $v{name="v2"}
+    <copy name="p2" target="_parabola1" />
+    <copy name="v2" target="v" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy name="g3" target="g2"/>
 
-    $p2.equation{assignNames="e2"}
+    <copy prop="equation" name="e2" target="p2" />
 
     <p>a = <mathinput name="a" bindValueTo="$(_parabola1.a)"/></p>
     <p>b = <mathinput name="b" bindValueTo="$(_parabola1.b)"/></p>
@@ -3402,6 +4348,17 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let equationAnchor = cesc2(
+                "#" + stateVariables["/e2"].replacements[0].componentName,
+            );
+            let parabola3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[0].componentName;
+            let vertex3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[1].componentName;
 
             cy.window().then(async (win) => {
                 let a = 1,
@@ -3452,101 +4409,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -3580,7 +4583,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2−2x+3");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2−2x+3");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -3624,101 +4627,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -3752,7 +4801,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+3");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+3");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -3796,101 +4845,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -3924,7 +5019,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+9");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -3968,101 +5063,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -4096,7 +5237,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2+3x+9");
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2+3x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -4140,101 +5281,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -4268,7 +5455,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2−1.7x+9");
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2−1.7x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -4312,101 +5499,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -4440,7 +5673,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should(
+                cy.get(equationAnchor).should(
                     "contain.text",
                     "y=0.2x2−1.7x−4.5",
                 );
@@ -4487,101 +5720,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -4605,7 +5884,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -4660,101 +5940,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -4778,7 +6104,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v2",
+                    componentName:
+                        stateVariables["/v2"].replacements[0].componentName,
                     args: { x: 5, y: -6 },
                 });
 
@@ -4833,101 +6160,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -5006,101 +6379,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -5132,15 +6551,15 @@ describe("Parabola Tag Tests", function () {
     <point>(1,2)</point>
     <point>(3,4)</point>
     <parabola through="$_point1 $_point2"/>
-    $_parabola1.vertex{assignNames="v"}
+    <copy prop="vertex" name="v" target="_parabola1" />
     </graph>
     <graph name="g2">
-    $_parabola1{name="p2"}
-    $v{name="v2"}
+    <copy name="p2" target="_parabola1" />
+    <copy name="v2" target="v" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy name="g3" target="g2"/>
 
-    $p2.equation{assignNames="e2"}
+    <copy prop="equation" name="e2" target="p2" />
 
     <p>a = <mathinput name="a" bindValueTo="$(_parabola1.a)"/></p>
     <p>b = <mathinput name="b" bindValueTo="$(_parabola1.b)"/></p>
@@ -5160,8 +6579,19 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let equationAnchor = cesc2(
+                "#" + stateVariables["/e2"].replacements[0].componentName,
+            );
+            let parabola3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[0].componentName;
+            let vertex3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[1].componentName;
 
-            cy.get(cesc2("#/e2")).should("contain.text", "y=x2−3x+4");
+            cy.get(equationAnchor).should("contain.text", "y=x2−3x+4");
 
             cy.window().then(async (win) => {
                 let x1 = 1,
@@ -5218,101 +6648,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -5372,7 +6848,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2−3x+4");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2−3x+4");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -5416,101 +6892,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -5570,7 +7092,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+4");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+4");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -5614,101 +7136,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -5762,7 +7330,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+9");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -5806,101 +7374,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -5954,7 +7568,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2+3x+9");
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2+3x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -5998,101 +7612,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -6146,7 +7806,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2−1.7x+9");
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2−1.7x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -6190,101 +7850,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -6338,7 +8044,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should(
+                cy.get(equationAnchor).should(
                     "contain.text",
                     "y=0.2x2−1.7x−4.5",
                 );
@@ -6385,101 +8091,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -6517,7 +8269,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -6578,101 +8331,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -6710,7 +8509,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v2",
+                    componentName:
+                        stateVariables["/v2"].replacements[0].componentName,
                     args: { x: 5, y: -6 },
                 });
 
@@ -6771,101 +8571,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -6968,101 +8814,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -7165,101 +9057,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -7319,32 +9257,56 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex,
                     ).eqls(["\uff3f", "\uff3f"]);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq("\uff3f");
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq("\uff3f");
-                    assert.isNaN(stateVariables["/p2"].stateValues.a);
-                    assert.isNaN(stateVariables["/p2"].stateValues.b);
-                    assert.isNaN(stateVariables["/p2"].stateValues.c);
-                    expect(stateVariables["/p2"].stateValues.vertex).eqls([
-                        "\uff3f",
-                        "\uff3f",
-                    ]);
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    );
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    );
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    );
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex,
+                    ).eqls(["\uff3f", "\uff3f"]);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.a);
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.b);
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.c);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex,
+                    ).eqls(["\uff3f", "\uff3f"]);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         "\uff3f",
                     );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        "\uff3f",
-                    );
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.a);
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.b);
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.c);
-                    expect(stateVariables["/g3/p2"].stateValues.vertex).eqls([
-                        "\uff3f",
-                        "\uff3f",
-                    ]);
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         "\uff3f",
                     );
                     expect(
@@ -7447,101 +9409,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -7588,15 +9596,15 @@ describe("Parabola Tag Tests", function () {
     <point>(3,4)</point>
     <point>(5,6)</point>
     <parabola through="$_point1 $_point2 $_point3"/>
-    $_parabola1.vertex{assignNames="v"}
+    <copy prop="vertex" name="v" target="_parabola1" />
     </graph>
     <graph name="g2">
-    $_parabola1{name="p2"}
-    $v{name="v2"}
+    <copy name="p2" target="_parabola1" />
+    <copy name="v2" target="v" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy name="g3" target="g2"/>
 
-    $p2.equation{assignNames="e2"}
+    <copy prop="equation" name="e2" target="p2" />
 
     <p>a = <mathinput name="a" bindValueTo="$(_parabola1.a)"/></p>
     <p>b = <mathinput name="b" bindValueTo="$(_parabola1.b)"/></p>
@@ -7616,6 +9624,17 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let equationAnchor = cesc2(
+                "#" + stateVariables["/e2"].replacements[0].componentName,
+            );
+            let parabola3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[0].componentName;
+            let vertex3Name =
+                stateVariables[
+                    stateVariables["/g3"].replacements[0].componentName
+                ].activeChildren[1].componentName;
 
             cy.window().then(async (win) => {
                 let x1 = 1,
@@ -7673,71 +9692,101 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex[1],
                     ).eq("\uff3f");
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq("\uff3f");
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq("\uff3f");
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[1],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/p2"].stateValues.vertex[0]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/p2"].stateValues.vertex[1]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        "\uff3f",
-                    );
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[0]).eq(
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[1],
+                    ).eq("\uff3f");
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         "\uff3f",
                     );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[1]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         "\uff3f",
                     );
                     expect(
@@ -7829,7 +9878,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+x+1");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+x+1");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -7873,101 +9922,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -8059,7 +10154,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+1");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+1");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -8103,101 +10198,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -8267,7 +10408,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=−2x2+3x+9");
+                cy.get(equationAnchor).should("contain.text", "y=−2x2+3x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -8311,101 +10452,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -8475,7 +10662,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2+3x+9");
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2+3x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -8519,101 +10706,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -8683,7 +10916,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should("contain.text", "y=0.2x2−1.7x+9");
+                cy.get(equationAnchor).should("contain.text", "y=0.2x2−1.7x+9");
                 let equationExpression = me.fromText(`y=${a}x^2+${b}x+${c}`);
 
                 cy.window().then(async (win) => {
@@ -8727,101 +10960,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -8891,7 +11170,7 @@ describe("Parabola Tag Tests", function () {
                 let vertex_x = -b / (2 * a);
                 let vertex_y = c - b ** 2 / (4 * a);
 
-                cy.get(cesc2("#/e2")).should(
+                cy.get(equationAnchor).should(
                     "contain.text",
                     "y=0.2x2−1.7x−4.5",
                 );
@@ -8938,101 +11217,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -9084,7 +11409,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -9147,101 +11473,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -9293,7 +11665,8 @@ describe("Parabola Tag Tests", function () {
             cy.window().then(async (win) => {
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v2",
+                    componentName:
+                        stateVariables["/v2"].replacements[0].componentName,
                     args: { x: 5, y: -6 },
                 });
 
@@ -9356,101 +11729,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -9588,101 +12007,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -9806,101 +12271,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -10014,101 +12525,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -10222,101 +12779,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -10435,101 +13038,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -10611,32 +13260,56 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex,
                     ).eqls(["\uff3f", "\uff3f"]);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq("\uff3f");
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq("\uff3f");
-                    assert.isNaN(stateVariables["/p2"].stateValues.a);
-                    assert.isNaN(stateVariables["/p2"].stateValues.b);
-                    assert.isNaN(stateVariables["/p2"].stateValues.c);
-                    expect(stateVariables["/p2"].stateValues.vertex).eqls([
-                        "\uff3f",
-                        "\uff3f",
-                    ]);
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    );
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    );
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    );
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex,
+                    ).eqls(["\uff3f", "\uff3f"]);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.a);
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.b);
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.c);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex,
+                    ).eqls(["\uff3f", "\uff3f"]);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         "\uff3f",
                     );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        "\uff3f",
-                    );
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.a);
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.b);
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.c);
-                    expect(stateVariables["/g3/p2"].stateValues.vertex).eqls([
-                        "\uff3f",
-                        "\uff3f",
-                    ]);
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         "\uff3f",
                     );
                     expect(
@@ -10769,101 +13442,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -10962,17 +13681,17 @@ describe("Parabola Tag Tests", function () {
           <point>($i+<math>0</math>, $m+<math>0</math>)</point>
         </template>
         <sources alias="m" indexAlias="i">
-          <sequence step="2"><count>$n.value</count></sequence>
+          <sequence step="2"><count><copy prop="value" target="n" /></count></sequence>
         </sources>
       </map>
     </through></parabola>
-    $_parabola1.vertex{name="v"}
+    <copy prop="vertex" name="v" target="_parabola1" />
     </graph>
     <graph name="g2">
-    $_parabola1{name="p2"}
-    $v{name="v2"}
+    <copy name="p2" target="_parabola1" />
+    <copy name="v2" target="v" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy name="g3" target="g2"/>
 
     <p>a = <mathinput name="a" bindValueTo="$(_parabola1.a)"/></p>
     <p>b = <mathinput name="b" bindValueTo="$(_parabola1.b)"/></p>
@@ -11024,54 +13743,73 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex[1],
                     ).eq(vertex_y);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq(vertex_x);
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq(vertex_y);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[0]).eq(
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         vertex_x,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         vertex_y,
                     );
                 });
@@ -11110,54 +13848,73 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex[1],
                     ).eq(vertex_y);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq(vertex_x);
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq(vertex_y);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[0]).eq(
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         vertex_x,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         vertex_y,
                     );
                 });
@@ -11196,54 +13953,73 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex[1],
                     ).eq(vertex_y);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq(vertex_x);
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq(vertex_y);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[0]).eq(
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         vertex_x,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         vertex_y,
                     );
                 });
@@ -11254,7 +14030,8 @@ describe("Parabola Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -11285,54 +14062,73 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex[1],
                     ).eq(vertex_y);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq(vertex_x);
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq(vertex_y);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[0]).eq(
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         vertex_x,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         vertex_y,
                     );
                 });
@@ -11377,54 +14173,73 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex[1],
                     ).eq(vertex_y);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq(vertex_x);
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq(vertex_y);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[0]).eq(
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[0],
+                    ).eq(vertex_x);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex[1],
+                    ).eq(vertex_y);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         vertex_x,
                     );
-                    expect(stateVariables["/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.vertex[1]).eq(
-                        vertex_y,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        vertex_x,
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         vertex_y,
                     );
                 });
@@ -11511,101 +14326,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -11740,101 +14601,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -11946,101 +14853,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -12152,101 +15105,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -12358,101 +15357,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -12564,101 +15609,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -12711,7 +15802,8 @@ describe("Parabola Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v",
+                    componentName:
+                        stateVariables["/v"].replacements[0].componentName,
                     args: { x: -2, y: 1 },
                 });
 
@@ -12772,101 +15864,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -12919,7 +16057,8 @@ describe("Parabola Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 await win.callAction1({
                     actionName: "movePoint",
-                    componentName: "/v2",
+                    componentName:
+                        stateVariables["/v2"].replacements[0].componentName,
                     args: { x: 5, y: -6 },
                 });
 
@@ -12980,101 +16119,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -13212,101 +16397,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -13430,101 +16661,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -13638,101 +16915,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -13846,101 +17169,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -14059,101 +17428,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -14235,32 +17650,56 @@ describe("Parabola Tag Tests", function () {
                     expect(
                         stateVariables["/_parabola1"].stateValues.vertex,
                     ).eqls(["\uff3f", "\uff3f"]);
-                    expect(stateVariables["/v"].stateValues.xs[0]).eq("\uff3f");
-                    expect(stateVariables["/v"].stateValues.xs[1]).eq("\uff3f");
-                    assert.isNaN(stateVariables["/p2"].stateValues.a);
-                    assert.isNaN(stateVariables["/p2"].stateValues.b);
-                    assert.isNaN(stateVariables["/p2"].stateValues.c);
-                    expect(stateVariables["/p2"].stateValues.vertex).eqls([
-                        "\uff3f",
-                        "\uff3f",
-                    ]);
-                    expect(stateVariables["/v2"].stateValues.xs[0]).eq(
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    );
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    );
+                    assert.isNaN(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    );
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.vertex,
+                    ).eqls(["\uff3f", "\uff3f"]);
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[0],
+                    ).eq("\uff3f");
+                    expect(
+                        stateVariables[
+                            stateVariables["/v2"].replacements[0].componentName
+                        ].stateValues.xs[1],
+                    ).eq("\uff3f");
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.a);
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.b);
+                    assert.isNaN(stateVariables[parabola3Name].stateValues.c);
+                    expect(
+                        stateVariables[parabola3Name].stateValues.vertex,
+                    ).eqls(["\uff3f", "\uff3f"]);
+                    expect(stateVariables[vertex3Name].stateValues.xs[0]).eq(
                         "\uff3f",
                     );
-                    expect(stateVariables["/v2"].stateValues.xs[1]).eq(
-                        "\uff3f",
-                    );
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.a);
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.b);
-                    assert.isNaN(stateVariables["/g3/p2"].stateValues.c);
-                    expect(stateVariables["/g3/p2"].stateValues.vertex).eqls([
-                        "\uff3f",
-                        "\uff3f",
-                    ]);
-                    expect(stateVariables["/g3/v2"].stateValues.xs[0]).eq(
-                        "\uff3f",
-                    );
-                    expect(stateVariables["/g3/v2"].stateValues.xs[1]).eq(
+                    expect(stateVariables[vertex3Name].stateValues.xs[1]).eq(
                         "\uff3f",
                     );
                     expect(
@@ -14393,101 +17832,147 @@ describe("Parabola Tag Tests", function () {
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/v"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
-                    expect(stateVariables["/p2"].stateValues.a).closeTo(
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.a,
+                    ).closeTo(a, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.b,
+                    ).closeTo(b, 1e-12);
+                    expect(
+                        stateVariables[
+                            stateVariables["/p2"].replacements[0].componentName
+                        ].stateValues.c,
+                    ).closeTo(c, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.equation,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/p2"].replacements[0]
+                                        .componentName
+                                ].stateValues.vertex[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[0],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_x, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/v2"].replacements[0]
+                                        .componentName
+                                ].stateValues.xs[1],
+                            )
+                            .evaluate_numbers().tree,
+                    ).closeTo(vertex_y, 1e-12);
+                    expect(
+                        me
+                            .fromAst(
+                                stateVariables[
+                                    stateVariables["/e2"].replacements[0]
+                                        .componentName
+                                ].stateValues.value,
+                            )
+                            .equals(equationExpression),
+                    ).eq(true);
+                    expect(stateVariables[parabola3Name].stateValues.a).closeTo(
                         a,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.b).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.b).closeTo(
                         b,
                         1e-12,
                     );
-                    expect(stateVariables["/p2"].stateValues.c).closeTo(
+                    expect(stateVariables[parabola3Name].stateValues.c).closeTo(
                         c,
                         1e-12,
                     );
                     expect(
                         me
-                            .fromAst(stateVariables["/p2"].stateValues.equation)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(
-                        me
                             .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[0],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/p2"].stateValues.vertex[1],
-                            )
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[0])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_x, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/v2"].stateValues.xs[1])
-                            .evaluate_numbers().tree,
-                    ).closeTo(vertex_y, 1e-12);
-                    expect(
-                        me
-                            .fromAst(stateVariables["/e2"].stateValues.value)
-                            .equals(equationExpression),
-                    ).eq(true);
-                    expect(stateVariables["/g3/p2"].stateValues.a).closeTo(
-                        a,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.b).closeTo(
-                        b,
-                        1e-12,
-                    );
-                    expect(stateVariables["/g3/p2"].stateValues.c).closeTo(
-                        c,
-                        1e-12,
-                    );
-                    expect(
-                        me
-                            .fromAst(
-                                stateVariables["/g3/p2"].stateValues.equation,
+                                stateVariables[parabola3Name].stateValues
+                                    .equation,
                             )
                             .equals(equationExpression),
                     ).eq(true);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[0],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[0],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables["/g3/p2"].stateValues.vertex[1],
+                                stateVariables[parabola3Name].stateValues
+                                    .vertex[1],
                             )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[0])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[0],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_x, 1e-12);
                     expect(
                         me
-                            .fromAst(stateVariables["/g3/v2"].stateValues.xs[1])
+                            .fromAst(
+                                stateVariables[vertex3Name].stateValues.xs[1],
+                            )
                             .evaluate_numbers().tree,
                     ).closeTo(vertex_y, 1e-12);
                     expect(
@@ -14552,10 +18037,10 @@ describe("Parabola Tag Tests", function () {
     </point>
     </graph>
     <graph name="g2">
-      $p{name="p2"}
-      $A{name="A2"}
+      <copy assignNames="p2" target="p" />
+      <copy assignNames="A2" target="A" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy assignNames="g3" target="g2"/>
     `,
                 },
                 "*",
@@ -14568,10 +18053,11 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let A3Name = stateVariables["/g3"].activeChildren[1].componentName;
 
             let [x1, x2] = stateVariables["/A"].stateValues.xs;
             let [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            let [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            let [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(0);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14587,7 +18073,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(9);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14603,7 +18089,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(-9);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14613,13 +18099,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 0.9, y: 9 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(0.9);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14629,13 +18115,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 1.1, y: 9 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(1.11);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14660,10 +18146,10 @@ describe("Parabola Tag Tests", function () {
     </point>
     </graph>
     <graph name="g2">
-      $p{name="p2"}
-      $A{name="A2"}
+      <copy assignNames="p2" target="p" />
+      <copy assignNames="A2" target="A" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy assignNames="g3" target="g2"/>
     `,
                 },
                 "*",
@@ -14676,10 +18162,11 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let A3Name = stateVariables["/g3"].activeChildren[1].componentName;
 
             let [x1, x2] = stateVariables["/A"].stateValues.xs;
             let [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            let [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            let [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(0);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14695,7 +18182,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(9);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14711,7 +18198,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(-9);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14721,13 +18208,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 0.9, y: -9 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(0.9);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14737,13 +18224,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 1.1, y: -9 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(1.11);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14768,10 +18255,10 @@ describe("Parabola Tag Tests", function () {
     </point>
     </graph>
     <graph name="g2">
-      $p{name="p2"}
-      $A{name="A2"}
+      <copy assignNames="p2" target="p" />
+      <copy assignNames="A2" target="A" />
     </graph>
-    $g2{name="g3" newNamespace}
+    <copy assignNames="g3" target="g2"/>
     `,
                 },
                 "*",
@@ -14784,10 +18271,11 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let A3Name = stateVariables["/g3"].activeChildren[1].componentName;
 
             let [x1, x2] = stateVariables["/A"].stateValues.xs;
             let [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            let [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            let [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).closeTo(1.5 / -2.5, 1e-14);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14803,7 +18291,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).closeTo((1.5 - 2 * 9 + 2) / -2.5, 1e-14);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14819,7 +18307,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).closeTo((1.5 + 2 * 9 - 4) / -2.5, 1e-14);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14829,13 +18317,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 0.9, y: 9 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).closeTo((1.5 - 2 * 0.9 - 9) / -2.5, 1e-14);
             expect(x2).closeTo(f_p(x1), 1e-14);
             expect(x12).eq(x1);
@@ -14860,10 +18348,10 @@ describe("Parabola Tag Tests", function () {
     </point>
     </graph>
     <graph name="g2" ymin="-1000" ymax="1000">
-      $p{name="p2"}
-      $A{name="A2"}
+      <copy assignNames="p2" target="p" />
+      <copy assignNames="A2" target="A" />
     </graph>
-    $g2{name="g3" ymin="-1000" ymax="1000" newNamespace}
+    <copy assignNames="g3" target="g2" ymin="-1000" ymax="1000"/>
     `,
                 },
                 "*",
@@ -14876,10 +18364,11 @@ describe("Parabola Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+            let A3Name = stateVariables["/g3"].activeChildren[1].componentName;
 
             let [x1, x2] = stateVariables["/A"].stateValues.xs;
             let [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            let [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            let [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(0);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14895,7 +18384,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(9);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14911,7 +18400,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(-9);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14921,13 +18410,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 0.9, y: -900 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(0.9);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14937,13 +18426,13 @@ describe("Parabola Tag Tests", function () {
 
             await win.callAction1({
                 actionName: "movePoint",
-                componentName: "/g3/A2",
+                componentName: A3Name,
                 args: { x: 1.1, y: -900 },
             });
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(1.11);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14959,7 +18448,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).greaterThan(2);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14975,7 +18464,7 @@ describe("Parabola Tag Tests", function () {
             stateVariables = await win.returnAllStateVariables1();
             [x1, x2] = stateVariables["/A"].stateValues.xs;
             [x12, x22] = stateVariables["/A2"].stateValues.xs;
-            [x13, x23] = stateVariables["/g3/A2"].stateValues.xs;
+            [x13, x23] = stateVariables[A3Name].stateValues.xs;
             expect(x1).lessThan(0);
             expect(x2).closeTo(f_p(x1), 1e-12);
             expect(x12).eq(x1);
@@ -14993,13 +18482,13 @@ describe("Parabola Tag Tests", function () {
     <text>a</text>
     <graph name="g1" newNamespace>
     <parabola name="p0" />
-    $p0{vertex="(3,4)" name="p1"}
-    $p1{through="(5,-4)" name="p2"}
-    $p0{through="(-5,-2)" name="p3"}
-    $p3{vertex="(-6,6)" name="p4"}
+    <copy target="p0" vertex="(3,4)" assignNames="p1" />
+    <copy target="p1" through="(5,-4)" assignNames="p2" />
+    <copy target="p0" through="(-5,-2)" assignNames="p3" />
+    <copy target="p3" vertex="(-6,6)" assignNames="p4" />
     </graph>
 
-    $g1{name="g2"}
+    <copy target="g1" assignNames="g2" />
 
     `,
                 },

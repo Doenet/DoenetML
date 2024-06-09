@@ -19,8 +19,8 @@ describe("Point Tag Tests 2", function () {
   
   </graph>
   
-  <coords copysource="_point1.coords" name="coords1" />
-    
+  <copy prop="coords" target="_point1" assignNames="coords1" />
+      
   `,
                 },
                 "*",
@@ -119,11 +119,11 @@ describe("Point Tag Tests 2", function () {
                     doenetML: `
   <text>a</text>
   <graph>
-    <point>($_point2.y, 7)</point>
-    <point>($_point1.y, 9)</point>
+    <point>(<copy prop="y" target="_point2" />, 7)</point>
+    <point>(<copy prop="y" target="_point1" />, 9)</point>
   </graph>
       
-  <coords copysource="_point1.coords" name="coords1" />
+  <copy prop="coords" target="_point1" assignNames="coords1" />
 
   `,
                 },
@@ -228,11 +228,11 @@ describe("Point Tag Tests 2", function () {
   </graph>
   
   <graph>
-    <point copysource="_point1" name="P1a" />
-    <point copysource="_point2" name="P2a" />
+    <copy name="P1a" target="_point1" assignNames="P1ap" />
+    <copy name="P2a" target="_point2" assignNames="P2ap" />
   </graph>
 
-  <coords copysource="_point1.coords" name="coords1" />
+  <copy prop="coords" target="_point1" assignNames="coords1" />
   `,
                 },
                 "*",
@@ -260,11 +260,11 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
             expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-            expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-            expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+            expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+            expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-            expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-            expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+            expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+            expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
         });
 
         cy.log("move point 1");
@@ -296,11 +296,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
 
@@ -333,11 +333,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
 
@@ -348,7 +348,7 @@ describe("Point Tag Tests 2", function () {
 
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P1a",
+                componentName: "/P1ap",
                 args: { x, y },
             });
 
@@ -370,11 +370,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
 
@@ -385,7 +385,7 @@ describe("Point Tag Tests 2", function () {
 
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P2a",
+                componentName: "/P2ap",
                 args: { x: y, y: x },
             });
 
@@ -407,11 +407,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
     });
@@ -423,16 +423,16 @@ describe("Point Tag Tests 2", function () {
                     doenetML: `
   <text>a</text>
   <graph>
-    <point>($P2a.y, 7)</point>
-    <point>($P1a.y, 9)</point>
+    <point>(<copy prop="y" target="P2a" />, 7)</point>
+    <point>(<copy prop="y" target="P1a" />, 9)</point>
   </graph>
   
   <graph>
-    <point name="P1a" copySource="_point1" />
-    <point name="P2a" copySource="_point2" />
+    <copy name="P1a" target="_point1" assignNames="P1ap" />
+    <copy name="P2a" target="_point2" assignNames="P2ap" />
   </graph>
 
-  <coords copysource="_point1.coords" name="coords1" />
+  <copy prop="coords" target="_point1" assignNames="coords1" />
 
   `,
                 },
@@ -461,11 +461,11 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
             expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-            expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-            expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+            expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+            expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-            expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-            expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+            expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+            expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
         });
 
         cy.log("move point 1");
@@ -497,11 +497,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
 
@@ -534,11 +534,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
 
@@ -549,7 +549,7 @@ describe("Point Tag Tests 2", function () {
 
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P1a",
+                componentName: "/P1ap",
                 args: { x, y },
             });
 
@@ -571,11 +571,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
 
@@ -586,7 +586,7 @@ describe("Point Tag Tests 2", function () {
 
             win.callAction1({
                 actionName: "movePoint",
-                componentName: "/P2a",
+                componentName: "/P2ap",
                 args: { x: y, y: x },
             });
 
@@ -608,11 +608,11 @@ describe("Point Tag Tests 2", function () {
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(x);
 
-                expect(stateVariables["/P1a"].stateValues.xs[0]).eq(x);
-                expect(stateVariables["/P1a"].stateValues.xs[1]).eq(y);
+                expect(stateVariables["/P1ap"].stateValues.xs[0]).eq(x);
+                expect(stateVariables["/P1ap"].stateValues.xs[1]).eq(y);
 
-                expect(stateVariables["/P2a"].stateValues.xs[0]).eq(y);
-                expect(stateVariables["/P2a"].stateValues.xs[1]).eq(x);
+                expect(stateVariables["/P2ap"].stateValues.xs[0]).eq(y);
+                expect(stateVariables["/P2ap"].stateValues.xs[1]).eq(x);
             });
         });
     });
@@ -629,7 +629,7 @@ describe("Point Tag Tests 2", function () {
   
   </graph>
 
-  <coords copysource="_point1.coords" name="coords1" />
+  <copy prop="coords" target="_point1" assignNames="coords1" />
 
   `,
                 },
@@ -729,13 +729,13 @@ describe("Point Tag Tests 2", function () {
                     doenetML: `
   <text>a</text>
   <graph>
-    <point>(3, 2$_point1.x+1)</point>
-    <point>(2$_point2.y+1, 3)</point>
+    <point>(3, 2<copy prop="x" target="_point1"/>+1)</point>
+    <point>(2<copy prop="y" target="_point2"/>+1, 3)</point>
   </graph>
      
-  <coords copysource="_point1.coords" name="coords1" />
-  <coords copysource="_point2.coords" name="coords2" />
-
+  <copy prop="coords" target="_point1" assignNames="coords1" />
+  <copy prop="coords" target="_point2" assignNames="coords2" />
+  
   `,
                 },
                 "*",
@@ -825,14 +825,14 @@ describe("Point Tag Tests 2", function () {
                     doenetML: `
   <text>a</text>
   <graph>
-    <point x="3" y="$_graph1.ymax{fixed='true'}" />
+    <point x="3" y="$(_graph1.ymax{fixed='true'})" />
     <point>
-      ($_graph1.xmin{fixed="true"},5)
+      (<copy prop="xmin" fixed="true" target="_graph1" />,5)
     </point>
   </graph>
 
-  <coords copysource="_point1.coords" name="coords1" />
-  <coords copysource="_point2.coords" name="coords2" />
+  <copy prop="coords" target="_point1" assignNames="coords1" />
+  <copy prop="coords" target="_point2" assignNames="coords2" />
   
   `,
                 },
@@ -919,17 +919,17 @@ describe("Point Tag Tests 2", function () {
   <text>a</text>
   <graph>
     <point>
-      <label><text>$_point1.x, $_point2.x</text></label>
+      <label><text><copy prop="x" displaydigits="3" target="_point1" />, <copy prop="x" displaydigits="3" target="_point2" /></text></label>
       (1,2)
     </point>
     <point>
       (3,4)
-      <label><text>$_point1.y, $_point2.y</text></label>
+      <label><text><copy prop="y" displaydigits="3" target="_point1" />, <copy prop="y" displaydigits="3" target="_point2" /></text></label>
     </point>
   </graph>
 
-  <p>Label 1: $_point1.label</p>
-  <p>Label 2: $_point2.label</p>
+  <p>Label 1: <copy prop="label" target="_point1" /></p>
+  <p>Label 2: <copy prop="label" target="_point2" /></p>
   `,
                 },
                 "*",
@@ -1063,17 +1063,17 @@ describe("Point Tag Tests 2", function () {
   <text>a</text>
   <graph>
     <point>
-      <label>$_point1.x, $_point2.x</label>
+      <label><copy prop="x" displaydigits="3" target="_point1" />, <copy prop="x" displaydigits="3" target="_point2" /></label>
       (1,2)
     </point>
     <point>
       (3,4)
-      <label>$_point1.y, $_point2.y</label>
+      <label><copy prop="y" displaydigits="3" target="_point1" />, <copy prop="y" displaydigits="3" target="_point2" /></label>
     </point>
   </graph>
 
-  <p>Label 1: $_point1.label</p>
-  <p>Label 2: $_point2.label</p>
+  <p>Label 1: <copy prop="label" target="_point1" /></p>
+  <p>Label 2: <copy prop="label" target="_point2" /></p>
   `,
                 },
                 "*",
@@ -1291,9 +1291,9 @@ describe("Point Tag Tests 2", function () {
       <point y="$(_point1.y)" x="$fixed0" />
     </graph>
 
-    <coords copysource="_point1.coords" name="coords1" />
- 
-    <booleaninput name="bi" /> $bi{name="b"}
+    <copy prop="coords" target="_point1" assignNames="coords1" />
+    
+    <booleaninput name="bi" /><copy prop="value" target="bi" assignNames="b" />
   `,
                 },
                 "*",
@@ -1489,35 +1489,35 @@ describe("Point Tag Tests 2", function () {
 
     <section name="thePoints"><title>The points</title>
     <p name="point1p">The point: <point coords="$originalCoords"/></p>
-    <p name="point2p">The point copied: $_point1{name="point2"}</p>
-    <p name="point3p">The point copied again: <point name="point3" copySource="point2"/></p>
+    <p name="point2p">The point copied: <copy assignNames="point2" target="_point1"/></p>
+    <p name="point3p">The point copied again: <copy assignNames="point3" target="point2"/></p>
     </section>
 
     <section><title>From point 1</title>
-    <p>Number of dimensions: <number name="numDimensions1" copySource="_point1.numDimensions" /></p>
-    <p name="p1x">x-coordinate: $_point1.x1{name="point1x1"}</p>
-    <p name="p1y">y-coordinate: $_point1.x2{name="point1x2"}</p>
-    <p name="p1z">z-coordinate: $_point1.x3{name="point1x3"}</p>
-    <p name="p1all">All individual coordinates: <aslist>$_point1.xs</aslist></p>
-    <p>Coordinates: <coords copysource="_point1.coords" name="coords1" /></p>
+    <p>Number of dimensions: <copy assignNames="numDimensions1" prop="numDimensions" target="_point1" /></p>
+    <p name="p1x">x-coordinate: <copy assignNames="point1x1" prop="x1" target="_point1"/></p>
+    <p name="p1y">y-coordinate: <copy assignNames="point1x2" prop="x2" target="_point1"/></p>
+    <p name="p1z">z-coordinate: <copy assignNames="point1x3" prop="x3" target="_point1"/></p>
+    <p name="p1all">All individual coordinates: <aslist><copy prop="xs" target="_point1"/></aslist></p>
+    <p>Coordinates: <copy assignNames="coords1" prop="coords" target="_point1"/></p>
     </section>
 
     <section><title>From point 2</title>
-    <p>Number of dimensions: <number name="numDimensions2" copySource="point2.numDimensions" /></p>
-    <p name="p2x">x-coordinate: $point2.x1{name="point2x1"}</p>
-    <p name="p2y">y-coordinate: $point2.x2{name="point2x2"}</p>
-    <p name="p2z">z-coordinate: $point2.x3{name="point2x3"}</p>
-    <p name="p2all">All individual coordinates: <aslist>$point2.xs</aslist></p>
-    <p>Coordinates: <coords copysource="point2.coords" name="coords2" /></p>
+    <p>Number of dimensions: <copy assignNames="numDimensions2" prop="numDimensions" target="point2" /></p>
+    <p name="p2x">x-coordinate: <copy assignNames="point2x1" prop="x1" target="point2"/></p>
+    <p name="p2y">y-coordinate: <copy assignNames="point2x2" prop="x2" target="point2"/></p>
+    <p name="p2z">z-coordinate: <copy assignNames="point2x3" prop="x3" target="point2"/></p>
+    <p name="p2all">All individual coordinates: <aslist><copy prop="xs" target="point2"/></aslist></p>
+    <p>Coordinates: <copy assignNames="coords2" prop="coords" target="point2"/></p>
     </section>
 
     <section><title>From point 3</title>
-    <p>Number of dimensions: <number name="numDimensions3" copySource="point3.numDimensions" /></p>
-    <p name="p3x">x-coordinate: $point3.x1{name="point3x1"}</p>
-    <p name="p3y">y-coordinate: $point3.x2{name="point3x2"}</p>
-    <p name="p3z">z-coordinate: $point3.x3{name="point3x3"}</p>
-    <p name="p3all">All individual coordinates: <aslist>$point3.xs</aslist></p>
-    <p>Coordinates: <coords copysource="point3.coords" name="coords3" /></p>
+    <p>Number of dimensions: <copy assignNames="numDimensions3" prop="numDimensions" target="point3" /></p>
+    <p name="p3x">x-coordinate: <copy assignNames="point3x1" prop="x1" target="point3"/></p>
+    <p name="p3y">y-coordinate: <copy assignNames="point3x2" prop="x2" target="point3"/></p>
+    <p name="p3z">z-coordinate: <copy assignNames="point3x3" prop="x3" target="point3"/></p>
+    <p name="p3all">All individual coordinates: <aslist><copy prop="xs" target="point3"/></aslist></p>
+    <p>Coordinates: <copy assignNames="coords3" prop="coords" target="point3"/></p>
     </section>
 
     <section><title>For point 1</title>
@@ -1550,11 +1550,11 @@ describe("Point Tag Tests 2", function () {
     </section>
 
     <section><title>Extracting from point 3</title>
-    <p name="p3xe">x-coordinate: <extract name="point3x1e" prop="x1">$point3</extract></p>
-    <p name="p3ye">y-coordinate: <extract name="point3x2e" prop="x2">$point3</extract></p>
-    <p name="p3ze">z-coordinate: <extract name="point3x3e" prop="x3">$point3</extract></p>
-    <p name="p3alle">All individual coordinates: <aslist><extract prop="xs">$point3</extract></aslist></p>
-    <p>Coordinates: <extract name="coords3e" prop="coords">$point3</extract></p>
+    <p name="p3xe">x-coordinate: <extract assignNames="point3x1e" prop="x1"><copy target="point3"/></extract></p>
+    <p name="p3ye">y-coordinate: <extract assignNames="point3x2e" prop="x2"><copy target="point3"/></extract></p>
+    <p name="p3ze">z-coordinate: <extract assignNames="point3x3e" prop="x3"><copy target="point3"/></extract></p>
+    <p name="p3alle">All individual coordinates: <aslist><extract prop="xs"><copy target="point3"/></extract></aslist></p>
+    <p>Coordinates: <extract assignNames="coords3e" prop="coords"><copy target="point3"/></extract></p>
     </section>
  
   `,
@@ -7856,9 +7856,9 @@ describe("Point Tag Tests 2", function () {
     <p>Specify point coordinates: <mathinput name="originalCoords" /></p>
 
     <section name="thePoints"><title>The points</title>
-    <p name="point1p">The point: <point coords="$originalCoords"/></p>
-    <p name="point2p">The point copied: $_point1{name="point2"}</p>
-    <p name="point3p">The point copied again: <point name="point3" copySource="point2"/></p>
+    <p name="point1p">The point: <point coords="$originalCoords" /></p>
+    <p name="point2p">The point copied: <copy assignNames="point2" target="_point1"/></p>
+    <p name="point3p">The point copied again: <copy assignNames="point3" target="point2"/></p>
     </section>
 
   `,
@@ -8194,14 +8194,14 @@ describe("Point Tag Tests 2", function () {
     </graph>
 
     <graph name="g1">
-      $A{name="A1" x="-1"}
-      $B{name="B1" y="-2"}
-      $C{name="C1" x="2$n-1"}
-      $C{name="C2" y="2$n-2"}
+      <copy target="A" assignNames="A1" x="-1" />
+      <copy target="B" assignNames="B1" y="-2" />
+      <copy target="C" assignNames="C1" x="2$n-1" />
+      <copy target="C" name="C2" assignNames="C" y="2$n-2" newNamespace />
     </graph>
 
-    $A{name="A2" z="4"}
-    $C2{name="C3" z="1"}
+    <copy target="A" assignNames="A2" z="4" />
+    <copy target="C2/C" assignNames="C3" z="1" />
 
     <number name="n">1</number>
 
@@ -8226,7 +8226,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([-1, 2]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([3, -2]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([1, 1]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([3, 0]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([3, 0]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([1, 2, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([3, 0, 1]);
             expect(stateVariables["/A"].stateValues.label).eq("A");
@@ -8235,7 +8235,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/B1"].stateValues.label).eq("B");
             expect(stateVariables["/C"].stateValues.label).eq("C");
             expect(stateVariables["/C1"].stateValues.label).eq("C");
-            expect(stateVariables["/C2"].stateValues.label).eq("C");
+            expect(stateVariables["/C2/C"].stateValues.label).eq("C");
         });
 
         cy.log("move original points");
@@ -8275,7 +8275,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([-1, -7]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([5, -2]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([-5, -8]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([-3, -6]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([-3, -6]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([-2, -7, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([-3, -6, 1]);
         });
@@ -8316,7 +8316,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([8, -5]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([-6, 6]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([-7, 4]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([-5, -8]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([-5, -8]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([-2, -5, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([-5, -8, 1]);
         });
@@ -8338,14 +8338,14 @@ describe("Point Tag Tests 2", function () {
     </graph>
 
     <graph name="g1">
-      $A{name="A1" x="-1"}
-      $B{name="B1" y="-2"}
-      $C{name="C1" x="2$n-1"}
-      $C{name="C2" y="2$n-2"}
+      <copy target="A" assignNames="A1" x="-1" />
+      <copy target="B" assignNames="B1" y="-2" />
+      <copy target="C" assignNames="C1" x="2$n-1" />
+      <copy target="C" name="C2" assignNames="C" y="2$n-2" newNamespace />
     </graph>
 
-    $A{name="A2" z="4"}
-    $C2{name="C3" z="1"}
+    <copy target="A" assignNames="A2" z="4" />
+    <copy target="C2/C" assignNames="C3" z="1" />
 
     <number name="n">1</number>
 
@@ -8370,7 +8370,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([-1, 2]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([3, -2]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([1, 1]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([3, 0]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([3, 0]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([1, 2, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([3, 0, 1]);
             expect(stateVariables["/A"].stateValues.label).eq("A");
@@ -8379,7 +8379,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/B1"].stateValues.label).eq("B");
             expect(stateVariables["/C"].stateValues.label).eq("C");
             expect(stateVariables["/C1"].stateValues.label).eq("C");
-            expect(stateVariables["/C2"].stateValues.label).eq("C");
+            expect(stateVariables["/C2/C"].stateValues.label).eq("C");
         });
 
         cy.log("move original points");
@@ -8418,7 +8418,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([-1, -7]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([5, -2]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([-5, -8]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([-3, -6]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([-3, -6]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([-2, -7, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([-3, -6, 1]);
         });
@@ -8459,7 +8459,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([8, -5]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([-6, 6]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([-7, 4]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([-5, -8]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([-5, -8]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([-2, -5, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([-5, -8, 1]);
         });
@@ -8481,14 +8481,14 @@ describe("Point Tag Tests 2", function () {
     </graph>
 
     <graph name="g1">
-      $A{name="A1" x="-1"}
-      $B{name="B1" y="-2"}
-      $C{name="C1" x="2$n-1"}
-      $C{name="C2" y="2$n-2"}
+      <copy target="A" assignNames="A1" x="-1" />
+      <copy target="B" assignNames="B1" y="-2" />
+      <copy target="C" assignNames="C1" x="2$n-1" />
+      <copy target="C" name="C2" assignNames="C" y="2$n-2" newNamespace />
     </graph>
 
-    $A{name="A2" z="4"}
-    $C2{name="C3" z="1"}
+    <copy target="A" assignNames="A2" z="4" />
+    <copy target="C2/C" assignNames="C3" z="1" />
 
     <number name="n">1</number>
 
@@ -8513,7 +8513,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([-1, 2]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([3, -2]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([1, 1]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([3, 0]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([3, 0]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([1, 2, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([3, 0, 1]);
             expect(stateVariables["/A"].stateValues.label).eq("A");
@@ -8522,7 +8522,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/B1"].stateValues.label).eq("B");
             expect(stateVariables["/C"].stateValues.label).eq("C");
             expect(stateVariables["/C1"].stateValues.label).eq("C");
-            expect(stateVariables["/C2"].stateValues.label).eq("C");
+            expect(stateVariables["/C2/C"].stateValues.label).eq("C");
         });
 
         cy.log("move original points");
@@ -8561,7 +8561,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([-1, -7]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([5, -2]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([-5, -8]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([-3, -6]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([-3, -6]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([-2, -7, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([-3, -6, 1]);
         });
@@ -8602,7 +8602,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/A1"].stateValues.xs).eqls([8, -5]);
             expect(stateVariables["/B1"].stateValues.xs).eqls([-6, 6]);
             expect(stateVariables["/C1"].stateValues.xs).eqls([-7, 4]);
-            expect(stateVariables["/C2"].stateValues.xs).eqls([-5, -8]);
+            expect(stateVariables["/C2/C"].stateValues.xs).eqls([-5, -8]);
             expect(stateVariables["/A2"].stateValues.xs).eqls([-2, -5, 4]);
             expect(stateVariables["/C3"].stateValues.xs).eqls([-5, -8, 1]);
         });
@@ -8620,19 +8620,19 @@ describe("Point Tag Tests 2", function () {
     </graph>
     
     <graph name="g2" newNamespace>
-      $(../g1/P{x="-1" name="P"})
+      <copy target="../g1/P" x="-1" assignNames="P" />
     </graph>
     
-    $(g2{name="g3"})
+    <copy target="g2" assignNames="g3" />
     
     <graph name="g4" newNamespace>
-      $(../g3/P{y="-5" name="P"})
+      <copy target="../g3/P" y="-5" assignNames="P" />
     </graph>
 
-    $(g1/P{name="P1"})
-    $(g2/P{name="P2"})
-    $(g3/P{name="P3"})
-    $(g4/P{name="P4"})
+    <copy target="g1/P" assignNames="P1" />
+    <copy target="g2/P" assignNames="P2" />
+    <copy target="g3/P" assignNames="P3" />
+    <copy target="g4/P" assignNames="P4" />
 
     `,
                 },
@@ -8793,13 +8793,13 @@ describe("Point Tag Tests 2", function () {
       </point>
     </graph>
 
-    $_point1.x{name="xa"}
-    $_point2.x{name="xb"}
-    $_point3.x{name="xc"}
-    $_point4.x{name="xd"}
-    $_point5.x{name="xe"}
-    $_point6.x{name="xf"}
-    $_point7.x{name="xg"}
+    <copy prop="x" target="_point1" assignNames="xa" />
+    <copy prop="x" target="_point2" assignNames="xb" />
+    <copy prop="x" target="_point3" assignNames="xc" />
+    <copy prop="x" target="_point4" assignNames="xd" />
+    <copy prop="x" target="_point5" assignNames="xe" />
+    <copy prop="x" target="_point6" assignNames="xf" />
+    <copy prop="x" target="_point7" assignNames="xg" />
 
     `,
                 },
@@ -8829,22 +8829,22 @@ describe("Point Tag Tests 2", function () {
     <point displayDecimals="2" name="Q" x="32.252609" y="0.0672854" z="5" />
     <point padZeros name="R" x="32.252609" y="0.0672854" z="5" />
 
-    $P.coords{name="Pcoords"}
-    $Q.coords{name="Qcoords"}
-    $R.coords{name="Rcoords"}
+    <copy prop="coords" target="P" assignNames="Pcoords" />
+    <copy prop="coords" target="Q" assignNames="Qcoords" />
+    <copy prop="coords" target="R" assignNames="Rcoords" />
 
-    $P.coords{name="PcoordsDec4" displayDecimals="4"}
-    $Q.coords{name="QcoordsDig4" displayDigits="4"}
-    $R.coords{name="RcoordsDig2" displayDigits="2"}
+    <copy prop="coords" target="P" assignNames="PcoordsDec4" displayDecimals="4" />
+    <copy prop="coords" target="Q" assignNames="QcoordsDig4" displayDigits="4" />
+    <copy prop="coords" target="R" assignNames="RcoordsDig2" displayDigits="2" />
 
-    $P.coords{name="PcoordsPad" padZeros}
-    $Q.coords{name="QcoordsPad" padZeros}
-    $R.coords{name="RcoordsNoPad" padZeros="false"}
+    <copy prop="coords" target="P" assignNames="PcoordsPad" padZeros />
+    <copy prop="coords" target="Q" assignNames="QcoordsPad" padZeros />
+    <copy prop="coords" target="R" assignNames="RcoordsNoPad" padZeros="false" />
 
-    $P.xs{assignNames="Px1 Px2 Px3"}
-    $Q.x1{name="Qx1"}
-    $Q.y{name="Qx2"}
-    $R.z{name="Rx3"}
+    <copy prop="xs" target="P" assignNames="Px1 Px2 Px3" />
+    <copy prop="x1" target="Q" assignNames="Qx1" />
+    <copy prop="y" target="Q" assignNames="Qx2" />
+    <copy prop="z" target="R" assignNames="Rx3" />
 
     <math name="Pmath">$P</math>
     <math name="Qmath">$Q</math>
@@ -8854,11 +8854,11 @@ describe("Point Tag Tests 2", function () {
     <math name="QmathDig4" displayDigits="4">$Q</math>
     <math name="RmathDig2" displayDigits="2">$R</math>
 
-    <number name="Px1number">$P.x</number>
-    <number name="Px2number">$P.y</number>
+    <number name="Px1number">$(P.x)</number>
+    <number name="Px2number"><copy prop="y" target="P" /></number>
 
-    <number name="Px1numberDec4" displayDecimals="4">$P.x</number>
-    <number name="Px2numberDig4" displayDigits="4">$P.y</number>
+    <number name="Px1numberDec4" displayDecimals="4">$(P.x)</number>
+    <number name="Px2numberDig4" displayDigits="4"><copy prop="y" target="P" /></number>
 
 
     `,
@@ -9067,26 +9067,26 @@ describe("Point Tag Tests 2", function () {
     <graph>
       <point name="P" displayDecimals="1" padZeros>
         (1,2)
-        <label>We have <m>x^{$P.x} + y^{$P.y}</m></label>
+        <label>We have <m>x^{<copy prop="x" target="P"/>} + y^{<copy target="P" prop="y" />}</m></label>
       </point>
       <point name="Q" displayDigits="3" padZeros>
-        <label>No latex: x^<text>$Q.x</text> + y^<text>$Q.y</text></label>
+        <label>No latex: x^<text><copy prop="x" target="Q"/></text> + y^<text><copy target="Q" prop="y" /></text></label>
         (3,4)
       </point>
       <point name="R" displayDecimals="2">
-        <label>$P.label and $R.coords</label>
+        <label><copy prop="label" target="P"/> and <copy prop="coords" target="R" /></label>
         (5,6)
       </point>
       <point name="S" displayDigits="2">
-        <label>$Q.label and $S.coords</label>
+        <label><copy prop="label" target="Q"/> and <copy prop="coords" target="S" /></label>
         (7,8)
       </point>
     </graph>
 
-    <p name="labelPPar">Label for P: $P.label</p>
-    <p name="labelQPar">Label for Q: $Q.label</p>
-    <p name="labelRPar">Label for R: $R.label</p>
-    <p name="labelSPar">Label for S: $S.label</p>
+    <p name="labelPPar">Label for P: <copy prop="label" target="P" /></p>
+    <p name="labelQPar">Label for Q: <copy prop="label" target="Q" /></p>
+    <p name="labelRPar">Label for R: <copy prop="label" target="R" /></p>
+    <p name="labelSPar">Label for S: <copy prop="label" target="S" /></p>
     `,
                 },
                 "*",
@@ -9128,7 +9128,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{ 1.0 } + y^{ 2.0 }\\)",
+                "We have \\(x^{1.0} + y^{2.0}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9138,7 +9138,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
 
             expect(stateVariables["/R"].stateValues.label).eq(
-                "We have \\(x^{ 1.0 } + y^{ 2.0 }\\) and \\(\\left( 5, 6 \\right)\\)",
+                "We have \\(x^{1.0} + y^{2.0}\\) and \\(\\left( 5, 6 \\right)\\)",
             );
             expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
 
@@ -9201,7 +9201,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{ 3.1 } + y^{ 2.7 }\\)",
+                "We have \\(x^{3.1} + y^{2.7}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9211,7 +9211,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
 
             expect(stateVariables["/R"].stateValues.label).eq(
-                "We have \\(x^{ 3.1 } + y^{ 2.7 }\\) and \\(\\left( 0.17, 0.67 \\right)\\)",
+                "We have \\(x^{3.1} + y^{2.7}\\) and \\(\\left( 0.17, 0.67 \\right)\\)",
             );
             expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
 
@@ -9231,17 +9231,17 @@ describe("Point Tag Tests 2", function () {
     <graph>
       <point name="P" displayDecimals="1" padZeros>
         (1,2)
-        <label>We have <m>x^{$P.x} + y^{$P.y}</m></label>
+        <label>We have <m>x^{<copy prop="x" target="P"/>} + y^{<copy target="P" prop="y" />}</m></label>
       </point>
     </graph>
     <graph>
       <point name="Q" displayDigits="3" padZeros copySource="P">
-        <label>No latex: x^<text>$Q.x</text> + y^<text>$Q.y</text></label>
+        <label>No latex: x^<text><copy prop="x" target="Q"/></text> + y^<text><copy target="Q" prop="y" /></text></label>
       </point>
     </graph>
 
-    <p name="labelPPar">Label for P: $P.label</p>
-    <p name="labelQPar">Label for Q: $Q.label</p>
+    <p name="labelPPar">Label for P: <copy prop="label" target="P" /></p>
+    <p name="labelQPar">Label for Q: <copy prop="label" target="Q" /></p>
     `,
                 },
                 "*",
@@ -9268,7 +9268,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{ 1.0 } + y^{ 2.0 }\\)",
+                "We have \\(x^{1.0} + y^{2.0}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9306,7 +9306,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{ 3.1 } + y^{ 2.7 }\\)",
+                "We have \\(x^{3.1} + y^{2.7}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9346,26 +9346,26 @@ describe("Point Tag Tests 2", function () {
     <p><updateValue target="P1" prop="label" newValue="P1" type="text" name="revert1" >
       <label>Revert value 1</label>
     </updateValue></p>
-    <p>The label 1: <label copySource="P1.label" name="theLabel1" /></p>
+    <p>The label 1: <label copySource="P1" copyprop="label" name="theLabel1" /></p>
 
     <p>Change label 2: <textinput bindValueTo="$(P2.label)" name="ti2" /></p>
     <p><updateValue target="P2" prop="label" newValue="P2" type="text" name="revert2" >
       <label>Revert value 2</label>
     </updateValue></p>
-    <p>The label 2: <label copySource="P2.label" name="theLabel2" /></p>
+    <p>The label 2: <label copySource="P2" copyprop="label" name="theLabel2" /></p>
 
     <p>Change label 3: <textinput bindValueTo="$(P3.label)" name="ti3" /></p>
     <p><updateValue target="P3" prop="label" newValue="\\frac{P}{3}" type="text" name="revert3" >
       <label>Revert value 3</label>
     </updateValue></p>
-    <p>The label 3: <label copySource="P3.label" name="theLabel3" /></p>
+    <p>The label 3: <label copySource="P3" copyprop="label" name="theLabel3" /></p>
     
 
     <p>Change label 4: <textinput bindValueTo="$(P4.label)" name="ti4" /></p>
     <p><updateValue target="P4" prop="label" newValue="\\frac{P}{4}" type="text" name="revert4" >
       <label>Revert value 4</label>
     </updateValue></p>
-    <p>The label 4: <label copySource="P4.label" name="theLabel4" /></p>
+    <p>The label 4: <label copySource="P4" copyprop="label" name="theLabel4" /></p>
     
     `,
                 },
@@ -10828,7 +10828,7 @@ describe("Point Tag Tests 2", function () {
       <point name="C2">(1, sqrt(-1))</point>
     </graph>
 
-    <p>$C1{name="C1a"}, $C2{name="C2a"}</p>
+    <p>$C1{assignNames="C1a"}, $C2{assignNames="C2a"}</p>
 
     <p><mathinput name="mi1">$C1</mathinput>
     <mathinput name="mi2">$C2</mathinput></p>

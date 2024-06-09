@@ -1,4 +1,4 @@
-import { cesc, createFunctionFromDefinition } from "@doenet/utils";
+import { createFunctionFromDefinition, cesc } from "@doenet/utils";
 
 describe("Parameterized Curve Tag Tests", function () {
     beforeEach(() => {
@@ -125,7 +125,7 @@ describe("Parameterized Curve Tag Tests", function () {
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "\\(( 5 x^ 3 , 3 x^ 5 )\\)",
+                "\\((5 x^3, 3 x^5)\\)",
             );
             let f1 = createFunctionFromDefinition(
                 stateVariables["/_curve1"].stateValues.fDefinitions[0],
@@ -699,7 +699,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </curve>
     </graph>
     <graph>
-      $c1{parMin="-4" parMax="0" name="c2"}
+      <copy target="c1" parMin="-4" parMax="0" assignNames="c2" />
     </graph>
     `,
                 },
@@ -803,7 +803,7 @@ describe("Parameterized Curve Tag Tests", function () {
     <function variables="t">t^3-$_mathinput1</function>
     </curve>
     </graph>
-    $_mathinput1.value{assignNames="m1"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
     `,
                 },
                 "*",
@@ -867,13 +867,13 @@ describe("Parameterized Curve Tag Tests", function () {
     
     <point x='7' y='1'>
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
     
     </graph>
-    $_mathinput1.value{assignNames="m1"}
-    $_mathinput2.value{assignNames="m2"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
+    <copy prop="value" target="_mathinput2" assignNames="m2" />
     `,
                 },
                 "*",
@@ -971,13 +971,13 @@ describe("Parameterized Curve Tag Tests", function () {
     
     <point x='7' y='1'>
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
     
     </graph>
-    $_mathinput1.value{assignNames="m1"}
-    $_mathinput2.value{assignNames="m2"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
+    <copy prop="value" target="_mathinput2" assignNames="m2" />
     `,
                 },
                 "*",
@@ -1071,7 +1071,7 @@ describe("Parameterized Curve Tag Tests", function () {
     
     <point x='7' y='1'>
       <constraints>
-        <constrainTo>$_function1</constrainTo>
+        <constrainTo><copy target="_function1" /></constrainTo>
       </constraints>
     </point>
     
@@ -1132,12 +1132,12 @@ describe("Parameterized Curve Tag Tests", function () {
 
     <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
       <curve name="c">
-        <function copySource="f" />
-        <function copySource="g" />
+        <copy target="f" />
+        <copy target="g" />
       </curve>
       <point x="1" y="0.001" name="P">
         <constraints>
-          <constrainTo relativeToGraphScales>$c</constrainTo>
+          <constrainTo relativeToGraphScales><copy target="c" /></constrainTo>
         </constraints>
       </point>
     </graph>

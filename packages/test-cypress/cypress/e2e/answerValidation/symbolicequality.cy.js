@@ -15,23 +15,23 @@ describe("Symbolic equality tests", function () {
     <p>
     <math>1+3</math>: 
     <answer>
-      <award symbolicEquality="true">$_math1</award>
+      <award symbolicEquality="true"><copy target="_math1" /></award>
     </answer>
 
     </p>
     
     <p><math>3+1</math>: 
     <answer>
-      <award symbolicEquality="true">$_math2</award>
+      <award symbolicEquality="true"><copy target="_math2" /></award>
     </answer>
     </p>
 
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     <p><answer>
-      <award>$_math2</award>
+      <award><copy target="_math2" /></award>
     </answer></p>
     `,
                 },
@@ -291,13 +291,13 @@ describe("Symbolic equality tests", function () {
     <p>
     <math>1x-0y+-3s</math>: 
     <answer>
-      <award symbolicEquality="true">$_math1</award>
+      <award symbolicEquality="true"><copy target="_math1" /></award>
     </answer>
     </p>
 
     <p>Numeric version</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -506,7 +506,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -719,7 +719,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -935,7 +935,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -1150,7 +1150,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -1341,7 +1341,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -1535,7 +1535,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -1728,7 +1728,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -1921,7 +1921,7 @@ describe("Symbolic equality tests", function () {
     
     <p>Numeric versions</p>
     <p><answer>
-      <award>$_math1</award>
+      <award><copy target="_math1" /></award>
     </answer></p>
     `,
                 },
@@ -2042,14 +2042,14 @@ describe("Symbolic equality tests", function () {
     <p>
     What is <math name="expr">-3-4</math>?
     <answer>
-      <award symbolicEquality="true">$expr{simplify}</award>
+      <award symbolicEquality="true"><copy target="expr" simplify /></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
     <p>What is $expr? 
     <answer>
-      <award>$expr{simplify}</award>
+      <award><copy target="expr" simplify/></award>
     </answer></p>
     `,
                 },

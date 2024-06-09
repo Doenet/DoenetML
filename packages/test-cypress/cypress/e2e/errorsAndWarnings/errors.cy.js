@@ -460,7 +460,6 @@ a />
 <p name="p">
   Bye
 </p >
-<p name>blank name</p>
 <p>afterwards</p>
     `,
                 },
@@ -488,17 +487,12 @@ a />
             "Duplicate component name: p",
         );
         cy.get(cesc2("#/__error3")).should("contain.text", "lines 5–7");
-        cy.get(cesc2("#/_p5")).should(
-            "contain.text",
-            "Cannot have a blank name",
-        );
-        cy.get(cesc2("#/_p5")).should("contain.text", "line 8");
-        cy.get(cesc2("#/_p6")).should("have.text", "afterwards");
+        cy.get(cesc2("#/_p5")).should("have.text", "afterwards");
 
         cy.window().then(async (win) => {
             let errorWarnings = await win.returnErrorWarnings1();
 
-            expect(errorWarnings.errors.length).eq(4);
+            expect(errorWarnings.errors.length).eq(3);
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
@@ -524,15 +518,6 @@ a />
             expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
             expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(7);
             expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(5);
-            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(19);
-
-            expect(errorWarnings.errors[3].message).contain(
-                "Cannot have a blank name",
-            );
-            expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(8);
-            expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(1);
-            expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(8);
-            expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(22);
         });
     });
 
@@ -635,6 +620,7 @@ a />
 <group assignNames="e f">
   <text>cat</text><text>dog</text>
 </group>
+<group assignNames="f g" />
 <p assignNames="h" />
     `,
                 },
@@ -673,16 +659,25 @@ a />
         cy.get(cesc2("#/g5")).should("contain.text", "line 5");
         cy.get(cesc2("#/e")).should("have.text", "cat");
         cy.get(cesc2("#/f")).should("have.text", "dog");
+        cy.get(cesc2("#/_group7")).should(
+            "contain.text",
+            "Duplicate component name: f",
+        );
+        cy.get(cesc2("#/_group7")).should(
+            "contain.text",
+            "Found in assignNames",
+        );
+        cy.get(cesc2("#/_group7")).should("contain.text", "line 9");
         cy.get(cesc2("#/_p1")).should(
             "contain.text",
             "Cannot assign names for component type p",
         );
-        cy.get(cesc2("#/_p1")).should("contain.text", "line 9");
+        cy.get(cesc2("#/_p1")).should("contain.text", "line 10");
 
         cy.window().then(async (win) => {
             let errorWarnings = await win.returnErrorWarnings1();
 
-            expect(errorWarnings.errors.length).eq(6);
+            expect(errorWarnings.errors.length).eq(7);
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
@@ -726,12 +721,20 @@ a />
             expect(errorWarnings.errors[4].doenetMLrange.charEnd).eq(55);
 
             expect(errorWarnings.errors[5].message).contain(
-                "Cannot assign names for component type p",
+                "Duplicate component name: f",
             );
             expect(errorWarnings.errors[5].doenetMLrange.lineBegin).eq(9);
             expect(errorWarnings.errors[5].doenetMLrange.charBegin).eq(1);
             expect(errorWarnings.errors[5].doenetMLrange.lineEnd).eq(9);
-            expect(errorWarnings.errors[5].doenetMLrange.charEnd).eq(21);
+            expect(errorWarnings.errors[5].doenetMLrange.charEnd).eq(27);
+
+            expect(errorWarnings.errors[6].message).contain(
+                "Cannot assign names for component type p",
+            );
+            expect(errorWarnings.errors[6].doenetMLrange.lineBegin).eq(10);
+            expect(errorWarnings.errors[6].doenetMLrange.charBegin).eq(1);
+            expect(errorWarnings.errors[6].doenetMLrange.lineEnd).eq(10);
+            expect(errorWarnings.errors[6].doenetMLrange.charEnd).eq(21);
         });
     });
 
@@ -780,8 +783,8 @@ a />
                     doenetML: `
 
 
-    <collect source />
-    <collect source="__s" />
+    <copy source />
+    <copy source="__s" />
 
 
     `,
@@ -790,18 +793,18 @@ a />
             );
         });
 
-        cy.get(cesc2("#/_collect1")).should(
+        cy.get(cesc2("#/_copy1")).should(
             "contain.text",
-            "Must specify value for source",
+            "Must supply value for source",
         );
-        cy.get(cesc2("#/_collect1")).should("contain.text", "line 4");
+        cy.get(cesc2("#/_copy1")).should("contain.text", "line 4");
 
         // TODO: what should this error actually say?
-        cy.get(cesc2("#/_collect2")).should(
+        cy.get(cesc2("#/_copy2")).should(
             "contain.text",
             "Invalid reference target: __s",
         );
-        cy.get(cesc2("#/_collect2")).should("contain.text", "line 5");
+        cy.get(cesc2("#/_copy2")).should("contain.text", "line 5");
 
         cy.window().then(async (win) => {
             let errorWarnings = await win.returnErrorWarnings1();
@@ -810,12 +813,12 @@ a />
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
-                "Must specify value for source",
+                "Must supply value for source",
             );
             expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(4);
             expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(5);
             expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(4);
-            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(22);
+            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(19);
 
             expect(errorWarnings.errors[1].message).contain(
                 "Invalid reference target: __s",
@@ -823,7 +826,7 @@ a />
             expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(5);
             expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(5);
             expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(5);
-            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(28);
+            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(25);
         });
     });
 
@@ -865,15 +868,15 @@ a />
         // temporary messages until can better detect circular dependency with copysource
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Circular dependency involving these components: <math> (line 4).Found on line 4",
+            "Possible circular dependency involving these components: <math> (line 5).Found on line 4",
         );
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Circular dependency involving these components: <math> (line 7).Found on line 7",
+            "Possible circular dependency involving these components: <math> (line 9).Found on line 7",
         );
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Circular dependency involving these components: <math> (line 11).Found on line 11",
+            "Possible circular dependency involving these components: <math> (line 14).Found on line 11",
         );
         cy.get(cesc2("#/_document1")).should(
             "not.contain.text",
@@ -908,7 +911,7 @@ a />
             expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(34);
 
             expect(errorWarnings.errors[1].message).contain(
-                "Circular dependency involving these components: <math> (line 4)",
+                "Possible circular dependency involving these components: <math> (line 5)",
             );
             expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(4);
             expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(1);
@@ -916,7 +919,7 @@ a />
             expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(34);
 
             expect(errorWarnings.errors[2].message).contain(
-                "Circular dependency involving these components: <math> (line 7)",
+                "Possible circular dependency involving these components: <math> (line 9)",
             );
             expect(errorWarnings.errors[2].doenetMLrange.lineBegin).eq(7);
             expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
@@ -924,7 +927,7 @@ a />
             expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(34);
 
             expect(errorWarnings.errors[3].message).contain(
-                "Circular dependency involving these components: <math> (line 11)",
+                "Possible circular dependency involving these components: <math> (line 14)",
             );
             expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(11);
             expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(1);
@@ -1005,10 +1008,26 @@ a />
             );
         });
 
-        cy.document().should(
+        cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Circular dependency involving these components: <text> (line 1).",
+            "Circular dependency detected involving <text> component",
         );
+        cy.get(cesc2("#/_document1")).should("contain.text", "Found on line 1");
+
+        cy.window().then(async (win) => {
+            let errorWarnings = await win.returnErrorWarnings1();
+
+            expect(errorWarnings.errors.length).eq(1);
+            expect(errorWarnings.warnings.length).eq(0);
+
+            expect(errorWarnings.errors[0].message).contain(
+                "Circular dependency detected involving <text> component",
+            );
+            expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(1);
+            expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(17);
+            expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(1);
+            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(39);
+        });
 
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1019,18 +1038,34 @@ a />
             );
         });
 
-        cy.document().should(
+        cy.get(cesc2("#/_document1")).should("contain.text", "Found on line 2");
+        cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Circular dependency involving these components: <text> (line 1), <text> (line 2).",
+            "Circular dependency detected involving <text> component",
         );
+        cy.get(cesc2("#/_document1")).should("contain.text", "Found on line 1");
 
         cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: doenetML3,
-                },
-                "*",
+            let errorWarnings = await win.returnErrorWarnings1();
+
+            expect(errorWarnings.errors.length).eq(2);
+            expect(errorWarnings.warnings.length).eq(0);
+
+            expect(errorWarnings.errors[0].message).contain(
+                "Circular dependency detected involving <text> component",
             );
+            expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(1);
+            expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(17);
+            expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(1);
+            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(39);
+
+            expect(errorWarnings.errors[1].message).contain(
+                "Circular dependency detected involving <text> component",
+            );
+            expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(2);
+            expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(17);
+            expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(2);
+            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(39);
         });
 
         cy.window().then(async (win) => {
@@ -1042,10 +1077,35 @@ a />
             );
         });
 
-        cy.document().should(
+        cy.get(cesc2("#/_document1")).should("contain.text", "Found on line 3");
+        cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Circular dependency involving these components: <text> (line 1), <text> (line 2), <text> (line 3).",
+            "Circular dependency detected involving <text> component",
         );
+        cy.get(cesc2("#/_document1")).should("contain.text", "Found on line 2");
+
+        cy.window().then(async (win) => {
+            let errorWarnings = await win.returnErrorWarnings1();
+
+            expect(errorWarnings.errors.length).eq(2);
+            expect(errorWarnings.warnings.length).eq(0);
+
+            expect(errorWarnings.errors[0].message).contain(
+                "Circular dependency detected involving <text> component",
+            );
+            expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
+            expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(17);
+            expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
+            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(39);
+
+            expect(errorWarnings.errors[1].message).contain(
+                "Circular dependency detected involving <text> component",
+            );
+            expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(3);
+            expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(17);
+            expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(3);
+            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(39);
+        });
     });
 
     it("Errors in macros", () => {

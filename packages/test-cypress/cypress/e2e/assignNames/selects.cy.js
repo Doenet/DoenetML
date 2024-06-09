@@ -1,4 +1,4 @@
-import { cesc, cesc2, numberToLetters } from "@doenet/utils";
+import { numberToLetters, cesc, cesc2 } from "@doenet/utils";
 
 describe("selects assignName Tests", function () {
     beforeEach(() => {
@@ -27,7 +27,7 @@ describe("selects assignName Tests", function () {
       </select>
     </option>
     <option>
-      $h
+      <copy assignNamesSkip="1" target="h" />
     </option>
     <option>
       <selectFromSequence assignNamesSkip="1" type="letters" from="a" to="z" />

@@ -1,4 +1,4 @@
-import { cesc, cesc2, widthsBySize } from "@doenet/utils";
+import { widthsBySize, cesc, cesc2 } from "@doenet/utils";
 
 describe("Image Tag Tests", function () {
     beforeEach(() => {

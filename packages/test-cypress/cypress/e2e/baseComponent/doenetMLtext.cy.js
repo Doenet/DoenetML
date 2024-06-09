@@ -211,9 +211,9 @@ ${theDoenetML3}
   </section>
 
   <section name="s2" copySource="s1" />
-  $s1{name="s3"}
+  <copy source="s1" assignNames="s3" />
   <section name="s4" copySource="s1" link="false" />
-  $s1{name="s5" link="false"}
+  <copy source="s1" assignNames="s5" link="false" />
 
   
   <section name="s1a" newNamespace>
@@ -386,9 +386,9 @@ ${theDoenetML3}
     <section name="s1">
       <section boxed>
         <title>Copy in external</title>
-        <copy uri="doenet:cid=bafkreiatr7qxnkb5lnjd7bccsiravqyy7xnpynyskilyg2etb3hva7oe74" name="external" />
+        <copy uri="doenet:cid=bafkreievuawsojoy4kzz7sbjvc2sxreqw6bzg3gow2jwor23aknjsmihcy" assignNames="external" />
       </section>
-      
+
       <p>Grab the DoenetML from external pre:</p>
       <pre>$(external/_pre1.doenetML)</pre>
 
@@ -397,11 +397,11 @@ ${theDoenetML3}
     </section>
 
 
-    $s1{name="s2" newNamespace}
+    <copy source="s1" assignNames="s2" assignNewNamespaces />
 
     <section copySource="s1" name="s3" newNamespace />
 
-    $s1{name="s4" newNamespace link="false"}
+    <copy source="s1" assignNames="s4" link="false" assignNewNamespaces />
 
     <section copySource="s1" name="s5" link="false" newNamespace />
   `,
@@ -641,61 +641,5 @@ ${theDoenetML3}
         cy.get(cesc2("#/s3/p2dml")).should("have.text", p2dml);
         cy.get(cesc2("#/s3/mdml")).should("have.text", mdml);
         cy.get(cesc2("#/s3/m2dml")).should("have.text", m2dml);
-    });
-
-    it("doenetML of self-closing tags", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <section name="s1" newNamespace>
-      <p name="p1"/>
-      <p name="p2" />
-      <p name="p3"
-/>
-      <p name="p4"
-     
-      />
-          
-      <text name="p1dml" copySource="p1.doenetML" />
-      <text name="p2dml" copySource="p2.doenetML" />
-      <text name="p3dml" copySource="p3.doenetML" />
-      <text name="p4dml" copySource="p4.doenetML" />
-    </section>
-
-    <section name="s2" copySource="s1" />
-    <section name="s3" copySource="s1" link="false" />
-  `,
-                },
-                "*",
-            );
-        });
-
-        let p1dml = `<p name="p1"/>`;
-        let p2dml = `<p name="p2" />`;
-        let p3dml = `<p name="p3"
-/>`;
-        // TODO: not sure why it is eating the spaces after the new lines.
-        // Do we care?
-        let p4dml = `<p name="p4"
-
-/>`;
-
-        cy.log("check original");
-
-        cy.get(cesc2("#/s1/p1dml")).should("have.text", p1dml);
-        cy.get(cesc2("#/s1/p2dml")).should("have.text", p2dml);
-        cy.get(cesc2("#/s1/p3dml")).should("have.text", p3dml);
-        cy.get(cesc2("#/s1/p4dml")).should("have.text", p4dml);
-
-        cy.get(cesc2("#/s2/p1dml")).should("have.text", p1dml);
-        cy.get(cesc2("#/s2/p2dml")).should("have.text", p2dml);
-        cy.get(cesc2("#/s2/p3dml")).should("have.text", p3dml);
-        cy.get(cesc2("#/s2/p4dml")).should("have.text", p4dml);
-
-        cy.get(cesc2("#/s3/p1dml")).should("have.text", p1dml);
-        cy.get(cesc2("#/s3/p2dml")).should("have.text", p2dml);
-        cy.get(cesc2("#/s3/p3dml")).should("have.text", p3dml);
-        cy.get(cesc2("#/s3/p4dml")).should("have.text", p4dml);
     });
 });

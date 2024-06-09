@@ -23,7 +23,7 @@ describe("PeriodicSet Tag Tests", function () {
         </when>
       </award>
     </answer>
-    <p>Credit achieved: $_answer1.creditAchieved{assignNames="ca"}</p>
+    <p>Credit achieved: <copy prop="creditAchieved" target="_answer1" assignNames="ca" /></p>
     `,
                 },
                 "*",
@@ -390,13 +390,13 @@ describe("PeriodicSet Tag Tests", function () {
     
     <answer>
       <award>
-        <when>$a{name="a2"} = $b{name="b2"}</when>
+        <when><copy name="a2" target="a" /> = <copy name="b2" target="b" /></when>
       </award>
     </answer>
     
-    <p>Credit achieved: $_answer1.creditAchieved{assignNames="ca"}</p>
+    <p>Credit achieved: <copy prop="creditAchieved" target="_answer1" assignNames="ca" /></p>
     
-    <p>Redundancies: $a.redundantOffsets, $b.redundantOffsets, $a2.redundantOffsets, $b2.redundantOffsets</p>
+    <p>Redundancies: <copy prop="redundantOffsets" target="a" />, <copy prop="redundantOffsets" target="b" />, <copy prop="redundantOffsets" target="a2" />, <copy prop="redundantOffsets" target="b2" /></p>
     `,
                 },
                 "*",
@@ -419,8 +419,16 @@ describe("PeriodicSet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/b"].stateValues.value).eq("\uFF3F");
-            expect(stateVariables["/a2"].stateValues.value).eq("\uFF3F");
-            expect(stateVariables["/b2"].stateValues.value).eq("\uFF3F");
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eq("\uFF3F");
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eq("\uFF3F");
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 0,
             );
@@ -440,8 +448,16 @@ describe("PeriodicSet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/b"].stateValues.value).eq("\uFF3F");
-            expect(stateVariables["/a2"].stateValues.value).eq("\uFF3F");
-            expect(stateVariables["/b2"].stateValues.value).eq("\uFF3F");
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eq("\uFF3F");
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eq("\uFF3F");
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 0,
             );
@@ -486,20 +502,31 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a"].stateValues.redundantOffsets).eq(false);
-            expect(stateVariables["/a2"].stateValues.value).eqls(a);
-            expect(stateVariables["/a2"].stateValues.numOffsets).eq(1);
-            expect(stateVariables["/a2"].stateValues.offsets[0]).eqls([
-                "-",
-                ["/", "pi", 4],
-            ]);
-            expect(stateVariables["/a2"].stateValues.period).eqls([
-                "/",
-                "pi",
-                2,
-            ]);
-            expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(
-                false,
-            );
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(a);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(["-", ["/", "pi", 4]]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["/", "pi", 2]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(false);
 
             let b = ["periodic_set"];
             b.push([
@@ -521,20 +548,31 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
                 "pi",
             ]);
-            expect(stateVariables["/b2"].stateValues.value).eqls(b);
-            expect(stateVariables["/b2"].stateValues.numOffsets).eq(1);
-            expect(stateVariables["/b2"].stateValues.offsets[0]).eqls([
-                "-",
-                ["/", "pi", 4],
-            ]);
-            expect(stateVariables["/b2"].stateValues.period).eqls([
-                "*",
-                2,
-                "pi",
-            ]);
-            expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(
-                false,
-            );
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(b);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(["-", ["/", "pi", 4]]);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["*", 2, "pi"]);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(false);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 0,
@@ -579,20 +617,31 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a"].stateValues.redundantOffsets).eq(false);
-            expect(stateVariables["/a2"].stateValues.value).eqls(a);
-            expect(stateVariables["/a2"].stateValues.numOffsets).eq(1);
-            expect(stateVariables["/a2"].stateValues.offsets[0]).eqls([
-                "-",
-                ["/", "pi", 4],
-            ]);
-            expect(stateVariables["/a2"].stateValues.period).eqls([
-                "/",
-                "pi",
-                2,
-            ]);
-            expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(
-                false,
-            );
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(a);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(["-", ["/", "pi", 4]]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["/", "pi", 2]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(false);
 
             let b = ["periodic_set"];
 
@@ -617,20 +666,46 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
                 "pi",
             ]);
-            expect(stateVariables["/b2"].stateValues.value).eqls(b);
-            expect(stateVariables["/b2"].stateValues.numOffsets).eq(4);
-            expect(stateVariables["/b2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/b2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/b2"].stateValues.offsets[2]).eqls(offset2);
-            expect(stateVariables["/b2"].stateValues.offsets[3]).eqls(offset3);
-            expect(stateVariables["/b2"].stateValues.period).eqls([
-                "*",
-                2,
-                "pi",
-            ]);
-            expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(
-                false,
-            );
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(b);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(4);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[2],
+            ).eqls(offset2);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[3],
+            ).eqls(offset3);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["*", 2, "pi"]);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(false);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 1,
@@ -673,16 +748,36 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a"].stateValues.redundantOffsets).eq(true);
-            expect(stateVariables["/a2"].stateValues.value).eqls(a);
-            expect(stateVariables["/a2"].stateValues.numOffsets).eq(2);
-            expect(stateVariables["/a2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/a2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/a2"].stateValues.period).eqls([
-                "/",
-                "pi",
-                2,
-            ]);
-            expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(true);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(a);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["/", "pi", 2]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(true);
 
             let b = ["periodic_set"];
 
@@ -707,20 +802,46 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
                 "pi",
             ]);
-            expect(stateVariables["/b2"].stateValues.value).eqls(b);
-            expect(stateVariables["/b2"].stateValues.numOffsets).eq(4);
-            expect(stateVariables["/b2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/b2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/b2"].stateValues.offsets[2]).eqls(offset2);
-            expect(stateVariables["/b2"].stateValues.offsets[3]).eqls(offset3);
-            expect(stateVariables["/b2"].stateValues.period).eqls([
-                "*",
-                2,
-                "pi",
-            ]);
-            expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(
-                false,
-            );
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(b);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(4);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[2],
+            ).eqls(offset2);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[3],
+            ).eqls(offset3);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["*", 2, "pi"]);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(false);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 1,
@@ -761,16 +882,36 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a"].stateValues.redundantOffsets).eq(true);
-            expect(stateVariables["/a2"].stateValues.value).eqls(a);
-            expect(stateVariables["/a2"].stateValues.numOffsets).eq(2);
-            expect(stateVariables["/a2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/a2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/a2"].stateValues.period).eqls([
-                "/",
-                "pi",
-                2,
-            ]);
-            expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(true);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(a);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["/", "pi", 2]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(true);
 
             let b = ["periodic_set"];
 
@@ -791,14 +932,46 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/b"].stateValues.offsets[3]).eqls(offset3);
             expect(stateVariables["/b"].stateValues.redundantOffsets).eq(true);
             expect(stateVariables["/b"].stateValues.period).eqls("pi");
-            expect(stateVariables["/b2"].stateValues.value).eqls(b);
-            expect(stateVariables["/b2"].stateValues.numOffsets).eq(4);
-            expect(stateVariables["/b2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/b2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/b2"].stateValues.offsets[2]).eqls(offset2);
-            expect(stateVariables["/b2"].stateValues.offsets[3]).eqls(offset3);
-            expect(stateVariables["/b2"].stateValues.period).eqls("pi");
-            expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(true);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(b);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(4);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[2],
+            ).eqls(offset2);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[3],
+            ).eqls(offset3);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls("pi");
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(true);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 1,
@@ -838,16 +1011,36 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a"].stateValues.redundantOffsets).eq(true);
-            expect(stateVariables["/a2"].stateValues.value).eqls(a);
-            expect(stateVariables["/a2"].stateValues.numOffsets).eq(2);
-            expect(stateVariables["/a2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/a2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/a2"].stateValues.period).eqls([
-                "/",
-                "pi",
-                2,
-            ]);
-            expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(true);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(a);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls(["/", "pi", 2]);
+            expect(
+                stateVariables[
+                    stateVariables["/a2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(true);
 
             let b = ["periodic_set"];
 
@@ -871,15 +1064,51 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/b"].stateValues.offsets[4]).eqls(offset4);
             expect(stateVariables["/b"].stateValues.redundantOffsets).eq(true);
             expect(stateVariables["/b"].stateValues.period).eqls("pi");
-            expect(stateVariables["/b2"].stateValues.value).eqls(b);
-            expect(stateVariables["/b2"].stateValues.numOffsets).eq(5);
-            expect(stateVariables["/b2"].stateValues.offsets[0]).eqls(offset0);
-            expect(stateVariables["/b2"].stateValues.offsets[1]).eqls(offset1);
-            expect(stateVariables["/b2"].stateValues.offsets[2]).eqls(offset2);
-            expect(stateVariables["/b2"].stateValues.offsets[3]).eqls(offset3);
-            expect(stateVariables["/b2"].stateValues.offsets[4]).eqls(offset4);
-            expect(stateVariables["/b2"].stateValues.period).eqls("pi");
-            expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(true);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.value,
+            ).eqls(b);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.numOffsets,
+            ).eq(5);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[0],
+            ).eqls(offset0);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[1],
+            ).eqls(offset1);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[2],
+            ).eqls(offset2);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[3],
+            ).eqls(offset3);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.offsets[4],
+            ).eqls(offset4);
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.period,
+            ).eqls("pi");
+            expect(
+                stateVariables[
+                    stateVariables["/b2"].replacements[0].componentName
+                ].stateValues.redundantOffsets,
+            ).eq(true);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
                 0,
@@ -894,7 +1123,7 @@ describe("PeriodicSet Tag Tests", function () {
                     doenetML: `
     <setup>
       <mathlist name="correct_offsets" mergemathlists="true">30,150</mathlist>
-      $correct_offsets.numComponents{assignNames="n_correct_offsets"}
+      <copy prop="numComponents" target="correct_offsets" assignNames="n_correct_offsets" />
       <math name="correct_period">180</math>
       <periodicSet name="correct"  offsets="$correct_offsets" period="$correct_period" />
     </setup>
@@ -962,7 +1191,7 @@ describe("PeriodicSet Tag Tests", function () {
           </when>
         </award>
         <award name="redund" credit="0">
-          <when>$userPeriodicSet.redundantOffsets</when>
+          <when><copy prop="redundantOffsets" target="userPeriodicSet" /></when>
         </award>
         <considerAsResponses>
           $p$o
@@ -1288,15 +1517,15 @@ describe("PeriodicSet Tag Tests", function () {
 
     <periodicSet period="$period" offsets="$offsets" name="pset" />
   
-    <p>As list: $pset.asList{assignNames="l1"}</p>
+    <p>As list: <copy prop="asList" target="pset" assignNames="l1" /></p>
 
     <p>Min index: <mathinput name="minIndex" />, <mathinput name="maxIndex" /></p>
 
     <periodicSet period="$period" offsets="$offsets" name="pset2" minIndexAsList="$minIndex" maxIndexAsList="$maxIndex" />
 
-    <p>As list with specified min/max: $pset2.asList{assignNames="l2"}</p>
+    <p>As list with specified min/max: <copy prop="asList" target="pset2" assignNames="l2" /></p>
 
-    <p>$offsets.value{assignNames="offsets2"}</p>
+    <p><copy prop="value" target="offsets" assignNames="offsets2" /></p>
 
     `,
                 },

@@ -93,14 +93,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -250,14 +250,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -412,14 +412,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -573,14 +573,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -736,14 +736,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -894,14 +894,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -1057,14 +1057,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -1214,14 +1214,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -1376,14 +1376,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -1535,14 +1535,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -1697,14 +1697,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -1854,14 +1854,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -2016,14 +2016,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -2177,14 +2177,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -2338,19 +2338,19 @@ describe("Vector Tag Tests", function () {
   <coords name="c">(-4,2)</coords>
   <graph>
   <vector>
-    <coords copySource="c" />
+    <copy target="c" createComponentOfType="coords" />
   </vector>
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -2500,19 +2500,19 @@ describe("Vector Tag Tests", function () {
   <graph>
   <vector>
     <label><m>\\vec{v}</m></label>
-    <coords copySource="c" />
+    <copy target="c" createComponentOfType="coords" />
   </vector>
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -2668,14 +2668,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -2825,14 +2825,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -2987,14 +2987,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -3144,14 +3144,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -3301,14 +3301,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -3458,14 +3458,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -3615,14 +3615,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -3772,14 +3772,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -3929,14 +3929,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -4086,14 +4086,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -4243,14 +4243,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -4400,14 +4400,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -4557,14 +4557,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -4714,14 +4714,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -4871,14 +4871,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -5028,14 +5028,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -5185,14 +5185,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -5342,14 +5342,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -5495,14 +5495,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -5648,14 +5648,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
  `,
                 },
                 "*",
@@ -5809,16 +5809,16 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph newNamespace name="g2">
-    $(/g1/vector1{name="vector1"})
-    $(/g1/vector2{name="vector2"})
-    $(/g1/vector3{name="vector3"})
+    <copy target="/g1/vector1" assignNames="vector1" />
+    <copy target="/g1/vector2" assignNames="vector2" />
+    <copy target="/g1/vector3" assignNames="vector3" />
   </graph>
 
-  $g2{name="g3"}
+  <copy target="g2" assignNames="g3" />
 
-  $(g3/vector1{name="vector1"})
-  $(g3/vector2{name="vector2"})
-  $(g3/vector3{name="vector3"})
+  <copy target="g3/vector1" assignNames="vector1" />
+  <copy target="g3/vector2" assignNames="vector2" />
+  <copy target="g3/vector3" assignNames="vector3" />
   `,
                 },
                 "*",
@@ -6507,18 +6507,18 @@ describe("Vector Tag Tests", function () {
   </graph>
   
   <graph>
-  $vector1{name="vector2"}
+  <copy target="vector1" assignNames="vector2" />
   </graph>
   
   <graph>
-  $d{name="vector3"}
+  <copy target="d" assignNames="vector3" />
   </graph>
 
   <graph>
-  $vector1.displacement{assignNames="vector4"}
+  <copy prop="displacement" target="vector1" assignNames="vector4" />
   </graph>
 
-  $vector1{name="v1a"}
+  <copy target="vector1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -6738,12 +6738,12 @@ describe("Vector Tag Tests", function () {
 
   <point x="-5" y="2">
     <constraints>
-      <constrainTo>$_vector1</constrainTo>
+      <constrainTo><copy target="_vector1" /></constrainTo>
     </constraints>
   </point>
   </graph>
-  $_vector1{name="v1a"}
-  $_point3{name="p3a"}
+  <copy target="_vector1" assignNames="v1a" />
+  <copy target="_point3" assignNames="p3a" />
   `,
                 },
                 "*",
@@ -6942,12 +6942,12 @@ describe("Vector Tag Tests", function () {
 
   <point x="-5" y="2">
     <constraints>
-      <attractTo>$_vector1</attractTo>
+      <attractTo><copy target="_vector1" /></attractTo>
     </constraints>
   </point>
   </graph>
-  $_vector1{name="v1a"}
-  $_point3{name="p3a"}
+  <copy target="_vector1" assignNames="v1a" />
+  <copy target="_point3" assignNames="p3a" />
   `,
                 },
                 "*",
@@ -7187,11 +7187,11 @@ describe("Vector Tag Tests", function () {
     <vector head="(-1,-0.05)" tail="(1,0.05)" name="l" />
     <point x="100" y="0" name="P">
       <constraints>
-        <constrainTo relativeToGraphScales>$l</constrainTo>
+        <constrainTo relativeToGraphScales><copy target="l" /></constrainTo>
       </constraints>
     </point>
   </graph>
-  $P{name="Pa"}
+  <copy target="P" assignNames="Pa" />
   `,
                 },
                 "*",
@@ -7270,8 +7270,8 @@ describe("Vector Tag Tests", function () {
   <graph>
     <vector name="multiplied" tail="$zeroFixed" head="($a$(original.headX1), $a$(original.headX2))" />
   </graph>
-  $original{name="o2"}
-  $multiplied{name="m2"}
+  <copy target='original' assignNames="o2" />
+  <copy target='multiplied' assignNames="m2" />
   `,
                 },
                 "*",
@@ -7406,9 +7406,9 @@ describe("Vector Tag Tests", function () {
   <vector name="v" tail="$(u.head)" displacement="(1,3)" />
   <vector name="w" head="$(v.head)" tail="$(u.tail)" />
   </graph>
-  $u{name="u2"}
-  $v{name="v2"}
-  $w{name="w2"}
+  <copy target="u" assignNames="u2" />
+  <copy target="v" assignNames="v2" />
+  <copy target="w" assignNames="w2" />
   `,
                 },
                 "*",
@@ -7719,18 +7719,18 @@ describe("Vector Tag Tests", function () {
   <graph>
   <vector name="u" tail="(1,5)" head="(7,3)" />
   </graph>
-  <p>x coordinate of u is $u.x{assignNames="ux"}</p>
-  <p>y coordinate of u is $u.y{assignNames="uy"}</p>
-  <p>x1 coordinate of u is $u.x1{assignNames="ux1"}</p>
-  <p>x2 coordinate of u is $u.x2{assignNames="ux2"}</p>
+  <p>x coordinate of u is <copy assignNames="ux" prop="x" target="u" /></p>
+  <p>y coordinate of u is <copy assignNames="uy" prop="y" target="u" /></p>
+  <p>x1 coordinate of u is <copy assignNames="ux1" prop="x1" target="u" /></p>
+  <p>x2 coordinate of u is <copy assignNames="ux2" prop="x2" target="u" /></p>
 
   <vector name="v" tail="(9,1,-3)" head="(-3,10,8)" />
-  <p>x coordinate of v is $v.x{assignNames="vx"}</p>
-  <p>y coordinate of v is $v.y{assignNames="vy"}</p>
-  <p>z coordinate of v is $v.z{assignNames="vz"}</p>
-  <p>x1 coordinate of v is $v.x1{assignNames="vx1"}</p>
-  <p>x2 coordinate of v is $v.x2{assignNames="vx2"}</p>
-  <p>x3 coordinate of v is $v.x3{assignNames="vx3"}</p>
+  <p>x coordinate of v is <copy assignNames="vx" prop="x" target="v" /></p>
+  <p>y coordinate of v is <copy assignNames="vy" prop="y" target="v" /></p>
+  <p>z coordinate of v is <copy assignNames="vz" prop="z" target="v" /></p>
+  <p>x1 coordinate of v is <copy assignNames="vx1" prop="x1" target="v" /></p>
+  <p>x2 coordinate of v is <copy assignNames="vx2" prop="x2" target="v" /></p>
+  <p>x3 coordinate of v is <copy assignNames="vx3" prop="x3" target="v" /></p>
   `,
                 },
                 "*",
@@ -7778,11 +7778,11 @@ describe("Vector Tag Tests", function () {
   <text>a</text>
   <graph>
     <vector name="v1" tail="(1,2)" head="(3,5)" />
-    $v1{name="v2"}
-    $v1.displacement{assignNames="v3"}
+    <copy assignNames="v2" target="v1" />
+    <copy assignNames="v3" prop="displacement" target="v1" />
     <vector name="v4" displacement="($(v2.y), $(v3.x))" />
   </graph>
-  $v1{name="v1a"}
+  <copy target="v1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -8385,24 +8385,24 @@ describe("Vector Tag Tests", function () {
   <text>a</text>
   <graph>
     <vector name="v1" tail="(1,2)" head="(3,5)" />
-    $v1{name="v2"}
-    $v1.displacement{assignNames="v3"}
+    <copy assignNames="v2" target="v1" />
+    <copy assignNames="v3" prop="displacement" target="v1" />
     <point name="v4displacementhead" hide>(
       <extract prop="y">
         <extract prop="head">
-          $v2.displacement
+          <copy prop="displacement" target="v2" />
         </extract>
       </extract>,
       <extract prop="x">
         <extract prop="head">
-          $v3.displacement
+          <copy prop="displacement" target="v3" />
         </extract>
       </extract>
     )</point>
     <vector name="v4displacement" head="$v4displacementhead" hide />
     <vector name="v4" displacement="$v4displacement" />
   </graph>
-  $v1{name="v1a"}
+  <copy target="v1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -8997,11 +8997,11 @@ describe("Vector Tag Tests", function () {
   <text>a</text>
   <graph>
   <vector name="v" tail="(1,2)" head="(-2,3)" />
-  $v.head{assignNames="vh"}
-  $v.tail{assignNames="vt"}
+  <copy prop="head" assignNames="vh" target="v" />
+  <copy prop="tail" assignNames="vt" target="v" />
   <point name="c" x="$(vh.x)" y="$(vt.y)"/>
   </graph>
-  $v{name="va"}
+  <copy target="v" assignNames="va" />
   `,
                 },
                 "*",
@@ -9256,81 +9256,81 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $vt.tail{assignNames="tfvt"}
-  $vt.head{assignNames="hfvt"}
-  $vt.displacement{assignNames="dfvt"}
+  <copy prop="tail" assignNames="tfvt" target="vt" />
+  <copy prop="head" assignNames="hfvt" target="vt" />
+  <copy prop="displacement" assignNames="dfvt" target="vt" />
 
-  $vh.tail{assignNames="tfvh"}
-  $vh.head{assignNames="hfvh"}
-  $vh.displacement{assignNames="dfvh"}
+  <copy prop="tail" assignNames="tfvh" target="vh" />
+  <copy prop="head" assignNames="hfvh" target="vh" />
+  <copy prop="displacement" assignNames="dfvh" target="vh" />
 
-  $vd.tail{assignNames="tfvd"}
-  $vd.head{assignNames="hfvd"}
-  $vd.displacement{assignNames="dfvd"}
+  <copy prop="tail" assignNames="tfvd" target="vd" />
+  <copy prop="head" assignNames="hfvd" target="vd" />
+  <copy prop="displacement" assignNames="dfvd" target="vd" />
 
-  $vth.tail{assignNames="tfvth"}
-  $vth.head{assignNames="hfvth"}
-  $vth.displacement{assignNames="dfvth"}
+  <copy prop="tail" assignNames="tfvth" target="vth" />
+  <copy prop="head" assignNames="hfvth" target="vth" />
+  <copy prop="displacement" assignNames="dfvth" target="vth" />
 
-  $vtd.tail{assignNames="tfvtd"}
-  $vtd.head{assignNames="hfvtd"}
-  $vtd.displacement{assignNames="dfvtd"}
+  <copy prop="tail" assignNames="tfvtd" target="vtd" />
+  <copy prop="head" assignNames="hfvtd" target="vtd" />
+  <copy prop="displacement" assignNames="dfvtd" target="vtd" />
 
-  $vhd.tail{assignNames="tfvhd"}
-  $vhd.head{assignNames="hfvhd"}
-  $vhd.displacement{assignNames="dfvhd"}
+  <copy prop="tail" assignNames="tfvhd" target="vhd" />
+  <copy prop="head" assignNames="hfvhd" target="vhd" />
+  <copy prop="displacement" assignNames="dfvhd" target="vhd" />
 
   </graph>
 
   <graph>
-  $vt{name="vt2"}
-  $vh{name="vh2"}
-  $vd{name="vd2"}
-  $vth{name="vth2"}
-  $vtd{name="vtd2"}
-  $vhd{name="vhd2"}
+  <copy assignNames="vt2" target="vt" />
+  <copy assignNames="vh2" target="vh" />
+  <copy assignNames="vd2" target="vd" />
+  <copy assignNames="vth2" target="vth" />
+  <copy assignNames="vtd2" target="vtd" />
+  <copy assignNames="vhd2" target="vhd" />
   </graph>
 
   <graph>
-  $vt2.tail{assignNames="tfvt2"}
-  $vt2.head{assignNames="hfvt2"}
-  $vt2.displacement{assignNames="dfvt2"}
+  <copy prop="tail" assignNames="tfvt2" target="vt2" />
+  <copy prop="head" assignNames="hfvt2" target="vt2" />
+  <copy prop="displacement" assignNames="dfvt2" target="vt2" />
 
-  $vh2.tail{assignNames="tfvh2"}
-  $vh2.head{assignNames="hfvh2"}
-  $vh2.displacement{assignNames="dfvh2"}
+  <copy prop="tail" assignNames="tfvh2" target="vh2" />
+  <copy prop="head" assignNames="hfvh2" target="vh2" />
+  <copy prop="displacement" assignNames="dfvh2" target="vh2" />
 
-  $vd2.tail{assignNames="tfvd2"}
-  $vd2.head{assignNames="hfvd2"}
-  $vd2.displacement{assignNames="dfvd2"}
+  <copy prop="tail" assignNames="tfvd2" target="vd2" />
+  <copy prop="head" assignNames="hfvd2" target="vd2" />
+  <copy prop="displacement" assignNames="dfvd2" target="vd2" />
 
-  $vth2.tail{assignNames="tfvth2"}
-  $vth2.head{assignNames="hfvth2"}
-  $vth2.displacement{assignNames="dfvth2"}
+  <copy prop="tail" assignNames="tfvth2" target="vth2" />
+  <copy prop="head" assignNames="hfvth2" target="vth2" />
+  <copy prop="displacement" assignNames="dfvth2" target="vth2" />
 
-  $vtd2.tail{assignNames="tfvtd2"}
-  $vtd2.head{assignNames="hfvtd2"}
-  $vtd2.displacement{assignNames="dfvtd2"}
+  <copy prop="tail" assignNames="tfvtd2" target="vtd2" />
+  <copy prop="head" assignNames="hfvtd2" target="vtd2" />
+  <copy prop="displacement" assignNames="dfvtd2" target="vtd2" />
 
-  $vhd2.tail{assignNames="tfvhd2"}
-  $vhd2.head{assignNames="hfvhd2"}
-  $vhd2.displacement{assignNames="dfvhd2"}
+  <copy prop="tail" assignNames="tfvhd2" target="vhd2" />
+  <copy prop="head" assignNames="hfvhd2" target="vhd2" />
+  <copy prop="displacement" assignNames="dfvhd2" target="vhd2" />
 
   </graph>
 
-  $dfvhd2.head{assignNames="dfvhd2_hdom"}
-  $hfvhd2{name="hfvhd2_dom"}
-  $tfvhd2{name="tfvhd2_dom"}
-  $vhd2.head{assignNames="vhd2_hdom"}
-  $vhd2.tail{assignNames="vhd2_tdom"}
-  $dfvhd.head{assignNames="dfvhd_hdom"}
-  $hfvhd{name="hfvhd_dom"}
-  $tfvhd{name="tfvhd_dom"}
-  $dvhd{name="dvhd_dom"}
-  $hvhd{name="hvhd_dom"}
-  $tvtd{name="tvtd_dom"}
-  $vhd.head{assignNames="vhd_hdom"}
-  $vhd.tail{assignNames="vhd_tdom"}
+  <copy prop="head" target="dfvhd2" assignNames="dfvhd2_hdom" />
+  <copy target="hfvhd2" assignNames="hfvhd2_dom" />
+  <copy target="tfvhd2" assignNames="tfvhd2_dom" />
+  <copy prop="head" target="vhd2" assignNames="vhd2_hdom" />
+  <copy prop="tail" target="vhd2" assignNames="vhd2_tdom" />
+  <copy prop="head" target="dfvhd" assignNames="dfvhd_hdom" />
+  <copy target="hfvhd" assignNames="hfvhd_dom" />
+  <copy target="tfvhd" assignNames="tfvhd_dom" />
+  <copy target="dvhd" assignNames="dvhd_dom" />
+  <copy target="hvhd" assignNames="hvhd_dom" />
+  <copy target="tvtd" assignNames="tvtd_dom" />
+  <copy prop="head" target="vhd" assignNames="vhd_hdom" />
+  <copy prop="tail" target="vhd" assignNames="vhd_tdom" />
 
   `,
                 },
@@ -15444,7 +15444,7 @@ describe("Vector Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  <math>$_vector1</math>
+  <math><copy target="_vector1" /></math>
   <graph>
     <vector tail="(1,2)" head="(3,5)" />
   </graph>
@@ -15554,12 +15554,12 @@ describe("Vector Tag Tests", function () {
   <vector tail="$(_vector3.tail)" head="(3,2)" />
   <vector head="$(_vector1.tail)" tail="(-1,4)" />
   </graph>
-  $_vector1.head{assignNames="v1h"}
-  $_vector1.tail{assignNames="v1t"}
-  $_vector2.head{assignNames="v2h"}
-  $_vector2.tail{assignNames="v2t"}
-  $_vector3.head{assignNames="v3h"}
-  $_vector3.tail{assignNames="v3t"}
+  <copy prop="head" target="_vector1" assignNames="v1h" />
+  <copy prop="tail" target="_vector1" assignNames="v1t" />
+  <copy prop="head" target="_vector2" assignNames="v2h" />
+  <copy prop="tail" target="_vector2" assignNames="v2t" />
+  <copy prop="head" target="_vector3" assignNames="v3h" />
+  <copy prop="tail" target="_vector3" assignNames="v3t" />
   `,
                 },
                 "*",
@@ -15869,8 +15869,8 @@ describe("Vector Tag Tests", function () {
   <text>a</text>
   <vector tail="(3, $b)" head="($a,4)" />
 
-  $_vector1.x{assignNames="v1x"}
-  $_vector1.y{assignNames="v1y"}
+  <copy prop="x" target="_vector1" assignNames="v1x" />
+  <copy prop="y" target="_vector1" assignNames="v1y" />
   
   <p><mathinput name="a" prefill="1"></mathinput></p>
   <p><mathinput name="b" prefill="2"></mathinput></p>
@@ -15995,7 +15995,7 @@ describe("Vector Tag Tests", function () {
   <graph>
   <vector displacement="(-8,1)" tail="(4,1)" />
   </graph>
-  $_vector1{name="v1a"}
+  <copy target="_vector1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -16079,7 +16079,7 @@ describe("Vector Tag Tests", function () {
   <graph>
   <vector displacement="(-8,1)" head="(-4,2)" />
   </graph>
-  $_vector1{name="v1a"}
+  <copy target="_vector1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -16163,7 +16163,7 @@ describe("Vector Tag Tests", function () {
   <graph>
   <vector displacement="(-8,1)" />
   </graph>
-  $_vector1{name="v1a"}
+  <copy target="_vector1" assignNames="v1a" />
   `,
                 },
                 "*",
@@ -16249,14 +16249,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -16407,14 +16407,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -16564,14 +16564,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
 
   `,
                 },
@@ -16722,14 +16722,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -16879,14 +16879,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -17036,14 +17036,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -17193,14 +17193,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -17350,14 +17350,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -17507,14 +17507,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -17662,9 +17662,9 @@ describe("Vector Tag Tests", function () {
 
   <vector>1</vector>
 
-  $_vector1.tail{assignNames="t"}
-  $_vector1.head{assignNames="h"}
-  $_vector1.displacement{assignNames="d"}
+  <copy prop="tail" target="_vector1" assignNames="t" />
+  <copy prop="head" target="_vector1" assignNames="h"/>
+  <copy prop="displacement" target="_vector1" assignNames="d" />
   `,
                 },
                 "*",
@@ -17747,12 +17747,12 @@ describe("Vector Tag Tests", function () {
   <graph>
     <vector name="v6" displacement="$(v6.tail)" tail="(3,4)" />
   </graph>
-  $v1.head{assignNames="v1h"}
-  $v2.head{assignNames="v2h"}
-  $v3.head{assignNames="v3h"}
-  $v4.head{assignNames="v4h"}
-  $v5.head{assignNames="v5h"}
-  $v6.head{assignNames="v6h"}
+  <copy target="v1" prop="head" assignNames="v1h" />
+  <copy target="v2" prop="head" assignNames="v2h" />
+  <copy target="v3" prop="head" assignNames="v3h" />
+  <copy target="v4" prop="head" assignNames="v4h" />
+  <copy target="v5" prop="head" assignNames="v5h" />
+  <copy target="v6" prop="head" assignNames="v6h" />
   `,
                 },
                 "*",
@@ -18059,30 +18059,30 @@ describe("Vector Tag Tests", function () {
   <text>a</text>
   <graph name="g0" newNamespace>
     <vector name="v0" />
-    $v0{head="(3,4)" name="v1"}
-    $v1{tail="(-1,0)" name="v2"}
-    $v0{tail="(2,-6)" name="v3"}
-    $v3{displacement="(-3,4)" name="v4"}
-    $v0{displacement="(5,-1)" name="v5"}
-    $v5{head="(6,2)" name="v6"}
+    <copy target="v0" head="(3,4)" assignNames="v1" />
+    <copy target="v1" tail="(-1,0)" assignNames="v2" />
+    <copy target="v0" tail="(2,-6)" assignNames="v3" />
+    <copy target="v3" displacement="(-3,4)" assignNames="v4" />
+    <copy target="v0" displacement="(5,-1)" assignNames="v5" />
+    <copy target="v5" head="(6,2)" assignNames="v6" />
   </graph>
 
-  $g0{name="g1"}
+  <copy target="g0" assignNames="g1" />
 
-  $(g0/v0.tail{assignNames="v0t"})
-  $(g0/v0.head{assignNames="v0h"})
-  $(g0/v1.tail{assignNames="v1t"})
-  $(g0/v1.head{assignNames="v1h"})
-  $(g0/v2.tail{assignNames="v2t"})
-  $(g0/v2.head{assignNames="v2h"})
-  $(g0/v3.tail{assignNames="v3t"})
-  $(g0/v3.head{assignNames="v3h"})
-  $(g0/v4.tail{assignNames="v4t"})
-  $(g0/v4.head{assignNames="v4h"})
-  $(g0/v5.tail{assignNames="v5t"})
-  $(g0/v5.head{assignNames="v5h"})
-  $(g0/v6.tail{assignNames="v6t"})
-  $(g0/v6.head{assignNames="v6h"})
+  <copy target="g0/v0" prop="tail" assignNames="v0t" />
+  <copy target="g0/v0" prop="head" assignNames="v0h" />
+  <copy target="g0/v1" prop="tail" assignNames="v1t" />
+  <copy target="g0/v1" prop="head" assignNames="v1h" />
+  <copy target="g0/v2" prop="tail" assignNames="v2t" />
+  <copy target="g0/v2" prop="head" assignNames="v2h" />
+  <copy target="g0/v3" prop="tail" assignNames="v3t" />
+  <copy target="g0/v3" prop="head" assignNames="v3h" />
+  <copy target="g0/v4" prop="tail" assignNames="v4t" />
+  <copy target="g0/v4" prop="head" assignNames="v4h" />
+  <copy target="g0/v5" prop="tail" assignNames="v5t" />
+  <copy target="g0/v5" prop="head" assignNames="v5h" />
+  <copy target="g0/v6" prop="tail" assignNames="v6t" />
+  <copy target="g0/v6" prop="head" assignNames="v6h" />
 
   `,
                 },
@@ -18807,26 +18807,26 @@ describe("Vector Tag Tests", function () {
 
   </graph>
 
-  $g0{name="g1"}
+  <copy target="g0" assignNames="g1" />
 
-  $(g0/vdrag.tail{assignNames="vdragt"})
-  $(g0/vdrag.head{assignNames="vdragh"})
-  $(g0/vnoheaddrag.tail{assignNames="vnoheaddragt"})
-  $(g0/vnoheaddrag.head{assignNames="vnoheaddragh"})
-  $(g0/vnotaildrag.tail{assignNames="vnotaildragt"})
-  $(g0/vnotaildrag.head{assignNames="vnotaildragh"})
-  $(g0/vnoheadtaildrag.tail{assignNames="vnoheadtaildragt"})
-  $(g0/vnoheadtaildrag.head{assignNames="vnoheadtaildragh"})
+  <copy target="g0/vdrag" prop="tail" assignNames="vdragt" />
+  <copy target="g0/vdrag" prop="head" assignNames="vdragh" />
+  <copy target="g0/vnoheaddrag" prop="tail" assignNames="vnoheaddragt" />
+  <copy target="g0/vnoheaddrag" prop="head" assignNames="vnoheaddragh" />
+  <copy target="g0/vnotaildrag" prop="tail" assignNames="vnotaildragt" />
+  <copy target="g0/vnotaildrag" prop="head" assignNames="vnotaildragh" />
+  <copy target="g0/vnoheadtaildrag" prop="tail" assignNames="vnoheadtaildragt" />
+  <copy target="g0/vnoheadtaildrag" prop="head" assignNames="vnoheadtaildragh" />
 
 
-  $(g0/vnodrag.tail{assignNames="vnodragt"})
-  $(g0/vnodrag.head{assignNames="vnodragh"})
-  $(g0/vnodragheaddrag.tail{assignNames="vnodragheaddragt"})
-  $(g0/vnodragheaddrag.head{assignNames="vnodragheaddragh"})
-  $(g0/vnodragtaildrag.tail{assignNames="vnodragtaildragt"})
-  $(g0/vnodragtaildrag.head{assignNames="vnodragtaildragh"})
-  $(g0/vnodragheadtaildrag.tail{assignNames="vnodragheadtaildragt"})
-  $(g0/vnodragheadtaildrag.head{assignNames="vnodragheadtaildragh"})
+  <copy target="g0/vnodrag" prop="tail" assignNames="vnodragt" />
+  <copy target="g0/vnodrag" prop="head" assignNames="vnodragh" />
+  <copy target="g0/vnodragheaddrag" prop="tail" assignNames="vnodragheaddragt" />
+  <copy target="g0/vnodragheaddrag" prop="head" assignNames="vnodragheaddragh" />
+  <copy target="g0/vnodragtaildrag" prop="tail" assignNames="vnodragtaildragt" />
+  <copy target="g0/vnodragtaildrag" prop="head" assignNames="vnodragtaildragh" />
+  <copy target="g0/vnodragheadtaildrag" prop="tail" assignNames="vnodragheadtaildragt" />
+  <copy target="g0/vnodragheadtaildrag" prop="head" assignNames="vnodragheadtaildragh" />
   `,
                 },
                 "*",
@@ -20442,7 +20442,7 @@ describe("Vector Tag Tests", function () {
     <graph>
       <vector name="v" head="(5,4)" tail="(-2,1)" displayDigits="10" />
     </graph>
-    $v.magnitude{assignNames="magnitude"}
+    <copy prop="magnitude" target="v" assignNames="magnitude" />
     <point name="A" copySource="v.tail" />
     <point name="B" copySource="v.head" />
     <mathinput name="mimagnitude" bindValueTo="$magnitude" />
@@ -20591,15 +20591,15 @@ describe("Vector Tag Tests", function () {
   <vector name="v2" copySource="v" />
 
   <p>
-  $v.head{assignNames="vHead"}
-  $v.tail{assignNames="vTail"}
-  $v.displacement{assignNames="vDisplacement"}
+  <copy source="v.head" assignNames="vHead" />
+  <copy source="v.tail" assignNames="vTail" />
+  <copy source="v.displacement" assignNames="vDisplacement" />
   </p>
 
   <p>
-  $v2.head{assignNames="v2Head"}
-  $v2.tail{assignNames="v2Tail"}
-  $v2.displacement{assignNames="v2Displacement"}
+  <copy source="v2.head" assignNames="v2Head" />
+  <copy source="v2.tail" assignNames="v2Tail" />
+  <copy source="v2.displacement" assignNames="v2Displacement" />
   </p>
 
   <p>
@@ -21415,14 +21415,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",
@@ -21586,14 +21586,14 @@ describe("Vector Tag Tests", function () {
   </graph>
 
   <graph>
-  $_vector1.tail{assignNames="tail"}
-  $_vector1.head{assignNames="head"}
-  $_vector1.displacement{assignNames="displacement"}
+  <copy prop="tail" target="_vector1" assignNames="tail" />
+  <copy prop="head" target="_vector1" assignNames="head" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement" />
   </graph>
   
-  $_vector1.tail{assignNames="tail2"}
-  $_vector1.head{assignNames="head2"}
-  $_vector1.displacement{assignNames="displacement2"}
+  <copy prop="tail" target="_vector1" assignNames="tail2" />
+  <copy prop="head" target="_vector1" assignNames="head2" />
+  <copy prop="displacement" target="_vector1" assignNames="displacement2" />
   `,
                 },
                 "*",

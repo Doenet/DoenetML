@@ -395,21 +395,21 @@ describe("ChoiceInput Tag Tests", function () {
         <choice>e</choice>
         <choice>f</choice>
       </choiceinput>
-      <choiceinput copySource="ci1" name="ci2" />
-      <choiceinput inline="false" copySource="ci1" name="ci3" />
-      <choiceinput inline="false" copySource="ci2" name="ci4" />
+      <copy name="copy" target="ci1" assignNames="ci2" createComponentOfType="choiceinput" />
+      <copy name="copy2" inline="false" target="ci1" assignNames="ci3" createComponentOfType="choiceinput" />
+      <copy name="copy3" inline="false" target="copy" assignNames="ci4" createComponentOfType="choiceinput" />
   
       <p>Selected values: <aslist>
-      $ci1.selectedValue
-      $ci2.selectedValue
-      $ci3.selectedValue
-      $ci4.selectedValue
+      <copy prop='selectedvalue' target="ci1" />
+      <copy prop='selectedvalue' target="copy" />
+      <copy prop='selectedvalue' target="copy2" />
+      <copy prop='selectedvalue' target="copy3" />
       </aslist></p>
       <p>Selected indices: <aslist>
-      $ci1.selectedindex
-      $ci2.selectedindex
-      $ci3.selectedindex
-      $ci4.selectedindex
+      <copy prop='selectedindex' target="ci1" />
+      <copy prop='selectedindex' target="copy" />
+      <copy prop='selectedindex' target="copy2" />
+      <copy prop='selectedindex' target="copy3" />
       </aslist></p>
 
     `,
@@ -680,20 +680,20 @@ describe("ChoiceInput Tag Tests", function () {
     <text>a</text>
     <choiceinput shuffleOrder name="ci1">
       <choice>The function is <m>f(\\xi)=\\sin(\\xi)</m>.</choice>
-      <choice>The sum of <math name="lambda2">lambda^2</math> and <math name="twice">2 lambda^2</math> is <math simplify>$lambda2+$twice</math>.</choice>
+      <choice>The sum of <math name="lambda2">lambda^2</math> and <math name="twice">2 lambda^2</math> is <math simplify><copy target="lambda2" />+<copy target="twice" /></math>.</choice>
       <choice>The sequence is <aslist><sequence from="1" to="5" /></aslist>.</choice>
       <choice>Can't convert this latex: <m>\\bar{x}^i</m>.</choice>
     </choiceinput>
 
-    <choiceinput inline copySource="ci1" name="ci2" />
+    <copy name="copy" inline target="ci1" assignNames="ci2" createComponentOfType="choiceinput" />
 
     <p>Selected values: <aslist>
-    $ci1.selectedValue
-    $ci2.selectedValue
+    <copy prop='selectedvalue' target="ci1" />
+    <copy prop='selectedvalue' target="copy" />
     </aslist></p>
     <p>Selected indices: <aslist>
-    $ci1.selectedindex
-    $ci2.selectedindex
+    <copy prop='selectedindex' target="ci1" />
+    <copy prop='selectedindex' target="copy" />
     </aslist></p>
 
     `,
@@ -828,15 +828,15 @@ describe("ChoiceInput Tag Tests", function () {
 
     <p>Select by typing: <textinput prefill="monkey" /></p>
 
-    <choiceinput inline copySource="ci1" name="ci2" />
+    <copy name="copy" inline target="ci1" assignNames="ci2" createComponentOfType="choiceinput" />
 
     <p>Selected values: <aslist>
-    $ci1.selectedValue
-    $ci2.selectedValue
+    <copy prop='selectedvalue' target="ci1" />
+    <copy prop='selectedvalue' target="copy" />
     </aslist></p>
     <p>Selected indices: <aslist>
-    $ci1.selectedindex
-    $ci2.selectedindex
+    <copy prop='selectedindex' target="ci1" />
+    <copy prop='selectedindex' target="copy" />
     </aslist></p>
 
     `,
@@ -1014,27 +1014,22 @@ describe("ChoiceInput Tag Tests", function () {
 
     <p>Select by typing: <textinput prefill="monkey" /></p>
 
-    <choiceinput inline copySource="ci1" name="ci2" />
+    <copy name="copy" inline target="ci1" assignNames="ci2" createComponentOfType="choiceinput" />
 
     <p>Selected values: <aslist>
-    $ci1.selectedValues
-    $ci2.selectedValues
+    <copy prop='selectedvalues' target="ci1" />
+    <copy prop='selectedvalues' target="copy" />
     </aslist></p>
     <p>Selected indices: <aslist>
-    $ci1.selectedindices
-    $ci2.selectedindices
+    <copy prop='selectedindices' target="ci1" />
+    <copy prop='selectedindices' target="copy" />
     </aslist></p>
 
     `,
-                    requestedVariantIndex: 1,
                 },
                 "*",
             );
         });
-
-        // TODO: determine why the on change handler of ci2
-        // is not invoked when selecting monkey, dog for these variants
-        // bad variants: 3 (dog, cat, monkey), 4 (dog, monkey, cat)
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
 
@@ -1139,9 +1134,6 @@ describe("ChoiceInput Tag Tests", function () {
                 .type(`${inputText}{enter}`);
             checkChoices(selectedChoices, inputText);
 
-            // TODO: for
-            // bad variants: 3 (dog, cat, monkey), 4 (dog, monkey, cat)
-            // this selection is not triggering the on-change handler
             cy.log("select monkey, dog from second input");
             selectedChoices = ["  dog ", "Monkey"];
             let selectedIndices = selectedChoices.map(
@@ -1242,18 +1234,18 @@ describe("ChoiceInput Tag Tests", function () {
 
     <p>Fixed to be: <text name="alwaysMonkey" fixed>monkey</text></p>
 
-    <choiceinput inline copySource="ci1" name="ci2" />
+    <copy name="copy" inline target="ci1" assignNames="ci2" createComponentOfType="choiceinput" />
 
     <p>Selected values: <aslist>
-    $ci1.selectedValue
-    $ci2.selectedValue
+    <copy prop='selectedvalue' target="ci1" />
+    <copy prop='selectedvalue' target="copy" />
     </aslist></p>
     <p>Selected indices: <aslist>
-    $ci1.selectedindex
-    $ci2.selectedindex
+    <copy prop='selectedindex' target="ci1" />
+    <copy prop='selectedindex' target="copy" />
     </aslist></p>
 
-    <p>Check for core round trip: <booleaninput name="bi" /> $bi.value{assignNames="b"}</p>
+    <p>Check for core round trip: <booleaninput name="bi" /> <copy prop="value" target="bi" assignNames="b" /></p>
     `,
                 },
                 "*",
@@ -1324,15 +1316,15 @@ describe("ChoiceInput Tag Tests", function () {
     
     <p>Select by typing: <mathinput prefill="y" /></p>
 
-    <choiceinput inline copySource="ci1" name="ci2" />
+    <copy name="copy" inline target="ci1" assignNames="ci2" createComponentOfType="choiceinput" />
 
     <p>Selected values: <aslist>
-    $ci1.selectedValue
-    $ci2.selectedValue
+    <copy prop='selectedvalue' target="ci1" />
+    <copy prop='selectedvalue' target="copy" />
     </aslist></p>
     <p>Selected indices: <aslist>
-    $ci1.selectedindex
-    $ci2.selectedindex
+    <copy prop='selectedindex' target="ci1" />
+    <copy prop='selectedindex' target="copy" />
     </aslist></p>
 
     `,
@@ -2580,7 +2572,7 @@ describe("ChoiceInput Tag Tests", function () {
       </choiceinput>
     </group>
     
-    $g{name="g2" link="false"}
+    <copy target="g" assignNames="g2" link="false" />
     `,
                 },
                 "*",
@@ -3429,9 +3421,9 @@ describe("ChoiceInput Tag Tests", function () {
                 {
                     doenetML: `
     <p><choiceInput name="ci1" inline><label>Select an option</label><choice>Yes</choice><choice>No</choice></choiceInput>
-      <choiceInput copySource="ci1" name="ci1a" /> </p>
+      <copy copySource="ci1" assignNames="ci1a" /> </p>
     <p><choiceInput name="ci2"><choice>Yes</choice><choice>No</choice><label>Select another option</label></choiceInput>
-      <choiceInput copySource="ci2" name="ci2a" /> </p>
+      <copy copySource="ci2" assignNames="ci2a" /> </p>
 
     <p><updateValue target="_label1.hide" newValue="!$_label1.hide" type="boolean" name="toggleLabels"><label>Toggle labels</label></updateValue>
     <updateValue triggerWith="toggleLabels" target="_label2.hide" newValue="!$_label2.hide" type="boolean" /></p>

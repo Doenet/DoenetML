@@ -214,12 +214,12 @@ describe("ref Tag Tests", function () {
                 {
                     doenetML: `
   <p>A link to <ref uri="http://doenet.org">Doenet</ref>.</p>
-  <p>Repeat url: $_ref1{name="ref2"}.</p>
-  <p>The link address is: $_ref1.uri.</p>
-  <p>The text linked is: $_ref1.linktext.</p>
+  <p>Repeat url: <copy target="_ref1" />.</p>
+  <p>The link address is: <copy prop="uri" target="_ref1" />.</p>
+  <p>The text linked is: <copy prop="linktext" target="_ref1" />.</p>
   <!--<p>Recreate from pieces: <ref uri="$uri" >
-     $_ref1.linktext</ref>.</p>
-  <text name="uri" hide>$_ref1.uri</text>-->
+     <copy prop="linktext" target="_ref1" /></ref>.</p>
+  <text name="uri" hide><copy prop="uri" target="_ref1" /></text>-->
   `,
                 },
                 "*",
@@ -233,10 +233,18 @@ describe("ref Tag Tests", function () {
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org"));
 
-        cy.get(cesc2("#/ref2"))
-            .should("have.text", "Doenet")
-            .invoke("attr", "href")
-            .then((href) => expect(href).eq("http://doenet.org"));
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            cy.get(
+                cesc2(
+                    "#" +
+                        stateVariables["/_copy1"].replacements[0].componentName,
+                ),
+            )
+                .should("have.text", "Doenet")
+                .invoke("attr", "href")
+                .then((href) => expect(href).eq("http://doenet.org"));
+        });
 
         cy.get(cesc("#\\/_p3")).should(
             "have.text",

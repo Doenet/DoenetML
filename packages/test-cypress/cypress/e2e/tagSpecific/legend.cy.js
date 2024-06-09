@@ -240,8 +240,8 @@ describe("Legend Tag Tests", function () {
       </legend>
     </graph>
 
-    $n.value{assignNames="n2"}
-    $pos.value{assignNames="pos2"}
+    <copy prop="value" target="n" assignNames="n2" />
+    <copy prop="value" target="pos" assignNames="pos2" />
     `,
                 },
                 "*",

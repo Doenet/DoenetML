@@ -19,43 +19,43 @@ describe("Graph Reference Test 2", function () {
     </graph>
   
     <graph width="150px" height="150px" name="graph2">
-    $_vector1.tail
-    $_vector1.head
-    $_vector1.displacement{name="d1"}
-    $_vector1{name="rv1"}
+    <copy prop="tail" target="_vector1" />
+    <copy prop="head" target="_vector1" />
+    <copy prop="displacement" name="d1" target="_vector1" />
+    <copy name="rv1" target="_vector1" />
     </graph>
 
     <graph width="150px" height="150px" name="graph3">
-    $d1.tail
-    $d1.head
-    $d1.displacement
-    $d1
+    <copy prop="tail" target="d1" />
+    <copy prop="head" target="d1" />
+    <copy prop="displacement" target="d1" />
+    <copy target="d1" />
     </graph>
   
     <graph width="150px" height="150px" name="graph4">
-    $rv1.tail
-    $rv1.head
-    $rv1.displacement
-    $rv1{name="rv2"}
+    <copy prop="tail" target="rv1" />
+    <copy prop="head" target="rv1" />
+    <copy prop="displacement" target="rv1" />
+    <copy name="rv2" target="rv1" />
     </graph>
     </sidebyside>
 
     <sidebyside>
-    $graph1{width="150px" height="150px" name="graph5"}
-    $graph2{width="150px" height="150px" name="graph6"}
-    $graph3{width="150px" height="150px" name="graph7"}
-    $graph4{width="150px" height="150px" name="graph8"}
+    <copy width="150px" height="150px" name="graph5" target="graph1" />
+    <copy width="150px" height="150px" name="graph6" target="graph2" />
+    <copy width="150px" height="150px" name="graph7" target="graph3" />
+    <copy width="150px" height="150px" name="graph8" target="graph4" />
     </sidebyside>
 
     <sidebyside>
-    $graph5{width="150px" height="150px" name="graph9"}
-    $graph6{width="150px" height="150px" name="graph10"}
-    $graph7{width="150px" height="150px" name="graph11"}
-    $graph8{width="150px" height="150px" name="graph12"}
+    <copy width="150px" height="150px" name="graph9" target="graph5" />
+    <copy width="150px" height="150px" name="graph10" target="graph6" />
+    <copy width="150px" height="150px" name="graph11" target="graph7" />
+    <copy width="150px" height="150px" name="graph12" target="graph8" />
     </sideBySide>
     </sbsgroup>
 
-    $_sbsgroup1{name="sbsgroup2"}
+    <copy name="sbsgroup2" target="_sbsgroup1" />
   
     `,
                 },
@@ -84,97 +84,145 @@ describe("Graph Reference Test 2", function () {
             let graph2 = stateVariables["/graph2"];
             let graph3 = stateVariables["/graph3"];
             let graph4 = stateVariables["/graph4"];
-            let graph5 = stateVariables["/graph5"];
-            let graph6 = stateVariables["/graph6"];
-            let graph7 = stateVariables["/graph7"];
-            let graph8 = stateVariables["/graph8"];
-            let graph9 = stateVariables["/graph9"];
-            let graph10 = stateVariables["/graph10"];
-            let graph11 = stateVariables["/graph11"];
-            let graph12 = stateVariables["/graph12"];
+            let graph5 =
+                stateVariables[
+                    stateVariables["/graph5"].replacements[0].componentName
+                ];
+            let graph6 =
+                stateVariables[
+                    stateVariables["/graph6"].replacements[0].componentName
+                ];
+            let graph7 =
+                stateVariables[
+                    stateVariables["/graph7"].replacements[0].componentName
+                ];
+            let graph8 =
+                stateVariables[
+                    stateVariables["/graph8"].replacements[0].componentName
+                ];
+            let graph9 =
+                stateVariables[
+                    stateVariables["/graph9"].replacements[0].componentName
+                ];
+            let graph10 =
+                stateVariables[
+                    stateVariables["/graph10"].replacements[0].componentName
+                ];
+            let graph11 =
+                stateVariables[
+                    stateVariables["/graph11"].replacements[0].componentName
+                ];
+            let graph12 =
+                stateVariables[
+                    stateVariables["/graph12"].replacements[0].componentName
+                ];
 
             let graph1A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[0]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[0].componentName
                     ].activeChildren[0].componentName
                 ];
             let graph2A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[0]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[0].componentName
                     ].activeChildren[1].componentName
                 ];
             let graph3A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[0]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[0].componentName
                     ].activeChildren[2].componentName
                 ];
             let graph4A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[0]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[0].componentName
                     ].activeChildren[3].componentName
                 ];
             let graph5A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[1]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[1].componentName
                     ].activeChildren[0].componentName
                 ];
             let graph6A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[1]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[1].componentName
                     ].activeChildren[1].componentName
                 ];
             let graph7A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[1]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[1].componentName
                     ].activeChildren[2].componentName
                 ];
             let graph8A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[1]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[1].componentName
                     ].activeChildren[3].componentName
                 ];
             let graph9A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[2]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[2].componentName
                     ].activeChildren[0].componentName
                 ];
             let graph10A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[2]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[2].componentName
                     ].activeChildren[1].componentName
                 ];
             let graph11A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[2]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[2].componentName
                     ].activeChildren[2].componentName
                 ];
             let graph12A =
                 stateVariables[
                     stateVariables[
-                        stateVariables["/sbsgroup2"].activeChildren[2]
-                            .componentName
+                        stateVariables[
+                            stateVariables["/sbsgroup2"].replacements[0]
+                                .componentName
+                        ].activeChildren[2].componentName
                     ].activeChildren[3].componentName
                 ];
 

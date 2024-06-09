@@ -13,18 +13,18 @@ describe("TextList Tag Tests", function () {
                     doenetML: `
     <p><textlist hide="true">a b c</textlist></p>
 
-    <p><textlist hide="false" copySource="_textlist1" name="textlist1a" /></p>
+    <p><copy hide="false" target="_textlist1" /></p>
 
-    <p><textlist name="textlist2">
+    <p><textlist>
       <text>hello</text>
-      $_textlist1{hide="false"}
+      <copy target="_textlist1" hide="false" />
       <text>bye</text>
-      $textlist1a
+      <copy target="_copy1" />
     </textlist></p>
 
-    <p><textlist maxNumber="6" copySource="textlist2" /></p>
+    <p><copy maxNumber="6" target="_textlist2" /></p>
 
-    <p>$textlist2.text</p>
+    <p><copy prop="text" target="_textlist2" /></p>
 
     `,
                 },
@@ -211,12 +211,12 @@ describe("TextList Tag Tests", function () {
                     doenetML: `
       <text>a</text>
       <p><textlist name="tl1">a b c d e</textlist></p>
-      <p><textlist copySource="tl1" maxNumber="3" name="tl2" /></p>
-      <p><textlist copySource="tl2" maxNumber="" name="tl3" /></p>
+      <p><copy target="tl1" maxNumber="3" assignNames="tl2" /></p>
+      <p><copy target="tl2" maxNumber="" assignNames="tl3" /></p>
 
       <p><textlist name="tl4" maxNumber="3">a b c d e</textlist></p>
-      <p><textlist copySource="tl4" maxNumber="4" name="tl5" /></p>
-      <p><textlist copySource="tl5" maxNumber="" name="tl6" /></p>
+      <p><copy target="tl4" maxNumber="4" assignNames="tl5" /></p>
+      <p><copy target="tl5" maxNumber="" assignNames="tl6" /></p>
 
       `,
                 },
@@ -286,7 +286,7 @@ describe("TextList Tag Tests", function () {
                     doenetML: `
       <text>a</text>
       <p><textlist name="tl1" maxNumber="$mn1">a b c d e</textlist></p>
-      <p><textlist copysource="tl1" maxNumber="$mn2" name="tl2" /></p>
+      <p><copy target="tl1" maxNumber="$mn2" assignNames="tl2" /></p>
       <p>Maximum number 1: <mathinput name="mn1" prefill="2" /></p>
       <p>Maximum number 2: <mathinput name="mn2" /></p>
 

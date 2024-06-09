@@ -19,7 +19,7 @@ describe("Integer Tag Tests", function () {
   
   <line through="$_point1 $_point2" />
   <line through="$_point3 $_point4" />
-  <intersection assignNames="int1">$_line1$_line2</intersection>
+  <intersection assignNames="int1"><copy source="_line1" /><copy source="_line2" /></intersection>
   
   </graph>
   <copy prop="coords" source="_point1" assignNames="coords1" displayDecimals="2" />
@@ -240,11 +240,11 @@ describe("Integer Tag Tests", function () {
     <label>Hide second intersection</label>
   </booleaninput>
   
-  <p name="i1">Intersection 1: <intersection hide="$h1">$_line1$_line2</intersection></p>
-  <p name="i2">Intersection 2: <intersection hide="$h2">$_line1$_line2</intersection></p>
+  <p name="i1">Intersection 1: <intersection hide="$h1"><copy source="_line1" /><copy source="_line2" /></intersection></p>
+  <p name="i2">Intersection 2: <intersection hide="$h2"><copy source="_line1" /><copy source="_line2" /></intersection></p>
 
-  $h1.value{assignNames="h1Val"}
-  $h2.value{assignNames="h2Val"}
+  <copy prop="value" source="h1" assignNames="h1Val" />
+  <copy prop="value" source="h2" assignNames="h2Val" />
   <copy prop="coords" source="_point1" assignNames="coords1" displayDecimals="2" />
   <copy prop="coords" source="_point2" assignNames="coords2" displayDecimals="2" />
   <copy prop="coords" source="_point3" assignNames="coords3" displayDecimals="2" />
@@ -457,12 +457,12 @@ describe("Integer Tag Tests", function () {
       </graph>
 
       <p>
-        $r1{name="r1a"}
-        $r2{name="r2a"}
-        $P1{name="P1a"}
-        $P2{name="P2a"}
-        $int1{name="int1a"}
-        $int2{name="int2a"}
+        <copy source="r1" assignNames="r1a" />
+        <copy source="r2" assignNames="r2a" />
+        <copy source="P1" assignNames="P1a" />
+        <copy source="P2" assignNames="P2a" />
+        <copy source="int1" assignNames="int1a" />
+        <copy source="int2" assignNames="int2a" />
       </p>
     `,
                 },
@@ -637,12 +637,12 @@ describe("Integer Tag Tests", function () {
       </graph>
 
       <p>
-        $r{name="ra"}
-        $P{name="Pa"}
-        $A{name="Aa"}
-        $B{name="Ba"}
-        $int1{name="int1a"}
-        $int2{name="int2a"}
+        <copy source="r" assignNames="ra" />
+        <copy source="P" assignNames="Pa" />
+        <copy source="A" assignNames="Aa" />
+        <copy source="B" assignNames="Ba" />
+        <copy source="int1" assignNames="int1a" />
+        <copy source="int2" assignNames="int2a" />
       </p>
     `,
                 },
@@ -1384,12 +1384,12 @@ describe("Integer Tag Tests", function () {
       </graph>
 
       <p>
-        $r{name="ra"}
-        $P{name="Pa"}
-        $A{name="Aa"}
-        $B{name="Ba"}
-        $int1{name="int1a"}
-        $int2{name="int2a"}
+        <copy source="r" assignNames="ra" />
+        <copy source="P" assignNames="Pa" />
+        <copy source="A" assignNames="Aa" />
+        <copy source="B" assignNames="Ba" />
+        <copy source="int1" assignNames="int1a" />
+        <copy source="int2" assignNames="int2a" />
       </p>
     `,
                 },
@@ -1909,8 +1909,8 @@ describe("Integer Tag Tests", function () {
   
   </graph>
   <copy source="p.vertices" assignNames="p11 p12 p13" />
-  $P{name="Pa"}
-  $r{name="ra"}
+  <copy source="P" assignNames="Pa" />
+  <copy source="r" assignNames="ra" />
   $int1 $int2 $int3 $int4 $int5 $int6
 
   `,
@@ -2039,43 +2039,5 @@ describe("Integer Tag Tests", function () {
             expect(stateVariables["/int1"].stateValues.xs).eqls([0, -10]);
             expect(stateVariables["/int2"]).eq(undefined);
         });
-    });
-
-    it("aslist", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-
-  <graph>
-    <circle name="c" />
-    <triangle name="p" />
-    <intersection name="int" styleNumber="2">$p$c</intersection>
-  </graph>
-
-  <p name="pdefault"><intersection copySource="int"/></p>
-  <p name="pnolist"><intersection asList="false" copySource="int"/></p>
-  `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(cesc2("#/pdefault") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(0,1)");
-        cy.get(cesc2("#/pdefault") + " .mjx-mrow")
-            .eq(2)
-            .should("have.text", "(1,0)");
-
-        cy.get(cesc2("#/pdefault")).should("contain.text", "), (");
-
-        cy.get(cesc2("#/pnolist") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(0,1)");
-        cy.get(cesc2("#/pnolist") + " .mjx-mrow")
-            .eq(2)
-            .should("have.text", "(1,0)");
-        cy.get(cesc2("#/pnolist")).should("not.contain.text", "), (");
     });
 });

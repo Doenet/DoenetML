@@ -84,7 +84,7 @@ describe("Slider Tag Tests", function () {
   <p>Change value: <mathinput name="mi" bindValueTo="$s" /></p>
   <p>
     <booleaninput name="bi"/>
-    $bi.value{assignNames="b"}
+    <copy prop="value" target="bi" assignNames="b" />
   </p>
     `,
                 },

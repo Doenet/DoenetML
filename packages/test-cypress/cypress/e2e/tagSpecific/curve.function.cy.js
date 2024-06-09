@@ -1,4 +1,4 @@
-import { cesc, createFunctionFromDefinition } from "@doenet/utils";
+import { createFunctionFromDefinition, cesc } from "@doenet/utils";
 
 describe("Function curve Tag Tests", function () {
     beforeEach(() => {
@@ -379,7 +379,7 @@ describe("Function curve Tag Tests", function () {
     <graph>
     <curve><function>x^3-x$a</function></curve>
     </graph>
-    <p>$a.value{assignNames="a2"}</p>
+    <p><copy prop="value" target="a" assignNames="a2" /></p>
     `,
                 },
                 "*",
@@ -473,7 +473,7 @@ describe("Function curve Tag Tests", function () {
     
     <point x='3' y='5'>
     <constraints>
-      <constrainTo>$_curve1</constrainTo>
+      <constrainTo><copy target="_curve1" /></constrainTo>
     </constraints>
     </point>
     
@@ -626,7 +626,7 @@ describe("Function curve Tag Tests", function () {
     
     <point x='3' y='5'>
     <constraints>
-      <constrainTo>$_curve1</constrainTo>
+      <constrainTo><copy target="_curve1" /></constrainTo>
     </constraints>
     </point>
     
@@ -833,7 +833,7 @@ describe("Function curve Tag Tests", function () {
     
     <point x='3' y='5'>
     <constraints>
-      <constrainTo>$_curve1</constrainTo>
+      <constrainTo><copy target="_curve1" /></constrainTo>
     </constraints>
     </point>
     
@@ -1075,7 +1075,7 @@ describe("Function curve Tag Tests", function () {
     
     <point x='5' y='3'>
     <constraints>
-      <constrainTo>$_curve1</constrainTo>
+      <constrainTo><copy target="_curve1" /></constrainTo>
     </constraints>
     </point>
     
@@ -1154,7 +1154,7 @@ describe("Function curve Tag Tests", function () {
     
     <point x='5' y='3'>
     <constraints>
-      <constrainTo>$_curve1</constrainTo>
+      <constrainTo><copy target="_curve1" /></constrainTo>
     </constraints>
     </point>
     

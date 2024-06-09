@@ -13,8 +13,8 @@ describe("Code Editor Tag Tests", function () {
     <text>a</text>
     <codeEditor />
 
-    <p>$_codeeditor1.immediateValue</p>
-    <p>$_codeeditor1.value</p>
+    <p><copy prop="immediateValue" target="_codeeditor1" /></p>
+    <p><copy prop="value" target="_codeeditor1" /></p>
     `,
                 },
                 "*",
@@ -109,8 +109,8 @@ describe("Code Editor Tag Tests", function () {
     <text>a</text>
     <codeEditor showResults />
 
-    <p>$_codeeditor1.immediateValue</p>
-    <p>$_codeeditor1.value</p>
+    <p><copy prop="immediateValue" target="_codeeditor1" /></p>
+    <p><copy prop="value" target="_codeeditor1" /></p>
     `,
                 },
                 "*",
@@ -288,10 +288,10 @@ describe("Code Editor Tag Tests", function () {
     <text>a</text>
     <codeEditor showResults renderedName="result" />
 
-    <p>$_codeeditor1.immediateValue</p>
-    <p>$_codeeditor1.value</p>
+    <p><copy prop="immediateValue" target="_codeeditor1" /></p>
+    <p><copy prop="value" target="_codeeditor1" /></p>
 
-    <p>The value of the entered math is $(/result/_math1.value{assignNames="m1"})</p>
+    <p>The value of the entered math is <copy prop="value" target="/result/_math1" assignNames="m1" /></p>
     `,
                 },
                 "*",
@@ -562,10 +562,10 @@ describe("Code Editor Tag Tests", function () {
     <text>a</text>
     <codeEditor showResults renderedName="result" staticName="static" />
 
-    <p name="px">The value of the dynamic math is $(/result/x.value{assignNames="x"})</p>
-    <p name="psx">The value of the static math is $(/static/x.value{assignNames="sx"})</p>
-    <p name="pP">The coords of the dynamic point are $(/result/P.coords{assignNames="P"})</p>
-    <p name="psP">The coords of the static point are $(/static/P.coords{assignNames="sP"})</p>
+    <p name="px">The value of the dynamic math is <copy prop="value" target="/result/x" assignNames="x" /></p>
+    <p name="psx">The value of the static math is <copy prop="value" target="/static/x" assignNames="sx" /></p>
+    <p name="pP">The coords of the dynamic point are <copy prop="coords" target="/result/P" assignNames="P" /></p>
+    <p name="psP">The coords of the static point are <copy prop="coords" target="/static/P" assignNames="sP" /></p>
     `,
                 },
                 "*",
@@ -1376,7 +1376,7 @@ describe("Code Editor Tag Tests", function () {
     <text>a</text>
     <codeEditor showResults />
 
-    <p>$_codeeditor1.value</p>
+    <p><copy prop="value" target="_codeeditor1" /></p>
     `;
 
         cy.get("#testRunner_toggleControls").click();
@@ -1437,16 +1437,16 @@ describe("Code Editor Tag Tests", function () {
 
             if (Cypress.platform === "darwin") {
                 cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                    "{command+a}<alert>Ovewritten!</alert>",
+                    "{command+a}<alert>Overwritten!</alert>",
                     {
-                        delay: 10,
+                        delay: 20,
                     },
                 );
             } else {
                 cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                    "{control+a}<alert>Ovewritten!</alert>",
+                    "{control+a}<alert>Overwritten!</alert>",
                     {
-                        delay: 10,
+                        delay: 20,
                     },
                 );
             }
@@ -1454,10 +1454,10 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc2("#/_p1")).should(
                 "have.text",
-                "<alert>Ovewritten!</alert>",
+                "<alert>Overwritten!</alert>",
             );
             cy.get(contentAnchor).should("not.contain.text", "Hello!");
-            cy.get(contentAnchor).should("contain.text", "Ovewritten!");
+            cy.get(contentAnchor).should("contain.text", "Overwritten!");
 
             cy.wait(1500); // wait for 1 second debounce
 
@@ -1470,7 +1470,7 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc2("#/_p1")).should("have.text", "<p>Hello!</p>");
             cy.get(contentAnchor).should("contain.text", "Hello!");
-            cy.get(contentAnchor).should("not.contain.text", "Ovewritten!");
+            cy.get(contentAnchor).should("not.contain.text", "Overwritten!");
 
             cy.wait(1500); // wait for 1 second debounce
 
@@ -1487,7 +1487,7 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc2("#/_p1")).should("have.text", "<p>Hello!</p>");
             cy.get(contentAnchor).should("contain.text", "Hello!");
-            cy.get(contentAnchor).should("not.contain.text", "Ovewritten!");
+            cy.get(contentAnchor).should("not.contain.text", "Overwritten!");
         });
     });
 
@@ -1499,7 +1499,7 @@ describe("Code Editor Tag Tests", function () {
         <text>a</text>
         <codeEditor showResults />
     
-        <p>$_codeeditor1.value</p>
+        <p><copy prop="value" target="_codeeditor1" /></p>
         `,
                 },
                 "*",
@@ -1580,16 +1580,16 @@ describe("Code Editor Tag Tests", function () {
         <text>a</text>
         <codeEditor showResults />
     
-        <p>$_codeeditor1.value</p>
+        <p><copy prop="value" target="_codeeditor1" /></p>
 
 
         <codeEditor showResults />
     
-        <p>$_codeeditor2.value</p>
+        <p><copy prop="value" target="_codeeditor2" /></p>
 
         <codeEditor showResults />
     
-        <p>$_codeeditor3.value</p>
+        <p><copy prop="value" target="_codeeditor3" /></p>
         `,
                 },
                 "*",

@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2, createFunctionFromDefinition } from "@doenet/utils";
+import { createFunctionFromDefinition, cesc, cesc2 } from "@doenet/utils";
 
 function nInDOM(n) {
     if (n < 0) {

@@ -25,7 +25,7 @@ describe("CobwebPolyline Tag Tests", function () {
   <p>Initial condition is <m>x_0 = 1</m>:
   <answer name="check_initial">
     <award><when>
-    $P1.coords = <math>(1,0)</math>
+    <copy prop="coords" target="P1"/> = <math>(1,0)</math>
     </when></award>
   </answer>
   </p>
@@ -55,7 +55,7 @@ describe("CobwebPolyline Tag Tests", function () {
         </mrow>
       </template>
       <sources alias="x" indexAlias="i">
-        $(graph1/cobweb.iterateValues)
+        <copy prop="iterateValues" target="graph1/cobweb" />
       </sources>
     </map>
     </md>
@@ -66,7 +66,7 @@ describe("CobwebPolyline Tag Tests", function () {
   <p><answer name="check_cobweb">
   <award credit="$(graph1/cobweb.fractionCorrectVerticesAdjusted)"><when>true</when></award>
     <considerAsResponses>
-      $(graph1/cobweb.vertices)
+      <copy prop="vertices" target="graph1/cobweb" />
     </considerAsResponses>
   </answer>
   </p>
@@ -1861,7 +1861,7 @@ describe("CobwebPolyline Tag Tests", function () {
     <function name="f">2x-x^2/3</function>
   </setup>
   
-  <copy uri="doenet:cid=bafkreiatwotzdmrphuof5j4gsr42jvt266ourxqlpukspkedwe7kfwflze" name="gradedApplet" function="$f" xmin="-0.8" xmax="7" ymin="-1" ymax="4" width="320px" height="200px" attractThreshold="0.2" showNavigation="false" numIterationsRequired="3" initialValueDx="0.2" x0="1" />
+  <copy uri="doenet:cid=bafkreictwhjxdmqxxvpfoqybgdfp75tcvwda56kewdxhjhe2ixcia5bqu4" assignNames="gradedApplet" function="$f" xmin="-0.8" xmax="7" ymin="-1" ymax="4" width="320px" height="200px" attractThreshold="0.2" showNavigation="false" numIterationsRequired="3" initialValueDx="0.2" x0="1" />
   
   `,
                 },
@@ -2404,7 +2404,7 @@ describe("CobwebPolyline Tag Tests", function () {
     <function name="f">2x-x^2/3</function>
   </setup>
   
-  <copy uri="doenet:cid=bafkreief4dcu4mfiqfib2xii5ftoevhbymn34dyi4inqsxdfvfskj234qi" name="cobwebTutorial" function="$f" xmin="-0.8" xmax="7" ymin="-1" ymax="4" width="320px" height="200px" attractThreshold="0.2" showNavigation="false" numIterationsRequired="3" initialValueDx="0.2" x0="1" />
+  <copy uri="doenet:cid=bafkreief4dcu4mfiqfib2xii5ftoevhbymn34dyi4inqsxdfvfskj234qi" assignNames="cobwebTutorial" function="$f" xmin="-0.8" xmax="7" ymin="-1" ymax="4" width="320px" height="200px" attractThreshold="0.2" showNavigation="false" numIterationsRequired="3" initialValueDx="0.2" x0="1" />
  
   <p>Credit achieved: <copy source="_document1" prop="creditAchieved" assignNames="ca" /></p>
   `,
@@ -2736,76 +2736,5 @@ describe("CobwebPolyline Tag Tests", function () {
         );
         cy.get(cesc2("#/cobwebTutorial/next_button")).should("be.disabled");
         cy.get(cesc2("#/ca")).should("have.text", "1");
-    });
-
-    it("handle bad initial point, lock to solution", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <setup>
-    <function name='f'>x^2</function>
-  </setup>
-
-  <p>Initial point: <mathinput name="x0" /></p>
-
-  <graph>
-    <cobwebpolyline name="cobweb" stylenumber="4" numPoints="100" function="$f" initialPoint="$x0" lockToSolution />
-  </graph> 
-  <p>Vertices: $cobweb.vertices</p>
-
-
-  `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(cesc2("#/_p1")).should("have.text", "Initial point: ");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(＿,0)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(3)
-            .should("have.text", "(NaN,NaN)");
-
-        cy.get(cesc2("#/x0") + " textarea").type("0.9{enter}", { force: true });
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow").should("contain.text", "(0.9,0)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(0.9,0)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(2)
-            .should("have.text", "(0.9,0.81)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(100)
-            .should("have.text", "(0,0)");
-
-        cy.get(cesc2("#/x0") + " textarea").type(
-            "{end}{backspace}{backspace}{backspace}(1.1,3){enter}",
-            {
-                force: true,
-            },
-        );
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow").should("contain.text", "(1.1,3)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(1.1,3)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(2)
-            .should("have.text", "(1.1,1.21)");
-
-        cy.get(cesc2("#/_p2") + " .mjx-mrow")
-            .eq(100)
-            .should("have.text", "(∞,∞)");
     });
 });

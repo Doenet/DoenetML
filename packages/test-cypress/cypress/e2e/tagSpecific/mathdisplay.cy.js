@@ -55,7 +55,7 @@ describe("Math Display Tag Tests", function () {
     <lorem generateParagraphs="2" />
 
     <p>We have equation <ref target="e1" name="re1" />, equation <ref target="e2" name="re2" />, and equation <ref target="e3" name="re3" />.</p>
-    <p>From copying properties: $e1.equationTag{assignNames="te1"}, $e2.equationTag{assignNames="te2"}, and $e3.equationTag{assignNames="te3"}.</p>
+    <p>From copying properties: <copy prop="equationTag" target="e1" assignNames="te1" />, <copy prop="equationTag" target="e2" assignNames="te2" />, and <copy prop="equationTag" target="e3" assignNames="te3" />.</p>
 
     <lorem generateParagraphs="8" />
 
@@ -164,8 +164,8 @@ describe("Math Display Tag Tests", function () {
     <p name="pn6">n6: <copy prop="equationTag" assignNames="etn6" target="n6/eq" />, equation <ref target="n6/eq" name="rn6" /></p>
     <p name="pz">z: <copy prop="equationTag" assignNames="etz" target="z" />, equation <ref target="z" name="rz" /></p>
     <p>
-      $m.value{assignNames="ma"}
-      $n.value{assignNames="na"}
+      <copy prop="value" target="m" assignNames="ma" />
+      <copy prop="value" target="n" assignNames="na" />
     </p>
     <lorem generateParagraphs="8" />
     `,
@@ -641,8 +641,8 @@ describe("Math Display Tag Tests", function () {
     <p name="pn6">n6: <copy prop="equationTag" assignNames="etn6" target="n6/eq" />, equation <ref target="n6/eq" name="rn6" /></p>
     <p name="pz">z: <copy prop="equationTag" assignNames="etz" target="z" />, equation <ref target="z" name="rz" /></p>
     <p>
-      $m.value{assignNames="ma"}
-      $n.value{assignNames="na"}
+      <copy prop="value" target="m" assignNames="ma" />
+      <copy prop="value" target="n" assignNames="na" />
     </p>
     <lorem generateParagraphs="8" />
     `,
@@ -909,8 +909,8 @@ describe("Math Display Tag Tests", function () {
     <p name="pn6">n6: <copy prop="equationTag" assignNames="etn6" target="n6/eq" />, equation <ref target="n6/eq" name="rn6" /></p>
     <p name="pz">z: <copy prop="equationTag" assignNames="etz" target="z" />, equation <ref target="z" name="rz" /></p>
     <p>
-      $m.value{assignNames="ma"}
-      $n.value{assignNames="na"}
+      <copy prop="value" target="m" assignNames="ma" />
+      <copy prop="value" target="n" assignNames="na" />
     </p>
     <lorem generateParagraphs="8" />
     `,
@@ -1245,7 +1245,7 @@ describe("Math Display Tag Tests", function () {
             });
     });
 
-    it("separate with spaces when concatenate children", () => {
+    it("include blank string children", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1253,10 +1253,10 @@ describe("Math Display Tag Tests", function () {
     <text>a</text>
     <math name="b">beta</math>
     <math name="s">s</math>
-    <m>$b$s</m>
-    <me>$b$s</me>
+    <m>$b $s</m>
+    <me>$b $s</me>
     <md>
-      <mrow>$b$s</mrow>
+      <mrow>$b $s</mrow>
     </md>
   `,
                 },
@@ -1287,15 +1287,6 @@ describe("Math Display Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("βs");
             });
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(stateVariables["/_m1"].stateValues.latex).eq("\\beta s");
-            expect(stateVariables["/_me1"].stateValues.latex).eq("\\beta s");
-            expect(stateVariables["/_md1"].stateValues.latex).eq(
-                "\\notag \\beta s",
-            );
-        });
     });
 
     it("aslist inside displayed math", () => {

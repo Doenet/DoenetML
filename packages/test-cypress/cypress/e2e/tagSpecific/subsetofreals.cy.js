@@ -87,7 +87,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -115,7 +115,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -143,7 +143,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -171,7 +171,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
     });
 
     it("single intervals, display as inequality", () => {
@@ -255,7 +255,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/o9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "x∈∅");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -283,7 +283,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/c9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "x∈∅");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -311,7 +311,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/oc9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "x∈∅");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -339,7 +339,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/co9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "x∈∅");
     });
 
     it("single intervals, display as inequality, change variable", () => {
@@ -423,7 +423,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/o9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "v∈∅");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -451,7 +451,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/c9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "v∈∅");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -479,7 +479,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/oc9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "v∈∅");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -507,7 +507,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/co9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "v∈∅");
     });
 
     it("single inequality", () => {
@@ -564,13 +564,6 @@ describe("SubsetOfReals Tag Tests", function () {
   <p><subsetOfReals name="co10">-infinity <= x < infinity</subsetOfReals></p>
   <p><subsetOfReals name="co11">x < a</subsetOfReals></p>
 
-  <p><subsetOfReals name="ne1">x != 6</subsetOfReals></p>
-  <p><subsetOfReals name="ne2">x != infinity</subsetOfReals></p>
-  <p><subsetOfReals name="ne3">x != -infinity</subsetOfReals></p>
-  <p><subsetOfReals name="ne4">6 != x</subsetOfReals></p>
-  <p><subsetOfReals name="ne5">infinity != x</subsetOfReals></p>
-  <p><subsetOfReals name="ne6">-infinity != x</subsetOfReals></p>
-
 
   `,
                 },
@@ -611,7 +604,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -645,7 +638,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -679,7 +672,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -713,26 +706,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
-
-        cy.get(cesc("#\\/ne1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(−∞,6)∪(6,∞)");
-        cy.get(cesc("#\\/ne2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
-        cy.get(cesc("#\\/ne3") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
-        cy.get(cesc("#\\/ne4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(−∞,6)∪(6,∞)");
-        cy.get(cesc("#\\/ne5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
-        cy.get(cesc("#\\/ne6") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
+            .should("have.text", "∅");
     });
 
     it("single inequality, change variable", () => {
@@ -789,12 +763,6 @@ describe("SubsetOfReals Tag Tests", function () {
   <p><subsetOfReals variable="q" name="co10">-infinity <= q < infinity</subsetOfReals></p>
   <p><subsetOfReals variable="q" name="co11">q < a</subsetOfReals></p>
 
-  <p><subsetOfReals variable="q" name="ne1">q != 6</subsetOfReals></p>
-  <p><subsetOfReals variable="q" name="ne2">q != infinity</subsetOfReals></p>
-  <p><subsetOfReals variable="q" name="ne3">q != -infinity</subsetOfReals></p>
-  <p><subsetOfReals variable="q" name="ne4">6 != q</subsetOfReals></p>
-  <p><subsetOfReals variable="q" name="ne5">infinity != q</subsetOfReals></p>
-  <p><subsetOfReals variable="q" name="ne6">-infinity != q</subsetOfReals></p>
 
   `,
                 },
@@ -835,7 +803,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -869,7 +837,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -903,7 +871,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -937,26 +905,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
-
-        cy.get(cesc("#\\/ne1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(−∞,6)∪(6,∞)");
-        cy.get(cesc("#\\/ne2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
-        cy.get(cesc("#\\/ne3") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
-        cy.get(cesc("#\\/ne4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(−∞,6)∪(6,∞)");
-        cy.get(cesc("#\\/ne5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
-        cy.get(cesc("#\\/ne6") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "R");
+            .should("have.text", "∅");
     });
 
     it("single equality", () => {
@@ -989,7 +938,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "∅");
         cy.get(cesc("#\\/e4") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
     });
 
     it("single inequality in set notation", () => {
@@ -1086,7 +1035,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -1120,7 +1069,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -1154,7 +1103,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -1188,7 +1137,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "∅");
     });
 
     it("union and intersections of intervals and singletons", () => {
@@ -2434,10 +2383,10 @@ describe("SubsetOfReals Tag Tests", function () {
             "{end}{backspace}y{enter}",
             { force: true },
         );
-        cy.get(cesc("#\\/result") + " .mjx-mrow").should("contain.text", "＿");
+        cy.get(cesc("#\\/result") + " .mjx-mrow").should("contain.text", "y∈∅");
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "＿");
+            .should("have.text", "y∈∅");
 
         cy.get(cesc("#\\/input") + " textarea").type(
             "{home}{rightArrow}{backspace}y{enter}",
@@ -2519,12 +2468,12 @@ describe("SubsetOfReals Tag Tests", function () {
   <text>a</text>
   <p>Enter subset: <mathinput name="input0" prefill="(0,1)" /></p>
   <p>Subset 1: <subsetOfReals name="s1">$input0</subsetOfReals></p>
-  <p>Subset 2: $s1{name="s2"}</p>
-  <p>Subset 3: $s1.value{assignNames="s3"}</p>
-  <p>Subset 4: $s2{name="s4"}</p>
-  <p>Subset 5: $s2.value{assignNames="s5"}</p>
-  <p>Subset 6: $s3{name="s6"}</p>
-  <p>Subset 7: $s3.value{assignNames="s7"}</p>
+  <p>Subset 2: <copy target="s1" assignNames="s2" /></p>
+  <p>Subset 3: <copy prop="value" target="s1" assignNames="s3" /></p>
+  <p>Subset 4: <copy target="s2" assignNames="s4" /></p>
+  <p>Subset 5: <copy prop="value" target="s2" assignNames="s5" /></p>
+  <p>Subset 6: <copy target="s3" assignNames="s6" /></p>
+  <p>Subset 7: <copy prop="value" target="s3" assignNames="s7" /></p>
   <p>Subset 8: <subsetOfReals name="s8">$s1</subsetOfReals></p>
   <p>Subset 9: <subsetOfReals name="s9">$(s1.value)</subsetOfReals></p>
   <p>Modify subset 1: <mathinput name="input1" bindValueTo="$s1" /></p>

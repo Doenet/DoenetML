@@ -13,18 +13,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers/></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -36,11 +36,16 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.map(
+                (x) =>
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[x.componentName].replacements[0]
+                                .componentName
+                        ].replacements[0].componentName
+                    ].stateValues.value,
             );
+
             expect(samples.length).eq(400);
 
             for (let sample of samples) {
@@ -67,16 +72,19 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_map1"].replacements.map(
+                (x) =>
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[x.componentName].replacements[0]
+                                .componentName
+                        ].replacements[0].componentName
+                    ].stateValues.value,
             );
-            console.log(samples, copiedSamples);
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -90,18 +98,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="uniform" numSamples="5" to="8" /></template>
       <sources><sequence length="80" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -113,10 +121,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -147,15 +163,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -169,18 +193,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="uniform" numSamples="5" from="-5" /></template>
       <sources><sequence length="80" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -192,10 +216,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -223,15 +255,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -245,18 +285,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers numSamples="10" from="-4" to="-2" /></template>
       <sources><sequence length="40" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -268,10 +308,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -302,15 +350,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -324,18 +380,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers numSamples="10" from="-2" to="-4" /></template>
       <sources><sequence length="40" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -347,10 +403,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -381,15 +445,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -403,18 +475,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="gaussian" numSamples="20" /></template>
       <sources><sequence length="20" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -426,10 +498,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -452,15 +532,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -474,18 +562,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="gaussian" numSamples="5" standardDeviation="10" /></template>
       <sources><sequence length="80" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -497,10 +585,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -523,15 +619,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -545,18 +649,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="gaussian" mean="-50" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -568,10 +672,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -594,15 +706,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -616,18 +736,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="gaussian" numSamples="20" mean="100" standardDeviation="10" /></template>
       <sources><sequence length="20" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -639,10 +759,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -665,15 +793,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -687,18 +823,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="gaussian" numSamples="20" mean="-3" variance="0.01" /></template>
       <sources><sequence length="20" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -710,10 +846,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -736,15 +880,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -758,18 +910,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -781,10 +933,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -814,15 +974,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -836,18 +1004,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" to="5.5" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -859,10 +1027,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -894,15 +1070,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -916,18 +1100,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="8.5" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -939,10 +1123,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -972,15 +1164,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -994,18 +1194,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="-3" to="5" numSamples="5" /></template>
       <sources><sequence length="80" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1017,10 +1217,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1052,15 +1260,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1074,18 +1290,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="5" to="-3" numSamples="5" /></template>
       <sources><sequence length="80" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1097,22 +1313,38 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(0);
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1126,18 +1358,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="-3" to="5" numSamples="10" step="2" /></template>
       <sources><sequence length="40" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1149,10 +1381,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1182,15 +1422,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1204,18 +1452,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" exclude="0 2" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1227,10 +1475,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1260,15 +1516,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1282,18 +1546,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" to="4.5" exclude="1.5 3.5" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1305,10 +1569,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1338,15 +1610,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1360,18 +1640,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="6.5" exclude="6.5 8.5" /></template>
       <sources><sequence length="400" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1383,10 +1663,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1416,15 +1704,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 1e-10,
             );
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1438,18 +1734,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="-3" to="5" exclude="-2 0" numSamples="5" /></template>
       <sources><sequence length="80" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1461,10 +1757,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1485,15 +1789,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
             expect(meanX).closeTo(firstSample.stateValues.mean, 0.5);
             expect(varX).closeTo(firstSample.stateValues.variance, 1);
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1507,18 +1819,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <p name="p1"><aslist>
+    <p><aslist>
     <map>
       <template><sampleRandomNumbers type="discreteUniform" from="-3" to="5" exclude="3" numSamples="10" step="2" /></template>
       <sources><sequence length="40" /></sources>
     </map>
     </aslist></p>
 
-    <p name="p2"><aslist>
-      $_map1
+    <p><aslist>
+      <copy target="_map1" />
     </aslist></p>
 
-    $p2{name="p3"}
+    <copy target="_p1" assignNames = "p" />
     `,
                 },
                 "*",
@@ -1530,10 +1842,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let samples = stateVariables["/_map1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(samples.length).eq(400);
 
@@ -1554,15 +1874,23 @@ describe("SampleRandomNumbers Tag Tests", function () {
             expect(meanX).closeTo(firstSample.stateValues.mean, 0.5);
             expect(varX).closeTo(firstSample.stateValues.variance, 1);
 
-            let copiedSamples = stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.map(
-                (x) => stateVariables[x.componentName].stateValues.value,
+            let copiedSamples = stateVariables["/_copy1"].replacements.reduce(
+                (a, c) => [
+                    ...a,
+                    ...stateVariables[
+                        stateVariables[c.componentName].replacements[0]
+                            .componentName
+                    ].replacements.map(
+                        (y) =>
+                            stateVariables[y.componentName].stateValues.value,
+                    ),
+                ],
+                [],
             );
             expect(copiedSamples).eqls(samples);
 
             let copiedCopiedSamples = stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
+                stateVariables["/p"].activeChildren[0].componentName
             ].activeChildren.map(
                 (x) => stateVariables[x.componentName].stateValues.value,
             );
@@ -1588,8 +1916,8 @@ describe("SampleRandomNumbers Tag Tests", function () {
     <sampleRandomNumbers type="gaussian" name="sample2" standardDeviation="$standardDeviation" numSamples="$numSamples2" />
     </aslist></p>
     <p>
-      $numSamples2{name="numSamples2a"}
-      $standardDeviation{name="standardDeviationa"}
+      <copy prop="value" target="numSamples2" assignNames="numSamples2a" />
+      <copy prop="value" target="standardDeviation" assignNames="standardDeviationa" />
     </p>
     `,
                 },
@@ -1752,17 +2080,17 @@ describe("SampleRandomNumbers Tag Tests", function () {
     </map>
     </aslist></p>
     
-    <p name="p2"><aslist>$_map1</aslist></p>
-    <p name="p3">$_aslist1</p>
+    <p name="p2"><aslist><copy target="_map1" /></aslist></p>
+    <p name="p3"><copy target="_aslist1" /></p>
 
-    $p1{name="p4"}
-    $p2{name="p5"}
-    $p3{name="p6"}
+    <copy name="p4" target="p1" />
+    <copy name="p5" target="p2" />
+    <copy name="p6" target="p3" />
 
-    $p4{name="p7"}
-    $p5{name="p8"}
-    $p6{name="p9"}
-    <p>$_mathinput1{name="m1"}</p>
+    <copy name="p7" target="p4" />
+    <copy name="p8" target="p5" />
+    <copy name="p9" target="p6" />
+    <p><copy prop="value" target="_mathinput1" assignNames="m1" /></p>
     `,
                 },
                 "*",
@@ -1776,7 +2104,63 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.log("initially nothing");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            checkSampledNumbers(stateVariables, []);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
         });
 
         cy.log("sample one number");
@@ -1789,8 +2173,149 @@ describe("SampleRandomNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let n1 = stateVariables["/a/n"].stateValues.value;
             samplednumbers.push(n1);
-
-            checkSampledNumbers(stateVariables, samplednumbers);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            for (let ind = 0; ind < 1; ind++) {
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p1"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p2"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p3"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p4"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p5"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p6"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p7"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p8"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p9"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+            }
         });
 
         cy.log("go back to nothing");
@@ -1801,7 +2326,63 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.get(cesc("#\\/m1")).should("contain.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            checkSampledNumbers(stateVariables, []);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
         });
 
         cy.log("get same number back");
@@ -1814,7 +2395,150 @@ describe("SampleRandomNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let n1 = stateVariables["/a/n"].stateValues.value;
             expect(n1).eq(samplednumbers[0]);
-            checkSampledNumbers(stateVariables, samplednumbers);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(1);
+
+            for (let ind = 0; ind < 1; ind++) {
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p1"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p2"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p3"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p4"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p5"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p6"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p7"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p8"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p9"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+            }
         });
 
         cy.log("get two more samples");
@@ -1831,7 +2555,149 @@ describe("SampleRandomNumbers Tag Tests", function () {
             expect(n1).eq(samplednumbers[0]);
             samplednumbers.push(n2);
             samplednumbers.push(n3);
-            checkSampledNumbers(stateVariables, samplednumbers);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(3);
+            for (let ind = 0; ind < 3; ind++) {
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p1"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p2"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p3"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p4"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p5"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p6"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p7"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p8"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p9"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+            }
         });
 
         cy.log("go back to nothing");
@@ -1842,7 +2708,63 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.get(cesc("#\\/m1")).should("contain.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            checkSampledNumbers(stateVariables, []);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
         });
 
         cy.log("get first two numbers back");
@@ -1857,7 +2779,150 @@ describe("SampleRandomNumbers Tag Tests", function () {
             let n2 = stateVariables["/b/n"].stateValues.value;
             expect(n1).eq(samplednumbers[0]);
             expect(n2).eq(samplednumbers[1]);
-            checkSampledNumbers(stateVariables, samplednumbers.slice(0, 2));
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(2);
+
+            for (let ind = 0; ind < 2; ind++) {
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p1"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p2"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p3"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p4"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p5"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p6"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p7"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p8"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p9"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+            }
         });
 
         cy.log("get six total samples");
@@ -1880,7 +2945,149 @@ describe("SampleRandomNumbers Tag Tests", function () {
             samplednumbers.push(n4);
             samplednumbers.push(n5);
             samplednumbers.push(n6);
-            checkSampledNumbers(stateVariables, samplednumbers);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            for (let ind = 0; ind < 6; ind++) {
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p1"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p2"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p3"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p4"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p5"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p6"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p7"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p8"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p9"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+            }
         });
 
         cy.log("go back to nothing");
@@ -1891,7 +3098,63 @@ describe("SampleRandomNumbers Tag Tests", function () {
         cy.get(cesc("#\\/m1")).should("contain.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            checkSampledNumbers(stateVariables, []);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(0);
         });
 
         cy.log("get all six back");
@@ -1914,7 +3177,149 @@ describe("SampleRandomNumbers Tag Tests", function () {
             expect(n4).eq(samplednumbers[3]);
             expect(n5).eq(samplednumbers[4]);
             expect(n6).eq(samplednumbers[5]);
-            checkSampledNumbers(stateVariables, samplednumbers);
+            expect(
+                stateVariables[
+                    stateVariables["/p1"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables["/p2"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables["/p3"].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p4"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p5"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p6"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p7"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p8"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            expect(
+                stateVariables[
+                    stateVariables[
+                        stateVariables["/p9"].replacements[0].componentName
+                    ].activeChildren[0].componentName
+                ].activeChildren.length,
+            ).eq(6);
+            for (let ind = 0; ind < 6; ind++) {
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p1"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p2"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables["/p3"].activeChildren[0]
+                                .componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p4"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p5"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p6"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p7"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p8"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+                expect(
+                    stateVariables[
+                        stateVariables[
+                            stateVariables[
+                                stateVariables["/p9"].replacements[0]
+                                    .componentName
+                            ].activeChildren[0].componentName
+                        ].activeChildren[ind].componentName
+                    ].stateValues.value,
+                ).eq(samplednumbers[ind]);
+            }
         });
     });
 
@@ -1927,9 +3332,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
     <p><sampleRandomNumbers type="discreteUniform" from="3" step="7" to="16" assignnames="u"/></p>
     <p><sampleRandomNumbers type="discreteUniform" from="3" step="7" to="16" assignnames="v"/></p>
     <p><sampleRandomNumbers type="discreteUniform" from="3" step="7" to="16" assignnames="w"/></p>
-    <p>$u{name="u2"}</p>
-    <p>$v{name="v2"}</p>
-    <p>$w{name="w2"}</p>
+    <p><copy assignNames="u2" target="u" /></p>
+    <p><copy assignNames="v2" target="v" /></p>
+    <p><copy assignNames="w2" target="w" /></p>
     `,
                 },
                 "*",
@@ -1970,9 +3375,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
     <p><aslist>
       <sampleRandomNumbers name="s" from="3" to="13" assignnames="u v w" numSamples="6" displayDigits="10" />
     </aslist></p>
-    <p>$u{name="u2"}</p>
-    <p>$v{name="v2"}</p>
-    <p>$w{name="w2"}</p>
+    <p><copy assignNames="u2" target="u" /></p>
+    <p><copy assignNames="v2" target="v" /></p>
+    <p><copy assignNames="w2" target="w" /></p>
     `,
                 },
                 "*",
@@ -2038,9 +3443,9 @@ describe("SampleRandomNumbers Tag Tests", function () {
     <p><aslist>
       <sampleRandomNumbers name="s" newnamespace from="3" to="13" assignnames="u v w" numSamples="6" displayDigits="10" />
     </aslist></p>
-    <p>$(s/u{name="u2"})</p>
-    <p>$(s/v{name="v2"})</p>
-    <p>$(s/w{name="w2"})</p>
+    <p><copy assignNames="u2" target="s/u" /></p>
+    <p><copy assignNames="v2" target="s/v" /></p>
+    <p><copy assignNames="w2" target="s/w" /></p>
     `,
                 },
                 "*",
@@ -2097,47 +3502,6 @@ describe("SampleRandomNumbers Tag Tests", function () {
         });
     });
 
-    it("asList", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
-    <p><sampleRandomNumbers name="s" from="175" to="205" assignnames="u v w x y" numSamples="5" /></p>
-    <p><sampleRandomNumbers copySource="s" name="s2" asList="false" /></p>
-
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-        let results = [];
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-
-            results.push(stateVariables["/u"].stateValues.value);
-            results.push(stateVariables["/v"].stateValues.value);
-            results.push(stateVariables["/w"].stateValues.value);
-            results.push(stateVariables["/x"].stateValues.value);
-            results.push(stateVariables["/y"].stateValues.value);
-
-            for (let num of results) {
-                expect(num).gte(175).lte(205);
-            }
-
-            let roundedResults = results.map((x) => Math.round(x * 100) / 100);
-            cy.get(cesc2("#/_p1")).should(
-                "have.text",
-                roundedResults.join(", "),
-            );
-            cy.get(cesc2("#/_p2")).should("have.text", roundedResults.join(""));
-        });
-    });
-
     it("copying parameters", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -2151,35 +3515,35 @@ describe("SampleRandomNumbers Tag Tests", function () {
     <p>Specified from <mathinput name="specifiedFrom" prefill="0" /></p>
     <p>Specified to <mathinput name="specifiedTo" prefill="1" /></p>
     <p>Specified step <mathinput name="specifiedStep" prefill="1" /></p>
-    <p>Actual type: $samples.type{obtainPropFromComposite assignNames="actualType"}</p>
-    <p>Actual from: $samples.from{obtainPropFromComposite assignNames="actualFrom"}</p>
-    <p>Actual to: $samples.to{obtainPropFromComposite assignNames="actualTo"}</p>
-    <p>Actual step: $samples.step{obtainPropFromComposite assignNames="actualStep"}</p>
-    <p>Expected mean: $samples.mean{obtainPropFromComposite assignNames="expectedMean" displayDigits="10"}</p>
-    <p>Expected variance: $samples.variance{obtainPropFromComposite assignNames="expectedVariance" displayDigits="10"}</p>
-    <p>Expected standard deviation: $samples.standardDeviation{obtainPropFromComposite assignNames="expectedStandardDeviation" displayDigits="10"}</p>
+    <p>Actual type: <copy prop="type" target="samples" obtainPropFromComposite assignNames="actualType" /></p>
+    <p>Actual from: <copy prop="from" target="samples" obtainPropFromComposite assignNames="actualFrom" /></p>
+    <p>Actual to: <copy prop="to" target="samples" obtainPropFromComposite assignNames="actualTo" /></p>
+    <p>Actual step: <copy prop="step" target="samples" obtainPropFromComposite assignNames="actualStep" /></p>
+    <p>Expected mean: <copy prop="mean" target="samples" obtainPropFromComposite assignNames="expectedMean" displayDigits="10" /></p>
+    <p>Expected variance: <copy prop="variance" target="samples" obtainPropFromComposite assignNames="expectedVariance" displayDigits="10" /></p>
+    <p>Expected standard deviation: <copy prop="standardDeviation" target="samples" obtainPropFromComposite assignNames="expectedStandardDeviation" displayDigits="10" /></p>
     <p>Resulting mean: <mean name="resultingMean" displayDigits="10">$samples</mean></p>
     <p>Resulting variance: <variance name="resultingVariance" displayDigits="10">$samples</variance></p>
     <p>Resulting standard deviation: <standardDeviation name="resultingStandardDeviation" displayDigits="10">$samples</standardDeviation></p>
     <p name="p1"><aslist>
       <sampleRandomNumbers name="samples" numSamples="$nSamples" type="$type" mean="$specifiedMean" variance="$specifiedVariance" from="$specifiedFrom" to="$specifiedTo" step="$specifiedStep" displayDigits="10" />
     </aslist></p>
-    <p name="p2"><aslist>$samples</aslist></p>
-    <p name="p3">$_aslist1</p>
+    <p name="p2"><aslist><copy target="samples" /></aslist></p>
+    <p name="p3"><copy target="_aslist1" /></p>
 
-    $p1{name="p4"}
-    $p2{name="p5"}
-    $p3{name="p6"}
+    <copy name="p4c" target="p1" assignNames="p4" />
+    <copy name="p5c" target="p2" assignNames="p5" />
+    <copy name="p6c" target="p3" assignNames="p6" />
 
-    $p4{name="p7"}
-    $p5{name="p8"}
-    $p6{name="p9"}
+    <copy name="p7c" target="p4c" assignNames="p7" />
+    <copy name="p8c" target="p5" assignNames="p8" />
+    <copy name="p9c" target="p6c" assignNames="p9" />
 
     <p>
-      $nSamples{name="nSamplesa"}
-      $specifiedTo{name="specifiedToa"}
-      $type{name="typea"}
-      $specifiedVariance{name="specifiedVariancea"}
+      <copy prop="value" target="nSamples" assignNames="nSamplesa" />
+      <copy prop="value" target="specifiedTo" assignNames="specifiedToa" />
+      <copy prop="value" target="type" assignNames="typea" />
+      <copy prop="value" target="specifiedVariance" assignNames="specifiedVariancea" />
     </p>
     `,
                 },
@@ -3081,118 +4445,4 @@ describe("SampleRandomNumbers Tag Tests", function () {
             expect(rn3c).not.eq(rn3);
         });
     });
-
-    function checkSampledNumbers(stateVariables, samplednumbers) {
-        let n = samplednumbers.length;
-        expect(
-            stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p2"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p3"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p4"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p5"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p6"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p7"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p8"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        expect(
-            stateVariables[
-                stateVariables["/p9"].activeChildren[0].componentName
-            ].activeChildren.length,
-        ).eq(n);
-        for (let ind = 0; ind < n; ind++) {
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p1"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p2"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p3"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p4"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p5"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p6"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p7"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p8"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-            expect(
-                stateVariables[
-                    stateVariables[
-                        stateVariables["/p9"].activeChildren[0].componentName
-                    ].activeChildren[ind].componentName
-                ].stateValues.value,
-            ).eq(samplednumbers[ind]);
-        }
-    }
 });

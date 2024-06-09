@@ -13,7 +13,7 @@ describe("Angle Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  $_angle1.angle{assignNames="angle2"}
+  <copy prop="angle" target="_angle1" assignNames="angle2" />
   <p>Angle again: $_angle1</p>
   
   <mathinput prefill="2"/>
@@ -185,7 +185,7 @@ describe("Angle Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  $_angle1.angle{assignNames="angle2"}
+  <copy prop="angle" target="_angle1" assignNames="angle2" />
   <p>Angle again: $_angle1</p>
   <mathinput prefill="2"/>
   <mathinput prefill="2"/>
@@ -403,7 +403,7 @@ describe("Angle Tag Tests", function () {
   <text>a</text>
   <mathinput prefill="3"/>
   <mathinput prefill="4"/>
-  $_angle1.angle{assignNames="angle2"}
+  <copy prop="angle" target="_angle1" assignNames="angle2" />
   <p>Angle again: $_angle1</p>
 
   <graph>
@@ -513,8 +513,8 @@ describe("Angle Tag Tests", function () {
     <point x="7cos(1)" y="7sin(1)" />
     <angle radius="$_mathinput1" through="$_point1 $_point2 $_point3" displayDigits="10" />
   </graph>
-  $_angle1.angle{assignNames="angle2"}
-  $_angle1.radius{assignNames="radius2"}
+  <copy assignNames="angle2" prop="angle" target="_angle1" />
+  <copy assignNames="radius2" prop="radius" target="_angle1" />
   `,
                 },
                 "*",
@@ -610,8 +610,8 @@ describe("Angle Tag Tests", function () {
     <point x="8cos($_mathinput1)" y="8sin($_mathinput1)" />
     <angle through="$_point1 $_point2 $_point3" chooseReflexAngle="allowed" displayDigits="10" />
   </graph>
-  <p>$_angle1.angle{assignNames="alpha"}</p>
-  <p>$_angle1.degrees{assignNames="alphadeg"}</p>
+  <p><copy assignNames="alpha" prop="angle" target="_angle1" /></p>
+  <p><copy assignNames="alphadeg" prop="degrees" target="_angle1" /></p>
   <p>Angle again: $_angle1</p>
   `,
                 },
@@ -1052,9 +1052,9 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle>pi/2</angle>
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   `,
                 },
@@ -1125,9 +1125,9 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle radians="pi/2" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   `,
                 },
@@ -1198,9 +1198,9 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle degrees="90" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   <angle degrees="75" />
 
@@ -1281,9 +1281,9 @@ describe("Angle Tag Tests", function () {
                     doenetML: `
   <text>a</text>
   <angle>alpha</angle>
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   `,
                 },
@@ -1351,9 +1351,9 @@ describe("Angle Tag Tests", function () {
                     doenetML: `
   <text>a</text>
   <angle radians="alpha" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   `,
                 },
@@ -1420,9 +1420,9 @@ describe("Angle Tag Tests", function () {
                     doenetML: `
   <text>a</text>
   <angle degrees="alpha" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   `,
                 },
@@ -1485,9 +1485,9 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle>$pi/2</angle>
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
   <math name="pi">pi</math>
 
   `,
@@ -1546,14 +1546,14 @@ describe("Angle Tag Tests", function () {
                     doenetML: `
   <text>a</text>
   <p>choose reflex angle: <textinput name="ra"  /></p>
-  $alpha.chooseReflexAngle{assignNames="ra2"}
+  <copy prop="chooseReflexAngle" target="alpha" assignNames="ra2" />
   <graph>
     <point name="A">(-6,5)</point>
     <point name="B">(0,0)</point>
     <point name="C">(4,2)</point>
     <angle name="alpha" through="$A $B $C" chooseReflexAngle="$ra" displayDigits="10" />
   </graph>
-  <p>angle: $alpha{name="alpha2"}</p>
+  <p>angle: <copy target="alpha" assignNames="alpha2" /></p>
   `,
                 },
                 "*",
@@ -1719,9 +1719,9 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle/>
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
 
   `,
                 },
@@ -1797,10 +1797,10 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle through="$A" displayDigits="10" />
-  <math simplify displayDigits="10">2$_angle1</math>
-  <math simplify displayDigits="10">2$_angle1.angle</math>
-  <math simplify displayDigits="10">2$_angle1.degrees</math>
-  $A{name="A2"}
+  <math simplify displayDigits="10">2<copy target="_angle1" /></math>
+  <math simplify displayDigits="10">2<copy prop="angle" target="_angle1" /></math>
+  <math simplify displayDigits="10">2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="A" assignNames="A2" />
   `,
                 },
                 "*",
@@ -1953,11 +1953,11 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle through="$A" radians="$desiredRadians" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
-  $A{name="A2"}
-  $desiredRadians.value{assignNames="desiredRadians2"}
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="A" assignNames="A2" />
+  <copy target="desiredRadians" prop="value" assignNames="desiredRadians2" />
   `,
                 },
                 "*",
@@ -2234,11 +2234,11 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle through="$A" degrees="$desiredDegrees" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
-  $A{name="A2"}
-  $desiredDegrees.value{assignNames="desiredDegrees2"}
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="A" assignNames="A2" />
+  <copy target="desiredDegrees" prop="value" assignNames="desiredDegrees2" />
   `,
                 },
                 "*",
@@ -2498,10 +2498,10 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle through="$A $B" displayDigits="10" />
-  <math simplify displayDigits="10">2$_angle1</math>
-  <math simplify displayDigits="10">2$_angle1.angle</math>
-  <math simplify displayDigits="10">2$_angle1.degrees</math>
-  $A{name="A2"}
+  <math simplify displayDigits="10">2<copy target="_angle1" /></math>
+  <math simplify displayDigits="10">2<copy prop="angle" target="_angle1" /></math>
+  <math simplify displayDigits="10">2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="A" assignNames="A2" />
   `,
                 },
                 "*",
@@ -2660,11 +2660,11 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle through="$A $B" radians="$desiredRadians" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
-  $A{name="A2"}
-  $desiredRadians.value{assignNames="desiredRadians2"}
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="A" assignNames="A2" />
+  <copy target="desiredRadians" prop="value" assignNames="desiredRadians2" />
   `,
                 },
                 "*",
@@ -2947,11 +2947,11 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle through="$A $B" degrees="$desiredDegrees" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
-  $A{name="A2"}
-  $desiredDegrees.value{assignNames="desiredDegrees2"}
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="A" assignNames="A2" />
+  <copy target="desiredDegrees" prop="value" assignNames="desiredDegrees2" />
   `,
                 },
                 "*",
@@ -3216,10 +3216,10 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle betweenLines="$l" displayDigits="10" />
-  <math simplify displayDigits="10">2$_angle1</math>
-  <math simplify displayDigits="10">2$_angle1.angle</math>
-  <math simplify displayDigits="10">2$_angle1.degrees</math>
-  $equation.value{assignNames="equation2"}
+  <math simplify displayDigits="10">2<copy target="_angle1" /></math>
+  <math simplify displayDigits="10">2<copy prop="angle" target="_angle1" /></math>
+  <math simplify displayDigits="10">2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="equation" prop="value" assignNames="equation2" />
   `,
                 },
                 "*",
@@ -3387,11 +3387,11 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle betweenLines="$l" radians="$desiredRadians" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
-  $equation.value{assignNames="equation2"}
-  $desiredRadians.value{assignNames="desiredRadians2"}
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="equation" prop="value" assignNames="equation2" />
+  <copy target="desiredRadians" prop="value" assignNames="desiredRadians2" />
   `,
                 },
                 "*",
@@ -3697,11 +3697,11 @@ describe("Angle Tag Tests", function () {
     $_angle1
   </graph>
   <angle betweenLines="$l" degrees="$desiredDegrees" />
-  <math simplify>2$_angle1</math>
-  <math simplify>2$_angle1.angle</math>
-  <math simplify>2$_angle1.degrees</math>
-  $equation.value{assignNames="equation2"}
-  $desiredDegrees.value{assignNames="desiredDegrees2"}
+  <math simplify>2<copy target="_angle1" /></math>
+  <math simplify>2<copy prop="angle" target="_angle1" /></math>
+  <math simplify>2<copy prop="degrees" target="_angle1" /></math>
+  <copy target="equation" prop="value" assignNames="equation2" />
+  <copy target="desiredDegrees" prop="value" assignNames="desiredDegrees2" />
   `,
                 },
                 "*",

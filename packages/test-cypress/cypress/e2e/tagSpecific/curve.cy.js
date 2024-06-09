@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, createFunctionFromDefinition } from "@doenet/utils";
+import { createFunctionFromDefinition, cesc } from "@doenet/utils";
 
 describe("Curve Tag Tests", function () {
     beforeEach(() => {
@@ -17,7 +17,7 @@ describe("Curve Tag Tests", function () {
     <graph>
     <curve through="(-1,2) (2, $_mathinput1) (2$_mathinput1, -4) (5,6)" />
     </graph>
-    $_mathinput1.value{assignNames="m1"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
     `,
                 },
                 "*",
@@ -96,7 +96,7 @@ describe("Curve Tag Tests", function () {
       <label>Hi <m>(-1,2), (2, $_mathinput1), (2($_mathinput1), -4), (5,6)</m></label>
     </curve>
     </graph>
-    $_mathinput1.value{assignNames="m1"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
     `,
                 },
                 "*",
@@ -120,7 +120,7 @@ describe("Curve Tag Tests", function () {
                 0.8,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, -2 ), (2( -2 ), -4), (5,6)\\)",
+                "Hi \\((-1,2), (2, -2), (2(-2), -4), (5,6)\\)",
             );
             let f1 = createFunctionFromDefinition(
                 stateVariables["/_curve1"].stateValues.fDefinitions[0],
@@ -154,7 +154,7 @@ describe("Curve Tag Tests", function () {
                 0.8,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, 4 ), (2( 4 ), -4), (5,6)\\)",
+                "Hi \\((-1,2), (2, 4), (2(4), -4), (5,6)\\)",
             );
             let f1 = createFunctionFromDefinition(
                 stateVariables["/_curve1"].stateValues.fDefinitions[0],
@@ -178,12 +178,12 @@ describe("Curve Tag Tests", function () {
     <mathinput prefill="-2"/>
     <graph>
     <point>(-1,2)</point>
-    <point>(2, $_mathinput1.value)</point>
-    <point>(2$_mathinput1.value, -4)</point>
+    <point>(2, <copy prop="value" target="_mathinput1" />)</point>
+    <point>(2<copy prop="value" target="_mathinput1" />, -4)</point>
     <point>(5,6)</point>
     <curve through="$_point1 $_point2 $_point3 $_point4" />
     </graph>
-    $_mathinput1.value{assignNames="m1"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
     `,
                 },
                 "*",
@@ -290,12 +290,12 @@ describe("Curve Tag Tests", function () {
     <mathinput prefill="-2"/>
     <graph>
     <point>(-1,2)</point>
-    <point>(2, $_mathinput1.value)</point>
-    <point>(2$_mathinput1.value, -4)</point>
+    <point>(2, <copy prop="value" target="_mathinput1" />)</point>
+    <point>(2<copy prop="value" target="_mathinput1" />, -4)</point>
     <point>(5,6)</point>
     <curve splineForm="uniform" splineTension="0.4" through="$_point1 $_point2 $_point3 $_point4" />
     </graph>
-    $_mathinput1.value{assignNames="m1"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
     `,
                 },
                 "*",
@@ -410,13 +410,13 @@ describe("Curve Tag Tests", function () {
     
     <point x="5" y="10">
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
     
     </graph>
-    $_textinput1.value{assignNames="t1"}
-    $_mathinput1.value{assignNames="m1"}
+    <copy prop="value" target="_textinput1" assignNames="t1" />
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
     `,
                 },
                 "*",
@@ -635,12 +635,12 @@ describe("Curve Tag Tests", function () {
     
     <point x="8" y="-8">
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
     <point x="-8" y="-8">
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
     
@@ -667,8 +667,8 @@ describe("Curve Tag Tests", function () {
       </group>
     </choiceInput>
     </p>
-    $_booleaninput1.value{assignNames="b1"}
-    $_booleaninput2.value{assignNames="b2"}
+    <copy prop="value" target="_booleaninput1" assignNames="b1" />
+    <copy prop="value" target="_booleaninput2" assignNames="b2" />
     `,
                 },
                 "*",
@@ -807,21 +807,21 @@ describe("Curve Tag Tests", function () {
     
     <point x="8" y="-6">
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
     <point x="-8" y="6">
       <constraints>
-        <constrainTo>$_curve1</constrainTo>
+        <constrainTo><copy target="_curve1" /></constrainTo>
       </constraints>
     </point>
 
     </graph>
 
-    $xmin.value{assignNames="xmin2"}
-    $xmax.value{assignNames="xmax2"}
-    $ymin.value{assignNames="ymin2"}
-    $ymax.value{assignNames="ymax2"}
+    <copy prop="value" target="xmin" assignNames="xmin2" />
+    <copy prop="value" target="xmax" assignNames="xmax2" />
+    <copy prop="value" target="ymin" assignNames="ymin2" />
+    <copy prop="value" target="ymax" assignNames="ymax2" />
 
     `,
                 },
@@ -1151,8 +1151,8 @@ describe("Curve Tag Tests", function () {
     
     </graph>
     
-    <p>ebm: $_curve1.extrapolateBackwardMode{assignNames="ebm"}</p>
-    <p>efm: $_curve1.extrapolateForwardMode{assignNames="efm"}</p>
+    <p>ebm: <copy prop="extrapolateBackwardMode" target="_curve1" assignNames="ebm" /></p>
+    <p>efm: <copy prop="extrapolateForwardMode" target="_curve1" assignNames="efm" /></p>
 
     `,
                 },
@@ -1254,8 +1254,8 @@ describe("Curve Tag Tests", function () {
     <graph>
     <curve through="$_map1" />
     </graph>
-    $_mathinput1.value{assignNames="m1"}
-    $_mathinput2.value{assignNames="m2"}
+    <copy prop="value" target="_mathinput1" assignNames="m1" />
+    <copy prop="value" target="_mathinput2" assignNames="m2" />
     `,
                 },
                 "*",

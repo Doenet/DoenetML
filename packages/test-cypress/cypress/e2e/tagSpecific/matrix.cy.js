@@ -15,7 +15,7 @@ describe("Matrix Tag Tests", function () {
     <p>A: <matrix name="A" /></p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -181,7 +181,7 @@ describe("Matrix Tag Tests", function () {
     <p>A: <matrix name="A" numRows="2" /></p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -853,7 +853,7 @@ describe("Matrix Tag Tests", function () {
     <p>A: <matrix name="A" numColumns="2" /></p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -1525,7 +1525,7 @@ describe("Matrix Tag Tests", function () {
     <p>A: <matrix name="A" >2<math>x</math></matrix></p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -2222,7 +2222,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -3912,7 +3912,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -5603,7 +5603,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -6957,7 +6957,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -8311,7 +8311,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>
@@ -8968,7 +8968,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     <p>Copy 1: <matrix name="A1" copySource="A" /></p>
     <p>Copy 2: <matrix name="A2" copySource="A.value" /></p>
-    <p>Copy 3: $A{name="A3"}</p>
+    <p>Copy 3: <copy source="A" assignNames="A3" /></p>
     <p>Copy 4: <copy source="A.value" assignNames="A4" /></p>
     <p>Copy 5: <matrix name="A5">$A</matrix></p>
     <p>Copy 6: <matrix name="A6">$A.value</matrix></p>

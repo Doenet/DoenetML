@@ -18,24 +18,24 @@ describe("Graph Reference Test", function () {
       <point name="pointB">(-2,4)</point>
       <line name="lineA">y=x+1</line>
       <line name="lineB" through="$pointA $pointB" />
-      $pointA{name="pointC"}
+      <copy name="pointC" target="pointA" />
       <point name="pointD" x="$pointA.x" y="$pointB.y" />
-      $lineA{name="lineC"}
-      $lineB{name="lineD"}
-      <intersection name="pointE">$lineA$lineB</intersection>
+      <copy name="lineC" target="lineA" />
+      <copy name="lineD" target="lineB" />
+      <intersection name="pointE"><copy target="lineA" /><copy target="lineB" /></intersection>
     </graph>
 
     <graph name="graphB">
       $pointA$pointB$lineA$lineB$pointC$pointD$lineC$lineD$pointE
     </graph>
 
-    $graphA{name="graphC"}
+    <copy name="graphC" target="graphA" />
 
-    $graphB{name="graphD"}
+    <copy name="graphD" target="graphB" />
 
-    $graphC{name="graphE"}
+    <copy name="graphE" target="graphC" />
 
-    $graphD{name="graphF"}
+    <copy name="graphF" target="graphD" />
 
     `,
                 },
@@ -48,13 +48,25 @@ describe("Graph Reference Test", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let graphB = stateVariables["/graphB"];
-            let graphC = stateVariables["/graphC"];
-            let graphD = stateVariables["/graphD"];
-            let graphE = stateVariables["/graphE"];
-            let graphF = stateVariables["/graphF"];
+            let graphC =
+                stateVariables[
+                    stateVariables["/graphC"].replacements[0].componentName
+                ];
+            let graphD =
+                stateVariables[
+                    stateVariables["/graphD"].replacements[0].componentName
+                ];
+            let graphE =
+                stateVariables[
+                    stateVariables["/graphE"].replacements[0].componentName
+                ];
+            let graphF =
+                stateVariables[
+                    stateVariables["/graphF"].replacements[0].componentName
+                ];
             let pointsA = [
                 "/pointA",
-                "/pointC",
+                stateVariables["/pointC"].replacements[0].componentName,
                 graphB.activeChildren[0].componentName,
                 graphB.activeChildren[4].componentName,
                 graphC.activeChildren[0].componentName,
@@ -96,7 +108,7 @@ describe("Graph Reference Test", function () {
 
             let linesA = [
                 "/lineA",
-                "/lineC",
+                stateVariables["/lineC"].replacements[0].componentName,
                 graphB.activeChildren[2].componentName,
                 graphB.activeChildren[6].componentName,
                 graphC.activeChildren[2].componentName,
@@ -111,7 +123,7 @@ describe("Graph Reference Test", function () {
 
             let linesB = [
                 "/lineB",
-                "/lineD",
+                stateVariables["/lineD"].replacements[0].componentName,
                 graphB.activeChildren[3].componentName,
                 graphB.activeChildren[7].componentName,
                 graphC.activeChildren[3].componentName,

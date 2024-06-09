@@ -13,7 +13,7 @@ describe("UpdateValue Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <number name="step">20/$count</number>
+    <number name="step">20/<copy target="count" /></number>
     <number name="count">2</number>
     <graph>
     <map assignNames="l1 l2 l3 l4 l5 l6 l7 l8 l9 l10 l11 l12 l13 l14 l15 l16" >
@@ -384,7 +384,7 @@ describe("UpdateValue Tag Tests", function () {
   
     <updateValue target="col" prop="x" newValue="2$(p.x)" componentIndex="2" />
     <updateValue target="col[3].x" newValue="2$(p.x)" />
-    <p><booleaninput name="bi" />$bi.value{assignNames="b"}</p>
+    <p><booleaninput name="bi" /><copy prop="value" source="bi" assignNames="b" /></p>
     `,
                 },
                 "*",
@@ -537,16 +537,16 @@ describe("UpdateValue Tag Tests", function () {
     <text>a</text>
     <group name="grp">
       <point name="p">(3,2)</point>
-      ignore me
+      skip me
       <point name="p2">(1,5)</point>
-      ignore me too
+      skip me too
       <point name="p3">(7,0)</point>
     </group>
     
   
-    <updateValue target="grp" prop="x" newValue="2$(grp[1].x)" componentIndex="3" />
-    <updateValue target="grp[5].x" newValue="2$(grp[1].x)" />
-    <p><booleaninput name="bi" />$bi.value{assignNames="b"}</p>
+    <updateValue target="grp" prop="x" newValue="2$(grp[1].x)" componentIndex="2" />
+    <updateValue target="grp[3].x" newValue="2$(grp[1].x)" />
+    <p><booleaninput name="bi" /><copy prop="value" source="bi" assignNames="b" /></p>
     `,
                 },
                 "*",
@@ -751,7 +751,7 @@ describe("UpdateValue Tag Tests", function () {
   
     <updateValue target="p" prop="xs" newValue="2$(p.x)" propIndex="2" />
     <updateValue target="p.xs[3]" newValue="2$(p.x)" />
-    <p><booleaninput name="bi" />$bi.value{assignNames="b"}</p>
+    <p><booleaninput name="bi" /><copy prop="value" target="bi" assignNames="b" /></p>
     `,
                 },
                 "*",
@@ -1207,55 +1207,6 @@ describe("UpdateValue Tag Tests", function () {
             });
     });
 
-    it("chained updates, copies don't copy triggers", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p>n: <number name="n">1</number></p>
-    <p>m1: <number name="m1">1</number></p>
-    <p>m2: <number name="m2">1</number></p>
-    
-    <p><updateValue name="uv" target="n" newValue="$n+1" /></p>
-    <p><updateValue name="uv2" copySource="uv" /></p>
-    <p><updateValue name="uv3" copySource="uv" /></p>
-    <p name="pmacro">$uv</p>
-    <updateValue triggerWith="uv" target="m1" newValue="$m1+1" />
-    <updateValue triggerWith="uv2" target="m2" newValue="$m2+1" />
-                    
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(cesc2("#/n")).should("have.text", "1");
-        cy.get(cesc2("#/m1")).should("have.text", "1");
-        cy.get(cesc2("#/m2")).should("have.text", "1");
-
-        cy.get(cesc2("#/uv")).click();
-        cy.get(cesc2("#/n")).should("have.text", "2");
-        cy.get(cesc2("#/m1")).should("have.text", "2");
-        cy.get(cesc2("#/m2")).should("have.text", "1");
-
-        cy.get(cesc2("#/uv2")).click();
-        cy.get(cesc2("#/n")).should("have.text", "3");
-        cy.get(cesc2("#/m1")).should("have.text", "2");
-        cy.get(cesc2("#/m2")).should("have.text", "2");
-
-        cy.get(cesc2("#/uv3")).click();
-        cy.get(cesc2("#/n")).should("have.text", "4");
-        cy.get(cesc2("#/m1")).should("have.text", "2");
-        cy.get(cesc2("#/m2")).should("have.text", "2");
-
-        // Note: we expect the macro to trigger the updateValue with triggerWith="uv"
-        // because it doesn't have a name.
-        cy.get(cesc2("#/pmacro") + " button").click();
-        cy.get(cesc2("#/n")).should("have.text", "5");
-        cy.get(cesc2("#/m1")).should("have.text", "3");
-        cy.get(cesc2("#/m2")).should("have.text", "2");
-    });
-
     it("update based on trigger", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1635,7 +1586,7 @@ describe("UpdateValue Tag Tests", function () {
       $P
     </graph>
     <graph>
-      $P{name="P2"}
+      $P{assignNames="P2"}
     </graph>
     <graph>
       <point copySource="P" />
@@ -3734,38 +3685,5 @@ describe("UpdateValue Tag Tests", function () {
         cy.get(cesc("#\\/disabled1")).click();
         cy.get(cesc("#\\/pDisabled1")).should("have.text", "Disabled 1: true");
         cy.get(cesc("#\\/pDisabled2")).should("have.text", "Disabled 2: true");
-    });
-
-    it("handle removed updateValue when shadowing", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <group copySource="grp" />
-
-    <setup>
-        <group name="grp">
-            <p><boolean name="show">true</boolean></p>
-
-            <conditionalContent>
-                <case condition="$show">
-                    <updateValue name="uv" target="show" type="boolean" newValue="!$show" />
-                </case>
-            </conditionalContent>
-
-        </group>
-    </setup>
-                    
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(".doenet-viewer p").eq(0).should("have.text", "true");
-
-        cy.get(".doenet-viewer button").click();
-        cy.get(".doenet-viewer p").eq(0).should("have.text", "false");
-        cy.get(".doenet-viewer button").should("not.exist");
     });
 });

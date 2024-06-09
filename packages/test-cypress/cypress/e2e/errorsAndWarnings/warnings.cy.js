@@ -621,12 +621,12 @@ describe("Warning Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-          <boolean name="hide">true</boolean>
-    
-          <section hide="$hide">
-            <p hide='$hide'>double hide</p>
-          </section>
-        `,
+      <boolean name="hide">true</boolean>
+
+      <section hide="$hide">
+        <p hide='$hide'>double hide</p>
+      </section>
+    `,
                 },
                 "*",
             );

@@ -12,7 +12,7 @@ describe("Document Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  $_document1.creditAchieved{assignNames="docCa"}
+  <copy assignNames="docCa" prop="creditAchieved" target="_document1" />
 
   `,
                 },
@@ -30,7 +30,7 @@ describe("Document Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  $_document1.creditAchieved{assignNames="docCa"}
+  <copy assignNames="docCa" prop="creditAchieved" target="_document1" />
   <p><answer name="ans">x</answer></p>
   <problem>
     <title>Problem with nothing</title>
@@ -64,7 +64,7 @@ describe("Document Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  $_document1.creditAchieved{assignNames="docCa"}
+  <copy assignNames="docCa" prop="creditAchieved" target="_document1" />
   <setup>
     <math name="m1">x</math>
   </setup>
@@ -101,7 +101,7 @@ describe("Document Tag Tests", function () {
                 {
                     doenetML: `
   <text>a</text>
-  $_document1.creditAchieved{assignNames="docCa"}
+  <copy assignNames="docCa" prop="creditAchieved" target="_document1" />
   <p>x: <answer name="x">x</answer></p>
   <p>a: <answer name="a" weight="0">a</answer></p>
   <problem>

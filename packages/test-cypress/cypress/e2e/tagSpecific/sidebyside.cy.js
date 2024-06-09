@@ -711,14 +711,14 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -958,14 +958,14 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -1109,14 +1109,14 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -1240,14 +1240,14 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -1367,14 +1367,14 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -1500,16 +1500,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -1804,16 +1804,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -1959,16 +1959,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -2130,16 +2130,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -2301,16 +2301,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -2508,20 +2508,20 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $w3.value{assignNames="w3a"}
-      $w4.value{assignNames="w4a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
-      $v3.value{assignNames="v3a"}
-      $v4.value{assignNames="v4a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="w3" assignNames="w3a" />
+      <copy prop="value" target="w4" assignNames="w4a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
+      <copy prop="value" target="v3" assignNames="v3a" />
+      <copy prop="value" target="v4" assignNames="v4a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -2787,20 +2787,20 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $w3.value{assignNames="w3a"}
-      $w4.value{assignNames="w4a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
-      $v3.value{assignNames="v3a"}
-      $v4.value{assignNames="v4a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="w3" assignNames="w3a" />
+      <copy prop="value" target="w4" assignNames="w4a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
+      <copy prop="value" target="v3" assignNames="v3a" />
+      <copy prop="value" target="v4" assignNames="v4a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -2916,20 +2916,20 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $w3.value{assignNames="w3a"}
-      $w4.value{assignNames="w4a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
-      $v3.value{assignNames="v3a"}
-      $v4.value{assignNames="v4a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="w3" assignNames="w3a" />
+      <copy prop="value" target="w4" assignNames="w4a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
+      <copy prop="value" target="v3" assignNames="v3a" />
+      <copy prop="value" target="v4" assignNames="v4a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -3051,9 +3051,9 @@ describe("SideBySide Tag Tests", function () {
       <lorem generateParagraphs="4" />
     </sideBySide>
 
-    <sideBySide copySource="sbs" widths="30% 10%" margins="1% 3%" valigns="bottom middle top bottom" name="sbs2" />
+    <copy target="sbs" widths="30% 10%" margins="1% 3%" valigns="bottom middle top bottom" assignNames="sbs2" />
 
-    <sideBySide copySource="sbs2" widths="7% 8% 11% 12%" valigns="top bottom" name="sbs3" />
+    <copy target="sbs2" widths="7% 8% 11% 12%" valigns="top bottom" assignNames="sbs3" />
 
     `,
                 },
@@ -3206,22 +3206,22 @@ describe("SideBySide Tag Tests", function () {
 
 
     <p>
-      $w1g.value{assignNames="w1ga"}
-      $m1g.value{assignNames="m1ga"}
-      $m2g.value{assignNames="m2ga"}
-      $v1g.value{assignNames="v1ga"}
-      $w11.value{assignNames="w11a"}
-      $m11.value{assignNames="m11a"}
-      $m21.value{assignNames="m21a"}
-      $v11.value{assignNames="v11a"}
-      $w12.value{assignNames="w12a"}
-      $m12.value{assignNames="m12a"}
-      $m22.value{assignNames="m22a"}
-      $v12.value{assignNames="v12a"}
+      <copy prop="value" target="w1g" assignNames="w1ga" />
+      <copy prop="value" target="m1g" assignNames="m1ga" />
+      <copy prop="value" target="m2g" assignNames="m2ga" />
+      <copy prop="value" target="v1g" assignNames="v1ga" />
+      <copy prop="value" target="w11" assignNames="w11a" />
+      <copy prop="value" target="m11" assignNames="m11a" />
+      <copy prop="value" target="m21" assignNames="m21a" />
+      <copy prop="value" target="v11" assignNames="v11a" />
+      <copy prop="value" target="w12" assignNames="w12a" />
+      <copy prop="value" target="m12" assignNames="m12a" />
+      <copy prop="value" target="m22" assignNames="m22a" />
+      <copy prop="value" target="v12" assignNames="v12a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -4063,28 +4063,28 @@ describe("SideBySide Tag Tests", function () {
 
 
     <p>
-      $w1g.value{assignNames="w1ga"}
-      $w2g.value{assignNames="w2ga"}
-      $m1g.value{assignNames="m1ga"}
-      $m2g.value{assignNames="m2ga"}
-      $v1g.value{assignNames="v1ga"}
-      $v2g.value{assignNames="v2ga"}
-      $w11.value{assignNames="w11a"}
-      $w21.value{assignNames="w21a"}
-      $m11.value{assignNames="m11a"}
-      $m21.value{assignNames="m21a"}
-      $v11.value{assignNames="v11a"}
-      $v21.value{assignNames="v21a"}
-      $w12.value{assignNames="w12a"}
-      $w22.value{assignNames="w22a"}
-      $m12.value{assignNames="m12a"}
-      $m22.value{assignNames="m22a"}
-      $v12.value{assignNames="v12a"}
-      $v22.value{assignNames="v22a"}
+      <copy prop="value" target="w1g" assignNames="w1ga" />
+      <copy prop="value" target="w2g" assignNames="w2ga" />
+      <copy prop="value" target="m1g" assignNames="m1ga" />
+      <copy prop="value" target="m2g" assignNames="m2ga" />
+      <copy prop="value" target="v1g" assignNames="v1ga" />
+      <copy prop="value" target="v2g" assignNames="v2ga" />
+      <copy prop="value" target="w11" assignNames="w11a" />
+      <copy prop="value" target="w21" assignNames="w21a" />
+      <copy prop="value" target="m11" assignNames="m11a" />
+      <copy prop="value" target="m21" assignNames="m21a" />
+      <copy prop="value" target="v11" assignNames="v11a" />
+      <copy prop="value" target="v21" assignNames="v21a" />
+      <copy prop="value" target="w12" assignNames="w12a" />
+      <copy prop="value" target="w22" assignNames="w22a" />
+      <copy prop="value" target="m12" assignNames="m12a" />
+      <copy prop="value" target="m22" assignNames="m22a" />
+      <copy prop="value" target="v12" assignNames="v12a" />
+      <copy prop="value" target="v22" assignNames="v22a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -5054,28 +5054,28 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1g.value{assignNames="w1ga"}
-      $w2g.value{assignNames="w2ga"}
-      $m1g.value{assignNames="m1ga"}
-      $m2g.value{assignNames="m2ga"}
-      $v1g.value{assignNames="v1ga"}
-      $v2g.value{assignNames="v2ga"}
-      $w11.value{assignNames="w11a"}
-      $w21.value{assignNames="w21a"}
-      $m11.value{assignNames="m11a"}
-      $m21.value{assignNames="m21a"}
-      $v11.value{assignNames="v11a"}
-      $v21.value{assignNames="v21a"}
-      $w12.value{assignNames="w12a"}
-      $w22.value{assignNames="w22a"}
-      $m12.value{assignNames="m12a"}
-      $m22.value{assignNames="m22a"}
-      $v12.value{assignNames="v12a"}
-      $v22.value{assignNames="v22a"}
+      <copy prop="value" target="w1g" assignNames="w1ga" />
+      <copy prop="value" target="w2g" assignNames="w2ga" />
+      <copy prop="value" target="m1g" assignNames="m1ga" />
+      <copy prop="value" target="m2g" assignNames="m2ga" />
+      <copy prop="value" target="v1g" assignNames="v1ga" />
+      <copy prop="value" target="v2g" assignNames="v2ga" />
+      <copy prop="value" target="w11" assignNames="w11a" />
+      <copy prop="value" target="w21" assignNames="w21a" />
+      <copy prop="value" target="m11" assignNames="m11a" />
+      <copy prop="value" target="m21" assignNames="m21a" />
+      <copy prop="value" target="v11" assignNames="v11a" />
+      <copy prop="value" target="v21" assignNames="v21a" />
+      <copy prop="value" target="w12" assignNames="w12a" />
+      <copy prop="value" target="w22" assignNames="w22a" />
+      <copy prop="value" target="m12" assignNames="m12a" />
+      <copy prop="value" target="m22" assignNames="m22a" />
+      <copy prop="value" target="v12" assignNames="v12a" />
+      <copy prop="value" target="v22" assignNames="v22a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -6094,28 +6094,28 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1g.value{assignNames="w1ga"}
-      $w2g.value{assignNames="w2ga"}
-      $m1g.value{assignNames="m1ga"}
-      $m2g.value{assignNames="m2ga"}
-      $v1g.value{assignNames="v1ga"}
-      $v2g.value{assignNames="v2ga"}
-      $w11.value{assignNames="w11a"}
-      $w21.value{assignNames="w21a"}
-      $m11.value{assignNames="m11a"}
-      $m21.value{assignNames="m21a"}
-      $v11.value{assignNames="v11a"}
-      $v21.value{assignNames="v21a"}
-      $w12.value{assignNames="w12a"}
-      $w22.value{assignNames="w22a"}
-      $m12.value{assignNames="m12a"}
-      $m22.value{assignNames="m22a"}
-      $v12.value{assignNames="v12a"}
-      $v22.value{assignNames="v22a"}
+      <copy prop="value" target="w1g" assignNames="w1ga" />
+      <copy prop="value" target="w2g" assignNames="w2ga" />
+      <copy prop="value" target="m1g" assignNames="m1ga" />
+      <copy prop="value" target="m2g" assignNames="m2ga" />
+      <copy prop="value" target="v1g" assignNames="v1ga" />
+      <copy prop="value" target="v2g" assignNames="v2ga" />
+      <copy prop="value" target="w11" assignNames="w11a" />
+      <copy prop="value" target="w21" assignNames="w21a" />
+      <copy prop="value" target="m11" assignNames="m11a" />
+      <copy prop="value" target="m21" assignNames="m21a" />
+      <copy prop="value" target="v11" assignNames="v11a" />
+      <copy prop="value" target="v21" assignNames="v21a" />
+      <copy prop="value" target="w12" assignNames="w12a" />
+      <copy prop="value" target="w22" assignNames="w22a" />
+      <copy prop="value" target="m12" assignNames="m12a" />
+      <copy prop="value" target="m22" assignNames="m22a" />
+      <copy prop="value" target="v12" assignNames="v12a" />
+      <copy prop="value" target="v22" assignNames="v22a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -7271,9 +7271,9 @@ describe("SideBySide Tag Tests", function () {
       </sideBySide>
     </sbsgroup>
 
-    <sbsgroup copySource="sbsg" widths="30% 10%" margins="1% 3%" valigns="bottom middle" name="sbsg2" />
+    <copy target="sbsg" widths="30% 10%" margins="1% 3%" valigns="bottom middle" assignNames="sbsg2" />
 
-    <sbsgroup copySource="sbsg2" widths="7%" valigns="top bottom" name="sbsg3" />
+    <copy target="sbsg2" widths="7%" valigns="top bottom" assignNames="sbsg3" />
 
     `,
                 },
@@ -7502,16 +7502,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },
@@ -7762,16 +7762,16 @@ describe("SideBySide Tag Tests", function () {
     </p>
 
     <p>
-      $w1.value{assignNames="w1a"}
-      $w2.value{assignNames="w2a"}
-      $m1.value{assignNames="m1a"}
-      $m2.value{assignNames="m2a"}
-      $v1.value{assignNames="v1a"}
-      $v2.value{assignNames="v2a"}
+      <copy prop="value" target="w1" assignNames="w1a" />
+      <copy prop="value" target="w2" assignNames="w2a" />
+      <copy prop="value" target="m1" assignNames="m1a" />
+      <copy prop="value" target="m2" assignNames="m2a" />
+      <copy prop="value" target="v1" assignNames="v1a" />
+      <copy prop="value" target="v2" assignNames="v2a" />
     </p>
     <p>
       <booleaninput name="bi"/>
-      $bi.value{assignNames="b"}
+      <copy prop="value" target="bi" assignNames="b" />
     </p>
     `,
                 },

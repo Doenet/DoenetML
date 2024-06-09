@@ -146,13 +146,13 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -276,13 +276,13 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -406,13 +406,13 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -536,13 +536,13 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -668,15 +668,15 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
-    $ls.endpoint1{assignNames="A"}
-    $ls.endpoint2{assignNames="B"}
+    <copy assignNames="ls" target="../g1/ls" />
+    <copy prop="endpoint1" target="ls" assignNames="A" />
+    <copy prop="endpoint2" target="ls" assignNames="B" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -754,13 +754,13 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -889,13 +889,13 @@ describe("LineSegment Tag Tests", function () {
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -1022,25 +1022,25 @@ describe("LineSegment Tag Tests", function () {
   <text>a</text>
   <point>(2,1)</point>
   <point>(-2,-5)</point>
-  $_point1{name="p1a"}
-  $_point2{name="p2a"}
-  $p1a{name="p1b"}
-  $p2a{name="p2b"}
-  $p1b{name="p1c"}
-  $p2b{name="p2c"}
-
+  <copy target="_point1" />
+  <copy target="_point2" />
+  <copy target="_copy1" />
+  <copy target="_copy2" />
+  <copy target="_copy3" />
+  <copy target="_copy4" />
+  
   <graph name="g1" newNamespace>
-    <lineSegment  endpoints="$(../p1c) $(../p2c)" name="ls"/>
+    <lineSegment  endpoints="$(../_copy5) $(../_copy6)" name="ls"/>
   </graph>
 
   <graph name="g2" newNamespace>
-    $(../g1/ls{name="ls"})
+    <copy assignNames="ls" target="../g1/ls" />
   </graph>
 
-  $g2{name="g3"}
+  <copy assignNames="g3" target="g2" />
 
-  $(g1/ls.endpoint1{assignNames="p1"})
-  $(g1/ls.endpoint2{assignNames="p2"})
+  <copy prop="endpoint1" target="g1/ls" assignNames="p1" />
+  <copy prop="endpoint2" target="g1/ls" assignNames="p2" />
   `,
                 },
                 "*",
@@ -1163,7 +1163,7 @@ describe("LineSegment Tag Tests", function () {
   <graph>
     <lineSegment endpoints="($x,2) (-2,3)" />
   </graph>
-  $_linesegment1.endpoint1{assignNames="p1"}
+  <copy prop="endpoint1" target="_linesegment1" assignNames="p1" />
   `,
                 },
                 "*",
@@ -1210,36 +1210,36 @@ describe("LineSegment Tag Tests", function () {
   <text>a</text>
   <graph name="g1" newNamespace>
     <linesegment endpoints="(-5,9)" name="l" />
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />
   </graph>
 
   <graph newNamespace name="g2">
-    $(../g1/l{name="l" endpoints="(4,-2)"})
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}  
+    <copy target="../g1/l" assignNames="l" endpoints="(4,-2)" />
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />  
   </graph>
 
   <graph newNamespace name="g3">
-    $(../g2/l{name="l"})
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}  
+    <copy target="../g2/l" assignNames="l" />
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />  
   </graph>
 
   <graph newNamespace name="g4">
-    $(../g3/l{name="l"})
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}  
+    <copy target="../g2/_copy1" assignNames="l" />
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />  
   </graph>
 
-  $g2{name="g5"}
+  <copy target="g2" assignNames="g5" />
 
-  $(g1/l.endpointX1_1{assignNames="x11"})
-  $(g1/l.endpointX1_2{assignNames="y11"})
-  $(g1/l.endpointX2_1{assignNames="x2"})
-  $(g1/l.endpointX2_2{assignNames="y2"})
-  $(g2/l.endpointX1_1{assignNames="x12"})
-  $(g2/l.endpointX1_2{assignNames="y12"})
+  <copy prop="endpointX1_1" target="g1/l" assignNames="x11" />
+  <copy prop="endpointX1_2" target="g1/l" assignNames="y11" />
+  <copy prop="endpointX2_1" target="g1/l" assignNames="x2" />
+  <copy prop="endpointX2_2" target="g1/l" assignNames="y2" />
+  <copy prop="endpointX1_1" target="g2/l" assignNames="x12" />
+  <copy prop="endpointX1_2" target="g2/l" assignNames="y12" />
 
   `,
                 },
@@ -1746,36 +1746,36 @@ describe("LineSegment Tag Tests", function () {
       <linesegment endpoints="(-5,9)" />
     </else>
   </conditionalContent>
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />
   </graph>
 
   <graph newNamespace name="g2">
-    $(../g1/l{name="l" endpoints="(4,-2)"})
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}  
+    <copy target="../g1/l" assignNames="l" endpoints="(4,-2)" />
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />  
   </graph>
 
   <graph newNamespace name="g3">
-    $(../g2/l{name="l"})
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}  
+    <copy target="../g2/l" assignNames="l" />
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />  
   </graph>
 
   <graph newNamespace name="g4">
-    $(../g3/l{name="l"})
-    $l.endpoint1{assignNames="A"}
-    $l.endpoint2{assignNames="B"}  
+    <copy target="../g2/_copy1" assignNames="l" />
+    <copy prop="endpoint1" target="l" assignNames="A" />
+    <copy prop="endpoint2" target="l" assignNames="B" />  
   </graph>
 
-  $g2{name="g5"}
+  <copy target="g2" assignNames="g5" />
 
-  $(g1/l.endpointX1_1{assignNames="x11"})
-  $(g1/l.endpointX1_2{assignNames="y11"})
-  $(g1/l.endpointX2_1{assignNames="x2"})
-  $(g1/l.endpointX2_2{assignNames="y2"})
-  $(g2/l.endpointX1_1{assignNames="x12"})
-  $(g2/l.endpointX1_2{assignNames="y12"})
+  <copy prop="endpointX1_1" target="g1/l" assignNames="x11" />
+  <copy prop="endpointX1_2" target="g1/l" assignNames="y11" />
+  <copy prop="endpointX2_1" target="g1/l" assignNames="x2" />
+  <copy prop="endpointX2_2" target="g1/l" assignNames="y2" />
+  <copy prop="endpointX1_1" target="g2/l" assignNames="x12" />
+  <copy prop="endpointX1_2" target="g2/l" assignNames="y12" />
 
   `,
                 },
@@ -2491,12 +2491,12 @@ describe("LineSegment Tag Tests", function () {
 
   <point x="-5" y="2">
     <constraints>
-      <constrainTo>$_linesegment1</constrainTo>
+      <constrainTo><copy target="_linesegment1" /></constrainTo>
     </constraints>
   </point>
   </graph>
-  $_linesegment1.endpoint1{assignNames="ep1a"}
-  $_point3{name="p3a"}
+  <copy target="_linesegment1" prop="endpoint1" assignNames="ep1a" />
+  <copy target="_point3" assignNames="p3a" />
   `,
                 },
                 "*",
@@ -2700,12 +2700,12 @@ describe("LineSegment Tag Tests", function () {
 
   <point x="-5" y="2">
     <constraints>
-      <attractTo>$_linesegment1</attractTo>
+      <attractTo><copy target="_linesegment1" /></attractTo>
     </constraints>
   </point>
   </graph>
-  $_linesegment1.endpoint1{assignNames="ep1a"}
-  $_point3{name="p3a"}
+  <copy target="_linesegment1" prop="endpoint1" assignNames="ep1a" />
+  <copy target="_point3" assignNames="p3a" />
   `,
                 },
                 "*",
@@ -2918,11 +2918,11 @@ describe("LineSegment Tag Tests", function () {
     <linesegment endpoints="(-1,-0.05) (1,0.05)" name="l" />
     <point x="100" y="0" name="P">
       <constraints>
-        <constrainTo relativeToGraphScales>$l</constrainTo>
+        <constrainTo relativeToGraphScales><copy target="l" /></constrainTo>
       </constraints>
     </point>
   </graph>
-  $P{name="P1a"}
+  <copy target="P" assignNames="P1a" />
   `,
                 },
                 "*",
@@ -3002,14 +3002,14 @@ describe("LineSegment Tag Tests", function () {
   <linesegment endpoints="(1,2) (3,4)"/>
   </graph>
   <graph>
-  $_linesegment1.endpoint1{assignNames="p1"}
-  $_linesegment1.endpoint2{assignNames="p2"}
+  <copy prop="endpoint1" target="_linesegment1" assignNames="p1" />
+  <copy prop="endpoint2" target="_linesegment1" assignNames="p2" />
   </graph>
   <graph>
-  $_linesegment1.endpoints{assignNames="p1a p2a"}
+  <copy prop="endpoints"  target="_linesegment1" assignNames="p1a p2a" />
   </graph>
-  $_linesegment1.endpoint1{assignNames="p1b"}
-  $_linesegment1.endpoint2{assignNames="p2b"}
+  <copy prop="endpoint1" target="_linesegment1" assignNames="p1b" />
+  <copy prop="endpoint2" target="_linesegment1" assignNames="p2b" />
   `,
                 },
                 "*",
@@ -3252,10 +3252,10 @@ describe("LineSegment Tag Tests", function () {
   </graph>
   <graph>
   <linesegment endpoints="$(_linesegment1.endpoints)" />
-  $_linesegment1.endpoints{assignNames="p1 p2"}
+  <copy prop="endpoints" target="_linesegment1" assignNames="p1 p2" />
   </graph>
-  $_linesegment1.endpoint1{assignNames="p1b"}
-  $_linesegment1.endpoint2{assignNames="p2b"}
+  <copy prop="endpoint1" target="_linesegment1" assignNames="p1b" />
+  <copy prop="endpoint2" target="_linesegment1" assignNames="p2b" />
   `,
                 },
                 "*",
@@ -3472,24 +3472,24 @@ describe("LineSegment Tag Tests", function () {
   <graph>
     <linesegment endpoints="(1,2) ($(_linesegment1.endpointX1_2), $(_linesegment1.endpointX1_1))" />
     <point name="x1">
-      (<extract prop="x">$_linesegment1.endpoint1</extract>,
+      (<extract prop="x"><copy prop="endpoint1" target="_linesegment1" /></extract>,
       <math fixed>3</math>)
     </point>
     <point name="x2">
-      (<extract prop="x">$_linesegment1.endpoint2</extract>,
+      (<extract prop="x"><copy prop="endpoint2" target="_linesegment1" /></extract>,
       <math fixed>4</math>)
     </point>
     <point name="y1">
       (<math fixed>3</math>,
-      <extract prop="y">$_linesegment1.endpoint1</extract>)
+      <extract prop="y"><copy prop="endpoint1" target="_linesegment1" /></extract>)
     </point>
     <point name="y2">
       (<math fixed>4</math>,
-      <extract prop="y">$_linesegment1.endpoint2</extract>)
+      <extract prop="y"><copy prop="endpoint2" target="_linesegment1" /></extract>)
     </point>
   </graph>
-  $_linesegment1.endpoint1{assignNames="p1"}
-  $_linesegment1.endpoint2{assignNames="p2"}
+  <copy prop="endpoint1" target="_linesegment1" assignNames="p1" />
+  <copy prop="endpoint2" target="_linesegment1" assignNames="p2" />
   `,
                 },
                 "*",
@@ -3668,12 +3668,12 @@ describe("LineSegment Tag Tests", function () {
   <linesegment endpoints="$(_linesegment3.endpoint2{ createComponentOfType='point'}) (3,2)" />
   <linesegment endpoints="$(_linesegment1.endpoint2{ createComponentOfType='point'}) (-1,4)" />
   </graph>
-  $_linesegment1.endpoint1{assignNames="p11"}
-  $_linesegment1.endpoint2{assignNames="p12"}
-  $_linesegment2.endpoint1{assignNames="p21"}
-  $_linesegment2.endpoint2{assignNames="p22"}
-  $_linesegment3.endpoint1{assignNames="p31"}
-  $_linesegment3.endpoint2{assignNames="p32"}
+  <copy prop="endpoint1" target="_linesegment1" assignNames="p11" />
+  <copy prop="endpoint2" target="_linesegment1" assignNames="p12" />
+  <copy prop="endpoint1" target="_linesegment2" assignNames="p21" />
+  <copy prop="endpoint2" target="_linesegment2" assignNames="p22" />
+  <copy prop="endpoint1" target="_linesegment3" assignNames="p31" />
+  <copy prop="endpoint2" target="_linesegment3" assignNames="p32" />
   `,
                 },
                 "*",
@@ -4103,7 +4103,7 @@ describe("LineSegment Tag Tests", function () {
       <point name="B">(7,-2)</point>
       <linesegment name="l" endpoints="$A $B" />
     </graph>
-    $l.slope{assignNames="slope"}
+    <copy prop="slope" target="l" assignNames="slope" />
     `,
                 },
                 "*",
@@ -4175,7 +4175,7 @@ describe("LineSegment Tag Tests", function () {
       <point name="B">(7,-2)</point>
       <linesegment name="l" endpoints="$A $B" />
     </graph>
-    $l.length{assignNames="length" displayDigits="10"}
+    <copy prop="length" target="l" assignNames="length" displayDigits="10" />
     <point name="Ap" copySource="A" />
     <point name="Bp" copySource="B" />
     <mathinput name="milength" bindValueTo="$length" />
@@ -4309,7 +4309,7 @@ describe("LineSegment Tag Tests", function () {
                     doenetML: `
     <text>a</text>
     <linesegment name="l" endpoints="(x,y) (u,v)" />
-    $l.length{assignNames="length"}
+    <copy prop="length" source="l" assignNames="length" />
     `,
                 },
                 "*",
@@ -4901,8 +4901,8 @@ describe("LineSegment Tag Tests", function () {
   <point name="Q" labelIsName>(-4,-1)</point>
   <lineSegment endpoints="$P $Q" />
   </graph>
-  $P{name="Pa"}
-  $Q{name="Qa"}
+  <copy target="P" assignNames="Pa" />
+  <copy target="Q" assignNames="Qa" />
     `,
                 },
                 "*",
