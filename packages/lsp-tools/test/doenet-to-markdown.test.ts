@@ -84,4 +84,13 @@ describe("doenet-to-markdown", () => {
 `,
         );
     });
+    it.only("Can function macros", () => {
+        let source: string;
+
+        source = `$$f(x)`;
+        expect(doenetToMarkdown(source)).toEqual(
+            `\`$$f(x)\`
+`,
+        );
+    });
 });
