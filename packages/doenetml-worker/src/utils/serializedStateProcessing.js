@@ -4,8 +4,7 @@ import { flattenDeep } from "./array";
 import { deepClone } from "@doenet/utils";
 import { breakEmbeddedStringByCommas } from "../components/commonsugar/breakstrings";
 import { parseAndCompile } from "@doenet/parser";
-import subsets from "./subset-of-reals";
-import { retrieveTextFileForCid } from "@doenet/utils";
+import { subsets, retrieveTextFileForCid } from "@doenet/utils";
 import { returnDeprecationMessage } from "./doenetMLversion";
 
 export async function expandDoenetMLsToFullSerializedComponents({
