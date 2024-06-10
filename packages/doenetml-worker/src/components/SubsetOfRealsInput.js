@@ -1,6 +1,7 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import { subsets, buildSubsetFromMathExpression } from "@doenet/utils";
+import { returnPointsIntervalsFromSubsetStateVariableDefinitions } from "./SubsetOfReals";
 
 export default class SubsetOfRealsInput extends BlockComponent {
     constructor(args) {
@@ -180,106 +181,6 @@ export default class SubsetOfRealsInput extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.pointsFromSubset = {
-            additionalStateVariablesDefined: ["intervalsFromSubset"],
-            returnDependencies: () => ({
-                subsetValue: {
-                    dependencyType: "stateVariable",
-                    variableName: "subsetValue",
-                },
-            }),
-            definition({ dependencyValues }) {
-                function mergePointsIntervals(result1, result2) {
-                    let points = [];
-                    let intervals = [];
-
-                    if (result1.points) {
-                        points = result1.points;
-                    }
-                    if (result1.intervals) {
-                        intervals = result1.intervals;
-                    }
-
-                    if (result2.points) {
-                        let valuesIn1 = points.map((x) => x.value);
-
-                        for (let pt of result2.points) {
-                            let indIn1 = valuesIn1.indexOf(pt.value);
-
-                            if (indIn1 === -1) {
-                                points.push(pt);
-                            } else {
-                                points[indIn1].inSubset ||= pt.inSubset;
-                            }
-                        }
-                    }
-
-                    if (result2.intervals) {
-                        intervals.push(...result2.intervals);
-                    }
-
-                    return { points, intervals };
-                }
-
-                function pointsIntervalsFromSubset(subset) {
-                    if (subset === null || subset.isEmpty()) {
-                        return {};
-                    }
-
-                    if (subset instanceof subsets.Union) {
-                        let points = [];
-                        let intervals = [];
-                        for (let sub2 of subset.subsets) {
-                            let result = pointsIntervalsFromSubset(sub2);
-                            ({ points, intervals } = mergePointsIntervals(
-                                { points, intervals },
-                                result,
-                            ));
-                        }
-
-                        return { points, intervals };
-                    } else if (subset instanceof subsets.RealLine) {
-                        return { intervals: [[-Infinity, Infinity]] };
-                    } else if (subset instanceof subsets.Singleton) {
-                        return {
-                            points: [{ value: subset.element, inSubset: true }],
-                        };
-                    } else if (subset instanceof subsets.OpenInterval) {
-                        let intervals = [[subset.left, subset.right]];
-                        let points = [];
-                        if (Number.isFinite(subset.left)) {
-                            points.push({
-                                value: subset.left,
-                                inSubset: false,
-                            });
-                        }
-                        if (Number.isFinite(subset.right)) {
-                            points.push({
-                                value: subset.right,
-                                inSubset: false,
-                            });
-                        }
-                        return { intervals, points };
-                    }
-
-                    // shouldn't get here
-                    return {};
-                }
-
-                let { points, intervals } = pointsIntervalsFromSubset(
-                    dependencyValues.subsetValue,
-                );
-
-                let pointsFromSubset = points ? points : [];
-                let intervalsFromSubset = intervals ? intervals : [];
-
-                pointsFromSubset.sort((a, b) => a.value - b.value);
-                intervalsFromSubset.sort((a, b) => a[0] - b[0]);
-
-                return { setValue: { pointsFromSubset, intervalsFromSubset } };
-            },
-        };
-
         stateVariableDefinitions.additionalPoints = {
             defaultValue: [],
             hasEssential: true,
@@ -314,9 +215,9 @@ export default class SubsetOfRealsInput extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.points = {
+        stateVariableDefinitions.pointsDisplayed = {
             additionalStateVariablesDefined: [
-                { variableName: "intervals", forRenderer: true },
+                { variableName: "intervalsDisplayed", forRenderer: true },
             ],
             forRenderer: true,
             returnDependencies: () => ({
@@ -340,8 +241,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     ...dependencyValues.additionalPoints,
                 ].sort((a, b) => a - b);
 
-                let points = [];
-                let intervals = [];
+                let pointsDisplayed = [];
+                let intervalsDisplayed = [];
 
                 let intervalInd = 0;
 
@@ -368,14 +269,14 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
                         // skip if point is on top of previous point
                         if (nextAdditionalPoint !== lastIntervalEnd) {
-                            points.push({
+                            pointsDisplayed.push({
                                 value: nextAdditionalPoint,
                                 inSubset,
                                 isAdditional: true,
                                 additionalPointInd,
                             });
 
-                            intervals.push({
+                            intervalsDisplayed.push({
                                 left: lastIntervalEnd,
                                 right: nextAdditionalPoint,
                                 inSubset,
@@ -392,9 +293,9 @@ export default class SubsetOfRealsInput extends BlockComponent {
                         }
                     }
 
-                    points.push(point);
+                    pointsDisplayed.push(point);
 
-                    intervals.push({
+                    intervalsDisplayed.push({
                         left: lastIntervalEnd,
                         right: point.value,
                         inSubset,
@@ -409,13 +310,20 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 }
 
                 // delete extra point at infinity
-                points = points.slice(0, points.length - 1);
+                pointsDisplayed = pointsDisplayed.slice(
+                    0,
+                    pointsDisplayed.length - 1,
+                );
 
                 return {
-                    setValue: { points, intervals },
+                    setValue: { pointsDisplayed, intervalsDisplayed },
                 };
             },
         };
+
+        const pointAndIntervalDefinitions =
+            returnPointsIntervalsFromSubsetStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, pointAndIntervalDefinitions);
 
         return stateVariableDefinitions;
     }
@@ -535,7 +443,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let point = await this.stateValues.points[pointInd];
+        let point = await this.stateValues.pointsDisplayed[pointInd];
         let additionalPoints = [...(await this.stateValues.additionalPoints)];
         let pointsFromSubset = [...(await this.stateValues.pointsFromSubset)];
         let intervalsFromSubset = [
@@ -602,7 +510,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     // interval on the left but not on the right
                     // remove the interval on the left
 
-                    let leftPoint = (await this.stateValues.points)[
+                    let leftPoint = (await this.stateValues.pointsDisplayed)[
                         pointInd - 1
                     ];
                     if (leftPoint && leftPoint.isAdditional) {
@@ -613,7 +521,10 @@ export default class SubsetOfRealsInput extends BlockComponent {
                             leftPoint.value,
                         ];
 
-                        additionalPoints.splice(point.additionalPointInd, 1);
+                        additionalPoints.splice(
+                            leftPoint.additionalPointInd,
+                            1,
+                        );
                         modifiedAdditionalPoints = true;
 
                         pointsFromSubset.splice(pointSubsetInd, 1, leftPoint);
@@ -645,7 +556,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     // interval on the right but not on the left
                     // remove the interval on the right
 
-                    let rightPoint = (await this.stateValues.points)[
+                    let rightPoint = (await this.stateValues.pointsDisplayed)[
                         pointInd + 1
                     ];
                     if (rightPoint && rightPoint.isAdditional) {
@@ -656,7 +567,10 @@ export default class SubsetOfRealsInput extends BlockComponent {
                             intervalsFromSubset[rightIntervalInd][1],
                         ];
 
-                        additionalPoints.splice(point.additionalPointInd, 1);
+                        additionalPoints.splice(
+                            rightPoint.additionalPointInd,
+                            1,
+                        );
                         modifiedAdditionalPoints = true;
 
                         pointsFromSubset.splice(pointSubsetInd, 1, rightPoint);
@@ -788,15 +702,15 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 ) / dx,
             ) * dx;
 
-        let points = await this.stateValues.points;
-        let point = points[pointInd];
+        let pointsDisplayed = await this.stateValues.pointsDisplayed;
+        let point = pointsDisplayed[pointInd];
 
         // value cannot cross another point
-        let leftPoint = points[pointInd - 1];
+        let leftPoint = pointsDisplayed[pointInd - 1];
         if (leftPoint) {
             roundedValue = Math.max(roundedValue, leftPoint.value + dx);
         }
-        let rightPoint = points[pointInd + 1];
+        let rightPoint = pointsDisplayed[pointInd + 1];
         if (rightPoint) {
             roundedValue = Math.min(roundedValue, rightPoint.value - dx);
         }
@@ -925,7 +839,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let point = (await this.stateValues.points)[pointInd];
+        let point = (await this.stateValues.pointsDisplayed)[pointInd];
 
         let pointsFromSubset = [...(await this.stateValues.pointsFromSubset)];
         let intervalsFromSubset = [
@@ -1059,11 +973,11 @@ export default class SubsetOfRealsInput extends BlockComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let interval = (await this.stateValues.intervals)[intervalInd];
+        let interval = (await this.stateValues.intervalsDisplayed)[intervalInd];
 
-        let points = await this.stateValues.points;
-        let leftPoint = points[intervalInd - 1];
-        let rightPoint = points[intervalInd];
+        let pointsDisplayed = await this.stateValues.pointsDisplayed;
+        let leftPoint = pointsDisplayed[intervalInd - 1];
+        let rightPoint = pointsDisplayed[intervalInd];
 
         let pointsFromSubset = [...(await this.stateValues.pointsFromSubset)];
         let intervalsFromSubset = [
