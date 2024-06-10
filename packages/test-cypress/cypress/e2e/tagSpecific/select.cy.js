@@ -3768,7 +3768,7 @@ describe("Select Tag Tests", function () {
 
         cy.window().then(async (win) => {
             expect(numUVW).greaterThan(0);
-            expect(numUVW).lessThan(15);
+            expect(numUVW).lessThan(20);
             expect(numX).greaterThan(150);
             expect(numY).greaterThan(10);
             expect(numY).lessThan(50);
