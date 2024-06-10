@@ -29,7 +29,32 @@ export function doenetToMarkdown(source: DoenetSourceObject | string) {
     const sourceObj =
         typeof source === "string" ? new DoenetSourceObject(source) : source;
     const dast = sourceObj.dast as DastRoot;
-    const mdast = condenseBlankPars(doenetToMdast(dast, sourceObj));
+    let mdast = condenseBlankPars(doenetToMdast(dast, sourceObj));
+
+    // Make sure there are paragraphs between consecutive headers.
+    // Otherwise blank lines will not be rendered between consecutive headers.
+    mdast = mdast.flatMap((node, i) => {
+        const nextNode = mdast[i + 1];
+        if (node.type === "heading" && nextNode?.type === "heading") {
+            return [
+                node,
+                {
+                    type: "paragraph",
+                    children: [{ type: "text", value: "\n\n" }],
+                },
+            ];
+        }
+        if (node.type === "heading" && nextNode?.type !== "paragraph") {
+            return [
+                node,
+                {
+                    type: "paragraph",
+                    children: [{ type: "text", value: "\n\n" }],
+                },
+            ];
+        }
+        return [node];
+    });
 
     let text = toMarkdown({ type: "root", children: mdast });
     // Occurrences of `&#x20;` at the start of a line are probably a mistake, so trim them.
@@ -199,14 +224,6 @@ function doenetToMdast(
             return mapChildren(node.children);
         case "text": {
             if (node.value.trim() === "") {
-                if (node.value.match(/\n/)) {
-                    return [
-                        {
-                            type: "paragraph",
-                            children: [{ type: "text", value: "\n\n" }],
-                        },
-                    ];
-                }
                 return [];
             }
             const hasPAncestor = sourceObj

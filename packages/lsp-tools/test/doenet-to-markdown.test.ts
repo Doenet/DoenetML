@@ -84,12 +84,27 @@ describe("doenet-to-markdown", () => {
 `,
         );
     });
-    it.only("Can function macros", () => {
+    it("Can function macros", () => {
         let source: string;
 
         source = `$$f(x)`;
         expect(doenetToMarkdown(source)).toEqual(
             `\`$$f(x)\`
+`,
+        );
+    });
+    it("Doesn't include excess newlines in front of lists", () => {
+        let source: string;
+
+        source = `
+        <p>Hello</p>
+        <ol><li>a</li><li>b</li></ol>`;
+        expect(doenetToMarkdown(source)).toEqual(
+`Hello
+
+1. a
+
+2. b
 `,
         );
     });
