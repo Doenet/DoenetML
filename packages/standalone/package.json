@@ -2,7 +2,7 @@
     "name": "@doenet/standalone",
     "type": "module",
     "description": "Standalone renderer for DoenetML suitable for being included in a web page",
-    "version": "*",
+    "version": "0.6.3",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -10,12 +10,17 @@
     "files": [
         "/dist"
     ],
-    "main": "dist/doenet-standalone.js",
+    "exports": {
+        ".": {
+            "import": "./dist/doenet-standalone.js"
+        }
+    },
     "scripts": {
         "dev": "vite",
         "build": "wireit",
         "test": "echo \"No tests \"",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {
         "build": {
