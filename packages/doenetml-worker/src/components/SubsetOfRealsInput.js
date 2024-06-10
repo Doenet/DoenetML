@@ -521,7 +521,10 @@ export default class SubsetOfRealsInput extends BlockComponent {
                             leftPoint.value,
                         ];
 
-                        additionalPoints.splice(point.additionalPointInd, 1);
+                        additionalPoints.splice(
+                            leftPoint.additionalPointInd,
+                            1,
+                        );
                         modifiedAdditionalPoints = true;
 
                         pointsFromSubset.splice(pointSubsetInd, 1, leftPoint);
@@ -564,7 +567,10 @@ export default class SubsetOfRealsInput extends BlockComponent {
                             intervalsFromSubset[rightIntervalInd][1],
                         ];
 
-                        additionalPoints.splice(point.additionalPointInd, 1);
+                        additionalPoints.splice(
+                            rightPoint.additionalPointInd,
+                            1,
+                        );
                         modifiedAdditionalPoints = true;
 
                         pointsFromSubset.splice(pointSubsetInd, 1, rightPoint);
