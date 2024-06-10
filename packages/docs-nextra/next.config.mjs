@@ -87,7 +87,12 @@ const withNextra = nextraConfig({
 //     latex: true
 //   });
 
-export default withNextra();
+export default withNextra({
+    output: "export",
+    images: {
+        unoptimized: true
+    }
+});
 
 // If you have other Next.js configurations, you can pass them as the parameter:
 // module.exports = withNextra({ /* other next.js config */ })
