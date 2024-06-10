@@ -84,7 +84,7 @@ describe("doenet-to-markdown", () => {
 `,
         );
     });
-    it("Can function macros", () => {
+    it("Can format function macros", () => {
         let source: string;
 
         source = `$$f(x)`;

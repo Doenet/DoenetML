@@ -115,7 +115,8 @@ function doenetToMdast(
         case "root":
             return node.children.flatMap((n) => doenetToMdast(n, sourceObj));
         case "element":
-            // Many elements we have specific handling for
+            // Most elements have their tags omitted and their contents printed.
+            // Some we handle specially.
             switch (node.name) {
                 // A <graph> has no textual form, so we pass it through as a code block.
                 case "graph":
