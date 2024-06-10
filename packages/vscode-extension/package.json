@@ -4,7 +4,7 @@
     "description": "A language server for DoenetML",
     "author": "Jason Siefken",
     "license": "AGPL",
-    "version": "0.7.7",
+    "version": "0.7.8",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"
@@ -25,9 +25,9 @@
     "scripts": {
         "vscode:prepublish": "npm run build",
         "build": "npm run build:preview-window && npm run build:extension && npm run build:language-server",
-        "build:language-server": "vite -c vite.language-server.config.ts build",
-        "build:extension": "vite -c vite.extension.config.ts build",
-        "build:preview-window": "vite -c vite.preview-window.config.ts build",
+        "build:language-server": "wireit",
+        "build:extension": "wireit",
+        "build:preview-window": "wireit",
         "dev": "vite -c vite.preview-window.config.ts",
         "watch": "npm run build && vite -c vite.language-server.config.ts build --watch",
         "test": "vitest",
@@ -35,6 +35,48 @@
         "run-in-browser:firefox": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension .",
         "run-in-browser:chrome": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=./extension .",
         "run-in-browser": "npm run run-in-browser:firefox"
+    },
+    "wireit": {
+        "build:language-server": {
+            "command": "vite -c vite.language-server.config.ts build",
+            "files": [
+                "src/language-server/**/*.ts",
+                "tsconfig.json",
+                "vite.language-server.config.ts"
+            ],
+            "output": [
+                "extension/build/language-server/**/*"
+            ],
+            "dependencies": [
+                "../lsp:build"
+            ]
+        },
+        "build:extension": {
+            "command": "vite -c vite.extension.config.ts build",
+            "files": [
+                "src/extension/**/*.ts",
+                "tsconfig.json",
+                "vite.extension.config.ts"
+            ],
+            "output": [
+                "extension/build/extension/**/*"
+            ]
+        },
+        "build:preview-window": {
+            "command": "vite -c vite.preview-window.config.ts build",
+            "files": [
+                "src/preview-window/**/*.ts",
+                "src/preview-window/**/*.tsx",
+                "tsconfig.json",
+                "vite.preview-window.config.ts"
+            ],
+            "output": [
+                "extension/build/preview-window/**/*"
+            ],
+            "dependencies": [
+                "../doenetml:build"
+            ]
+        }
     },
     "devDependencies": {
         "@types/vscode": "^1.76.0",
