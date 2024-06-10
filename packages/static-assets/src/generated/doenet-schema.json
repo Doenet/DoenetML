@@ -73849,6 +73849,58 @@
                     "name": "subsetValue",
                     "type": "subsetOfReals",
                     "isArray": false
+                },
+                {
+                    "name": "points",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "pointsClosed",
+                    "type": "boolean",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "boolean",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "intervals",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "isolatedPoints",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -74358,6 +74410,58 @@
                         {
                             "isArray": false,
                             "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "points",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "pointsClosed",
+                    "type": "boolean",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "boolean",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "intervals",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "isolatedPoints",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
                         }
                     ]
                 },

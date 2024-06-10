@@ -238,6 +238,8 @@ export default class Core {
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
+        numberAnswers(serializedComponents);
+
         this.componentIndexArray =
             extractComponentNamesAndIndices(serializedComponents);
 
@@ -11117,7 +11119,7 @@ export default class Core {
             if (this.itemNumber > 0) {
                 let pageCreditAchieved =
                     await this.document.stateValues.creditAchieved;
-                this.saveState(true);
+                this.saveState(true, true);
                 this.saveSubmissions({ pageCreditAchieved });
                 alreadySaved = true;
             }
@@ -11131,7 +11133,7 @@ export default class Core {
             }, 1000);
         }
 
-        // evalute itemCreditAchieved so that will be fresh
+        // evaluate itemCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
         await this.document.stateValues.itemCreditAchieved;
 
@@ -11229,11 +11231,18 @@ export default class Core {
             version: "0.1.1",
         };
 
-        try {
-            let resp = await axios.post(this.apiURLs.recordEvent, payload);
-            // console.log(">>>>resp from record event", resp.data)
-        } catch (e) {
-            console.error(`Error saving event: ${e.message}`);
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "sendEvent",
+                data: payload,
+            });
+        } else {
+            try {
+                let resp = await axios.post(this.apiURLs.recordEvent, payload);
+                // console.log(">>>>resp from record event", resp.data)
+            } catch (e) {
+                console.error(`Error saving event: ${e.message}`);
+            }
         }
     }
 
@@ -12780,7 +12789,7 @@ export default class Core {
         });
     }
 
-    async saveState(overrideThrottle = false) {
+    async saveState(overrideThrottle = false, onSubmission = false) {
         this.savePageStateTimeoutID = null;
 
         if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
@@ -12827,6 +12836,7 @@ export default class Core {
             saveId,
             serverSaveId: this.serverSaveId,
             updateDataOnContentChange: this.updateDataOnContentChange,
+            onSubmission,
         };
 
         // mark presence of changes
@@ -13598,4 +13608,20 @@ function calculateAllComponentsShadowing(component) {
     }
 
     return allShadowing;
+}
+
+function numberAnswers(components, numSoFar = 0) {
+    let count = numSoFar;
+
+    for (let comp of components) {
+        if (comp.componentType === "answer") {
+            count++;
+            comp.answerNumber = count;
+        } else if (comp.children) {
+            const result = numberAnswers(comp.children, count);
+            count = result.count;
+        }
+    }
+
+    return { count };
 }

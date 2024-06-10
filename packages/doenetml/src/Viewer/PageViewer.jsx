@@ -66,6 +66,7 @@ export function PageViewer({
     errorsActivitySpecific = {},
     scrollableContainer,
     darkMode,
+    showAnswerTitles,
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
         ({ snapshot, set }) =>
@@ -202,6 +203,7 @@ export function PageViewer({
         linkSettings,
         scrollableContainer,
         darkMode,
+        showAnswerTitles,
     };
 
     const postfixForWindowFunctions =
@@ -313,6 +315,11 @@ export function PageViewer({
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.reportScoreAndState",
+                });
+            } else if (e.data.messageType === "sendEvent") {
+                window.postMessage({
+                    ...e.data,
+                    subject: "SPLICE.sendEvent",
                 });
             } else if (e.data.messageType === "terminated") {
                 reinitializeCoreAndTerminateAnimations();

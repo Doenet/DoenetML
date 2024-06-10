@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import { DoenetML } from "../../DoenetML";
+import { DoenetML } from "../../doenetml";
 import { Box, HStack, Button, Tooltip } from "@chakra-ui/react";
 import VariantSelect from "../../Tools/ChakraBasedComponents/VariantSelect";
 import { WarningTwoIcon } from "@chakra-ui/icons";

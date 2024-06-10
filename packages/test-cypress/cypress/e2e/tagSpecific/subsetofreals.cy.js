@@ -2802,4 +2802,133 @@ describe("SubsetOfReals Tag Tests", function () {
             .eq(0)
             .should("have.text", "[−9,−6]∪[−1,8]");
     });
+
+    it("point and interval properties", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <subsetOfReals name="empty">emptyset</subsetOfReals>
+  <subsetOfReals name="interval">[-1,2)</subsetOfReals>
+  <subsetOfReals name="intervalSingleton">(-1,2] union {-5}</subsetOfReals>
+  <subsetOfReals name="missPoint">(-infinity,3) union (3,infinity)</subsetOfReals>
+  <subsetOfReals name="R">R</subsetOfReals>
+
+  <p name="emptyPoints">empty points: $empty.points</p>
+  <p name="emptyPointsClosed">empty points closed: $empty.pointsClosed</p>
+  <p name="emptyIntervals">empty intervals: $empty.intervals</p>
+  <p name="emptyIsolated">empty isolated points: $empty.isolatedPoints</p>
+
+  <p name="intervalPoints">interval points: $interval.points</p>
+  <p name="intervalPointsClosed">interval points closed: $interval.pointsClosed</p>
+  <p name="intervalIntervals">interval intervals: $interval.intervals</p>
+  <p name="intervalIsolated">interval isolated points: $interval.isolatedPoints</p>
+
+  <p name="intervalSingletonPoints">intervalSingleton points: $intervalSingleton.points</p>
+  <p name="intervalSingletonPointsClosed">intervalSingleton points closed: $intervalSingleton.pointsClosed</p>
+  <p name="intervalSingletonIntervals">intervalSingleton intervals: $intervalSingleton.intervals</p>
+  <p name="intervalSingletonIsolated">intervalSingleton isolated points: $intervalSingleton.isolatedPoints</p>
+
+  <p name="missPointPoints">missPoint points: $missPoint.points</p>
+  <p name="missPointPointsClosed">missPoint points closed: $missPoint.pointsClosed</p>
+  <p name="missPointIntervals">missPoint intervals: $missPoint.intervals</p>
+  <p name="missPointIsolated">missPoint isolated points: $missPoint.isolatedPoints</p>
+
+  <p name="RPoints">R points: $R.points</p>
+  <p name="RPointsClosed">R points closed: $R.pointsClosed</p>
+  <p name="RIntervals">R intervals: $R.intervals</p>
+  <p name="RIsolated">R isolated points: $R.isolatedPoints</p>
+
+
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/emptyPoints") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/emptyPointsClosed")).should(
+            "have.text",
+            "empty points closed: ",
+        );
+        cy.get(cesc("#\\/emptyIntervals") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/emptyIsolated") + " .mjx-mrow").should("not.exist");
+
+        cy.get(cesc("#\\/intervalPoints") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "−1");
+        cy.get(cesc("#\\/intervalPoints") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "2");
+        cy.get(cesc("#\\/intervalPoints") + " .mjx-mrow")
+            .eq(2)
+            .should("not.exist");
+
+        cy.get(cesc("#\\/intervalPointsClosed")).should(
+            "have.text",
+            "interval points closed: true, false",
+        );
+
+        cy.get(cesc("#\\/intervalIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "[−1,2)");
+
+        cy.get(cesc("#\\/intervalIsolated") + " .mjx-mrow").should("not.exist");
+
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "−5");
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "−1");
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(2)
+            .should("have.text", "2");
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+
+        cy.get(cesc("#\\/intervalSingletonPointsClosed")).should(
+            "have.text",
+            "intervalSingleton points closed: true, false, true",
+        );
+        cy.get(cesc("#\\/intervalSingletonIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−1,2]");
+        cy.get(cesc("#\\/intervalSingletonIsolated") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "−5");
+
+        cy.get(cesc("#\\/missPointPoints") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc("#\\/missPointPoints") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc("#\\/missPointPointsClosed")).should(
+            "have.text",
+            "missPoint points closed: false",
+        );
+        cy.get(cesc("#\\/missPointIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,3)");
+        cy.get(cesc("#\\/missPointIntervals") + " .mjx-mrow")
+            .eq(2)
+            .should("have.text", "(3,∞)");
+        cy.get(cesc("#\\/missPointIsolated") + " .mjx-mrow").should(
+            "not.exist",
+        );
+
+        cy.get(cesc("#\\/RPoints") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/RPointsClosed")).should(
+            "have.text",
+            "R points closed: ",
+        );
+        cy.get(cesc("#\\/RIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,∞)");
+        cy.get(cesc("#\\/RIsolated") + " .mjx-mrow").should("not.exist");
+    });
 });
