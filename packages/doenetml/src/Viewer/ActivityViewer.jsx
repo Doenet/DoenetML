@@ -61,6 +61,7 @@ export function ActivityViewer({
     addBottomPadding = true,
     scrollableContainer = window,
     darkMode,
+    showAnswerTitles,
 }) {
     const [errMsg, setErrMsg] = useState(null);
 
@@ -1501,6 +1502,7 @@ export function ActivityViewer({
                     errorsActivitySpecific={errorsActivitySpecific.current}
                     scrollableContainer={scrollableContainer}
                     darkMode={darkMode}
+                    showAnswerTitles={showAnswerTitles}
                 />
             );
 

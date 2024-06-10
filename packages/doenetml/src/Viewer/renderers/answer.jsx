@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,6 +8,7 @@ import {
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
+import { PageContext } from "../PageViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -31,6 +32,8 @@ const Button = styled.button`
 export default React.memo(function Answer(props) {
     let { name, id, SVs, actions, children, callAction } =
         useDoenetRenderer(props);
+
+    const { showAnswerTitles } = useContext(PageContext) || {};
 
     if (SVs.hidden) {
         return null;
@@ -88,6 +91,8 @@ export default React.memo(function Answer(props) {
             checkWorkStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
         }
 
         let checkWorkText = SVs.submitLabel;
@@ -106,6 +111,7 @@ export default React.memo(function Answer(props) {
                         submitAnswer();
                     }
                 }}
+                title={showAnswerTitles ? `Answer name: ${name}` : null}
             >
                 <FontAwesomeIcon
                     style={

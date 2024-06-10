@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,6 +12,7 @@ import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import "./choiceInput.css";
+import { PageContext } from "../PageViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -57,6 +58,8 @@ export default React.memo(function ChoiceInput(props) {
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let selectedIndicesWhenSetState = useRef(null);
+
+    const { showAnswerTitles } = useContext(PageContext) || {};
 
     if (
         !ignoreUpdate &&
@@ -155,6 +158,15 @@ export default React.memo(function ChoiceInput(props) {
             width: "24px",
         };
 
+        if (disabled) {
+            // Disable the checkWorkButton
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+        }
+
         //Assume we don't have a check work button
         let checkWorkButton = null;
         if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
@@ -183,6 +195,11 @@ export default React.memo(function ChoiceInput(props) {
                                 });
                             }
                         }}
+                        title={
+                            showAnswerTitles
+                                ? `Answer name: ${actions.submitAnswer.componentName}`
+                                : null
+                        }
                     >
                         <FontAwesomeIcon
                             style={
@@ -330,6 +347,15 @@ export default React.memo(function ChoiceInput(props) {
             // fontWeight: "bold",
         };
 
+        if (disabled) {
+            // Disable the checkWorkButton
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+        }
+
         let checkworkComponent = null;
 
         if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
@@ -361,6 +387,11 @@ export default React.memo(function ChoiceInput(props) {
                                 });
                             }
                         }}
+                        title={
+                            showAnswerTitles
+                                ? `Answer name: ${actions.submitAnswer.componentName}`
+                                : null
+                        }
                     >
                         <FontAwesomeIcon
                             style={

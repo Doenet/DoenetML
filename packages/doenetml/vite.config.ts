@@ -14,7 +14,7 @@ export default defineConfig({
     base: "./",
     plugins: [
         react(),
-        dts({ rollupTypes: true }),
+        dts({ rollupTypes: false }),
         viteStaticCopy({
             targets: [
                 {
@@ -76,9 +76,12 @@ function transformPackageJson(contents: string, filePath: string) {
     delete pkg.peerDependencies;
     delete pkg.dependencies;
     delete pkg.prettier;
+    delete pkg.wireit;
+
+    pkg.private = false;
 
     // Everything that is externalized should be a peer dependency
-    pkg.devDependencies = {};
+    pkg.peerDependencies = {};
     for (const dep of EXTERNAL_DEPS) {
         if (!allDeps[dep]) {
             console.warn(
@@ -87,7 +90,7 @@ function transformPackageJson(contents: string, filePath: string) {
             );
             continue;
         }
-        pkg.devDependencies[dep] = allDeps[dep];
+        pkg.peerDependencies[dep] = allDeps[dep];
     }
 
     // Fix up the paths. The existing package.json refers to files in the `./dist` directory. But

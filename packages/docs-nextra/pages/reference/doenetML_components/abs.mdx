@@ -1,0 +1,65 @@
+import { DoenetML} from "../../../components/doenet"
+
+# `<abs>`
+
+## What it does
+The `<abs>` component renders the absolute value of the enclosed `math`. It belongs to a class of components known as [**Math Operators**](componentTypes). (Several other components in this category include `<sum>`, `<product>`, `<ceil>` and `<round>`.)
+
+Using the `<abs>` component is equivalent to using the `|` symbol to enclose an expression within a `<math>` or `math` type component or attribute specification. 
+
+## Attributes and Properties
+The `<abs>` component has no attibutes or properties.
+
+## Example list
+1. [Render the absolute value of a math expression](#math-ex)
+2. [Absolute value of `<mathInput>`](#mathInput-ex)
+3. [Absolute value of numerical properties](#numProps-ex)
+4. [Absolute value of a function](#function-ex)
+
+<a id="math-ex"></a>
+### Example: Render the absolute value of a math expression
+```html
+<m>|5 - 8| = <abs>5 - 8</abs></m>
+```
+The `<abs>` component is used to render the absolute value of a math expression. Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+
+<a id="mathInput-ex"></a>
+### Example: Absolute value of `<mathInput>`
+```html 
+<p>Type any number: <mathInput name="userN"/></p>
+<p><m>|$userN| = <abs>$userN</abs></m></p>
+```
+The `<abs>` component is used to render the absolute value of a named `<mathInput/>`. Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+<a id="numProps-ex"></a>
+### Example: Absolute value of numerical properties
+```html {5}
+    <p>Move the point in the third quadrant.</p>
+    <graph size="small" name="g1" newNameSpace>
+        <point name="p1" styleNumber="2">(-5,-5)</point>
+        <point name="p2" draggable="false">
+            (<abs>$p1.x</abs>, <abs>$p1.y</abs>)
+        </point>
+    </graph>
+```
+Children of the `<abs>` component can include references to `<mathInput>` values or other `math` quantities, such as single-valued numerical properties of graphical objects. Invalid children are strings and tuples.  Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+<a id="function-ex"></a>
+### Example: Absolute value of a function
+```html {4}
+    <graph size="small" name="g2" newNameSpace>
+       <function name="f">(1/4)x^2 - 4</function>
+       <function styleNumber="2">
+         <abs>$f</abs>
+       </function>
+     </graph>
+```
+The `<abs>` component is used to render the absolute value of a named `<function>` within a `<graph>`. Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+---
+### Special usage notes
+
+Note that the `<abs>` component cannot be used directly in attribute specification. You can, however, use the `|` notation within an attribute specification. You can also define a `<math>` component separately, which contains the `<abs>` component, and then reference it in an attribute specification.
+
+

@@ -1,0 +1,85 @@
+import { DoenetML} from "../../../components/doenet"
+import { Callout } from 'nextra/components'
+
+# Part 2: A first question with two possible answers
+
+In this part of the Quick Start tutorial, we're going to create a question that Doenet can evaluate using the `<answer>` tag, and learn how to allow for multiple different correct responses using the `<award>` tag.
+
+I recommend that you have a Doenet editor open for this activity in a separate tab, and complete it as you follow along with the text or the video. In the text version, each mini code editor develops a subsequent section of the example. The entire completed activity is available [here](https://www.doenet.org/portfolioviewer/_3SFLgVmUkc5TsAszm2OIP).
+
+Now that you've created your first activity, let's give it a title. 
+In the editor, click on the text at the top of the page where it says "Untitled" to change it. I’ll call my activity “Quick Start Tutorial 1”.
+
+Next, let’s add a title that the student will see when they complete the activity. To do this, we’ll need to use the `<title>` tag. Place the text for your title between the opening and closing title tags. My title is “Drawing Circles”.
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<title>Drawing Circles</title>
+</codeEditor>
+`}
+</DoenetML>
+
+Click the “Update” button in the upper-left corner to see the title rendered on screen.
+
+The first thing I’d like to do in this activity is ask the students what they know about the formula for the area of a circle, since it will come up in the constructions later on. I’ll first create a paragraph of text using the `<p>` tag,
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<p>Let’s review what we know about circles…</p>
+
+<p>What is the formula for the area of a circle?</p>
+</codeEditor>
+`}
+</DoenetML>
+
+Now, I’d like to show the left-hand side of the equation in mathematical display text, and have the student complete the right-hand side of the equation. To do that, I’ll create another paragraph, and within this `<p>` I'll place an `<m>` tag for the mathematical display text; an `<m>` tag accepts LateX as input.
+
+
+
+It’s important to always close off an `<m>` tag before starting an `<answer>` tag, which is what I’ll use to collect and evaluate the student’s response. The simplest way to evaluate an answer is to place the mathematically correct response between the opening and closing `<answer>` tags. 
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<p><m>A = </m> 
+    <answer>pi r^2</answer>
+</p>
+</codeEditor>
+`}
+</DoenetML>
+
+Now, let’s click update and test out that  the `<answer>` tag is working as expected.
+
+Hopefully everything is working for you up to this point. Try testing out different ways of writing the equation in the answer blank. You'll notice that Doenet is very generous in its default validation; it will award credit to any response that is mathematically equivalent to $\pi r^2$, so the student could have entered $r^2 \cdot \pi$, or $\pi \cdot r \cdot r$. (There are ways to adjust this behavior to be more stringent, which we will cover in future tutorials.) 
+
+However, what if we are starting to be concerned about the student using the correct variable for $r$? We can include a hint guiding the student to the correct choice of variable using the `<hint>` tag:
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<hint>Use <m>r</m> for the circle's radius.</hint>
+</codeEditor>
+`}
+</DoenetML>
+
+Last, perhaps I also want to give credit to student responses that use the diameter of the circle as the defining variable. I will update my `<answer>` tag by giving it two `<award>` children. The first `<award>` will give credit to students who enter the equation in terms of $r$, and the second `<award>` will give credit for responses in terms of $d$.
+
+<DoenetML>
+{`
+<codeEditor showResults resultsLocation="left">
+<p>What is the formula for the area of a circle?</p>
+<p><m>A = </m>
+  <answer>
+    <award>pi r^2</award>
+    <award>pi d^2 / 4</award>
+  </answer></p>
+</codeEditor>
+`}
+</DoenetML>
+
+
+Now, I’ll update the hint to also give the correct variable to use for the diameter.
+
+

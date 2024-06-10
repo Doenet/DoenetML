@@ -2,10 +2,10 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.0-alpha4",
+    "version": "0.7.0-alpha7",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -25,7 +25,8 @@
         "build": "wireit",
         "preview": "vite preview",
         "test": "echo \"No tests \"",
-        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+        "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {
         "build": {
@@ -78,7 +79,7 @@
         "idb-keyval": "^6.2.1",
         "json-stringify-deterministic": "^1.0.11",
         "lorem-ipsum": "^2.0.8",
-        "math-expressions": "^2.0.0-alpha65",
+        "math-expressions": "^2.0.0-alpha66",
         "nanoid": "^4.0.2",
         "prismjs": "^1.29.0",
         "react-copy-to-clipboard": "^5.0.3",
