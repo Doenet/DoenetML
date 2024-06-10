@@ -5,7 +5,7 @@
     "version": "0.7.0-alpha7",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -25,7 +25,8 @@
         "build": "wireit",
         "preview": "vite preview",
         "test": "echo \"No tests \"",
-        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+        "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {
         "build": {
