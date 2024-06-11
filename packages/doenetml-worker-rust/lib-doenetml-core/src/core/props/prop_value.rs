@@ -52,6 +52,8 @@ pub enum PropValue {
     #[serde(with = "rc_serde")]
     ContentRefs(prop_type::ContentRefs),
     ContentRef(prop_type::ContentRef),
+    None(()),
+    PropVec(prop_type::PropVec),
     #[serde(with = "rc_serde")]
     XrefLabel(prop_type::XrefLabel),
     ListDepth(prop_type::ListDepth),
@@ -128,6 +130,8 @@ pub mod prop_type {
     define_type!(ListMarker, list_marker::ListMarker);
     define_type!(DivisionType, division_type::DivisionType);
 
+    pub type PropVec = Vec<PropValue>;
+
     /// By default, wasm-bindgen won't pick up this module as containing types to export
     /// to Typescript. We force wasm-bindgen to export types in this module by providing a
     /// dummy type that is explicitly referenced in `lib-js-wasm-binding/src/lib.rs`.
@@ -200,6 +204,19 @@ mod conversions {
         type Error = &'static str;
         fn try_from(value: PropValue) -> Result<Self, Self::Error> {
             TryInto::<prop_type::String>::try_into(value).map(|s| (*s).clone())
+        }
+    }
+
+    impl From<MathExpr> for PropValue {
+        fn from(v: MathExpr) -> Self {
+            PropValue::Math(Rc::new(v))
+        }
+    }
+
+    impl TryFrom<PropValue> for MathExpr {
+        type Error = &'static str;
+        fn try_from(value: PropValue) -> Result<Self, Self::Error> {
+            TryInto::<prop_type::Math>::try_into(value).map(|s| (*s).clone())
         }
     }
 

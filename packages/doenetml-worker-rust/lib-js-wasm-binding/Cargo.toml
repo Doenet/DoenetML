@@ -38,3 +38,7 @@ serde-wasm-bindgen = { workspace = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
+
+[lints.clippy]
+# Because of https://github.com/rustwasm/wasm-bindgen/issues/3945 we need to allow this lint for now
+empty_docs = "allow"

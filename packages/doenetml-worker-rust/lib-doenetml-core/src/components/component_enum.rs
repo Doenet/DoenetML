@@ -6,11 +6,11 @@ pub use super::_external::_External;
 pub use super::_ref::_Ref;
 pub use super::doenet::_fragment::_Fragment;
 pub use super::doenet::boolean::Boolean;
+pub use super::doenet::division::Division;
 pub use super::doenet::document::Document;
 pub use super::doenet::li::Li;
+pub use super::doenet::math::Math;
 pub use super::doenet::ol::Ol;
-//pub use super::doenet::math::Math;
-pub use super::doenet::division::Division;
 pub use super::doenet::p::P;
 pub use super::doenet::text::Text;
 pub use super::doenet::text_input::TextInput;
@@ -36,7 +36,7 @@ pub use super::doenet::xref::Xref;
 pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
-    //    Math(Math),
+    Math(Math),
     Boolean(Boolean),
     Division(Division),
     Title(Title),

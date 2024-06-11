@@ -1,11 +1,11 @@
 //! DoenetML components, for example `<p />`, `<mathInput />`, etc.. These are the building blocks of the DoenetML document.
 
-pub mod boolean;
-pub mod document;
-//pub mod math;
 pub mod _fragment;
+pub mod boolean;
 pub mod division;
+pub mod document;
 pub mod li;
+pub mod math;
 pub mod ol;
 pub mod p;
 pub mod text;

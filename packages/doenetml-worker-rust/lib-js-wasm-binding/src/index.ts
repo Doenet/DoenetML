@@ -3,6 +3,7 @@ import {
     parseTextIntoMath,
     parseLatexIntoMath,
     toLatex,
+    toText,
     substituteIntoMath,
     normalizeMath,
 } from "./eval-math";
@@ -18,6 +19,7 @@ declare global {
             parseTextIntoMath: typeof parseTextIntoMath;
             parseLatexIntoMath: typeof parseLatexIntoMath;
             toLatex: typeof toLatex;
+            toText: typeof toText;
             substituteIntoMath: typeof substituteIntoMath;
             normalizeMath: typeof normalizeMath;
         };
@@ -30,6 +32,7 @@ globalThis.__forDoenetWorker = {
     parseTextIntoMath,
     parseLatexIntoMath,
     toLatex,
+    toText,
     substituteIntoMath,
     normalizeMath,
 };

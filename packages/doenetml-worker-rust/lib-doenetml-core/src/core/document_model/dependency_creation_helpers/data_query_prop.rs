@@ -16,21 +16,26 @@ pub fn process_data_query_prop(
     query_node: GraphNode,
     document_structure: &DocumentStructure,
 ) -> Vec<(GraphNode, GraphNode)> {
-    let local_prop_idx = match prop_specifier {
-        PropSpecifier::LocalIdx(local_prop_idx) => Some(local_prop_idx),
-        PropSpecifier::Matching(match_profiles) => document_structure
-            .get_component_prop_by_profile(component_idx, &match_profiles)
-            .map(|prop_pointer| prop_pointer.local_prop_idx),
-    };
-
-    if let Some(local_prop_idx) = local_prop_idx {
-        let target_prop_node = PropPointer {
-            component_idx,
-            local_prop_idx,
+    match prop_specifier {
+        PropSpecifier::LocalIdx(local_prop_idx) => {
+            let target_prop_node = PropPointer {
+                component_idx,
+                local_prop_idx,
+            }
+            .into_prop_node(document_structure);
+            vec![(query_node, target_prop_node)]
         }
-        .into_prop_node(document_structure);
-        vec![(query_node, target_prop_node)]
-    } else {
-        vec![]
+        PropSpecifier::Matching(match_profiles) => {
+            match document_structure.get_component_prop_by_profile(component_idx, &match_profiles) {
+                Some(prop_matched) => {
+                    let target_prop_node = prop_matched.into_prop_node(document_structure);
+                    vec![(query_node, target_prop_node)]
+                }
+                None => vec![],
+            }
+        }
+        PropSpecifier::MatchingPair(..) => {
+            unreachable!()
+        }
     }
 }

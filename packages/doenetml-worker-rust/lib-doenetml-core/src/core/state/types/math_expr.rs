@@ -5,8 +5,8 @@ use strum_macros::Display;
 use web_sys::js_sys::JsString;
 
 use crate::math_via_wasm::{
-    eval_js, math_to_latex, normalize_math, parse_latex_into_math, parse_text_into_math,
-    substitute_into_math,
+    eval_js, math_to_latex, math_to_text, normalize_math, parse_latex_into_math,
+    parse_text_into_math, substitute_into_math,
 };
 
 const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
@@ -101,6 +101,55 @@ impl MathExpr {
         };
 
         MathExpr { math_object }
+    }
+
+    /// Return a text string that corresponds to the mathematical expression.
+    /// The behavior is controlled by `params`.
+    ///
+    /// Examples:
+    ///
+    /// ```no_run
+    /// # use doenetml_core::state::types::math_expr::{MathExpr, ToTextParams};
+    /// let expr = MathExpr::from_text("123 / 0.05", true, &["f"]);
+    ///
+    /// assert_eq!(
+    ///     expr.to_text(ToTextParams::default()),
+    ///     r#"123/0.05"#
+    /// );
+    ///
+    /// let pad_three_decimals = ToTextParams {
+    ///     pad_to_decimals: Some(3),
+    ///     ..Default::default()
+    /// };
+    /// assert_eq!(
+    ///     expr.to_text(pad_three_decimals),
+    ///     r#"123.000/0.050"#
+    /// );
+    ///
+    /// let pad_four_digits = ToTextParams {
+    ///     pad_to_digits: Some(4),
+    ///     ..Default::default()
+    /// };
+    /// assert_eq!(expr.to_text(pad_four_digits), r#"123.0/0.05000"#);
+    ///
+    /// let expr_with_blanks = MathExpr::from_text("x + ()", true, &["f"]);
+    ///
+    /// assert_eq!(
+    ///     expr_with_blanks.to_text(ToTextParams::default()),
+    ///     "x + \u{FF3F}"
+    /// );
+    ///
+    /// let hide_blanks = ToTextParams {
+    ///     show_blanks: false,
+    ///     ..Default::default()
+    /// };
+    /// assert_eq!(expr_with_blanks.to_text(hide_blanks), "x + ");
+    /// ```
+    pub fn to_text(&self, params: ToTextParams) -> String {
+        match math_to_text(&self.math_object, params) {
+            Ok(res) => res,
+            Err(_) => "\u{FF3f}".to_string(),
+        }
     }
 
     /// Create a `Math` by parsing the string `latex` using the `math-expressions` latex parser.
@@ -369,6 +418,31 @@ impl Default for ToLatexParams {
         }
     }
 }
+
+/// Parameters for creating a text string from a `Math`:
+#[derive(Debug, Clone, Copy)]
+pub struct ToTextParams {
+    /// If present, then pad numbers with zeros so they have at least
+    /// this many decimal places after the decimal point displayed.
+    pub pad_to_decimals: Option<u32>,
+    /// If present, then pad numbers with zeros so they have at least
+    /// this many total digits displayed.
+    pub pad_to_digits: Option<u32>,
+    /// If `true`, then display any blanks in the mathematical expression
+    /// as a long underscore.
+    pub show_blanks: bool,
+}
+
+impl Default for ToTextParams {
+    fn default() -> Self {
+        ToTextParams {
+            pad_to_decimals: None,
+            pad_to_digits: None,
+            show_blanks: true,
+        }
+    }
+}
+
 /// Levels of simplification of mathematical expressions.
 ///
 /// Examples:

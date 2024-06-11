@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{
     components::{
         prelude::DataQuery,
@@ -50,6 +52,16 @@ impl DocumentModel {
                 // No new state to create
             }
         }
+    }
+
+    /// Returns the virtual node used to represent null,
+    /// i.e., the lack of a node in that spot in the dependency graph.
+    ///
+    /// Since we initialize `self.virtual_node_count` to `1`,
+    /// we can use node `0` to represent null.
+    #[inline(always)]
+    fn get_null_node() -> GraphNode {
+        GraphNode::Virtual(0)
     }
 
     /// Creates all necessary dependencies for a `DataQuery`.
@@ -141,13 +153,17 @@ impl DocumentModel {
                 prop_specifier,
             } => {
                 // Check we have a valid configuration
-                if matches!(prop_specifier, PropSpecifier::LocalIdx(_)) {
-                    match source {
+                match prop_specifier {
+                    PropSpecifier::LocalIdx(_) => match source {
                         PropSource::Me | PropSource::ByIdx(_) => {}
                         _ => {
                             panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
                         }
+                    },
+                    PropSpecifier::MatchingPair(..) => {
+                        panic!("`MatchingPair` in a `DataQuery::Prop` is not valid. Use two separate data queries to retrieve two props.")
                     }
+                    _ => {}
                 }
                 let component_idx = match resolved_component_idx {
                     Some(idx) => idx,
@@ -185,6 +201,8 @@ impl DocumentModel {
                 fn_add_edges(edges_to_add);
             }
 
+            // For the component(s) of `source`
+            // find the prop(s) that match `prop_specifier`
             DataQuery::PickProp {
                 source,
                 prop_specifier,
@@ -195,40 +213,104 @@ impl DocumentModel {
                     )
                 }
 
-                let match_profiles = match prop_specifier {
-                    PropSpecifier::Matching(profiles) => profiles,
-                    PropSpecifier::LocalIdx(_) => unreachable!(),
-                };
-
-                let mut edges_to_add = Vec::new();
-
-                match source {
+                // determine the nodes from which to pick props
+                #[allow(clippy::let_and_return)]
+                let container_nodes = match source {
                     PickPropSource::Children => {
                         let document_structure = self.document_structure.borrow();
-                        let nodes_to_match = document_structure
-                            .get_component_content_children(prop_pointer.component_idx)
+                        let container_nodes = document_structure
+                            .get_component_content_children(prop_pointer.component_idx);
+                        container_nodes
+                    }
+
+                    PickPropSource::NearestMatchingAncestor => {
+                        let document_structure = self.document_structure.borrow();
+                        let container_nodes = document_structure
+                            .get_true_component_ancestors(prop_pointer.component_idx)
+                            .map(|idx| GraphNode::Component(idx.as_usize()))
+                            .collect_vec();
+                        container_nodes
+                    }
+                };
+
+                match prop_specifier {
+                    PropSpecifier::Matching(match_profiles) => {
+                        // pick the prop off each node, if it exists,
+                        // and potentially create an edge to that node
+                        let document_structure = self.document_structure.borrow();
+                        let mut edges = container_nodes
                             .into_iter()
                             .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
                             .map(|node| (query_node, node));
-                        for edge in nodes_to_match {
-                            edges_to_add.push(edge);
-                        }
-                    }
-                    PickPropSource::NearestMatchingAncestor => {
-                        let document_structure = self.document_structure.borrow();
-                        let mut nodes_to_match = document_structure
-                            .get_true_component_ancestors(prop_pointer.component_idx)
-                            .map(|idx| GraphNode::Component(idx.as_usize()))
-                            .flat_map(|node| pick_prop(node, &match_profiles, &document_structure))
-                            .map(|node| (query_node, node));
-                        // Only link to the first match (if it exists)
-                        if let Some(edge) = nodes_to_match.next() {
-                            edges_to_add.push(edge);
-                        }
-                    }
-                };
 
-                fn_add_edges(edges_to_add);
+                        match source {
+                            PickPropSource::Children => {
+                                // for children, use all edges
+                                fn_add_edges(edges.collect());
+                            }
+                            PickPropSource::NearestMatchingAncestor => {
+                                // for nearest match ancestor, we just use the first edge, if it exists
+                                if let Some(edge) = edges.next() {
+                                    fn_add_edges(vec![edge]);
+                                }
+                            }
+                        }
+                    }
+                    PropSpecifier::MatchingPair(match_profiles1, match_profiles2) => {
+                        // attempt to match both sets of profiles to the nodes
+                        let document_structure = self.document_structure.borrow();
+                        let props1 = container_nodes
+                            .iter()
+                            .map(|&node| pick_prop(node, &match_profiles1, &document_structure));
+                        let props2 = container_nodes
+                            .iter()
+                            .map(|&node| pick_prop(node, &match_profiles2, &document_structure));
+
+                        // create an iterator for the ingredients for the an edge to a virtual node
+                        // and then edges from that virtual node to both prop nodes
+                        let mut matching_props = props1
+                            .zip(props2)
+                            .filter_map(|(p1, p2)| match (p1, p2) {
+                                (Some(prop1), Some(prop2)) => Some((prop1, prop2)),
+                                // if only one prop is missing, substitute the null virtual node
+                                (Some(prop1), None) => Some((prop1, Self::get_null_node())),
+                                (None, Some(prop2)) => Some((Self::get_null_node(), prop2)),
+                                (None, None) => None,
+                            })
+                            .map(|(prop1, prop2)| {
+                                // Note: because of lazy evaluation, this virtual node will be created only if these props will be used
+                                let virtual_node = self.add_virtual_node(query_node);
+                                (virtual_node, prop1, prop2)
+                            });
+
+                        match source {
+                            PickPropSource::Children => {
+                                // for children, use all edges
+                                let edges =
+                                    matching_props.flat_map(|(virtual_node, prop1, prop2)| {
+                                        [
+                                            (query_node, virtual_node),
+                                            (virtual_node, prop1),
+                                            (virtual_node, prop2),
+                                        ]
+                                    });
+                                fn_add_edges(edges.collect());
+                            }
+                            PickPropSource::NearestMatchingAncestor => {
+                                // for nearest match ancestor, we just use the first combination of edge, if it exists
+                                if let Some((virtual_node, prop1, prop2)) = matching_props.next() {
+                                    fn_add_edges(vec![
+                                        (query_node, virtual_node),
+                                        (virtual_node, prop1),
+                                        (virtual_node, prop2),
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
+                    PropSpecifier::LocalIdx(_) => unreachable!(),
+                };
             }
 
             DataQuery::AnnotatedContentRefs {
@@ -358,8 +440,7 @@ impl DocumentModel {
         new_node
     }
 
-    /// Creates a `GraphNode::Virtual` node adds it to the `dependency_graph`.
-    // XXX: Revisit if we still need this.
+    /// Creates a `GraphNode::Virtual` node and adds it to the `dependency_graph`.
     #[allow(unused)]
     pub(super) fn add_virtual_node(&self, _origin_node: GraphNode) -> GraphNode {
         let idx = self.virtual_node_count.get();

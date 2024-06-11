@@ -33,6 +33,8 @@ pub enum PropProfile {
     Boolean,
     /// Matches the hidden prop
     Hidden,
+    /// Matches the fixed prop
+    Fixed,
     /// Matches the SerialNumber prop
     SerialNumber,
     /// Matches the DivisionCodeNumber prop
@@ -76,6 +78,7 @@ pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
         PropProfile::Integer => PropValueType::Integer,
         PropProfile::Boolean => PropValueType::Boolean,
         PropProfile::Hidden => PropValueType::Boolean,
+        PropProfile::Fixed => PropValueType::Boolean,
         PropProfile::SerialNumber => PropValueType::Integer,
         PropProfile::DivisionCodeNumber => PropValueType::String,
         PropProfile::DivisionDepth => PropValueType::Integer,
