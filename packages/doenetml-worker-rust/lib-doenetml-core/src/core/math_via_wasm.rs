@@ -410,7 +410,7 @@ extern "C" {
 mod test {
     use wasm_bindgen::prelude::*;
     use wasm_bindgen_test::*;
-    
+
     #[wasm_bindgen_test]
     fn test_parse_text_into_math() {
         let expr = super::parse_text_into_math("x+y", true, &["f"]).unwrap();

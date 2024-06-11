@@ -5,9 +5,6 @@ import * as Comlink from "comlink";
 
 import {
     lezerToDast,
-    DastNodes,
-    DastAttribute,
-    DastMacroPathPart,
     filterPositionInfo,
 } from "@doenet/parser";
 import { normalizeDocumentDast } from "../src/state/redux-slices/dast/utils/normalize-dast";
