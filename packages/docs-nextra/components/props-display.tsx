@@ -39,11 +39,12 @@ export function AttrDisplay({
     name,
     attrs = [],
     links = {},
-}: {
+    children,
+}: React.PropsWithChildren<{
     name: string;
     attrs: AttrInfo[];
     links?: Record<string, string>;
-}) {
+}>) {
     attrs.sort((a, b) => a.name.localeCompare(b.name));
     const commonAttrs = attrs.filter((attr) => attr.common);
     const componentAttrs = attrs.filter((attr) => !attr.common);
@@ -52,11 +53,13 @@ export function AttrDisplay({
         <table className="attr-table" id="attr-list">
             <caption>
                 Attributes for{" "}
-                <code>
-                    {"<"}
-                    {name}
-                    {">"}
-                </code>
+                {children || (
+                    <code>
+                        {"<"}
+                        {name}
+                        {">"}
+                    </code>
+                )}
             </caption>
             <thead>
                 <tr>
@@ -105,11 +108,12 @@ export function PropDisplay({
     name,
     props = [],
     links = {},
-}: {
+    children,
+}: React.PropsWithChildren<{
     name: string;
     props: PropInfo[];
     links?: Record<string, string>;
-}) {
+}>) {
     props.sort((a, b) => a.name.localeCompare(b.name));
     const commonProps = props.filter((attr) => attr.common);
     const componentProps = props.filter((attr) => !attr.common);
@@ -119,10 +123,12 @@ export function PropDisplay({
         <table className="prop-table" id="prop-list">
             <caption>
                 Props for{" "}
-                <code>
-                    {"<"}
-                    {name} name="{refName}"{">"}
-                </code>
+                {children || (
+                    <code>
+                        {"<"}
+                        {name} name="{refName}"{">"}
+                    </code>
+                )}
             </caption>
             <thead>
                 <tr>
@@ -138,17 +144,19 @@ export function PropDisplay({
                     ) : (
                         prop.name
                     );
-                    return <tr key={prop.name}>
-                        <td>
-                            <code>
-                                ${refName}.
-                                <span className="prop-name">{nameElm}</span>
-                            </code>
-                        </td>
-                        <td className="prop-type">
-                            {formatType(prop.type, prop.isArray)}
-                        </td>
-                    </tr>
+                    return (
+                        <tr key={prop.name}>
+                            <td>
+                                <code>
+                                    ${refName}.
+                                    <span className="prop-name">{nameElm}</span>
+                                </code>
+                            </td>
+                            <td className="prop-type">
+                                {formatType(prop.type, prop.isArray)}
+                            </td>
+                        </tr>
+                    );
                 })}
             </tbody>
         </table>
