@@ -89,6 +89,7 @@ const withNextra = nextraConfig({
 
 export default withNextra({
     output: "export",
+    assetPrefix: './',
     images: {
         unoptimized: true
     }
