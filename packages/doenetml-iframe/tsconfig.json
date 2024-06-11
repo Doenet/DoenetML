@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "rootDir": "./src"
+    },
+    "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
+    "exclude": ["vite.config.ts", "vite.config-iframe.ts", "dist/**/*"],
+    "references": []
+}
