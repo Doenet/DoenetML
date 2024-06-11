@@ -216,11 +216,6 @@ function doenetToMdast(
                         },
                     ];
                 }
-                case "section":
-                    // Directly pass through. Everything will be handled by the `<title>` element
-                    return node.children.flatMap((n) =>
-                        doenetToMdast(n, sourceObj),
-                    );
             }
             return mapChildren(node.children);
         case "text": {

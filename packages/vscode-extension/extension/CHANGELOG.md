@@ -1,7 +1,11 @@
+## v0.7.8
+
+-   Updates to _doenetToMarkdown_
+
 ## v0.7.7
 
--  Update DoenetML to v0.7alpha
--  Add experimental _doenetToMarkdown_ support
+-   Update DoenetML to v0.7alpha7
+-   Add experimental _doenetToMarkdown_ support
 
 ## v0.7.6
 
