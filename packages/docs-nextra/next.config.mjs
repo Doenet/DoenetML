@@ -90,7 +90,7 @@ const withNextra = nextraConfig({
 export default withNextra({
     output: "export",
     assetPrefix: './',
-    basePath: '/DoenetML/',
+    basePath: '/DoenetML',
     images: {
         unoptimized: true
     }
