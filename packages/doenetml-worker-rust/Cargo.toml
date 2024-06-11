@@ -11,6 +11,7 @@ edition = "2021"
 
 [workspace.dependencies]
 wasm-bindgen = { version = "^0.2.92", features = ["serde-serialize"] }
+wasm-bindgen-test = "0.3.42"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 regex = "1.10"
@@ -48,3 +49,5 @@ typed-index-collections = "3.1.0"
 disjoint_impls = "0.7.0"
 rustc-hash = "^1.1"
 bitvec = "1.0"
+
+getrandom = { version = "0.2", features = ["js"] }

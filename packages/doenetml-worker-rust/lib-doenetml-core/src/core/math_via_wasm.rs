@@ -405,3 +405,18 @@ extern "C" {
         createIntervals: Boolean,
     ) -> Result<JsString, JsValue>;
 }
+
+#[cfg(test)]
+mod test {
+    use wasm_bindgen::prelude::*;
+    use wasm_bindgen_test::*;
+    
+    #[wasm_bindgen_test]
+    fn test_parse_text_into_math() {
+        let expr = super::parse_text_into_math("x+y", true, &["f"]).unwrap();
+        assert_eq!(
+            super::math_to_latex(&expr, super::ToLatexParams::default()).unwrap(),
+            "x + y"
+        );
+    }
+}
