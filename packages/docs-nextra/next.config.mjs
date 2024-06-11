@@ -79,6 +79,38 @@ const withNextra = nextraConfig({
                     }
                 }
             },
+            /**
+             * Remove any instances of `{:dn}` or `{:doenet}` that occur in the search text. These
+             * are not stripped out, which is a mistake.
+             */
+            () => (tree, file) => {
+                if (file.data.structurizedData) {
+                    console.log("stripping data");
+                    for (const [key, val] of Object.entries(
+                        file.data.structurizedData,
+                    )) {
+                        if (val?.match(/({:dn})|({:doenet})/)) {
+                            const replaced = val.replace(
+                                /({:dn})|({:doenet})/g,
+                                "",
+                            );
+                            file.data.structurizedData[key] = replaced;
+                        }
+                        // The key also might need replacing. It is of the form `id#Title`. We only want to replace things in `Title`.
+                        const [id, title] = key.split("#");
+                        if (title?.match(/({:dn})|({:doenet})/)) {
+                            const replaced = title.replace(
+                                /({:dn})|({:doenet})/gi,
+                                "",
+                            );
+                            const newKey = `${id}#${replaced}`;
+                            file.data.structurizedData[newKey] =
+                                file.data.structurizedData[key];
+                            delete file.data.structurizedData[key];
+                        }
+                    }
+                }
+            },
         ],
     },
 });
