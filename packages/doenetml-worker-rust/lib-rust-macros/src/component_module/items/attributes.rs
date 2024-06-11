@@ -59,11 +59,11 @@ impl AttributesEnum {
             variants.iter().map(|x| x.ident.clone()).collect()
         })
     }
-    /// Attribute names in `snake_case`
+    /// Attribute names in `camelCase`
     pub fn get_attribute_names(&self) -> Vec<String> {
         self.get_attribute_idents()
             .iter()
-            .map(|x| x.to_string().to_case(Case::Snake))
+            .map(|x| x.to_string().to_case(Case::Camel))
             .collect()
     }
 
