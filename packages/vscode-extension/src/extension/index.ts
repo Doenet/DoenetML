@@ -104,7 +104,30 @@ async function setupLanguageServer(context: ExtensionContext) {
         },
     );
 
-    context.subscriptions.push(formatAsDoenet, formatAsXML);
+    const formatAsMarkdown = commands.registerCommand(
+        "doenet.formatAsMarkdown",
+        async () => {
+            const activeTextEditor = vscode.window.activeTextEditor;
+            if (!activeTextEditor) {
+                return;
+            }
+            const currentDocument = vscode.window.activeTextEditor?.document;
+            const edits: TextEdit[] = await client.sendRequest(
+                "doenet.formatAsMarkdown",
+                String(currentDocument.uri),
+            );
+            activeTextEditor.edit((editBuilder) => {
+                for (const edit of edits) {
+                    editBuilder.replace(
+                        lspRangeToVscodeRange(edit.range),
+                        edit.newText,
+                    );
+                }
+            });
+        },
+    );
+
+    context.subscriptions.push(formatAsDoenet, formatAsXML, formatAsMarkdown);
 }
 
 /**
