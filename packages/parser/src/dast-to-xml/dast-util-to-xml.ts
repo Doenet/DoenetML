@@ -10,8 +10,11 @@ import {
     DastMacroPathPart,
     PrintOptions,
     DastNodesV6,
+    DastMacroV6,
+    DastFunctionMacroV6,
 } from "../types";
 import { escape, mergeAdjacentTextInArray, name } from "./utils";
+import { macroToString as macroToStringV6 } from "../macros-v6/macro-to-string";
 
 /**
  * Serialize a xast tree to XML.
@@ -129,6 +132,9 @@ export function nodesToXml(
             return "";
         }
         case "macro": {
+            if ((node as unknown as DastMacroV6).version === "0.6") {
+                return macroToStringV6(node as any);
+            }
             const macro = unwrappedMacroToString(node, options);
 
             let start = "$";
@@ -140,6 +146,9 @@ export function nodesToXml(
             return start + macro + end;
         }
         case "function": {
+            if ((node as unknown as DastMacroV6).version === "0.6") {
+                return macroToStringV6(node as any);
+            }
             const macro = unwrappedMacroToString(node, options);
 
             let start = "$$";

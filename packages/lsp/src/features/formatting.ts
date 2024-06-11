@@ -1,6 +1,7 @@
 import { Connection } from "vscode-languageserver/browser";
 import { prettyPrint } from "@doenet/parser";
 import { DocumentInfo, getDocumentSettings } from "../globals";
+import { doenetToMarkdown } from "@doenet/lsp-tools";
 
 export function addDocumentFormattingSupport(
     connection: Connection,
@@ -67,6 +68,25 @@ export function addDocumentFormattingSupport(
         const printed = await prettyPrint(sourceObj.source, {
             doenetSyntax: true,
         });
+        return [
+            {
+                newText: printed,
+                range: {
+                    start: sourceObj.offsetToLSPPosition(0),
+                    end: sourceObj.offsetToLSPPosition(rootPos.end.offset!),
+                },
+            },
+        ];
+    });
+    connection.onRequest("doenet.formatAsMarkdown", async (docUri: string) => {
+        const info = documentInfo.get(docUri);
+        if (!info) {
+            connection.console.log(`Could not find document ${docUri}`);
+            return [];
+        }
+        const sourceObj = info.autoCompleter.sourceObj;
+        const rootPos = sourceObj.dast.position!;
+        const printed = doenetToMarkdown(sourceObj);
         return [
             {
                 newText: printed,
