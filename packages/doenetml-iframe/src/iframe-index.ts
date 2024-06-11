@@ -1,3 +1,5 @@
+// All code in this file will be executed in the context of an iframe
+// created by DoenetMLIframe.
 declare const id: string;
 declare const doenetMLProps: object;
 interface Window {
