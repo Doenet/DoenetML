@@ -54,16 +54,3 @@ jobs:
                   export NODE_OPTIONS="--max_old_space_size=4096"
                   cd packages/docs-nextra
                   npm run build
-            - name: Setup Pages
-              uses: actions/configure-pages@v5
-              if: github.event_name != 'pull_request'
-            - name: Upload artifact
-              uses: actions/upload-pages-artifact@v3
-              with:
-                # Upload built static site
-                path: 'packages/docs-nextra/out'
-              if: github.event_name != 'pull_request'
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v4
-              if: github.event_name != 'pull_request'
