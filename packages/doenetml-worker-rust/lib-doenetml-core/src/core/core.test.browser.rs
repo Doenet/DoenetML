@@ -32,13 +32,7 @@ macro_rules! embed_test {
 pub fn run_test(test_name: &str) -> Vec<String> {
     let mut all_tests = Vec::new();
 
-    embed_test!(
-        all_tests,
-        test_name,
-        fn test_always_passes() {
-            assert_eq!(1, 1);
-        }
-    );
+    embed_test!(all_tests, test_name, fn test_always_passes() {});
 
     embed_test!(
         all_tests,
