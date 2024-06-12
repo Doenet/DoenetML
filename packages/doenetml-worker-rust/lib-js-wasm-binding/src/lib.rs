@@ -102,4 +102,12 @@ impl PublicDoenetMLCore {
             payload: self.core.dispatch_action(action)?,
         })
     }
+
+    pub fn _run_test(&mut self, test_name: &str) {
+        self.core._run_test(test_name);
+    }
+
+    pub fn _get_tests(&mut self) -> Vec<String> {
+        self.core._get_tests()
+    }
 }

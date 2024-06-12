@@ -55,6 +55,16 @@ impl Core {
         self.document_renderer
             .render_flat_dast(&self.document_model)
     }
+
+    pub fn _run_test(&mut self, test_name: &str) {
+        //   self.document_renderer.run_test(test_name, &self.document_model);
+        test_browser::run_test(test_name);
+    }
+
+    pub fn _get_tests(&mut self) -> Vec<String> {
+        //   self.document_renderer.get_tests(&self.document_model)
+        test_browser::run_test("")
+    }
 }
 
 ///
@@ -76,3 +86,6 @@ pub mod testing_features {
 #[cfg(test)]
 #[path = "./core.test.rs"]
 mod test;
+
+#[path = "./core.test.browser.rs"]
+mod test_browser;
