@@ -1,10 +1,7 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
-import * as path from "node:path";
-import { createRequire } from "module";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
-const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = [];
