@@ -20,7 +20,7 @@
         "build:pre-scripts": "wireit"
     },
     "wireit": {
-        "build:pre-copy" :{
+        "build:pre-copy": {
             "command": "mkdir -p ./public/bundle && cp -r ../standalone/dist/* ./public/bundle/",
             "files": [
                 "../standalone/dist/*",
@@ -57,7 +57,5 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1"
     },
-    "devDependencies": {
-        "@types/esprima": "^4.0.6"
-    }
+    "devDependencies": {}
 }
