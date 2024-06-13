@@ -48,6 +48,8 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
+            # docs-nextra is considered a separate package. It's deps need to be installed separately.
+            - run: cd packages/docs-nextra && npm ci
 
             - name: Build Docs
               run: |

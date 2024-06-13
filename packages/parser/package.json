@@ -50,8 +50,7 @@
         "xast-util-to-xml": "^4.0.0"
     },
     "devDependencies": {
-        "esbuild": "^0.19.12",
-        "glob": "^10.4.1",
+        "esbuild": "^0.21.5",
         "react18-json-view": "^0.2.8",
         "vite": "^5.2.13",
         "vite-plugin-dts": "^3.9.1"
