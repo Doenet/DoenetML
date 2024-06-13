@@ -33,23 +33,17 @@
     },
     "homepage": "https://github.com/Doenet/DoenetML/README.md",
     "devDependencies": {
+        "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+        "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
         "@qualified/lsp-connection": "^0.3.0",
         "@qualified/vscode-jsonrpc-ww": "^0.3.0",
         "@rollup/pluginutils": "^5.1.0",
+        "@uiw/react-codemirror": "^4.22.2",
+        "@vitejs/plugin-react": "^4.3.1",
         "@vitest/web-worker": "^1.6.0",
         "@vscode/test-web": "^0.0.54",
         "chalk": "^5.3.0",
         "compress-json": "^2.1.2",
-        "jsdom": "^24.1.0",
-        "prettier": "^3.0.3",
-        "rollup-plugin-visualizer": "^5.12.0",
-        "ts-morph": "^22.0.0",
-        "typescript": "^5.4.5",
-        "vite-node": "^1.6.0",
-        "vitest": "^1.6.0",
-        "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
-        "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
-        "@vitejs/plugin-react": "^4.3.1",
         "cypress": "^12.13.0",
         "cypress-parallel": "^0.13.0",
         "cypress-plugin-tab": "^1.0.5",
@@ -58,19 +52,37 @@
         "eslint-plugin-react": "^7.34.2",
         "eslint-plugin-react-hooks": "^4.6.2",
         "eslint-plugin-react-refresh": "^0.4.7",
-        "rollup-plugin-polyfill-node": "^0.13.0",
-        "vite": "^5.2.13",
-        "vite-plugin-dts": "^3.9.1",
-        "vscode-languageserver": "^9.0.1",
         "glob": "^10.4.1",
-        "node-stdlib-browser": "^1.2.0",
-        "@uiw/react-codemirror": "^4.22.2",
+        "jsdom": "^24.1.0",
         "micromark": "^4.0.0",
+        "node-stdlib-browser": "^1.2.0",
+        "prettier": "^3.0.3",
+        "rollup-plugin-polyfill-node": "^0.13.0",
+        "rollup-plugin-visualizer": "^5.12.0",
+        "ts-morph": "^22.0.0",
+        "typescript": "^5.4.5",
+        "vite": "^5.2.13",
+        "vite-node": "^1.6.0",
+        "vite-plugin-dts": "^3.9.1",
         "vite-plugin-static-copy": "^0.17.1",
+        "vitest": "^1.6.0",
+        "vscode-jsonrpc": "8.2.0",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-protocol": "^3.17.5",
         "wireit": "^0.14.4"
+    },
+    "overrides": {
+        "@qualified/lsp-connection": {
+            "vscode-jsonrpc": "$vscode-jsonrpc"
+        },
+        "@qualified/vscode-jsonrpc-ww": {
+            "vscode-jsonrpc": "$vscode-jsonrpc"
+        },
+        "vscode-languageserver-protocol": {
+            "vscode-jsonrpc": "$vscode-jsonrpc"
+        }
     },
     "prettier": {
         "tabWidth": 4
-    },
-    "dependencies": {}
+    }
 }
