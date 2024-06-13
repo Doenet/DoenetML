@@ -5,6 +5,7 @@ import * as path from "node:path";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 import dts from "vite-plugin-dts";
+import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom", "styled-components"];
@@ -31,7 +32,9 @@ export default defineConfig({
                 {
                     src: "package.json",
                     dest: "./",
-                    transform: transformPackageJson,
+                    transform: createPackageJsonTransformer({
+                        externalDeps: EXTERNAL_DEPS,
+                    }),
                 },
             ],
         }),

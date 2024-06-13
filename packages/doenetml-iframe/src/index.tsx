@@ -1,8 +1,3 @@
-/*
- * This file is for running a dev test of the codemirror component.
- * It does not show up in the bundled package.
- */
-
 import React from "react";
 import type { DoenetML } from "@doenet/doenetml";
 // @ts-ignore

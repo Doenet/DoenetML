@@ -20,6 +20,7 @@
         "build": "npm run build:iframe && npm run build:component",
         "build:component": "wireit",
         "build:iframe": "wireit",
+        "publish": "npm run build && cd dist/component && npm publish",
         "test": "echo \"No tests \""
     },
     "wireit": {

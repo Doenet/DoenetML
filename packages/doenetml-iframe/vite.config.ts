@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom"];
@@ -7,7 +9,22 @@ const EXTERNAL_DEPS = ["react", "react-dom"];
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [
+        dts({ rollupTypes: true }),
+        viteStaticCopy({
+            targets: [
+                {
+                    src: "package.json",
+                    dest: "./",
+                    transform: createPackageJsonTransformer({
+                        externalDeps: EXTERNAL_DEPS,
+                        targetDir: "dist/component",
+
+                    }),
+                },
+            ],
+        }),
+    ],
     build: {
         minify: false,
         outDir: "dist/component",
