@@ -109,8 +109,8 @@ export function createErrorNode(
             const correctQuote = openQuote.match(/['"]/)
                 ? openQuote
                 : closeQuote.match(/['"]/)
-                ? closeQuote
-                : '"';
+                  ? closeQuote
+                  : '"';
             return errorNode(
                 `Invalid DoenetML: Invalid attribute value \`${value}\`. The quote marks do not match. You appear to be missing a \`${correctQuote}\``,
             );

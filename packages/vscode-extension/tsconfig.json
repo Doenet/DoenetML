@@ -11,7 +11,7 @@
             "@doenet/*": ["../../packages/*/dist"]
         },
         "skipLibCheck": true,
-        "jsx": "react-jsx",
+        "jsx": "react-jsx"
     },
     "include": ["src"],
     "exclude": ["node_modules", ".vscode-test", "build"]

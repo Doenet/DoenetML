@@ -58,7 +58,8 @@
     font-style: italic;
 }
 
-.attr-table caption p, .prop-table caption p {
+.attr-table caption p,
+.prop-table caption p {
     margin: unset;
     padding: unset;
     display: inline;
