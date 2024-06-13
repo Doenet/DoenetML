@@ -20,7 +20,9 @@
     "scripts": {
         "build": "npm run build --workspace packages/test-viewer",
         "build:all": "npm run build -ws",
-        "test": "npm run test -ws -- run"
+        "test": "npm run test -ws -- run",
+        "prettier:format": "prettier --write .",
+        "prettier:check": "prettier --check ."
     },
     "repository": {
         "type": "git",
