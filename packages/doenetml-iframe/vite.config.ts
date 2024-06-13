@@ -4,7 +4,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 
 // These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = [];
+const EXTERNAL_DEPS = ["react", "react-dom"];
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,24 +16,31 @@ export default defineConfig({
                 {
                     src: "package.json",
                     dest: "./",
-                    transform: createPackageJsonTransformer(),
+                    transform: createPackageJsonTransformer({
+                        externalDeps: EXTERNAL_DEPS,
+                        targetDir: "dist/component",
+
+                    }),
                 },
             ],
         }),
     ],
     build: {
-        minify: true,
+        minify: false,
+        outDir: "dist/component",
         sourcemap: true,
         assetsInlineLimit: 0,
         lib: {
-            entry: { "doenet-standalone": "./src/index.tsx" },
-            fileName: "doenet-standalone",
+            entry: "./src/index.tsx",
+            fileName: "index",
             formats: ["es"],
         },
         rollupOptions: {
+            external: EXTERNAL_DEPS,
             output: {
-                // Make sure everything is bundled as a single file
-                inlineDynamicImports: true,
+                globals: Object.fromEntries(
+                    EXTERNAL_DEPS.map((dep) => [dep, dep]),
+                ),
             },
         },
     },
