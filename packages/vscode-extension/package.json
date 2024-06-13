@@ -38,11 +38,11 @@
     },
     "wireit": {
         "build:language-server": {
-            "command": "vite -c vite.language-server.config.ts build",
+            "command": "vite -c vite.language-server.config.mts build",
             "files": [
                 "src/language-server/**/*.ts",
                 "tsconfig.json",
-                "vite.language-server.config.ts"
+                "vite.language-server.config.mts"
             ],
             "output": [
                 "extension/build/language-server/**/*"
@@ -52,23 +52,23 @@
             ]
         },
         "build:extension": {
-            "command": "vite -c vite.extension.config.ts build",
+            "command": "vite -c vite.extension.config.mts build",
             "files": [
                 "src/extension/**/*.ts",
                 "tsconfig.json",
-                "vite.extension.config.ts"
+                "vite.extension.config.mts"
             ],
             "output": [
                 "extension/build/extension/**/*"
             ]
         },
         "build:preview-window": {
-            "command": "vite -c vite.preview-window.config.ts build",
+            "command": "vite -c vite.preview-window.config.mts build",
             "files": [
                 "src/preview-window/**/*.ts",
                 "src/preview-window/**/*.tsx",
                 "tsconfig.json",
-                "vite.preview-window.config.ts"
+                "vite.preview-window.config.mts"
             ],
             "output": [
                 "extension/build/preview-window/**/*"
