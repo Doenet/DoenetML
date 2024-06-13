@@ -10,13 +10,19 @@ import { VirtualKeyboard } from "./virtual-keyboard";
 import { RecoilRoot, useSetRecoilState } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
+import { Keyboard, ManagedKeyboard } from "./virtual-keyboard-new";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <ChakraProvider>
-        <RecoilRoot>
-            <App />
-        </RecoilRoot>
-    </ChakraProvider>,
+    <React.Fragment>
+        <ManagedKeyboard
+            onClick={(e) => console.log("keyboard event", e)}
+        />
+        <ChakraProvider>
+            <RecoilRoot>
+                <App />
+            </RecoilRoot>
+        </ChakraProvider>
+    </React.Fragment>,
 );
 
 function App() {

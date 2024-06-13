@@ -5,7 +5,7 @@
     "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
-    "private": false,
+    "private": true,
     "repository": "github:Doenet/DoenetML",
     "files": [
         "/dist"
@@ -29,7 +29,8 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
-                "tsconfig.json"
+                "tsconfig.json",
+                "vite.config.ts"
             ],
             "output": [
                 "dist/**/*.js",
