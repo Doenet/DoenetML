@@ -68,12 +68,16 @@ function App() {
             </button>
             {firstKeyboardPresent && (
                 <UniqueKeyboardTray
-                    onClick={() => console.log("first keyboard was clicked")}
+                    onClick={(e) =>
+                        console.log("first keyboard was clicked", e)
+                    }
                 />
             )}
             {secondKeyboardPresent && (
                 <UniqueKeyboardTray
-                    onClick={() => console.log("second keyboard was clicked")}
+                    onClick={(e) =>
+                        console.log("second keyboard was clicked", e)
+                    }
                 />
             )}
             <p>
