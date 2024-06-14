@@ -6,10 +6,12 @@
         "outDir": "out",
         "rootDir": "src",
         "sourceMap": true,
+        "esModuleInterop": true,
         "paths": {
             "@doenet/*": ["../../packages/*/dist"]
         },
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "jsx": "react-jsx"
     },
     "include": ["src"],
     "exclude": ["node_modules", ".vscode-test", "build"]

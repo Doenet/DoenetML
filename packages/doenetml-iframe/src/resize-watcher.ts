@@ -6,16 +6,17 @@ import React from "react";
 export function watchForResize(
     ref: React.RefObject<HTMLIFrameElement>,
     getHeight: () => string,
-    setHeight: React.Dispatch<React.SetStateAction<string>>
+    setHeight: React.Dispatch<React.SetStateAction<string>>,
 ): () => void {
     const iframe = ref.current?.contentWindow?.document?.body?.parentElement;
     if (!iframe) {
-        return () => { };
+        return () => {};
     }
     setHeight(iframe.scrollHeight + "px");
 
     const updateHeight = () => {
-        const iframe = ref.current?.contentWindow?.document?.body?.parentElement;
+        const iframe =
+            ref.current?.contentWindow?.document?.body?.parentElement;
         if (!iframe) {
             return;
         }

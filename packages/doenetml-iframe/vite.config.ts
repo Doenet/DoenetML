@@ -19,7 +19,6 @@ export default defineConfig({
                     transform: createPackageJsonTransformer({
                         externalDeps: EXTERNAL_DEPS,
                         targetDir: "dist/component",
-
                     }),
                 },
             ],

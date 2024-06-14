@@ -1,4 +1,3 @@
-
 if (typeof window === "undefined") {
     // @ts-ignore
     globalThis.window = globalThis;
@@ -16,7 +15,7 @@ export const doenetGlobalConfig = {
 /**
  * Attempt to resolve the URL of the doenet worker. This function falls back
  * to `doenet.org` if an error is thrown.
- * @returns 
+ * @returns
  */
 function getWorkerUrl() {
     try {

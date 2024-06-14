@@ -1,4 +1,9 @@
-import { DastAbstractNode, DastNodes, LezerSyntaxNodeName, Position } from "../types";
+import {
+    DastAbstractNode,
+    DastNodes,
+    LezerSyntaxNodeName,
+    Position,
+} from "../types";
 import { SyntaxNode } from "@lezer/common";
 import { entityStringToRawString } from "./entity-to-string";
 import { Root } from "xast";

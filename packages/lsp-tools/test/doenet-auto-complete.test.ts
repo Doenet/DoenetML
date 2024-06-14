@@ -77,11 +77,11 @@ describe("AutoCompleter", () => {
               [
                 {
                   "kind": 12,
-                  "label": "\\"true\\"",
+                  "label": ""true"",
                 },
                 {
                   "kind": 12,
-                  "label": "\\"false\\"",
+                  "label": ""false"",
                 },
               ]
             `);
