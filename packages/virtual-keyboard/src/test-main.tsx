@@ -12,14 +12,16 @@ import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
 import { Keyboard, ManagedKeyboard } from "./virtual-keyboard-new";
 import { UniqueKeyboardTray } from "./virtual-keyboard-new/unique-keyboard-tray";
+import { KeyboardTray } from "./virtual-keyboard-new/keyboard-tray";
 
+//        <UniqueKeyboardTray onClick={()=>console.log("first keyboard was clicked")} />
+//      <UniqueKeyboardTray onClick={()=>console.log("second keyboard was clicked")} />
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.Fragment>
-        <UniqueKeyboardTray onClick={()=>console.log("first keyboard was clicked")} />
-        <UniqueKeyboardTray onClick={()=>console.log("second keyboard was clicked")} />
-        <ManagedKeyboard
-            onClick={(e) => console.log("keyboard event", e)}
+        <KeyboardTray
+            onClick={(e) => console.log("keyboard tray clicked", e)}
         />
+        <ManagedKeyboard onClick={(e) => console.log("keyboard event", e)} />
         <ChakraProvider>
             <RecoilRoot>
                 <App />

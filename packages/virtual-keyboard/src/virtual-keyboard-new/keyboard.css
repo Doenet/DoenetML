@@ -66,7 +66,8 @@
 .virtual-keyboard.numeric .key-backspace {
     @apply max-w-[4em];
 }
-.virtual-keyboard.alpha, .virtual-keyboard.greek {
+.virtual-keyboard.alpha,
+.virtual-keyboard.greek {
     @apply flex-wrap;
 }
 .virtual-keyboard.symbol .keyboard-region {
