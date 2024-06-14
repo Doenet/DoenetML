@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import { createLoggingAsyncThunk } from "../../hooks";
-import { Action, CoreWorker } from "@doenet/doenetml-worker-rust";
+import type { Action, CoreWorker } from "@doenet/doenetml-worker-rust";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";

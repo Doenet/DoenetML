@@ -1,5 +1,5 @@
 import { stringifyEntitiesLight } from "stringify-entities";
-import { DastNodes } from "../types";
+import { DastNodes, DastRoot } from "../types";
 
 /**
  * Escape a string.
@@ -85,7 +85,7 @@ export function mergeAdjacentTextInArray(nodes: DastNodes[]): DastNodes[] {
  * **Note**: this mutates the tree.
  */
 export function filterPositionInfo(
-    nodes: DastNodes | DastNodes[],
+    nodes: DastNodes | DastRoot | DastNodes[],
 ): DastNodes | DastNodes[] {
     if (typeof nodes !== "object" || nodes === null) {
         return nodes;

@@ -27,6 +27,7 @@
         "test:rust": "npm run test:rust:before && cargo test --workspace --features testing",
         "test:rust:before": "wireit",
         "build:rust": "wireit",
+        "build:rust-wasm-test": "wireit",
         "build:js": "wireit",
         "build": "npm run build:rust && npm run build:js",
         "bench": "cargo bench -p doenetml-core"
@@ -69,21 +70,37 @@
             "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features 'web-logging web-debug-log'",
             "files": [
                 "lib-*/**/*.rs",
+                "lib-js-wasm-binding/**/*.ts",
                 "**/*/Cargo.toml"
             ],
             "output": [
-                "lib-*/pkg/**/*.js",
-                "lib-*/pkg/**/*.d.ts",
-                "lib-*/pkg/**/*.wasm",
-                "lib-*/pkg/**/*.json"
+                "lib-js-wasm-binding/pkg/**/*.js",
+                "lib-js-wasm-binding/pkg/**/*.d.ts",
+                "lib-js-wasm-binding/pkg/**/*.wasm",
+                "lib-js-wasm-binding/pkg/**/*.json"
+            ]
+        },
+        "build:rust-wasm-test": {
+            "command": "npx wasm-pack build lib-js-wasm-test --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-test/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-test/pkg/**/*.js",
+                "lib-js-wasm-test/pkg/**/*.d.ts",
+                "lib-js-wasm-test/pkg/**/*.wasm",
+                "lib-js-wasm-test/pkg/**/*.json"
             ]
         }
     },
-    "dependencies": {},
     "devDependencies": {
+        "@vitest/browser": "^1.6.0",
         "node-stdlib-browser": "^1.2.0",
         "rollup-plugin-polyfill-node": "^0.12.0",
         "vite": "^4.5.0",
-        "vite-plugin-static-copy": "^0.17.0"
+        "vite-plugin-static-copy": "^0.17.0",
+        "webdriverio": "^8.38.2"
     }
 }

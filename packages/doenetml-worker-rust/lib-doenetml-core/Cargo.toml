@@ -14,6 +14,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 regex = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-test = { workspace = true, optional = true }
 web-sys = { workspace = true, optional = true }
 ndarray = { workspace = true }
 instant = { workspace = true }
@@ -36,6 +37,7 @@ typed-index-collections = { workspace = true }
 disjoint_impls = { workspace = true }
 rustc-hash = { workspace = true }
 bitvec = { workspace = true }
+getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 criterion = "0.5"
