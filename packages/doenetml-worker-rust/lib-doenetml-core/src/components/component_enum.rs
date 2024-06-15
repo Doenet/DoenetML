@@ -8,6 +8,7 @@ pub use super::doenet::_fragment::_Fragment;
 pub use super::doenet::boolean::Boolean;
 pub use super::doenet::division::Division;
 pub use super::doenet::document::Document;
+pub use super::doenet::graph::Graph;
 pub use super::doenet::li::Li;
 pub use super::doenet::math::Math;
 pub use super::doenet::ol::Ol;
@@ -46,6 +47,7 @@ pub enum ComponentEnum {
     Ol(Ol),
     Ul(Ul),
     Li(Li),
+    Graph(Graph),
     _Error(_Error),
     _External(_External),
     _Fragment(_Fragment),
