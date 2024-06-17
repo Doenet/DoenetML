@@ -47,7 +47,8 @@
         "peggy": "^4.0.2",
         "prettier-plugin-pegjs": "^2.0.2",
         "unified": "^11.0.4",
-        "xast-util-to-xml": "^4.0.0"
+        "xast-util-to-xml": "^4.0.0",
+        "source-map-generator": "0.8.0"
     },
     "devDependencies": {
         "react18-json-view": "^0.2.8"

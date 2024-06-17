@@ -52,7 +52,10 @@
     },
     "dependencies": {
         "compromise": "^13.11.4",
-        "compromise-numbers": "^1.4.0"
+        "compromise-numbers": "^1.4.0",
+        "efrt": "2.7.0",
+        "suffix-thumb": "5.0.2",
+        "grad-school": "0.0.5"
     },
     "devDependencies": {}
 }
