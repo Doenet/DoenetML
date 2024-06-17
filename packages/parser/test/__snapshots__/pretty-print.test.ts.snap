@@ -2,10 +2,10 @@
 
 exports[`Prettier > pretty-print-1.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
 "<text>a</text>
-<p><textlist name=\\"tl1\\" maxNumber=\\"$mn1\\">a b c d e</textlist></p>
-<p><textlist copysource=\\"tl1\\" maxNumber=\\"$mn2\\" name=\\"tl2\\" /></p>
+<p><textlist name="tl1" maxNumber="$mn1">a b c d e</textlist></p>
+<p><textlist copysource="tl1" maxNumber="$mn2" name="tl2" /></p>
 
-<p>Maximum number 2: <mathinput name=\\"mn2\\" /></p>
+<p>Maximum number 2: <mathinput name="mn2" /></p>
 <p>
     This is a really long sentence that is supposed to wrap eventually. Though,
     it is not supposed to rap musically...
@@ -14,55 +14,55 @@ exports[`Prettier > pretty-print-1.doenet pretty-prints correctly in Xml format 
 
 <p>
     Maximum number 1:
-    <mathinput name=\\"mn1\\" prefill=\\"2\\" prop3=\\"xxx\\" prop4=\\"true\\" />
+    <mathinput name="mn1" prefill="2" prop3="xxx" prop4="true" />
 </p>
 
-<choiceinput name=\\"ci\\">
+<choiceinput name="ci">
     <choice>yes</choice>
     <choice>no</choice>
     <choice>maybe</choice>
 </choiceinput>
 
-In document: $ci.choiceTexts <alert name=\\"in_alert\\">$ci.choiceTexts</alert>
-<blockquote name=\\"in_blockquote\\">$ci.choiceTexts</blockquote>
-<c name=\\"in_c\\">$ci.choiceTexts</c><caption name=\\"in_caption\\">
+In document: $ci.choiceTexts <alert name="in_alert">$ci.choiceTexts</alert>
+<blockquote name="in_blockquote">$ci.choiceTexts</blockquote>
+<c name="in_c">$ci.choiceTexts</c><caption name="in_caption">
     $ci.choiceTexts
-</caption><cell name=\\"in_cell\\">$ci.choiceTexts</cell>
-<choice name=\\"in_choice\\">$ci.choiceTexts</choice>
-<span name=\\"in_span\\">$ci.choiceTexts</span><em name=\\"in_em\\">$ci.choiceTexts</em>
-<feedback name=\\"in_feedback\\">$ci.choiceTexts</feedback>
-<footnote name=\\"in_footnote\\">$ci.choiceTexts</footnote>
-<hint name=\\"in_hint_w_title\\">
+</caption><cell name="in_cell">$ci.choiceTexts</cell>
+<choice name="in_choice">$ci.choiceTexts</choice>
+<span name="in_span">$ci.choiceTexts</span><em name="in_em">$ci.choiceTexts</em>
+<feedback name="in_feedback">$ci.choiceTexts</feedback>
+<footnote name="in_footnote">$ci.choiceTexts</footnote>
+<hint name="in_hint_w_title">
     <title>A title</title>
     $ci.choiceTexts
 </hint>
-<hint name=\\"in_hint_wo_title\\">$ci.choiceTexts</hint>
-<label name=\\"in_label\\">$ci.choiceTexts</label>
+<hint name="in_hint_wo_title">$ci.choiceTexts</hint>
+<label name="in_label">$ci.choiceTexts</label>
 <ul>
-    <li name=\\"in_li2\\">$ci.choiceTexts</li>
+    <li name="in_li2">$ci.choiceTexts</li>
 </ul>
-<p name=\\"in_p\\">$ci.choiceTexts</p>
-<pre name=\\"in_pre\\">$ci.choiceTexts
+<p name="in_p">$ci.choiceTexts</p>
+<pre name="in_pre">$ci.choiceTexts
       x
         y
       </pre>
-<p name=\\"in_q\\"><q>$ci.choiceTexts</q></p>
-<section name=\\"in_section_w_title\\">
-    <title name=\\"sec_title\\">Title: $ci.choiceTexts</title>
+<p name="in_q"><q>$ci.choiceTexts</q></p>
+<section name="in_section_w_title">
+    <title name="sec_title">Title: $ci.choiceTexts</title>
     Text: $ci.choiceTexts
 </section>
-<section name=\\"in_section_wo_title\\">
+<section name="in_section_wo_title">
     $ci.choiceTexts
 </section>
-<solution name=\\"in_solution\\">$ci.choiceTexts</solution>
-<p name=\\"in_sq\\"><sq>$ci.choiceTexts</sq></p>
+<solution name="in_solution">$ci.choiceTexts</solution>
+<p name="in_sq"><sq>$ci.choiceTexts</sq></p>
 
-<text name=\\"in_text\\">$ci.choiceTexts</text>
+<text name="in_text">$ci.choiceTexts</text>
 
 <ol>
-    <li name=\\"in_li\\">$ci.choiceTexts</li>
-    <li name=\\"in_li\\">$ci.choiceTexts</li>
+    <li name="in_li">$ci.choiceTexts</li>
+    <li name="in_li">$ci.choiceTexts</li>
 
-    <li name=\\"in_li\\">$ci.choiceTexts</li>
+    <li name="in_li">$ci.choiceTexts</li>
 </ol>"
 `;

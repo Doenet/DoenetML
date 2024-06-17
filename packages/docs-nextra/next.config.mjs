@@ -85,7 +85,6 @@ const withNextra = nextraConfig({
              */
             () => (tree, file) => {
                 if (file.data.structurizedData) {
-                    console.log("stripping data");
                     for (const [key, val] of Object.entries(
                         file.data.structurizedData,
                     )) {

@@ -428,19 +428,21 @@ var __webpack_modules__ = {
                                                     (s = Math.abs(s))) /
                                                 (s + 1)))
                                           : Math.abs(e[0]) < r.Z.eps
-                                          ? ((s = e[(t = 1)]),
-                                            Math.abs(s) < r.Z.eps &&
-                                                (s = e[(t = 2)]),
-                                            (v =
-                                                (s =
-                                                    (m.usrCoords[t] - i[t]) /
-                                                    s) < 0
-                                                    ? (1 - 2 * s) / (1 - s)
-                                                    : 1 / (s + 1)))
-                                          : ((s = i[(t = 1)] - e[t]),
-                                            Math.abs(s) < r.Z.eps &&
-                                                (s = i[(t = 2)] - e[t]),
-                                            (v = (m.usrCoords[t] - e[t]) / s))),
+                                            ? ((s = e[(t = 1)]),
+                                              Math.abs(s) < r.Z.eps &&
+                                                  (s = e[(t = 2)]),
+                                              (v =
+                                                  (s =
+                                                      (m.usrCoords[t] - i[t]) /
+                                                      s) < 0
+                                                      ? (1 - 2 * s) / (1 - s)
+                                                      : 1 / (s + 1)))
+                                            : ((s = i[(t = 1)] - e[t]),
+                                              Math.abs(s) < r.Z.eps &&
+                                                  (s = i[(t = 2)] - e[t]),
+                                              (v =
+                                                  (m.usrCoords[t] - e[t]) /
+                                                  s))),
                                 (Z = c.Z.evaluate(this.visProp.snapwidth)),
                                 c.Z.evaluate(Z) > 0 &&
                                     Math.abs(this._smax - this._smin) >=
@@ -633,37 +635,40 @@ var __webpack_modules__ = {
                                     (0 === e[0] && 0 === e[1] && 0 === e[2])
                                         ? (n = [0, 0, 0])
                                         : Math.abs(e[0]) < r.Z.eps
-                                        ? ((s = Math.min(
-                                              Math.abs(this.position),
-                                              1 - r.Z.eps,
-                                          )),
-                                          (s /= 1 - s),
-                                          this.position < 0 && (s = -s),
-                                          (n = [
-                                              t[0] + s * e[0],
-                                              t[1] + s * e[1],
-                                              t[2] + s * e[2],
-                                          ]))
-                                        : Math.abs(t[0]) < r.Z.eps
-                                        ? ((s = Math.max(
-                                              this.position,
-                                              r.Z.eps,
-                                          )),
-                                          (s =
-                                              (s = Math.min(s, 2 - r.Z.eps)) > 1
-                                                  ? (s - 1) / (s - 2)
-                                                  : (1 - s) / s),
-                                          (n = [
-                                              e[0] + s * t[0],
-                                              e[1] + s * t[1],
-                                              e[2] + s * t[2],
-                                          ]))
-                                        : ((s = this.position),
-                                          (n = [
-                                              t[0] + s * (e[0] - t[0]),
-                                              t[1] + s * (e[1] - t[1]),
-                                              t[2] + s * (e[2] - t[2]),
-                                          ]));
+                                          ? ((s = Math.min(
+                                                Math.abs(this.position),
+                                                1 - r.Z.eps,
+                                            )),
+                                            (s /= 1 - s),
+                                            this.position < 0 && (s = -s),
+                                            (n = [
+                                                t[0] + s * e[0],
+                                                t[1] + s * e[1],
+                                                t[2] + s * e[2],
+                                            ]))
+                                          : Math.abs(t[0]) < r.Z.eps
+                                            ? ((s = Math.max(
+                                                  this.position,
+                                                  r.Z.eps,
+                                              )),
+                                              (s =
+                                                  (s = Math.min(
+                                                      s,
+                                                      2 - r.Z.eps,
+                                                  )) > 1
+                                                      ? (s - 1) / (s - 2)
+                                                      : (1 - s) / s),
+                                              (n = [
+                                                  e[0] + s * t[0],
+                                                  e[1] + s * t[1],
+                                                  e[2] + s * t[2],
+                                              ]))
+                                            : ((s = this.position),
+                                              (n = [
+                                                  t[0] + s * (e[0] - t[0]),
+                                                  t[1] + s * (e[1] - t[1]),
+                                                  t[2] + s * (e[2] - t[2]),
+                                              ]));
                             else if (g.type === l.Z.OBJECT_TYPE_TURTLE)
                                 this.coords.setCoordinates(l.Z.COORDS_BY_USER, [
                                     g.Z(this.position),
@@ -942,57 +947,65 @@ var __webpack_modules__ = {
                                                   this.board,
                                               ))
                                             : e.elementClass ===
-                                              l.Z.OBJECT_CLASS_LINE
-                                            ? ((s = o.Z.projectCoordsToSegment(
-                                                  this.coords.usrCoords,
-                                                  e.point1.coords.usrCoords,
-                                                  e.point2.coords.usrCoords,
-                                              )),
-                                              (i =
-                                                  !c.Z.evaluate(
-                                                      e.visProp.straightfirst,
-                                                  ) && s[1] < 0
-                                                      ? e.point1.coords
-                                                      : !c.Z.evaluate(
-                                                            e.visProp
-                                                                .straightlast,
-                                                        ) && s[1] > 1
-                                                      ? e.point2.coords
-                                                      : new h.Z(
-                                                            l.Z.COORDS_BY_USER,
-                                                            s[0],
-                                                            this.board,
-                                                        )))
-                                            : e.elementClass ===
-                                              l.Z.OBJECT_CLASS_CIRCLE
-                                            ? (i = o.Z.projectPointToCircle(
-                                                  this,
-                                                  e,
-                                                  this.board,
-                                              ))
-                                            : e.elementClass ===
-                                              l.Z.OBJECT_CLASS_CURVE
-                                            ? (i = o.Z.projectPointToCurve(
-                                                  this,
-                                                  e,
-                                                  this.board,
-                                              )[0])
-                                            : e.type === l.Z.OBJECT_TYPE_TURTLE
-                                            ? (i = o.Z.projectPointToTurtle(
-                                                  this,
-                                                  e,
-                                                  this.board,
-                                              )[0])
-                                            : e.type ===
-                                                  l.Z.OBJECT_TYPE_POLYGON &&
-                                              (i = new h.Z(
-                                                  l.Z.COORDS_BY_USER,
-                                                  o.Z.projectCoordsToPolygon(
-                                                      this.coords.usrCoords,
+                                                l.Z.OBJECT_CLASS_LINE
+                                              ? ((s =
+                                                    o.Z.projectCoordsToSegment(
+                                                        this.coords.usrCoords,
+                                                        e.point1.coords
+                                                            .usrCoords,
+                                                        e.point2.coords
+                                                            .usrCoords,
+                                                    )),
+                                                (i =
+                                                    !c.Z.evaluate(
+                                                        e.visProp.straightfirst,
+                                                    ) && s[1] < 0
+                                                        ? e.point1.coords
+                                                        : !c.Z.evaluate(
+                                                                e.visProp
+                                                                    .straightlast,
+                                                            ) && s[1] > 1
+                                                          ? e.point2.coords
+                                                          : new h.Z(
+                                                                l.Z.COORDS_BY_USER,
+                                                                s[0],
+                                                                this.board,
+                                                            )))
+                                              : e.elementClass ===
+                                                  l.Z.OBJECT_CLASS_CIRCLE
+                                                ? (i = o.Z.projectPointToCircle(
+                                                      this,
                                                       e,
-                                                  ),
-                                                  this.board,
-                                              )),
+                                                      this.board,
+                                                  ))
+                                                : e.elementClass ===
+                                                    l.Z.OBJECT_CLASS_CURVE
+                                                  ? (i =
+                                                        o.Z.projectPointToCurve(
+                                                            this,
+                                                            e,
+                                                            this.board,
+                                                        )[0])
+                                                  : e.type ===
+                                                      l.Z.OBJECT_TYPE_TURTLE
+                                                    ? (i =
+                                                          o.Z.projectPointToTurtle(
+                                                              this,
+                                                              e,
+                                                              this.board,
+                                                          )[0])
+                                                    : e.type ===
+                                                          l.Z
+                                                              .OBJECT_TYPE_POLYGON &&
+                                                      (i = new h.Z(
+                                                          l.Z.COORDS_BY_USER,
+                                                          o.Z.projectCoordsToPolygon(
+                                                              this.coords
+                                                                  .usrCoords,
+                                                              e,
+                                                          ),
+                                                          this.board,
+                                                      )),
                                         (r =
                                             "screen" === n
                                                 ? i.distance(
@@ -1170,13 +1183,13 @@ var __webpack_modules__ = {
                                   this.type === l.Z.OBJECT_TYPE_POINT
                                       ? (this.elType = "point")
                                       : this.elementClass ===
-                                        l.Z.OBJECT_CLASS_TEXT
-                                      ? (this.elType = "text")
-                                      : this.type === l.Z.OBJECT_TYPE_IMAGE
-                                      ? (this.elType = "image")
-                                      : this.type ===
-                                            l.Z.OBJECT_TYPE_FOREIGNOBJECT &&
-                                        (this.elType = "foreignobject"),
+                                          l.Z.OBJECT_CLASS_TEXT
+                                        ? (this.elType = "text")
+                                        : this.type === l.Z.OBJECT_TYPE_IMAGE
+                                          ? (this.elType = "image")
+                                          : this.type ===
+                                                l.Z.OBJECT_TYPE_FOREIGNOBJECT &&
+                                            (this.elType = "foreignobject"),
                                   (this.slideObject = null))
                                 : (this.slideObject =
                                       this.slideObjects[
@@ -1224,12 +1237,12 @@ var __webpack_modules__ = {
                                 ? ((this.type = l.Z.OBJECT_TYPE_POINT),
                                   (this.elType = "point"))
                                 : this.elementClass === l.Z.OBJECT_CLASS_TEXT
-                                ? ((this.type = this._org_type),
-                                  (this.elType = "text"))
-                                : this.elementClass ===
-                                      l.Z.OBJECT_CLASS_OTHER &&
-                                  ((this.type = this._org_type),
-                                  (this.elType = "image"));
+                                  ? ((this.type = this._org_type),
+                                    (this.elType = "text"))
+                                  : this.elementClass ===
+                                        l.Z.OBJECT_CLASS_OTHER &&
+                                    ((this.type = this._org_type),
+                                    (this.elType = "image"));
                     },
                     addConstraint: function (t) {
                         var e,
@@ -1266,12 +1279,12 @@ var __webpack_modules__ = {
                                       2 === t.length &&
                                           (this[r[e] + "jc"] = t[e]))
                                     : c.Z.isFunction(i)
-                                    ? (s[e] = i)
-                                    : c.Z.isNumber(i)
-                                    ? (s[e] = o(i))
-                                    : c.Z.isObject(i) &&
-                                      c.Z.isFunction(i.Value) &&
-                                      (s[e] = n(i)),
+                                      ? (s[e] = i)
+                                      : c.Z.isNumber(i)
+                                        ? (s[e] = o(i))
+                                        : c.Z.isObject(i) &&
+                                          c.Z.isFunction(i.Value) &&
+                                          (s[e] = n(i)),
                                 (s[e].origin = i);
                         return (
                             1 === t.length
@@ -1288,39 +1301,39 @@ var __webpack_modules__ = {
                                       );
                                   })
                                 : 2 === t.length
-                                ? ((this.XEval = s[0]),
-                                  (this.YEval = s[1]),
-                                  this.addParents([s[0].origin, s[1].origin]),
-                                  (this.updateConstraint = function () {
-                                      return (
-                                          this.coords.setCoordinates(
-                                              l.Z.COORDS_BY_USER,
-                                              [this.XEval(), this.YEval()],
-                                          ),
-                                          this
-                                      );
-                                  }))
-                                : ((this.ZEval = s[0]),
-                                  (this.XEval = s[1]),
-                                  (this.YEval = s[2]),
-                                  this.addParents([
-                                      s[0].origin,
-                                      s[1].origin,
-                                      s[2].origin,
-                                  ]),
-                                  (this.updateConstraint = function () {
-                                      return (
-                                          this.coords.setCoordinates(
-                                              l.Z.COORDS_BY_USER,
-                                              [
-                                                  this.ZEval(),
-                                                  this.XEval(),
-                                                  this.YEval(),
-                                              ],
-                                          ),
-                                          this
-                                      );
-                                  })),
+                                  ? ((this.XEval = s[0]),
+                                    (this.YEval = s[1]),
+                                    this.addParents([s[0].origin, s[1].origin]),
+                                    (this.updateConstraint = function () {
+                                        return (
+                                            this.coords.setCoordinates(
+                                                l.Z.COORDS_BY_USER,
+                                                [this.XEval(), this.YEval()],
+                                            ),
+                                            this
+                                        );
+                                    }))
+                                  : ((this.ZEval = s[0]),
+                                    (this.XEval = s[1]),
+                                    (this.YEval = s[2]),
+                                    this.addParents([
+                                        s[0].origin,
+                                        s[1].origin,
+                                        s[2].origin,
+                                    ]),
+                                    (this.updateConstraint = function () {
+                                        return (
+                                            this.coords.setCoordinates(
+                                                l.Z.COORDS_BY_USER,
+                                                [
+                                                    this.ZEval(),
+                                                    this.XEval(),
+                                                    this.YEval(),
+                                                ],
+                                            ),
+                                            this
+                                        );
+                                    })),
                             (this.isConstrained = !0),
                             this.prepareUpdate().update(),
                             this.board.isSuspendedUpdate ||
@@ -1633,47 +1646,48 @@ var __webpack_modules__ = {
                                       ],
                                   ))
                                 : this.slideObject.elementClass ===
-                                  l.Z.OBJECT_CLASS_CURVE
-                                ? ((a =
-                                      t > 0
-                                          ? Math.round(
-                                                (this.intervalCount / e) *
-                                                    this.board.canvasWidth,
-                                            )
-                                          : Math.round(
-                                                ((e - this.intervalCount) / e) *
-                                                    this.board.canvasWidth,
-                                            )),
-                                  this.coords.setCoordinates(
-                                      l.Z.COORDS_BY_SCREEN,
-                                      [a, 0],
-                                  ),
-                                  (u = o.Z.projectPointToCurve(
-                                      this,
-                                      this.slideObject,
-                                      this.board,
-                                  )),
-                                  (this.coords = u[0]),
-                                  (this.position = u[1]))
-                                : this.slideObject.elementClass ===
-                                      l.Z.OBJECT_CLASS_CIRCLE &&
-                                  ((r = 2 * Math.PI),
-                                  (r *=
-                                      t < 0
-                                          ? this.intervalCount / e
-                                          : (e - this.intervalCount) / e),
-                                  (h = this.slideObject.Radius()),
-                                  this.coords.setCoordinates(
-                                      l.Z.COORDS_BY_USER,
-                                      [
-                                          this.slideObject.center.coords
-                                              .usrCoords[1] +
-                                              h * Math.cos(r),
-                                          this.slideObject.center.coords
-                                              .usrCoords[2] +
-                                              h * Math.sin(r),
-                                      ],
-                                  )),
+                                    l.Z.OBJECT_CLASS_CURVE
+                                  ? ((a =
+                                        t > 0
+                                            ? Math.round(
+                                                  (this.intervalCount / e) *
+                                                      this.board.canvasWidth,
+                                              )
+                                            : Math.round(
+                                                  ((e - this.intervalCount) /
+                                                      e) *
+                                                      this.board.canvasWidth,
+                                              )),
+                                    this.coords.setCoordinates(
+                                        l.Z.COORDS_BY_SCREEN,
+                                        [a, 0],
+                                    ),
+                                    (u = o.Z.projectPointToCurve(
+                                        this,
+                                        this.slideObject,
+                                        this.board,
+                                    )),
+                                    (this.coords = u[0]),
+                                    (this.position = u[1]))
+                                  : this.slideObject.elementClass ===
+                                        l.Z.OBJECT_CLASS_CIRCLE &&
+                                    ((r = 2 * Math.PI),
+                                    (r *=
+                                        t < 0
+                                            ? this.intervalCount / e
+                                            : (e - this.intervalCount) / e),
+                                    (h = this.slideObject.Radius()),
+                                    this.coords.setCoordinates(
+                                        l.Z.COORDS_BY_USER,
+                                        [
+                                            this.slideObject.center.coords
+                                                .usrCoords[1] +
+                                                h * Math.cos(r),
+                                            this.slideObject.center.coords
+                                                .usrCoords[2] +
+                                                h * Math.sin(r),
+                                        ],
+                                    )),
                             this.board.update(this),
                             this
                         );
@@ -1933,13 +1947,13 @@ var __webpack_modules__ = {
                                 (o = a.length) > 0
                                     ? n.applyOnce(a)
                                     : this.transformations.length > 0 &&
-                                      this.transformations[
-                                          this.transformations.length - 1
-                                      ].isNumericMatrix
-                                    ? this.transformations[
-                                          this.transformations.length - 1
-                                      ].melt(n)
-                                    : this.addTransform(n),
+                                        this.transformations[
+                                            this.transformations.length - 1
+                                        ].isNumericMatrix
+                                      ? this.transformations[
+                                            this.transformations.length - 1
+                                        ].melt(n)
+                                      : this.addTransform(n),
                                 s = 0;
                             s < o;
                             ++s
@@ -2230,8 +2244,8 @@ var __webpack_modules__ = {
                                     ? ((u = h.split(":")),
                                       (_[d.Z.trim(u[0])] = d.Z.trim(u[1])))
                                     : d.Z.isArray(h)
-                                    ? (_[h[0]] = h[1])
-                                    : s.Z.extend(_, h);
+                                      ? (_[h[0]] = h[1])
+                                      : s.Z.extend(_, h);
                         for (e in (_ = this.resolveShortcuts(_)))
                             if (_.hasOwnProperty(e)) {
                                 if (
@@ -3090,9 +3104,9 @@ var __webpack_modules__ = {
                                         ? this.coords.scrCoords[1] -
                                           this.size[0]
                                         : "middle" === n
-                                        ? this.coords.scrCoords[1] -
-                                          0.5 * this.size[0]
-                                        : this.coords.scrCoords[1]) +
+                                          ? this.coords.scrCoords[1] -
+                                            0.5 * this.size[0]
+                                          : this.coords.scrCoords[1]) +
                                 this.size[0]),
                             (r =
                                 (o =
@@ -3100,9 +3114,9 @@ var __webpack_modules__ = {
                                         ? this.coords.scrCoords[2] +
                                           this.size[1]
                                         : "middle" === a
-                                        ? this.coords.scrCoords[2] +
-                                          0.5 * this.size[1]
-                                        : this.coords.scrCoords[2]) -
+                                          ? this.coords.scrCoords[2] +
+                                            0.5 * this.size[1]
+                                          : this.coords.scrCoords[2]) -
                                 this.size[1]),
                             "all" === h.Z.evaluate(this.visProp.dragarea)
                                 ? t >= i - d &&
@@ -3149,15 +3163,15 @@ var __webpack_modules__ = {
                                   (h.Z.evaluate(this.visProp.useasciimathml)
                                       ? (this.content = "'`" + t + "`'")
                                       : o || n
-                                      ? ((this.content =
-                                            this.valueTagToJessieCode(t)),
-                                        (this.content = this.content.replace(
-                                            /\\/g,
-                                            "\\\\",
-                                        )))
-                                      : (this.content = this.poorMansTeX(
-                                            this.valueTagToJessieCode(t),
-                                        )),
+                                        ? ((this.content =
+                                              this.valueTagToJessieCode(t)),
+                                          (this.content = this.content.replace(
+                                              /\\/g,
+                                              "\\\\",
+                                          )))
+                                        : (this.content = this.poorMansTeX(
+                                              this.valueTagToJessieCode(t),
+                                          )),
                                   (a = !0)),
                             a)
                         ) {
@@ -3197,8 +3211,8 @@ var __webpack_modules__ = {
                                       return h.Z.sanitizeHTML(t());
                                   }
                                 : h.Z.isNumber(t)
-                                ? t
-                                : h.Z.sanitizeHTML(t)),
+                                  ? t
+                                  : h.Z.sanitizeHTML(t)),
                             this._setText(e)
                         );
                     },
@@ -3758,8 +3772,8 @@ var __webpack_modules__ = {
                                 f < -0.2
                                     ? "right"
                                     : f > 0.2
-                                    ? "left"
-                                    : "middle"),
+                                      ? "left"
+                                      : "middle"),
                             this
                         );
                     },
@@ -4136,32 +4150,33 @@ var __webpack_modules__ = {
                                   (c = [d, s, a]),
                                   (l = !0))
                                 : e === t.point2
-                                ? ((s = p[1] + u[2] - p[2]),
-                                  (a = p[2] - u[1] + p[1]),
-                                  (d = u[0] * p[0]),
-                                  Math.abs(d) < n.Z.eps &&
-                                      ((s = u[2]), (a = -u[1])),
-                                  (c = [d, s, a]),
-                                  (l = !1))
-                                : Math.abs(n.Z.innerProduct(_, t.stdform, 3)) <
-                                  n.Z.eps
-                                ? ((s = _[1] + p[2] - _[2]),
-                                  (a = _[2] - p[1] + _[1]),
-                                  (d = p[0]),
-                                  Math.abs(d) < n.Z.eps &&
-                                      ((s = p[2]), (a = -p[1])),
-                                  (l = !0),
-                                  Math.abs(d) > n.Z.eps &&
-                                      Math.abs(s - _[1]) < n.Z.eps &&
-                                      Math.abs(a - _[2]) < n.Z.eps &&
-                                      ((s = _[1] + u[2] - _[2]),
-                                      (a = _[2] - u[1] + _[1]),
-                                      (l = !1)),
-                                  (c = [d, s, a]))
-                                : ((c = [0, t.stdform[1], t.stdform[2]]),
-                                  (c = n.Z.crossProduct(c, _)),
-                                  (c = n.Z.crossProduct(c, t.stdform)),
-                                  (l = !0)),
+                                  ? ((s = p[1] + u[2] - p[2]),
+                                    (a = p[2] - u[1] + p[1]),
+                                    (d = u[0] * p[0]),
+                                    Math.abs(d) < n.Z.eps &&
+                                        ((s = u[2]), (a = -u[1])),
+                                    (c = [d, s, a]),
+                                    (l = !1))
+                                  : Math.abs(
+                                          n.Z.innerProduct(_, t.stdform, 3),
+                                      ) < n.Z.eps
+                                    ? ((s = _[1] + p[2] - _[2]),
+                                      (a = _[2] - p[1] + _[1]),
+                                      (d = p[0]),
+                                      Math.abs(d) < n.Z.eps &&
+                                          ((s = p[2]), (a = -p[1])),
+                                      (l = !0),
+                                      Math.abs(d) > n.Z.eps &&
+                                          Math.abs(s - _[1]) < n.Z.eps &&
+                                          Math.abs(a - _[2]) < n.Z.eps &&
+                                          ((s = _[1] + u[2] - _[2]),
+                                          (a = _[2] - u[1] + _[1]),
+                                          (l = !1)),
+                                      (c = [d, s, a]))
+                                    : ((c = [0, t.stdform[1], t.stdform[2]]),
+                                      (c = n.Z.crossProduct(c, _)),
+                                      (c = n.Z.crossProduct(c, t.stdform)),
+                                      (l = !0)),
                             [new o.Z(r.Z.COORDS_BY_USER, c, i), l]
                         );
                     },
@@ -4380,10 +4395,10 @@ var __webpack_modules__ = {
                             o
                                 ? a || (b = this.isSameDir(e, i, c, d) ? d : c)
                                 : a
-                                ? (f = this.isSameDir(e, i, c, d) ? c : d)
-                                : this.isSameDir(e, i, c, d)
-                                ? ((f = c), (b = d))
-                                : ((b = c), (f = d)),
+                                  ? (f = this.isSameDir(e, i, c, d) ? c : d)
+                                  : this.isSameDir(e, i, c, d)
+                                    ? ((f = c), (b = d))
+                                    : ((b = c), (f = d)),
                                 f &&
                                     e.setCoordinates(
                                         r.Z.COORDS_BY_USER,
@@ -4502,10 +4517,10 @@ var __webpack_modules__ = {
                             f
                                 ? b || (_ = this.isSameDir(e, i, a, l) ? l : a)
                                 : b
-                                ? (p = this.isSameDir(e, i, a, l) ? a : l)
-                                : this.isSameDir(e, i, a, l)
-                                ? ((p = a), (_ = l))
-                                : ((_ = a), (p = l)),
+                                  ? (p = this.isSameDir(e, i, a, l) ? a : l)
+                                  : this.isSameDir(e, i, a, l)
+                                    ? ((p = a), (_ = l))
+                                    : ((_ = a), (p = l)),
                                 p &&
                                     e.setCoordinates(
                                         r.Z.COORDS_BY_USER,
@@ -4704,195 +4719,232 @@ var __webpack_modules__ = {
                                           );
                                       }
                                     : e.type === r.Z.OBJECT_TYPE_POLYGON ||
-                                      i.type === r.Z.OBJECT_TYPE_POLYGON
-                                    ? e.elementClass === r.Z.OBJECT_CLASS_LINE
-                                        ? function () {
-                                              var t,
-                                                  s = h.Z.evaluate(
-                                                      e.visProp.straightfirst,
-                                                  ),
-                                                  r = h.Z.evaluate(
-                                                      e.visProp.straightlast,
-                                                  ),
-                                                  o = h.Z.evaluate(
-                                                      i.visProp.straightfirst,
-                                                  ),
-                                                  n = h.Z.evaluate(
-                                                      i.visProp.straightlast,
-                                                  );
-                                              return (
-                                                  (t = !(
-                                                      h.Z.evaluate(c) ||
-                                                      (s && r && o && n)
-                                                  )),
-                                                  p.meetPolygonLine(
-                                                      i,
-                                                      e,
-                                                      a,
-                                                      e.board,
-                                                      t,
-                                                  )
-                                              );
-                                          }
-                                        : i.elementClass ===
-                                          r.Z.OBJECT_CLASS_LINE
-                                        ? function () {
-                                              var t,
-                                                  s = h.Z.evaluate(
-                                                      e.visProp.straightfirst,
-                                                  ),
-                                                  r = h.Z.evaluate(
-                                                      e.visProp.straightlast,
-                                                  ),
-                                                  o = h.Z.evaluate(
-                                                      i.visProp.straightfirst,
-                                                  ),
-                                                  n = h.Z.evaluate(
-                                                      i.visProp.straightlast,
-                                                  );
-                                              return (
-                                                  (t = !(
-                                                      h.Z.evaluate(c) ||
-                                                      (s && r && o && n)
-                                                  )),
-                                                  p.meetPolygonLine(
-                                                      e,
-                                                      i,
-                                                      a,
-                                                      e.board,
-                                                      t,
-                                                  )
-                                              );
-                                          }
-                                        : function () {
-                                              return p.meetPathPath(
-                                                  e,
-                                                  i,
-                                                  a,
-                                                  e.board,
-                                              );
-                                          }
-                                    : e.elementClass ===
-                                          r.Z.OBJECT_CLASS_LINE &&
-                                      i.elementClass === r.Z.OBJECT_CLASS_LINE
-                                    ? function () {
-                                          var t,
-                                              s,
-                                              n = h.Z.evaluate(
-                                                  e.visProp.straightfirst,
-                                              ),
-                                              l = h.Z.evaluate(
-                                                  e.visProp.straightlast,
-                                              ),
-                                              d = h.Z.evaluate(
-                                                  i.visProp.straightfirst,
-                                              ),
-                                              u = h.Z.evaluate(
-                                                  i.visProp.straightlast,
-                                              );
-                                          return h.Z.evaluate(c) ||
-                                              (n && l && d && u)
-                                              ? p.meet(
-                                                    e.stdform,
-                                                    i.stdform,
-                                                    a,
-                                                    e.board,
-                                                )
-                                              : ((t = p.meetSegmentSegment(
-                                                    e.point1.coords.usrCoords,
-                                                    e.point2.coords.usrCoords,
-                                                    i.point1.coords.usrCoords,
-                                                    i.point2.coords.usrCoords,
-                                                )),
-                                                (s =
-                                                    (!n && t[1] < 0) ||
-                                                    (!l && t[1] > 1) ||
-                                                    (!d && t[2] < 0) ||
-                                                    (!u && t[2] > 1)
-                                                        ? [0, NaN, NaN]
-                                                        : t[0]),
-                                                new o.Z(
-                                                    r.Z.COORDS_BY_USER,
-                                                    s,
-                                                    e.board,
-                                                ));
-                                      }
-                                    : function () {
-                                          var t,
-                                              l,
-                                              _,
-                                              f = p.meet(
-                                                  e.stdform,
-                                                  i.stdform,
-                                                  a,
-                                                  e.board,
-                                              ),
-                                              b = !0;
-                                          return h.Z.evaluate(c)
-                                              ? f
-                                              : (e.elementClass !==
-                                                    r.Z.OBJECT_CLASS_LINE ||
-                                                    ((t = h.Z.evaluate(
+                                        i.type === r.Z.OBJECT_TYPE_POLYGON
+                                      ? e.elementClass === r.Z.OBJECT_CLASS_LINE
+                                          ? function () {
+                                                var t,
+                                                    s = h.Z.evaluate(
                                                         e.visProp.straightfirst,
-                                                    )),
-                                                    (l = h.Z.evaluate(
+                                                    ),
+                                                    r = h.Z.evaluate(
                                                         e.visProp.straightlast,
-                                                    )),
-                                                    (t && l) ||
-                                                        ((_ = p.affineRatio(
-                                                            e.point1.coords,
-                                                            e.point2.coords,
-                                                            f,
-                                                        )),
-                                                        !(
-                                                            (!l &&
-                                                                _ >
-                                                                    1 +
-                                                                        n.Z
-                                                                            .eps) ||
-                                                            (!t &&
-                                                                _ < 0 - n.Z.eps)
-                                                        )))) &&
-                                                (i.elementClass !==
-                                                    r.Z.OBJECT_CLASS_LINE ||
-                                                    ((t = h.Z.evaluate(
+                                                    ),
+                                                    o = h.Z.evaluate(
                                                         i.visProp.straightfirst,
-                                                    )),
-                                                    (l = h.Z.evaluate(
+                                                    ),
+                                                    n = h.Z.evaluate(
                                                         i.visProp.straightlast,
+                                                    );
+                                                return (
+                                                    (t = !(
+                                                        h.Z.evaluate(c) ||
+                                                        (s && r && o && n)
                                                     )),
-                                                    (t && l) ||
-                                                        ((_ = p.affineRatio(
-                                                            i.point1.coords,
-                                                            i.point2.coords,
-                                                            f,
-                                                        )),
-                                                        !(
-                                                            (!l &&
-                                                                _ >
-                                                                    1 +
-                                                                        n.Z
-                                                                            .eps) ||
-                                                            (!t &&
-                                                                _ < 0 - n.Z.eps)
-                                                        ))))
-                                              ? d &&
-                                                ((b = p.coordsOnArc(e, f)) &&
-                                                    u &&
-                                                    (b = p.coordsOnArc(i, f)),
-                                                !b)
-                                                  ? new o.Z(
-                                                        s.Z.COORDS_BY_USER,
-                                                        [0, NaN, NaN],
+                                                    p.meetPolygonLine(
+                                                        i,
+                                                        e,
+                                                        a,
+                                                        e.board,
+                                                        t,
+                                                    )
+                                                );
+                                            }
+                                          : i.elementClass ===
+                                              r.Z.OBJECT_CLASS_LINE
+                                            ? function () {
+                                                  var t,
+                                                      s = h.Z.evaluate(
+                                                          e.visProp
+                                                              .straightfirst,
+                                                      ),
+                                                      r = h.Z.evaluate(
+                                                          e.visProp
+                                                              .straightlast,
+                                                      ),
+                                                      o = h.Z.evaluate(
+                                                          i.visProp
+                                                              .straightfirst,
+                                                      ),
+                                                      n = h.Z.evaluate(
+                                                          i.visProp
+                                                              .straightlast,
+                                                      );
+                                                  return (
+                                                      (t = !(
+                                                          h.Z.evaluate(c) ||
+                                                          (s && r && o && n)
+                                                      )),
+                                                      p.meetPolygonLine(
+                                                          e,
+                                                          i,
+                                                          a,
+                                                          e.board,
+                                                          t,
+                                                      )
+                                                  );
+                                              }
+                                            : function () {
+                                                  return p.meetPathPath(
+                                                      e,
+                                                      i,
+                                                      a,
+                                                      e.board,
+                                                  );
+                                              }
+                                      : e.elementClass ===
+                                              r.Z.OBJECT_CLASS_LINE &&
+                                          i.elementClass ===
+                                              r.Z.OBJECT_CLASS_LINE
+                                        ? function () {
+                                              var t,
+                                                  s,
+                                                  n = h.Z.evaluate(
+                                                      e.visProp.straightfirst,
+                                                  ),
+                                                  l = h.Z.evaluate(
+                                                      e.visProp.straightlast,
+                                                  ),
+                                                  d = h.Z.evaluate(
+                                                      i.visProp.straightfirst,
+                                                  ),
+                                                  u = h.Z.evaluate(
+                                                      i.visProp.straightlast,
+                                                  );
+                                              return h.Z.evaluate(c) ||
+                                                  (n && l && d && u)
+                                                  ? p.meet(
+                                                        e.stdform,
+                                                        i.stdform,
+                                                        a,
                                                         e.board,
                                                     )
-                                                  : f
-                                              : new o.Z(
-                                                    s.Z.COORDS_BY_USER,
-                                                    [0, NaN, NaN],
-                                                    e.board,
-                                                );
-                                      }
+                                                  : ((t = p.meetSegmentSegment(
+                                                        e.point1.coords
+                                                            .usrCoords,
+                                                        e.point2.coords
+                                                            .usrCoords,
+                                                        i.point1.coords
+                                                            .usrCoords,
+                                                        i.point2.coords
+                                                            .usrCoords,
+                                                    )),
+                                                    (s =
+                                                        (!n && t[1] < 0) ||
+                                                        (!l && t[1] > 1) ||
+                                                        (!d && t[2] < 0) ||
+                                                        (!u && t[2] > 1)
+                                                            ? [0, NaN, NaN]
+                                                            : t[0]),
+                                                    new o.Z(
+                                                        r.Z.COORDS_BY_USER,
+                                                        s,
+                                                        e.board,
+                                                    ));
+                                          }
+                                        : function () {
+                                              var t,
+                                                  l,
+                                                  _,
+                                                  f = p.meet(
+                                                      e.stdform,
+                                                      i.stdform,
+                                                      a,
+                                                      e.board,
+                                                  ),
+                                                  b = !0;
+                                              return h.Z.evaluate(c)
+                                                  ? f
+                                                  : (e.elementClass !==
+                                                          r.Z
+                                                              .OBJECT_CLASS_LINE ||
+                                                          ((t = h.Z.evaluate(
+                                                              e.visProp
+                                                                  .straightfirst,
+                                                          )),
+                                                          (l = h.Z.evaluate(
+                                                              e.visProp
+                                                                  .straightlast,
+                                                          )),
+                                                          (t && l) ||
+                                                              ((_ =
+                                                                  p.affineRatio(
+                                                                      e.point1
+                                                                          .coords,
+                                                                      e.point2
+                                                                          .coords,
+                                                                      f,
+                                                                  )),
+                                                              !(
+                                                                  (!l &&
+                                                                      _ >
+                                                                          1 +
+                                                                              n
+                                                                                  .Z
+                                                                                  .eps) ||
+                                                                  (!t &&
+                                                                      _ <
+                                                                          0 -
+                                                                              n
+                                                                                  .Z
+                                                                                  .eps)
+                                                              )))) &&
+                                                      (i.elementClass !==
+                                                          r.Z
+                                                              .OBJECT_CLASS_LINE ||
+                                                          ((t = h.Z.evaluate(
+                                                              i.visProp
+                                                                  .straightfirst,
+                                                          )),
+                                                          (l = h.Z.evaluate(
+                                                              i.visProp
+                                                                  .straightlast,
+                                                          )),
+                                                          (t && l) ||
+                                                              ((_ =
+                                                                  p.affineRatio(
+                                                                      i.point1
+                                                                          .coords,
+                                                                      i.point2
+                                                                          .coords,
+                                                                      f,
+                                                                  )),
+                                                              !(
+                                                                  (!l &&
+                                                                      _ >
+                                                                          1 +
+                                                                              n
+                                                                                  .Z
+                                                                                  .eps) ||
+                                                                  (!t &&
+                                                                      _ <
+                                                                          0 -
+                                                                              n
+                                                                                  .Z
+                                                                                  .eps)
+                                                              ))))
+                                                    ? d &&
+                                                      ((b = p.coordsOnArc(
+                                                          e,
+                                                          f,
+                                                      )) &&
+                                                          u &&
+                                                          (b = p.coordsOnArc(
+                                                              i,
+                                                              f,
+                                                          )),
+                                                      !b)
+                                                        ? new o.Z(
+                                                              s.Z.COORDS_BY_USER,
+                                                              [0, NaN, NaN],
+                                                              e.board,
+                                                          )
+                                                        : f
+                                                    : new o.Z(
+                                                          s.Z.COORDS_BY_USER,
+                                                          [0, NaN, NaN],
+                                                          e.board,
+                                                      );
+                                          }
                                 : function () {
                                       return p.meetCurveCurve(
                                           e,
@@ -4925,10 +4977,10 @@ var __webpack_modules__ = {
                         return Math.abs(t[3]) < r && Math.abs(e[3]) < r
                             ? this.meetLineLine(t, e, i, s)
                             : Math.abs(t[3]) >= r && Math.abs(e[3]) < r
-                            ? this.meetLineCircle(e, t, i, s)
-                            : Math.abs(t[3]) < r && Math.abs(e[3]) >= r
-                            ? this.meetLineCircle(t, e, i, s)
-                            : this.meetCircleCircle(t, e, i, s);
+                              ? this.meetLineCircle(e, t, i, s)
+                              : Math.abs(t[3]) < r && Math.abs(e[3]) >= r
+                                ? this.meetLineCircle(t, e, i, s)
+                                : this.meetCircleCircle(t, e, i, s);
                     },
                     meetLineBoard: function (t, e, i) {
                         var s,
@@ -4962,19 +5014,23 @@ var __webpack_modules__ = {
                             Math.abs(d[1][0]) < n.Z.eps
                                 ? ((s = d[0]), (a = d[2]))
                                 : Math.abs(d[0][0]) < n.Z.eps
-                                ? ((s = d[1]), (a = d[3]))
-                                : d[1][2] < 0
-                                ? ((s = d[0]),
-                                  (a = d[3][2] > e.canvasHeight ? d[2] : d[3]))
-                                : d[1][2] > e.canvasHeight
-                                ? ((s = d[2]), (a = d[3][2] < 0 ? d[0] : d[3]))
-                                : ((s = d[1]),
-                                  (a =
-                                      d[3][2] < 0
-                                          ? d[0]
-                                          : d[3][2] > e.canvasHeight
-                                          ? d[2]
-                                          : d[3])),
+                                  ? ((s = d[1]), (a = d[3]))
+                                  : d[1][2] < 0
+                                    ? ((s = d[0]),
+                                      (a =
+                                          d[3][2] > e.canvasHeight
+                                              ? d[2]
+                                              : d[3]))
+                                    : d[1][2] > e.canvasHeight
+                                      ? ((s = d[2]),
+                                        (a = d[3][2] < 0 ? d[0] : d[3]))
+                                      : ((s = d[1]),
+                                        (a =
+                                            d[3][2] < 0
+                                                ? d[0]
+                                                : d[3][2] > e.canvasHeight
+                                                  ? d[2]
+                                                  : d[3])),
                             [
                                 (s = new o.Z(
                                     r.Z.COORDS_BY_SCREEN,
@@ -5051,24 +5107,30 @@ var __webpack_modules__ = {
                                 ? new o.Z(r.Z.COORDS_BY_USER, t.slice(6, 8), s)
                                 : new o.Z(r.Z.COORDS_BY_USER, [0, 0, 0], s)
                             : e[4] < n.Z.eps
-                            ? Math.abs(
-                                  this.distance(e.slice(6, 2), t.slice(6, 8)) -
-                                      t[4],
-                              ) < n.Z.eps
-                                ? new o.Z(r.Z.COORDS_BY_USER, e.slice(6, 8), s)
-                                : new o.Z(r.Z.COORDS_BY_USER, [0, 0, 0], s)
-                            : ((a = [
-                                  e[3] * t[0] - t[3] * e[0],
-                                  e[3] * t[1] - t[3] * e[1],
-                                  e[3] * t[2] - t[3] * e[2],
-                                  0,
-                                  1,
-                                  1 / 0,
-                                  1 / 0,
-                                  1 / 0,
-                              ]),
-                              (a = n.Z.normalize(a)),
-                              this.meetLineCircle(a, t, i, s));
+                              ? Math.abs(
+                                    this.distance(
+                                        e.slice(6, 2),
+                                        t.slice(6, 8),
+                                    ) - t[4],
+                                ) < n.Z.eps
+                                  ? new o.Z(
+                                        r.Z.COORDS_BY_USER,
+                                        e.slice(6, 8),
+                                        s,
+                                    )
+                                  : new o.Z(r.Z.COORDS_BY_USER, [0, 0, 0], s)
+                              : ((a = [
+                                    e[3] * t[0] - t[3] * e[0],
+                                    e[3] * t[1] - t[3] * e[1],
+                                    e[3] * t[2] - t[3] * e[2],
+                                    0,
+                                    1,
+                                    1 / 0,
+                                    1 / 0,
+                                    1 / 0,
+                                ]),
+                                (a = n.Z.normalize(a)),
+                                this.meetLineCircle(a, t, i, s));
                     },
                     meetCurveCurve: function (t, e, i, s, n, l) {
                         var c;
@@ -5082,13 +5144,13 @@ var __webpack_modules__ = {
                                           s,
                                       )
                                     : 3 === t.bezierDegree ||
-                                      3 === e.bezierDegree
-                                    ? this.meetBezierCurveRedBlueSegments(
-                                          t,
-                                          e,
-                                          i,
-                                      )
-                                    : this.meetCurveRedBlueSegments(t, e, i)),
+                                        3 === e.bezierDegree
+                                      ? this.meetBezierCurveRedBlueSegments(
+                                            t,
+                                            e,
+                                            i,
+                                        )
+                                      : this.meetCurveRedBlueSegments(t, e, i)),
                             new o.Z(r.Z.COORDS_BY_USER, c, n)
                         );
                     },
@@ -5603,41 +5665,41 @@ var __webpack_modules__ = {
                             s && !this._bezierOverlap(o, r)
                                 ? []
                                 : i < 5
-                                ? ((a = (n = this._bezierSplit(t))[0]),
-                                  (h = n[1]),
-                                  this._bezierListConcat(
-                                      _,
-                                      this._bezierLineMeetSubdivision(
-                                          a,
-                                          e,
-                                          i + 1,
-                                      ),
-                                      0,
-                                  ),
-                                  this._bezierListConcat(
-                                      _,
-                                      this._bezierLineMeetSubdivision(
-                                          h,
-                                          e,
-                                          i + 1,
-                                      ),
-                                      0.5,
-                                  ),
-                                  _)
-                                : ((u = [1].concat(t[0])),
-                                  (p = [1].concat(t[3])),
-                                  (c = [1].concat(e[0])),
-                                  (d = [1].concat(e[1])),
-                                  (l = this.meetSegmentSegment(
-                                      u,
-                                      p,
-                                      c,
-                                      d,
-                                  ))[1] >= 0 &&
-                                  l[1] <= 1 &&
-                                  (!s || (l[2] >= 0 && l[2] <= 1))
-                                      ? [l]
-                                      : [])
+                                  ? ((a = (n = this._bezierSplit(t))[0]),
+                                    (h = n[1]),
+                                    this._bezierListConcat(
+                                        _,
+                                        this._bezierLineMeetSubdivision(
+                                            a,
+                                            e,
+                                            i + 1,
+                                        ),
+                                        0,
+                                    ),
+                                    this._bezierListConcat(
+                                        _,
+                                        this._bezierLineMeetSubdivision(
+                                            h,
+                                            e,
+                                            i + 1,
+                                        ),
+                                        0.5,
+                                    ),
+                                    _)
+                                  : ((u = [1].concat(t[0])),
+                                    (p = [1].concat(t[3])),
+                                    (c = [1].concat(e[0])),
+                                    (d = [1].concat(e[1])),
+                                    (l = this.meetSegmentSegment(
+                                        u,
+                                        p,
+                                        c,
+                                        d,
+                                    ))[1] >= 0 &&
+                                    l[1] <= 1 &&
+                                    (!s || (l[2] >= 0 && l[2] <= 1))
+                                        ? [l]
+                                        : [])
                         );
                     },
                     meetBeziersegmentBeziersegment: function (t, e, i) {
@@ -6022,14 +6084,14 @@ var __webpack_modules__ = {
                                             ? ((_ = this.distance(g, b)),
                                               (m = d + f))
                                             : f < 0
-                                            ? ((g = v),
-                                              (_ = this.distance(v, b)),
-                                              (m = d))
-                                            : f > 1 &&
-                                              d === s.numberPoints - 2 &&
-                                              ((g = Z),
-                                              (_ = this.distance(g, b)),
-                                              (m = s.numberPoints - 1)),
+                                              ? ((g = v),
+                                                (_ = this.distance(v, b)),
+                                                (m = d))
+                                              : f > 1 &&
+                                                d === s.numberPoints - 2 &&
+                                                ((g = Z),
+                                                (_ = this.distance(g, b)),
+                                                (m = s.numberPoints - 1)),
                                         _ < p && ((p = _), (i = m), (l = g)),
                                         3 === s.bezierDegree
                                             ? (u++, (d += 2))
@@ -6103,18 +6165,18 @@ var __webpack_modules__ = {
                                 ? ((r = s.Z.Math.Geometry.distance(o[0], t, 3)),
                                   (n = o[0]))
                                 : o[1] < 0
-                                ? ((r = s.Z.Math.Geometry.distance(
-                                      e.vertices[i].coords.usrCoords,
-                                      t,
-                                      3,
-                                  )),
-                                  (n = e.vertices[i].coords.usrCoords))
-                                : ((r = s.Z.Math.Geometry.distance(
-                                      e.vertices[i + 1].coords.usrCoords,
-                                      t,
-                                      3,
-                                  )),
-                                  (n = e.vertices[i + 1].coords.usrCoords)),
+                                  ? ((r = s.Z.Math.Geometry.distance(
+                                        e.vertices[i].coords.usrCoords,
+                                        t,
+                                        3,
+                                    )),
+                                    (n = e.vertices[i].coords.usrCoords))
+                                  : ((r = s.Z.Math.Geometry.distance(
+                                        e.vertices[i + 1].coords.usrCoords,
+                                        t,
+                                        3,
+                                    )),
+                                    (n = e.vertices[i + 1].coords.usrCoords)),
                                 r < l && ((a = n.slice(0)), (l = r));
                         return a;
                     },
@@ -6502,31 +6564,31 @@ var __webpack_modules__ = {
                                                   : ((h.lo = this.mulLo(s, r)),
                                                     (h.hi = this.mulHi(i, r)))
                                               : n > 0
+                                                ? ((h.lo = this.mulLo(i, n)),
+                                                  (h.hi = this.mulHi(s, n)))
+                                                : ((h.lo = 0), (h.hi = 0))
+                                          : r < 0
+                                            ? n > 0
+                                                ? ((h.lo = this.mulLo(i, n)),
+                                                  (h.hi = this.mulHi(i, r)))
+                                                : ((h.lo = this.mulLo(s, n)),
+                                                  (h.hi = this.mulHi(i, r)))
+                                            : n > 0
                                               ? ((h.lo = this.mulLo(i, n)),
+                                                (h.hi = this.mulHi(s, r)))
+                                              : ((h.lo = 0), (h.hi = 0))
+                                      : s > 0
+                                        ? r < 0
+                                            ? n > 0
+                                                ? ((h.lo = this.mulLo(s, r)),
+                                                  (h.hi = this.mulHi(s, n)))
+                                                : ((h.lo = this.mulLo(s, r)),
+                                                  (h.hi = this.mulHi(i, n)))
+                                            : n > 0
+                                              ? ((h.lo = this.mulLo(i, r)),
                                                 (h.hi = this.mulHi(s, n)))
                                               : ((h.lo = 0), (h.hi = 0))
-                                          : r < 0
-                                          ? n > 0
-                                              ? ((h.lo = this.mulLo(i, n)),
-                                                (h.hi = this.mulHi(i, r)))
-                                              : ((h.lo = this.mulLo(s, n)),
-                                                (h.hi = this.mulHi(i, r)))
-                                          : n > 0
-                                          ? ((h.lo = this.mulLo(i, n)),
-                                            (h.hi = this.mulHi(s, r)))
-                                          : ((h.lo = 0), (h.hi = 0))
-                                      : s > 0
-                                      ? r < 0
-                                          ? n > 0
-                                              ? ((h.lo = this.mulLo(s, r)),
-                                                (h.hi = this.mulHi(s, n)))
-                                              : ((h.lo = this.mulLo(s, r)),
-                                                (h.hi = this.mulHi(i, n)))
-                                          : n > 0
-                                          ? ((h.lo = this.mulLo(i, r)),
-                                            (h.hi = this.mulHi(s, n)))
-                                          : ((h.lo = 0), (h.hi = 0))
-                                      : ((h.lo = 0), (h.hi = 0)),
+                                        : ((h.lo = 0), (h.hi = 0)),
                                   h)
                         );
                     },
@@ -6537,14 +6599,14 @@ var __webpack_modules__ = {
                             this.isEmpty(t) || this.isEmpty(e)
                                 ? this.EMPTY.clone()
                                 : this.zeroIn(e)
-                                ? 0 !== e.lo
-                                    ? 0 !== e.hi
-                                        ? this.divZero(t)
-                                        : this.divNegative(t, e.lo)
-                                    : 0 !== e.hi
-                                    ? this.divPositive(t, e.hi)
-                                    : this.EMPTY.clone()
-                                : this.divNonZero(t, e)
+                                  ? 0 !== e.lo
+                                      ? 0 !== e.hi
+                                          ? this.divZero(t)
+                                          : this.divNegative(t, e.lo)
+                                      : 0 !== e.hi
+                                        ? this.divPositive(t, e.hi)
+                                        : this.EMPTY.clone()
+                                  : this.divNonZero(t, e)
                         );
                     },
                     positive: function (t) {
@@ -6595,16 +6657,16 @@ var __webpack_modules__ = {
                                     : ((n.lo = this.divLo(i, r)),
                                       (n.hi = this.divHi(s, o)))
                                 : i < 0
-                                ? o < 0
+                                  ? o < 0
+                                      ? ((n.lo = this.divLo(s, o)),
+                                        (n.hi = this.divHi(i, o)))
+                                      : ((n.lo = this.divLo(i, r)),
+                                        (n.hi = this.divHi(s, r)))
+                                  : o < 0
                                     ? ((n.lo = this.divLo(s, o)),
-                                      (n.hi = this.divHi(i, o)))
-                                    : ((n.lo = this.divLo(i, r)),
-                                      (n.hi = this.divHi(s, r)))
-                                : o < 0
-                                ? ((n.lo = this.divLo(s, o)),
-                                  (n.hi = this.divHi(i, r)))
-                                : ((n.lo = this.divLo(i, o)),
-                                  (n.hi = this.divHi(s, r))),
+                                      (n.hi = this.divHi(i, r)))
+                                    : ((n.lo = this.divLo(i, o)),
+                                      (n.hi = this.divHi(s, r))),
                             n
                         );
                     },
@@ -6612,31 +6674,31 @@ var __webpack_modules__ = {
                         return 0 === t.lo && 0 === t.hi
                             ? t
                             : this.zeroIn(t)
-                            ? this.WHOLE
-                            : t.hi < 0
-                            ? new a(
-                                  Number.NEGATIVE_INFINITY,
-                                  this.divHi(t.hi, e),
-                              )
-                            : new a(
-                                  this.divLo(t.lo, e),
-                                  Number.POSITIVE_INFINITY,
-                              );
+                              ? this.WHOLE
+                              : t.hi < 0
+                                ? new a(
+                                      Number.NEGATIVE_INFINITY,
+                                      this.divHi(t.hi, e),
+                                  )
+                                : new a(
+                                      this.divLo(t.lo, e),
+                                      Number.POSITIVE_INFINITY,
+                                  );
                     },
                     divNegative: function (t, e) {
                         return 0 === t.lo && 0 === t.hi
                             ? t
                             : this.zeroIn(t)
-                            ? this.WHOLE
-                            : t.hi < 0
-                            ? new a(
-                                  this.divLo(t.hi, e),
-                                  Number.POSITIVE_INFINITY,
-                              )
-                            : new a(
-                                  Number.NEGATIVE_INFINITY,
-                                  this.divHi(t.lo, e),
-                              );
+                              ? this.WHOLE
+                              : t.hi < 0
+                                ? new a(
+                                      this.divLo(t.hi, e),
+                                      Number.POSITIVE_INFINITY,
+                                  )
+                                : new a(
+                                      Number.NEGATIVE_INFINITY,
+                                      this.divHi(t.lo, e),
+                                  );
                     },
                     divZero: function (t) {
                         return 0 === t.lo && 0 === t.hi ? t : this.WHOLE;
@@ -6662,23 +6724,23 @@ var __webpack_modules__ = {
                             this.isEmpty(t)
                                 ? this.EMPTY.clone()
                                 : this.zeroIn(t)
-                                ? 0 !== t.lo
-                                    ? 0 !== t.hi
-                                        ? this.WHOLE
-                                        : new a(
-                                              Number.NEGATIVE_INFINITY,
-                                              this.divHi(1, t.lo),
+                                  ? 0 !== t.lo
+                                      ? 0 !== t.hi
+                                          ? this.WHOLE
+                                          : new a(
+                                                Number.NEGATIVE_INFINITY,
+                                                this.divHi(1, t.lo),
+                                            )
+                                      : 0 !== t.hi
+                                        ? new a(
+                                              this.divLo(1, t.hi),
+                                              Number.POSITIVE_INFINITY,
                                           )
-                                    : 0 !== t.hi
-                                    ? new a(
-                                          this.divLo(1, t.hi),
-                                          Number.POSITIVE_INFINITY,
-                                      )
-                                    : this.EMPTY.clone()
-                                : new a(
-                                      this.divLo(1, t.hi),
-                                      this.divHi(1, t.lo),
-                                  )
+                                        : this.EMPTY.clone()
+                                  : new a(
+                                        this.divLo(1, t.hi),
+                                        this.divHi(1, t.lo),
+                                    )
                         );
                     },
                     pow: function (t, e) {
@@ -6697,30 +6759,35 @@ var __webpack_modules__ = {
                                 ? this.EMPTY.clone()
                                 : this.ONE.clone()
                             : e < 0
-                            ? this.pow(this.multiplicativeInverse(t), -e)
-                            : e % 1 == 0
-                            ? t.hi < 0
-                                ? ((i = this.powLo(-t.hi, e)),
-                                  (s = this.powHi(-t.lo, e)),
-                                  1 == (1 & e) ? new a(-s, -i) : new a(i, s))
-                                : t.lo < 0
-                                ? 1 == (1 & e)
-                                    ? new a(
-                                          -this.powLo(-t.lo, e),
-                                          this.powHi(t.hi, e),
-                                      )
-                                    : new a(
-                                          0,
-                                          this.powHi(Math.max(-t.lo, t.hi), e),
-                                      )
-                                : new a(
-                                      this.powLo(t.lo, e),
-                                      this.powHi(t.hi, e),
-                                  )
-                            : (console.warn(
-                                  "power is not an integer, you should use nth-root instead, returning an empty interval",
-                              ),
-                              this.EMPTY.clone());
+                              ? this.pow(this.multiplicativeInverse(t), -e)
+                              : e % 1 == 0
+                                ? t.hi < 0
+                                    ? ((i = this.powLo(-t.hi, e)),
+                                      (s = this.powHi(-t.lo, e)),
+                                      1 == (1 & e)
+                                          ? new a(-s, -i)
+                                          : new a(i, s))
+                                    : t.lo < 0
+                                      ? 1 == (1 & e)
+                                          ? new a(
+                                                -this.powLo(-t.lo, e),
+                                                this.powHi(t.hi, e),
+                                            )
+                                          : new a(
+                                                0,
+                                                this.powHi(
+                                                    Math.max(-t.lo, t.hi),
+                                                    e,
+                                                ),
+                                            )
+                                      : new a(
+                                            this.powLo(t.lo, e),
+                                            this.powHi(t.hi, e),
+                                        )
+                                : (console.warn(
+                                      "power is not an integer, you should use nth-root instead, returning an empty interval",
+                                  ),
+                                  this.EMPTY.clone());
                     },
                     sqrt: function (t) {
                         return (
@@ -6748,15 +6815,15 @@ var __webpack_modules__ = {
                                       new a(-s, -r))
                                     : this.EMPTY.clone()
                                 : t.lo < 0
-                                ? ((n = this.powHi(t.hi, i)),
-                                  e % 1 == 0 && 1 == (1 & e)
-                                      ? ((h = -this.powHi(-t.lo, i)),
-                                        new a(h, n))
-                                      : new a(0, n))
-                                : new a(
-                                      this.powLo(t.lo, i),
-                                      this.powHi(t.hi, i),
-                                  )
+                                  ? ((n = this.powHi(t.hi, i)),
+                                    e % 1 == 0 && 1 == (1 & e)
+                                        ? ((h = -this.powHi(-t.lo, i)),
+                                          new a(h, n))
+                                        : new a(0, n))
+                                  : new a(
+                                        this.powLo(t.lo, i),
+                                        this.powHi(t.hi, i),
+                                    )
                         );
                     },
                     exp: function (t) {
@@ -6799,19 +6866,22 @@ var __webpack_modules__ = {
                         return i && s
                             ? this.EMPTY.clone()
                             : i
-                            ? e.clone()
-                            : s
-                            ? t.clone()
-                            : new a(Math.min(t.lo, e.lo), Math.max(t.hi, e.hi));
+                              ? e.clone()
+                              : s
+                                ? t.clone()
+                                : new a(
+                                      Math.min(t.lo, e.lo),
+                                      Math.max(t.hi, e.hi),
+                                  );
                     },
                     intersection: function (t, e) {
                         var i, s;
                         return this.isEmpty(t) || this.isEmpty(e)
                             ? this.EMPTY.clone()
                             : (i = Math.max(t.lo, e.lo)) <=
-                              (s = Math.min(t.hi, e.hi))
-                            ? new a(i, s)
-                            : this.EMPTY.clone();
+                                (s = Math.min(t.hi, e.hi))
+                              ? new a(i, s)
+                              : this.EMPTY.clone();
                     },
                     union: function (t, e) {
                         if (!this.intervalsOverlap(t, e))
@@ -6833,8 +6903,8 @@ var __webpack_modules__ = {
                                 (e.hi >= t.hi && e.lo === -1 / 0)
                                 ? this.EMPTY.clone()
                                 : e.lo <= t.lo
-                                ? new a().halfOpenLeft(e.hi, t.hi)
-                                : new a().halfOpenRight(t.lo, e.lo);
+                                  ? new a().halfOpenLeft(e.hi, t.hi)
+                                  : new a().halfOpenRight(t.lo, e.lo);
                         }
                         return t.clone();
                     },
@@ -6847,10 +6917,10 @@ var __webpack_modules__ = {
                             this.isEmpty(t)
                                 ? this.EMPTY.clone()
                                 : t.lo >= 0
-                                ? t.clone()
-                                : t.hi <= 0
-                                ? this.negative(t)
-                                : new a(0, Math.max(-t.lo, t.hi))
+                                  ? t.clone()
+                                  : t.hi <= 0
+                                    ? this.negative(t)
+                                    : new a(0, Math.max(-t.lo, t.hi))
                         );
                     },
                     max: function (t, e) {
@@ -6859,10 +6929,13 @@ var __webpack_modules__ = {
                         return i && s
                             ? this.EMPTY.clone()
                             : i
-                            ? e.clone()
-                            : s
-                            ? t.clone()
-                            : new a(Math.max(t.lo, e.lo), Math.max(t.hi, e.hi));
+                              ? e.clone()
+                              : s
+                                ? t.clone()
+                                : new a(
+                                      Math.max(t.lo, e.lo),
+                                      Math.max(t.hi, e.hi),
+                                  );
                     },
                     min: function (t, e) {
                         var i = this.isEmpty(t),
@@ -6870,10 +6943,13 @@ var __webpack_modules__ = {
                         return i && s
                             ? this.EMPTY.clone()
                             : i
-                            ? e.clone()
-                            : s
-                            ? t.clone()
-                            : new a(Math.min(t.lo, e.lo), Math.min(t.hi, e.hi));
+                              ? e.clone()
+                              : s
+                                ? t.clone()
+                                : new a(
+                                      Math.min(t.lo, e.lo),
+                                      Math.min(t.hi, e.hi),
+                                  );
                     },
                     onlyInfinity: function (t) {
                         return !isFinite(t.lo) && t.lo === t.hi;
@@ -6901,17 +6977,17 @@ var __webpack_modules__ = {
                               this.width(s) >= i.lo
                                   ? new a(-1, 1)
                                   : s.lo >= this.piHigh
-                                  ? ((r = this.cos(this.sub(s, this.PI))),
-                                    this.negative(r))
-                                  : ((o = s.lo),
-                                    (n = s.hi),
-                                    (h = this.cosLo(n)),
-                                    (l = this.cosHi(o)),
-                                    n <= this.piLow
-                                        ? new a(h, l)
-                                        : n <= i.lo
-                                        ? new a(-1, Math.max(h, l))
-                                        : new a(-1, 1)));
+                                    ? ((r = this.cos(this.sub(s, this.PI))),
+                                      this.negative(r))
+                                    : ((o = s.lo),
+                                      (n = s.hi),
+                                      (h = this.cosLo(n)),
+                                      (l = this.cosHi(o)),
+                                      n <= this.piLow
+                                          ? new a(h, l)
+                                          : n <= i.lo
+                                            ? new a(-1, Math.max(h, l))
+                                            : new a(-1, 1)));
                     },
                     sin: function (t) {
                         return this.isEmpty(t) || this.onlyInfinity(t)
@@ -6968,10 +7044,13 @@ var __webpack_modules__ = {
                         return this.isEmpty(t)
                             ? this.EMPTY.clone()
                             : t.hi < 0
-                            ? new a(this.coshLo(t.hi), this.coshHi(t.lo))
-                            : t.lo >= 0
-                            ? new a(this.coshLo(t.lo), this.coshHi(t.hi))
-                            : new a(1, this.coshHi(-t.lo > t.hi ? t.lo : t.hi));
+                              ? new a(this.coshLo(t.hi), this.coshHi(t.lo))
+                              : t.lo >= 0
+                                ? new a(this.coshLo(t.lo), this.coshHi(t.hi))
+                                : new a(
+                                      1,
+                                      this.coshHi(-t.lo > t.hi ? t.lo : t.hi),
+                                  );
                     },
                     tanh: function (t) {
                         return this.isEmpty(t)
@@ -7180,21 +7259,21 @@ var __webpack_modules__ = {
                         return isNaN(t) || isNaN(e)
                             ? NaN
                             : t === e
-                            ? t
-                            : 0 === t
-                            ? e < 0
-                                ? -this.SMALLEST_DENORM
-                                : this.SMALLEST_DENORM
-                            : ((s = n.hi(t)),
-                              (i = n.lo(t)),
-                              e > t == t > 0
-                                  ? i === this.UINT_MAX
-                                      ? ((s += 1), (i = 0))
-                                      : (i += 1)
-                                  : 0 === i
-                                  ? ((i = this.UINT_MAX), (s -= 1))
-                                  : (i -= 1),
-                              n.pack(i, s));
+                              ? t
+                              : 0 === t
+                                ? e < 0
+                                    ? -this.SMALLEST_DENORM
+                                    : this.SMALLEST_DENORM
+                                : ((s = n.hi(t)),
+                                  (i = n.lo(t)),
+                                  e > t == t > 0
+                                      ? i === this.UINT_MAX
+                                          ? ((s += 1), (i = 0))
+                                          : (i += 1)
+                                      : 0 === i
+                                        ? ((i = this.UINT_MAX), (s -= 1))
+                                        : (i -= 1),
+                                  n.pack(i, s));
                     },
                 }),
                 (s.Z.Math.IntervalArithmetic.PI = new a(
@@ -7431,8 +7510,8 @@ var __webpack_modules__ = {
                     return t < 0
                         ? NaN
                         : 0 === (t = Math.floor(t)) || 1 === t
-                        ? 1
-                        : t * this.factorial(t - 1);
+                          ? 1
+                          : t * this.factorial(t - 1);
                 }),
                 binomial: n(function (t, e) {
                     var i, s;
@@ -7479,12 +7558,12 @@ var __webpack_modules__ = {
                     return e <= 0 || Math.floor(e) !== e
                         ? NaN
                         : 0 === t
-                        ? 0
-                        : t > 0
-                        ? Math.exp(i * Math.log(t))
-                        : e % 2 == 1
-                        ? -Math.exp(i * Math.log(-t))
-                        : NaN;
+                          ? 0
+                          : t > 0
+                            ? Math.exp(i * Math.log(t))
+                            : e % 2 == 1
+                              ? -Math.exp(i * Math.log(-t))
+                              : NaN;
                 },
                 cbrt:
                     Math.cbrt ||
@@ -7497,19 +7576,19 @@ var __webpack_modules__ = {
                             ? 1
                             : 0
                         : Math.floor(e) === e
-                        ? Math.pow(t, e)
-                        : t > 0
-                        ? Math.exp(e * Math.log(t))
-                        : NaN;
+                          ? Math.pow(t, e)
+                          : t > 0
+                            ? Math.exp(e * Math.log(t))
+                            : NaN;
                 },
                 ratpow: function (t, e, i) {
                     var s;
                     return 0 === e
                         ? 1
                         : 0 === i
-                        ? NaN
-                        : ((s = this.gcd(e, i)),
-                          this.nthroot(this.pow(t, e / s), i / s));
+                          ? NaN
+                          : ((s = this.gcd(e, i)),
+                            this.nthroot(this.pow(t, e / s), i / s));
                 },
                 log10: function (t) {
                     return Math.log(t) / Math.log(10);
@@ -8979,16 +9058,16 @@ var __webpack_modules__ = {
                                       r <= 0
                                           ? t[0][e]()
                                           : r >= Z
-                                          ? t[Z - 1][e]()
-                                          : (d = Math.floor(r)) === r
-                                          ? t[d][e]()
-                                          : ((r -= d),
-                                            void 0 === (u = l[e][d])
-                                                ? NaN
-                                                : ((u[3] * r + u[2]) * r +
-                                                      u[1]) *
-                                                      r +
-                                                  u[0]));
+                                            ? t[Z - 1][e]()
+                                            : (d = Math.floor(r)) === r
+                                              ? t[d][e]()
+                                              : ((r -= d),
+                                                void 0 === (u = l[e][d])
+                                                    ? NaN
+                                                    : ((u[3] * r + u[2]) * r +
+                                                          u[1]) *
+                                                          r +
+                                                      u[0]));
                             };
                         }),
                         [
@@ -9125,17 +9204,17 @@ var __webpack_modules__ = {
                                     r < 0
                                         ? t[0][s]()
                                         : r >= e
-                                        ? t[i][s]()
-                                        : isNaN(r)
-                                        ? NaN
-                                        : h *
-                                              h *
-                                              (h * t[n][s]() +
-                                                  3 * a * t[n + 1][s]()) +
-                                          (3 * h * t[n + 2][s]() +
-                                              a * t[n + 3][s]()) *
-                                              a *
-                                              a
+                                          ? t[i][s]()
+                                          : isNaN(r)
+                                            ? NaN
+                                            : h *
+                                                  h *
+                                                  (h * t[n][s]() +
+                                                      3 * a * t[n + 1][s]()) +
+                                              (3 * h * t[n + 2][s]() +
+                                                  a * t[n + 3][s]()) *
+                                                  a *
+                                                  a
                                 );
                             };
                         };
@@ -9173,8 +9252,8 @@ var __webpack_modules__ = {
                                                     i < e
                                                         ? 0
                                                         : i <= t
-                                                        ? i - e + 1
-                                                        : t - e + 2;
+                                                          ? i - e + 1
+                                                          : t - e + 2;
                                             return s;
                                         })(d, u),
                                         l = (function (t, e, i, s) {
@@ -9282,8 +9361,8 @@ var __webpack_modules__ = {
                             "random" === i
                                 ? e(t + s * Math.random())
                                 : "simpson" === i
-                                ? (e(t) + 4 * e(t + 0.5 * s) + e(t + s)) / 6
-                                : e(t);
+                                  ? (e(t) + 4 * e(t + 0.5 * s) + e(t + s)) / 6
+                                  : e(t);
                     return r;
                 },
                 riemann: function (t, e, i, s, o) {
@@ -11410,24 +11489,25 @@ var __webpack_modules__ = {
                                 o.elementClass === r.Z.OBJECT_CLASS_CIRCLE
                                     ? n(o, a.circle)
                                     : o.type === r.Z.OBJECT_TYPE_ANGLE
-                                    ? n(o, a.angle)
-                                    : o.type === r.Z.OBJECT_TYPE_ARC
-                                    ? n(o, a.arc)
-                                    : o.type === r.Z.OBJECT_TYPE_POLYGON
-                                    ? n(o, a.polygon)
-                                    : o.type === r.Z.OBJECT_TYPE_CONIC
-                                    ? n(o, a.conic)
-                                    : o.type === r.Z.OBJECT_TYPE_CURVE
-                                    ? n(o, a.curve)
-                                    : o.type === r.Z.OBJECT_TYPE_SECTOR &&
-                                      ((o.arc.visProp.fillcolor =
-                                          a.sector.fillColor),
-                                      (o.arc.visProp.highlightfillcolor =
-                                          a.sector.highlightFillColor),
-                                      (o.arc.visProp.fillopacity =
-                                          a.sector.fillOpacity),
-                                      (o.arc.visProp.highlightfillopacity =
-                                          a.sector.highlightFillOpacity));
+                                      ? n(o, a.angle)
+                                      : o.type === r.Z.OBJECT_TYPE_ARC
+                                        ? n(o, a.arc)
+                                        : o.type === r.Z.OBJECT_TYPE_POLYGON
+                                          ? n(o, a.polygon)
+                                          : o.type === r.Z.OBJECT_TYPE_CONIC
+                                            ? n(o, a.conic)
+                                            : o.type === r.Z.OBJECT_TYPE_CURVE
+                                              ? n(o, a.curve)
+                                              : o.type ===
+                                                    r.Z.OBJECT_TYPE_SECTOR &&
+                                                ((o.arc.visProp.fillcolor =
+                                                    a.sector.fillColor),
+                                                (o.arc.visProp.highlightfillcolor =
+                                                    a.sector.highlightFillColor),
+                                                (o.arc.visProp.fillopacity =
+                                                    a.sector.fillOpacity),
+                                                (o.arc.visProp.highlightfillopacity =
+                                                    a.sector.highlightFillOpacity));
                     t.fullUpdate(),
                         h && !t.hasGrid
                             ? t.removeGrids(t)
@@ -11583,10 +11663,10 @@ var __webpack_modules__ = {
                             ")" === (h = i.charAt(r))
                                 ? (o -= 1)
                                 : "(" === h
-                                ? (o += 1)
-                                : "," === h &&
-                                  1 === o &&
-                                  (n < 0 ? (n = r) : (a = r)),
+                                  ? (o += 1)
+                                  : "," === h &&
+                                    1 === o &&
+                                    (n < 0 ? (n = r) : (a = r)),
                                 (r += 1);
                         if (((l = i.slice(0, r - 1)), (i = i.slice(r)), n < 0))
                             return "";
@@ -12099,89 +12179,98 @@ var __webpack_modules__ = {
                                 null !== this.isParameter(t)
                                     ? t
                                     : null === this.isLocalVariable(t) || i
-                                    ? this.isCreator(t)
-                                        ? "(function () { var a = Array.prototype.slice.call(arguments, 0), props = " +
-                                          (i ? "a.pop()" : "{}") +
-                                          "; return $jc$.board.create.apply($jc$.board, ['" +
-                                          t +
-                                          "'].concat([a, props])); })"
-                                        : (i &&
-                                              this._error(
-                                                  "Syntax error (attribute values are allowed with element creators only)",
-                                              ),
-                                          this.isBuiltIn(t)
-                                              ? ((r =
-                                                    this.builtIn[t].src ||
-                                                    this.builtIn[t]),
-                                                _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                                    r,
-                                                ) || r.match(/board\.select/)
-                                                    ? r
-                                                    : ((t = r.split(".").pop()),
-                                                      _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                          this.board.mathLib,
-                                                      ) &&
-                                                      null !==
-                                                          (s = new RegExp(
-                                                              "^Math." + t,
-                                                          )).exec(r)
-                                                          ? r.replace(
-                                                                s,
-                                                                "$jc$.board.mathLib." +
-                                                                    t,
-                                                            )
-                                                          : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                                this.board
-                                                                    .mathLibJXG,
-                                                            ) &&
-                                                            null !==
-                                                                (s = new RegExp(
-                                                                    "^JXG.Math.",
-                                                                )).exec(r)
-                                                          ? r.replace(
-                                                                s,
-                                                                "$jc$.board.mathLibJXG.",
-                                                            )
-                                                          : r))
-                                              : this.isMathMethod(t)
-                                              ? "$jc$.board.mathLib." + t
-                                              : e
-                                              ? ""
-                                              : (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isId(
-                                                    this.board,
-                                                    t,
-                                                )
-                                                    ? ((r =
-                                                          "$jc$.board.objects['" +
-                                                          t +
-                                                          "']"),
-                                                      "slider" ===
-                                                          this.board.objects[t]
-                                                              .elType &&
-                                                          (r += ".Value()"))
-                                                    : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isName(
+                                      ? this.isCreator(t)
+                                          ? "(function () { var a = Array.prototype.slice.call(arguments, 0), props = " +
+                                            (i ? "a.pop()" : "{}") +
+                                            "; return $jc$.board.create.apply($jc$.board, ['" +
+                                            t +
+                                            "'].concat([a, props])); })"
+                                          : (i &&
+                                                this._error(
+                                                    "Syntax error (attribute values are allowed with element creators only)",
+                                                ),
+                                            this.isBuiltIn(t)
+                                                ? ((r =
+                                                      this.builtIn[t].src ||
+                                                      this.builtIn[t]),
+                                                  _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
+                                                      r,
+                                                  ) || r.match(/board\.select/)
+                                                      ? r
+                                                      : ((t = r
+                                                            .split(".")
+                                                            .pop()),
+                                                        _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
+                                                            this.board.mathLib,
+                                                        ) &&
+                                                        null !==
+                                                            (s = new RegExp(
+                                                                "^Math." + t,
+                                                            )).exec(r)
+                                                            ? r.replace(
+                                                                  s,
+                                                                  "$jc$.board.mathLib." +
+                                                                      t,
+                                                              )
+                                                            : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
+                                                                    this.board
+                                                                        .mathLibJXG,
+                                                                ) &&
+                                                                null !==
+                                                                    (s =
+                                                                        new RegExp(
+                                                                            "^JXG.Math.",
+                                                                        )).exec(
+                                                                        r,
+                                                                    )
+                                                              ? r.replace(
+                                                                    s,
+                                                                    "$jc$.board.mathLibJXG.",
+                                                                )
+                                                              : r))
+                                                : this.isMathMethod(t)
+                                                  ? "$jc$.board.mathLib." + t
+                                                  : e
+                                                    ? ""
+                                                    : (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isId(
                                                           this.board,
                                                           t,
                                                       )
-                                                    ? ((r =
-                                                          "$jc$.board.elementsByName['" +
-                                                          t +
-                                                          "']"),
-                                                      "slider" ===
-                                                          this.board
-                                                              .elementsByName[t]
-                                                              .elType &&
-                                                          (r += ".Value()"))
-                                                    : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isGroup(
-                                                          this.board,
-                                                          t,
-                                                      ) &&
-                                                      (r =
-                                                          "$jc$.board.groups['" +
-                                                          t +
-                                                          "']"),
-                                                r))
-                                    : "$jc$.resolve('" + t + "')"
+                                                          ? ((r =
+                                                                "$jc$.board.objects['" +
+                                                                t +
+                                                                "']"),
+                                                            "slider" ===
+                                                                this.board
+                                                                    .objects[t]
+                                                                    .elType &&
+                                                                (r +=
+                                                                    ".Value()"))
+                                                          : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isName(
+                                                                  this.board,
+                                                                  t,
+                                                              )
+                                                            ? ((r =
+                                                                  "$jc$.board.elementsByName['" +
+                                                                  t +
+                                                                  "']"),
+                                                              "slider" ===
+                                                                  this.board
+                                                                      .elementsByName[
+                                                                      t
+                                                                  ].elType &&
+                                                                  (r +=
+                                                                      ".Value()"))
+                                                            : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isGroup(
+                                                                  this.board,
+                                                                  t,
+                                                              ) &&
+                                                              (r =
+                                                                  "$jc$.board.groups['" +
+                                                                  t +
+                                                                  "']"),
+                                                      r))
+                                      : "$jc$.resolve('" + t + "')"
                             );
                         },
                         makeMap: function (t) {
@@ -12333,17 +12422,17 @@ var __webpack_modules__ = {
                                                 return i;
                                             })
                                           : "function" == typeof i
-                                          ? ((t.isDraggable = !1), (t[e] = i))
-                                          : "string" == typeof i &&
-                                            ((t.isDraggable = !1),
-                                            (t[e] =
-                                                _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.createFunction(
-                                                    i,
-                                                    this.board,
-                                                    null,
-                                                    !0,
-                                                )),
-                                            (t[e + "jc"] = i)),
+                                            ? ((t.isDraggable = !1), (t[e] = i))
+                                            : "string" == typeof i &&
+                                              ((t.isDraggable = !1),
+                                              (t[e] =
+                                                  _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.createFunction(
+                                                      i,
+                                                      this.board,
+                                                      null,
+                                                      !0,
+                                                  )),
+                                              (t[e + "jc"] = i)),
                                       (t[e].origin = i),
                                       this.board.update())
                                 : ((e = e.toLowerCase()),
@@ -12356,21 +12445,21 @@ var __webpack_modules__ = {
                                             [s, r],
                                         ))
                                       : !t.isDraggable ||
-                                        ("function" != typeof i &&
-                                            "string" != typeof i)
-                                      ? t.isDraggable ||
-                                        ((s = "x" === e ? i : t.XEval.origin),
-                                        (r = "y" === e ? i : t.YEval.origin),
-                                        t.addConstraint([s, r]))
-                                      : ((s =
-                                            "x" === e
-                                                ? i
-                                                : t.coords.usrCoords[1]),
-                                        (r =
-                                            "y" === e
-                                                ? i
-                                                : t.coords.usrCoords[2]),
-                                        t.addConstraint([s, r])),
+                                          ("function" != typeof i &&
+                                              "string" != typeof i)
+                                        ? t.isDraggable ||
+                                          ((s = "x" === e ? i : t.XEval.origin),
+                                          (r = "y" === e ? i : t.YEval.origin),
+                                          t.addConstraint([s, r]))
+                                        : ((s =
+                                              "x" === e
+                                                  ? i
+                                                  : t.coords.usrCoords[1]),
+                                          (r =
+                                              "y" === e
+                                                  ? i
+                                                  : t.coords.usrCoords[2]),
+                                          t.addConstraint([s, r])),
                                   this.board.update());
                         },
                         _genericParse: function (t, e, i, s) {
@@ -12612,11 +12701,11 @@ var __webpack_modules__ = {
                                     )
                                         ? (t = t.subs)
                                         : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                              t.methodMap[e],
-                                          )
-                                        ? (e = t.methodMap[e])
-                                        : ((t = t.visProp),
-                                          (e = e.toLowerCase()))),
+                                                t.methodMap[e],
+                                            )
+                                          ? (e = t.methodMap[e])
+                                          : ((t = t.visProp),
+                                            (e = e.toLowerCase()))),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isFunction(
                                     t,
                                 ) &&
@@ -13959,18 +14048,18 @@ var __webpack_modules__ = {
                                 )
                                     ? (r = t + e)
                                     : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isString(
-                                          t,
-                                      ) ||
-                                      _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isString(
-                                          e,
-                                      )
-                                    ? (r = t.toString() + e.toString())
-                                    : this._error(
-                                          "Operation + not defined on operands " +
-                                              typeof t +
-                                              " and " +
-                                              typeof e,
-                                      );
+                                            t,
+                                        ) ||
+                                        _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isString(
+                                            e,
+                                        )
+                                      ? (r = t.toString() + e.toString())
+                                      : this._error(
+                                            "Operation + not defined on operands " +
+                                                typeof t +
+                                                " and " +
+                                                typeof e,
+                                        );
                             return r;
                         },
                         sub: function (t, e) {
@@ -14580,21 +14669,21 @@ var __webpack_modules__ = {
                                                       origin: e,
                                                   }
                                                 : _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.isNumber(
-                                                      i,
-                                                  )
-                                                ? {
-                                                      name: t,
-                                                      type: "constant",
-                                                      value: i,
-                                                      origin: e,
-                                                  }
-                                                : void (
-                                                      void 0 !== i &&
-                                                      console.error(
-                                                          "undefined type",
-                                                          i,
-                                                      )
-                                                  );
+                                                        i,
+                                                    )
+                                                  ? {
+                                                        name: t,
+                                                        type: "constant",
+                                                        value: i,
+                                                        origin: e,
+                                                    }
+                                                  : void (
+                                                        void 0 !== i &&
+                                                        console.error(
+                                                            "undefined type",
+                                                            i,
+                                                        )
+                                                    );
                                     },
                                     t = Object.getOwnPropertyNames(f).sort(u),
                                     e = Object.getOwnPropertyNames(b).sort(u),
@@ -14612,21 +14701,22 @@ var __webpack_modules__ = {
                                       s++,
                                       r++)
                                     : !_jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          e[r],
-                                      ) ||
-                                      t[s]
-                                          .toLowerCase()
-                                          .localeCompare(e[r].toLowerCase()) < 0
-                                    ? ((o = p(t[s], "jc")),
-                                      _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          o,
-                                      ) && i.push(o),
-                                      s++)
-                                    : ((o = p(e[r], "Math")),
-                                      _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          o,
-                                      ) && i.push(o),
-                                      r++);
+                                            e[r],
+                                        ) ||
+                                        t[s]
+                                            .toLowerCase()
+                                            .localeCompare(e[r].toLowerCase()) <
+                                            0
+                                      ? ((o = p(t[s], "jc")),
+                                        _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
+                                            o,
+                                        ) && i.push(o),
+                                        s++)
+                                      : ((o = p(e[r], "Math")),
+                                        _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
+                                            o,
+                                        ) && i.push(o),
+                                        r++);
                             for (
                                 h = [],
                                     l = [],
@@ -18166,18 +18256,18 @@ var __webpack_modules__ = {
                                 return e
                                     ? !1 !== (t = this.test_match(e, r[s])) && t
                                     : "" === this._input
-                                    ? this.EOF
-                                    : this.parseError(
-                                          "Lexical error on line " +
-                                              (this.yylineno + 1) +
-                                              ". Unrecognized text.\n" +
-                                              this.showPosition(),
-                                          {
-                                              text: "",
-                                              token: null,
-                                              line: this.yylineno,
-                                          },
-                                      );
+                                      ? this.EOF
+                                      : this.parseError(
+                                            "Lexical error on line " +
+                                                (this.yylineno + 1) +
+                                                ". Unrecognized text.\n" +
+                                                this.showPosition(),
+                                            {
+                                                text: "",
+                                                token: null,
+                                                line: this.yylineno,
+                                            },
+                                        );
                             },
                             lex: function () {
                                 var t = this.next();
@@ -18744,20 +18834,20 @@ var __webpack_modules__ = {
                             2 === (s = Math.round(255 * s).toString(16)).length
                                 ? s
                                 : 1 === s.length
-                                ? "0" + s
-                                : "00"),
+                                  ? "0" + s
+                                  : "00"),
                         (r =
                             2 === (r = Math.round(255 * r).toString(16)).length
                                 ? r
                                 : 1 === r.length
-                                ? "0" + r
-                                : "00"),
+                                  ? "0" + r
+                                  : "00"),
                         (n =
                             2 === (n = Math.round(255 * n).toString(16)).length
                                 ? n
                                 : 1 === n.length
-                                ? "0" + n
-                                : "00"),
+                                  ? "0" + n
+                                  : "00"),
                     ].join("");
                 }),
                 (s.Z.rgb2hsv = function (t, e, i) {
@@ -19441,15 +19531,15 @@ var __webpack_modules__ = {
                                       .getComputedStyle(t, null)
                                       .getPropertyValue(e))
                                 : t.currentStyle && s.Z.ieVersion >= 9
-                                ? (i = t.currentStyle[e])
-                                : t.style &&
-                                  ((e = e.replace(
-                                      /-([a-z]|[0-9])/gi,
-                                      function (t, e) {
-                                          return e.toUpperCase();
-                                      },
-                                  )),
-                                  (i = t.style[e])),
+                                  ? (i = t.currentStyle[e])
+                                  : t.style &&
+                                    ((e = e.replace(
+                                        /-([a-z]|[0-9])/gi,
+                                        function (t, e) {
+                                            return e.toUpperCase();
+                                        },
+                                    )),
+                                    (i = t.style[e])),
                             i
                         );
                     },
@@ -19491,11 +19581,11 @@ var __webpack_modules__ = {
                             0 === o.indexOf("matrix")
                                 ? ((t[0] += l[4]), (t[1] += l[5]))
                                 : 0 === o.indexOf("translateX")
-                                ? (t[0] += l[0])
-                                : 0 === o.indexOf("translateY")
-                                ? (t[1] += l[0])
-                                : 0 === o.indexOf("translate") &&
-                                  ((t[0] += l[0]), (t[1] += l[1]));
+                                  ? (t[0] += l[0])
+                                  : 0 === o.indexOf("translateY")
+                                    ? (t[1] += l[0])
+                                    : 0 === o.indexOf("translate") &&
+                                      ((t[0] += l[0]), (t[1] += l[1]));
                         }
                         return (
                             r.Z.exists(e.style.zoom) &&
@@ -19561,11 +19651,11 @@ var __webpack_modules__ = {
                                       [0, h[2], h[3]],
                                   ])
                                 : 0 === s.indexOf("scaleX")
-                                ? (u[1][1] = h[0])
-                                : 0 === s.indexOf("scaleY")
-                                ? (u[2][2] = h[0])
-                                : 0 === s.indexOf("scale") &&
-                                  ((u[1][1] = h[0]), (u[2][2] = h[1]));
+                                  ? (u[1][1] = h[0])
+                                  : 0 === s.indexOf("scaleY")
+                                    ? (u[2][2] = h[0])
+                                    : 0 === s.indexOf("scale") &&
+                                      ((u[1][1] = h[0]), (u[2][2] = h[1]));
                         }
                         return (
                             r.Z.exists(t.style.zoom) &&
@@ -19934,12 +20024,12 @@ var __webpack_modules__ = {
                                 ? (d.push(t.create("point", e[o], h)),
                                   (d[d.length - 1]._is_new = !0))
                                 : this.isFunction(e[o])
-                                ? ((l = e[o]()),
-                                  this.isArray(l) &&
-                                      l.length > 1 &&
-                                      (d.push(t.create("point", [e[o]], h)),
-                                      (d[d.length - 1]._is_new = !0)))
-                                : d.push(t.select(e[o])),
+                                  ? ((l = e[o]()),
+                                    this.isArray(l) &&
+                                        l.length > 1 &&
+                                        (d.push(t.create("point", [e[o]], h)),
+                                        (d[d.length - 1]._is_new = !0)))
+                                  : d.push(t.select(e[o])),
                             !this.isPoint(d[o]))
                         )
                             return !1;
@@ -19980,12 +20070,12 @@ var __webpack_modules__ = {
                                 ? (d.push(t.create("point3d", e[o], h)),
                                   (d[d.length - 1]._is_new = !0))
                                 : this.isFunction(e[o])
-                                ? ((l = e[o]()),
-                                  this.isArray(l) &&
-                                      l.length > 1 &&
-                                      (d.push(t.create("point3d", [e[o]], h)),
-                                      (d[d.length - 1]._is_new = !0)))
-                                : d.push(t.select(e[o])),
+                                  ? ((l = e[o]()),
+                                    this.isArray(l) &&
+                                        l.length > 1 &&
+                                        (d.push(t.create("point3d", [e[o]], h)),
+                                        (d[d.length - 1]._is_new = !0)))
+                                  : d.push(t.select(e[o])),
                             !this.isPoint3D(d[o]))
                         )
                             return !1;
@@ -20110,10 +20200,10 @@ var __webpack_modules__ = {
                     return e >= 0.1
                         ? this.toFixed(t, 2)
                         : e >= 0.01
-                        ? this.toFixed(t, 4)
-                        : e >= 1e-4
-                        ? this.toFixed(t, 6)
-                        : t;
+                          ? this.toFixed(t, 4)
+                          : e >= 1e-4
+                            ? this.toFixed(t, 6)
+                            : t;
                 },
                 keys: function (t, e) {
                     var i,
@@ -20712,16 +20802,16 @@ var __webpack_exports__ = {};
             return (s = t < 0 ? -t : t) < 1
                 ? 1 - this.erf(t)
                 : (o = -t * t) < -this.MAXLOG
-                ? this._underflow(t)
-                : ((o = this.expx2(t, -1)),
-                  s < 8
-                      ? ((e = this.polevl(s, this.P, 8)),
-                        (i = this.p1evl(s, this.Q, 8)))
-                      : ((e = this.polevl(s, this.R, 5)),
-                        (i = this.p1evl(s, this.S, 6))),
-                  (r = (o * e) / i),
-                  t < 0 && (r = 2 - r),
-                  0 === r ? this._underflow(t) : r);
+                  ? this._underflow(t)
+                  : ((o = this.expx2(t, -1)),
+                    s < 8
+                        ? ((e = this.polevl(s, this.P, 8)),
+                          (i = this.p1evl(s, this.Q, 8)))
+                        : ((e = this.polevl(s, this.R, 5)),
+                          (i = this.p1evl(s, this.S, 6))),
+                    (r = (o * e) / i),
+                    t < 0 && (r = 2 - r),
+                    0 === r ? this._underflow(t) : r);
         },
         erfce: function (t) {
             var e, i;
@@ -20776,27 +20866,27 @@ var __webpack_exports__ = {};
             return t <= 0
                 ? -1 / 0
                 : t >= 1
-                ? 1 / 0
-                : ((o = 1),
-                  (i = t) > 0.8646647167633873 && ((i = 1 - i), (o = 0)),
-                  i > 0.1353352832366127
-                      ? ((e =
-                            (i -= 0.5) +
-                            i *
-                                (((r = i * i) * this.polevl(r, this.P0, 4)) /
-                                    this.p1evl(r, this.Q0, 8))),
-                        (e *= this.s2pi))
-                      : ((s = 1 / (e = Math.sqrt(-2 * Math.log(i)))),
-                        (e =
-                            e -
-                            Math.log(e) / e -
-                            (e < 8
-                                ? (s * this.polevl(s, this.P1, 8)) /
-                                  this.p1evl(s, this.Q1, 8)
-                                : (s * this.polevl(s, this.P2, 8)) /
-                                  this.p1evl(s, this.Q2, 8))),
-                        0 !== o && (e = -e),
-                        e));
+                  ? 1 / 0
+                  : ((o = 1),
+                    (i = t) > 0.8646647167633873 && ((i = 1 - i), (o = 0)),
+                    i > 0.1353352832366127
+                        ? ((e =
+                              (i -= 0.5) +
+                              i *
+                                  (((r = i * i) * this.polevl(r, this.P0, 4)) /
+                                      this.p1evl(r, this.Q0, 8))),
+                          (e *= this.s2pi))
+                        : ((s = 1 / (e = Math.sqrt(-2 * Math.log(i)))),
+                          (e =
+                              e -
+                              Math.log(e) / e -
+                              (e < 8
+                                  ? (s * this.polevl(s, this.P1, 8)) /
+                                    this.p1evl(s, this.Q1, 8)
+                                  : (s * this.polevl(s, this.P2, 8)) /
+                                    this.p1evl(s, this.Q2, 8))),
+                          0 !== o && (e = -e),
+                          e));
         },
         erfi: function (t) {
             return this.ndtri(0.5 * (t + 1)) * this.SQRTH;
@@ -21571,8 +21661,8 @@ var __webpack_exports__ = {};
                             0 === u || f < d
                                 ? ((d = f), (j = $), (u = 3))
                                 : $ > j
-                                ? ((j = $), (u = 3))
-                                : --u,
+                                  ? ((j = $), (u = 3))
+                                  : --u,
                             0 === u)
                         )
                             break t;
@@ -22234,11 +22324,11 @@ var __webpack_exports__ = {};
                                     h,
                                 )
                               : n <= _ || u
-                              ? this._insertPoint_v2(t, f, h)
-                              : (this._plotRecursive_v2(t, e, s, l, h, n, a),
-                                isNaN(f.scrCoords[1] + f.scrCoords[2]) ||
-                                    this._insertPoint_v2(t, f, h),
-                                this._plotRecursive_v2(t, l, h, r, o, n, a))),
+                                ? this._insertPoint_v2(t, f, h)
+                                : (this._plotRecursive_v2(t, e, s, l, h, n, a),
+                                  isNaN(f.scrCoords[1] + f.scrCoords[2]) ||
+                                      this._insertPoint_v2(t, f, h),
+                                  this._plotRecursive_v2(t, l, h, r, o, n, a))),
                       this);
         },
         updateParametricCurve_v2: function (t, e, r) {
@@ -22507,8 +22597,8 @@ var __webpack_exports__ = {};
                 "border" === a
                     ? (l = this._getBorderPos(t, e, i, s, r, o, n))
                     : "cusp" === a
-                    ? (l = this._getCuspPos(t, e, o))
-                    : "jump" === a && (l = this._getJumpPos(t, e, o)),
+                      ? (l = this._getCuspPos(t, e, o))
+                      : "jump" === a && (l = this._getJumpPos(t, e, o)),
                 this._getLimits(t, l)
             );
         },
@@ -22565,16 +22655,16 @@ var __webpack_exports__ = {};
                     (l && !c) || (!l && c)
                         ? (v = "border")
                         : h[0] > 0.66 * f ||
-                          h[0] < this.cusp_threshold * (h[1] + h[2]) ||
-                          h[1] > 5 * h[2] ||
-                          h[2] > 5 * h[1]
-                        ? (v = "cusp")
-                        : (h[2] > this.jump_threshold * h[0] ||
-                              h[1] > this.jump_threshold * h[0] ||
-                              h[0] === 1 / 0 ||
-                              h[1] === 1 / 0 ||
-                              h[2] === 1 / 0) &&
-                          (v = "jump"),
+                            h[0] < this.cusp_threshold * (h[1] + h[2]) ||
+                            h[1] > 5 * h[2] ||
+                            h[2] > 5 * h[1]
+                          ? (v = "cusp")
+                          : (h[2] > this.jump_threshold * h[0] ||
+                                h[1] > this.jump_threshold * h[0] ||
+                                h[0] === 1 / 0 ||
+                                h[1] === 1 / 0 ||
+                                h[2] === 1 / 0) &&
+                            (v = "jump"),
                     (m =
                         "" === v &&
                         _ < this.smoothLevel &&
@@ -22588,9 +22678,9 @@ var __webpack_exports__ = {};
                         ? ((a = [1, NaN, NaN]),
                           this._insertPoint(t, a, n, _, g))
                         : _ <= 0 || m
-                        ? this._insertPoint(t, a, n, _, null)
-                        : ((Z[C++] = [a, n, s, r, _ - 1, h[0]]),
-                          (Z[C++] = [e, i, a, n, _ - 1, h[0]]));
+                          ? this._insertPoint(t, a, n, _, null)
+                          : ((Z[C++] = [a, n, s, r, _ - 1, h[0]]),
+                            (Z[C++] = [e, i, a, n, _ - 1, h[0]]));
             }
             return this;
         },
@@ -22774,13 +22864,13 @@ var __webpack_exports__ = {};
                   (c.y = h[0]),
                   c)
                 : e > n - 6
-                ? ((c.type = "borderright"),
-                  (c.idx = l - 1),
-                  (c.t = s[l - 1]),
-                  (c.x = a[l - 1]),
-                  (c.y = h[l - 1]),
-                  c)
-                : c;
+                  ? ((c.type = "borderright"),
+                    (c.idx = l - 1),
+                    (c.t = s[l - 1]),
+                    (c.x = a[l - 1]),
+                    (c.y = h[l - 1]),
+                    c)
+                  : c;
         },
         newtonApprox: function (t, e, i, s, r) {
             var o,
@@ -23030,8 +23120,8 @@ var __webpack_exports__ = {};
                 "borderleft" === i.type
                     ? (h = (a = n = e.left_isNaN ? e.left_t : i.t - g) + g)
                     : "borderright" === i.type
-                    ? (a = (h = n = e.right_isNaN ? e.right_t : i.t + g) - g)
-                    : console.log("No bordercase!!!"),
+                      ? (a = (h = n = e.right_isNaN ? e.right_t : i.t + g) - g)
+                      : console.log("No bordercase!!!"),
                 0 !== (f = this.findComponents(t, a, h, 32)).length)
             ) {
                 for (
@@ -23153,8 +23243,8 @@ var __webpack_exports__ = {};
                 s.Z.isObject(l)
                     ? ((p = l.lo), (_ = l.hi))
                     : o[0][g - 1] < o[0][g + 1]
-                    ? ((p = o[0][g - 1]), (_ = o[0][g + 1]))
-                    : ((p = o[0][g + 1]), (_ = o[0][g - 1])),
+                      ? ((p = o[0][g - 1]), (_ = o[0][g + 1]))
+                      : ((p = o[0][g + 1]), (_ = o[0][g - 1])),
                 (u = t.X(n, !0)),
                 (f =
                     (o[0][g - 3] - o[0][g - 5]) /
@@ -23167,29 +23257,29 @@ var __webpack_exports__ = {};
                     ? (this._insertPoint_v4(t, [1, u, p], n, !0),
                       b <= m && this._insertPoint_v4(t, [1, NaN, NaN], n))
                     : f > m
-                    ? (this._insertPoint_v4(t, [1, u, _], n),
-                      b >= -100 && this._insertPoint_v4(t, [1, NaN, NaN], n))
-                    : (p === -1 / 0 &&
-                          (this._insertPoint_v4(t, [1, u, p], n, !0),
-                          this._insertPoint_v4(t, [1, NaN, NaN], n)),
-                      _ === 1 / 0 &&
-                          (this._insertPoint_v4(t, [1, NaN, NaN], n),
-                          this._insertPoint_v4(t, [1, u, _], n, !0)),
-                      i.t < e.t_values[g]
-                          ? ((c = g - 1), (d = g))
-                          : ((c = g), (d = g + 1)),
-                      (a = e.t_values[c]),
-                      (h = e.t_values[d]),
-                      this._recurse_v4(
-                          t,
-                          a,
-                          h,
-                          r[0][c],
-                          o[0][c],
-                          r[0][d],
-                          o[0][d],
-                          10,
-                      )),
+                      ? (this._insertPoint_v4(t, [1, u, _], n),
+                        b >= -100 && this._insertPoint_v4(t, [1, NaN, NaN], n))
+                      : (p === -1 / 0 &&
+                            (this._insertPoint_v4(t, [1, u, p], n, !0),
+                            this._insertPoint_v4(t, [1, NaN, NaN], n)),
+                        _ === 1 / 0 &&
+                            (this._insertPoint_v4(t, [1, NaN, NaN], n),
+                            this._insertPoint_v4(t, [1, u, _], n, !0)),
+                        i.t < e.t_values[g]
+                            ? ((c = g - 1), (d = g))
+                            : ((c = g), (d = g + 1)),
+                        (a = e.t_values[c]),
+                        (h = e.t_values[d]),
+                        this._recurse_v4(
+                            t,
+                            a,
+                            h,
+                            r[0][c],
+                            o[0][c],
+                            r[0][d],
+                            o[0][d],
+                            10,
+                        )),
                 b < -100
                     ? this._insertPoint_v4(t, [1, u, _], n)
                     : b > m && this._insertPoint_v4(t, [1, u, p], n);
@@ -23285,27 +23375,27 @@ var __webpack_exports__ = {};
                                                 g + C - E,
                                             )
                                       : (m = l.Z.fminbr(y, [g, g + C])) <
-                                        (v = l.Z.fminbr(P, [g, g + C]))
-                                      ? (this._insertPoint_v4(
-                                            t,
-                                            [1, t.X(m, !0), t.Y(m, !0)],
-                                            m,
-                                        ),
-                                        this._insertPoint_v4(
-                                            t,
-                                            [1, t.X(v, !0), t.Y(v, !0)],
-                                            v,
-                                        ))
-                                      : (this._insertPoint_v4(
-                                            t,
-                                            [1, t.X(v, !0), t.Y(v, !0)],
-                                            v,
-                                        ),
-                                        this._insertPoint_v4(
-                                            t,
-                                            [1, t.X(m, !0), t.Y(m, !0)],
-                                            m,
-                                        )))
+                                          (v = l.Z.fminbr(P, [g, g + C]))
+                                        ? (this._insertPoint_v4(
+                                              t,
+                                              [1, t.X(m, !0), t.Y(m, !0)],
+                                              m,
+                                          ),
+                                          this._insertPoint_v4(
+                                              t,
+                                              [1, t.X(v, !0), t.Y(v, !0)],
+                                              v,
+                                          ))
+                                        : (this._insertPoint_v4(
+                                              t,
+                                              [1, t.X(v, !0), t.Y(v, !0)],
+                                              v,
+                                          ),
+                                          this._insertPoint_v4(
+                                              t,
+                                              [1, t.X(m, !0), t.Y(m, !0)],
+                                              m,
+                                          )))
                                 : 0;
                     u < d.length &&
                         ((o = d[u].idx),
@@ -23759,12 +23849,12 @@ var __webpack_exports__ = {};
                                 ? ((i[o].rtype = this.MP_CURL),
                                   i[o].set_right_curl(a))
                                 : o === r - 1
-                                ? ((i[o].ltype = this.MP_CURL),
-                                  i[o].set_left_curl(a))
-                                : ((i[o].ltype = this.MP_CURL),
-                                  (i[o].rtype = this.MP_CURL),
-                                  (i[o].lx = a),
-                                  (i[o].rx = a));
+                                  ? ((i[o].ltype = this.MP_CURL),
+                                    i[o].set_left_curl(a))
+                                  : ((i[o].ltype = this.MP_CURL),
+                                    (i[o].rtype = this.MP_CURL),
+                                    (i[o].lx = a),
+                                    (i[o].rx = a));
                     s.Z.exists(h.direction) &&
                         ((a = s.Z.evaluate(h.direction)),
                         s.Z.isArray(a)
@@ -24226,11 +24316,11 @@ var __webpack_exports__ = {};
                     (i = t.charCodeAt(e)) < 128
                         ? (s += String.fromCharCode(i))
                         : i > 127 && i < 2048
-                        ? ((s += String.fromCharCode((i >> 6) | 192)),
-                          (s += String.fromCharCode((63 & i) | 128)))
-                        : ((s += String.fromCharCode((i >> 12) | 224)),
-                          (s += String.fromCharCode(((i >> 6) & 63) | 128)),
-                          (s += String.fromCharCode((63 & i) | 128)));
+                          ? ((s += String.fromCharCode((i >> 6) | 192)),
+                            (s += String.fromCharCode((63 & i) | 128)))
+                          : ((s += String.fromCharCode((i >> 12) | 224)),
+                            (s += String.fromCharCode(((i >> 6) & 63) | 128)),
+                            (s += String.fromCharCode((63 & i) | 128)));
                 return s;
             },
             decode: function (t) {
@@ -24622,8 +24712,8 @@ var __webpack_exports__ = {};
                     return "underscore" === r
                         ? i + "_{" + t + "}"
                         : "brace" === r
-                        ? i + "[" + t + "]"
-                        : i + t;
+                          ? i + "[" + t + "]"
+                          : i + t;
                 };
             for (n in ((t.listOfFreePoints = []),
             (t.listOfDependantPoints = []),
@@ -24756,8 +24846,8 @@ var __webpack_exports__ = {};
                             s.Z.isInArray(t.listOfFreePoints, v.to10.id)
                                 ? v.to10
                                 : t.listOfFreePoints[0].id === a.id
-                                ? t.listOfFreePoints[1]
-                                : t.listOfFreePoints[0],
+                                  ? t.listOfFreePoints[1]
+                                  : t.listOfFreePoints[0],
                             T = u.Z.rad(
                                 [1, 0],
                                 [0, 0],
@@ -25205,8 +25295,8 @@ var __webpack_exports__ = {};
                     ? "left"
                     : "right"
                 : r >= 0 || o >= 0
-                ? "left"
-                : "right";
+                  ? "left"
+                  : "right";
         },
         _classifyDegenerateIntersections: function (t) {
             var e,
@@ -25263,14 +25353,15 @@ var __webpack_exports__ = {};
                             ? u.Z.affineRatio(t.coords.usrCoords, i, n) < 0 &&
                               (p = !0)
                             : 0 === f
-                            ? u.Z.affineRatio(t.coords.usrCoords, e, r) < 0 &&
-                              (p = !0)
-                            : 0 === b
-                            ? u.Z.affineRatio(t.coords.usrCoords, i, r) > 0 &&
-                              (p = !0)
-                            : 0 === g &&
-                              u.Z.affineRatio(t.coords.usrCoords, e, n) > 0 &&
-                              (p = !0),
+                              ? u.Z.affineRatio(t.coords.usrCoords, e, r) < 0 &&
+                                (p = !0)
+                              : 0 === b
+                                ? u.Z.affineRatio(t.coords.usrCoords, i, r) >
+                                      0 && (p = !0)
+                                : 0 === g &&
+                                  u.Z.affineRatio(t.coords.usrCoords, e, n) >
+                                      0 &&
+                                  (p = !0),
                         p &&
                             ((c = n),
                             (n = r),
@@ -25285,31 +25376,31 @@ var __webpack_exports__ = {};
                         0 === _ && 0 === f
                             ? (t.delayedStatus = ["on", "on"])
                             : 0 === _
-                            ? ((h = this._getPosition(
-                                  e,
-                                  n,
-                                  a.coords.usrCoords,
-                                  r,
-                              )),
-                              (t.delayedStatus = ["on", h]))
-                            : 0 === f
-                            ? ((h = this._getPosition(
-                                  i,
-                                  n,
-                                  a.coords.usrCoords,
-                                  r,
-                              )),
-                              (t.delayedStatus = [h, "on"]))
-                            : 0 === t.delayedStatus.length &&
-                              (this._getPosition(
-                                  i,
-                                  n,
-                                  a.coords.usrCoords,
-                                  r,
-                              ) !==
-                              this._getPosition(e, n, a.coords.usrCoords, r)
-                                  ? (t.data.type = "X")
-                                  : (t.data.type = "B"))),
+                              ? ((h = this._getPosition(
+                                    e,
+                                    n,
+                                    a.coords.usrCoords,
+                                    r,
+                                )),
+                                (t.delayedStatus = ["on", h]))
+                              : 0 === f
+                                ? ((h = this._getPosition(
+                                      i,
+                                      n,
+                                      a.coords.usrCoords,
+                                      r,
+                                  )),
+                                  (t.delayedStatus = [h, "on"]))
+                                : 0 === t.delayedStatus.length &&
+                                  (this._getPosition(
+                                      i,
+                                      n,
+                                      a.coords.usrCoords,
+                                      r,
+                                  ) !==
+                                  this._getPosition(e, n, a.coords.usrCoords, r)
+                                      ? (t.data.type = "X")
+                                      : (t.data.type = "B"))),
                     s.Z.exists(t._tours) && t._tours++,
                     t._tours > 3 || t._end || l > 1e3)
                 ) {
@@ -25338,17 +25429,18 @@ var __webpack_exports__ = {};
                         "on" === t.delayedStatus[1]
                             ? ((r = !0), (e = t), (s = t.delayedStatus[0]))
                             : r &&
-                              "on" === t.delayedStatus[0] &&
-                              "on" === t.delayedStatus[1]
-                            ? (t.data.type = "B")
-                            : r &&
-                              "on" === t.delayedStatus[0] &&
-                              "on" !== t.delayedStatus[1] &&
-                              ((r = !1),
-                              s === t.delayedStatus[1]
-                                  ? ((e.data.type = "DB"), (t.data.type = "DB"))
-                                  : ((e.data.type = "DX"),
-                                    (t.data.type = "DX")))),
+                                "on" === t.delayedStatus[0] &&
+                                "on" === t.delayedStatus[1]
+                              ? (t.data.type = "B")
+                              : r &&
+                                "on" === t.delayedStatus[0] &&
+                                "on" !== t.delayedStatus[1] &&
+                                ((r = !1),
+                                s === t.delayedStatus[1]
+                                    ? ((e.data.type = "DB"),
+                                      (t.data.type = "DB"))
+                                    : ((e.data.type = "DX"),
+                                      (t.data.type = "DX")))),
                     i++),
                     t._end && (o = !0),
                     !o || r;
@@ -25473,20 +25565,20 @@ var __webpack_exports__ = {};
                             (0 === u
                                 ? ((d = o), (u = 1))
                                 : 1 === u
-                                ? ((o.entry_exit = r),
-                                  (d.entry_exit = r),
-                                  "exit" === r
-                                      ? (d.data.type = "X")
-                                      : (o.data.type = "X"),
-                                  (r = "entry" === r ? "exit" : "entry"),
-                                  (d = null),
-                                  (u = 0))
-                                : 2 === u &&
-                                  ((o.entry_exit = r),
-                                  (o.data.type = "X"),
-                                  (r = "entry" === r ? "exit" : "entry"),
-                                  (d = null),
-                                  (u = 0)))),
+                                  ? ((o.entry_exit = r),
+                                    (d.entry_exit = r),
+                                    "exit" === r
+                                        ? (d.data.type = "X")
+                                        : (o.data.type = "X"),
+                                    (r = "entry" === r ? "exit" : "entry"),
+                                    (d = null),
+                                    (u = 0))
+                                  : 2 === u &&
+                                    ((o.entry_exit = r),
+                                    (o.data.type = "X"),
+                                    (r = "entry" === r ? "exit" : "entry"),
+                                    (d = null),
+                                    (u = 0)))),
                         (o = o._next),
                         !(s.Z.exists(o._starter) || n > 1e4);
 
@@ -25659,14 +25751,14 @@ var __webpack_exports__ = {};
                           ("difference" !== i && "intersection" !== i) ||
                               ((n = n.concat(e)).push(e[0]), (o = !1)))
                         : "difference" === i
-                        ? ((n = n.concat(t)), (o = !0))
-                        : "union" === i &&
-                          ((n = n.concat(t)).push(t[0]),
-                          n.push([NaN, NaN]),
-                          (n = n.concat(e)).push(e[0]))
+                          ? ((n = n.concat(t)), (o = !0))
+                          : "union" === i &&
+                            ((n = n.concat(t)).push(t[0]),
+                            n.push([NaN, NaN]),
+                            (n = n.concat(e)).push(e[0]))
                     : "intersection" === i
-                    ? ((n = n.concat(t)), (o = !0))
-                    : "union" === i && (n = n.concat(e)).push(e[0]),
+                      ? ((n = n.concat(t)), (o = !0))
+                      : "union" === i && (n = n.concat(e)).push(e[0]),
                 this._getCoordsArrays(n, o)
             );
         },
@@ -25726,13 +25818,13 @@ var __webpack_exports__ = {};
                         s.Z.exists(t[r].coords)
                             ? this._addToList(p, t[r].coords, r)
                             : s.Z.isArray(t[r])
-                            ? this._addToList(
-                                  p,
-                                  new c.Z(i.Z.COORDS_BY_USER, t[r], e),
-                                  r,
-                              )
-                            : s.Z.exists(t[r].usrCoords) &&
-                              this._addToList(p, t[r], r);
+                              ? this._addToList(
+                                    p,
+                                    new c.Z(i.Z.COORDS_BY_USER, t[r], e),
+                                    r,
+                                )
+                              : s.Z.exists(t[r].usrCoords) &&
+                                this._addToList(p, t[r], r);
             } else {
                 for (
                     h = u.Z.rad(t.radiuspoint, t.center, t.anglepoint),
@@ -26119,18 +26211,18 @@ var __webpack_exports__ = {};
                               e,
                           )
                         : "[]" === r
-                        ? this.updateRectPrim(
-                              t.rendNode,
-                              t.coords.scrCoords[1] - i,
-                              t.coords.scrCoords[2] - i,
-                              2 * i,
-                              2 * i,
-                          )
-                        : this.updatePathPrim(
-                              t.rendNode,
-                              this.updatePathStringPoint(t, i, r),
-                              t.board,
-                          ),
+                          ? this.updateRectPrim(
+                                t.rendNode,
+                                t.coords.scrCoords[1] - i,
+                                t.coords.scrCoords[2] - i,
+                                2 * i,
+                                2 * i,
+                            )
+                          : this.updatePathPrim(
+                                t.rendNode,
+                                this.updatePathStringPoint(t, i, r),
+                                t.board,
+                            ),
                     this._updateVisual(t, { dash: !1, shadow: !1 }),
                     this.setShadow(t));
             },
@@ -26205,13 +26297,13 @@ var __webpack_exports__ = {};
                         ((n = s.Z.exists(f.type)
                             ? s.Z.evaluate(f.type)
                             : t.elementClass === i.Z.OBJECT_CLASS_LINE
-                            ? 1
-                            : 7),
+                              ? 1
+                              : 7),
                         (a = s.Z.exists(b.type)
                             ? s.Z.evaluate(b.type)
                             : t.elementClass === i.Z.OBJECT_CLASS_LINE
-                            ? 1
-                            : 7),
+                              ? 1
+                              : 7),
                         f &&
                             ((l = 6),
                             s.Z.exists(f.size) && (l = s.Z.evaluate(f.size)),
@@ -26222,12 +26314,12 @@ var __webpack_exports__ = {};
                             2 === n
                                 ? ((h *= 0.5), (c += e * l))
                                 : 3 === n
-                                ? ((h = (e * l) / 3), (c += e))
-                                : 4 === n || 5 === n || 6 === n
-                                ? ((h = (e * l) / 1.5), (c += e * l))
-                                : 7 === n
-                                ? ((h = 0), (l = 10), (c += e))
-                                : (c += e * l),
+                                  ? ((h = (e * l) / 3), (c += e))
+                                  : 4 === n || 5 === n || 6 === n
+                                    ? ((h = (e * l) / 1.5), (c += e * l))
+                                    : 7 === n
+                                      ? ((h = 0), (l = 10), (c += e))
+                                      : (c += e * l),
                             (d += h),
                             (p = l)),
                         b &&
@@ -26240,12 +26332,12 @@ var __webpack_exports__ = {};
                             2 === a
                                 ? ((h *= 0.5), (c += e * l))
                                 : 3 === a
-                                ? ((h = (e * l) / 3), (c += e))
-                                : 4 === a || 5 === a || 6 === a
-                                ? ((h = (e * l) / 1.5), (c += e * l))
-                                : 7 === a
-                                ? ((h = 0), (l = 10), (c += e))
-                                : (c += e * l),
+                                  ? ((h = (e * l) / 3), (c += e))
+                                  : 4 === a || 5 === a || 6 === a
+                                    ? ((h = (e * l) / 1.5), (c += e * l))
+                                    : 7 === a
+                                      ? ((h = 0), (l = 10), (c += e))
+                                      : (c += e * l),
                             (u += h),
                             (_ = l))),
                     (t.visPropCalc.typeFirst = n),
@@ -26515,8 +26607,8 @@ var __webpack_exports__ = {};
                                     "right" === (d = i.getAnchorX())
                                         ? i.board.canvasWidth - o
                                         : "middle" === d
-                                        ? o - 0.5 * i.size[0]
-                                        : o),
+                                          ? o - 0.5 * i.size[0]
+                                          : o),
                                 i.visPropOld.left !== d + r &&
                                     ("right" === d
                                         ? ((i.rendNode.style.right = r + "px"),
@@ -26530,8 +26622,8 @@ var __webpack_exports__ = {};
                                     "bottom" === (u = i.getAnchorY())
                                         ? i.board.canvasHeight - o
                                         : "middle" === u
-                                        ? o - 0.5 * i.size[1]
-                                        : o),
+                                          ? o - 0.5 * i.size[1]
+                                          : o),
                                 i.visPropOld.top !== u + r &&
                                     ("bottom" === u
                                         ? ((i.rendNode.style.top = "auto"),
@@ -26545,9 +26637,9 @@ var __webpack_exports__ = {};
                                 i.type === s.Z.OBJECT_TYPE_BUTTON
                                     ? (i.rendNodeButton.innerHTML = p)
                                     : i.type === s.Z.OBJECT_TYPE_CHECKBOX ||
-                                      i.type === s.Z.OBJECT_TYPE_INPUT
-                                    ? (i.rendNodeLabel.innerHTML = p)
-                                    : (i.rendNode.innerHTML = p);
+                                        i.type === s.Z.OBJECT_TYPE_INPUT
+                                      ? (i.rendNodeLabel.innerHTML = p)
+                                      : (i.rendNode.innerHTML = p);
                             } catch (t) {
                                 (n = i.rendNode.parentNode),
                                     i.rendNode.parentNode.removeChild(
@@ -26855,22 +26947,22 @@ var __webpack_exports__ = {};
                         t.elementClass === i.Z.OBJECT_CLASS_TEXT
                             ? this.updateTextStyle(t, !0)
                             : t.type === i.Z.OBJECT_TYPE_IMAGE
-                            ? (this.updateImageStyle(t, !0),
-                              this.setObjectFillColor(
-                                  t,
-                                  o.highlightfillcolor,
-                                  o.highlightfillopacity,
-                              ))
-                            : (this.setObjectStrokeColor(
-                                  t,
-                                  o.highlightstrokecolor,
-                                  o.highlightstrokeopacity,
-                              ),
-                              this.setObjectFillColor(
-                                  t,
-                                  o.highlightfillcolor,
-                                  o.highlightfillopacity,
-                              ));
+                              ? (this.updateImageStyle(t, !0),
+                                this.setObjectFillColor(
+                                    t,
+                                    o.highlightfillcolor,
+                                    o.highlightfillopacity,
+                                ))
+                              : (this.setObjectStrokeColor(
+                                    t,
+                                    o.highlightstrokecolor,
+                                    o.highlightstrokeopacity,
+                                ),
+                                this.setObjectFillColor(
+                                    t,
+                                    o.highlightfillcolor,
+                                    o.highlightfillopacity,
+                                ));
                     o.highlightstrokewidth &&
                         ((r = Math.max(
                             s.Z.evaluate(o.highlightstrokewidth),
@@ -26911,22 +27003,22 @@ var __webpack_exports__ = {};
                         t.elementClass === i.Z.OBJECT_CLASS_TEXT
                             ? this.updateTextStyle(t, !1)
                             : t.type === i.Z.OBJECT_TYPE_IMAGE
-                            ? (this.updateImageStyle(t, !1),
-                              this.setObjectFillColor(
-                                  t,
-                                  o.fillcolor,
-                                  o.fillopacity,
-                              ))
-                            : (this.setObjectStrokeColor(
-                                  t,
-                                  o.strokecolor,
-                                  o.strokeopacity,
-                              ),
-                              this.setObjectFillColor(
-                                  t,
-                                  o.fillcolor,
-                                  o.fillopacity,
-                              ));
+                              ? (this.updateImageStyle(t, !1),
+                                this.setObjectFillColor(
+                                    t,
+                                    o.fillcolor,
+                                    o.fillopacity,
+                                ))
+                              : (this.setObjectStrokeColor(
+                                    t,
+                                    o.strokecolor,
+                                    o.strokeopacity,
+                                ),
+                                this.setObjectFillColor(
+                                    t,
+                                    o.fillcolor,
+                                    o.fillopacity,
+                                ));
                     (r = s.Z.evaluate(o.strokewidth)),
                         this.setObjectStrokeWidth(t, r),
                         (t.elementClass !== i.Z.OBJECT_CLASS_LINE &&
@@ -27450,62 +27542,62 @@ var __webpack_exports__ = {};
                                   "Z",
                               ]
                             : t.type === i.Z.OBJECT_TYPE_ANGLE
-                            ? [
-                                  "",
-                                  "&alpha;",
-                                  "&beta;",
-                                  "&gamma;",
-                                  "&delta;",
-                                  "&epsilon;",
-                                  "&zeta;",
-                                  "&eta;",
-                                  "&theta;",
-                                  "&iota;",
-                                  "&kappa;",
-                                  "&lambda;",
-                                  "&mu;",
-                                  "&nu;",
-                                  "&xi;",
-                                  "&omicron;",
-                                  "&pi;",
-                                  "&rho;",
-                                  "&sigma;",
-                                  "&tau;",
-                                  "&upsilon;",
-                                  "&phi;",
-                                  "&chi;",
-                                  "&psi;",
-                                  "&omega;",
-                              ]
-                            : [
-                                  "",
-                                  "a",
-                                  "b",
-                                  "c",
-                                  "d",
-                                  "e",
-                                  "f",
-                                  "g",
-                                  "h",
-                                  "i",
-                                  "j",
-                                  "k",
-                                  "l",
-                                  "m",
-                                  "n",
-                                  "o",
-                                  "p",
-                                  "q",
-                                  "r",
-                                  "s",
-                                  "t",
-                                  "u",
-                                  "v",
-                                  "w",
-                                  "x",
-                                  "y",
-                                  "z",
-                              ],
+                              ? [
+                                    "",
+                                    "&alpha;",
+                                    "&beta;",
+                                    "&gamma;",
+                                    "&delta;",
+                                    "&epsilon;",
+                                    "&zeta;",
+                                    "&eta;",
+                                    "&theta;",
+                                    "&iota;",
+                                    "&kappa;",
+                                    "&lambda;",
+                                    "&mu;",
+                                    "&nu;",
+                                    "&xi;",
+                                    "&omicron;",
+                                    "&pi;",
+                                    "&rho;",
+                                    "&sigma;",
+                                    "&tau;",
+                                    "&upsilon;",
+                                    "&phi;",
+                                    "&chi;",
+                                    "&psi;",
+                                    "&omega;",
+                                ]
+                              : [
+                                    "",
+                                    "a",
+                                    "b",
+                                    "c",
+                                    "d",
+                                    "e",
+                                    "f",
+                                    "g",
+                                    "h",
+                                    "i",
+                                    "j",
+                                    "k",
+                                    "l",
+                                    "m",
+                                    "n",
+                                    "o",
+                                    "p",
+                                    "q",
+                                    "r",
+                                    "s",
+                                    "t",
+                                    "u",
+                                    "v",
+                                    "w",
+                                    "x",
+                                    "y",
+                                    "z",
+                                ],
                         s.Z.isPoint(t) ||
                             t.elementClass === i.Z.OBJECT_CLASS_LINE ||
                             t.type === i.Z.OBJECT_TYPE_ANGLE ||
@@ -27513,10 +27605,10 @@ var __webpack_exports__ = {};
                                 t.type === i.Z.OBJECT_TYPE_POLYGON
                                     ? "P_{"
                                     : t.elementClass === i.Z.OBJECT_CLASS_CIRCLE
-                                    ? "k_{"
-                                    : t.elementClass === i.Z.OBJECT_CLASS_TEXT
-                                    ? "t_{"
-                                    : "s_{"),
+                                      ? "k_{"
+                                      : t.elementClass === i.Z.OBJECT_CLASS_TEXT
+                                        ? "t_{"
+                                        : "s_{"),
                             (a = "}")),
                         r = 0;
                     r < o;
@@ -28521,15 +28613,15 @@ var __webpack_exports__ = {};
                                         (_ = 0),
                                         (f = 0))
                                       : this.attr.zoom.pinchvertical &&
-                                        Math.abs(p - 0.5 * Math.PI) < b
-                                      ? ((this.attr.zoom.factorx = 1),
-                                        (this.attr.zoom.factory = a),
-                                        (_ = 0),
-                                        (f = 0))
-                                      : ((this.attr.zoom.factorx = a),
-                                        (this.attr.zoom.factory = a),
-                                        (_ = e.usrCoords[1]),
-                                        (f = e.usrCoords[2])),
+                                          Math.abs(p - 0.5 * Math.PI) < b
+                                        ? ((this.attr.zoom.factorx = 1),
+                                          (this.attr.zoom.factory = a),
+                                          (_ = 0),
+                                          (f = 0))
+                                        : ((this.attr.zoom.factorx = a),
+                                          (this.attr.zoom.factory = a),
+                                          (_ = e.usrCoords[1]),
+                                          (f = e.usrCoords[2])),
                                   this.zoomIn(_, f),
                                   (this.attr.zoom.factorx = m),
                                   (this.attr.zoom.factory = v))),
@@ -29247,13 +29339,13 @@ var __webpack_exports__ = {};
                             (s.Z.isPoint(u[o].obj)
                                 ? (h = c[0] && c[0].found)
                                 : u[o].obj.elementClass ===
-                                  i.Z.OBJECT_CLASS_LINE
-                                ? (h =
-                                      (c[0] && c[0].found) ||
-                                      (c[1] && c[1].found))
-                                : u[o].obj.elementClass ===
-                                      i.Z.OBJECT_CLASS_CIRCLE &&
-                                  (h = 1 === l || 3 === l),
+                                    i.Z.OBJECT_CLASS_LINE
+                                  ? (h =
+                                        (c[0] && c[0].found) ||
+                                        (c[1] && c[1].found))
+                                  : u[o].obj.elementClass ===
+                                        i.Z.OBJECT_CLASS_CIRCLE &&
+                                    (h = 1 === l || 3 === l),
                             h)
                         )
                             for (
@@ -29502,18 +29594,18 @@ var __webpack_exports__ = {};
                           38 === e.keyCode
                               ? this.clickUpArrow()
                               : 40 === e.keyCode
-                              ? this.clickDownArrow()
-                              : 37 === e.keyCode
-                              ? this.clickLeftArrow()
-                              : 39 === e.keyCode
-                              ? this.clickRightArrow()
-                              : f && 171 === e.keyCode
-                              ? this.zoomIn()
-                              : f && 173 === e.keyCode
-                              ? this.zoomOut()
-                              : f && 79 === e.keyCode
-                              ? this.zoom100()
-                              : (b = !1))
+                                ? this.clickDownArrow()
+                                : 37 === e.keyCode
+                                  ? this.clickLeftArrow()
+                                  : 39 === e.keyCode
+                                    ? this.clickRightArrow()
+                                    : f && 171 === e.keyCode
+                                      ? this.zoomIn()
+                                      : f && 173 === e.keyCode
+                                        ? this.zoomOut()
+                                        : f && 79 === e.keyCode
+                                          ? this.zoom100()
+                                          : (b = !1))
                         : (s.Z.exists(o.visProp) &&
                               (s.Z.exists(o.visProp.snaptogrid) &&
                               o.visProp.snaptogrid &&
@@ -29540,12 +29632,12 @@ var __webpack_exports__ = {};
                           38 === e.keyCode
                               ? (h = [0, _])
                               : 40 === e.keyCode
-                              ? (h = [0, -_])
-                              : 37 === e.keyCode
-                              ? (h = [-p, 0])
-                              : 39 === e.keyCode
-                              ? (h = [p, 0])
-                              : (b = !1),
+                                ? (h = [0, -_])
+                                : 37 === e.keyCode
+                                  ? (h = [-p, 0])
+                                  : 39 === e.keyCode
+                                    ? (h = [p, 0])
+                                    : (b = !1),
                           h &&
                               o.isDraggable &&
                               o.visPropCalc.visible &&
@@ -29740,9 +29832,9 @@ var __webpack_exports__ = {};
                                       ? ((e = s.Z.autoDigits(r)),
                                         (i = s.Z.autoDigits(o)))
                                       : s.Z.isNumber(n)
-                                      ? ((e = s.Z.toFixed(r, n)),
-                                        (i = s.Z.toFixed(o, n)))
-                                      : ((e = r), (i = o)),
+                                        ? ((e = s.Z.toFixed(r, n)),
+                                          (i = s.Z.toFixed(o, n)))
+                                        : ((e = r), (i = o)),
                                   this.highlightInfobox(e, i, t))
                                 : this.highlightCustomInfobox(t.infoboxText, t),
                             this.displayInfobox(!0))),
@@ -30642,11 +30734,13 @@ var __webpack_exports__ = {};
                                               g),
                                           (this.unitX = this.unitY * c))
                                     : _ > p
-                                    ? ((this.unitX = a / d),
-                                      (this.unitY = this.unitX / c))
-                                    : ((this.unitX =
-                                          (a / Math.abs(u)) * o.Z.sign(d) * g),
-                                      (this.unitY = this.unitX / c)),
+                                      ? ((this.unitX = a / d),
+                                        (this.unitY = this.unitX / c))
+                                      : ((this.unitX =
+                                            (a / Math.abs(u)) *
+                                            o.Z.sign(d) *
+                                            g),
+                                        (this.unitY = this.unitX / c)),
                                 (f = 0.5 * (a / this.unitX - d)),
                                 (b = 0.5 * (n / this.unitY - u)),
                                 (this.keepaspectratio = !0))
@@ -30868,8 +30962,8 @@ var __webpack_exports__ = {};
                     s.Z.exists(this.objects[a])
                         ? (a = this.objects[a])
                         : s.Z.exists(this.elementsByName[a])
-                        ? (a = this.elementsByName[a])
-                        : s.Z.exists(this.groups[a]) && (a = this.groups[a]);
+                          ? (a = this.elementsByName[a])
+                          : s.Z.exists(this.groups[a]) && (a = this.groups[a]);
                 else if (
                     !e &&
                     (s.Z.isFunction(a) ||
@@ -31106,13 +31200,13 @@ var __webpack_exports__ = {};
                     (void 0 !== o.fullscreenElement
                         ? o.fullscreenElement
                         : void 0 !== o.webkitFullscreenElement
-                        ? o.webkitFullscreenElement
-                        : o.msFullscreenElement)
+                          ? o.webkitFullscreenElement
+                          : o.msFullscreenElement)
                         ? i.requestFullscreen && i.requestFullscreen()
                         : s.Z.exists(document.exitFullscreen)
-                        ? document.exitFullscreen()
-                        : s.Z.exists(document.webkitExitFullscreen) &&
-                          document.webkitExitFullscreen(),
+                          ? document.exitFullscreen()
+                          : s.Z.exists(document.webkitExitFullscreen) &&
+                            document.webkitExitFullscreen(),
                     this
                 );
             },
@@ -31127,8 +31221,8 @@ var __webpack_exports__ = {};
                             void 0 !== n.fullscreenElement
                                 ? n.fullscreenElement
                                 : void 0 !== n.webkitFullscreenElement
-                                ? n.webkitFullscreenElement
-                                : n.msFullscreenElement),
+                                  ? n.webkitFullscreenElement
+                                  : n.msFullscreenElement),
                         (r = n.getElementById(i)),
                         o)
                     )
@@ -31284,11 +31378,11 @@ var __webpack_exports__ = {};
                                 c < -y && c > -P
                                     ? ((c = -y), m.applyOnce(n))
                                     : c > y && c < P
-                                    ? ((c = y), m.applyOnce(n))
-                                    : (g.applyOnce(n),
-                                      v.applyOnce(n),
-                                      (p = f),
-                                      (_ = b)),
+                                      ? ((c = y), m.applyOnce(n))
+                                      : (g.applyOnce(n),
+                                        v.applyOnce(n),
+                                        (p = f),
+                                        (_ = b)),
                                 a.update();
                         }),
                         (this.start = function () {
@@ -31515,55 +31609,55 @@ var __webpack_exports__ = {};
                                     "M 10,0 L 0,5 L 10,10 L 5,5 z",
                                 )
                               : 3 === r
-                              ? n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z",
-                                )
-                              : 4 === r
-                              ? ((h = 3.31),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0.00,3.31 C 3.53,3.84 7.13,4.50 10.00,6.63 C 9.33,5.52 8.67,4.42 8.00,3.31 C 8.67,2.21 9.33,1.10 10.00,0.00 C 7.13,2.13 3.53,2.79 0.00,3.31",
-                                ))
-                              : 5 === r
-                              ? ((h = 3.28),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0.00,3.28 C 3.39,4.19 6.81,5.07 10.00,6.55 C 9.38,5.56 9.00,4.44 9.00,3.28 C 9.00,2.11 9.38,0.99 10.00,0.00 C 6.81,1.49 3.39,2.37 0.00,3.28",
-                                ))
-                              : 6 === r
-                              ? ((h = 2.84),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0.00,2.84 C 3.39,3.59 6.79,4.35 10.00,5.68 C 9.67,4.73 9.33,3.78 9.00,2.84 C 9.33,1.89 9.67,0.95 10.00,0.00 C 6.79,1.33 3.39,2.09 0.00,2.84",
-                                ))
-                              : 7 === r
-                              ? ((h = 5.2),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0.00,5.20 C 4.04,5.20 7.99,6.92 10.00,10.39 M 10.00,0.00 C 7.99,3.47 4.04,5.20 0.00,5.20",
-                                ))
-                              : n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 10,0 L 0,5 L 10,10 z",
-                                ),
+                                ? n.setAttributeNS(
+                                      null,
+                                      "d",
+                                      "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z",
+                                  )
+                                : 4 === r
+                                  ? ((h = 3.31),
+                                    n.setAttributeNS(
+                                        null,
+                                        "d",
+                                        "M 0.00,3.31 C 3.53,3.84 7.13,4.50 10.00,6.63 C 9.33,5.52 8.67,4.42 8.00,3.31 C 8.67,2.21 9.33,1.10 10.00,0.00 C 7.13,2.13 3.53,2.79 0.00,3.31",
+                                    ))
+                                  : 5 === r
+                                    ? ((h = 3.28),
+                                      n.setAttributeNS(
+                                          null,
+                                          "d",
+                                          "M 0.00,3.28 C 3.39,4.19 6.81,5.07 10.00,6.55 C 9.38,5.56 9.00,4.44 9.00,3.28 C 9.00,2.11 9.38,0.99 10.00,0.00 C 6.81,1.49 3.39,2.37 0.00,3.28",
+                                      ))
+                                    : 6 === r
+                                      ? ((h = 2.84),
+                                        n.setAttributeNS(
+                                            null,
+                                            "d",
+                                            "M 0.00,2.84 C 3.39,3.59 6.79,4.35 10.00,5.68 C 9.67,4.73 9.33,3.78 9.00,2.84 C 9.33,1.89 9.67,0.95 10.00,0.00 C 6.79,1.33 3.39,2.09 0.00,2.84",
+                                        ))
+                                      : 7 === r
+                                        ? ((h = 5.2),
+                                          n.setAttributeNS(
+                                              null,
+                                              "d",
+                                              "M 0.00,5.20 C 4.04,5.20 7.99,6.92 10.00,10.39 M 10.00,0.00 C 7.99,3.47 4.04,5.20 0.00,5.20",
+                                          ))
+                                        : n.setAttributeNS(
+                                              null,
+                                              "d",
+                                              "M 10,0 L 0,5 L 10,10 z",
+                                          ),
                           t.elementClass === i.Z.OBJECT_CLASS_LINE &&
                               (a =
                                   2 === r
                                       ? 4.9
                                       : 3 === r
-                                      ? 3.3
-                                      : 4 === r || 5 === r || 6 === r
-                                      ? 6.66
-                                      : 7 === r
-                                      ? 0
-                                      : 10))
+                                        ? 3.3
+                                        : 4 === r || 5 === r || 6 === r
+                                          ? 6.66
+                                          : 7 === r
+                                            ? 0
+                                            : 10))
                         : ((a = 10),
                           2 === r
                               ? n.setAttributeNS(
@@ -31572,56 +31666,56 @@ var __webpack_exports__ = {};
                                     "M 0,0 L 10,5 L 0,10 L 5,5 z",
                                 )
                               : 3 === r
-                              ? ((a = 3.3),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z",
-                                ))
-                              : 4 === r
-                              ? ((h = 3.31),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 10.00,3.31 C 6.47,3.84 2.87,4.50 0.00,6.63 C 0.67,5.52 1.33,4.42 2.00,3.31 C 1.33,2.21 0.67,1.10 0.00,0.00 C 2.87,2.13 6.47,2.79 10.00,3.31",
-                                ))
-                              : 5 === r
-                              ? ((h = 3.28),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 10.00,3.28 C 6.61,4.19 3.19,5.07 0.00,6.55 C 0.62,5.56 1.00,4.44 1.00,3.28 C 1.00,2.11 0.62,0.99 0.00,0.00 C 3.19,1.49 6.61,2.37 10.00,3.28",
-                                ))
-                              : 6 === r
-                              ? ((h = 2.84),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 10.00,2.84 C 6.61,3.59 3.21,4.35 0.00,5.68 C 0.33,4.73 0.67,3.78 1.00,2.84 C 0.67,1.89 0.33,0.95 0.00,0.00 C 3.21,1.33 6.61,2.09 10.00,2.84",
-                                ))
-                              : 7 === r
-                              ? ((h = 5.2),
-                                n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 10.00,5.20 C 5.96,5.20 2.01,6.92 0.00,10.39 M 0.00,0.00 C 2.01,3.47 5.96,5.20 10.00,5.20",
-                                ))
-                              : n.setAttributeNS(
-                                    null,
-                                    "d",
-                                    "M 0,0 L 10,5 L 0,10 z",
-                                ),
+                                ? ((a = 3.3),
+                                  n.setAttributeNS(
+                                      null,
+                                      "d",
+                                      "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z",
+                                  ))
+                                : 4 === r
+                                  ? ((h = 3.31),
+                                    n.setAttributeNS(
+                                        null,
+                                        "d",
+                                        "M 10.00,3.31 C 6.47,3.84 2.87,4.50 0.00,6.63 C 0.67,5.52 1.33,4.42 2.00,3.31 C 1.33,2.21 0.67,1.10 0.00,0.00 C 2.87,2.13 6.47,2.79 10.00,3.31",
+                                    ))
+                                  : 5 === r
+                                    ? ((h = 3.28),
+                                      n.setAttributeNS(
+                                          null,
+                                          "d",
+                                          "M 10.00,3.28 C 6.61,4.19 3.19,5.07 0.00,6.55 C 0.62,5.56 1.00,4.44 1.00,3.28 C 1.00,2.11 0.62,0.99 0.00,0.00 C 3.19,1.49 6.61,2.37 10.00,3.28",
+                                      ))
+                                    : 6 === r
+                                      ? ((h = 2.84),
+                                        n.setAttributeNS(
+                                            null,
+                                            "d",
+                                            "M 10.00,2.84 C 6.61,3.59 3.21,4.35 0.00,5.68 C 0.33,4.73 0.67,3.78 1.00,2.84 C 0.67,1.89 0.33,0.95 0.00,0.00 C 3.21,1.33 6.61,2.09 10.00,2.84",
+                                        ))
+                                      : 7 === r
+                                        ? ((h = 5.2),
+                                          n.setAttributeNS(
+                                              null,
+                                              "d",
+                                              "M 10.00,5.20 C 5.96,5.20 2.01,6.92 0.00,10.39 M 0.00,0.00 C 2.01,3.47 5.96,5.20 10.00,5.20",
+                                          ))
+                                        : n.setAttributeNS(
+                                              null,
+                                              "d",
+                                              "M 0,0 L 10,5 L 0,10 z",
+                                          ),
                           t.elementClass === i.Z.OBJECT_CLASS_LINE &&
                               (a =
                                   2 === r
                                       ? 5.1
                                       : 3 === r
-                                      ? 0.02
-                                      : 4 === r || 5 === r || 6 === r
-                                      ? 3.33
-                                      : 7 === r
-                                      ? 10
-                                      : 0.05)),
+                                        ? 0.02
+                                        : 4 === r || 5 === r || 6 === r
+                                          ? 3.33
+                                          : 7 === r
+                                            ? 10
+                                            : 0.05)),
                     7 === r &&
                         (o.setAttributeNS(null, "fill", "none"),
                         o.setAttributeNS(null, "stroke-width", 1)),
@@ -31776,17 +31870,17 @@ var __webpack_exports__ = {};
                                       "start",
                                   )
                                 : "right" === r
-                                ? t.rendNode.setAttributeNS(
-                                      null,
-                                      "text-anchor",
-                                      "end",
-                                  )
-                                : "middle" === r &&
-                                  t.rendNode.setAttributeNS(
-                                      null,
-                                      "text-anchor",
-                                      "middle",
-                                  ),
+                                  ? t.rendNode.setAttributeNS(
+                                        null,
+                                        "text-anchor",
+                                        "end",
+                                    )
+                                  : "middle" === r &&
+                                    t.rendNode.setAttributeNS(
+                                        null,
+                                        "text-anchor",
+                                        "middle",
+                                    ),
                             (t.visPropOld.left = r + e)),
                         (e = t.coords.scrCoords[2]),
                         t.visPropOld.top !== o + e &&
@@ -31802,13 +31896,17 @@ var __webpack_exports__ = {};
                                       "text-after-edge",
                                   )
                                 : "top" === o
-                                ? t.rendNode.setAttributeNS(null, "dy", "1.6ex")
-                                : "middle" === o &&
-                                  t.rendNode.setAttributeNS(
-                                      null,
-                                      "dy",
-                                      "0.6ex",
-                                  ),
+                                  ? t.rendNode.setAttributeNS(
+                                        null,
+                                        "dy",
+                                        "1.6ex",
+                                    )
+                                  : "middle" === o &&
+                                    t.rendNode.setAttributeNS(
+                                        null,
+                                        "dy",
+                                        "0.6ex",
+                                    ),
                             (t.visPropOld.top = o + e))),
                     t.htmlStr !== i &&
                         ((t.rendNodeText.data = i), (t.htmlStr = i)),
@@ -32034,122 +32132,122 @@ var __webpack_exports__ = {};
                               " " +
                               (r[2] + e))
                         : "+" === i
-                        ? (s =
-                              " M " +
-                              (r[1] - e) +
-                              " " +
-                              r[2] +
-                              " L " +
-                              (r[1] + e) +
-                              " " +
-                              r[2] +
-                              " M " +
-                              r[1] +
-                              " " +
-                              (r[2] - e) +
-                              " L " +
-                              r[1] +
-                              " " +
-                              (r[2] + e))
-                        : "|" === i
-                        ? (s =
-                              " M " +
-                              r[1] +
-                              " " +
-                              (r[2] - e) +
-                              " L " +
-                              r[1] +
-                              " " +
-                              (r[2] + e))
-                        : "-" === i
-                        ? (s =
-                              " M " +
-                              (r[1] - e) +
-                              " " +
-                              r[2] +
-                              " L " +
-                              (r[1] + e) +
-                              " " +
-                              r[2])
-                        : "<>" === i
-                        ? (s =
-                              " M " +
-                              (r[1] - e) +
-                              " " +
-                              r[2] +
-                              " L " +
-                              r[1] +
-                              " " +
-                              (r[2] + e) +
-                              " L " +
-                              (r[1] + e) +
-                              " " +
-                              r[2] +
-                              " L " +
-                              r[1] +
-                              " " +
-                              (r[2] - e) +
-                              " Z ")
-                        : "^" === i
-                        ? (s =
-                              " M " +
-                              r[1] +
-                              " " +
-                              (r[2] - e) +
-                              " L " +
-                              (r[1] - o) +
-                              " " +
-                              (r[2] + n) +
-                              " L " +
-                              (r[1] + o) +
-                              " " +
-                              (r[2] + n) +
-                              " Z ")
-                        : "v" === i
-                        ? (s =
-                              " M " +
-                              r[1] +
-                              " " +
-                              (r[2] + e) +
-                              " L " +
-                              (r[1] - o) +
-                              " " +
-                              (r[2] - n) +
-                              " L " +
-                              (r[1] + o) +
-                              " " +
-                              (r[2] - n) +
-                              " Z ")
-                        : ">" === i
-                        ? (s =
-                              " M " +
-                              (r[1] + e) +
-                              " " +
-                              r[2] +
-                              " L " +
-                              (r[1] - n) +
-                              " " +
-                              (r[2] - o) +
-                              " L " +
-                              (r[1] - n) +
-                              " " +
-                              (r[2] + o) +
-                              " Z ")
-                        : "<" === i &&
-                          (s =
-                              " M " +
-                              (r[1] - e) +
-                              " " +
-                              r[2] +
-                              " L " +
-                              (r[1] + n) +
-                              " " +
-                              (r[2] - o) +
-                              " L " +
-                              (r[1] + n) +
-                              " " +
-                              (r[2] + o) +
-                              " Z "),
+                          ? (s =
+                                " M " +
+                                (r[1] - e) +
+                                " " +
+                                r[2] +
+                                " L " +
+                                (r[1] + e) +
+                                " " +
+                                r[2] +
+                                " M " +
+                                r[1] +
+                                " " +
+                                (r[2] - e) +
+                                " L " +
+                                r[1] +
+                                " " +
+                                (r[2] + e))
+                          : "|" === i
+                            ? (s =
+                                  " M " +
+                                  r[1] +
+                                  " " +
+                                  (r[2] - e) +
+                                  " L " +
+                                  r[1] +
+                                  " " +
+                                  (r[2] + e))
+                            : "-" === i
+                              ? (s =
+                                    " M " +
+                                    (r[1] - e) +
+                                    " " +
+                                    r[2] +
+                                    " L " +
+                                    (r[1] + e) +
+                                    " " +
+                                    r[2])
+                              : "<>" === i
+                                ? (s =
+                                      " M " +
+                                      (r[1] - e) +
+                                      " " +
+                                      r[2] +
+                                      " L " +
+                                      r[1] +
+                                      " " +
+                                      (r[2] + e) +
+                                      " L " +
+                                      (r[1] + e) +
+                                      " " +
+                                      r[2] +
+                                      " L " +
+                                      r[1] +
+                                      " " +
+                                      (r[2] - e) +
+                                      " Z ")
+                                : "^" === i
+                                  ? (s =
+                                        " M " +
+                                        r[1] +
+                                        " " +
+                                        (r[2] - e) +
+                                        " L " +
+                                        (r[1] - o) +
+                                        " " +
+                                        (r[2] + n) +
+                                        " L " +
+                                        (r[1] + o) +
+                                        " " +
+                                        (r[2] + n) +
+                                        " Z ")
+                                  : "v" === i
+                                    ? (s =
+                                          " M " +
+                                          r[1] +
+                                          " " +
+                                          (r[2] + e) +
+                                          " L " +
+                                          (r[1] - o) +
+                                          " " +
+                                          (r[2] - n) +
+                                          " L " +
+                                          (r[1] + o) +
+                                          " " +
+                                          (r[2] - n) +
+                                          " Z ")
+                                    : ">" === i
+                                      ? (s =
+                                            " M " +
+                                            (r[1] + e) +
+                                            " " +
+                                            r[2] +
+                                            " L " +
+                                            (r[1] - n) +
+                                            " " +
+                                            (r[2] - o) +
+                                            " L " +
+                                            (r[1] - n) +
+                                            " " +
+                                            (r[2] + o) +
+                                            " Z ")
+                                      : "<" === i &&
+                                        (s =
+                                            " M " +
+                                            (r[1] - e) +
+                                            " " +
+                                            r[2] +
+                                            " L " +
+                                            (r[1] + n) +
+                                            " " +
+                                            (r[2] - o) +
+                                            " L " +
+                                            (r[1] + n) +
+                                            " " +
+                                            (r[2] + o) +
+                                            " Z "),
                     s
                 );
             },
@@ -32620,14 +32718,14 @@ var __webpack_exports__ = {};
                           (a = [5, 5]),
                           (h = 1))
                         : s.Z.evaluate(d.enabled)
-                        ? ((u = !1),
-                          (p = !0),
-                          (r = t.Z.rgbParser(s.Z.evaluate(d.color))),
-                          (o = s.Z.evaluate(d.blur)),
-                          (n = s.Z.evaluate(d.blend)),
-                          (a = s.Z.evaluate(d.offset)),
-                          (h = s.Z.evaluate(d.opacity)))
-                        : (p = !1),
+                          ? ((u = !1),
+                            (p = !0),
+                            (r = t.Z.rgbParser(s.Z.evaluate(d.color))),
+                            (o = s.Z.evaluate(d.blur)),
+                            (n = s.Z.evaluate(d.blend)),
+                            (a = s.Z.evaluate(d.offset)),
+                            (h = s.Z.evaluate(d.opacity)))
+                          : (p = !1),
                     s.Z.exists(e.rendNode) &&
                         (p
                             ? u
@@ -33328,22 +33426,22 @@ var __webpack_exports__ = {};
                           i.appendChild(o),
                           i.appendChild(n))
                         : "polygon" === t ||
-                          "path" === t ||
-                          "shape" === t ||
-                          "line" === t
-                        ? ((i = this.createNode("shape")).appendChild(r),
-                          i.appendChild(o),
-                          i.appendChild(n),
-                          (s = this.createNode("path")),
-                          this._setAttr(
-                              s,
-                              "id",
-                              this.container.id + "_" + e + "_path",
-                          ),
-                          i.appendChild(s))
-                        : ((i = this.createNode(t)).appendChild(r),
-                          i.appendChild(o),
-                          i.appendChild(n)),
+                            "path" === t ||
+                            "shape" === t ||
+                            "line" === t
+                          ? ((i = this.createNode("shape")).appendChild(r),
+                            i.appendChild(o),
+                            i.appendChild(n),
+                            (s = this.createNode("path")),
+                            this._setAttr(
+                                s,
+                                "id",
+                                this.container.id + "_" + e + "_path",
+                            ),
+                            i.appendChild(s))
+                          : ((i = this.createNode(t)).appendChild(r),
+                            i.appendChild(o),
+                            i.appendChild(n)),
                     (i.style.position = "absolute"),
                     (i.style.left = "0px"),
                     (i.style.top = "0px"),
@@ -33450,123 +33548,123 @@ var __webpack_exports__ = {};
                               ].join(""),
                           )
                         : "+" === i
-                        ? s.push(
-                              [
-                                  " m ",
-                                  r(h * (o[1] - e)),
-                                  ", ",
-                                  r(h * o[2]),
-                                  " l ",
-                                  r(h * (o[1] + e)),
-                                  ", ",
-                                  r(h * o[2]),
-                                  " m ",
-                                  r(h * o[1]),
-                                  ", ",
-                                  r(h * (o[2] - e)),
-                                  " l ",
-                                  r(h * o[1]),
-                                  ", ",
-                                  r(h * (o[2] + e)),
-                              ].join(""),
-                          )
-                        : "<>" === i
-                        ? s.push(
-                              [
-                                  " m ",
-                                  r(h * (o[1] - e)),
-                                  ", ",
-                                  r(h * o[2]),
-                                  " l ",
-                                  r(h * o[1]),
-                                  ", ",
-                                  r(h * (o[2] + e)),
-                                  " l ",
-                                  r(h * (o[1] + e)),
-                                  ", ",
-                                  r(h * o[2]),
-                                  " l ",
-                                  r(h * o[1]),
-                                  ", ",
-                                  r(h * (o[2] - e)),
-                                  " x e ",
-                              ].join(""),
-                          )
-                        : "^" === i
-                        ? s.push(
-                              [
-                                  " m ",
-                                  r(h * o[1]),
-                                  ", ",
-                                  r(h * (o[2] - e)),
-                                  " l ",
-                                  r(h * (o[1] - n)),
-                                  ", ",
-                                  r(h * (o[2] + a)),
-                                  " l ",
-                                  r(h * (o[1] + n)),
-                                  ", ",
-                                  r(h * (o[2] + a)),
-                                  " x e ",
-                              ].join(""),
-                          )
-                        : "v" === i
-                        ? s.push(
-                              [
-                                  " m ",
-                                  r(h * o[1]),
-                                  ", ",
-                                  r(h * (o[2] + e)),
-                                  " l ",
-                                  r(h * (o[1] - n)),
-                                  ", ",
-                                  r(h * (o[2] - a)),
-                                  " l ",
-                                  r(h * (o[1] + n)),
-                                  ", ",
-                                  r(h * (o[2] - a)),
-                                  " x e ",
-                              ].join(""),
-                          )
-                        : ">" === i
-                        ? s.push(
-                              [
-                                  " m ",
-                                  r(h * (o[1] + e)),
-                                  ", ",
-                                  r(h * o[2]),
-                                  " l ",
-                                  r(h * (o[1] - a)),
-                                  ", ",
-                                  r(h * (o[2] - n)),
-                                  " l ",
-                                  r(h * (o[1] - a)),
-                                  ", ",
-                                  r(h * (o[2] + n)),
-                                  " l ",
-                                  r(h * (o[1] + e)),
-                                  ", ",
-                                  r(h * o[2]),
-                              ].join(""),
-                          )
-                        : "<" === i &&
-                          s.push(
-                              [
-                                  " m ",
-                                  r(h * (o[1] - e)),
-                                  ", ",
-                                  r(h * o[2]),
-                                  " l ",
-                                  r(h * (o[1] + a)),
-                                  ", ",
-                                  r(h * (o[2] - n)),
-                                  " l ",
-                                  r(h * (o[1] + a)),
-                                  ", ",
-                                  r(h * (o[2] + n)),
-                                  " x e ",
-                              ].join(""),
-                          ),
+                          ? s.push(
+                                [
+                                    " m ",
+                                    r(h * (o[1] - e)),
+                                    ", ",
+                                    r(h * o[2]),
+                                    " l ",
+                                    r(h * (o[1] + e)),
+                                    ", ",
+                                    r(h * o[2]),
+                                    " m ",
+                                    r(h * o[1]),
+                                    ", ",
+                                    r(h * (o[2] - e)),
+                                    " l ",
+                                    r(h * o[1]),
+                                    ", ",
+                                    r(h * (o[2] + e)),
+                                ].join(""),
+                            )
+                          : "<>" === i
+                            ? s.push(
+                                  [
+                                      " m ",
+                                      r(h * (o[1] - e)),
+                                      ", ",
+                                      r(h * o[2]),
+                                      " l ",
+                                      r(h * o[1]),
+                                      ", ",
+                                      r(h * (o[2] + e)),
+                                      " l ",
+                                      r(h * (o[1] + e)),
+                                      ", ",
+                                      r(h * o[2]),
+                                      " l ",
+                                      r(h * o[1]),
+                                      ", ",
+                                      r(h * (o[2] - e)),
+                                      " x e ",
+                                  ].join(""),
+                              )
+                            : "^" === i
+                              ? s.push(
+                                    [
+                                        " m ",
+                                        r(h * o[1]),
+                                        ", ",
+                                        r(h * (o[2] - e)),
+                                        " l ",
+                                        r(h * (o[1] - n)),
+                                        ", ",
+                                        r(h * (o[2] + a)),
+                                        " l ",
+                                        r(h * (o[1] + n)),
+                                        ", ",
+                                        r(h * (o[2] + a)),
+                                        " x e ",
+                                    ].join(""),
+                                )
+                              : "v" === i
+                                ? s.push(
+                                      [
+                                          " m ",
+                                          r(h * o[1]),
+                                          ", ",
+                                          r(h * (o[2] + e)),
+                                          " l ",
+                                          r(h * (o[1] - n)),
+                                          ", ",
+                                          r(h * (o[2] - a)),
+                                          " l ",
+                                          r(h * (o[1] + n)),
+                                          ", ",
+                                          r(h * (o[2] - a)),
+                                          " x e ",
+                                      ].join(""),
+                                  )
+                                : ">" === i
+                                  ? s.push(
+                                        [
+                                            " m ",
+                                            r(h * (o[1] + e)),
+                                            ", ",
+                                            r(h * o[2]),
+                                            " l ",
+                                            r(h * (o[1] - a)),
+                                            ", ",
+                                            r(h * (o[2] - n)),
+                                            " l ",
+                                            r(h * (o[1] - a)),
+                                            ", ",
+                                            r(h * (o[2] + n)),
+                                            " l ",
+                                            r(h * (o[1] + e)),
+                                            ", ",
+                                            r(h * o[2]),
+                                        ].join(""),
+                                    )
+                                  : "<" === i &&
+                                    s.push(
+                                        [
+                                            " m ",
+                                            r(h * (o[1] - e)),
+                                            ", ",
+                                            r(h * o[2]),
+                                            " l ",
+                                            r(h * (o[1] + a)),
+                                            ", ",
+                                            r(h * (o[2] - n)),
+                                            " l ",
+                                            r(h * (o[1] + a)),
+                                            ", ",
+                                            r(h * (o[2] + n)),
+                                            " x e ",
+                                        ].join(""),
+                                    ),
                     s
                 );
             },
@@ -33840,27 +33938,28 @@ var __webpack_exports__ = {};
                           s.Z.evaluate(t.visProp.gradientangle),
                       ))
                     : "radial" === i
-                    ? (this._setAttr(e, "type", "gradientradial"),
-                      this._setAttr(
-                          e,
-                          "color2",
-                          s.Z.evaluate(t.visProp.gradientsecondcolor),
-                      ),
-                      this._setAttr(
-                          e,
-                          "opacity2",
-                          s.Z.evaluate(t.visProp.gradientsecondopacity),
-                      ),
-                      this._setAttr(
-                          e,
-                          "focusposition",
-                          100 * s.Z.evaluate(t.visProp.gradientpositionx) +
-                              "%," +
-                              100 * s.Z.evaluate(t.visProp.gradientpositiony) +
-                              "%",
-                      ),
-                      this._setAttr(e, "focussize", "0,0"))
-                    : this._setAttr(e, "type", "solid");
+                      ? (this._setAttr(e, "type", "gradientradial"),
+                        this._setAttr(
+                            e,
+                            "color2",
+                            s.Z.evaluate(t.visProp.gradientsecondcolor),
+                        ),
+                        this._setAttr(
+                            e,
+                            "opacity2",
+                            s.Z.evaluate(t.visProp.gradientsecondopacity),
+                        ),
+                        this._setAttr(
+                            e,
+                            "focusposition",
+                            100 * s.Z.evaluate(t.visProp.gradientpositionx) +
+                                "%," +
+                                100 *
+                                    s.Z.evaluate(t.visProp.gradientpositiony) +
+                                "%",
+                        ),
+                        this._setAttr(e, "focussize", "0,0"))
+                      : this._setAttr(e, "type", "solid");
             },
             setObjectFillColor: function (t, e, r) {
                 var o,
@@ -33992,12 +34091,12 @@ var __webpack_exports__ = {};
                 8 === i || 13 === i || 18 === i || 23 === i
                     ? (s[i] = "-")
                     : 14 === i
-                    ? (s[i] = "4")
-                    : (r <= 2 &&
-                          (r = (33554432 + 16777216 * Math.random()) | 0),
-                      (e = 15 & r),
-                      (r >>= 4),
-                      (s[i] = j[19 === i ? (3 & e) | 8 : e]));
+                      ? (s[i] = "4")
+                      : (r <= 2 &&
+                            (r = (33554432 + 16777216 * Math.random()) | 0),
+                        (e = 15 & r),
+                        (r >>= 4),
+                        (s[i] = j[19 === i ? (3 & e) | 8 : e]));
             return t + s.join("");
         });
     const X = t.Z.Util;
@@ -34883,13 +34982,13 @@ var __webpack_exports__ = {};
                         "left" === r
                             ? (n.textAlign = "left")
                             : "right" === r
-                            ? (n.textAlign = "right")
-                            : "middle" === r && (n.textAlign = "center"),
+                              ? (n.textAlign = "right")
+                              : "middle" === r && (n.textAlign = "center"),
                         "bottom" === o
                             ? (n.textBaseline = "bottom")
                             : "top" === o
-                            ? (n.textBaseline = "top")
-                            : "middle" === o && (n.textBaseline = "middle"),
+                              ? (n.textBaseline = "top")
+                              : "middle" === o && (n.textBaseline = "middle"),
                         n.fillText(
                             t.plaintext,
                             t.coords.scrCoords[1],
@@ -35331,10 +35430,10 @@ var __webpack_exports__ = {};
                 "svg" === r
                     ? new I(o, e)
                     : "vml" === r
-                    ? new Y(o)
-                    : "canvas" === r
-                    ? new U(o, e)
-                    : new F()
+                      ? new Y(o)
+                      : "canvas" === r
+                        ? new U(o, e)
+                        : new F()
             );
         },
         _setAttributes: function (t) {
@@ -35931,46 +36030,58 @@ var __webpack_exports__ = {};
                     s.Z.isPoint(e)
                         ? this.Dist(e) < r
                         : e.elementClass === i.Z.OBJECT_CLASS_LINE
-                        ? ("segment" !== e.elType ||
-                              s.Z.evaluate(this.visProp.alwaysintersect) ||
-                              ((n = t.Z.Math.Geometry.projectCoordsToSegment(
-                                  this.coords.usrCoords,
-                                  e.point1.coords.usrCoords,
-                                  e.point2.coords.usrCoords,
-                              ))[1] >= 0 &&
-                                  n[1] <= 1)) &&
-                          u.Z.distPointLine(this.coords.usrCoords, e.stdform) <
-                              r
-                        : e.elementClass === i.Z.OBJECT_CLASS_CIRCLE
-                        ? s.Z.evaluate(e.visProp.hasinnerpoints)
-                            ? this.Dist(e.center) < e.Radius() + r
-                            : Math.abs(this.Dist(e.center) - e.Radius()) < r
-                        : e.elementClass === i.Z.OBJECT_CLASS_CURVE
-                        ? ((a = u.Z.projectPointToCurve(
-                              this,
-                              e,
-                              this.board,
-                          )[0]),
-                          u.Z.distance(this.coords.usrCoords, a.usrCoords, 3) <
-                              r)
-                        : e.type === i.Z.OBJECT_TYPE_POLYGON
-                        ? !(
-                              !s.Z.evaluate(e.visProp.hasinnerpoints) ||
-                              !e.pnpoly(
-                                  this.coords.usrCoords[1],
-                                  this.coords.usrCoords[2],
-                                  t.Z.COORDS_BY_USER,
-                              )
-                          ) ||
-                          ((n = u.Z.projectCoordsToPolygon(
-                              this.coords.usrCoords,
-                              e,
-                          )),
-                          u.Z.distance(this.coords.usrCoords, n, 3) < r)
-                        : e.type === i.Z.OBJECT_TYPE_TURTLE &&
-                          ((a = u.Z.projectPointToTurtle(this, e, this.board)),
-                          u.Z.distance(this.coords.usrCoords, a.usrCoords, 3) <
-                              r)
+                          ? ("segment" !== e.elType ||
+                                s.Z.evaluate(this.visProp.alwaysintersect) ||
+                                ((n = t.Z.Math.Geometry.projectCoordsToSegment(
+                                    this.coords.usrCoords,
+                                    e.point1.coords.usrCoords,
+                                    e.point2.coords.usrCoords,
+                                ))[1] >= 0 &&
+                                    n[1] <= 1)) &&
+                            u.Z.distPointLine(
+                                this.coords.usrCoords,
+                                e.stdform,
+                            ) < r
+                          : e.elementClass === i.Z.OBJECT_CLASS_CIRCLE
+                            ? s.Z.evaluate(e.visProp.hasinnerpoints)
+                                ? this.Dist(e.center) < e.Radius() + r
+                                : Math.abs(this.Dist(e.center) - e.Radius()) < r
+                            : e.elementClass === i.Z.OBJECT_CLASS_CURVE
+                              ? ((a = u.Z.projectPointToCurve(
+                                    this,
+                                    e,
+                                    this.board,
+                                )[0]),
+                                u.Z.distance(
+                                    this.coords.usrCoords,
+                                    a.usrCoords,
+                                    3,
+                                ) < r)
+                              : e.type === i.Z.OBJECT_TYPE_POLYGON
+                                ? !(
+                                      !s.Z.evaluate(e.visProp.hasinnerpoints) ||
+                                      !e.pnpoly(
+                                          this.coords.usrCoords[1],
+                                          this.coords.usrCoords[2],
+                                          t.Z.COORDS_BY_USER,
+                                      )
+                                  ) ||
+                                  ((n = u.Z.projectCoordsToPolygon(
+                                      this.coords.usrCoords,
+                                      e,
+                                  )),
+                                  u.Z.distance(this.coords.usrCoords, n, 3) < r)
+                                : e.type === i.Z.OBJECT_TYPE_TURTLE &&
+                                  ((a = u.Z.projectPointToTurtle(
+                                      this,
+                                      e,
+                                      this.board,
+                                  )),
+                                  u.Z.distance(
+                                      this.coords.usrCoords,
+                                      a.usrCoords,
+                                      3,
+                                  ) < r)
                 );
             },
             cloneToBackground: function () {
@@ -37079,8 +37190,8 @@ var __webpack_exports__ = {};
                 (l = s.Z.exists(n.ticksdistance)
                     ? n.ticksdistance
                     : s.Z.isArray(n.ticks)
-                    ? n.ticks
-                    : 1),
+                      ? n.ticks
+                      : 1),
                 (a.defaultTicks = t.create("ticks", [a, l], n)),
                 (a.defaultTicks.dump = !1),
                 (a.elType = "axis"),
@@ -37120,363 +37231,375 @@ var __webpack_exports__ = {};
                     ? ((d = t.create("line", [a.point1, a.point2], r)).glider =
                           n)
                     : a.elementClass === i.Z.OBJECT_CLASS_CURVE &&
-                      a.type !== i.Z.OBJECT_TYPE_CONIC
-                    ? "plot" !== s.Z.evaluate(a.visProp.curvetype)
+                        a.type !== i.Z.OBJECT_TYPE_CONIC
+                      ? "plot" !== s.Z.evaluate(a.visProp.curvetype)
+                          ? ((d = t.create(
+                                "line",
+                                [
+                                    function () {
+                                        var t = a.X,
+                                            e = a.Y;
+                                        return (
+                                            -n.X() * l.Z.D(e)(n.position) +
+                                            n.Y() * l.Z.D(t)(n.position)
+                                        );
+                                    },
+                                    function () {
+                                        return l.Z.D(a.Y)(n.position);
+                                    },
+                                    function () {
+                                        return -l.Z.D(a.X)(n.position);
+                                    },
+                                ],
+                                r,
+                            )),
+                            n.addChild(d),
+                            (d.glider = n))
+                          : ((d = t.create(
+                                "line",
+                                [
+                                    function () {
+                                        var t,
+                                            e,
+                                            i,
+                                            s,
+                                            r,
+                                            o,
+                                            h,
+                                            l,
+                                            c,
+                                            d,
+                                            u = Math.floor(n.position);
+                                        if (1 === a.bezierDegree)
+                                            u === a.numberPoints - 1 && u--;
+                                        else {
+                                            if (3 !== a.bezierDegree) return 0;
+                                            (u =
+                                                3 *
+                                                Math.floor(
+                                                    (n.position *
+                                                        (a.numberPoints - 1)) /
+                                                        3,
+                                                )),
+                                                (i =
+                                                    (n.position *
+                                                        (a.numberPoints - 1) -
+                                                        u) /
+                                                    3),
+                                                u >= a.numberPoints - 1 &&
+                                                    ((u = a.numberPoints - 4),
+                                                    (i = 1));
+                                        }
+                                        return u < 0
+                                            ? 1
+                                            : (1 === a.bezierDegree
+                                                  ? ((t =
+                                                        a.points[u].usrCoords),
+                                                    (e =
+                                                        a.points[u + 1]
+                                                            .usrCoords))
+                                                  : ((s =
+                                                        a.points[u].usrCoords),
+                                                    (r =
+                                                        a.points[u + 1]
+                                                            .usrCoords),
+                                                    (o =
+                                                        a.points[u + 2]
+                                                            .usrCoords),
+                                                    (h =
+                                                        a.points[u + 3]
+                                                            .usrCoords),
+                                                    (l =
+                                                        (1 - i) *
+                                                            (1 - i) *
+                                                            (r[1] - s[1]) +
+                                                        2 *
+                                                            (1 - i) *
+                                                            i *
+                                                            (o[1] - r[1]) +
+                                                        i * i * (h[1] - o[1])),
+                                                    (c =
+                                                        (1 - i) *
+                                                            (1 - i) *
+                                                            (r[2] - s[2]) +
+                                                        2 *
+                                                            (1 - i) *
+                                                            i *
+                                                            (o[2] - r[2]) +
+                                                        i * i * (h[2] - o[2])),
+                                                    (l /= d =
+                                                        Math.sqrt(
+                                                            l * l + c * c,
+                                                        )),
+                                                    (c /= d),
+                                                    (e = [
+                                                        1,
+                                                        (t =
+                                                            n.coords
+                                                                .usrCoords)[1] +
+                                                            l,
+                                                        t[2] + c,
+                                                    ])),
+                                              t[2] * e[1] - t[1] * e[2]);
+                                    },
+                                    function () {
+                                        var t,
+                                            e,
+                                            i,
+                                            s,
+                                            r,
+                                            o,
+                                            h,
+                                            l,
+                                            c,
+                                            d,
+                                            u = Math.floor(n.position);
+                                        if (1 === a.bezierDegree)
+                                            u === a.numberPoints - 1 && u--;
+                                        else {
+                                            if (3 !== a.bezierDegree) return 0;
+                                            (u =
+                                                3 *
+                                                Math.floor(
+                                                    (n.position *
+                                                        (a.numberPoints - 1)) /
+                                                        3,
+                                                )),
+                                                (i =
+                                                    (n.position *
+                                                        (a.numberPoints - 1) -
+                                                        u) /
+                                                    3),
+                                                u >= a.numberPoints - 1 &&
+                                                    ((u = a.numberPoints - 4),
+                                                    (i = 1));
+                                        }
+                                        return u < 0
+                                            ? 0
+                                            : (1 === a.bezierDegree
+                                                  ? ((t =
+                                                        a.points[u].usrCoords),
+                                                    (e =
+                                                        a.points[u + 1]
+                                                            .usrCoords))
+                                                  : ((s =
+                                                        a.points[u].usrCoords),
+                                                    (r =
+                                                        a.points[u + 1]
+                                                            .usrCoords),
+                                                    (o =
+                                                        a.points[u + 2]
+                                                            .usrCoords),
+                                                    (h =
+                                                        a.points[u + 3]
+                                                            .usrCoords),
+                                                    (l =
+                                                        (1 - i) *
+                                                            (1 - i) *
+                                                            (r[1] - s[1]) +
+                                                        2 *
+                                                            (1 - i) *
+                                                            i *
+                                                            (o[1] - r[1]) +
+                                                        i * i * (h[1] - o[1])),
+                                                    (c =
+                                                        (1 - i) *
+                                                            (1 - i) *
+                                                            (r[2] - s[2]) +
+                                                        2 *
+                                                            (1 - i) *
+                                                            i *
+                                                            (o[2] - r[2]) +
+                                                        i * i * (h[2] - o[2])),
+                                                    (l /= d =
+                                                        Math.sqrt(
+                                                            l * l + c * c,
+                                                        )),
+                                                    (c /= d),
+                                                    (e = [
+                                                        1,
+                                                        (t =
+                                                            n.coords
+                                                                .usrCoords)[1] +
+                                                            l,
+                                                        t[2] + c,
+                                                    ])),
+                                              e[2] - t[2]);
+                                    },
+                                    function () {
+                                        var t,
+                                            e,
+                                            i,
+                                            s,
+                                            r,
+                                            o,
+                                            h,
+                                            l,
+                                            c,
+                                            d,
+                                            u = Math.floor(n.position);
+                                        if (1 === a.bezierDegree)
+                                            u === a.numberPoints - 1 && u--;
+                                        else {
+                                            if (3 !== a.bezierDegree) return 0;
+                                            (u =
+                                                3 *
+                                                Math.floor(
+                                                    (n.position *
+                                                        (a.numberPoints - 1)) /
+                                                        3,
+                                                )),
+                                                (i =
+                                                    (n.position *
+                                                        (a.numberPoints - 1) -
+                                                        u) /
+                                                    3),
+                                                u >= a.numberPoints - 1 &&
+                                                    ((u = a.numberPoints - 4),
+                                                    (i = 1));
+                                        }
+                                        return u < 0
+                                            ? 0
+                                            : (1 === a.bezierDegree
+                                                  ? ((t =
+                                                        a.points[u].usrCoords),
+                                                    (e =
+                                                        a.points[u + 1]
+                                                            .usrCoords))
+                                                  : ((s =
+                                                        a.points[u].usrCoords),
+                                                    (r =
+                                                        a.points[u + 1]
+                                                            .usrCoords),
+                                                    (o =
+                                                        a.points[u + 2]
+                                                            .usrCoords),
+                                                    (h =
+                                                        a.points[u + 3]
+                                                            .usrCoords),
+                                                    (l =
+                                                        (1 - i) *
+                                                            (1 - i) *
+                                                            (r[1] - s[1]) +
+                                                        2 *
+                                                            (1 - i) *
+                                                            i *
+                                                            (o[1] - r[1]) +
+                                                        i * i * (h[1] - o[1])),
+                                                    (c =
+                                                        (1 - i) *
+                                                            (1 - i) *
+                                                            (r[2] - s[2]) +
+                                                        2 *
+                                                            (1 - i) *
+                                                            i *
+                                                            (o[2] - r[2]) +
+                                                        i * i * (h[2] - o[2])),
+                                                    (l /= d =
+                                                        Math.sqrt(
+                                                            l * l + c * c,
+                                                        )),
+                                                    (c /= d),
+                                                    (e = [
+                                                        1,
+                                                        (t =
+                                                            n.coords
+                                                                .usrCoords)[1] +
+                                                            l,
+                                                        t[2] + c,
+                                                    ])),
+                                              t[1] - e[1]);
+                                    },
+                                ],
+                                r,
+                            )),
+                            n.addChild(d),
+                            (d.glider = n))
+                      : a.type === i.Z.OBJECT_TYPE_TURTLE
                         ? ((d = t.create(
                               "line",
                               [
                                   function () {
-                                      var t = a.X,
-                                          e = a.Y;
+                                      var t = Math.floor(n.position);
+                                      for (h = 0; h < a.objects.length; h++)
+                                          if (
+                                              (c = a.objects[h]).type ===
+                                              i.Z.OBJECT_TYPE_CURVE
+                                          ) {
+                                              if (t < c.numberPoints) break;
+                                              t -= c.numberPoints;
+                                          }
                                       return (
-                                          -n.X() * l.Z.D(e)(n.position) +
-                                          n.Y() * l.Z.D(t)(n.position)
+                                          t === c.numberPoints - 1 && t--,
+                                          t < 0
+                                              ? 1
+                                              : c.Y(t) * c.X(t + 1) -
+                                                c.X(t) * c.Y(t + 1)
                                       );
                                   },
                                   function () {
-                                      return l.Z.D(a.Y)(n.position);
+                                      var t = Math.floor(n.position);
+                                      for (h = 0; h < a.objects.length; h++)
+                                          if (
+                                              (c = a.objects[h]).type ===
+                                              i.Z.OBJECT_TYPE_CURVE
+                                          ) {
+                                              if (t < c.numberPoints) break;
+                                              t -= c.numberPoints;
+                                          }
+                                      return (
+                                          t === c.numberPoints - 1 && t--,
+                                          t < 0 ? 0 : c.Y(t + 1) - c.Y(t)
+                                      );
                                   },
                                   function () {
-                                      return -l.Z.D(a.X)(n.position);
+                                      var t = Math.floor(n.position);
+                                      for (h = 0; h < a.objects.length; h++)
+                                          if (
+                                              (c = a.objects[h]).type ===
+                                              i.Z.OBJECT_TYPE_CURVE
+                                          ) {
+                                              if (t < c.numberPoints) break;
+                                              t -= c.numberPoints;
+                                          }
+                                      return (
+                                          t === c.numberPoints - 1 && t--,
+                                          t < 0 ? 0 : c.X(t) - c.X(t + 1)
+                                      );
                                   },
                               ],
                               r,
                           )),
                           n.addChild(d),
                           (d.glider = n))
-                        : ((d = t.create(
+                        : (a.elementClass !== i.Z.OBJECT_CLASS_CIRCLE &&
+                              a.type !== i.Z.OBJECT_TYPE_CONIC) ||
+                          ((d = t.create(
                               "line",
                               [
                                   function () {
-                                      var t,
-                                          e,
-                                          i,
-                                          s,
-                                          r,
-                                          o,
-                                          h,
-                                          l,
-                                          c,
-                                          d,
-                                          u = Math.floor(n.position);
-                                      if (1 === a.bezierDegree)
-                                          u === a.numberPoints - 1 && u--;
-                                      else {
-                                          if (3 !== a.bezierDegree) return 0;
-                                          (u =
-                                              3 *
-                                              Math.floor(
-                                                  (n.position *
-                                                      (a.numberPoints - 1)) /
-                                                      3,
-                                              )),
-                                              (i =
-                                                  (n.position *
-                                                      (a.numberPoints - 1) -
-                                                      u) /
-                                                  3),
-                                              u >= a.numberPoints - 1 &&
-                                                  ((u = a.numberPoints - 4),
-                                                  (i = 1));
-                                      }
-                                      return u < 0
-                                          ? 1
-                                          : (1 === a.bezierDegree
-                                                ? ((t = a.points[u].usrCoords),
-                                                  (e =
-                                                      a.points[u + 1]
-                                                          .usrCoords))
-                                                : ((s = a.points[u].usrCoords),
-                                                  (r =
-                                                      a.points[u + 1]
-                                                          .usrCoords),
-                                                  (o =
-                                                      a.points[u + 2]
-                                                          .usrCoords),
-                                                  (h =
-                                                      a.points[u + 3]
-                                                          .usrCoords),
-                                                  (l =
-                                                      (1 - i) *
-                                                          (1 - i) *
-                                                          (r[1] - s[1]) +
-                                                      2 *
-                                                          (1 - i) *
-                                                          i *
-                                                          (o[1] - r[1]) +
-                                                      i * i * (h[1] - o[1])),
-                                                  (c =
-                                                      (1 - i) *
-                                                          (1 - i) *
-                                                          (r[2] - s[2]) +
-                                                      2 *
-                                                          (1 - i) *
-                                                          i *
-                                                          (o[2] - r[2]) +
-                                                      i * i * (h[2] - o[2])),
-                                                  (l /= d =
-                                                      Math.sqrt(l * l + c * c)),
-                                                  (c /= d),
-                                                  (e = [
-                                                      1,
-                                                      (t =
-                                                          n.coords
-                                                              .usrCoords)[1] +
-                                                          l,
-                                                      t[2] + c,
-                                                  ])),
-                                            t[2] * e[1] - t[1] * e[2]);
+                                      return o.Z.matVecMult(
+                                          a.quadraticform,
+                                          n.coords.usrCoords,
+                                      )[0];
                                   },
                                   function () {
-                                      var t,
-                                          e,
-                                          i,
-                                          s,
-                                          r,
-                                          o,
-                                          h,
-                                          l,
-                                          c,
-                                          d,
-                                          u = Math.floor(n.position);
-                                      if (1 === a.bezierDegree)
-                                          u === a.numberPoints - 1 && u--;
-                                      else {
-                                          if (3 !== a.bezierDegree) return 0;
-                                          (u =
-                                              3 *
-                                              Math.floor(
-                                                  (n.position *
-                                                      (a.numberPoints - 1)) /
-                                                      3,
-                                              )),
-                                              (i =
-                                                  (n.position *
-                                                      (a.numberPoints - 1) -
-                                                      u) /
-                                                  3),
-                                              u >= a.numberPoints - 1 &&
-                                                  ((u = a.numberPoints - 4),
-                                                  (i = 1));
-                                      }
-                                      return u < 0
-                                          ? 0
-                                          : (1 === a.bezierDegree
-                                                ? ((t = a.points[u].usrCoords),
-                                                  (e =
-                                                      a.points[u + 1]
-                                                          .usrCoords))
-                                                : ((s = a.points[u].usrCoords),
-                                                  (r =
-                                                      a.points[u + 1]
-                                                          .usrCoords),
-                                                  (o =
-                                                      a.points[u + 2]
-                                                          .usrCoords),
-                                                  (h =
-                                                      a.points[u + 3]
-                                                          .usrCoords),
-                                                  (l =
-                                                      (1 - i) *
-                                                          (1 - i) *
-                                                          (r[1] - s[1]) +
-                                                      2 *
-                                                          (1 - i) *
-                                                          i *
-                                                          (o[1] - r[1]) +
-                                                      i * i * (h[1] - o[1])),
-                                                  (c =
-                                                      (1 - i) *
-                                                          (1 - i) *
-                                                          (r[2] - s[2]) +
-                                                      2 *
-                                                          (1 - i) *
-                                                          i *
-                                                          (o[2] - r[2]) +
-                                                      i * i * (h[2] - o[2])),
-                                                  (l /= d =
-                                                      Math.sqrt(l * l + c * c)),
-                                                  (c /= d),
-                                                  (e = [
-                                                      1,
-                                                      (t =
-                                                          n.coords
-                                                              .usrCoords)[1] +
-                                                          l,
-                                                      t[2] + c,
-                                                  ])),
-                                            e[2] - t[2]);
+                                      return o.Z.matVecMult(
+                                          a.quadraticform,
+                                          n.coords.usrCoords,
+                                      )[1];
                                   },
                                   function () {
-                                      var t,
-                                          e,
-                                          i,
-                                          s,
-                                          r,
-                                          o,
-                                          h,
-                                          l,
-                                          c,
-                                          d,
-                                          u = Math.floor(n.position);
-                                      if (1 === a.bezierDegree)
-                                          u === a.numberPoints - 1 && u--;
-                                      else {
-                                          if (3 !== a.bezierDegree) return 0;
-                                          (u =
-                                              3 *
-                                              Math.floor(
-                                                  (n.position *
-                                                      (a.numberPoints - 1)) /
-                                                      3,
-                                              )),
-                                              (i =
-                                                  (n.position *
-                                                      (a.numberPoints - 1) -
-                                                      u) /
-                                                  3),
-                                              u >= a.numberPoints - 1 &&
-                                                  ((u = a.numberPoints - 4),
-                                                  (i = 1));
-                                      }
-                                      return u < 0
-                                          ? 0
-                                          : (1 === a.bezierDegree
-                                                ? ((t = a.points[u].usrCoords),
-                                                  (e =
-                                                      a.points[u + 1]
-                                                          .usrCoords))
-                                                : ((s = a.points[u].usrCoords),
-                                                  (r =
-                                                      a.points[u + 1]
-                                                          .usrCoords),
-                                                  (o =
-                                                      a.points[u + 2]
-                                                          .usrCoords),
-                                                  (h =
-                                                      a.points[u + 3]
-                                                          .usrCoords),
-                                                  (l =
-                                                      (1 - i) *
-                                                          (1 - i) *
-                                                          (r[1] - s[1]) +
-                                                      2 *
-                                                          (1 - i) *
-                                                          i *
-                                                          (o[1] - r[1]) +
-                                                      i * i * (h[1] - o[1])),
-                                                  (c =
-                                                      (1 - i) *
-                                                          (1 - i) *
-                                                          (r[2] - s[2]) +
-                                                      2 *
-                                                          (1 - i) *
-                                                          i *
-                                                          (o[2] - r[2]) +
-                                                      i * i * (h[2] - o[2])),
-                                                  (l /= d =
-                                                      Math.sqrt(l * l + c * c)),
-                                                  (c /= d),
-                                                  (e = [
-                                                      1,
-                                                      (t =
-                                                          n.coords
-                                                              .usrCoords)[1] +
-                                                          l,
-                                                      t[2] + c,
-                                                  ])),
-                                            t[1] - e[1]);
+                                      return o.Z.matVecMult(
+                                          a.quadraticform,
+                                          n.coords.usrCoords,
+                                      )[2];
                                   },
                               ],
                               r,
                           )),
                           n.addChild(d),
-                          (d.glider = n))
-                    : a.type === i.Z.OBJECT_TYPE_TURTLE
-                    ? ((d = t.create(
-                          "line",
-                          [
-                              function () {
-                                  var t = Math.floor(n.position);
-                                  for (h = 0; h < a.objects.length; h++)
-                                      if (
-                                          (c = a.objects[h]).type ===
-                                          i.Z.OBJECT_TYPE_CURVE
-                                      ) {
-                                          if (t < c.numberPoints) break;
-                                          t -= c.numberPoints;
-                                      }
-                                  return (
-                                      t === c.numberPoints - 1 && t--,
-                                      t < 0
-                                          ? 1
-                                          : c.Y(t) * c.X(t + 1) -
-                                            c.X(t) * c.Y(t + 1)
-                                  );
-                              },
-                              function () {
-                                  var t = Math.floor(n.position);
-                                  for (h = 0; h < a.objects.length; h++)
-                                      if (
-                                          (c = a.objects[h]).type ===
-                                          i.Z.OBJECT_TYPE_CURVE
-                                      ) {
-                                          if (t < c.numberPoints) break;
-                                          t -= c.numberPoints;
-                                      }
-                                  return (
-                                      t === c.numberPoints - 1 && t--,
-                                      t < 0 ? 0 : c.Y(t + 1) - c.Y(t)
-                                  );
-                              },
-                              function () {
-                                  var t = Math.floor(n.position);
-                                  for (h = 0; h < a.objects.length; h++)
-                                      if (
-                                          (c = a.objects[h]).type ===
-                                          i.Z.OBJECT_TYPE_CURVE
-                                      ) {
-                                          if (t < c.numberPoints) break;
-                                          t -= c.numberPoints;
-                                      }
-                                  return (
-                                      t === c.numberPoints - 1 && t--,
-                                      t < 0 ? 0 : c.X(t) - c.X(t + 1)
-                                  );
-                              },
-                          ],
-                          r,
-                      )),
-                      n.addChild(d),
-                      (d.glider = n))
-                    : (a.elementClass !== i.Z.OBJECT_CLASS_CIRCLE &&
-                          a.type !== i.Z.OBJECT_TYPE_CONIC) ||
-                      ((d = t.create(
-                          "line",
-                          [
-                              function () {
-                                  return o.Z.matVecMult(
-                                      a.quadraticform,
-                                      n.coords.usrCoords,
-                                  )[0];
-                              },
-                              function () {
-                                  return o.Z.matVecMult(
-                                      a.quadraticform,
-                                      n.coords.usrCoords,
-                                  )[1];
-                              },
-                              function () {
-                                  return o.Z.matVecMult(
-                                      a.quadraticform,
-                                      n.coords.usrCoords,
-                                  )[2];
-                              },
-                          ],
-                          r,
-                      )),
-                      n.addChild(d),
-                      (d.glider = n)),
+                          (d.glider = n)),
                 !s.Z.exists(d))
             )
                 throw new Error(
@@ -37767,13 +37890,13 @@ var __webpack_exports__ = {};
                       a.length > 1
                           ? (n = "translation")
                           : s.Z.isInArray(this.rotationPoints, e) &&
-                            s.Z.exists(this.rotationCenter)
-                          ? (n = "rotation")
-                          : s.Z.isInArray(this.scalePoints, e) &&
-                            s.Z.exists(this.scaleCenter)
-                          ? (n = "scaling")
-                          : s.Z.isInArray(this.translationPoints, e) &&
-                            (n = "translation"),
+                              s.Z.exists(this.rotationCenter)
+                            ? (n = "rotation")
+                            : s.Z.isInArray(this.scalePoints, e) &&
+                                s.Z.exists(this.scaleCenter)
+                              ? (n = "scaling")
+                              : s.Z.isInArray(this.translationPoints, e) &&
+                                (n = "translation"),
                       { action: n, id: r, changed: a });
             },
             _update_centroid_center: function () {
@@ -37940,24 +38063,24 @@ var __webpack_exports__ = {};
             "twoPoints" === e
                 ? ((this.point2 = t.select(o)), (this.radius = this.Radius()))
                 : "pointRadius" === e
-                ? ((this.gxtterm = o),
-                  (this.updateRadius = s.Z.createFunction(
-                      o,
-                      this.board,
-                      null,
-                      !0,
-                  )),
-                  this.updateRadius(),
-                  this.addParentsFromJCFunctions([this.updateRadius]))
-                : "pointLine" === e
-                ? ((this.line = t.select(o)),
-                  (this.radius = this.line.point1.coords.distance(
-                      i.Z.COORDS_BY_USER,
-                      this.line.point2.coords,
-                  )))
-                : "pointCircle" === e &&
-                  ((this.circle = t.select(o)),
-                  (this.radius = this.circle.Radius())),
+                  ? ((this.gxtterm = o),
+                    (this.updateRadius = s.Z.createFunction(
+                        o,
+                        this.board,
+                        null,
+                        !0,
+                    )),
+                    this.updateRadius(),
+                    this.addParentsFromJCFunctions([this.updateRadius]))
+                  : "pointLine" === e
+                    ? ((this.line = t.select(o)),
+                      (this.radius = this.line.point1.coords.distance(
+                          i.Z.COORDS_BY_USER,
+                          this.line.point2.coords,
+                      )))
+                    : "pointCircle" === e &&
+                      ((this.circle = t.select(o)),
+                      (this.radius = this.circle.Radius())),
             (this.id = this.board.setId(this, "C")),
             this.board.renderer.drawEllipse(this),
             this.board.finalizeAdding(this),
@@ -37970,13 +38093,14 @@ var __webpack_exports__ = {};
             "pointRadius" === e
                 ? this.notifyParents(o)
                 : "pointLine" === e
-                ? this.line.addChild(this)
-                : "pointCircle" === e
-                ? this.circle.addChild(this)
-                : "twoPoints" === e &&
-                  (s.Z.exists(this.point2._is_new)
-                      ? (this.addChild(this.point2), delete this.point2._is_new)
-                      : this.point2.addChild(this)),
+                  ? this.line.addChild(this)
+                  : "pointCircle" === e
+                    ? this.circle.addChild(this)
+                    : "twoPoints" === e &&
+                      (s.Z.exists(this.point2._is_new)
+                          ? (this.addChild(this.point2),
+                            delete this.point2._is_new)
+                          : this.point2.addChild(this)),
             (this.methodMap = s.Z.deepCopy(this.methodMap, {
                 setRadius: "setRadius",
                 getRadius: "getRadius",
@@ -38057,23 +38181,23 @@ var __webpack_exports__ = {};
                               e +
                               "))^2"))
                         : "pointRadius" === this.method
-                        ? s.Z.isNumber(this.radius) &&
-                          (o = (this.radius * this.radius).toString())
-                        : "pointLine" === this.method
-                        ? ((i = this.line.point1.symbolic.x),
-                          (r = this.line.point1.symbolic.y),
-                          (o =
-                              "((" +
-                              i +
-                              ")-(" +
-                              this.line.point2.symbolic.x +
-                              "))^2 + ((" +
-                              r +
-                              ")-(" +
-                              this.line.point2.symbolic.y +
-                              "))^2"))
-                        : "pointCircle" === this.method &&
-                          (o = this.circle.Radius()),
+                          ? s.Z.isNumber(this.radius) &&
+                            (o = (this.radius * this.radius).toString())
+                          : "pointLine" === this.method
+                            ? ((i = this.line.point1.symbolic.x),
+                              (r = this.line.point1.symbolic.y),
+                              (o =
+                                  "((" +
+                                  i +
+                                  ")-(" +
+                                  this.line.point2.symbolic.x +
+                                  "))^2 + ((" +
+                                  r +
+                                  ")-(" +
+                                  this.line.point2.symbolic.y +
+                                  "))^2"))
+                            : "pointCircle" === this.method &&
+                              (o = this.circle.Radius()),
                     o
                 );
             },
@@ -38090,9 +38214,9 @@ var __webpack_exports__ = {};
                                           this.line.point2.coords,
                                       ))
                                 : "pointCircle" === this.method
-                                ? (this.radius = this.circle.Radius())
-                                : "pointRadius" === this.method &&
-                                  (this.radius = this.updateRadius()),
+                                  ? (this.radius = this.circle.Radius())
+                                  : "pointRadius" === this.method &&
+                                    (this.radius = this.updateRadius()),
                             this.updateStdform(),
                             this.updateQuadraticform(),
                             r = this.center.coords.usrCoords[0],
@@ -38215,16 +38339,19 @@ var __webpack_exports__ = {};
                 return s.Z.exists(t)
                     ? (this.setRadius(t), this.Radius())
                     : "twoPoints" === this.method
-                    ? s.Z.cmpArrays(this.point2.coords.usrCoords, [0, 0, 0]) ||
-                      s.Z.cmpArrays(this.center.coords.usrCoords, [0, 0, 0])
-                        ? NaN
-                        : this.center.Dist(this.point2)
-                    : "pointLine" === this.method ||
-                      "pointCircle" === this.method
-                    ? this.radius
-                    : "pointRadius" === this.method
-                    ? this.updateRadius()
-                    : NaN;
+                      ? s.Z.cmpArrays(
+                            this.point2.coords.usrCoords,
+                            [0, 0, 0],
+                        ) ||
+                        s.Z.cmpArrays(this.center.coords.usrCoords, [0, 0, 0])
+                          ? NaN
+                          : this.center.Dist(this.point2)
+                      : "pointLine" === this.method ||
+                          "pointCircle" === this.method
+                        ? this.radius
+                        : "pointRadius" === this.method
+                          ? this.updateRadius()
+                          : NaN;
             },
             getRadius: function () {
                 return (
@@ -39113,17 +39240,17 @@ var __webpack_exports__ = {};
                                   Math.sin(t) / _,
                               ]))
                             : u[0][1][1] <= 0 && u[0][2][2] > 0
-                            ? (d = o.Z.matVecMult(C, [
-                                  Math.cos(t) / f,
-                                  1 / p,
-                                  Math.sin(t) / _,
-                              ]))
-                            : u[0][2][2] < 0 &&
-                              (d = o.Z.matVecMult(C, [
-                                  Math.sin(t) / f,
-                                  Math.cos(t) / p,
-                                  1 / _,
-                              ])),
+                              ? (d = o.Z.matVecMult(C, [
+                                    Math.cos(t) / f,
+                                    1 / p,
+                                    Math.sin(t) / _,
+                                ]))
+                              : u[0][2][2] < 0 &&
+                                (d = o.Z.matVecMult(C, [
+                                    Math.sin(t) / f,
+                                    Math.cos(t) / p,
+                                    1 / _,
+                                ])),
                         s.Z.exists(d)
                             ? ((d[1] /= d[0]), (d[2] /= d[0]), (d[0] = 1))
                             : (d = [1, NaN, NaN]),
@@ -40015,24 +40142,24 @@ var __webpack_exports__ = {};
                                       p,
                                   ))
                                 : g
-                                ? (b[p].prev &&
-                                      (E = u.Z.projectCoordsToSegment(
-                                          [1, t, e],
-                                          b[p].prev.usrCoords,
-                                          b[p].usrCoords,
-                                      )),
-                                  b[p].next &&
-                                      b[p + 1] !== b[p].next &&
-                                      (E = u.Z.projectCoordsToSegment(
-                                          [1, t, e],
-                                          b[p].usrCoords,
-                                          b[p].next.usrCoords,
-                                      )))
-                                : (E = u.Z.projectCoordsToSegment(
-                                      [1, t, e],
-                                      b[p].usrCoords,
-                                      b[p + 1].usrCoords,
-                                  )),
+                                  ? (b[p].prev &&
+                                        (E = u.Z.projectCoordsToSegment(
+                                            [1, t, e],
+                                            b[p].prev.usrCoords,
+                                            b[p].usrCoords,
+                                        )),
+                                    b[p].next &&
+                                        b[p + 1] !== b[p].next &&
+                                        (E = u.Z.projectCoordsToSegment(
+                                            [1, t, e],
+                                            b[p].usrCoords,
+                                            b[p].next.usrCoords,
+                                        )))
+                                  : (E = u.Z.projectCoordsToSegment(
+                                        [1, t, e],
+                                        b[p].usrCoords,
+                                        b[p + 1].usrCoords,
+                                    )),
                             E[1] >= 0 &&
                                 E[1] <= 1 &&
                                 (t - E[0][1]) * (t - E[0][1]) * Z +
@@ -40133,12 +40260,12 @@ var __webpack_exports__ = {};
                           s.Z.evaluate(this.visProp.doadvancedplotold)
                             ? p.updateParametricCurveOld(this, e, r)
                             : 2 === c
-                            ? p.updateParametricCurve_v2(this, e, r)
-                            : 3 === c
-                            ? p.updateParametricCurve_v3(this, e, r)
-                            : 4 === c
-                            ? p.updateParametricCurve_v4(this, e, r)
-                            : p.updateParametricCurve_v2(this, e, r)
+                              ? p.updateParametricCurve_v2(this, e, r)
+                              : 3 === c
+                                ? p.updateParametricCurve_v3(this, e, r)
+                                : 4 === c
+                                  ? p.updateParametricCurve_v4(this, e, r)
+                                  : p.updateParametricCurve_v2(this, e, r)
                         : (this.board.updateQuality ===
                           this.board.BOARD_QUALITY_HIGH
                               ? (this.numberPoints = s.Z.evaluate(
@@ -40549,11 +40676,11 @@ var __webpack_exports__ = {};
                     ? (n.type === i.Z.OBJECT_TYPE_SECTOR
                           ? (h = s.Z.copyAttributes(o, e.options, "sector"))
                           : n.type === i.Z.OBJECT_TYPE_ARC
-                          ? (h = s.Z.copyAttributes(o, e.options, "arc"))
-                          : n.type === i.Z.OBJECT_TYPE_ANGLE
-                          ? (s.Z.exists(o.withLabel) || (o.withLabel = !1),
-                            (h = s.Z.copyAttributes(o, e.options, "angle")))
-                          : (h = s.Z.copyAttributes(o, e.options, "curve")),
+                            ? (h = s.Z.copyAttributes(o, e.options, "arc"))
+                            : n.type === i.Z.OBJECT_TYPE_ANGLE
+                              ? (s.Z.exists(o.withLabel) || (o.withLabel = !1),
+                                (h = s.Z.copyAttributes(o, e.options, "angle")))
+                              : (h = s.Z.copyAttributes(o, e.options, "curve")),
                       (h = s.Z.copyAttributes(h, e.options, "curve")),
                       ((a = new t.Z.Curve(
                           e,
@@ -40726,18 +40853,18 @@ var __webpack_exports__ = {};
                     s.Z.isString(d[p])
                         ? u.push(e.select(d[p]))
                         : s.Z.isPoint(d[p])
-                        ? u.push(d[p])
-                        : s.Z.isArray(d[p]) && 2 === d[p].length
-                        ? ((u[p] = []),
-                          s.Z.isFunction(d[p][0])
-                              ? u[p].push(d[p][0]())
-                              : u[p].push(d[p][0]),
-                          s.Z.isFunction(d[p][1])
-                              ? u[p].push(d[p][1]())
-                              : u[p].push(d[p][1]))
-                        : s.Z.isFunction(d[p]) &&
-                          2 === d[p]().length &&
-                          u.push(i[p]());
+                          ? u.push(d[p])
+                          : s.Z.isArray(d[p]) && 2 === d[p].length
+                            ? ((u[p] = []),
+                              s.Z.isFunction(d[p][0])
+                                  ? u[p].push(d[p][0]())
+                                  : u[p].push(d[p][0]),
+                              s.Z.isFunction(d[p][1])
+                                  ? u[p].push(d[p][1]())
+                                  : u[p].push(d[p][1]))
+                            : s.Z.isFunction(d[p]) &&
+                              2 === d[p]().length &&
+                              u.push(i[p]());
             if (!0 === r.createpoints)
                 a = s.Z.providePoints(e, u, r, "cardinalspline", ["points"]);
             else
@@ -40830,18 +40957,18 @@ var __webpack_exports__ = {};
                     s.Z.isString(l[d])
                         ? c.push(e.select(l[d]))
                         : s.Z.isPoint(l[d])
-                        ? c.push(l[d])
-                        : s.Z.isArray(l[d]) && 2 === l[d].length
-                        ? ((c[d] = []),
-                          s.Z.isFunction(l[d][0])
-                              ? c[d].push(l[d][0]())
-                              : c[d].push(l[d][0]),
-                          s.Z.isFunction(l[d][1])
-                              ? c[d].push(l[d][1]())
-                              : c[d].push(l[d][1]))
-                        : s.Z.isFunction(l[d]) &&
-                          2 === l[d]().length &&
-                          c.push(i[d]());
+                          ? c.push(l[d])
+                          : s.Z.isArray(l[d]) && 2 === l[d].length
+                            ? ((c[d] = []),
+                              s.Z.isFunction(l[d][0])
+                                  ? c[d].push(l[d][0]())
+                                  : c[d].push(l[d][0]),
+                              s.Z.isFunction(l[d][1])
+                                  ? c[d].push(l[d][1]())
+                                  : c[d].push(l[d][1]))
+                            : s.Z.isFunction(l[d]) &&
+                              2 === l[d]().length &&
+                              c.push(i[d]());
             if (!0 === r.createpoints)
                 a = s.Z.providePoints(e, c, r, "metapostspline", ["points"]);
             else
@@ -42119,13 +42246,13 @@ var __webpack_exports__ = {};
                         "none" === t
                             ? this.updateDataArrayNone()
                             : "square" === t
-                            ? this.updateDataArraySquare()
-                            : "sector" === t
-                            ? this.updateDataArraySector()
-                            : "sectordot" === t &&
-                              (this.updateDataArraySector(),
-                              this.dot.visProp.visible ||
-                                  this.dot.setAttribute({ visible: !0 })),
+                              ? this.updateDataArraySquare()
+                              : "sector" === t
+                                ? this.updateDataArraySector()
+                                : "sectordot" === t &&
+                                  (this.updateDataArraySector(),
+                                  this.dot.visProp.visible ||
+                                      this.dot.setAttribute({ visible: !0 })),
                         (!this.visProp.visible ||
                             ("sectordot" !== t && this.dot.visProp.visible)) &&
                             this.dot.setAttribute({ visible: !1 });
@@ -42900,15 +43027,15 @@ var __webpack_exports__ = {};
                     ? ((r = (e = s.Z.providePoints(t, e, i, "point"))[2]),
                       (d = 0))
                     : s.Z.isPointType(t, e[0])
-                    ? ((r = s.Z.providePoints(t, [e[0]], i, "point")[0]),
-                      (h = function () {
-                          return e[1].stdform;
-                      }))
-                    : s.Z.isPointType(t, e[1]) &&
-                      ((r = s.Z.providePoints(t, [e[1]], i, "point")[0]),
-                      (h = function () {
-                          return e[0].stdform;
-                      })),
+                      ? ((r = s.Z.providePoints(t, [e[0]], i, "point")[0]),
+                        (h = function () {
+                            return e[1].stdform;
+                        }))
+                      : s.Z.isPointType(t, e[1]) &&
+                        ((r = s.Z.providePoints(t, [e[1]], i, "point")[0]),
+                        (h = function () {
+                            return e[0].stdform;
+                        })),
                 s.Z.exists(i.layer) || (i.layer = t.options.layer.line),
                 (c = s.Z.copyAttributes(i, t.options, "parallel", "point")),
                 ((n =
@@ -43067,30 +43194,34 @@ var __webpack_exports__ = {};
                                   return u < 0
                                       ? 1
                                       : 1 === a.bezierDegree
-                                      ? (a.Y(u) + p * (a.Y(u + 1) - a.Y(u))) *
-                                            (a.Y(u) - a.Y(u + 1)) -
-                                        (a.X(u) + p * (a.X(u + 1) - a.X(u))) *
-                                            (a.X(u + 1) - a.X(u))
-                                      : ((s = a.points[u].usrCoords),
-                                        (r = a.points[u + 1].usrCoords),
-                                        (o = a.points[u + 2].usrCoords),
-                                        (h = a.points[u + 3].usrCoords),
-                                        (l =
-                                            (1 - i) * (1 - i) * (r[1] - s[1]) +
-                                            2 * (1 - i) * i * (o[1] - r[1]) +
-                                            i * i * (h[1] - o[1])),
-                                        (c =
-                                            (1 - i) * (1 - i) * (r[2] - s[2]) +
-                                            2 * (1 - i) * i * (o[2] - r[2]) +
-                                            i * i * (h[2] - o[2])),
-                                        (l /= d = Math.sqrt(l * l + c * c)),
-                                        (c /= d),
-                                        (e = [
-                                            1,
-                                            (t = n.coords.usrCoords)[1] - c,
-                                            t[2] + l,
-                                        ]),
-                                        t[2] * e[1] - t[1] * e[2]);
+                                        ? (a.Y(u) + p * (a.Y(u + 1) - a.Y(u))) *
+                                              (a.Y(u) - a.Y(u + 1)) -
+                                          (a.X(u) + p * (a.X(u + 1) - a.X(u))) *
+                                              (a.X(u + 1) - a.X(u))
+                                        : ((s = a.points[u].usrCoords),
+                                          (r = a.points[u + 1].usrCoords),
+                                          (o = a.points[u + 2].usrCoords),
+                                          (h = a.points[u + 3].usrCoords),
+                                          (l =
+                                              (1 - i) *
+                                                  (1 - i) *
+                                                  (r[1] - s[1]) +
+                                              2 * (1 - i) * i * (o[1] - r[1]) +
+                                              i * i * (h[1] - o[1])),
+                                          (c =
+                                              (1 - i) *
+                                                  (1 - i) *
+                                                  (r[2] - s[2]) +
+                                              2 * (1 - i) * i * (o[2] - r[2]) +
+                                              i * i * (h[2] - o[2])),
+                                          (l /= d = Math.sqrt(l * l + c * c)),
+                                          (c /= d),
+                                          (e = [
+                                              1,
+                                              (t = n.coords.usrCoords)[1] - c,
+                                              t[2] + l,
+                                          ]),
+                                          t[2] * e[1] - t[1] * e[2]);
                               },
                               function () {
                                   var t,
@@ -43126,26 +43257,30 @@ var __webpack_exports__ = {};
                                   return d < 0
                                       ? 0
                                       : 1 === a.bezierDegree
-                                      ? a.X(d + 1) - a.X(d)
-                                      : ((i = a.points[d].usrCoords),
-                                        (s = a.points[d + 1].usrCoords),
-                                        (r = a.points[d + 2].usrCoords),
-                                        (o = a.points[d + 3].usrCoords),
-                                        (h =
-                                            (1 - e) * (1 - e) * (s[1] - i[1]) +
-                                            2 * (1 - e) * e * (r[1] - s[1]) +
-                                            e * e * (o[1] - r[1])),
-                                        (l =
-                                            (1 - e) * (1 - e) * (s[2] - i[2]) +
-                                            2 * (1 - e) * e * (r[2] - s[2]) +
-                                            e * e * (o[2] - r[2])),
-                                        (h /= c = Math.sqrt(h * h + l * l)),
-                                        (l /= c),
-                                        [
-                                            1,
-                                            (t = n.coords.usrCoords)[1] - l,
-                                            t[2] + h,
-                                        ][2] - t[2]);
+                                        ? a.X(d + 1) - a.X(d)
+                                        : ((i = a.points[d].usrCoords),
+                                          (s = a.points[d + 1].usrCoords),
+                                          (r = a.points[d + 2].usrCoords),
+                                          (o = a.points[d + 3].usrCoords),
+                                          (h =
+                                              (1 - e) *
+                                                  (1 - e) *
+                                                  (s[1] - i[1]) +
+                                              2 * (1 - e) * e * (r[1] - s[1]) +
+                                              e * e * (o[1] - r[1])),
+                                          (l =
+                                              (1 - e) *
+                                                  (1 - e) *
+                                                  (s[2] - i[2]) +
+                                              2 * (1 - e) * e * (r[2] - s[2]) +
+                                              e * e * (o[2] - r[2])),
+                                          (h /= c = Math.sqrt(h * h + l * l)),
+                                          (l /= c),
+                                          [
+                                              1,
+                                              (t = n.coords.usrCoords)[1] - l,
+                                              t[2] + h,
+                                          ][2] - t[2]);
                               },
                               function () {
                                   var t,
@@ -43182,27 +43317,31 @@ var __webpack_exports__ = {};
                                   return u < 0
                                       ? 0
                                       : 1 === a.bezierDegree
-                                      ? a.Y(u + 1) - a.Y(u)
-                                      : ((s = a.points[u].usrCoords),
-                                        (r = a.points[u + 1].usrCoords),
-                                        (o = a.points[u + 2].usrCoords),
-                                        (h = a.points[u + 3].usrCoords),
-                                        (l =
-                                            (1 - i) * (1 - i) * (r[1] - s[1]) +
-                                            2 * (1 - i) * i * (o[1] - r[1]) +
-                                            i * i * (h[1] - o[1])),
-                                        (c =
-                                            (1 - i) * (1 - i) * (r[2] - s[2]) +
-                                            2 * (1 - i) * i * (o[2] - r[2]) +
-                                            i * i * (h[2] - o[2])),
-                                        (l /= d = Math.sqrt(l * l + c * c)),
-                                        (c /= d),
-                                        (e = [
-                                            1,
-                                            (t = n.coords.usrCoords)[1] - c,
-                                            t[2] + l,
-                                        ]),
-                                        t[1] - e[1]);
+                                        ? a.Y(u + 1) - a.Y(u)
+                                        : ((s = a.points[u].usrCoords),
+                                          (r = a.points[u + 1].usrCoords),
+                                          (o = a.points[u + 2].usrCoords),
+                                          (h = a.points[u + 3].usrCoords),
+                                          (l =
+                                              (1 - i) *
+                                                  (1 - i) *
+                                                  (r[1] - s[1]) +
+                                              2 * (1 - i) * i * (o[1] - r[1]) +
+                                              i * i * (h[1] - o[1])),
+                                          (c =
+                                              (1 - i) *
+                                                  (1 - i) *
+                                                  (r[2] - s[2]) +
+                                              2 * (1 - i) * i * (o[2] - r[2]) +
+                                              i * i * (h[2] - o[2])),
+                                          (l /= d = Math.sqrt(l * l + c * c)),
+                                          (c /= d),
+                                          (e = [
+                                              1,
+                                              (t = n.coords.usrCoords)[1] - c,
+                                              t[2] + l,
+                                          ]),
+                                          t[1] - e[1]);
                               },
                           ],
                           p,
@@ -44841,8 +44980,8 @@ var __webpack_exports__ = {};
                                     null !== i
                                         ? i
                                         : f.name && "" !== f.name
-                                        ? f.name + " = "
-                                        : ""),
+                                          ? f.name + " = "
+                                          : ""),
                                 (t += s.Z.toFixed(f.Value(), e)),
                                 null !== r && (t += r),
                                 null !== o && (t += o),
@@ -45965,15 +46104,23 @@ var __webpack_exports__ = {};
                             1 === i.length
                                 ? (h = i[0].stdform)
                                 : 2 === i.length
-                                ? (h = o.Z.crossProduct(
-                                      i[1].coords.usrCoords,
-                                      i[0].coords.usrCoords,
-                                  ))
-                                : 4 === i.length &&
-                                  (h = o.Z.crossProduct(
-                                      [1, this.evalParam(2), this.evalParam(3)],
-                                      [1, this.evalParam(0), this.evalParam(1)],
-                                  )),
+                                  ? (h = o.Z.crossProduct(
+                                        i[1].coords.usrCoords,
+                                        i[0].coords.usrCoords,
+                                    ))
+                                  : 4 === i.length &&
+                                    (h = o.Z.crossProduct(
+                                        [
+                                            1,
+                                            this.evalParam(2),
+                                            this.evalParam(3),
+                                        ],
+                                        [
+                                            1,
+                                            this.evalParam(0),
+                                            this.evalParam(1),
+                                        ],
+                                    )),
                                 (t = h[1]),
                                 (e = h[2]),
                                 (a = (l = [
@@ -46020,8 +46167,8 @@ var __webpack_exports__ = {};
                                         ? ((t = this.evalParam(1)),
                                           (e = this.evalParam(2)))
                                         : s.Z.isArray(i[1])
-                                        ? ((t = i[1][0]), (e = i[1][1]))
-                                        : ((t = i[1].X()), (e = i[1].Y())),
+                                          ? ((t = i[1][0]), (e = i[1][1]))
+                                          : ((t = i[1].X()), (e = i[1].Y())),
                                     (this.matrix[1][0] = t * (1 - o) + e * n),
                                     (this.matrix[2][0] = e * (1 - o) - t * n));
                         });
@@ -46155,10 +46302,10 @@ var __webpack_exports__ = {};
                 (3 === e.length
                     ? ((o = e[0]), (n = e[1]), (a = e[2]))
                     : 2 === e.length
-                    ? s.Z.isArray(e[0])
-                        ? ((o = e[0][0]), (n = e[0][1]), (a = e[1]))
-                        : ((o = e[0]), (n = e[1]))
-                    : ((o = e[0][0]), (n = e[0][1]))),
+                      ? s.Z.isArray(e[0])
+                          ? ((o = e[0][0]), (n = e[0][1]), (a = e[1]))
+                          : ((o = e[0]), (n = e[1]))
+                      : ((o = e[0][0]), (n = e[0][1]))),
             this.init(o, n, a),
             (this.methodMap = s.Z.deepCopy(this.methodMap, {
                 forward: "forward",
@@ -46798,21 +46945,21 @@ var __webpack_exports__ = {};
                       (n = this.line.points.length) < 2
                           ? ((this.dxMaj = 0), (this.dyMaj = 0))
                           : o.Z.relDif(t, i) < o.Z.eps
-                          ? ((this.dxMaj =
-                                this.line.points[0].usrCoords[2] -
-                                this.line.points[1].usrCoords[2]),
-                            (this.dyMaj =
-                                this.line.points[1].usrCoords[1] -
-                                this.line.points[0].usrCoords[1]))
-                          : o.Z.relDif(t, r) < o.Z.eps
-                          ? ((this.dxMaj =
-                                this.line.points[n - 2].usrCoords[2] -
-                                this.line.points[n - 1].usrCoords[2]),
-                            (this.dyMaj =
-                                this.line.points[n - 1].usrCoords[1] -
-                                this.line.points[n - 2].usrCoords[1]))
-                          : ((this.dxMaj = -l.Z.D(this.line.Y)(t)),
-                            (this.dyMaj = l.Z.D(this.line.X)(t))))
+                            ? ((this.dxMaj =
+                                  this.line.points[0].usrCoords[2] -
+                                  this.line.points[1].usrCoords[2]),
+                              (this.dyMaj =
+                                  this.line.points[1].usrCoords[1] -
+                                  this.line.points[0].usrCoords[1]))
+                            : o.Z.relDif(t, r) < o.Z.eps
+                              ? ((this.dxMaj =
+                                    this.line.points[n - 2].usrCoords[2] -
+                                    this.line.points[n - 1].usrCoords[2]),
+                                (this.dyMaj =
+                                    this.line.points[n - 1].usrCoords[1] -
+                                    this.line.points[n - 2].usrCoords[1]))
+                              : ((this.dxMaj = -l.Z.D(this.line.Y)(t)),
+                                (this.dyMaj = l.Z.D(this.line.X)(t))))
                     : ((this.dxMaj = this.line.stdform[1]),
                       (this.dyMaj = this.line.stdform[2])),
                     (this.dxMin = this.dxMaj),
@@ -46868,35 +47015,35 @@ var __webpack_exports__ = {};
                           "right" === d
                               ? this.line.point2.coords
                               : "middle" === d
-                              ? new c.Z(
-                                    i.Z.COORDS_BY_USER,
-                                    [
-                                        0.5 * (r + a),
-                                        0.5 * (t + o),
-                                        0.5 * (e + n),
-                                    ],
-                                    this.board,
-                                )
-                              : s.Z.isNumber(d)
-                              ? new c.Z(
-                                    i.Z.COORDS_BY_USER,
-                                    [
-                                        r + (a - r) * d,
-                                        t + (o - t) * d,
-                                        e + (n - e) * d,
-                                    ],
-                                    this.board,
-                                )
-                              : this.line.point1.coords)
+                                ? new c.Z(
+                                      i.Z.COORDS_BY_USER,
+                                      [
+                                          0.5 * (r + a),
+                                          0.5 * (t + o),
+                                          0.5 * (e + n),
+                                      ],
+                                      this.board,
+                                  )
+                                : s.Z.isNumber(d)
+                                  ? new c.Z(
+                                        i.Z.COORDS_BY_USER,
+                                        [
+                                            r + (a - r) * d,
+                                            t + (o - t) * d,
+                                            e + (n - e) * d,
+                                        ],
+                                        this.board,
+                                    )
+                                  : this.line.point1.coords)
                     : ((h = this.line.minX()),
                       (l = this.line.maxX()),
                       "right" === d
                           ? l
                           : "middle" === d
-                          ? 0.5 * (h + l)
-                          : s.Z.isNumber(d)
-                          ? h * (1 - d) + l * d
-                          : h);
+                            ? 0.5 * (h + l)
+                            : s.Z.isNumber(d)
+                              ? h * (1 - d) + l * d
+                              : h);
             },
             getLowerAndUpperBounds: function (t, e) {
                 var r,
@@ -46970,11 +47117,11 @@ var __webpack_exports__ = {};
                             (n = b),
                             m || !_ || v || (n -= o.Z.eps))
                           : b < f
-                          ? ((r = b),
-                            m || !_ || v || (r += o.Z.eps),
-                            (n = f),
-                            g || !p || v || (n -= o.Z.eps))
-                          : ((r = 0), (n = 0)),
+                            ? ((r = b),
+                              m || !_ || v || (r += o.Z.eps),
+                              (n = f),
+                              g || !p || v || (n -= o.Z.eps))
+                            : ((r = 0), (n = 0)),
                       { lower: r, upper: n });
             },
             getDistanceFromZero: function (t, e) {
@@ -47290,8 +47437,8 @@ var __webpack_exports__ = {};
                             ">" === s.Z.evaluate(this.visProp.face)
                                 ? Math.PI / 4
                                 : "<" === s.Z.evaluate(this.visProp.face)
-                                ? -Math.PI / 4
-                                : 0),
+                                  ? -Math.PI / 4
+                                  : 0),
                             (l = Math.cos(d) * a - Math.sin(d) * h),
                             (c = Math.sin(d) * a + Math.cos(d) * h),
                             (y[0] = i[1] + l * v),
@@ -47336,8 +47483,8 @@ var __webpack_exports__ = {};
                         ("1" === e
                             ? (e = r)
                             : "-1" === e
-                            ? (e = "-" + r)
-                            : "0" !== e && (e += r)),
+                              ? (e = "-" + r)
+                              : "0" !== e && (e += r)),
                     s.Z.evaluate(this.visProp.useunicodeminus) &&
                         (e = e.replace(/-/g, "−")),
                     e
@@ -48009,16 +48156,16 @@ var __webpack_exports__ = {};
                                     "pow" == t.children[0].value
                                         ? this.deriveElementary(t, e)
                                         : 0 === t.children[1].length
-                                        ? this.createNode("node_const", 0)
-                                        : this.createNode(
-                                              "node_op",
-                                              "op_mul",
-                                              this.deriveElementary(t, e),
-                                              this.derivative(
-                                                  t.children[1][0],
-                                                  e,
-                                              ),
-                                          );
+                                          ? this.createNode("node_const", 0)
+                                          : this.createNode(
+                                                "node_op",
+                                                "op_mul",
+                                                this.deriveElementary(t, e),
+                                                this.derivative(
+                                                    t.children[1][0],
+                                                    e,
+                                                ),
+                                            );
                                 break;
                             case "op_div":
                                 i = this.createNode(
@@ -50005,8 +50152,8 @@ var __webpack_exports__ = {};
                         3 === arguments.length
                             ? [1, t, e, i]
                             : 3 === t.length
-                            ? [1].concat(t)
-                            : t),
+                              ? [1].concat(t)
+                              : t),
                     o.Z.matVecMult(this.matrix3D, s)
                 );
             },
@@ -50892,8 +51039,8 @@ var __webpack_exports__ = {};
                       s.Z.isFunction(i[2])
                           ? (h = i[2])
                           : 3 === i[2].length
-                          ? (h = [1].concat(i[2]))
-                          : 4 === i[2].length && (h = i[2]),
+                            ? (h = [1].concat(i[2]))
+                            : 4 === i[2].length && (h = i[2]),
                       (l = i[3]),
                       (n = s.Z.providePoints3D(
                           p,

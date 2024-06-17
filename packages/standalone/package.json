@@ -28,7 +28,8 @@
             "files": [
                 "src/**/*.ts",
                 "src/**/*.tsx",
-                "tsconfig.json"
+                "tsconfig.json",
+                "vite.config.ts"
             ],
             "output": [
                 "dist/**/*.js",
@@ -41,13 +42,7 @@
             ]
         }
     },
-    "peerDependencies": {
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "styled-components": "^5.3.11"
-    },
+    "peerDependencies": {},
     "dependencies": {},
-    "devDependencies": {
-        "vite": "^4.5.0"
-    }
+    "devDependencies": {}
 }

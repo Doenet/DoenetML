@@ -691,9 +691,8 @@ export function PageViewer({
                         if (
                             rendererState[solComponentName].stateValues.hidden
                         ) {
-                            rendererState[
-                                solComponentName
-                            ].stateValues.hidden = false;
+                            rendererState[solComponentName].stateValues.hidden =
+                                false;
                         }
                     }
                 }

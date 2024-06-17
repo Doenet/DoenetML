@@ -1,0 +1,61 @@
+{
+    "name": "@doenet/doenetml-iframe",
+    "type": "module",
+    "description": "A renderer for DoenetML contained in an iframe",
+    "version": "0.7.0-alpha7",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/component/index.js"
+        }
+    },
+    "scripts": {
+        "dev": "npm run build:iframe && vite",
+        "build": "npm run build:iframe && npm run build:component",
+        "build:component": "wireit",
+        "build:iframe": "wireit",
+        "publish": "npm run build && cd dist/component && npm publish",
+        "test": "echo \"No tests \""
+    },
+    "wireit": {
+        "build:iframe": {
+            "command": "vite -c vite.config-iframe.ts build",
+            "files": [
+                "src/iframe-index.ts",
+                "vite.config-iframe.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/iframe/*"
+            ]
+        },
+        "build:component": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "tsconfig.json",
+                "vite.config.ts",
+                "dist/iframe/*"
+            ],
+            "output": [
+                "dist/component/*"
+            ],
+            "dependencies": [
+                "../doenetml:build"
+            ]
+        }
+    },
+    "peerDependencies": {
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "dependencies": {},
+    "devDependencies": {}
+}

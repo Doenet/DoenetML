@@ -34,7 +34,7 @@ export function nodeAtOffset<const T extends DastNodes["type"]>(
     if (offset > 0 && offset === this.source.length && side === "left") {
         // If we ask for a node at the "end" of the file, we probably want
         // the last node, not null; walk back one character.
-        side = "right"
+        side = "right";
         offset -= 1;
     }
 

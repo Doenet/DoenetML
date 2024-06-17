@@ -15,7 +15,13 @@ export const trimWhitespacePlugin: Plugin<void[], DastRoot, DastRoot> =
                 if (node.type !== "element" && node.type !== "root") {
                     return;
                 }
-                if (isElement(node) && !(PAR_ELEMENTS.has(node.name) || ALWAYS_BREAK_ELEMENTS.has(node.name))) {
+                if (
+                    isElement(node) &&
+                    !(
+                        PAR_ELEMENTS.has(node.name) ||
+                        ALWAYS_BREAK_ELEMENTS.has(node.name)
+                    )
+                ) {
                     return;
                 }
                 // If we made it here, whitespace at the start and end of the node should be trimmed

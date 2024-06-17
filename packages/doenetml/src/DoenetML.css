@@ -43,7 +43,8 @@ url(OpenSansRegularWoff) format('woff'); */
     src:
         url("./fonts/files/open-sans-v18-latin-light-italic.woff2")
             format("woff2"),
-        url("./fonts/files/open-sans-v18-latin-light-italic.woff") format("woff");
+        url("./fonts/files/open-sans-v18-latin-light-italic.woff")
+            format("woff");
 }
 
 @font-face {

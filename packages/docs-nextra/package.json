@@ -2,7 +2,7 @@
     "name": "@doenet/docs-nextra",
     "type": "module",
     "description": "Documentation for DoenetML using Nextra",
-    "version": "*",
+    "version": "1.0.0",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -11,7 +11,7 @@
         "/dist"
     ],
     "scripts": {
-        "test": "echo \"no tests\" && exit 0",
+        "test": "echo \"No tests\"",
         "dev": "npm run build:pre && next",
         "build": "npm run build:pre && next build",
         "start": "next start",
@@ -20,7 +20,7 @@
         "build:pre-scripts": "wireit"
     },
     "wireit": {
-        "build:pre-copy" :{
+        "build:pre-copy": {
             "command": "mkdir -p ./public/bundle && cp -r ../standalone/dist/* ./public/bundle/",
             "files": [
                 "../standalone/dist/*",
@@ -54,10 +54,8 @@
     "dependencies": {
         "nextra": "^3.0.0-alpha.24",
         "nextra-theme-docs": "^3.0.0-alpha.24",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
     },
-    "devDependencies": {
-        "@types/esprima": "^4.0.6"
-    }
+    "devDependencies": {}
 }

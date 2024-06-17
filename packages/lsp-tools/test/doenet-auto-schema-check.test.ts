@@ -295,7 +295,7 @@ describe("AutoCompleter", () => {
         expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
           [
             {
-              "message": "Attribute \`foo\` of element \`<b>\` must be one of: \\"true\\", \\"false\\"",
+              "message": "Attribute \`foo\` of element \`<b>\` must be one of: "true", "false"",
               "range": {
                 "end": {
                   "character": 25,
@@ -336,7 +336,7 @@ describe("AutoCompleter", () => {
             expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
               [
                 {
-                  "message": "Attribute \`xyx\` of element \`<a>\` must be one of: \\"a\\", \\"B\\"",
+                  "message": "Attribute \`xyx\` of element \`<a>\` must be one of: "a", "B"",
                   "range": {
                     "end": {
                       "character": 10,

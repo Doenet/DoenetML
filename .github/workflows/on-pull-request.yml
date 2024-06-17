@@ -54,3 +54,24 @@ jobs:
                   export NODE_OPTIONS="--max_old_space_size=4096"
                   cd packages/docs-nextra
                   npm run build
+
+    lint-ts:
+        name: Lint Typescript Code
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [18.x]
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Prettier Check
+              run: npx prettier . --check

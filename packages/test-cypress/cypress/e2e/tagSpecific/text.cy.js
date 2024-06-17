@@ -1010,7 +1010,6 @@ describe("Text Tag Tests", function () {
         });
     });
 
-
     it("numCharacters", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1025,7 +1024,9 @@ describe("Text Tag Tests", function () {
             );
         });
 
-        cy.get("p" + cesc2("#/p2")).should("have.text", "Number of characters is 11.")
+        cy.get("p" + cesc2("#/p2")).should(
+            "have.text",
+            "Number of characters is 11.",
+        );
     });
-
 });

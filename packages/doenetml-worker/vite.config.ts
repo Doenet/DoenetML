@@ -11,7 +11,7 @@ export default defineConfig({
             entry: "src/index.ts",
             fileName: (_format, _entryName) => "CoreWorker.js",
             formats: ["iife"],
-            name: "doenetmlWorker"
+            name: "doenetmlWorker",
         },
         rollupOptions: {
             // @ts-ignore
