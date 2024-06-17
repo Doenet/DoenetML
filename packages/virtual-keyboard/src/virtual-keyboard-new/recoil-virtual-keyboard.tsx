@@ -15,7 +15,7 @@ export function RecoilVirtualKeyboard() {
         ReturnType<typeof translateKeyboardEvent>
     >([]);
     const callbackRef = React.useRef<Function>(callback);
-    
+
     React.useEffect(() => {
         callbackRef.current = callback;
     }, [callback]);

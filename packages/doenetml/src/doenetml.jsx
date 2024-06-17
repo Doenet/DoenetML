@@ -6,7 +6,7 @@ import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
-import "@doenet/virtual-keyboard/style.css"
+import "@doenet/virtual-keyboard/style.css";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
 let rngClass = prng_alea;
