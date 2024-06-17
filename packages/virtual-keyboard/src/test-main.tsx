@@ -7,12 +7,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { focusedMathField } from "./MathInputSelector";
 import { VirtualKeyboard } from "./virtual-keyboard";
-import { RecoilRoot, useSetRecoilState } from "recoil";
+import { RecoilRoot, useSetRecoilState, useRecoilValue } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
-import { Keyboard, ManagedKeyboard } from "./virtual-keyboard-new";
-import { UniqueKeyboardTray } from "./virtual-keyboard-new/unique-keyboard-tray";
-import { KeyboardTray } from "./virtual-keyboard-new/keyboard-tray";
+import {
+    ManagedKeyboard,
+} from "./virtual-keyboard-new";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.Fragment>
@@ -34,52 +34,10 @@ function App() {
             setLastCommand(cmd);
         });
     }, []);
-    const [firstKeyboardPresent, setFirstKeyboardPresent] =
-        React.useState(true);
-    const [secondKeyboardPresent, setSecondKeyboardPresent] =
-        React.useState(true);
 
     return (
         <div>
             <h4>Test the VirtualKeyboard</h4>
-            <button
-                onClick={() => setFirstKeyboardPresent((o) => !o)}
-                style={{
-                    backgroundColor: "lightgray",
-                    border: "1px solid black",
-                    borderRadius: 5,
-                    margin: 2,
-                    padding: 4,
-                }}
-            >
-                First keyboard active {"" + firstKeyboardPresent}
-            </button>
-            <button
-                onClick={() => setSecondKeyboardPresent((o) => !o)}
-                style={{
-                    backgroundColor: "lightgray",
-                    border: "1px solid black",
-                    borderRadius: 5,
-                    margin: 2,
-                    padding: 4,
-                }}
-            >
-                Second keyboard active {"" + secondKeyboardPresent}
-            </button>
-            {firstKeyboardPresent && (
-                <UniqueKeyboardTray
-                    onClick={(e) =>
-                        console.log("first keyboard was clicked", e)
-                    }
-                />
-            )}
-            {secondKeyboardPresent && (
-                <UniqueKeyboardTray
-                    onClick={(e) =>
-                        console.log("second keyboard was clicked", e)
-                    }
-                />
-            )}
             <p>
                 Last command received from the VirtualKeyboard:{" "}
                 <code style={{ fontWeight: "bold", color: "#f8a" }}>

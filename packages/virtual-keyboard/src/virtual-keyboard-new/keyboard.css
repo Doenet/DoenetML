@@ -61,6 +61,11 @@
     .key-space {
         @apply flex-grow max-w-none;
     }
+
+    .svg-inline--fa {
+        display: inline-block;
+        height: 1em;
+    }
 }
 
 .virtual-keyboard.numeric .key-backspace {

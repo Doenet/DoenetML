@@ -16,6 +16,9 @@
         },
         "./math-input": {
             "import": "./dist/math-input.js"
+        },
+        "./*": {
+            "import": "./dist/*"
         }
     },
     "scripts": {
@@ -29,6 +32,7 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config.ts"
             ],

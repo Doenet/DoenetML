@@ -18,7 +18,7 @@ import {
 } from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
 import { PageContext } from "../PageViewer";
@@ -86,8 +86,8 @@ export default function MathInput(props) {
 
     const setFocusedField = useSetRecoilState(focusedMathField);
     const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
-    const containerRef = useRecoilValue(palletRef);
-    const dragHandleRef = useRecoilValue(handleRef);
+    // A global reference to the currently active MathInput
+    const [containerRef, setContainerRef] = useRecoilState(palletRef);
 
     const updateValidationState = () => {
         validationState.current = "unvalidated";
@@ -103,6 +103,9 @@ export default function MathInput(props) {
     };
 
     const handleVirtualKeyboardClick = (text) => {
+        if (!mathField) {
+            return;
+        }
         mathField.focus();
         if (!text) {
             console.log("Empty value");
@@ -124,14 +127,6 @@ export default function MathInput(props) {
         }
     };
 
-    const handleDefaultVirtualKeyboardClick = (text) => {
-        console.log("no mathinput field focused");
-    };
-
-    const handleDefaultVirtualKeyboardReturn = (text) => {
-        console.log("no mathinput field focused");
-    };
-
     const handlePressEnter = (e) => {
         callAction({
             action: actions.updateValue,
@@ -148,30 +143,27 @@ export default function MathInput(props) {
         }
     };
 
-    const handleFocus = (e) => {
+    React.useEffect(() => {
+        if (!mathField || mathField.el() !== containerRef) {
+            return;
+        }
         setFocusedField(() => handleVirtualKeyboardClick);
+    }, [mathField, containerRef]);
+
+    const handleFocus = (e) => {
+        if (mathField) {
+            setContainerRef(mathField.el());
+        }
         setFocusedFieldReturn(() => handlePressEnter);
         setFocused(true);
     };
 
     const handleBlur = (e) => {
-        if (containerRef?.current?.contains(e.relatedTarget)) {
-            setTimeout(() => {
-                mathField.focus();
-            }, 100);
-        } else if (dragHandleRef?.current?.contains(e.relatedTarget)) {
-            setTimeout(() => {
-                mathField.focus();
-            }, 100);
-        } else {
-            callAction({
-                action: actions.updateValue,
-                baseVariableValue: rendererValue.current,
-            });
-            // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
-            setFocusedField(() => handleDefaultVirtualKeyboardClick);
-            setFocusedFieldReturn(() => handleDefaultVirtualKeyboardReturn);
-        }
+        callAction({
+            action: actions.updateValue,
+            baseVariableValue: rendererValue.current,
+        });
+        // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
         setFocused(false);
     };
 
