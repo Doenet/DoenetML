@@ -13,6 +13,7 @@ pub use super::doenet::li::Li;
 pub use super::doenet::math::Math;
 pub use super::doenet::ol::Ol;
 pub use super::doenet::p::P;
+pub use super::doenet::point::Point;
 pub use super::doenet::text::Text;
 pub use super::doenet::text_input::TextInput;
 pub use super::doenet::title::Title;
@@ -48,6 +49,7 @@ pub enum ComponentEnum {
     Ul(Ul),
     Li(Li),
     Graph(Graph),
+    Point(Point),
     _Error(_Error),
     _External(_External),
     _Fragment(_Fragment),
