@@ -30,7 +30,7 @@ export function RecoilVirtualKeyboard() {
                 returnCallback();
             }
             if (e.focusedMathField && typeof callback === "function") {
-                callback(e.focusedMathField, e.timestamp);
+                callback(e.focusedMathField);
             }
         }
     }, [recoilEvents]);

@@ -1,6 +1,7 @@
 export type KeyCommand = {
     type: "keystroke" | "type" | "write" | "cmd" | "accessed";
     command: string;
+    timestamp?: number;
 };
 
 export type KeyDescription = {

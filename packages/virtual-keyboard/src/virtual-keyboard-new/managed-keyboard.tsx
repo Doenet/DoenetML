@@ -41,7 +41,7 @@ export function ManagedKeyboard({ onClick }: { onClick: OnClick }) {
 
     const wrappedOnClick = React.useCallback<OnClick>(
         (e) => {
-            const firstPress = e.commands[0];
+            const firstPress = e[0];
             if (!firstPress) {
                 return;
             }

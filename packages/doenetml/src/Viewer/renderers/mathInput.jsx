@@ -105,30 +105,22 @@ export default function MathInput(props) {
         }
     };
 
-    const handleVirtualKeyboardClick = (text, timestamp) => {
+    const handleVirtualKeyboardClick = ({ type, command, timestamp }) => {
         lastKeyboardAccessTime.current = timestamp;
 
         if (!mathField || !keyboardCausedBlur.current) {
             return;
         }
         mathField.focus();
-        if (!text) {
-            console.log("Empty value");
 
-            return;
-        }
-        const splitCommand = text.split(" ");
-        const command = splitCommand[0];
-        const input = text.substring(command.length + 1);
-
-        if (command == "cmd") {
-            mathField.cmd(input);
-        } else if (command == "write") {
-            mathField.write(input);
-        } else if (command == "keystroke") {
-            mathField.keystroke(input);
-        } else if (command == "type") {
-            mathField.typedText(input);
+        if (type == "cmd") {
+            mathField.cmd(command);
+        } else if (type == "write") {
+            mathField.write(command);
+        } else if (type == "keystroke") {
+            mathField.keystroke(command);
+        } else if (type == "type") {
+            mathField.typedText(command);
         }
     };
 
