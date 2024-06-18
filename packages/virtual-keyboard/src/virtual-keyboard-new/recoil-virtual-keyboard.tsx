@@ -30,15 +30,15 @@ export function RecoilVirtualKeyboard() {
                 returnCallback();
             }
             if (e.focusedMathField && typeof callback === "function") {
-                callback(e.focusedMathField);
+                callback(e.focusedMathField, e.timestamp);
             }
         }
     }, [recoilEvents]);
 
     return (
         <UniqueKeyboardTray
-            onClick={(events) => {
-                setRecoilEvents(translateKeyboardEvent(events));
+            onClick={(events, timestamp) => {
+                setRecoilEvents(translateKeyboardEvent(events, timestamp));
             }}
         />
     );

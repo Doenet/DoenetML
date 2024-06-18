@@ -23,7 +23,7 @@ export type Style =
     | "greek_lower"
     | "greek_upper";
 
-export type OnClick = (commands: KeyCommand[]) => void;
+export type OnClick = (commands: KeyCommand[], timestamp: number) => void;
 
 // Much of the math we need has been pre-rendered for us (at compile time)
 // to MathML. We use this so that we don't need to load conflicting versions of mathjax.
@@ -130,7 +130,13 @@ function Key({
     return (
         <button
             className={`key key-${keyInfo.name} ${keyInfo.isMath ? "math" : ""}`}
-            onClick={() => onClick(keyInfo.commands)}
+            onClick={(e) => {
+                // Prevent the click event on the keyboard itself from triggering
+                // so that its "accessed" event doesn't cancel the propagation
+                // of the key click event.
+                e.stopPropagation();
+                onClick(keyInfo.commands, +new Date());
+            }}
             title={`Type ${keyInfo.name}`}
         >
             {content}

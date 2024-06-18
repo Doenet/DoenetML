@@ -1,5 +1,5 @@
 export type KeyCommand = {
-    type: "keystroke" | "type" | "write" | "cmd";
+    type: "keystroke" | "type" | "write" | "cmd" | "accessed";
     command: string;
 };
 

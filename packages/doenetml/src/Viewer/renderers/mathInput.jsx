@@ -63,6 +63,9 @@ export default function MathInput(props) {
     const [focused, setFocused] = useState(null);
     const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
 
+    const lastKeyboardAccessTime = useRef(0);
+    const keyboardCausedBlur = useRef(false);
+
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     const { showAnswerTitles } = useContext(PageContext) || {};
@@ -102,8 +105,10 @@ export default function MathInput(props) {
         }
     };
 
-    const handleVirtualKeyboardClick = (text) => {
-        if (!mathField) {
+    const handleVirtualKeyboardClick = (text, timestamp) => {
+        lastKeyboardAccessTime.current = timestamp;
+
+        if (!mathField || !keyboardCausedBlur.current) {
             return;
         }
         mathField.focus();
@@ -165,6 +170,12 @@ export default function MathInput(props) {
         });
         // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
         setFocused(false);
+
+        // If the keyboard blur was immediately preceded by a keyboard access,
+        // then the blur was likely caused by clicking on the keyboard.
+        // (The mousedown event on the keyboard seems to be processed before the blur event.)
+        keyboardCausedBlur.current =
+            Math.abs(lastKeyboardAccessTime.current - new Date()) < 100;
     };
 
     const onChangeHandler = (text) => {
@@ -398,31 +409,6 @@ export default function MathInput(props) {
                                     textareaRef.current =
                                         document.createElement("textarea");
                                     textareaRef.current.disabled = SVs.disabled;
-                                    textareaRef.current.addEventListener(
-                                        "focusout",
-                                        (e) => {
-                                            // apparently there are array-like things in javascript that
-                                            // can be converted to real arrays with Array.from()
-                                            // https://stackoverflow.com/a/22754453
-                                            let keyboards = Array.from(
-                                                document.getElementsByClassName(
-                                                    "keyboardcontainer",
-                                                ),
-                                            );
-                                            keyboards.forEach((keyboard) => {
-                                                if (
-                                                    keyboard?.contains(
-                                                        e.relatedTarget,
-                                                    )
-                                                ) {
-                                                    e.target.focus();
-                                                } else {
-                                                    // remove focus
-                                                }
-                                            });
-                                        },
-                                        false,
-                                    );
                                     return textareaRef.current;
                                 },
                             }} //more commands go here

@@ -40,7 +40,7 @@ export function ManagedKeyboard({ onClick }: { onClick: OnClick }) {
     }, [storeState, style]);
 
     const wrappedOnClick = React.useCallback<OnClick>(
-        (e) => {
+        (e, t) => {
             const firstPress = e[0];
             if (!firstPress) {
                 return;
@@ -63,7 +63,7 @@ export function ManagedKeyboard({ onClick }: { onClick: OnClick }) {
                 // Don't report the shift key
                 return;
             }
-            onClick(e);
+            onClick(e, t);
         },
         [style],
     );
