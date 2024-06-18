@@ -11,8 +11,6 @@ export function translateKeyboardEvent(commands: KeyCommand[]) {
             return { focusedMathFieldReturn: "" };
         }
 
-        return {
-            focusedMathField: command,
-        };
+        return { focusedMathField: command };
     });
 }
