@@ -37,8 +37,8 @@ export function RecoilVirtualKeyboard() {
 
     return (
         <UniqueKeyboardTray
-            onClick={(events, timestamp) => {
-                setRecoilEvents(translateKeyboardEvent(events, timestamp));
+            onClick={(events) => {
+                setRecoilEvents(translateKeyboardEvent(events));
             }}
         />
     );

@@ -35,13 +35,19 @@ export function KeyboardTray({ onClick }: { onClick: OnClick }) {
                 // The mousedown event appears to precede a blur event on a mathInput,
                 // so this access event will set the accessed timestamp to be
                 // just before the time of the blur if keyboard is clicked while the mathInput is focused.
-                onClick([{ type: "accessed", command: "" }], +new Date());
+                onClick({
+                    commands: [{ type: "accessed", command: "" }],
+                    timestamp: +new Date(),
+                });
             }}
             onClick={() => {
                 // If the keyboard is clicked but a key is not clicked, then we send
                 // this accessed event to make sure the math input is still re-focused after the click.
                 // (The click event appears to occur after the blur event on a mathInput.)
-                onClick([{ type: "accessed", command: "" }], +new Date());
+                onClick({
+                    commands: [{ type: "accessed", command: "" }],
+                    timestamp: +new Date(),
+                });
             }}
         >
             <button

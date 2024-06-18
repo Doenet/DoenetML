@@ -5,10 +5,13 @@ import { KeyCommand } from "./keys";
  * These should either be sent to the callback returned by `useRecoilValue(focusedMathField)` or
  * `useRecoilValue(focusedMathFieldReturn)`.
  */
-export function translateKeyboardEvent(
-    commands: KeyCommand[],
-    timestamp: number,
-) {
+export function translateKeyboardEvent({
+    commands,
+    timestamp,
+}: {
+    commands: KeyCommand[];
+    timestamp: number;
+}) {
     return commands.map((command) => {
         if (command.type === "keystroke" && command.command === "Enter") {
             return { focusedMathFieldReturn: "", timestamp };

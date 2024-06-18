@@ -28,10 +28,8 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
             virtualKeyboardState.keyboardReactRoot = root;
             root.render(
                 <KeyboardTray
-                    onClick={(e, t) => {
-                        virtualKeyboardState.callbacks.forEach((cb) =>
-                            cb(e, t),
-                        );
+                    onClick={(e) => {
+                        virtualKeyboardState.callbacks.forEach((cb) => cb(e));
                     }}
                 />,
             );
