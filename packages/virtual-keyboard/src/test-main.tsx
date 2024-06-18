@@ -39,7 +39,7 @@ function App() {
             <p>
                 Last command received from the VirtualKeyboard:{" "}
                 <code style={{ fontWeight: "bold", color: "#f8a" }}>
-                    {lastCommand}
+                    {JSON.stringify(lastCommand)}
                 </code>
             </p>
             <textarea
