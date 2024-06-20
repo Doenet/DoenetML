@@ -1201,21 +1201,36 @@ export default class BaseComponent {
         }
 
         if (includeDefiningChildren) {
-            for (let child of this.definingChildren) {
-                if (typeof child !== "object") {
-                    serializedChildren.push(child);
-                } else {
-                    serializedChildren.push(
-                        await child.serialize(parametersForChildren),
-                    );
+            if (
+                this.constructor.serializeReplacementsForChildren &&
+                this.isExpanded
+            ) {
+                for (let repl of this.replacements) {
+                    if (typeof repl !== "object") {
+                        serializedChildren.push(repl);
+                    } else {
+                        serializedChildren.push(
+                            await repl.serialize(parametersForChildren),
+                        );
+                    }
                 }
-            }
+            } else {
+                for (let child of this.definingChildren) {
+                    if (typeof child !== "object") {
+                        serializedChildren.push(child);
+                    } else {
+                        serializedChildren.push(
+                            await child.serialize(parametersForChildren),
+                        );
+                    }
+                }
 
-            if (this.serializedChildren !== undefined) {
-                for (let child of this.serializedChildren) {
-                    serializedChildren.push(
-                        this.copySerializedComponent(child),
-                    );
+                if (this.serializedChildren !== undefined) {
+                    for (let child of this.serializedChildren) {
+                        serializedChildren.push(
+                            this.copySerializedComponent(child),
+                        );
+                    }
                 }
             }
 
@@ -1269,40 +1284,40 @@ export default class BaseComponent {
             }
 
             if (this.state[primaryEssentialStateVariable]) {
-            // primaryEssentialStateVariable is the state variable we want to set in the copy,
-            // but it might have a differently named essential state variable
-            // associated with it.
+                // primaryEssentialStateVariable is the state variable we want to set in the copy,
+                // but it might have a differently named essential state variable
+                // associated with it.
                 if (
                     this.state[primaryEssentialStateVariable].essentialVarName
                 ) {
-                primaryEssentialStateVariable =
+                    primaryEssentialStateVariable =
                         this.state[primaryEssentialStateVariable]
                             .essentialVarName;
-            }
+                }
 
-            let stateVariableToBeShadowed = "value";
-            if (this.constructor.stateVariableToBeShadowed) {
-                stateVariableToBeShadowed =
-                    this.constructor.stateVariableToBeShadowed;
-            } else if (this.constructor.primaryStateVariableForDefinition) {
-                stateVariableToBeShadowed =
-                    this.constructor.primaryStateVariableForDefinition;
-            }
+                let stateVariableToBeShadowed = "value";
+                if (this.constructor.stateVariableToBeShadowed) {
+                    stateVariableToBeShadowed =
+                        this.constructor.stateVariableToBeShadowed;
+                } else if (this.constructor.primaryStateVariableForDefinition) {
+                    stateVariableToBeShadowed =
+                        this.constructor.primaryStateVariableForDefinition;
+                }
 
                 if (this.state[stateVariableToBeShadowed]) {
-            // copy the value of stateVariableToBeShadowed of source
-            // to the state of primaryEssentialStateVariable of the copy
-            if (!serializedComponent.state) {
-                serializedComponent.state = {};
-            }
+                    // copy the value of stateVariableToBeShadowed of source
+                    // to the state of primaryEssentialStateVariable of the copy
+                    if (!serializedComponent.state) {
+                        serializedComponent.state = {};
+                    }
 
-            serializedComponent.state[primaryEssentialStateVariable] =
-                await this.stateValues[stateVariableToBeShadowed];
+                    serializedComponent.state[primaryEssentialStateVariable] =
+                        await this.stateValues[stateVariableToBeShadowed];
                 }
             }
         }
 
-        if (parameters.copyStateFromShadowedVariables) {
+        if (parameters.copyEssentialState) {
             if (!serializedComponent.state) {
                 serializedComponent.state = {};
             }

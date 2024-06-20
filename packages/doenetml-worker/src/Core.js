@@ -1179,7 +1179,7 @@ export default class Core {
         }
 
         if (triggeredAction && updateRenderersIfTriggered) {
-            this.updateAllChangedRenderers();
+            await this.updateAllChangedRenderers();
         }
     }
 

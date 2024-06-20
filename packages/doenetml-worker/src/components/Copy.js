@@ -897,6 +897,34 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        stateVariableDefinitions.unlinkedTargetsExpanded = {
+            stateVariablesDeterminingDependencies: ["targetComponent", "link"],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                let dependencies = {};
+                if (
+                    !stateValues.link &&
+                    stateValues.targetComponent &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType:
+                            stateValues.targetComponent.componentType,
+                        baseComponentType: "_composite",
+                    })
+                ) {
+                    dependencies.targetReplacements = {
+                        dependencyType: "replacement",
+                        compositeName:
+                            stateValues.targetComponent.componentName,
+                        recursive: true,
+                        recurseNonStandardComposites: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition() {
+                return { setValue: { unlinkedTargetsExpanded: true } };
+            },
+        };
+
         stateVariableDefinitions.readyToExpandWhenResolved = {
             stateVariablesDeterminingDependencies: [
                 "targetComponent",
@@ -930,6 +958,10 @@ export default class Copy extends CompositeComponent {
                     //   dependencyType: "stateVariable",
                     //   variableName: "propName",
                     // },
+                    unlinkedTargetsExpanded: {
+                        dependencyType: "stateVariable",
+                        variableName: "unlinkedTargetsExpanded",
+                    },
                 };
                 if (
                     stateValues.targetComponent &&
@@ -1789,7 +1821,7 @@ export default class Copy extends CompositeComponent {
         let copyPrimaryEssential = false;
         let copyEssentialState = false;
         if (!link && replacementSourceComponent.shadows) {
-                    copyPrimaryEssential = true;
+            copyPrimaryEssential = true;
             copyEssentialState = true;
         }
 
