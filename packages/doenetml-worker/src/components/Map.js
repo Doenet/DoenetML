@@ -293,6 +293,7 @@ export default class Map extends CompositeComponent {
 
     static async createSerializedReplacements({
         component,
+        components,
         workspace,
         componentInfoObjects,
     }) {
@@ -334,6 +335,7 @@ export default class Map extends CompositeComponent {
                     component,
                     iter,
                     componentInfoObjects,
+                    components,
                 });
                 replacements.push(...res.replacements);
                 errors.push(...res.errors);
@@ -348,6 +350,7 @@ export default class Map extends CompositeComponent {
                 sourcesNumber: 0,
                 iterateNumber: -1,
                 componentInfoObjects,
+                components,
             });
             replacements = results.replacements;
             errors.push(...results.errors);
@@ -363,6 +366,7 @@ export default class Map extends CompositeComponent {
         component,
         iter,
         componentInfoObjects,
+        components,
     }) {
         let errors = [];
         let warnings = [];
@@ -413,6 +417,15 @@ export default class Map extends CompositeComponent {
             Array(await component.stateValues.numSources).fill(iter),
         );
 
+        if (component.unlinkedCopySource) {
+            await copyStateFromUnlinkedSource({
+                components,
+                component,
+                iterateNumber: iter,
+                thisRepl,
+            });
+        }
+
         return { replacements, errors, warnings };
     }
 
@@ -422,6 +435,7 @@ export default class Map extends CompositeComponent {
         childnumberArray = [],
         iterateNumber,
         componentInfoObjects,
+        components,
     }) {
         let errors = [];
         let warnings = [];
@@ -494,6 +508,15 @@ export default class Map extends CompositeComponent {
                     newChildnumberArray,
                 );
 
+                if (component.unlinkedCopySource) {
+                    await copyStateFromUnlinkedSource({
+                        components,
+                        component,
+                        iterateNumber,
+                        thisRepl,
+                    });
+                }
+
                 replacements.push(thisRepl);
             } else {
                 let results = await this.recurseThroughCombinations({
@@ -502,6 +525,7 @@ export default class Map extends CompositeComponent {
                     childnumberArray: newChildnumberArray,
                     iterateNumber,
                     componentInfoObjects,
+                    components,
                 });
                 replacements.push(...results.replacements);
                 iterateNumber = results.iterateNumber;
@@ -909,6 +933,41 @@ export default class Map extends CompositeComponent {
 
         let desiredVariant = { index: variantIndex };
         return { success: true, desiredVariant };
+    }
+}
+
+// If a map is an unlinked copy of another map,
+// then when its replacements are created,
+// they should be initialized with the current state
+// of the original map's replacements.
+// For example, if the original map has points that were
+// moved before a snapshot was taken, the snapshot should
+// be initialized with the the moved points.
+async function copyStateFromUnlinkedSource({
+    components,
+    component,
+    iterateNumber,
+    thisRepl,
+}) {
+    let sourceTemplate =
+        components[component.unlinkedCopySource].replacements[iterateNumber];
+
+    let serializedSourceTemplate = await sourceTemplate.serialize({
+        copyAll: true,
+        copyVariants: true,
+        copyPrimaryEssential: true,
+        copyEssentialState: true,
+    });
+
+    for (let [i, child] of thisRepl.children.entries()) {
+        let sourceChild = serializedSourceTemplate.children[i];
+
+        if (
+            typeof child === "object" &&
+            child.componentType === sourceChild.componentType
+        ) {
+            child.state = sourceChild.state;
+        }
     }
 }
 
