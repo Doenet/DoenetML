@@ -382,7 +382,7 @@ export function returnVertexConstraintFunction(constraintFunction) {
         // Break tie by finding the minimum translation.
         let minTranslation = [];
         let minTranslationMagnitude2 = Infinity;
-        for (result of translationResults) {
+        for (let result of translationResults) {
             let translation = result.translation;
             let translationMag2 = translation.reduce((a, c) => a + c * c, 0);
 

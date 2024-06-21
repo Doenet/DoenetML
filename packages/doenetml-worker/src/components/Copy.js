@@ -897,6 +897,34 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        stateVariableDefinitions.unlinkedTargetsExpanded = {
+            stateVariablesDeterminingDependencies: ["targetComponent", "link"],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                let dependencies = {};
+                if (
+                    !stateValues.link &&
+                    stateValues.targetComponent &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType:
+                            stateValues.targetComponent.componentType,
+                        baseComponentType: "_composite",
+                    })
+                ) {
+                    dependencies.targetReplacements = {
+                        dependencyType: "replacement",
+                        compositeName:
+                            stateValues.targetComponent.componentName,
+                        recursive: true,
+                        recurseNonStandardComposites: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition() {
+                return { setValue: { unlinkedTargetsExpanded: true } };
+            },
+        };
+
         stateVariableDefinitions.readyToExpandWhenResolved = {
             stateVariablesDeterminingDependencies: [
                 "targetComponent",
@@ -930,6 +958,10 @@ export default class Copy extends CompositeComponent {
                     //   dependencyType: "stateVariable",
                     //   variableName: "propName",
                     // },
+                    unlinkedTargetsExpanded: {
+                        dependencyType: "stateVariable",
+                        variableName: "unlinkedTargetsExpanded",
+                    },
                 };
                 if (
                     stateValues.targetComponent &&
@@ -1781,21 +1813,16 @@ export default class Copy extends CompositeComponent {
         let sourceAttributesToIgnore =
             await component.stateValues.sourceAttributesToIgnore;
 
-        // a component that shadows a propVariable
-        // (or shadows something that shadows a propVariable)
-        // will not have enough infomation in its children to determine its state.
-        // Therefore, we if are copying without linking, we'll also
-        // need to copy the primary essential variable in this case.
+        // If we are copying without linking a source that is shadowing another source,
+        // then the attributes and children of the source may not be sufficient
+        // to determine its state variables (as values linked from its source may be used).
+        // Therefore, we copy the primary state variable
+        // and copy the essential state of the source.
         let copyPrimaryEssential = false;
-        if (!link) {
-            let comp = replacementSourceComponent;
-            while (comp.shadows) {
-                if (comp.shadows.propVariable) {
-                    copyPrimaryEssential = true;
-                    break;
-                }
-                comp = components[comp.shadows.componentName];
-            }
+        let copyEssentialState = false;
+        if (!link && replacementSourceComponent.shadows) {
+            copyPrimaryEssential = true;
+            copyEssentialState = true;
         }
 
         let serializedReplacements;
@@ -1806,6 +1833,7 @@ export default class Copy extends CompositeComponent {
                     copyVariants: !link,
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                     copyPrimaryEssential,
+                    copyEssentialState,
                     errorIfEncounterComponent: [component.componentName],
                 }),
             ];
