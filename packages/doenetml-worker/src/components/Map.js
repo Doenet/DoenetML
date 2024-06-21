@@ -963,14 +963,37 @@ async function copyStateFromUnlinkedSource({
             copyEssentialState: true,
         });
 
-        for (let [i, child] of replacement.children.entries()) {
-            let sourceChild = serializedSourceTemplate.children[i];
+        copyStateFromUnlinkedSourceSub(
+            replacement.children,
+            serializedSourceTemplate.children,
+        );
+    }
+}
 
-            if (
-                typeof child === "object" &&
-                child.componentType === sourceChild.componentType
-            ) {
-                child.state = sourceChild.state;
+function copyStateFromUnlinkedSourceSub(replacements, sources) {
+    for (let [i, repl] of replacements.entries()) {
+        let src = sources[i];
+
+        if (
+            typeof repl === "object" &&
+            repl.componentType === src.componentType
+        ) {
+            repl.state = src.state;
+
+            if (repl.children && src.children) {
+                copyStateFromUnlinkedSourceSub(repl.children, src.children);
+            }
+
+            for (let attrName in repl.attributes) {
+                if (
+                    repl.attributes[attrName].component &&
+                    src.attributes[attrName]?.component
+                ) {
+                    copyStateFromUnlinkedSourceSub(
+                        [repl.attributes[attrName].component],
+                        [src.attributes[attrName].component],
+                    );
+                }
             }
         }
     }

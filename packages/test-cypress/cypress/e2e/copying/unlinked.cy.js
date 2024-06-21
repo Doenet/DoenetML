@@ -914,4 +914,169 @@ describe("Unlinked Copying Tests", function () {
             expect(stateVariables[Q2].stateValues.xs).eqls([5, 3]);
         });
     });
+
+    it("create snapshot of map with conditionalContent", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text>a</text>
+    <graph name="graph1">
+        <map name="mp" assignNames="((P l)) ((Q m))">
+            <template>
+                <group>
+                <point>(1, $i{link="false"})</point>
+                <lineSegment endpoints='(1, $i{link="false"}) (2, $i{link="false"})' />
+                </group>
+            </template>
+            <sources alias="i">
+                <sequence length="2" />
+            </sources>
+        </map>
+    </graph>
+
+    <boolean name="copy">false</boolean>
+
+    <updateValue target="copy" type="boolean" newValue="true" name="takeSnapshot">
+        <label>Take snapshot</label>
+    </updateValue>
+
+    <graph name="graph2">
+        <conditionalContent condition="$copy">
+            $mp{link="false"}
+        </conditionalContent>
+    </graph>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.log("move points and line segments");
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/P",
+                args: { x: -1, y: -7 },
+            });
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/Q",
+                args: { x: 5, y: 3 },
+            });
+
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/l",
+                args: {
+                    point1coords: [3, 2],
+                    point2coords: [-9, 4],
+                },
+            });
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/m",
+                args: {
+                    point1coords: [-7, -5],
+                    point2coords: [3, -8],
+                },
+            });
+        });
+
+        cy.get(cesc("#\\/takeSnapshot_button")).click();
+        cy.get(cesc2("#/copy")).should("have.text", "true");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([-1, -7]);
+            expect(stateVariables["/Q"].stateValues.xs).eqls([5, 3]);
+            expect(stateVariables["/l"].stateValues.endpoints).eqls([
+                [3, 2],
+                [-9, 4],
+            ]);
+            expect(stateVariables["/m"].stateValues.endpoints).eqls([
+                [-7, -5],
+                [3, -8],
+            ]);
+
+            let graph2Children = stateVariables["/graph2"].activeChildren;
+            let P2 = graph2Children[0].componentName;
+            let l2 = graph2Children[1].componentName;
+            let Q2 = graph2Children[2].componentName;
+            let m2 = graph2Children[3].componentName;
+            expect(stateVariables[P2].stateValues.xs).eqls([-1, -7]);
+            expect(stateVariables[Q2].stateValues.xs).eqls([5, 3]);
+            expect(stateVariables[l2].stateValues.endpoints).eqls([
+                [3, 2],
+                [-9, 4],
+            ]);
+            expect(stateVariables[m2].stateValues.endpoints).eqls([
+                [-7, -5],
+                [3, -8],
+            ]);
+        });
+
+        cy.log("move points and segments again");
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/P",
+                args: { x: 2, y: -9 },
+            });
+            await win.callAction1({
+                actionName: "movePoint",
+                componentName: "/Q",
+                args: { x: 1, y: 8 },
+            });
+
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/l",
+                args: {
+                    point1coords: [-4, 5],
+                    point2coords: [7, 6],
+                },
+            });
+            await win.callAction1({
+                actionName: "moveLineSegment",
+                componentName: "/m",
+                args: {
+                    point1coords: [1, -2],
+                    point2coords: [-4, 3],
+                },
+            });
+        });
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([2, -9]);
+            expect(stateVariables["/Q"].stateValues.xs).eqls([1, 8]);
+            expect(stateVariables["/l"].stateValues.endpoints).eqls([
+                [-4, 5],
+                [7, 6],
+            ]);
+            expect(stateVariables["/m"].stateValues.endpoints).eqls([
+                [1, -2],
+                [-4, 3],
+            ]);
+
+            let graph2Children = stateVariables["/graph2"].activeChildren;
+            let P2 = graph2Children[0].componentName;
+            let l2 = graph2Children[1].componentName;
+            let Q2 = graph2Children[2].componentName;
+            let m2 = graph2Children[3].componentName;
+            expect(stateVariables[P2].stateValues.xs).eqls([-1, -7]);
+            expect(stateVariables[Q2].stateValues.xs).eqls([5, 3]);
+            expect(stateVariables[l2].stateValues.endpoints).eqls([
+                [3, 2],
+                [-9, 4],
+            ]);
+            expect(stateVariables[m2].stateValues.endpoints).eqls([
+                [-7, -5],
+                [3, -8],
+            ]);
+        });
+    });
 });
