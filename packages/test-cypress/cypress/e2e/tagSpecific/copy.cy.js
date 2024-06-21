@@ -10713,6 +10713,7 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/section7/p3")).should("not.exist");
         cy.get(cesc2("#/section7/p4")).should("not.exist");
 
+        cy.log("Add P via section 1");
         cy.get(cesc2("#/section1/addP_button")).click();
 
         cy.get(cesc2("#/section1/p1")).should("have.text", "i=1, v=11");
@@ -10750,6 +10751,7 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/section7/p3")).should("have.text", "i=3, v=13");
         cy.get(cesc2("#/section7/p4")).should("not.exist");
 
+        cy.log("Remove P via section 7");
         cy.get(cesc2("#/section7/removeP_button")).click();
 
         cy.get(cesc2("#/section1/p1")).should("have.text", "i=1, v=11");
@@ -10787,6 +10789,7 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/section7/p3")).should("not.exist");
         cy.get(cesc2("#/section7/p4")).should("not.exist");
 
+        cy.log("Add P via section 4");
         cy.get(cesc2("#/section4/addP_button")).click();
 
         cy.get(cesc2("#/section1/p1")).should("have.text", "i=1, v=11");
@@ -10824,6 +10827,7 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/section7/p3")).should("not.exist");
         cy.get(cesc2("#/section7/p4")).should("not.exist");
 
+        cy.log("Remove P via section 4");
         cy.get(cesc2("#/section4/removeP_button")).click();
 
         cy.get(cesc2("#/section1/p1")).should("have.text", "i=1, v=11");

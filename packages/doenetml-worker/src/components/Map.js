@@ -367,6 +367,7 @@ export default class Map extends CompositeComponent {
         iter,
         componentInfoObjects,
         components,
+        isUpdate = false,
     }) {
         let errors = [];
         let warnings = [];
@@ -417,12 +418,12 @@ export default class Map extends CompositeComponent {
             Array(await component.stateValues.numSources).fill(iter),
         );
 
-        if (component.unlinkedCopySource) {
+        if (component.unlinkedCopySource && !isUpdate) {
             await copyStateFromUnlinkedSource({
                 components,
                 component,
                 iterateNumber: iter,
-                thisRepl,
+                replacement: replacements[0],
             });
         }
 
@@ -513,7 +514,7 @@ export default class Map extends CompositeComponent {
                         components,
                         component,
                         iterateNumber,
-                        thisRepl,
+                        replacement: thisRepl,
                     });
                 }
 
@@ -816,6 +817,8 @@ export default class Map extends CompositeComponent {
                         component,
                         iter,
                         componentInfoObjects,
+                        components,
+                        isUpdate: true,
                     });
                     replacements.push(...res.replacements);
                     errors.push(...res.errors);
@@ -947,26 +950,28 @@ async function copyStateFromUnlinkedSource({
     components,
     component,
     iterateNumber,
-    thisRepl,
+    replacement,
 }) {
     let sourceTemplate =
         components[component.unlinkedCopySource].replacements[iterateNumber];
 
-    let serializedSourceTemplate = await sourceTemplate.serialize({
-        copyAll: true,
-        copyVariants: true,
-        copyPrimaryEssential: true,
-        copyEssentialState: true,
-    });
+    if (sourceTemplate) {
+        let serializedSourceTemplate = await sourceTemplate.serialize({
+            copyAll: true,
+            copyVariants: true,
+            copyPrimaryEssential: true,
+            copyEssentialState: true,
+        });
 
-    for (let [i, child] of thisRepl.children.entries()) {
-        let sourceChild = serializedSourceTemplate.children[i];
+        for (let [i, child] of replacement.children.entries()) {
+            let sourceChild = serializedSourceTemplate.children[i];
 
-        if (
-            typeof child === "object" &&
-            child.componentType === sourceChild.componentType
-        ) {
-            child.state = sourceChild.state;
+            if (
+                typeof child === "object" &&
+                child.componentType === sourceChild.componentType
+            ) {
+                child.state = sourceChild.state;
+            }
         }
     }
 }
