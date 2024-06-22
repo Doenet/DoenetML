@@ -1,4 +1,4 @@
-type DoenetMLRange = {
+export type DoenetMLRange = {
     begin?: number;
     end?: number;
     selfCloseBegin?: number;

@@ -13,6 +13,8 @@ export default function TestViewer() {
         showFeedback: true,
         showHints: true,
         paginate: true,
+        includeEditor: true,
+        viewerOnLeft: false,
     };
 
     const [controlsVisible, setControlsVisible] = useState(false);
@@ -26,6 +28,8 @@ export default function TestViewer() {
         showFeedback,
         showHints,
         paginate,
+        includeEditor,
+        viewerOnLeft,
     } = testSettings;
 
     let controls = null;
@@ -140,6 +144,42 @@ export default function TestViewer() {
                         Paginate
                     </label>
                 </div>
+                <div>
+                    <label>
+                        {" "}
+                        <input
+                            type="checkbox"
+                            checked={includeEditor}
+                            onChange={() => {
+                                setTestSettings((was) => {
+                                    let newObj = { ...was };
+                                    newObj.includeEditor = !was.includeEditor;
+                                    return newObj;
+                                });
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        />
+                        Show Editor
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        {" "}
+                        <input
+                            type="checkbox"
+                            checked={viewerOnLeft}
+                            onChange={() => {
+                                setTestSettings((was) => {
+                                    let newObj = { ...was };
+                                    newObj.viewerOnLeft = !was.viewerOnLeft;
+                                    return newObj;
+                                });
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        />
+                        Viewer on left
+                    </label>
+                </div>
             </div>
         );
     }
@@ -185,6 +225,9 @@ export default function TestViewer() {
                 apiURLs={{ postMessages: true }}
                 paginate={paginate}
                 addVirtualKeyboard={true}
+                includeEditor={includeEditor}
+                height="calc(100vh - 94px)"
+                viewerLocation={viewerOnLeft ? "left" : "right"}
             />
         </div>
     );

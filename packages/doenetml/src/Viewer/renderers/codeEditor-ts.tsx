@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import useDoenetRenderer, { rendererState } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { CodeMirror } from "@doenet/codemirror";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useInView } from "framer-motion";
 import { useSetRecoilState } from "recoil";
 import {
     Box,
@@ -13,7 +13,7 @@ import {
     Stack,
     Switch,
 } from "@chakra-ui/react";
-import ErrorWarningPopovers from "../../Tools/ChakraBasedComponents/ErrorWarningPopovers";
+import ErrorWarningPopovers from "../../EditorViewer/ErrorWarningPopovers";
 import { prettyPrint } from "@doenet/parser";
 
 export default React.memo(function CodeEditor(props) {
@@ -44,12 +44,15 @@ export default React.memo(function CodeEditor(props) {
         editorHeight.size *= 1 - SVs.viewerRatio;
     }
 
-    let onChangeVisibility = (isVisible: boolean) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const isInView = useInView(ref, { amount: 0 });
+
+    useEffect(() => {
         callAction({
             action: actions.recordVisibilityChange,
-            args: { isVisible },
+            args: { isVisible: isInView },
         });
-    };
+    }, [isInView]);
 
     const onEditorChange = React.useCallback(
         (value: string) => {
@@ -221,8 +224,8 @@ export default React.memo(function CodeEditor(props) {
         errorsAndWarnings = (
             <Flex ml="0px" h="32px" bg="doenet.mainGray" pl="10px" pt="1px">
                 <ErrorWarningPopovers
-                    warningsObjs={warningsObjs}
-                    errorsObjs={errorsObjs}
+                    warnings={warningsObjs}
+                    errors={errorsObjs}
                 />
             </Flex>
         );
@@ -402,12 +405,5 @@ export default React.memo(function CodeEditor(props) {
         }
     }
 
-    return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            {editorWithViewer}
-        </VisibilitySensor>
-    );
+    return <div ref={ref}>{editorWithViewer}</div>;
 });
