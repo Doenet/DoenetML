@@ -9,7 +9,6 @@ import {
     HStack,
     Switch,
     Tooltip,
-    VStack,
 } from "@chakra-ui/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ResizablePanelPair } from "./ResizablePanelPair";
@@ -65,7 +64,7 @@ export function EditorViewer({
     height?: string;
     backgroundColor?: string;
     showViewer?: boolean;
-    viewerLocation?: "left" | "right" | "bottom";
+    viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     id?: string;
@@ -428,12 +427,16 @@ export function EditorViewer({
         </Grid>
     );
 
+    const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
+
     return (
         <ResizablePanelPair
-            panelA={viewerLocation == "left" ? viewerPanel : editorPanel}
-            panelB={viewerLocation == "left" ? editorPanel : viewerPanel}
+            panelA={viewerFirst ? viewerPanel : editorPanel}
+            panelB={viewerFirst ? editorPanel : viewerPanel}
             preferredDirection={
-                viewerLocation === "bottom" ? "vertical" : "horizontal"
+                viewerLocation === "bottom" || viewerLocation === "top"
+                    ? "vertical"
+                    : "horizontal"
             }
             width={width}
             height={height}

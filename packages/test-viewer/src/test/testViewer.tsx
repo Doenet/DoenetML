@@ -186,6 +186,7 @@ export default function TestViewer() {
                         >
                             <option value="right">right</option>
                             <option value="left">left</option>
+                            <option value="top">top</option>
                             <option value="bottom">bottom</option>
                         </select>
                     </label>

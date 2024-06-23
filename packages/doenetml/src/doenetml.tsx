@@ -293,7 +293,7 @@ export function DoenetEditor({
     showAnswerTitles?: boolean;
     width?: string;
     height?: string;
-    viewerLocation?: "left" | "right" | "bottom";
+    viewerLocation?: "left" | "right" | "top" | "bottom";
     backgroundColor?: string;
     showViewer?: boolean;
     doenetmlChangeCallback?: Function;

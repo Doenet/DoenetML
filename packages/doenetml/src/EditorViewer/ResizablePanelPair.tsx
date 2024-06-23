@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Center, Grid, GridItem, Icon } from "@chakra-ui/react";
+import {
+    Center,
+    Grid,
+    GridItem,
+    Icon,
+    useBreakpointValue,
+} from "@chakra-ui/react";
 import { BsGripHorizontal, BsGripVertical } from "react-icons/bs";
 import { IconType } from "react-icons/lib";
 
@@ -22,11 +28,33 @@ export const ResizablePanelPair = ({
     const handleClicked = useRef(false);
     const handleDragged = useRef(false);
 
-    const [direction, setDirection] = useState(preferredDirection);
+    const proportion = useRef(0.5);
+
+    const direction = useBreakpointValue(
+        {
+            base: "vertical",
+            sm: preferredDirection,
+        },
+        {
+            ssr: false,
+        },
+    );
 
     useEffect(() => {
-        setDirection(preferredDirection);
-    }, [preferredDirection]);
+        if (wrapperRef.current) {
+            if (direction === "vertical") {
+                wrapperRef.current.style.gridTemplateRows = `${proportion.current}fr ${centerWidth} ${
+                    1 - proportion.current
+                }fr`;
+                wrapperRef.current.style.gridTemplateColumns = `1fr`;
+            } else {
+                wrapperRef.current.style.gridTemplateColumns = `${proportion.current}fr ${centerWidth} ${
+                    1 - proportion.current
+                }fr`;
+                wrapperRef.current.style.gridTemplateRows = `1fr`;
+            }
+        }
+    }, [direction]);
 
     const onMouseDown = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -43,23 +71,25 @@ export const ResizablePanelPair = ({
                 handleDragged.current = true;
 
                 if (direction === "vertical") {
-                    let proportion =
+                    proportion.current =
                         (event.clientY - wrapperRef.current!.offsetTop) /
                         wrapperRef.current!.clientHeight;
 
                     //using a ref to save without react refresh
-                    wrapperRef.current!.style.gridTemplateRows = `${proportion}fr ${centerWidth} ${
-                        1 - proportion
+                    wrapperRef.current!.style.gridTemplateRows = `${proportion.current}fr ${centerWidth} ${
+                        1 - proportion.current
                     }fr`;
+                    wrapperRef.current!.style.gridTemplateColumns = `1fr`;
                 } else {
-                    let proportion =
+                    proportion.current =
                         (event.clientX - wrapperRef.current!.offsetLeft) /
                         wrapperRef.current!.clientWidth;
 
                     //using a ref to save without react refresh
-                    wrapperRef.current!.style.gridTemplateColumns = `${proportion}fr ${centerWidth} ${
-                        1 - proportion
+                    wrapperRef.current!.style.gridTemplateColumns = `${proportion.current}fr ${centerWidth} ${
+                        1 - proportion.current
                     }fr`;
+                    wrapperRef.current!.style.gridTemplateRows = `1fr`;
                 }
             }
         },
@@ -87,7 +117,7 @@ export const ResizablePanelPair = ({
         templateAreas = `"panelA"
                          "middleGutter"
                          "panelB"`;
-        gridTemplateRows = `1fr ${centerWidth} 1fr`;
+        gridTemplateRows = `0.5fr ${centerWidth} 0.5fr`;
         gridTemplateColumns = `1fr`;
         gutterHeight = centerWidth;
         gutterWidth = "100%";
