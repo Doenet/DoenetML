@@ -87,7 +87,7 @@ const theme = extendTheme({
     },
 });
 
-export function DoenetML({
+export function DoenetViewer({
     doenetML,
     flags: specifiedFlags = {},
     cid,
@@ -122,22 +122,19 @@ export function DoenetML({
     scrollableContainer,
     darkMode,
     showAnswerTitles = false,
-    includeEditor = false,
-    height,
-    viewerLocation,
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
     cid?: string;
-    activityId: string;
-    userId: string;
-    attemptNumber: number;
+    activityId?: string;
+    userId?: string;
+    attemptNumber?: number;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
     updateActivityStatusCallback?: Function;
     updateAttemptNumber?: Function;
     pageChangedCallback?: Function;
-    paginate: boolean;
+    paginate?: boolean;
     showFinishButton?: boolean;
     cidChangedCallback?: Function;
     checkIfCidChanged?: Function;
@@ -146,23 +143,20 @@ export function DoenetML({
     apiURLs?: {};
     generatedVariantCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
-    forceDisable: boolean;
-    forceShowCorrectness: boolean;
-    forceShowSolution: boolean;
-    forceUnsuppressCheckwork: boolean;
-    addVirtualKeyboard: boolean;
-    addBottomPadding: boolean;
+    forceDisable?: boolean;
+    forceShowCorrectness?: boolean;
+    forceShowSolution?: boolean;
+    forceUnsuppressCheckwork?: boolean;
+    addVirtualKeyboard?: boolean;
+    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
-    updateDataOnContentChange: boolean;
-    idsIncludeActivityId: boolean;
-    linkSettings: { viewURL: string; editURL: string };
+    updateDataOnContentChange?: boolean;
+    idsIncludeActivityId?: boolean;
+    linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: any;
     darkMode?: string;
-    showAnswerTitles: boolean;
-    includeEditor: boolean;
-    height?: string;
-    viewerLocation?: string;
+    showAnswerTitles?: boolean;
 }) {
     const thisPropSet = [
         doenetML,
@@ -207,44 +201,7 @@ export function DoenetML({
 
     const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
 
-    const viewerWithEditor = includeEditor ? (
-        <EditorViewer
-            doenetML={doenetML}
-            updateDataOnContentChange={updateDataOnContentChange}
-            flags={flags}
-            cid={cid}
-            activityId={activityId}
-            userId={userId}
-            attemptNumber={attemptNumber}
-            requestedVariantIndex={variantIndex.current}
-            updateCreditAchievedCallback={updateCreditAchievedCallback}
-            updateActivityStatusCallback={updateActivityStatusCallback}
-            updateAttemptNumber={updateAttemptNumber}
-            pageChangedCallback={pageChangedCallback}
-            paginate={paginate}
-            showFinishButton={showFinishButton}
-            cidChangedCallback={cidChangedCallback}
-            checkIfCidChanged={checkIfCidChanged}
-            setActivityAsCompleted={setActivityAsCompleted}
-            setIsInErrorState={setIsInErrorState}
-            apiURLs={apiURLs}
-            generatedVariantCallback={generatedVariantCallback}
-            forceDisable={forceDisable}
-            forceShowCorrectness={forceShowCorrectness}
-            forceShowSolution={forceShowSolution}
-            forceUnsuppressCheckwork={forceUnsuppressCheckwork}
-            location={location}
-            navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
-            linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
-            scrollableContainer={scrollableContainer}
-            darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
-            height={height}
-            viewerLocation={viewerLocation}
-        />
-    ) : (
+    const viewer = (
         <ActivityViewer
             doenetML={doenetML}
             updateDataOnContentChange={updateDataOnContentChange}
@@ -290,7 +247,96 @@ export function DoenetML({
         >
             <RecoilRoot>
                 <MathJaxContext version={3} config={mathjaxConfig}>
-                    {viewerWithEditor}
+                    {viewer}
+                    <div className="before-keyboard" />
+                    {keyboard}
+                </MathJaxContext>
+            </RecoilRoot>
+        </ChakraProvider>
+    );
+}
+
+export function DoenetEditor({
+    doenetML,
+    activityId = "",
+    paginate = false,
+    addVirtualKeyboard = true,
+    addBottomPadding = false,
+    location,
+    navigate,
+    idsIncludeActivityId = true,
+    linkSettings,
+    scrollableContainer,
+    darkMode,
+    showAnswerTitles = false,
+    width,
+    height,
+    viewerLocation,
+    backgroundColor,
+    showViewer,
+    doenetmlChangeCallback,
+    immediateDoenetmlChangeCallback,
+    id,
+    readOnly,
+}: {
+    doenetML: string;
+    activityId?: string;
+    paginate?: boolean;
+    addVirtualKeyboard?: boolean;
+    addBottomPadding?: boolean;
+    location?: any;
+    navigate?: any;
+    idsIncludeActivityId?: boolean;
+    linkSettings?: { viewURL: string; editURL: string };
+    scrollableContainer?: any;
+    darkMode?: string;
+    showAnswerTitles?: boolean;
+    width?: string;
+    height?: string;
+    viewerLocation?: "left" | "right" | "bottom";
+    backgroundColor?: string;
+    showViewer?: boolean;
+    doenetmlChangeCallback?: Function;
+    immediateDoenetmlChangeCallback?: Function;
+    id?: string;
+    readOnly?: boolean;
+}) {
+    const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
+
+    const editor = (
+        <EditorViewer
+            doenetML={doenetML}
+            activityId={activityId}
+            paginate={paginate}
+            location={location}
+            navigate={navigate}
+            idsIncludeActivityId={idsIncludeActivityId}
+            linkSettings={linkSettings}
+            addBottomPadding={addBottomPadding}
+            scrollableContainer={scrollableContainer}
+            darkMode={darkMode}
+            showAnswerTitles={showAnswerTitles}
+            width={width}
+            height={height}
+            viewerLocation={viewerLocation}
+            backgroundColor={backgroundColor}
+            showViewer={showViewer}
+            doenetmlChangeCallback={doenetmlChangeCallback}
+            immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
+            id={id}
+            readOnly={readOnly}
+        />
+    );
+
+    return (
+        <ChakraProvider
+            theme={theme}
+            resetScope=".before-keyboard"
+            disableGlobalStyle
+        >
+            <RecoilRoot>
+                <MathJaxContext version={3} config={mathjaxConfig}>
+                    {editor}
                     <div className="before-keyboard" />
                     {keyboard}
                 </MathJaxContext>

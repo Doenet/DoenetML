@@ -1,20 +1,29 @@
 import React, { useState } from "react";
 // @ts-ignore
-import { DoenetML } from "@doenet/doenetml";
+import { DoenetViewer, DoenetEditor } from "@doenet/doenetml";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 import { Button } from "@doenet/ui-components";
 
 export default function TestViewer() {
-    const defaultTestSettings = {
+    const defaultTestSettings: {
+        requestedVariantIndex: number;
+        showCorrectness: boolean;
+        readOnly: boolean;
+        showFeedback: boolean;
+        showHints: boolean;
+        paginate: boolean;
+        showEditor: boolean;
+        viewerLocation: "left" | "right" | "bottom";
+    } = {
         requestedVariantIndex: 1,
         showCorrectness: true,
         readOnly: false,
         showFeedback: true,
         showHints: true,
         paginate: true,
-        includeEditor: true,
-        viewerOnLeft: false,
+        showEditor: true,
+        viewerLocation: "right",
     };
 
     const [controlsVisible, setControlsVisible] = useState(false);
@@ -28,8 +37,8 @@ export default function TestViewer() {
         showFeedback,
         showHints,
         paginate,
-        includeEditor,
-        viewerOnLeft,
+        showEditor,
+        viewerLocation,
     } = testSettings;
 
     let controls = null;
@@ -149,11 +158,11 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={includeEditor}
+                            checked={showEditor}
                             onChange={() => {
                                 setTestSettings((was) => {
                                     let newObj = { ...was };
-                                    newObj.includeEditor = !was.includeEditor;
+                                    newObj.showEditor = !was.showEditor;
                                     return newObj;
                                 });
                                 setUpdateNumber((was) => was + 1);
@@ -164,25 +173,67 @@ export default function TestViewer() {
                 </div>
                 <div>
                     <label>
-                        {" "}
-                        <input
-                            type="checkbox"
-                            checked={viewerOnLeft}
-                            onChange={() => {
+                        Viewer location{" "}
+                        <select
+                            onChange={(e) => {
+                                console.log(
+                                    "on change viewer location",
+                                    e.target,
+                                );
                                 setTestSettings((was) => {
                                     let newObj = { ...was };
-                                    newObj.viewerOnLeft = !was.viewerOnLeft;
+                                    //@ts-ignore
+                                    newObj.viewerLocation = e.target.value;
                                     return newObj;
                                 });
                                 setUpdateNumber((was) => was + 1);
                             }}
-                        />
-                        Viewer on left
+                        >
+                            <option value="right">right</option>
+                            <option value="left">left</option>
+                            <option value="bottom">bottom</option>
+                        </select>
                     </label>
                 </div>
             </div>
         );
     }
+
+    const editor = (
+        <DoenetEditor
+            key={"doenetml" + updateNumber}
+            doenetML={doenetMLstring}
+            paginate={paginate}
+            addVirtualKeyboard={true}
+            height="calc(100vh - 94px)"
+            width="100%"
+            viewerLocation={viewerLocation}
+        />
+    );
+
+    const viewer = (
+        <DoenetViewer
+            key={"doenetml" + updateNumber}
+            doenetML={doenetMLstring}
+            flags={{
+                showCorrectness,
+                readOnly,
+                showFeedback,
+                showHints,
+                solutionDisplayMode: "button",
+                allowLoadState: false,
+                allowSaveState: false,
+                allowLocalState: false,
+                allowSaveSubmissions: true,
+                allowSaveEvents: false,
+                autoSubmit: false,
+            }}
+            activityId=""
+            apiURLs={{ postMessages: true }}
+            paginate={paginate}
+            addVirtualKeyboard={true}
+        />
+    );
 
     return (
         <div>
@@ -205,30 +256,7 @@ export default function TestViewer() {
                 </h3>
                 {controls}
             </div>
-            <DoenetML
-                key={"doenetml" + updateNumber}
-                doenetML={doenetMLstring}
-                flags={{
-                    showCorrectness,
-                    readOnly,
-                    showFeedback,
-                    showHints,
-                    solutionDisplayMode: "button",
-                    allowLoadState: false,
-                    allowSaveState: false,
-                    allowLocalState: false,
-                    allowSaveSubmissions: true,
-                    allowSaveEvents: false,
-                    autoSubmit: false,
-                }}
-                activityId=""
-                apiURLs={{ postMessages: true }}
-                paginate={paginate}
-                addVirtualKeyboard={true}
-                includeEditor={includeEditor}
-                height="calc(100vh - 94px)"
-                viewerLocation={viewerOnLeft ? "left" : "right"}
-            />
+            {showEditor ? editor : viewer}
         </div>
     );
 }

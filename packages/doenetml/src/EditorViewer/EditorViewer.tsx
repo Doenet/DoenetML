@@ -4,16 +4,18 @@ import {
     Flex,
     FormControl,
     FormLabel,
+    Grid,
+    GridItem,
     HStack,
     Switch,
     Tooltip,
     VStack,
 } from "@chakra-ui/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ResizableSideBySide } from "./ResizableSideBySide.js";
+import { ResizablePanelPair } from "./ResizablePanelPair";
 import { RxUpdate } from "react-icons/rx";
 import { WarningTwoIcon } from "@chakra-ui/icons";
-import VariantSelect from "./VariantSelect.js";
+import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { ActivityViewer } from "../Viewer/ActivityViewer.jsx";
 import ErrorWarningPopovers, {
@@ -25,8 +27,8 @@ import { prettyPrint } from "@doenet/parser";
 
 export function EditorViewer({
     doenetML,
-    activityId,
-    paginate,
+    activityId = "",
+    paginate = false,
     location = {},
     navigate,
     idsIncludeActivityId = true,
@@ -35,6 +37,7 @@ export function EditorViewer({
     scrollableContainer = window,
     darkMode,
     showAnswerTitles,
+    width = "100%",
     height = "100vh",
     backgroundColor = "doenet.mainGray",
     showViewer = true,
@@ -46,25 +49,26 @@ export function EditorViewer({
     showFormatter = true,
 }: {
     doenetML: string;
-    activityId: string;
-    paginate: boolean;
-    location: any;
+    activityId?: string;
+    paginate?: boolean;
+    location?: any;
     navigate?: any;
-    idsIncludeActivityId: boolean;
-    linkSettings: { viewURL: string; editURL: string };
-    addBottomPadding: boolean;
-    scrollableContainer: any;
+    idsIncludeActivityId?: boolean;
+    linkSettings?: { viewURL: string; editURL: string };
+    addBottomPadding?: boolean;
+    scrollableContainer?: any;
     darkMode?: string;
-    showAnswerTitles: boolean;
-    height: string;
-    backgroundColor: string;
-    showViewer: boolean;
-    viewerLocation: "left" | "right";
+    showAnswerTitles?: boolean;
+    width?: string;
+    height?: string;
+    backgroundColor?: string;
+    showViewer?: boolean;
+    viewerLocation?: "left" | "right" | "bottom";
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     id?: string;
-    readOnly: boolean;
-    showFormatter: boolean;
+    readOnly?: boolean;
+    showFormatter?: boolean;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -215,173 +219,218 @@ export function EditorViewer({
     }
 
     const editorPanel = (
-        <VStack spacing={0}>
-            <Box
-                boxSizing="border-box"
-                background="doenet.canvas"
-                height={height}
-                overflowY="hidden"
-                borderRight="solid 1px"
-                borderTop="solid 1px"
-                borderBottom="solid 1px"
-                borderColor="doenet.mediumGray"
-                w="100%"
-                id={id}
+        <Grid
+            width="100%"
+            height="100%"
+            templateAreas={`"editor"
+                                "errorWarnings"
+                                "formatter"`}
+            gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
+            gridTemplateColumns={`1fr`}
+            boxSizing="border-box"
+            background="doenet.canvas"
+            overflowY="hidden"
+            border="solid 1px"
+            borderColor="doenet.mediumGray"
+            id={id}
+        >
+            <GridItem
+                area="editor"
+                width="100%"
+                height="100%"
+                placeSelf="center"
+                overflow="hidden"
             >
-                <Box
-                    height={`calc(${height} - 32px${showFormatter ? " - 32px" : ""})`}
-                    w="100%"
-                    overflow="hidden"
-                >
-                    <CodeMirror
-                        value={updateEditorValueTo}
-                        //TODO: read only isn't working <codeeditor disabled />
-                        readOnly={readOnly}
-                        onBlur={() => {
-                            window.clearTimeout(
-                                updateValueTimer.current ?? undefined,
-                            );
-                            doenetmlChangeCallback?.(editorDoenetML.current);
-                            updateValueTimer.current = null;
-                        }}
-                        onChange={onEditorChange}
+                <CodeMirror
+                    value={updateEditorValueTo}
+                    //TODO: read only isn't working <codeeditor disabled />
+                    readOnly={readOnly}
+                    onBlur={() => {
+                        window.clearTimeout(
+                            updateValueTimer.current ?? undefined,
+                        );
+                        doenetmlChangeCallback?.(editorDoenetML.current);
+                        updateValueTimer.current = null;
+                    }}
+                    onChange={onEditorChange}
+                />
+            </GridItem>
+            <GridItem
+                area="errorWarnings"
+                width="100%"
+                height="100%"
+                placeSelf="center"
+                overflow="hidden"
+                backgroundColor="doenet.mainGray"
+            >
+                <Flex ml="0px" h="32px" bg="doenet.mainGray" pl="10px" pt="1px">
+                    <ErrorWarningPopovers
+                        warnings={warningsObjs}
+                        errors={errorsObjs}
                     />
-                </Box>
-
-                <Box bg="doenet.mainGray" h="32px" w="100%">
-                    <Flex
-                        ml="0px"
-                        h="32px"
-                        bg="doenet.mainGray"
-                        pl="10px"
-                        pt="1px"
-                    >
-                        <ErrorWarningPopovers
-                            warnings={warningsObjs}
-                            errors={errorsObjs}
-                        />
-                    </Flex>
-                </Box>
+                </Flex>
+            </GridItem>
+            <GridItem
+                area="formatter"
+                width="100%"
+                height="100%"
+                placeSelf="center"
+                overflow="hidden"
+            >
                 {formatter}
-            </Box>
-        </VStack>
+            </GridItem>
+        </Grid>
     );
 
     if (!showViewer) {
-        return editorPanel;
+        return (
+            <Box width={width} height={height}>
+                {editorPanel}
+            </Box>
+        );
     }
 
     const viewerPanel = (
-        <VStack spacing={0}>
-            <HStack w="100%" h="32px" bg={backgroundColor}>
-                <Box>
-                    <Tooltip
-                        hasArrow
-                        label={
-                            platform == "Mac"
-                                ? "Updates Viewer cmd+s"
-                                : "Updates Viewer ctrl+s"
-                        }
-                    >
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            data-test="Viewer Update Button"
-                            bg="doenet.canvas"
-                            leftIcon={<RxUpdate />}
-                            rightIcon={
-                                codeChanged ? (
-                                    <WarningTwoIcon
-                                        color="doenet.mainBlue"
-                                        fontSize="18px"
-                                    />
-                                ) : undefined
-                            }
-                            isDisabled={!codeChanged}
-                            onClick={() => {
-                                setViewerDoenetML(editorDoenetML.current);
-                                window.clearTimeout(
-                                    updateValueTimer.current ?? undefined,
-                                );
-                                doenetmlChangeCallback?.(
-                                    editorDoenetML.current,
-                                );
-                                setCodeChanged(false);
-                                updateValueTimer.current = null;
-                            }}
-                        >
-                            Update
-                        </Button>
-                    </Tooltip>
-                </Box>
-                {variants.numVariants > 1 && (
-                    <Box bg={backgroundColor} h="32px" width="100%">
-                        <VariantSelect
-                            size="sm"
-                            menuWidth="140px"
-                            array={variants.allPossibleVariants}
-                            syncIndex={variants.index}
-                            onChange={(index: number) =>
-                                setVariants((prev) => {
-                                    let next = { ...prev };
-                                    next.index = index + 1;
-                                    return next;
-                                })
-                            }
-                        />
-                    </Box>
-                )}
-            </HStack>
-
-            <Box
-                height={`calc(${height} - 32px)`}
-                background="var(--canvas)"
-                borderWidth="1px"
-                borderStyle="solid"
-                borderColor="doenet.mediumGray"
-                overflow="scroll"
-                w="100%"
-                id={id + "-viewer"}
+        <Grid
+            width="100%"
+            height="100%"
+            templateAreas={`"controls"
+                            "viewer"`}
+            gridTemplateRows={`32px 1fr`}
+            gridTemplateColumns={`1fr`}
+            overflowY="hidden"
+        >
+            <GridItem
+                area="controls"
+                width="100%"
+                height="100%"
+                placeSelf="center"
+                overflow="hidden"
             >
-                <ActivityViewer
-                    doenetML={viewerDoenetML}
-                    cid={null}
-                    flags={{
-                        showCorrectness: true,
-                        solutionDisplayMode: "button",
-                        showFeedback: true,
-                        showHints: true,
-                        autoSubmit: false,
-                        allowLoadState: false,
-                        allowSaveState: false,
-                        allowLocalState: false,
-                        allowSaveSubmissions: false,
-                        allowSaveEvents: false,
-                    }}
-                    activityId={activityId}
-                    attemptNumber={1}
-                    generatedVariantCallback={setVariants}
-                    requestedVariantIndex={variants.index}
-                    paginate={paginate}
-                    setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
-                    location={location}
-                    navigate={navigate}
-                    idsIncludeActivityId={idsIncludeActivityId}
-                    linkSettings={linkSettings}
-                    addBottomPadding={addBottomPadding}
-                    scrollableContainer={scrollableContainer}
-                    darkMode={darkMode}
-                    showAnswerTitles={showAnswerTitles}
-                />
-            </Box>
-        </VStack>
+                <HStack w="100%" h="32px" bg={backgroundColor}>
+                    <Box>
+                        <Tooltip
+                            hasArrow
+                            label={
+                                platform == "Mac"
+                                    ? "Updates Viewer cmd+s"
+                                    : "Updates Viewer ctrl+s"
+                            }
+                        >
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                data-test="Viewer Update Button"
+                                bg="doenet.canvas"
+                                leftIcon={<RxUpdate />}
+                                rightIcon={
+                                    codeChanged ? (
+                                        <WarningTwoIcon
+                                            color="doenet.mainBlue"
+                                            fontSize="18px"
+                                        />
+                                    ) : undefined
+                                }
+                                isDisabled={!codeChanged}
+                                onClick={() => {
+                                    setViewerDoenetML(editorDoenetML.current);
+                                    window.clearTimeout(
+                                        updateValueTimer.current ?? undefined,
+                                    );
+                                    doenetmlChangeCallback?.(
+                                        editorDoenetML.current,
+                                    );
+                                    setCodeChanged(false);
+                                    updateValueTimer.current = null;
+                                }}
+                            >
+                                Update
+                            </Button>
+                        </Tooltip>
+                    </Box>
+                    {variants.numVariants > 1 && (
+                        <Box bg={backgroundColor} h="32px" width="100%">
+                            <VariantSelect
+                                size="sm"
+                                menuWidth="140px"
+                                array={variants.allPossibleVariants}
+                                syncIndex={variants.index}
+                                onChange={(index: number) =>
+                                    setVariants((prev) => {
+                                        let next = { ...prev };
+                                        next.index = index + 1;
+                                        return next;
+                                    })
+                                }
+                            />
+                        </Box>
+                    )}
+                </HStack>
+            </GridItem>
+            <GridItem
+                area="viewer"
+                width="100%"
+                height="100%"
+                placeSelf="center"
+                overflow="hidden"
+            >
+                <Box
+                    height="100%"
+                    width="100%"
+                    background="var(--canvas)"
+                    borderWidth="1px"
+                    borderStyle="solid"
+                    borderColor="doenet.mediumGray"
+                    overflow="scroll"
+                    id={id + "-viewer"}
+                >
+                    {/* @ts-ignore */}
+                    <ActivityViewer
+                        doenetML={viewerDoenetML}
+                        cid={null}
+                        flags={{
+                            showCorrectness: true,
+                            solutionDisplayMode: "button",
+                            showFeedback: true,
+                            showHints: true,
+                            autoSubmit: false,
+                            allowLoadState: false,
+                            allowSaveState: false,
+                            allowLocalState: false,
+                            allowSaveSubmissions: false,
+                            allowSaveEvents: false,
+                        }}
+                        activityId={activityId}
+                        attemptNumber={1}
+                        generatedVariantCallback={setVariants}
+                        requestedVariantIndex={variants.index}
+                        paginate={paginate}
+                        setErrorsAndWarningsCallback={
+                            setErrorsAndWarningsCallback
+                        }
+                        location={location}
+                        navigate={navigate}
+                        idsIncludeActivityId={idsIncludeActivityId}
+                        linkSettings={linkSettings}
+                        addBottomPadding={addBottomPadding}
+                        scrollableContainer={scrollableContainer}
+                        darkMode={darkMode}
+                        showAnswerTitles={showAnswerTitles}
+                    />
+                </Box>
+            </GridItem>
+        </Grid>
     );
 
     return (
-        <ResizableSideBySide
+        <ResizablePanelPair
+            panelA={viewerLocation == "left" ? viewerPanel : editorPanel}
+            panelB={viewerLocation == "left" ? editorPanel : viewerPanel}
+            preferredDirection={
+                viewerLocation === "bottom" ? "vertical" : "horizontal"
+            }
+            width={width}
             height={height}
-            left={viewerLocation == "left" ? viewerPanel : editorPanel}
-            right={viewerLocation == "left" ? editorPanel : viewerPanel}
         />
     );
 }

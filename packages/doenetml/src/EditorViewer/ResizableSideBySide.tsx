@@ -3,14 +3,16 @@ import { Center, Grid, GridItem, Icon } from "@chakra-ui/react";
 import { BsGripVertical } from "react-icons/bs";
 
 export const ResizableSideBySide = ({
-    left,
-    right,
+    panelA,
+    panelB,
     centerWidth = "10px",
+    width = "100%",
     height = "100%",
 }: {
-    left: React.JSX.Element;
-    right: React.JSX.Element;
+    panelA: React.JSX.Element;
+    panelB: React.JSX.Element;
     centerWidth?: string;
+    width?: string;
     height?: string;
 }) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -54,9 +56,9 @@ export const ResizableSideBySide = ({
 
     return (
         <Grid
-            width="100%"
+            width={width}
             height={height}
-            templateAreas={`"left middleGutter right"`}
+            templateAreas={`"panelA middleGutter panelB"`}
             templateColumns={`.5fr ${centerWidth} .5fr`}
             overflow="hidden"
             onMouseUp={onMouseUp}
@@ -65,13 +67,13 @@ export const ResizableSideBySide = ({
             ref={wrapperRef}
         >
             <GridItem
-                area="left"
+                area="panelA"
                 width="100%"
                 placeSelf="center"
                 height="100%"
                 overflow="hidden"
             >
-                {left}
+                {panelA}
             </GridItem>
             <GridItem
                 area="middleGutter"
@@ -97,13 +99,13 @@ export const ResizableSideBySide = ({
                 </Center>
             </GridItem>
             <GridItem
-                area="right"
+                area="panelB"
                 width="100%"
                 placeSelf="center"
                 height="100%"
                 overflow="hidden"
             >
-                {right}
+                {panelB}
             </GridItem>
         </Grid>
     );
