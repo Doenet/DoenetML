@@ -15,12 +15,14 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ResizablePanelPair } from "./ResizablePanelPair";
 import { RxUpdate } from "react-icons/rx";
 import { WarningTwoIcon } from "@chakra-ui/icons";
+// @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { ActivityViewer } from "../Viewer/ActivityViewer.jsx";
 import ErrorWarningPopovers, {
     ErrorDescription,
     WarningDescription,
+    // @ts-ignore
 } from "./ErrorWarningPopovers";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
@@ -84,11 +86,14 @@ export function EditorViewer({
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function
     codeChangedRef.current = codeChanged;
 
-    const [updateEditorValueTo, setUpdateEditorValueTo] = useState(doenetML);
     const editorDoenetML = useRef(doenetML);
     const [viewerDoenetML, setViewerDoenetML] = useState(doenetML);
 
     const [formatAsDoenetML, setFormatAsDoenetML] = useState(true);
+
+    // Since formatting changes editorDoenetML, which is a ref,
+    // we need to also change a state to cause a re-render.
+    const [formatCounter, setFormatCounter] = useState(0);
 
     let updateValueTimer = useRef<number | null>(null);
 
@@ -192,8 +197,9 @@ export function EditorViewer({
                                 editorDoenetML.current,
                                 { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
                             );
-                            setUpdateEditorValueTo(printed);
                             onEditorChange(printed);
+                            // change a state variable to invoke a render
+                            setFormatCounter((was) => was + 1);
                         }}
                     >
                         Pretty Print
@@ -242,7 +248,7 @@ export function EditorViewer({
                 overflow="hidden"
             >
                 <CodeMirror
-                    value={updateEditorValueTo}
+                    value={editorDoenetML.current}
                     //TODO: read only isn't working <codeeditor disabled />
                     readOnly={readOnly}
                     onBlur={() => {

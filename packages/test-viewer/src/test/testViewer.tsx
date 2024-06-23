@@ -165,7 +165,6 @@ export default function TestViewer() {
                                     newObj.showEditor = !was.showEditor;
                                     return newObj;
                                 });
-                                setUpdateNumber((was) => was + 1);
                             }}
                         />
                         Show Editor
@@ -175,18 +174,14 @@ export default function TestViewer() {
                     <label>
                         Viewer location{" "}
                         <select
+                            value={viewerLocation}
                             onChange={(e) => {
-                                console.log(
-                                    "on change viewer location",
-                                    e.target,
-                                );
                                 setTestSettings((was) => {
                                     let newObj = { ...was };
                                     //@ts-ignore
                                     newObj.viewerLocation = e.target.value;
                                     return newObj;
                                 });
-                                setUpdateNumber((was) => was + 1);
                             }}
                         >
                             <option value="right">right</option>
