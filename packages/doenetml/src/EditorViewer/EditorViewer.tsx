@@ -152,6 +152,8 @@ export function EditorViewer({
                 setViewerDoenetML(editorDoenetML.current);
                 doenetmlChangeCallback?.(editorDoenetML.current);
 
+                setCodeChanged(false);
+
                 updateValueTimer.current = null;
             }
         };
