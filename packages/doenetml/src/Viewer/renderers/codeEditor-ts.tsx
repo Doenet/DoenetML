@@ -23,7 +23,9 @@ export default React.memo(function CodeEditor(props) {
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
-    let currentValue = useRef(SVs.immediateValue);
+    const [currentValue, setCurrentValue] = useState(SVs.immediateValue);
+    const currentValueRef = useRef(currentValue);
+    currentValueRef.current = currentValue;
 
     const ref = useRef<HTMLDivElement>(null);
     const isInView = useInView(ref, { amount: 0 });
@@ -37,7 +39,7 @@ export default React.memo(function CodeEditor(props) {
 
     const immediateDoenetmlChangeCallback = React.useCallback(
         (value: string) => {
-            currentValue.current = value;
+            setCurrentValue(value);
 
             setRendererState((was) => {
                 let newObj = { ...was };
@@ -58,7 +60,7 @@ export default React.memo(function CodeEditor(props) {
         (value: string) => {
             callAction({
                 action: actions.updateValue,
-                baseVariableValue: currentValue.current,
+                baseVariableValue: currentValueRef.current,
             });
         },
         [actions.updateValue, callAction],
@@ -85,8 +87,8 @@ export default React.memo(function CodeEditor(props) {
     // cm.getScrollInfo() → {left, top, width, height, clientWidth, clientHeight}
     // Get an {left, top, width, height, clientWidth, clientHeight} object that represents the current scroll position, the size of the scrollable area, and the size of the visible area (minus scrollbars).
 
-    if (!ignoreUpdate && SVs.immediateValue !== currentValue.current) {
-        currentValue.current = SVs.immediateValue;
+    if (!ignoreUpdate && SVs.immediateValue !== currentValue) {
+        setCurrentValue(SVs.immediateValue);
     }
 
     return (
@@ -94,7 +96,7 @@ export default React.memo(function CodeEditor(props) {
             <EditorViewer
                 id={id}
                 activityId={id}
-                doenetML={currentValue.current}
+                doenetML={currentValue}
                 width={sizeToCSS(SVs.width)}
                 height={sizeToCSS(SVs.height)}
                 showViewer={SVs.showResults}

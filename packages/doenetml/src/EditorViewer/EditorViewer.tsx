@@ -24,7 +24,7 @@ import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 
 export function EditorViewer({
-    doenetML,
+    doenetML: initialDoenetML,
     activityId = "",
     paginate = false,
     location = {},
@@ -82,14 +82,12 @@ export function EditorViewer({
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function
     codeChangedRef.current = codeChanged;
 
-    const editorDoenetML = useRef(doenetML);
-    const [viewerDoenetML, setViewerDoenetML] = useState(doenetML);
+    const [editorDoenetML, setEditorDoenetML] = useState(initialDoenetML);
+    const [viewerDoenetML, setViewerDoenetML] = useState(initialDoenetML);
+    const editorDoenetMLRef = useRef(editorDoenetML);
+    editorDoenetMLRef.current = editorDoenetML;
 
     const [formatAsDoenetML, setFormatAsDoenetML] = useState(true);
-
-    // Since formatting changes editorDoenetML, which is a ref,
-    // we need to also change a state to cause a re-render.
-    const [formatCounter, setFormatCounter] = useState(0);
 
     const updateValueTimer = useRef<number | null>(null);
 
@@ -115,10 +113,14 @@ export function EditorViewer({
     );
     const errorsObjs = [...errorsAndWarnings.errors];
 
+    useEffect(() => {
+        setEditorDoenetML(initialDoenetML);
+    }, [initialDoenetML]);
+
     const onEditorChange = useCallback(
         (value: string) => {
-            if (editorDoenetML.current !== value) {
-                editorDoenetML.current = value;
+            if (editorDoenetMLRef.current !== value) {
+                setEditorDoenetML(value);
 
                 if (!codeChangedRef.current) {
                     setCodeChanged(true);
@@ -132,7 +134,7 @@ export function EditorViewer({
                 //TODO: when you try to leave the page before it saved you will lose work
                 //so prompt the user on page leave
                 updateValueTimer.current = window.setTimeout(function () {
-                    doenetmlChangeCallback?.(editorDoenetML.current);
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
                     updateValueTimer.current = null;
                 }, 3000); //3 seconds
             }
@@ -149,8 +151,8 @@ export function EditorViewer({
                 event.preventDefault();
                 event.stopPropagation();
                 window.clearTimeout(updateValueTimer.current ?? undefined);
-                setViewerDoenetML(editorDoenetML.current);
-                doenetmlChangeCallback?.(editorDoenetML.current);
+                setViewerDoenetML(editorDoenetMLRef.current);
+                doenetmlChangeCallback?.(editorDoenetMLRef.current);
 
                 setCodeChanged(false);
 
@@ -178,7 +180,7 @@ export function EditorViewer({
         return () => {
             if (updateValueTimer.current !== null) {
                 window.clearTimeout(updateValueTimer.current);
-                doenetmlChangeCallback?.(editorDoenetML.current);
+                doenetmlChangeCallback?.(editorDoenetMLRef.current);
             }
         };
     }, []);
@@ -203,12 +205,10 @@ export function EditorViewer({
                         title="Pretty-print your source code"
                         onClick={async () => {
                             const printed = await prettyPrint(
-                                editorDoenetML.current,
+                                editorDoenetMLRef.current,
                                 { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
                             );
                             onEditorChange(printed);
-                            // change a state variable to invoke a render
-                            setFormatCounter((was) => was + 1);
                         }}
                     >
                         Pretty Print
@@ -269,14 +269,14 @@ export function EditorViewer({
                 overflow="hidden"
             >
                 <CodeMirror
-                    value={editorDoenetML.current}
+                    value={editorDoenetML}
                     //TODO: read only isn't working <codeeditor disabled />
                     readOnly={readOnly}
                     onBlur={() => {
                         window.clearTimeout(
                             updateValueTimer.current ?? undefined,
                         );
-                        doenetmlChangeCallback?.(editorDoenetML.current);
+                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
                         updateValueTimer.current = null;
                     }}
                     onChange={onEditorChange}
@@ -328,6 +328,7 @@ export function EditorViewer({
                 height="100%"
                 placeSelf="center"
                 overflow="hidden"
+                id={id + "-viewer-controls"}
             >
                 <HStack w="100%" h="32px" bg={backgroundColor}>
                     <Box>
@@ -355,12 +356,14 @@ export function EditorViewer({
                                 }
                                 isDisabled={!codeChanged}
                                 onClick={() => {
-                                    setViewerDoenetML(editorDoenetML.current);
+                                    setViewerDoenetML(
+                                        editorDoenetMLRef.current,
+                                    );
                                     window.clearTimeout(
                                         updateValueTimer.current ?? undefined,
                                     );
                                     doenetmlChangeCallback?.(
-                                        editorDoenetML.current,
+                                        editorDoenetMLRef.current,
                                     );
                                     setCodeChanged(false);
                                     updateValueTimer.current = null;
