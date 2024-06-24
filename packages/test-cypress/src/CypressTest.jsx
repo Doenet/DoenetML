@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { DoenetML } from "@doenet/doenetml";
+import { DoenetViewer } from "@doenet/doenetml";
 import { useLocation, useNavigate } from "react-router";
 import { Button } from "@doenet/ui-components";
 
@@ -421,7 +421,7 @@ export function CypressTest() {
 
     if (doenetMLstring) {
         viewer = (
-            <DoenetML
+            <DoenetViewer
                 key={"activityViewer" + updateNumber}
                 doenetML={doenetMLstring}
                 // cid={"185fd09b6939d867d4faee82393d4a879a2051196b476acdca26140864bc967a"}

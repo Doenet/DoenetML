@@ -5,11 +5,11 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { DoenetML } from "@doenet/doenetml/doenetml-inline-worker.js";
+import { DoenetViewer } from "@doenet/doenetml/doenetml-inline-worker.js";
 import "@doenet/doenetml/style.css";
 
 // Re-export React and friends in case a user really wants to use them
-export { React, ReactDOM, DoenetML };
+export { React, ReactDOM, DoenetViewer };
 
 /**
  * Render DoenetML to a container element. If `doenetMLSource` is not provided,
@@ -50,7 +50,7 @@ export function renderDoenetToContainer(
     let { addVirtualKeyboard, ...rest } = attrs;
 
     ReactDOM.createRoot(container).render(
-        <DoenetML
+        <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
             flags={rest}

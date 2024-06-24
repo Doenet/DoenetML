@@ -1,10 +1,10 @@
 import React from "react";
-import type { DoenetML } from "@doenet/doenetml";
+import type { DoenetViewer } from "@doenet/doenetml";
 // @ts-ignore
 import iframeJsSource from "../dist/iframe/iframe-index.iife.js?raw";
 import { watchForResize } from "./resize-watcher";
 
-type DoenetMLProps = React.ComponentProps<typeof DoenetML>;
+type DoenetMLProps = React.ComponentProps<typeof DoenetViewer>;
 
 /**
  * A message that is sent from an iframe to the parent window.
