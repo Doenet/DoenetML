@@ -12,17 +12,7 @@ import {
     Tag,
 } from "@chakra-ui/react";
 import { WarningTwoIcon } from "@chakra-ui/icons";
-import { DoenetMLRange } from "@doenet/utils";
-
-export type ErrorDescription = {
-    doenetMLrange: DoenetMLRange;
-    message: string;
-};
-export type WarningDescription = {
-    doenetMLrange: DoenetMLRange;
-    level: number;
-    message: string;
-};
+import { WarningDescription, ErrorDescription } from "@doenet/utils";
 
 export default function ErrorWarningPopovers({
     warnings,

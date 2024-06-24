@@ -4,7 +4,7 @@ import { sizeToCSS } from "./utils/css";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { DoenetViewer } from "../../doenetml";
 import { Box, HStack, Button, Tooltip } from "@chakra-ui/react";
-import VariantSelect from "../../Tools/ChakraBasedComponents/VariantSelect";
+import VariantSelect from "../../EditorViewer/VariantSelect";
 import { WarningTwoIcon } from "@chakra-ui/icons";
 import { RxUpdate } from "react-icons/rx";
 

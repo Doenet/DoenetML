@@ -17,12 +17,9 @@ import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
-import { ActivityViewer } from "../Viewer/ActivityViewer.jsx";
-import ErrorWarningPopovers, {
-    ErrorDescription,
-    WarningDescription,
-    // @ts-ignore
-} from "./ErrorWarningPopovers";
+import { ActivityViewer } from "../Viewer/ActivityViewer";
+import ErrorWarningPopovers from "./ErrorWarningPopovers";
+import { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 
@@ -35,7 +32,6 @@ export function EditorViewer({
     idsIncludeActivityId = true,
     linkSettings,
     addBottomPadding = false,
-    scrollableContainer = window,
     darkMode,
     showAnswerTitles,
     width = "100%",
@@ -48,6 +44,7 @@ export function EditorViewer({
     id: specifiedId,
     readOnly = false,
     showFormatter = true,
+    showErrorsWarnings = true,
 }: {
     doenetML: string;
     activityId?: string;
@@ -57,7 +54,6 @@ export function EditorViewer({
     idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     addBottomPadding?: boolean;
-    scrollableContainer?: any;
     darkMode?: string;
     showAnswerTitles?: boolean;
     width?: string;
@@ -70,6 +66,7 @@ export function EditorViewer({
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
+    showErrorsWarnings?: boolean;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -94,7 +91,9 @@ export function EditorViewer({
     // we need to also change a state to cause a re-render.
     const [formatCounter, setFormatCounter] = useState(0);
 
-    let updateValueTimer = useRef<number | null>(null);
+    const updateValueTimer = useRef<number | null>(null);
+
+    const scrollableContainer = useRef<HTMLDivElement>(null);
 
     const [variants, setVariants] = useState({
         index: 1,
@@ -173,6 +172,15 @@ export function EditorViewer({
         };
     }, [showViewer, id]);
 
+    useEffect(() => {
+        return () => {
+            if (updateValueTimer.current !== null) {
+                window.clearTimeout(updateValueTimer.current);
+                doenetmlChangeCallback?.(editorDoenetML.current);
+            }
+        };
+    }, []);
+
     let formatter: React.ReactNode = null;
     if (showFormatter) {
         formatter = (
@@ -223,6 +231,18 @@ export function EditorViewer({
         );
     }
 
+    let errorsWarnings: React.ReactNode = null;
+    if (showErrorsWarnings) {
+        errorsWarnings = (
+            <Flex ml="0px" h="32px" bg="doenet.mainGray" pl="10px" pt="1px">
+                <ErrorWarningPopovers
+                    warnings={warningsObjs}
+                    errors={errorsObjs}
+                />
+            </Flex>
+        );
+    }
+
     const editorPanel = (
         <Grid
             width="100%"
@@ -230,7 +250,7 @@ export function EditorViewer({
             templateAreas={`"editor"
                                 "errorWarnings"
                                 "formatter"`}
-            gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
+            gridTemplateRows={`1fr ${showErrorsWarnings ? "32px" : "0px"} ${showFormatter ? "32px" : "0px"}`}
             gridTemplateColumns={`1fr`}
             boxSizing="border-box"
             background="doenet.canvas"
@@ -268,12 +288,7 @@ export function EditorViewer({
                 overflow="hidden"
                 backgroundColor="doenet.mainGray"
             >
-                <Flex ml="0px" h="32px" bg="doenet.mainGray" pl="10px" pt="1px">
-                    <ErrorWarningPopovers
-                        warnings={warningsObjs}
-                        errors={errorsObjs}
-                    />
-                </Flex>
+                {errorsWarnings}
             </GridItem>
             <GridItem
                 area="formatter"
@@ -388,11 +403,11 @@ export function EditorViewer({
                     borderColor="doenet.mediumGray"
                     overflow="scroll"
                     id={id + "-viewer"}
+                    ref={scrollableContainer}
                 >
                     {/* @ts-ignore */}
                     <ActivityViewer
                         doenetML={viewerDoenetML}
-                        cid={null}
                         flags={{
                             showCorrectness: true,
                             solutionDisplayMode: "button",
@@ -404,6 +419,7 @@ export function EditorViewer({
                             allowLocalState: false,
                             allowSaveSubmissions: false,
                             allowSaveEvents: false,
+                            readOnly: false,
                         }}
                         activityId={activityId}
                         attemptNumber={1}
@@ -418,7 +434,9 @@ export function EditorViewer({
                         idsIncludeActivityId={idsIncludeActivityId}
                         linkSettings={linkSettings}
                         addBottomPadding={addBottomPadding}
-                        scrollableContainer={scrollableContainer}
+                        scrollableContainer={
+                            scrollableContainer.current ?? undefined
+                        }
                         darkMode={darkMode}
                         showAnswerTitles={showAnswerTitles}
                     />

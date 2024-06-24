@@ -1331,7 +1331,7 @@ export function ActivityViewer({
         };
     }
 
-    if (errMsg !== null) {
+    if (errMsg !== "") {
         let errorIcon = (
             <span style={{ fontSize: "1em", color: "#C1292E" }}>
                 <FontAwesomeIcon icon={faExclamationCircle} />

@@ -2,7 +2,7 @@ import "./DoenetML.css";
 // @ts-ignore
 import { prng_alea } from "esm-seedrandom";
 import React, { useRef } from "react";
-import { ActivityViewer } from "./Viewer/ActivityViewer.jsx";
+import { ActivityViewer } from "./Viewer/ActivityViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
@@ -140,7 +140,7 @@ export function DoenetViewer({
     checkIfCidChanged?: Function;
     setActivityAsCompleted?: Function;
     setIsInErrorState?: Function;
-    apiURLs?: {};
+    apiURLs?: any;
     generatedVariantCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
     forceDisable?: boolean;
@@ -154,7 +154,7 @@ export function DoenetViewer({
     updateDataOnContentChange?: boolean;
     idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
-    scrollableContainer?: any;
+    scrollableContainer?: HTMLDivElement | Window;
     darkMode?: string;
     showAnswerTitles?: boolean;
 }) {
@@ -266,7 +266,6 @@ export function DoenetEditor({
     navigate,
     idsIncludeActivityId = true,
     linkSettings,
-    scrollableContainer,
     darkMode,
     showAnswerTitles = false,
     width,
@@ -288,7 +287,6 @@ export function DoenetEditor({
     navigate?: any;
     idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
-    scrollableContainer?: any;
     darkMode?: string;
     showAnswerTitles?: boolean;
     width?: string;
@@ -313,7 +311,6 @@ export function DoenetEditor({
             idsIncludeActivityId={idsIncludeActivityId}
             linkSettings={linkSettings}
             addBottomPadding={addBottomPadding}
-            scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerTitles={showAnswerTitles}
             width={width}

@@ -22,7 +22,7 @@ export default function TestViewer() {
         showFeedback: true,
         showHints: true,
         paginate: true,
-        showEditor: true,
+        showEditor: false,
         viewerLocation: "right",
     };
 
