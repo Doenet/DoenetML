@@ -92,7 +92,7 @@ export default React.memo(function CodeEditor(props) {
     }
 
     return (
-        <div ref={ref} style={{ border: "1px solid" }}>
+        <div ref={ref}>
             <EditorViewer
                 id={id}
                 activityId={id}

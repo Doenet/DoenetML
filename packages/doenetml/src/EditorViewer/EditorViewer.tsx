@@ -45,6 +45,7 @@ export function EditorViewer({
     readOnly = false,
     showFormatter = true,
     showErrorsWarnings = true,
+    border = "1px solid",
 }: {
     doenetML: string;
     activityId?: string;
@@ -67,6 +68,7 @@ export function EditorViewer({
     readOnly?: boolean;
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
+    border?: string;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -306,7 +308,7 @@ export function EditorViewer({
 
     if (!showViewer) {
         return (
-            <Box width={width} height={height}>
+            <Box width={width} height={height} border={border}>
                 {editorPanel}
             </Box>
         );
@@ -463,6 +465,7 @@ export function EditorViewer({
             }
             width={width}
             height={height}
+            border={border}
         />
     );
 }

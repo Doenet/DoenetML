@@ -16,6 +16,7 @@ export const ResizablePanelPair = ({
     centerWidth = "10px",
     width = "100%",
     height = "100%",
+    border = "1px solid",
 }: {
     panelA: React.JSX.Element;
     panelB: React.JSX.Element;
@@ -23,6 +24,7 @@ export const ResizablePanelPair = ({
     centerWidth?: string;
     width?: string;
     height?: string;
+    border?: string;
 }) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const handleClicked = useRef(false);
@@ -137,6 +139,7 @@ export const ResizablePanelPair = ({
         <Grid
             width={width}
             height={height}
+            border={border}
             templateAreas={templateAreas}
             gridTemplateRows={gridTemplateRows}
             gridTemplateColumns={gridTemplateColumns}
