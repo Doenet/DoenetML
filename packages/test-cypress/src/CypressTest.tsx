@@ -1,12 +1,28 @@
 import React, { useState, useEffect, useRef } from "react";
-import { DoenetViewer } from "@doenet/doenetml";
+import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
 import { useLocation, useNavigate } from "react-router";
 import { Button } from "@doenet/ui-components";
 
 export function CypressTest() {
-    // console.log("===Test")
-
-    const defaultTestSettings = {
+    const defaultTestSettings: {
+        updateNumber: number;
+        attemptNumber: number;
+        controlsVisible: boolean;
+        showCorrectness: boolean;
+        readOnly: boolean;
+        showFeedback: boolean;
+        showHints: boolean;
+        allowLoadState: boolean;
+        allowSaveState: boolean;
+        allowLocalState: boolean;
+        allowSaveSubmissions: boolean;
+        allowSaveEvents: boolean;
+        autoSubmit: boolean;
+        paginate: boolean;
+        darkMode: "light" | "dark";
+        showEditor: boolean;
+        viewerLocation: "left" | "right" | "bottom" | "top";
+    } = {
         updateNumber: 0,
         attemptNumber: 1,
         controlsVisible: false,
@@ -22,7 +38,11 @@ export function CypressTest() {
         autoSubmit: false,
         paginate: true,
         darkMode: "light",
+        showEditor: false,
+        viewerLocation: "right",
     };
+
+    //@ts-ignore
     let testSettings = JSON.parse(localStorage.getItem("test settings"));
     if (!testSettings) {
         testSettings = defaultTestSettings;
@@ -32,7 +52,10 @@ export function CypressTest() {
         );
     }
 
-    const [{ doenetMLstring, attemptNumber }, setBaseState] = useState({
+    const [{ doenetMLstring, attemptNumber }, setBaseState] = useState<{
+        doenetMLstring: string | null;
+        attemptNumber: number;
+    }>({
         doenetMLstring: null,
         attemptNumber: testSettings.attemptNumber,
     });
@@ -67,7 +90,12 @@ export function CypressTest() {
     );
     const [autoSubmit, setAutoSubmit] = useState(testSettings.autoSubmit);
     const [paginate, setPaginate] = useState(testSettings.paginate);
-    const [_, setRefresh] = useState(0);
+
+    const [showEditor, setShowEditor] = useState(testSettings.showEditor);
+    const [viewerLocation, setViewerLocation] = useState(
+        testSettings.viewerLocation,
+    );
+
     const solutionDisplayMode = "button";
 
     let navigate = useNavigate();
@@ -80,7 +108,7 @@ export function CypressTest() {
 
     //For Cypress Test Use
     window.onmessage = (e) => {
-        let newDoenetMLstring = null,
+        let newDoenetMLstring: string | null = null,
             newAttemptNumber = attemptNumber;
 
         if (e.data.doenetML !== undefined) {
@@ -97,7 +125,10 @@ export function CypressTest() {
         }
 
         // don't do anything if receive a message from another source (like the youtube player)
-        if (newDoenetMLstring || newAttemptNumber !== attemptNumber) {
+        if (
+            typeof newDoenetMLstring === "string" ||
+            newAttemptNumber !== attemptNumber
+        ) {
             setBaseState({
                 doenetMLstring: newDoenetMLstring,
                 attemptNumber: newAttemptNumber,
@@ -105,7 +136,7 @@ export function CypressTest() {
         }
     };
 
-    let controls = null;
+    let controls: React.JSX.Element | null = null;
     let buttonText = "show";
     if (controlsVisible) {
         buttonText = "hide";
@@ -119,7 +150,7 @@ export function CypressTest() {
                                 "test settings",
                                 JSON.stringify(defaultTestSettings),
                             );
-                            location.href = "/test";
+                            location.pathname = "/test";
                         }}
                     >
                         Reset
@@ -401,7 +432,7 @@ export function CypressTest() {
                     <label>
                         {" "}
                         <input
-                            id="testRunner_darkmode"
+                            id="testRunner_darkMode"
                             type="checkbox"
                             checked={darkMode === "dark"}
                             onChange={() => {
@@ -413,14 +444,70 @@ export function CypressTest() {
                         Dark Mode
                     </label>
                 </div>
+
+                <div>
+                    <label>
+                        {" "}
+                        <input
+                            id="testRunner_showEditor"
+                            type="checkbox"
+                            checked={showEditor}
+                            onChange={() => {
+                                testSettings.showEditor =
+                                    !testSettings.showEditor;
+                                localStorage.setItem(
+                                    "test settings",
+                                    JSON.stringify(testSettings),
+                                );
+                                setShowEditor((was) => !was);
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        />
+                        Show Editor
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Viewer location{" "}
+                        <select
+                            value={viewerLocation}
+                            onChange={(e) => {
+                                testSettings.viewerLocation = e.target.value;
+                                localStorage.setItem(
+                                    "test settings",
+                                    JSON.stringify(testSettings),
+                                );
+                                setViewerLocation(e.target.value);
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        >
+                            <option value="right">right</option>
+                            <option value="left">left</option>
+                            <option value="top">top</option>
+                            <option value="bottom">bottom</option>
+                        </select>
+                    </label>
+                </div>
             </div>
         );
     }
 
-    let viewer = null;
+    let editorOrViewer: React.JSX.Element | null = null;
 
-    if (doenetMLstring) {
-        viewer = (
+    console.log("type of doenetMLstring", typeof doenetMLstring);
+    if (typeof doenetMLstring === "string") {
+        const editor = (
+            <DoenetEditor
+                key={"doenetml" + updateNumber}
+                doenetML={doenetMLstring}
+                paginate={paginate}
+                addVirtualKeyboard={true}
+                height="calc(100vh - 94px)"
+                width="100%"
+                viewerLocation={viewerLocation}
+            />
+        );
+        const viewer = (
             <DoenetViewer
                 key={"activityViewer" + updateNumber}
                 doenetML={doenetMLstring}
@@ -453,6 +540,8 @@ export function CypressTest() {
                 darkMode={darkMode}
             />
         );
+
+        editorOrViewer = showEditor ? editor : viewer;
     }
 
     return (
@@ -483,7 +572,7 @@ export function CypressTest() {
                 </h3>
                 {controls}
             </div>
-            {viewer}
+            {editorOrViewer}
         </div>
     );
 }

@@ -14,7 +14,7 @@ export default function TestViewer() {
         showHints: boolean;
         paginate: boolean;
         showEditor: boolean;
-        viewerLocation: "left" | "right" | "bottom";
+        viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
         requestedVariantIndex: 1,
         showCorrectness: true,
