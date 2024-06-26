@@ -35,7 +35,7 @@ export function EditorViewer({
     darkMode,
     showAnswerTitles,
     width = "100%",
-    height = "100vh",
+    height = "500px",
     backgroundColor = "doenet.mainGray",
     showViewer = true,
     viewerLocation = "right",
@@ -308,7 +308,12 @@ export function EditorViewer({
 
     if (!showViewer) {
         return (
-            <Box width={width} height={height} border={border}>
+            <Box
+                width={width}
+                height={height}
+                border={border}
+                boxSizing="border-box"
+            >
                 {editorPanel}
             </Box>
         );

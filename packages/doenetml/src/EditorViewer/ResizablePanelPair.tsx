@@ -140,6 +140,7 @@ export const ResizablePanelPair = ({
             width={width}
             height={height}
             border={border}
+            boxSizing="border-box"
             templateAreas={templateAreas}
             gridTemplateRows={gridTemplateRows}
             gridTemplateColumns={gridTemplateColumns}

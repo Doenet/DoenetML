@@ -1,10 +1,19 @@
 import React from "react";
-import type { DoenetViewer } from "@doenet/doenetml";
+import type { DoenetViewer, DoenetEditor } from "@doenet/doenetml";
 // @ts-ignore
-import iframeJsSource from "../dist/iframe/iframe-index.iife.js?raw";
+import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife.js?raw";
+// @ts-ignore
+import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
 import { watchForResize } from "./resize-watcher";
 
-type DoenetMLProps = React.ComponentProps<typeof DoenetViewer>;
+type DoenetViewerProps = Omit<
+    React.ComponentProps<typeof DoenetViewer>,
+    "doenetML"
+>;
+type DoenetEditorProps = Omit<
+    React.ComponentProps<typeof DoenetEditor>,
+    "doenetML" | "width" | "height"
+>;
 
 /**
  * A message that is sent from an iframe to the parent window.
@@ -14,9 +23,8 @@ type IframeMessage = {
     data: Record<string, unknown>;
 };
 
-export type DoenetMLIframeProps = {
+export type DoenetViewerIframeProps = DoenetViewerProps & {
     doenetML: string;
-    doenetMLProps: DoenetMLProps;
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
      */
@@ -25,28 +33,37 @@ export type DoenetMLIframeProps = {
      * The URL of a CSS file that styles the standalone DoenetML bundle.
      */
     cssUrl: string;
+};
+
+export type DoenetEditorIframeProps = DoenetEditorProps & {
+    doenetML: string;
     /**
-     * Callback that is called when a message is received from the DoenetML component embedded in the iframe.
+     * The URL of a standalone DoenetML bundle. This may be from the CDN.
      */
-    onMessage?: (message: any) => void;
+    standaloneUrl: string;
+    /**
+     * The URL of a CSS file that styles the standalone DoenetML bundle.
+     */
+    cssUrl: string;
+    width?: string;
+    height?: string;
 };
 
 /**
- * Render DoenetML constrained to an iframe. A URL pointing to a version of DoenetML
+ * Render Doenet viewer constrained to an iframe. A URL pointing to a version of DoenetML
  * standalone must be provided (along with a URL to the corresponding CSS file).
  *
- * Parameters being passed to the underlying DoenetML component are passed via the `doenetMLProps` prop.
+ * Parameters being passed to the underlying DoenetML component are passed via the `DoenetViewerProps` prop.
  * However, only serializable parameters may be passed. E.g., callbacks **cannot** be passed to the underlying
- * DoenetML component. Instead you must use the message passing interface of `DoenetMLIframe` to communicate
+ * DoenetML component. Instead you must use the message passing interface of `DoenetViewerIframe` to communicate
  * with the underlying DoenetML component.
  */
-export function DoenetMLIframe({
+export function DoenetViewerIframe({
     doenetML,
-    doenetMLProps,
     standaloneUrl,
     cssUrl,
-    onMessage,
-}: DoenetMLIframeProps) {
+    ...doenetViewerProps
+}: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [height, setHeight] = React.useState("0px");
@@ -59,8 +76,50 @@ export function DoenetMLIframe({
             ) {
                 return;
             }
-            if (onMessage) {
-                onMessage(event.data.data);
+
+            const data = event.data.data;
+
+            switch (data.callback) {
+                case "updateCreditAchievedCallback": {
+                    return doenetViewerProps.updateCreditAchievedCallback?.(
+                        data.args,
+                    );
+                }
+                case "updateActivityStatusCallback": {
+                    return doenetViewerProps.updateActivityStatusCallback?.(
+                        data.args,
+                    );
+                }
+                case "updateAttemptNumber": {
+                    return doenetViewerProps.updateAttemptNumber?.(data.args);
+                }
+                case "pageChangedCallback": {
+                    return doenetViewerProps.pageChangedCallback?.(data.args);
+                }
+                case "cidChangedCallback": {
+                    return doenetViewerProps.cidChangedCallback?.(data.args);
+                }
+                case "checkIfCidChanged": {
+                    return doenetViewerProps.checkIfCidChanged?.(data.args);
+                }
+                case "setActivityAsCompleted": {
+                    return doenetViewerProps.setActivityAsCompleted?.(
+                        data.args,
+                    );
+                }
+                case "setIsInErrorState": {
+                    return doenetViewerProps.setIsInErrorState?.(data.args);
+                }
+                case "generatedVariantCallback": {
+                    return doenetViewerProps.generatedVariantCallback?.(
+                        data.args,
+                    );
+                }
+                case "setErrorsAndWarningsCallback": {
+                    return doenetViewerProps.setErrorsAndWarningsCallback?.(
+                        data.args,
+                    );
+                }
             }
         };
         if (ref.current) {
@@ -77,10 +136,10 @@ export function DoenetMLIframe({
     return (
         <iframe
             ref={ref}
-            srcDoc={createHtmlForDoenetML(
+            srcDoc={createHtmlForDoenetViewer(
                 id,
                 doenetML,
-                doenetMLProps,
+                doenetViewerProps,
                 standaloneUrl,
                 cssUrl,
             )}
@@ -99,10 +158,10 @@ export function DoenetMLIframe({
 /**
  * Create HTML for a single page document that renders the given DoenetML.
  */
-function createHtmlForDoenetML(
+function createHtmlForDoenetViewer(
     id: string,
     doenetML: string,
-    doenetMLProps: DoenetMLProps,
+    doenetViewerProps: DoenetViewerProps,
     standaloneUrl: string,
     cssUrl: string,
 ) {
@@ -114,12 +173,127 @@ function createHtmlForDoenetML(
     </head>
     <body>
         <script type="module">
-            const id = "${id}";
-            const doenetMLProps = ${JSON.stringify(doenetMLProps)};
+            const viewerId = "${id}";
+            const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetMLProps are defined in the global scope.
-            ${iframeJsSource}
+            // It assumes that id and doenetViewerProps are defined in the global scope.
+            ${viewerIframeJsSource}
+        </script>
+        <div id="root">
+            <script type="text/doenetml">
+                ${doenetML}
+            </script>
+        </div>
+    </body>
+    </html>
+    `;
+}
+
+/**
+ * Render Doenet Editor constrained to an iframe. A URL pointing to a version of DoenetML
+ * standalone must be provided (along with a URL to the corresponding CSS file).
+ *
+ * Parameters being passed to the underlying DoenetML component are passed via the `DoenetEditorProps` prop.
+ * However, only serializable parameters may be passed. E.g., callbacks **cannot** be passed to the underlying
+ * DoenetML component. Instead you must use the message passing interface of `DoenetEditorIframe` to communicate
+ * with the underlying DoenetML component.
+ */
+export function DoenetEditorIframe({
+    doenetML,
+    standaloneUrl,
+    cssUrl,
+    width = "100%",
+    height = "500px",
+    ...doenetEditorProps
+}: DoenetEditorIframeProps) {
+    const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
+    const ref = React.useRef<HTMLIFrameElement>(null);
+
+    React.useEffect(() => {
+        const listener = (event: MessageEvent<IframeMessage>) => {
+            if (
+                event.origin !== window.location.origin ||
+                event.data?.origin !== id
+            ) {
+                return;
+            }
+
+            const data = event.data.data;
+
+            switch (data.callback) {
+                case "doenetmlChangeCallback": {
+                    return doenetEditorProps.doenetmlChangeCallback?.(
+                        data.args,
+                    );
+                }
+                case "immediateDoenetmlChangeCallback": {
+                    return doenetEditorProps.immediateDoenetmlChangeCallback?.(
+                        data.args,
+                    );
+                }
+            }
+        };
+        if (ref.current) {
+            window.addEventListener("message", listener);
+        }
+
+        return () => {
+            window.removeEventListener("message", listener);
+        };
+    }, []);
+
+    return (
+        <iframe
+            ref={ref}
+            srcDoc={createHtmlForDoenetEditor(
+                id,
+                doenetML,
+                width,
+                height,
+                doenetEditorProps,
+                standaloneUrl,
+                cssUrl,
+            )}
+            style={{
+                width,
+                boxSizing: "content-box",
+                overflow: "hidden",
+                border: "none",
+                height,
+            }}
+        />
+    );
+}
+
+/**
+ * Create HTML for a single page document that renders the given DoenetML editor.
+ */
+function createHtmlForDoenetEditor(
+    id: string,
+    doenetML: string,
+    width: string,
+    height: string,
+    doenetEditorProps: DoenetEditorProps,
+    standaloneUrl: string,
+    cssUrl: string,
+) {
+    const augmentedProps = { width, height, ...doenetEditorProps };
+
+    return `
+    <html>
+    <head>
+        <script type="module" src="${standaloneUrl}"></script>
+        <link rel="stylesheet" href="${cssUrl}">
+    </head>
+    <body>
+        <script type="module">
+            const editorId = "${id}";
+            const doenetEditorProps = ${JSON.stringify(augmentedProps)};
+            
+            // This source code has been compiled by vite and should be directly included.
+            // It assumes that id and doenetEditorProps are defined in the global scope.
+            ${editorIframeJsSource}
         </script>
         <div id="root">
             <script type="text/doenetml">

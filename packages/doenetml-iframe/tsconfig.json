@@ -5,6 +5,11 @@
         "rootDir": "./src"
     },
     "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
-    "exclude": ["vite.config.ts", "vite.config-iframe.ts", "dist/**/*"],
+    "exclude": [
+        "vite.config.ts",
+        "vite.config-iframe-viewer.ts",
+        "vite.config-iframe-editor.ts",
+        "dist/**/*"
+    ],
     "references": []
 }
