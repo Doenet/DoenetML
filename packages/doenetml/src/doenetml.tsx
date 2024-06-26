@@ -276,7 +276,9 @@ export function DoenetEditor({
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
     id,
-    readOnly,
+    readOnly = false,
+    showFormatter = true,
+    showErrorsWarnings = true,
     border = "1px solid",
 }: {
     doenetML: string;
@@ -299,6 +301,8 @@ export function DoenetEditor({
     immediateDoenetmlChangeCallback?: Function;
     id?: string;
     readOnly?: boolean;
+    showFormatter?: boolean;
+    showErrorsWarnings?: boolean;
     border?: string;
 }) {
     const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
@@ -324,6 +328,8 @@ export function DoenetEditor({
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
             id={id}
             readOnly={readOnly}
+            showFormatter={showFormatter}
+            showErrorsWarnings={showErrorsWarnings}
             border={border}
         />
     );

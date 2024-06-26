@@ -39,6 +39,9 @@ export default defineConfig({
             ],
         }),
     ],
+    define: {
+        DOENETML_VERSION: JSON.stringify(process.env.npm_package_version),
+    },
     server: {
         port: 8012,
     },

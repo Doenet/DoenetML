@@ -1,17 +1,22 @@
 import React from "react";
-import type { DoenetViewer, DoenetEditor } from "@doenet/doenetml";
+import type {
+    DoenetViewer as DoenetViewerOrig,
+    DoenetEditor as DoenetEditorOrig,
+} from "@doenet/doenetml";
 // @ts-ignore
 import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife.js?raw";
 // @ts-ignore
 import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
 import { watchForResize } from "./resize-watcher";
 
+export { mathjaxConfig } from "@doenet/utils";
+
 type DoenetViewerProps = Omit<
-    React.ComponentProps<typeof DoenetViewer>,
-    "doenetML"
+    React.ComponentProps<typeof DoenetViewerOrig>,
+    "doenetML" | "scrollableContainer"
 >;
 type DoenetEditorProps = Omit<
-    React.ComponentProps<typeof DoenetEditor>,
+    React.ComponentProps<typeof DoenetEditorOrig>,
     "doenetML" | "width" | "height"
 >;
 
@@ -21,6 +26,7 @@ type DoenetEditorProps = Omit<
 type IframeMessage = {
     origin: string;
     data: Record<string, unknown>;
+    subject?: string;
 };
 
 export type DoenetViewerIframeProps = DoenetViewerProps & {
@@ -33,6 +39,7 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
      * The URL of a CSS file that styles the standalone DoenetML bundle.
      */
     cssUrl: string;
+    scrollableContainer?: any;
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
@@ -55,13 +62,14 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
  *
  * Parameters being passed to the underlying DoenetML component are passed via the `DoenetViewerProps` prop.
  * However, only serializable parameters may be passed. E.g., callbacks **cannot** be passed to the underlying
- * DoenetML component. Instead you must use the message passing interface of `DoenetViewerIframe` to communicate
+ * DoenetML component. Instead you must use the message passing interface of `DoenetViewer` to communicate
  * with the underlying DoenetML component.
  */
-export function DoenetViewerIframe({
+export function DoenetViewer({
     doenetML,
     standaloneUrl,
     cssUrl,
+    scrollableContainer: _scrollableContainer,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
@@ -70,6 +78,13 @@ export function DoenetViewerIframe({
 
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {
+            console.log("got message", event.data);
+
+            // forward response from SPLICE getState to iframe
+            if (event.data.subject === "SPLICE.getState.response") {
+                ref.current?.contentWindow?.postMessage(event.data);
+                return;
+            }
             if (
                 event.origin !== window.location.origin ||
                 event.data?.origin !== id
@@ -166,7 +181,7 @@ function createHtmlForDoenetViewer(
     cssUrl: string,
 ) {
     return `
-    <html>
+    <html style="overflow:hidden">
     <head>
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
@@ -181,9 +196,7 @@ function createHtmlForDoenetViewer(
             ${viewerIframeJsSource}
         </script>
         <div id="root">
-            <script type="text/doenetml">
-                ${doenetML}
-            </script>
+            <script type="text/doenetml">${doenetML}</script>
         </div>
     </body>
     </html>
@@ -196,10 +209,10 @@ function createHtmlForDoenetViewer(
  *
  * Parameters being passed to the underlying DoenetML component are passed via the `DoenetEditorProps` prop.
  * However, only serializable parameters may be passed. E.g., callbacks **cannot** be passed to the underlying
- * DoenetML component. Instead you must use the message passing interface of `DoenetEditorIframe` to communicate
+ * DoenetML component. Instead you must use the message passing interface of `DoenetEditor` to communicate
  * with the underlying DoenetML component.
  */
-export function DoenetEditorIframe({
+export function DoenetEditor({
     doenetML,
     standaloneUrl,
     cssUrl,
@@ -250,7 +263,6 @@ export function DoenetEditorIframe({
                 id,
                 doenetML,
                 width,
-                height,
                 doenetEditorProps,
                 standaloneUrl,
                 cssUrl,
@@ -273,15 +285,14 @@ function createHtmlForDoenetEditor(
     id: string,
     doenetML: string,
     width: string,
-    height: string,
     doenetEditorProps: DoenetEditorProps,
     standaloneUrl: string,
     cssUrl: string,
 ) {
-    const augmentedProps = { width, height, ...doenetEditorProps };
+    const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
 
     return `
-    <html>
+    <html style="overflow:hidden">
     <head>
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
@@ -296,9 +307,7 @@ function createHtmlForDoenetEditor(
             ${editorIframeJsSource}
         </script>
         <div id="root">
-            <script type="text/doenetml">
-                ${doenetML}
-            </script>
+            <script type="text/doenetml">${doenetML}</script>
         </div>
     </body>
     </html>

@@ -1,5 +1,5 @@
 // All code in this file will be executed in the context of an iframe
-// created by DoenetViewerIframe.
+// created by DoenetViewer.
 declare const viewerId: string;
 declare const doenetViewerProps: object;
 interface Window {
@@ -80,6 +80,16 @@ document.addEventListener("DOMContentLoaded", () => {
             },
         },
     );
+});
+
+// forward all SPLICE messages that aren't a response to parent
+window.addEventListener("message", (e) => {
+    if (
+        e.data.subject.startsWith("SPLICE") &&
+        !e.data.subject.endsWith("response")
+    ) {
+        window.parent.postMessage(e.data);
+    }
 });
 
 /**

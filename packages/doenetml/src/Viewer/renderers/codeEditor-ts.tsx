@@ -102,7 +102,6 @@ export default React.memo(function CodeEditor(props) {
                 showViewer={SVs.showResults}
                 viewerLocation={SVs.resultsLocation}
                 showFormatter={SVs.showFormatter}
-                showErrorsWarnings={SVs.errorsAndWarnings}
                 immediateDoenetmlChangeCallback={
                     immediateDoenetmlChangeCallback
                 }

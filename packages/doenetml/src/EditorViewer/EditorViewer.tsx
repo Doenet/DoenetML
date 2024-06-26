@@ -7,6 +7,7 @@ import {
     Grid,
     GridItem,
     HStack,
+    Spacer,
     Switch,
     Tooltip,
 } from "@chakra-ui/react";
@@ -86,6 +87,7 @@ export function EditorViewer({
 
     const [editorDoenetML, setEditorDoenetML] = useState(initialDoenetML);
     const [viewerDoenetML, setViewerDoenetML] = useState(initialDoenetML);
+    const lastReportedDoenetML = useRef(initialDoenetML);
     const editorDoenetMLRef = useRef(editorDoenetML);
     editorDoenetMLRef.current = editorDoenetML;
 
@@ -136,7 +138,14 @@ export function EditorViewer({
                 //TODO: when you try to leave the page before it saved you will lose work
                 //so prompt the user on page leave
                 updateValueTimer.current = window.setTimeout(function () {
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    if (
+                        lastReportedDoenetML.current !==
+                        editorDoenetMLRef.current
+                    ) {
+                        lastReportedDoenetML.current =
+                            editorDoenetMLRef.current;
+                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    }
                     updateValueTimer.current = null;
                 }, 3000); //3 seconds
             }
@@ -154,7 +163,12 @@ export function EditorViewer({
                 event.stopPropagation();
                 window.clearTimeout(updateValueTimer.current ?? undefined);
                 setViewerDoenetML(editorDoenetMLRef.current);
-                doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                }
 
                 setCodeChanged(false);
 
@@ -182,7 +196,12 @@ export function EditorViewer({
         return () => {
             if (updateValueTimer.current !== null) {
                 window.clearTimeout(updateValueTimer.current);
-                doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                }
             }
         };
     }, []);
@@ -226,7 +245,13 @@ export function EditorViewer({
                             }}
                             title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
                         />
-                        <FormLabel htmlFor="asXml" mb="0" ml="2" width={"10em"}>
+                        <FormLabel
+                            htmlFor="asXml"
+                            mb="0"
+                            ml="2"
+                            width="9.8em"
+                            mr="10px"
+                        >
                             Format as {formatAsDoenetML ? "DoenetML" : "XML"}
                         </FormLabel>
                     </FormControl>
@@ -235,17 +260,27 @@ export function EditorViewer({
         );
     }
 
-    let errorsWarnings: React.ReactNode = null;
-    if (showErrorsWarnings) {
-        errorsWarnings = (
-            <Flex ml="0px" h="32px" bg="doenet.mainGray" pl="10px" pt="1px">
+    let errorsWarningsVersion = (
+        <Flex
+            ml="0px"
+            h="32px"
+            bg="doenet.mainGray"
+            pl="10px"
+            pt="1px"
+            pr="10px"
+        >
+            {showErrorsWarnings ? (
                 <ErrorWarningPopovers
                     warnings={warningsObjs}
                     errors={errorsObjs}
                 />
-            </Flex>
-        );
-    }
+            ) : null}
+            <Spacer />
+            <Box alignSelf="center" fontSize="smaller">
+                Version: {DOENETML_VERSION}
+            </Box>
+        </Flex>
+    );
 
     const editorPanel = (
         <Grid
@@ -254,7 +289,7 @@ export function EditorViewer({
             templateAreas={`"editor"
                                 "errorWarnings"
                                 "formatter"`}
-            gridTemplateRows={`1fr ${showErrorsWarnings ? "32px" : "0px"} ${showFormatter ? "32px" : "0px"}`}
+            gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
             gridTemplateColumns={`1fr`}
             boxSizing="border-box"
             background="doenet.canvas"
@@ -278,7 +313,14 @@ export function EditorViewer({
                         window.clearTimeout(
                             updateValueTimer.current ?? undefined,
                         );
-                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                        if (
+                            lastReportedDoenetML.current !==
+                            editorDoenetMLRef.current
+                        ) {
+                            lastReportedDoenetML.current =
+                                editorDoenetMLRef.current;
+                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                        }
                         updateValueTimer.current = null;
                     }}
                     onChange={onEditorChange}
@@ -292,7 +334,7 @@ export function EditorViewer({
                 overflow="hidden"
                 backgroundColor="doenet.mainGray"
             >
-                {errorsWarnings}
+                {errorsWarningsVersion}
             </GridItem>
             <GridItem
                 area="formatter"
@@ -369,9 +411,16 @@ export function EditorViewer({
                                     window.clearTimeout(
                                         updateValueTimer.current ?? undefined,
                                     );
-                                    doenetmlChangeCallback?.(
-                                        editorDoenetMLRef.current,
-                                    );
+                                    if (
+                                        lastReportedDoenetML.current !==
+                                        editorDoenetMLRef.current
+                                    ) {
+                                        lastReportedDoenetML.current =
+                                            editorDoenetMLRef.current;
+                                        doenetmlChangeCallback?.(
+                                            editorDoenetMLRef.current,
+                                        );
+                                    }
                                     setCodeChanged(false);
                                     updateValueTimer.current = null;
                                 }}

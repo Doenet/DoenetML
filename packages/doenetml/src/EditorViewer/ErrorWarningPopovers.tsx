@@ -48,12 +48,15 @@ export default function ErrorWarningPopovers({
                 ) : (
                     <PopoverContent data-test="Warning Content">
                         <PopoverArrow />
-                        <PopoverHeader fontWeight="semibold">
+                        <PopoverHeader
+                            fontWeight="semibold"
+                            backgroundColor="doenet.mainGray"
+                        >
                             Warning
                             {warnings.length != 1 && "s"}
                         </PopoverHeader>
                         <PopoverBody maxH="40vh" overflow="scroll">
-                            <List spacing={2}>
+                            <List spacing={2} margin="0px" padding="0px">
                                 {warnings.map((warningObj, i) => {
                                     return (
                                         <ListItem
@@ -104,12 +107,15 @@ export default function ErrorWarningPopovers({
                 ) : (
                     <PopoverContent data-test="Error Content">
                         <PopoverArrow />
-                        <PopoverHeader fontWeight="semibold">
+                        <PopoverHeader
+                            fontWeight="semibold"
+                            backgroundColor="doenet.mainGray"
+                        >
                             Error
                             {errors.length != 1 && "s"}
                         </PopoverHeader>
                         <PopoverBody maxH="40vh" overflow="scroll">
-                            <List spacing={2}>
+                            <List spacing={2} margin="0px" padding="0px">
                                 {errors.map((errorObj, i) => {
                                     return (
                                         <ListItem

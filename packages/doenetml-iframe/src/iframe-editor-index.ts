@@ -1,5 +1,5 @@
 // All code in this file will be executed in the context of an iframe
-// created by DoenetEditorIframe.
+// created by DoenetEditor.
 declare const editorId: string;
 declare const doenetEditorProps: object;
 interface Window {
