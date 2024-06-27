@@ -38,7 +38,7 @@ export function ActivityViewer({
     updateDataOnContentChange = false,
     flags,
     cid: cidFromProps,
-    activityId = "",
+    activityId: activityIdFromProps,
     userId,
     attemptNumber: attemptNumberFromProps,
     requestedVariantIndex: requestedVariantIndexFromProps,
@@ -133,6 +133,10 @@ export function ActivityViewer({
     const [cid, setCid] = useState("");
     const cidRef = useRef("");
     cidRef.current = cid;
+
+    const [activityId, setActivityId] = useState(
+        activityIdFromProps ?? "viewer-" + nanoid(5),
+    );
 
     const doenetML = useRef<string>("");
 
@@ -273,7 +277,9 @@ export function ActivityViewer({
         } else {
             let topPage;
             for (let ind = 0; ind < nPages - 1; ind++) {
-                let thePage = document.getElementById(`page${ind + 1}`);
+                let thePage = document.getElementById(
+                    `page${ind + 1}-${activityId}`,
+                );
                 if (thePage) {
                     let { bottom } = thePage.getBoundingClientRect();
                     if (bottom < 50) {
@@ -1590,7 +1596,7 @@ export function ActivityViewer({
             }
 
             pages.push(
-                <div key={`page${ind + 1}`} id={`page${ind + 1}`}>
+                <div key={`page${ind + 1}`} id={`page${ind + 1}-${activityId}`}>
                     {pageViewer}
                 </div>,
             );

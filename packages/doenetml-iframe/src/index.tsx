@@ -9,6 +9,9 @@ import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife
 import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
 import { watchForResize } from "./resize-watcher";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
@@ -97,6 +100,7 @@ export function DoenetViewer({
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [height, setHeight] = React.useState("0px");
+    const [inErrorState, setInErrorState] = React.useState<string | null>(null);
 
     let standaloneUrl: string, cssUrl: string;
     if (specifiedStandaloneUrl) {
@@ -125,6 +129,11 @@ export function DoenetViewer({
             }
 
             const data = event.data.data;
+
+            if (data.error) {
+                //@ts-ignore
+                return setInErrorState(data.error);
+            }
 
             switch (data.callback) {
                 case "updateCreditAchievedCallback": {
@@ -179,6 +188,25 @@ export function DoenetViewer({
             clearResize();
         };
     }, []);
+
+    if (inErrorState) {
+        let errorIcon = (
+            <span style={{ fontSize: "1em", color: "#C1292E" }}>
+                <FontAwesomeIcon icon={faExclamationCircle} />
+            </span>
+        );
+        return (
+            <div
+                style={{
+                    fontSize: "1.3em",
+                    marginLeft: "20px",
+                    marginTop: "20px",
+                }}
+            >
+                {errorIcon} {inErrorState}
+            </div>
+        );
+    }
 
     return (
         <iframe
@@ -255,6 +283,7 @@ export function DoenetEditor({
 }: DoenetEditorIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
+    const [inErrorState, setInErrorState] = React.useState<string | null>(null);
 
     let standaloneUrl: string, cssUrl: string;
     if (specifiedStandaloneUrl) {
@@ -279,6 +308,11 @@ export function DoenetEditor({
 
             const data = event.data.data;
 
+            if (data.error) {
+                //@ts-ignore
+                return setInErrorState(data.error);
+            }
+
             switch (data.callback) {
                 case "doenetmlChangeCallback": {
                     return doenetEditorProps.doenetmlChangeCallback?.(
@@ -300,6 +334,25 @@ export function DoenetEditor({
             window.removeEventListener("message", listener);
         };
     }, []);
+
+    if (inErrorState) {
+        let errorIcon = (
+            <span style={{ fontSize: "1em", color: "#C1292E" }}>
+                <FontAwesomeIcon icon={faExclamationCircle} />
+            </span>
+        );
+        return (
+            <div
+                style={{
+                    fontSize: "1.3em",
+                    marginLeft: "20px",
+                    marginTop: "20px",
+                }}
+            >
+                {errorIcon} {inErrorState}
+            </div>
+        );
+    }
 
     return (
         <iframe

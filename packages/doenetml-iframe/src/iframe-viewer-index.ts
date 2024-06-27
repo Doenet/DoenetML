@@ -11,6 +11,11 @@ interface Window {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (typeof window.renderDoenetViewerToContainer !== "function") {
+        return messageParentFromViewer({
+            error: "Invalid DoenetML version or DoenetML package not found",
+        });
+    }
     window.renderDoenetViewerToContainer(
         document.getElementById("root")!,
         undefined,

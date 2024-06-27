@@ -55,15 +55,10 @@ export function renderDoenetViewerToContainer(
     }
     let { addVirtualKeyboard, ...rest } = attrs;
 
-    // create a random activityId to avoid conflicting with others in the page
-    const activityId = nanoid(5);
-
     ReactDOM.createRoot(container).render(
         <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
-            activityId={activityId}
-            idsIncludeActivityId={true}
             flags={rest}
             {...config}
         />,
@@ -109,17 +104,8 @@ export function renderDoenetEditorToContainer(
         attrs[name] = value;
     }
 
-    // create a random activityId to avoid conflicting with others in the page
-    const activityId = nanoid(5);
-
     ReactDOM.createRoot(container).render(
-        <DoenetEditor
-            doenetML={doenetMLSource}
-            activityId={activityId}
-            idsIncludeActivityId={true}
-            {...attrs}
-            {...config}
-        />,
+        <DoenetEditor doenetML={doenetMLSource} {...attrs} {...config} />,
     );
 }
 

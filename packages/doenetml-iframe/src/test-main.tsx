@@ -5,7 +5,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { DoenetViewer, DoenetEditor } from "./index";
+import { DoenetViewer, DoenetEditor } from "@doenet/doenetml-iframe";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(
@@ -22,7 +22,7 @@ root.render(
                   <line equation="x=-6" styleNumber="4" />
 
                 </graph>`}
-            doenetmlVersion="0.6.4"
+            doenetmlVersion="0.6.5"
         />
         <h4>DoenetML 0.7:</h4>
         <DoenetViewer
@@ -39,6 +39,7 @@ root.render(
             generatedVariantCallback={(variant: any) =>
                 console.log("found variant", variant)
             }
+            flags={{ readOnly: true }}
         />
         <h4>DoenetML 0.7 editor:</h4>
         <DoenetEditor

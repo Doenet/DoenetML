@@ -93,7 +93,7 @@ export function DoenetViewer({
     doenetML,
     flags: specifiedFlags = {},
     cid,
-    activityId = "",
+    activityId,
     userId,
     attemptNumber = 1,
     requestedVariantIndex,
@@ -260,7 +260,7 @@ export function DoenetViewer({
 
 export function DoenetEditor({
     doenetML,
-    activityId = "",
+    activityId,
     paginate = false,
     addVirtualKeyboard = true,
     addBottomPadding = false,

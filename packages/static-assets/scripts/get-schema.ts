@@ -282,7 +282,6 @@ export function getSchema() {
                 propFromDescription({
                     varName,
                     description,
-                    componentInfoObjects,
                     arrayEntryPrefixes,
                 }),
             );
@@ -300,7 +299,6 @@ export function getSchema() {
                     propFromDescription({
                         varName: aliasName,
                         description: aliasTarget,
-                        componentInfoObjects,
                         arrayEntryPrefixes,
                     }),
                 );
@@ -336,7 +334,6 @@ export function getSchema() {
                             propFromDescription({
                                 varName: aliasName,
                                 description: arrayEntryDescription,
-                                componentInfoObjects,
                                 arrayEntryPrefixes,
                             }),
                         );

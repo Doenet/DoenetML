@@ -26,7 +26,7 @@ import { prettyPrint } from "@doenet/parser";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
-    activityId = "",
+    activityId: specifiedActivityId,
     paginate = false,
     location = {},
     navigate,
@@ -79,7 +79,8 @@ export function EditorViewer({
         platform = "Mac";
     }
 
-    const [id, setId] = useState(specifiedId ?? "editor" + nanoid(10));
+    const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
+    const [activityId, setActivityId] = useState(specifiedActivityId ?? id);
 
     const [codeChanged, setCodeChanged] = useState(false);
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function

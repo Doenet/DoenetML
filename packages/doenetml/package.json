@@ -12,8 +12,8 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/doenetml.js",
-            "require": "./dist/doenetml.js"
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
         },
         "./*": {
             "import": "./dist/*",
