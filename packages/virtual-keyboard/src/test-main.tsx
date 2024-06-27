@@ -10,7 +10,7 @@ import { VirtualKeyboard } from "./virtual-keyboard";
 import { RecoilRoot, useSetRecoilState, useRecoilValue } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
-import { ManagedKeyboard } from "./virtual-keyboard-new";
+import { ManagedKeyboard } from "./virtual-keyboard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.Fragment>

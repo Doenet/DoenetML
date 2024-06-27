@@ -1,3 +1,5 @@
-//export { VirtualKeyboard } from "./VirtualKeyboard";
-export { ControlledVirtualKeyboard } from "./ControlledVirtualKeyboard";
-export { RecoilVirtualKeyboard as VirtualKeyboard } from "../virtual-keyboard-new/recoil-virtual-keyboard";
+export * from "./keyboard";
+export * from "./managed-keyboard";
+export * from "./unique-keyboard-tray";
+export * from "./recoil-virtual-keyboard";
+export { RecoilVirtualKeyboard as VirtualKeyboard } from "./recoil-virtual-keyboard";

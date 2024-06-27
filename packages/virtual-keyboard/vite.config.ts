@@ -12,8 +12,6 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/virtual-keyboard/index.ts",
-                "managed-keyboard":
-                    "./src/virtual-keyboard-new/managed-keyboard.tsx",
                 "math-input": "./src/MathInputSelector.tsx",
             },
             formats: ["es"],
