@@ -2,7 +2,7 @@ import { defineConfig } from "cypress";
 import vitePreprocessor from "cypress-vite";
 
 export default defineConfig({
-    numTestsKeptInMemory: 20,
+    numTestsKeptInMemory: 5,
     defaultCommandTimeout: 30000,
     e2e: {
         setupNodeEvents(on, config) {

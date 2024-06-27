@@ -8,7 +8,7 @@ function nInDOM(n) {
     }
 }
 
-describe("Copy Tag Tests", function () {
+describe("Copy Tag Tests 2", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
