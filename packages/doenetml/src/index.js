@@ -1,4 +1,4 @@
-export { DoenetML } from "./doenetml";
+export { DoenetViewer, DoenetEditor } from "./doenetml";
 
 export {
     mathjaxConfig,
@@ -14,7 +14,6 @@ export {
     parseActivityDefinition,
     returnNumberOfActivityVariantsForCid,
 } from "./utils/activityUtils";
-export { doenetSchema } from "@doenet/static-assets";
 
 export { CodeMirror } from "@doenet/codemirror";
 export { parseAndCompile } from "@doenet/parser";

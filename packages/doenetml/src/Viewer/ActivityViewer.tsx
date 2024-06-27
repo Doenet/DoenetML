@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+// @ts-ignore
 import { PageViewer } from "./PageViewer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +12,8 @@ import {
     getLineCharRange,
     printDoenetMLrange,
     cesc,
+    ErrorDescription,
+    WarningDescription,
 } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import {
@@ -20,20 +23,22 @@ import {
     parseActivityDefinition,
     returnAllPossibleVariantsFromCoreWorker,
 } from "../utils/activityUtils";
+// @ts-ignore
 import VisibilitySensor from "react-visibility-sensor-v2";
 
 import { Button } from "@doenet/ui-components";
 import { ButtonGroup } from "@doenet/ui-components";
 import { ActionButton } from "@doenet/ui-components";
+import { DoenetMLFlags } from "../doenetml";
 
-const sendAlert = (msg, type) => console.log(msg);
+const sendAlert = (msg: string, type: string) => console.log(msg);
 
 export function ActivityViewer({
     doenetML: doenetMLFromProps,
     updateDataOnContentChange = false,
     flags,
     cid: cidFromProps,
-    activityId,
+    activityId = "",
     userId,
     attemptNumber: attemptNumberFromProps,
     requestedVariantIndex: requestedVariantIndexFromProps,
@@ -42,7 +47,7 @@ export function ActivityViewer({
     updateAttemptNumber,
     pageChangedCallback,
     paginate,
-    showFinishButton,
+    showFinishButton = false,
     cidChangedCallback,
     checkIfCidChanged,
     setActivityAsCompleted,
@@ -50,10 +55,10 @@ export function ActivityViewer({
     apiURLs = {},
     generatedVariantCallback,
     setErrorsAndWarningsCallback,
-    forceDisable,
-    forceShowCorrectness,
-    forceShowSolution,
-    forceUnsuppressCheckwork,
+    forceDisable = false,
+    forceShowCorrectness = false,
+    forceShowSolution = false,
+    forceUnsuppressCheckwork = false,
     location = {},
     navigate,
     idsIncludeActivityId = true,
@@ -62,8 +67,42 @@ export function ActivityViewer({
     scrollableContainer = window,
     darkMode,
     showAnswerTitles,
+}: {
+    doenetML: string;
+    updateDataOnContentChange?: boolean;
+    flags: DoenetMLFlags;
+    cid?: string;
+    activityId?: string;
+    userId?: string;
+    attemptNumber?: number;
+    requestedVariantIndex?: number;
+    updateCreditAchievedCallback?: Function;
+    updateActivityStatusCallback?: Function;
+    updateAttemptNumber?: Function;
+    pageChangedCallback?: Function;
+    paginate?: boolean;
+    showFinishButton?: boolean;
+    cidChangedCallback?: Function;
+    checkIfCidChanged?: Function;
+    setActivityAsCompleted?: Function;
+    setIsInErrorState?: Function;
+    apiURLs?: any;
+    generatedVariantCallback?: Function;
+    setErrorsAndWarningsCallback?: Function;
+    forceDisable?: boolean;
+    forceShowCorrectness?: boolean;
+    forceShowSolution?: boolean;
+    forceUnsuppressCheckwork?: boolean;
+    location?: any;
+    navigate?: any;
+    idsIncludeActivityId?: boolean;
+    linkSettings?: { viewURL: string; editURL: string };
+    addBottomPadding?: boolean;
+    scrollableContainer?: HTMLDivElement | Window;
+    darkMode?: string;
+    showAnswerTitles?: boolean;
 }) {
-    const [errMsg, setErrMsg] = useState(null);
+    const [errMsg, setErrMsg] = useState("");
 
     const [
         {
@@ -73,6 +112,14 @@ export function ActivityViewer({
             requestedVariantIndex,
         },
         setInfoFromProps,
+    ]: [
+        {
+            lastCidFromProps: string | null;
+            lastDoenetMLFromProps: string | null;
+            attemptNumber: number | null;
+            requestedVariantIndex: number | null;
+        },
+        Function,
     ] = useState({
         lastCidFromProps: null,
         lastDoenetMLFromProps: null,
@@ -83,27 +130,27 @@ export function ActivityViewer({
     const attemptNumberRef = useRef(null);
     attemptNumberRef.current = attemptNumber;
 
-    const [cid, setCid] = useState(null);
-    const cidRef = useRef(null);
+    const [cid, setCid] = useState("");
+    const cidRef = useRef("");
     cidRef.current = cid;
 
-    const doenetML = useRef(null);
+    const doenetML = useRef<string>("");
 
-    const [activityDefinition, setActivityDefinition] = useState(null);
+    const [activityDefinition, setActivityDefinition] = useState<any>(null);
 
-    const [variantIndex, setVariantIndex] = useState(null);
-    const variantIndexRef = useRef(null);
+    const [variantIndex, setVariantIndex] = useState<number>(-1);
+    const variantIndexRef = useRef(-1);
     variantIndexRef.current = variantIndex;
 
     const [stage, setStage] = useState("initial");
-    const stageRef = useRef(null);
+    let stageRef = useRef<string>("");
     stageRef.current = stage;
 
     const settingUp = useRef(true);
 
     const [activityContentChanged, setActivityContentChanged] = useState(false);
 
-    const [order, setOrder] = useState(null);
+    const [order, setOrder] = useState<any>(null);
 
     const [currentPage, setCurrentPage] = useState(0);
     const currentPageRef = useRef(currentPage); // so that event listener can get new current page
@@ -116,31 +163,35 @@ export function ActivityViewer({
 
     const [nPages, setNPages] = useState(0);
 
-    const pageCoreWorkersInfo = useRef([]);
-    const [variantsByPage, setVariantsByPage] = useState(null);
-    const [itemWeights, setItemWeights] = useState([]);
-    const previousComponentTypeCountsByPage = useRef([]);
+    const pageCoreWorkersInfo = useRef<any[]>([]);
+    const [variantsByPage, setVariantsByPage] = useState<any>(null);
+    const [itemWeights, setItemWeights] = useState<any[]>([]);
+    const previousComponentTypeCountsByPage = useRef<any[]>([]);
 
     const serverSaveId = useRef(null);
 
-    const activityStateToBeSavedToDatabase = useRef(null);
+    const activityStateToBeSavedToDatabase = useRef<any>({});
     const changesToBeSaved = useRef(false);
 
-    const saveStateToDBTimerId = useRef(null);
+    const saveStateToDBTimerId = useRef<any | null>(null);
+    const activityInfo = useRef<any>(null);
+    const activityInfoString = useRef("");
+    const pageAtPreviousSave = useRef<number>(-1);
+    const pageAtPreviousSaveToDatabase = useRef<number>(-1);
 
-    const activityInfo = useRef(null);
-    const activityInfoString = useRef(null);
-    const pageAtPreviousSave = useRef(null);
-    const pageAtPreviousSaveToDatabase = useRef(null);
-
-    const [pageInfo, setPageInfo] = useState({
+    const [pageInfo, setPageInfo] = useState<{
+        pageIsVisible: boolean[];
+        pageIsActive: boolean[];
+        pageCoreCreated: boolean[];
+        waitingForPagesCore: number | null;
+    }>({
         pageIsVisible: [],
         pageIsActive: [],
         pageCoreCreated: [],
         waitingForPagesCore: null,
     });
 
-    const [renderedPages, setRenderedPages] = useState([]);
+    const [renderedPages, setRenderedPages] = useState<boolean[]>([]);
     const allPagesRendered = useRef(false);
 
     const nodeRef = useRef(null);
@@ -148,7 +199,7 @@ export function ActivityViewer({
     const stillNeedToScrollTo = useRef(null);
 
     let hash = location.hash;
-    const previousLocations = useRef({});
+    const previousLocations = useRef<Record<string, any>>({});
     const currentLocationKey = useRef(null);
     const viewerWasUnmounted = useRef(false);
 
@@ -156,8 +207,10 @@ export function ActivityViewer({
         useState(false);
     const [processingSubmitAll, setProcessingSubmitAll] = useState(false);
 
-    const errorsAndWarningsByPage = useRef([]);
-    const errorsActivitySpecific = useRef([]);
+    const errorsAndWarningsByPage = useRef<
+        { errors: ErrorDescription[]; warnings: WarningDescription[] }[]
+    >([]);
+    const errorsActivitySpecific = useRef<ErrorDescription[]>([]);
 
     let activityPrefix = "";
     let activityPrefixUnescaped = "";
@@ -187,6 +240,7 @@ export function ActivityViewer({
     ]);
 
     useEffect(() => {
+        // @ts-ignore
         window.returnActivityData = function () {
             return {
                 activityDefinition,
@@ -270,7 +324,10 @@ export function ActivityViewer({
                 let pageAnchor = `#page${currentPage}`;
                 // if we have moved to a page that does not correspond to the hash
                 // modify the hash to match the page.
-                let navigateAttrs = { replace: true };
+                let navigateAttrs: {
+                    replace: boolean;
+                    state?: { doNotScroll: boolean };
+                } = { replace: true };
                 if (!paginate) {
                     // If not paginated, then do not scroll to the top of the page,
                     // as the page change could be triggered by scrolling
@@ -366,7 +423,15 @@ export function ActivityViewer({
         }
     }, [location]);
 
-    function resetActivity({ changedOnDevice, newCid, newAttemptNumber }) {
+    function resetActivity({
+        changedOnDevice,
+        newCid,
+        newAttemptNumber,
+    }: {
+        changedOnDevice: boolean;
+        newCid: string;
+        newAttemptNumber: number;
+    }) {
         console.log("resetActivity", changedOnDevice, newCid, newAttemptNumber);
 
         if (newAttemptNumber !== attemptNumber) {
@@ -405,7 +470,7 @@ export function ActivityViewer({
                 typeof lastDoenetMLFromProps === "string"
                     ? lastDoenetMLFromProps
                     : "";
-            cid = await cidFromText(lastDoenetMLFromProps);
+            cid = await cidFromText(doenetMLOrEmptyString);
 
             // If were given both doenetML and cid as a prop and the doenetML doesn't match the cid,
             // then put in error state
@@ -444,10 +509,7 @@ export function ActivityViewer({
         if (result.errors.length > 0) {
             let doenetMLNewlines = findAllNewlines(doenetML.current);
             for (let err of result.errors) {
-                if (
-                    err.doenetMLrange &&
-                    err.doenetMLrange.lineBegin === undefined
-                ) {
+                if (err.doenetMLrange && !("lineBegin" in err.doenetMLrange)) {
                     Object.assign(
                         err.doenetMLrange,
                         getLineCharRange(err.doenetMLrange, doenetMLNewlines),
@@ -583,7 +645,7 @@ export function ActivityViewer({
                             // ignore this error if didn't allow loading of page state
                         }
                     }
-                } catch (e) {
+                } catch (e: any) {
                     if (flags.allowLoadState) {
                         setIsInErrorState?.(true);
                         setErrMsg(`Error loading activity state: ${e.message}`);
@@ -676,7 +738,7 @@ export function ActivityViewer({
         };
     }
 
-    async function normalizeLoadedOrder(order) {
+    async function normalizeLoadedOrder(order: any[]) {
         // In case we load an order from the data base that was created before Sept 1, 2023,
         // we need to check if the page has a doneetML attribute,
         // and load the doenetML if needed
@@ -696,7 +758,7 @@ export function ActivityViewer({
         return newOrder;
     }
 
-    async function saveLoadedLocalStateToDatabase(localInfo) {
+    async function saveLoadedLocalStateToDatabase(localInfo: any) {
         if (!flags.allowSaveState || !apiURLs.saveActivityState) {
             return {};
         }
@@ -830,7 +892,7 @@ export function ActivityViewer({
         await saveChangesToDatabase(overrideThrottle);
     }
 
-    async function saveChangesToDatabase(overrideThrottle) {
+    async function saveChangesToDatabase(overrideThrottle?: boolean) {
         // throttle save to database at 60 seconds
 
         if (
@@ -952,7 +1014,7 @@ export function ActivityViewer({
         // TODO: send message so that UI can show changes have been synchronized
     }
 
-    async function initializeUserAssignmentTables(newItemWeights) {
+    async function initializeUserAssignmentTables(newItemWeights: any[]) {
         //Initialize user_assignment tables
         if (flags.allowSaveSubmissions && apiURLs.initAssignmentAttempt) {
             try {
@@ -973,7 +1035,7 @@ export function ActivityViewer({
                         "error",
                     );
                 }
-            } catch (e) {
+            } catch (e: any) {
                 sendAlert(
                     `Could not initialize assignment tables: ${e.message}.`,
                     "error",
@@ -1024,7 +1086,7 @@ export function ActivityViewer({
         recordEvent(event);
     }
 
-    function recordEvent(event) {
+    function recordEvent(event: any) {
         if (!flags.allowSaveEvents || !apiURLs.recordEvent) {
             return;
         }
@@ -1052,7 +1114,7 @@ export function ActivityViewer({
             });
     }
 
-    function onChangeVisibility(isVisible, pageInd) {
+    function onChangeVisibility(isVisible: boolean, pageInd: number) {
         if (!paginate) {
             setPageInfo((was) => {
                 let newObj = { ...was };
@@ -1075,7 +1137,7 @@ export function ActivityViewer({
         }
     }
 
-    function coreCreatedCallback(pageInd) {
+    function coreCreatedCallback(pageInd: number) {
         setPageInfo((was) => {
             let newObj = { ...was };
             if (newObj.waitingForPagesCore === pageInd) {
@@ -1090,8 +1152,8 @@ export function ActivityViewer({
         });
     }
 
-    function pageRenderedCallback(pageInd) {
-        let newRenderedPages;
+    function pageRenderedCallback(pageInd: number) {
+        let newRenderedPages: boolean[] = [];
         setRenderedPages((was) => {
             newRenderedPages = [...was];
             newRenderedPages[pageInd] = true;
@@ -1117,8 +1179,8 @@ export function ActivityViewer({
         ] of pageCoreWorkersInfo.current.entries()) {
             if (pageInfo.pageCoreCreated[pageInd]) {
                 let actionId = nanoid();
-                let resolveSubmitAndSavePromise;
-                let rejectSubmitAndSavePromise;
+                let resolveSubmitAndSavePromise: Function;
+                let rejectSubmitAndSavePromise: Function;
                 let coreWorker = coreWorkerInfo.coreWorker;
 
                 submitAndSavePromises.push(
@@ -1128,7 +1190,7 @@ export function ActivityViewer({
                     }),
                 );
 
-                let submitAllAndSaveListener = function (e) {
+                let submitAllAndSaveListener = function (e: any) {
                     if (
                         e.data.messageType === "resolveAction" &&
                         e.data.args.actionId === actionId
@@ -1199,8 +1261,8 @@ export function ActivityViewer({
             coreWorkerInfo,
         ] of pageCoreWorkersInfo.current.entries()) {
             if (pageInfo.pageCoreCreated[pageInd]) {
-                let resolveTerminatePromise;
-                let rejectTerminatePromise;
+                let resolveTerminatePromise: Function;
+                let rejectTerminatePromise: Function;
                 let coreWorker = coreWorkerInfo.coreWorker;
 
                 terminatePromises.push(
@@ -1210,7 +1272,7 @@ export function ActivityViewer({
                     }),
                 );
 
-                let terminateListener = function (e) {
+                let terminateListener = function (e: any) {
                     if (e.data.messageType === "terminated") {
                         coreWorker.removeEventListener(
                             "message",
@@ -1239,7 +1301,13 @@ export function ActivityViewer({
         await Promise.all(terminatePromises);
     }
 
-    function setPageErrorsAndWarningsCallback(errorsAndWarnings, pageInd) {
+    function setPageErrorsAndWarningsCallback(
+        errorsAndWarnings: {
+            errors: ErrorDescription[];
+            warnings: WarningDescription[];
+        },
+        pageInd: number,
+    ) {
         errorsAndWarningsByPage.current[pageInd] = errorsAndWarnings;
 
         setErrorsAndWarningsCallback?.(collateErrorsAndWarnings());
@@ -1263,7 +1331,7 @@ export function ActivityViewer({
         };
     }
 
-    if (errMsg !== null) {
+    if (errMsg !== "") {
         let errorIcon = (
             <span style={{ fontSize: "1em", color: "#C1292E" }}>
                 <FontAwesomeIcon icon={faExclamationCircle} />
@@ -1457,13 +1525,13 @@ export function ActivityViewer({
                 activityPrefixUnescaped + (nPages > 1 ? `page${ind + 1}` : "");
 
             let pageViewer = (
+                // @ts-ignore
                 <PageViewer
                     userId={userId}
                     activityId={activityId}
                     cidForActivity={cid}
                     cid={page.cid}
                     doenetML={page.doenetML}
-                    preliminarySerializedComponents={page.children}
                     coreWorkerInfo={pageCoreWorkersInfo.current[ind]}
                     pageNumber={(ind + 1).toString()}
                     previousComponentTypeCounts={
@@ -1481,7 +1549,7 @@ export function ActivityViewer({
                     flags={flags}
                     activityVariantIndex={variantIndex}
                     requestedVariantIndex={variantsByPage[ind]}
-                    setErrorsAndWarningsCallback={(x) =>
+                    setErrorsAndWarningsCallback={(x: any) =>
                         setPageErrorsAndWarningsCallback(x, ind)
                     }
                     updateCreditAchievedCallback={updateCreditAchievedCallback}
@@ -1512,7 +1580,7 @@ export function ActivityViewer({
                         partialVisibility={true}
                         offset={{ top: -200, bottom: -200 }}
                         requireContentsSize={false}
-                        onChange={(isVisible) =>
+                        onChange={(isVisible: boolean) =>
                             onChangeVisibility(isVisible, ind)
                         }
                     >
@@ -1670,7 +1738,7 @@ export function ActivityViewer({
         }
     }
 
-    let paddingStyle = {};
+    let paddingStyle: { paddingBottom?: string } = {};
     if (addBottomPadding) {
         paddingStyle.paddingBottom = "50vh";
     }
