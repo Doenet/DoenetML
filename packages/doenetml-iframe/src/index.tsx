@@ -9,6 +9,9 @@ import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife
 import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
 import { watchForResize } from "./resize-watcher";
 
+export const version: string = IFRAME_VERSION;
+const latestDoenetmlVersion: string = version;
+
 export { mathjaxConfig } from "@doenet/utils";
 
 type DoenetViewerProps = Omit<
@@ -34,11 +37,19 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
      */
-    standaloneUrl: string;
+    standaloneUrl?: string;
     /**
      * The URL of a CSS file that styles the standalone DoenetML bundle.
      */
-    cssUrl: string;
+    cssUrl?: string;
+    /**
+     * The version of standalone DoenetML bundle if urls are not provided
+     */
+    doenetmlVersion?: string;
+    /**
+     * Added to remove the scrollableContainer attribute from DoenetViewerProps
+     * that will be stringified (as it has circular structure)
+     */
     scrollableContainer?: any;
 };
 
@@ -47,12 +58,22 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
      */
-    standaloneUrl: string;
+    standaloneUrl?: string;
     /**
      * The URL of a CSS file that styles the standalone DoenetML bundle.
      */
-    cssUrl: string;
+    cssUrl?: string;
+    /**
+     * The version of standalone DoenetML bundle if urls are not provided
+     */
+    doenetmlVersion?: string;
+    /**
+     * The width of the iframe (and the width of the editor-viewer widget)
+     */
     width?: string;
+    /**
+     * The height of the iframe (and the height of the editor-viewer widget)
+     */
     height?: string;
 };
 
@@ -67,8 +88,9 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
  */
 export function DoenetViewer({
     doenetML,
-    standaloneUrl,
-    cssUrl,
+    standaloneUrl: specifiedStandaloneUrl,
+    cssUrl: specifiedCssUrl,
+    doenetmlVersion: specifiedDoenetmlVersion,
     scrollableContainer: _scrollableContainer,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
@@ -76,10 +98,20 @@ export function DoenetViewer({
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [height, setHeight] = React.useState("0px");
 
+    let standaloneUrl: string, cssUrl: string;
+    if (specifiedStandaloneUrl) {
+        standaloneUrl = specifiedStandaloneUrl;
+    } else {
+        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/doenet-standalone.js`;
+    }
+    if (specifiedCssUrl) {
+        cssUrl = specifiedCssUrl;
+    } else {
+        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/style.css`;
+    }
+
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {
-            console.log("got message", event.data);
-
             // forward response from SPLICE getState to iframe
             if (event.data.subject === "SPLICE.getState.response") {
                 ref.current?.contentWindow?.postMessage(event.data);
@@ -214,14 +246,27 @@ function createHtmlForDoenetViewer(
  */
 export function DoenetEditor({
     doenetML,
-    standaloneUrl,
-    cssUrl,
+    standaloneUrl: specifiedStandaloneUrl,
+    cssUrl: specifiedCssUrl,
+    doenetmlVersion: specifiedDoenetmlVersion,
     width = "100%",
     height = "500px",
     ...doenetEditorProps
 }: DoenetEditorIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
+
+    let standaloneUrl: string, cssUrl: string;
+    if (specifiedStandaloneUrl) {
+        standaloneUrl = specifiedStandaloneUrl;
+    } else {
+        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/doenet-standalone.js`;
+    }
+    if (specifiedCssUrl) {
+        cssUrl = specifiedCssUrl;
+    } else {
+        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/style.css`;
+    }
 
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {

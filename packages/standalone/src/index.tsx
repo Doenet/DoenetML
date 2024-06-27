@@ -15,6 +15,8 @@ import { nanoid } from "nanoid";
 // Re-export React and friends in case a user really wants to use them
 export { React, ReactDOM, DoenetViewer, DoenetEditor };
 
+export const version: string = STANDALONE_VERSION;
+
 /**
  * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which

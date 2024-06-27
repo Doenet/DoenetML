@@ -39,5 +39,6 @@ export default defineConfig({
     },
     define: {
         "process.env.NODE_ENV": '"production"',
+        STANDALONE_VERSION: JSON.stringify(process.env.npm_package_version),
     },
 });

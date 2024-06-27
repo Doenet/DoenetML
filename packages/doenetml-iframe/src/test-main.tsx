@@ -22,8 +22,7 @@ root.render(
                   <line equation="x=-6" styleNumber="4" />
 
                 </graph>`}
-            standaloneUrl="https://cdn.jsdelivr.net/npm/@doenet/standalone@0.6.4/doenet-standalone.js"
-            cssUrl="https://cdn.jsdelivr.net/npm/@doenet/standalone@0.6.4/style.css"
+            doenetmlVersion="0.6.4"
         />
         <h4>DoenetML 0.7:</h4>
         <DoenetViewer
@@ -37,8 +36,6 @@ root.render(
                   <line equation="x=-6" styleNumber="4" />
 
                 </graph>`}
-            standaloneUrl="https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.0-alpha9/doenet-standalone.js"
-            cssUrl="https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.0-alpha9/style.css"
             generatedVariantCallback={(variant: any) =>
                 console.log("found variant", variant)
             }
@@ -55,8 +52,7 @@ root.render(
                   <line equation="x=-6" styleNumber="4" />
 
                 </graph>`}
-            standaloneUrl="https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.0-alpha9/doenet-standalone.js"
-            cssUrl="https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.0-alpha9/style.css"
+            doenetmlVersion="0.7.0-alpha10"
             doenetmlChangeCallback={(doenetml: any) =>
                 console.log("new doenetml", doenetml)
             }

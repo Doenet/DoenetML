@@ -10,6 +10,8 @@ import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 
+export const version: string = DOENETML_VERSION;
+
 export type DoenetMLFlags = {
     showCorrectness: boolean;
     readOnly: boolean;
