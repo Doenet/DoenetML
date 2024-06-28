@@ -47,6 +47,7 @@ export function EditorViewer({
     showFormatter = true,
     showErrorsWarnings = true,
     border = "1px solid",
+    initialErrors = [],
 }: {
     doenetML: string;
     activityId?: string;
@@ -70,6 +71,7 @@ export function EditorViewer({
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
     border?: string;
+    initialErrors?: ErrorDescription[];
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -116,7 +118,7 @@ export function EditorViewer({
     const warningsObjs = errorsAndWarnings.warnings.filter(
         (w) => w.level <= warningsLevel,
     );
-    const errorsObjs = [...errorsAndWarnings.errors];
+    const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
     useEffect(() => {
         setEditorDoenetML(initialDoenetML);
@@ -288,8 +290,8 @@ export function EditorViewer({
             width="100%"
             height="100%"
             templateAreas={`"editor"
-                                "errorWarnings"
-                                "formatter"`}
+                            "errorWarnings"
+                            "formatter"`}
             gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
             gridTemplateColumns={`1fr`}
             boxSizing="border-box"

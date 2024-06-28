@@ -1,30 +1,23 @@
 import React from "react";
-import type {
-    DoenetViewer as DoenetViewerOrig,
-    DoenetEditor as DoenetEditorOrig,
-} from "@doenet/doenetml";
-// @ts-ignore
-import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife.js?raw";
-// @ts-ignore
-import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
+
 import { watchForResize } from "./resize-watcher";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { ErrorDescription } from "@doenet/utils";
+
+import {
+    DoenetViewerProps,
+    DoenetEditorProps,
+    createHtmlForDoenetViewer,
+    createHtmlForDoenetEditor,
+    detectVersionFromDoenetML,
+} from "./utils";
 
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
-
-type DoenetViewerProps = Omit<
-    React.ComponentProps<typeof DoenetViewerOrig>,
-    "doenetML" | "scrollableContainer"
->;
-type DoenetEditorProps = Omit<
-    React.ComponentProps<typeof DoenetEditorOrig>,
-    "doenetML" | "width" | "height"
->;
 
 /**
  * A message that is sent from an iframe to the parent window.
@@ -39,16 +32,25 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
     doenetML: string;
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
      */
     standaloneUrl?: string;
     /**
      * The URL of a CSS file that styles the standalone DoenetML bundle.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
      */
     cssUrl?: string;
     /**
-     * The version of standalone DoenetML bundle if urls are not provided
+     * The version of standalone DoenetML bundle if urls are not provided.
+     * If autodetectVersion is `true` and a version is detected, this setting is ignored.
      */
     doenetmlVersion?: string;
+    /**
+     * If `true`, look for a xmlns attribute in an outer `<document>` tag
+     * and use that for the doenetmlVersion,
+     * overwriting any doenetmlVersion or urls provided
+     */
+    autodetectVersion?: boolean;
     /**
      * Added to remove the scrollableContainer attribute from DoenetViewerProps
      * that will be stringified (as it has circular structure)
@@ -60,16 +62,25 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
     doenetML: string;
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
      */
     standaloneUrl?: string;
     /**
      * The URL of a CSS file that styles the standalone DoenetML bundle.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
      */
     cssUrl?: string;
     /**
-     * The version of standalone DoenetML bundle if urls are not provided
+     * The version of standalone DoenetML bundle if urls are not provided.
+     * If autodetectVersion is `true` and a version is detected, this setting is ignored.
      */
     doenetmlVersion?: string;
+    /**
+     * If `true`, look for a xmlns attribute in an outer `<document>` tag
+     * and use that for the doenetmlVersion,
+     * overwriting any doenetmlVersion or urls provided
+     */
+    autodetectVersion?: boolean;
     /**
      * The width of the iframe (and the width of the editor-viewer widget)
      */
@@ -94,6 +105,7 @@ export function DoenetViewer({
     standaloneUrl: specifiedStandaloneUrl,
     cssUrl: specifiedCssUrl,
     doenetmlVersion: specifiedDoenetmlVersion,
+    autodetectVersion = true,
     scrollableContainer: _scrollableContainer,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
@@ -101,17 +113,30 @@ export function DoenetViewer({
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [height, setHeight] = React.useState("0px");
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
+        React.useState(false);
 
     let standaloneUrl: string, cssUrl: string;
-    if (specifiedStandaloneUrl) {
+    let foundAutoVersion = false;
+    let detectedVersion;
+
+    if (autodetectVersion && !ignoreDetectedVersion) {
+        detectedVersion = detectVersionFromDoenetML(doenetML);
+        foundAutoVersion = true;
+    }
+
+    let selectedDoenetmlVersion =
+        detectedVersion ?? specifiedDoenetmlVersion ?? latestDoenetmlVersion;
+
+    if (specifiedStandaloneUrl && !foundAutoVersion) {
         standaloneUrl = specifiedStandaloneUrl;
     } else {
-        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/doenet-standalone.js`;
+        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/doenet-standalone.js`;
     }
-    if (specifiedCssUrl) {
+    if (specifiedCssUrl && !foundAutoVersion) {
         cssUrl = specifiedCssUrl;
     } else {
-        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/style.css`;
+        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/style.css`;
     }
 
     React.useEffect(() => {
@@ -190,6 +215,12 @@ export function DoenetViewer({
     }, []);
 
     if (inErrorState) {
+        if (foundAutoVersion) {
+            setIgnoreDetectedVersion(true);
+            setInErrorState("");
+            return null;
+        }
+
         let errorIcon = (
             <span style={{ fontSize: "1em", color: "#C1292E" }}>
                 <FontAwesomeIcon icon={faExclamationCircle} />
@@ -231,39 +262,6 @@ export function DoenetViewer({
 }
 
 /**
- * Create HTML for a single page document that renders the given DoenetML.
- */
-function createHtmlForDoenetViewer(
-    id: string,
-    doenetML: string,
-    doenetViewerProps: DoenetViewerProps,
-    standaloneUrl: string,
-    cssUrl: string,
-) {
-    return `
-    <html style="overflow:hidden">
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-    </head>
-    <body>
-        <script type="module">
-            const viewerId = "${id}";
-            const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
-            
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetViewerProps are defined in the global scope.
-            ${viewerIframeJsSource}
-        </script>
-        <div id="root">
-            <script type="text/doenetml">${doenetML}</script>
-        </div>
-    </body>
-    </html>
-    `;
-}
-
-/**
  * Render Doenet Editor constrained to an iframe. A URL pointing to a version of DoenetML
  * standalone must be provided (along with a URL to the corresponding CSS file).
  *
@@ -279,22 +277,50 @@ export function DoenetEditor({
     doenetmlVersion: specifiedDoenetmlVersion,
     width = "100%",
     height = "500px",
+    autodetectVersion = true,
     ...doenetEditorProps
 }: DoenetEditorIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
+        React.useState(false);
+    const [initialErrors, setInitialErrors] = React.useState<
+        ErrorDescription[]
+    >([]);
+
+    // Augment the DoenetEditor props by adding any initialErrors found
+    const augmentedDoenetEditorProps = { ...doenetEditorProps };
+    if (augmentedDoenetEditorProps.initialErrors) {
+        augmentedDoenetEditorProps.initialErrors = [
+            ...augmentedDoenetEditorProps.initialErrors,
+            ...initialErrors,
+        ];
+    } else {
+        augmentedDoenetEditorProps.initialErrors = initialErrors;
+    }
 
     let standaloneUrl: string, cssUrl: string;
-    if (specifiedStandaloneUrl) {
+    let foundAutoVersion = false;
+    let detectedVersion;
+
+    if (autodetectVersion && !ignoreDetectedVersion) {
+        detectedVersion = detectVersionFromDoenetML(doenetML);
+        foundAutoVersion = true;
+    }
+
+    let selectedDoenetmlVersion =
+        detectedVersion ?? specifiedDoenetmlVersion ?? latestDoenetmlVersion;
+
+    if (specifiedStandaloneUrl && !foundAutoVersion) {
         standaloneUrl = specifiedStandaloneUrl;
     } else {
-        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/doenet-standalone.js`;
+        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/doenet-standalone.js`;
     }
-    if (specifiedCssUrl) {
+    if (specifiedCssUrl && !foundAutoVersion) {
         cssUrl = specifiedCssUrl;
     } else {
-        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${specifiedDoenetmlVersion ?? latestDoenetmlVersion}/style.css`;
+        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/style.css`;
     }
 
     React.useEffect(() => {
@@ -336,6 +362,17 @@ export function DoenetEditor({
     }, []);
 
     if (inErrorState) {
+        if (foundAutoVersion) {
+            setIgnoreDetectedVersion(true);
+            setInErrorState("");
+            let message = `DoenetML version ${detectedVersion} not found.`;
+            if (!specifiedStandaloneUrl) {
+                message += ` Falling back to version ${specifiedDoenetmlVersion ?? latestDoenetmlVersion}`;
+            }
+            setInitialErrors([{ doenetMLrange: {}, message }]);
+            return null;
+        }
+
         let errorIcon = (
             <span style={{ fontSize: "1em", color: "#C1292E" }}>
                 <FontAwesomeIcon icon={faExclamationCircle} />
@@ -361,7 +398,7 @@ export function DoenetEditor({
                 id,
                 doenetML,
                 width,
-                doenetEditorProps,
+                augmentedDoenetEditorProps,
                 standaloneUrl,
                 cssUrl,
             )}
@@ -374,40 +411,4 @@ export function DoenetEditor({
             }}
         />
     );
-}
-
-/**
- * Create HTML for a single page document that renders the given DoenetML editor.
- */
-function createHtmlForDoenetEditor(
-    id: string,
-    doenetML: string,
-    width: string,
-    doenetEditorProps: DoenetEditorProps,
-    standaloneUrl: string,
-    cssUrl: string,
-) {
-    const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
-
-    return `
-    <html style="overflow:hidden">
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-    </head>
-    <body>
-        <script type="module">
-            const editorId = "${id}";
-            const doenetEditorProps = ${JSON.stringify(augmentedProps)};
-            
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetEditorProps are defined in the global scope.
-            ${editorIframeJsSource}
-        </script>
-        <div id="root">
-            <script type="text/doenetml">${doenetML}</script>
-        </div>
-    </body>
-    </html>
-    `;
 }

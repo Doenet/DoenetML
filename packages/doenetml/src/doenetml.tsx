@@ -5,7 +5,7 @@ import React, { useRef } from "react";
 import { ActivityViewer } from "./Viewer/ActivityViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig } from "@doenet/utils";
+import { mathjaxConfig, ErrorDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
@@ -282,6 +282,7 @@ export function DoenetEditor({
     showFormatter = true,
     showErrorsWarnings = true,
     border = "1px solid",
+    initialErrors = [],
 }: {
     doenetML: string;
     activityId?: string;
@@ -306,6 +307,7 @@ export function DoenetEditor({
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
     border?: string;
+    initialErrors?: ErrorDescription[];
 }) {
     const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
 
@@ -333,6 +335,7 @@ export function DoenetEditor({
             showFormatter={showFormatter}
             showErrorsWarnings={showErrorsWarnings}
             border={border}
+            initialErrors={initialErrors}
         />
     );
 
