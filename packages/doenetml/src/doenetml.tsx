@@ -1,15 +1,16 @@
 import "./DoenetML.css";
 // @ts-ignore
 import { prng_alea } from "esm-seedrandom";
-import React, { useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ActivityViewer } from "./Viewer/ActivityViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig, ErrorDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
-import { ChakraProvider, extendTheme } from "@chakra-ui/react";
+import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
+import VariantSelect from "./EditorViewer/VariantSelect";
 
 export const version: string = DOENETML_VERSION;
 
@@ -109,7 +110,7 @@ export function DoenetViewer({
     setActivityAsCompleted,
     setIsInErrorState,
     apiURLs,
-    generatedVariantCallback,
+    generatedVariantCallback: specifiedGeneratedVariantCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
     forceShowCorrectness = false,
@@ -125,6 +126,7 @@ export function DoenetViewer({
     scrollableContainer,
     darkMode,
     showAnswerTitles = false,
+    includeVariantSelector = false,
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
@@ -160,7 +162,14 @@ export function DoenetViewer({
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: string;
     showAnswerTitles?: boolean;
+    includeVariantSelector?: boolean;
 }) {
+    const [variants, setVariants] = useState({
+        index: 1,
+        numVariants: 1,
+        allPossibleVariants: ["a"],
+    });
+
     const thisPropSet = [
         doenetML,
         cid,
@@ -186,20 +195,57 @@ export function DoenetViewer({
         flags.allowLoadState = true;
     }
 
-    // Normalize variant index to an integer.
-    // Generate a random variant index if the requested variant index is undefined.
-    // To preserve the generated variant index on rerender,
-    // regenerate only if one of the props in propSet has changed
-    if (thisPropSet.some((v, i) => v !== lastPropSet.current[i])) {
-        if (requestedVariantIndex === undefined) {
-            let rng = new rngClass(new Date());
-            requestedVariantIndex = Math.floor(rng() * 1000000) + 1;
+    const generatedVariantCallback = useCallback(
+        (newVariants: any) => {
+            specifiedGeneratedVariantCallback?.(newVariants);
+            if (includeVariantSelector) {
+                setVariants(newVariants);
+            }
+        },
+        [specifiedGeneratedVariantCallback, includeVariantSelector],
+    );
+
+    let variantSelector = null;
+    if (includeVariantSelector) {
+        // if we use a variant selector, then we ignore requestedVariant index
+        // and just the index from variants, which will be changed the variant selector
+        variantIndex.current = variants.index;
+
+        if (variants.numVariants > 1) {
+            variantSelector = (
+                <Box bg="doenet.mainGray" h="32px" width="100%">
+                    <VariantSelect
+                        size="sm"
+                        menuWidth="140px"
+                        array={variants.allPossibleVariants}
+                        syncIndex={variants.index}
+                        onChange={(index: number) =>
+                            setVariants((prev) => {
+                                let next = { ...prev };
+                                next.index = index + 1;
+                                return next;
+                            })
+                        }
+                    />
+                </Box>
+            );
         }
-        variantIndex.current = Math.round(requestedVariantIndex);
-        if (!Number.isInteger(variantIndex.current)) {
-            variantIndex.current = 1;
+    } else {
+        // Normalize variant index to an integer.
+        // Generate a random variant index if the requested variant index is undefined.
+        // To preserve the generated variant index on rerender,
+        // regenerate only if one of the props in propSet has changed
+        if (thisPropSet.some((v, i) => v !== lastPropSet.current[i])) {
+            if (requestedVariantIndex === undefined) {
+                let rng = new rngClass(new Date());
+                requestedVariantIndex = Math.floor(rng() * 1000000) + 1;
+            }
+            variantIndex.current = Math.round(requestedVariantIndex);
+            if (!Number.isInteger(variantIndex.current)) {
+                variantIndex.current = 1;
+            }
+            lastPropSet.current = thisPropSet;
         }
-        lastPropSet.current = thisPropSet;
     }
 
     const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
@@ -250,6 +296,7 @@ export function DoenetViewer({
         >
             <RecoilRoot>
                 <MathJaxContext version={3} config={mathjaxConfig}>
+                    {variantSelector}
                     {viewer}
                     <div className="before-keyboard" />
                     {keyboard}
