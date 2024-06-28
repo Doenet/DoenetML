@@ -8,6 +8,7 @@ import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig, ErrorDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
+import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 
 export const version: string = DOENETML_VERSION;

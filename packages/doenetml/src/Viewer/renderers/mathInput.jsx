@@ -18,7 +18,7 @@ import {
 } from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
 import { PageContext } from "../PageViewer";
@@ -63,6 +63,9 @@ export default function MathInput(props) {
     const [focused, setFocused] = useState(null);
     const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
 
+    const lastKeyboardAccessTime = useRef(0);
+    const keyboardCausedBlur = useRef(false);
+
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     const { showAnswerTitles } = useContext(PageContext) || {};
@@ -86,8 +89,8 @@ export default function MathInput(props) {
 
     const setFocusedField = useSetRecoilState(focusedMathField);
     const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
-    const containerRef = useRecoilValue(palletRef);
-    const dragHandleRef = useRecoilValue(handleRef);
+    // A global reference to the currently active MathInput
+    const [containerRef, setContainerRef] = useRecoilState(palletRef);
 
     const updateValidationState = () => {
         validationState.current = "unvalidated";
@@ -102,34 +105,23 @@ export default function MathInput(props) {
         }
     };
 
-    const handleVirtualKeyboardClick = (text) => {
-        mathField.focus();
-        if (!text) {
-            console.log("Empty value");
+    const handleVirtualKeyboardClick = ({ type, command, timestamp }) => {
+        lastKeyboardAccessTime.current = timestamp;
 
+        if (!mathField || !keyboardCausedBlur.current) {
             return;
         }
-        const splitCommand = text.split(" ");
-        const command = splitCommand[0];
-        const input = text.substring(command.length + 1);
+        mathField.focus();
 
-        if (command == "cmd") {
-            mathField.cmd(input);
-        } else if (command == "write") {
-            mathField.write(input);
-        } else if (command == "keystroke") {
-            mathField.keystroke(input);
-        } else if (command == "type") {
-            mathField.typedText(input);
+        if (type == "cmd") {
+            mathField.cmd(command);
+        } else if (type == "write") {
+            mathField.write(command);
+        } else if (type == "keystroke") {
+            mathField.keystroke(command);
+        } else if (type == "type") {
+            mathField.typedText(command);
         }
-    };
-
-    const handleDefaultVirtualKeyboardClick = (text) => {
-        console.log("no mathinput field focused");
-    };
-
-    const handleDefaultVirtualKeyboardReturn = (text) => {
-        console.log("no mathinput field focused");
     };
 
     const handlePressEnter = (e) => {
@@ -148,31 +140,34 @@ export default function MathInput(props) {
         }
     };
 
-    const handleFocus = (e) => {
+    React.useEffect(() => {
+        if (!mathField || mathField.el() !== containerRef) {
+            return;
+        }
         setFocusedField(() => handleVirtualKeyboardClick);
+    }, [mathField, containerRef]);
+
+    const handleFocus = (e) => {
+        if (mathField) {
+            setContainerRef(mathField.el());
+        }
         setFocusedFieldReturn(() => handlePressEnter);
         setFocused(true);
     };
 
     const handleBlur = (e) => {
-        if (containerRef?.current?.contains(e.relatedTarget)) {
-            setTimeout(() => {
-                mathField.focus();
-            }, 100);
-        } else if (dragHandleRef?.current?.contains(e.relatedTarget)) {
-            setTimeout(() => {
-                mathField.focus();
-            }, 100);
-        } else {
-            callAction({
-                action: actions.updateValue,
-                baseVariableValue: rendererValue.current,
-            });
-            // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
-            setFocusedField(() => handleDefaultVirtualKeyboardClick);
-            setFocusedFieldReturn(() => handleDefaultVirtualKeyboardReturn);
-        }
+        callAction({
+            action: actions.updateValue,
+            baseVariableValue: rendererValue.current,
+        });
+        // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
         setFocused(false);
+
+        // If the keyboard blur was immediately preceded by a keyboard access,
+        // then the blur was likely caused by clicking on the keyboard.
+        // (The mousedown event on the keyboard seems to be processed before the blur event.)
+        keyboardCausedBlur.current =
+            Math.abs(lastKeyboardAccessTime.current - new Date()) < 100;
     };
 
     const onChangeHandler = (text) => {
@@ -406,31 +401,6 @@ export default function MathInput(props) {
                                     textareaRef.current =
                                         document.createElement("textarea");
                                     textareaRef.current.disabled = SVs.disabled;
-                                    textareaRef.current.addEventListener(
-                                        "focusout",
-                                        (e) => {
-                                            // apparently there are array-like things in javascript that
-                                            // can be converted to real arrays with Array.from()
-                                            // https://stackoverflow.com/a/22754453
-                                            let keyboards = Array.from(
-                                                document.getElementsByClassName(
-                                                    "keyboardcontainer",
-                                                ),
-                                            );
-                                            keyboards.forEach((keyboard) => {
-                                                if (
-                                                    keyboard?.contains(
-                                                        e.relatedTarget,
-                                                    )
-                                                ) {
-                                                    e.target.focus();
-                                                } else {
-                                                    // remove focus
-                                                }
-                                            });
-                                        },
-                                        false,
-                                    );
                                     return textareaRef.current;
                                 },
                             }} //more commands go here
