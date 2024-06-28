@@ -128,13 +128,16 @@ export function detectVersionFromDoenetML(doenetML: string) {
                     typeof xmlns === "string" &&
                     xmlns.slice(0, 34) === "https://doenet.org/spec/doenetml/v"
                 ) {
-                    return xmlns.slice(34);
+                    return {
+                        version: xmlns.slice(34),
+                        doenetMLrange: firstNonBlankComponent.doenetMLrange,
+                    };
                 } else {
-                    return null;
+                    return {};
                 }
             }
         }
     }
 
-    return null;
+    return {};
 }

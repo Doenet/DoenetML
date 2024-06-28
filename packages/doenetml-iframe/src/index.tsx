@@ -4,7 +4,11 @@ import { watchForResize } from "./resize-watcher";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
-import { ErrorDescription } from "@doenet/utils";
+import {
+    ErrorDescription,
+    findAllNewlines,
+    getLineCharRange,
+} from "@doenet/utils";
 
 import {
     DoenetViewerProps,
@@ -121,8 +125,11 @@ export function DoenetViewer({
     let detectedVersion;
 
     if (autodetectVersion && !ignoreDetectedVersion) {
-        detectedVersion = detectVersionFromDoenetML(doenetML);
-        foundAutoVersion = true;
+        let result = detectVersionFromDoenetML(doenetML);
+        if (result.version !== undefined) {
+            foundAutoVersion = true;
+            detectedVersion = result.version;
+        }
     }
 
     let selectedDoenetmlVersion =
@@ -302,11 +309,15 @@ export function DoenetEditor({
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
-    let detectedVersion;
+    let detectedVersion, detectedDoenetMLrange;
 
     if (autodetectVersion && !ignoreDetectedVersion) {
-        detectedVersion = detectVersionFromDoenetML(doenetML);
-        foundAutoVersion = true;
+        let result = detectVersionFromDoenetML(doenetML);
+        if (result.version !== undefined) {
+            foundAutoVersion = true;
+            detectedVersion = result.version;
+            detectedDoenetMLrange = result.doenetMLrange;
+        }
     }
 
     let selectedDoenetmlVersion =
@@ -369,7 +380,17 @@ export function DoenetEditor({
             if (!specifiedStandaloneUrl) {
                 message += ` Falling back to version ${specifiedDoenetmlVersion ?? latestDoenetmlVersion}`;
             }
-            setInitialErrors([{ doenetMLrange: {}, message }]);
+
+            // add line number to the doenetML range of the error
+            let allNewlines = findAllNewlines(doenetML);
+            Object.assign(
+                detectedDoenetMLrange!,
+                getLineCharRange(detectedDoenetMLrange!, allNewlines),
+            );
+
+            setInitialErrors([
+                { doenetMLrange: detectedDoenetMLrange!, message },
+            ]);
             return null;
         }
 
