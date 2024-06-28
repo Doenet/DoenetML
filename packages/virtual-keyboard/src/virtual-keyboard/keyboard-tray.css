@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+    height: 100%;
+}
+
+#virtual-keyboard-tray {
+    --keyboard-tray-height: 280px;
+
+    @apply border-t-black border-t;
+    @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
+    @apply transition-transform ease-in-out duration-300 translate-y-[100%];
+    min-height: var(--keyboard-tray-height);
+    max-height: calc(100vh - 1.5rem);
+    z-index: 10000;
+    background-color: inherit;
+
+    .close-keyboard-button {
+        @apply absolute top-0 right-0 m-2 rounded;
+        @apply hover:bg-slate-300 active:bg-slate-400;
+        @apply w-6 h-6 flex items-center justify-center text-2xl;
+    }
+
+    .open-keyboard-button {
+        @apply absolute top-[-1.5rem] left-0 rounded-t ms-4;
+        @apply border-b-black border-b;
+        @apply hover:bg-slate-300 active:bg-slate-400;
+        @apply w-12 h-[1.5rem] flex items-center justify-center;
+    }
+
+    .virtual-keyboard-tab-list {
+        @apply sm:mx-20 mx-5;
+    }
+    .virtual-keyboard {
+        @apply mx-auto;
+    }
+}
+
+#virtual-keyboard-tray.open {
+    @apply translate-y-0;
+}

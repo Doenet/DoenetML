@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import compileTime from "vite-plugin-compile-time";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [dts({ rollupTypes: true }), compileTime()],
     build: {
         minify: false,
         sourcemap: true,
@@ -27,6 +28,12 @@ export default defineConfig({
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
             ],
+            onwarn(warning, warn) {
+                if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+                    return;
+                }
+                warn(warning);
+            },
         },
     },
 });

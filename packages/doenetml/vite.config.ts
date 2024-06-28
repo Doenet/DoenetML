@@ -58,6 +58,13 @@ export default defineConfig({
                     EXTERNAL_DEPS.map((dep) => [dep, dep]),
                 ),
             },
+            onwarn(warning, warn) {
+                // Ignore warnings about module level directives. I.e., literal strings like `"use strict";` included at the top of source code.
+                if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+                    return;
+                }
+                warn(warning);
+            },
         },
     },
 });
