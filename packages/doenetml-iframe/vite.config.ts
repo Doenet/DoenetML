@@ -21,6 +21,7 @@ export default defineConfig({
                         targetDir: "dist/component",
                     }),
                 },
+                { src: "README.md", dest: "./" },
             ],
         }),
     ],
