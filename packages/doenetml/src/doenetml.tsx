@@ -231,6 +231,10 @@ export function DoenetViewer({
             );
         }
     } else {
+        // TODO: remove this once fix the keyboard
+        // For some reason, this keeps the iframe resizer for continuing to increase the size.
+        variantSelector = <Box h="1px" width="100%"></Box>;
+
         // Normalize variant index to an integer.
         // Generate a random variant index if the requested variant index is undefined.
         // To preserve the generated variant index on rerender,
