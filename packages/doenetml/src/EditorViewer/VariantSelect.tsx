@@ -22,11 +22,17 @@ export default function VariantSelect({
     array = [],
     onChange = () => {},
     syncIndex, //Optional attribute to keep several variant selects in sync
+}: {
+    size: string;
+    menuWidth: string;
+    array: string[];
+    onChange: Function;
+    syncIndex?: number;
 }) {
     const [index, setIndex] = useState(0);
     const [value, setValue] = useState(array[index]);
     const [inputValue, setInputValue] = useState("");
-    const inputRef = useRef();
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const [showTooltip, setShowTooltip] = useState(false);
     const [menuIsOpen, setMenuIsOpen] = useState(false);
@@ -63,12 +69,14 @@ export default function VariantSelect({
                             as={Button}
                             rightIcon={<ChevronDownIcon />}
                             width={menuWidth ? menuWidth : undefined}
+                            borderWidth={1}
                             onMouseEnter={() => {
                                 !menuIsOpen ? setShowTooltip(true) : null;
                             }}
                             onMouseLeave={() => {
                                 setShowTooltip(false);
                             }}
+                            aria-label="Select variant menu button"
                         >
                             {value}
                         </MenuButton>
@@ -83,7 +91,7 @@ export default function VariantSelect({
                             value={inputValue}
                             onChange={(e) => {
                                 setInputValue(e.target.value);
-                                inputRef.current.focus();
+                                inputRef.current!.focus();
                             }}
                         />
                         {filteredArray.map((val, index) => {
@@ -91,6 +99,7 @@ export default function VariantSelect({
                                 <MenuItem
                                     key={`mi${index}`}
                                     data-test={`Variant Select Menu Item ${index}`}
+                                    borderWidth={1}
                                     onClick={() => {
                                         const index = array.indexOf(val);
                                         setIndex(index);
@@ -106,43 +115,51 @@ export default function VariantSelect({
                     </MenuList>
                 </Menu>
 
-                <IconButton
-                    isDisabled={index == array.length - 1}
-                    data-test="Variant Select Down Button"
-                    borderRadius={0}
-                    size={size}
-                    icon={<TriangleDownIcon />}
-                    m={0}
-                    onClick={() => {
-                        if (index == array.length - 1) {
-                            return;
-                        }
-                        const nextIndex = index + 1;
-                        setIndex(nextIndex);
-                        setValue(array[nextIndex]);
-                        setInputValue("");
-                        onChange(nextIndex);
-                    }}
-                />
-                <IconButton
-                    isDisabled={index < 1}
-                    data-test="Variant Select Up Button"
-                    size={size}
-                    borderBottomLeftRadius={0}
-                    borderTopLeftRadius={0}
-                    icon={<TriangleUpIcon />}
-                    m={0}
-                    onClick={() => {
-                        if (index < 1) {
-                            return;
-                        }
-                        const nextIndex = index - 1;
-                        setIndex(nextIndex);
-                        setValue(array[nextIndex]);
-                        setInputValue("");
-                        onChange(nextIndex);
-                    }}
-                />
+                <Tooltip hasArrow label="Next variant">
+                    <IconButton
+                        isDisabled={index == array.length - 1}
+                        data-test="Variant Select Down Button"
+                        borderRadius={0}
+                        size={size}
+                        icon={<TriangleDownIcon />}
+                        m={0}
+                        aria-label="Select next variant button"
+                        borderWidth={1}
+                        onClick={() => {
+                            if (index == array.length - 1) {
+                                return;
+                            }
+                            const nextIndex = index + 1;
+                            setIndex(nextIndex);
+                            setValue(array[nextIndex]);
+                            setInputValue("");
+                            onChange(nextIndex);
+                        }}
+                    />
+                </Tooltip>
+                <Tooltip hasArrow label="Previous variant">
+                    <IconButton
+                        isDisabled={index < 1}
+                        data-test="Variant Select Up Button"
+                        size={size}
+                        borderBottomLeftRadius={0}
+                        borderTopLeftRadius={0}
+                        icon={<TriangleUpIcon />}
+                        m={0}
+                        aria-label="Select previous variant button"
+                        borderWidth={1}
+                        onClick={() => {
+                            if (index < 1) {
+                                return;
+                            }
+                            const nextIndex = index - 1;
+                            setIndex(nextIndex);
+                            setValue(array[nextIndex]);
+                            setInputValue("");
+                            onChange(nextIndex);
+                        }}
+                    />
+                </Tooltip>
             </HStack>
         </>
     );

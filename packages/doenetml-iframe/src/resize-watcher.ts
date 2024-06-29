@@ -9,10 +9,9 @@ export function watchForResize(
     setHeight: React.Dispatch<React.SetStateAction<string>>,
 ): () => void {
     const iframe = ref.current?.contentWindow?.document?.body?.parentElement;
-    if (!iframe) {
-        return () => {};
+    if (iframe) {
+        setHeight(iframe.scrollHeight + "px");
     }
-    setHeight(iframe.scrollHeight + "px");
 
     const updateHeight = () => {
         const iframe =
@@ -27,11 +26,13 @@ export function watchForResize(
     };
 
     const observer = new MutationObserver(updateHeight);
-    observer.observe(iframe, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-    });
+    if (iframe) {
+        observer.observe(iframe, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+        });
+    }
 
     // The mutation observer might not catch all resize changes, so we poll as well.
     const interval = setInterval(updateHeight, 200);

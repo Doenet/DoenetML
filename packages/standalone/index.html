@@ -11,10 +11,11 @@
         <div id="root"></div>
         <script type="module" src="/src/test-main.tsx"></script>
         <script></script>
-        <div class="doenetml-applet">
+        <div class="doenetml-viewer">
             <script type="text/doenetml">
-                <p>Use this to test DoenetML</p>
-                <graph showNavigation="false">
+                <m>\frac{5}{6}</m>
+                <p>1+1=<answer>2</answer></p>
+                <graph>
 
                   <line through="(-8,8) (9,6)" />
                   <line through="(0,4)" slope="1/2" styleNumber="2" />
@@ -25,12 +26,26 @@
                 </graph>
             </script>
         </div>
-        <div class="doenetml-applet" data-doenet-read-only="true">
+        <div class="doenetml-viewer" data-doenet-read-only="true">
             <script type="text/doenetml">
-                <p>Use this to test DoenetML</p>
-                <graph showNavigation="false">
+                <m>\frac{4}{5}</m>
+                <p>1+2=<answer>3</answer></p>
+
+                <graph>
 
                   <line through="(0,4)" slope="1/2" styleNumber="2" />
+
+                </graph>
+            </script>
+        </div>
+
+        <div class="doenetml-editor" data-doenet-height="600px">
+            <script type="text/doenetml">
+                <m>\frac{3}{4}</m>
+                <p>1+3=<answer>4</answer></p>
+                <graph showNavigation="false">
+
+                  <line through="(-8,8) (9,6)" />
 
                 </graph>
             </script>
