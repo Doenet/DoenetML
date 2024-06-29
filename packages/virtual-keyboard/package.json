@@ -33,11 +33,13 @@
             "files": [
                 "src/**/*.ts",
                 "src/**/*.tsx",
+                "src/**/*.css",
                 "tsconfig.json",
                 "vite.config.ts"
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
             ]

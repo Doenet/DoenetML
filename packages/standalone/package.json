@@ -13,6 +13,9 @@
     "exports": {
         ".": {
             "import": "./dist/doenet-standalone.js"
+        },
+        "./*": {
+            "import": "./dist/*"
         }
     },
     "scripts": {
