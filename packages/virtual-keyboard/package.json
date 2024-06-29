@@ -35,6 +35,7 @@
                 "src/**/*.tsx",
                 "src/**/*.css",
                 "tsconfig.json",
+                "tailwind.config.js",
                 "vite.config.ts"
             ],
             "output": [

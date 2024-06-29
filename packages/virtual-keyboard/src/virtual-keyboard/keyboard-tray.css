@@ -1,22 +1,57 @@
+/*
+Tailwind base is purposely not included because we want all styles to be prefixed. We manually copy in whatever is needed from tailwind preflight.
 @tailwind base;
+*/
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-    height: 100%;
+/*
+ * Some styles from tailwind preflight need to be included here
+ */
+:where(#virtual-keyboard-tray, .virtual-keyboard) {
+    button {
+        -webkit-appearance: button;
+        border-width: 0;
+        border-style: solid;
+        background: transparent;
+        cursor: pointer;
+    }
 }
 
 #virtual-keyboard-tray {
+    /*
+     * Some styles from tailwind preflight need to be included here
+     */
+    box-sizing: border-box;
+    border-stylke: solid;
+    --tw-border-spacing-x: 0;
+    --tw-border-spacing-y: 0;
+    --tw-translate-x: 0;
+    --tw-translate-y: 0;
+    --tw-rotate: 0;
+    --tw-skew-x: 0;
+    --tw-skew-y: 0;
+    --tw-scale-x: 1;
+    --tw-scale-y: 1;
+    --tw-scroll-snap-strictness: proximity;
+    --tw-ring-offset-width: 0px;
+    --tw-ring-offset-color: #fff;
+    --tw-ring-color: rgb(59 130 246 / 0.5);
+    --tw-ring-offset-shadow: 0 0 #0000;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-shadow: 0 0 #0000;
+    --tw-shadow-colored: 0 0 #0000;
+    --tw-border-opacity: 1;
+
     --keyboard-tray-height: 280px;
 
-    @apply border-t-black border-t;
+    border-top: 1px solid black;
     @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
     @apply transition-transform ease-in-out duration-300 translate-y-[100%];
     min-height: var(--keyboard-tray-height);
     max-height: calc(100vh - 1.5rem);
     z-index: 10000;
-    background-color: inherit;
+    background-color: white;
 
     .close-keyboard-button {
         @apply absolute top-0 right-0 m-2 rounded;
