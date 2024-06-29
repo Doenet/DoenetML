@@ -8,6 +8,7 @@ export {
     serializedComponentsReviver,
     // returnAllPossibleVariants,
 } from "@doenet/utils";
+export type { ErrorDescription, WarningDescription } from "@doenet/utils";
 export {
     calculateOrderAndVariants,
     determineNumberOfActivityVariants,

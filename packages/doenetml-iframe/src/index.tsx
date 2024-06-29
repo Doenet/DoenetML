@@ -4,12 +4,8 @@ import { watchForResize } from "./resize-watcher";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
-import {
-    ErrorDescription,
-    findAllNewlines,
-    getLineCharRange,
-} from "@doenet/utils";
-
+import { findAllNewlines, getLineCharRange } from "@doenet/utils";
+import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import {
     DoenetViewerProps,
     DoenetEditorProps,
@@ -22,6 +18,7 @@ export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
+export type { ErrorDescription, WarningDescription };
 
 /**
  * A message that is sent from an iframe to the parent window.

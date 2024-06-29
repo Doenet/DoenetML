@@ -20,7 +20,7 @@ import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { ActivityViewer } from "../Viewer/ActivityViewer";
 import ErrorWarningPopovers from "./ErrorWarningPopovers";
-import { WarningDescription, ErrorDescription } from "@doenet/utils";
+import type { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 
@@ -48,6 +48,7 @@ export function EditorViewer({
     showErrorsWarnings = true,
     border = "1px solid",
     initialErrors = [],
+    initialWarnings = [],
 }: {
     doenetML: string;
     activityId?: string;
@@ -72,6 +73,7 @@ export function EditorViewer({
     showErrorsWarnings?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
+    initialWarnings?: WarningDescription[];
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -115,9 +117,10 @@ export function EditorViewer({
     });
 
     const warningsLevel = 1; //TODO: eventually give user ability adjust warning level filter
-    const warningsObjs = errorsAndWarnings.warnings.filter(
-        (w) => w.level <= warningsLevel,
-    );
+    const warningsObjs = [
+        ...initialWarnings,
+        ...errorsAndWarnings.warnings.filter((w) => w.level <= warningsLevel),
+    ];
     const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
     useEffect(() => {

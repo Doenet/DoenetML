@@ -5,7 +5,8 @@ import React, { useCallback, useRef, useState } from "react";
 import { ActivityViewer } from "./Viewer/ActivityViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig, ErrorDescription } from "@doenet/utils";
+import { mathjaxConfig } from "@doenet/utils";
+import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
@@ -231,10 +232,6 @@ export function DoenetViewer({
             );
         }
     } else {
-        // TODO: remove this once fix the keyboard
-        // For some reason, this keeps the iframe resizer for continuing to increase the size.
-        variantSelector = <Box h="1px" width="100%"></Box>;
-
         // Normalize variant index to an integer.
         // Generate a random variant index if the requested variant index is undefined.
         // To preserve the generated variant index on rerender,
@@ -335,6 +332,7 @@ export function DoenetEditor({
     showErrorsWarnings = true,
     border = "1px solid",
     initialErrors = [],
+    initialWarnings = [],
 }: {
     doenetML: string;
     activityId?: string;
@@ -360,6 +358,7 @@ export function DoenetEditor({
     showErrorsWarnings?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
+    initialWarnings?: WarningDescription[];
 }) {
     const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
 
@@ -388,6 +387,7 @@ export function DoenetEditor({
             showErrorsWarnings={showErrorsWarnings}
             border={border}
             initialErrors={initialErrors}
+            initialWarnings={initialWarnings}
         />
     );
 

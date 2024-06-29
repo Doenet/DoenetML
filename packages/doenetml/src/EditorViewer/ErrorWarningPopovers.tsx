@@ -68,11 +68,12 @@ export default function ErrorWarningPopovers({
                                                 color="yellow.400"
                                                 marginBottom="2px"
                                             />
-                                            Line #
-                                            {
-                                                warningObj?.doenetMLrange
-                                                    ?.lineBegin
-                                            }{" "}
+                                            {warningObj.doenetMLrange?.lineBegin
+                                                ? `Line #${
+                                                      warningObj.doenetMLrange
+                                                          ?.lineBegin
+                                                  }`
+                                                : null}{" "}
                                             {warningObj.message}
                                         </ListItem>
                                     );
@@ -127,8 +128,12 @@ export default function ErrorWarningPopovers({
                                                 color="red.500"
                                                 marginBottom="2px"
                                             />
-                                            Line #
-                                            {errorObj?.doenetMLrange?.lineBegin}{" "}
+                                            {errorObj.doenetMLrange?.lineBegin
+                                                ? `Line #${
+                                                      errorObj.doenetMLrange
+                                                          ?.lineBegin
+                                                  }`
+                                                : null}{" "}
                                             {errorObj.message}
                                         </ListItem>
                                     );

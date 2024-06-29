@@ -65,7 +65,7 @@ function App() {
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
             />
-            <h4>DoenetML 0.7 editor:</h4>
+            <h4>DoenetML {STANDALONE_VERSION} (locally-built copy) editor:</h4>
             <DoenetEditor
                 doenetML={`<p>Use this to test DoenetML</p>
                 <graph showNavigation="false">
@@ -77,7 +77,8 @@ function App() {
                   <line equation="x=-6" styleNumber="4" />
 
                 </graph>`}
-                doenetmlVersion="0.7.0-alpha10"
+                standaloneUrl={STANDALONE_BLOB_URL}
+                cssUrl={STANDALONE_CSS_BLOB_URL}
                 doenetmlChangeCallback={(doenetml: any) =>
                     console.log("new doenetml", doenetml)
                 }
