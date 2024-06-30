@@ -1,10 +1,24 @@
 import React from "react";
-import type { DoenetML } from "@doenet/doenetml";
-// @ts-ignore
-import iframeJsSource from "../dist/iframe/iframe-index.iife.js?raw";
+
 import { watchForResize } from "./resize-watcher";
 
-type DoenetMLProps = React.ComponentProps<typeof DoenetML>;
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { findAllNewlines, getLineCharRange } from "@doenet/utils";
+import type { ErrorDescription, WarningDescription } from "@doenet/utils";
+import {
+    DoenetViewerProps,
+    DoenetEditorProps,
+    createHtmlForDoenetViewer,
+    createHtmlForDoenetEditor,
+    detectVersionFromDoenetML,
+} from "./utils";
+
+export const version: string = IFRAME_VERSION;
+const latestDoenetmlVersion: string = version;
+
+export { mathjaxConfig } from "@doenet/utils";
+export type { ErrorDescription, WarningDescription };
 
 /**
  * A message that is sent from an iframe to the parent window.
@@ -12,55 +26,185 @@ type DoenetMLProps = React.ComponentProps<typeof DoenetML>;
 type IframeMessage = {
     origin: string;
     data: Record<string, unknown>;
+    subject?: string;
 };
 
-export type DoenetMLIframeProps = {
+export type DoenetViewerIframeProps = DoenetViewerProps & {
     doenetML: string;
-    doenetMLProps: DoenetMLProps;
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
      */
-    standaloneUrl: string;
+    standaloneUrl?: string;
     /**
      * The URL of a CSS file that styles the standalone DoenetML bundle.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
      */
-    cssUrl: string;
+    cssUrl?: string;
     /**
-     * Callback that is called when a message is received from the DoenetML component embedded in the iframe.
+     * The version of standalone DoenetML bundle if urls are not provided.
+     * If autodetectVersion is `true` and a version is detected, this setting is ignored.
      */
-    onMessage?: (message: any) => void;
+    doenetmlVersion?: string;
+    /**
+     * If `true`, look for a xmlns attribute in an outer `<document>` tag
+     * and use that for the doenetmlVersion,
+     * overwriting any doenetmlVersion or urls provided
+     */
+    autodetectVersion?: boolean;
+    /**
+     * Added to remove the scrollableContainer attribute from DoenetViewerProps
+     * that will be stringified (as it has circular structure)
+     */
+    scrollableContainer?: any;
+};
+
+export type DoenetEditorIframeProps = DoenetEditorProps & {
+    doenetML: string;
+    /**
+     * The URL of a standalone DoenetML bundle. This may be from the CDN.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
+     */
+    standaloneUrl?: string;
+    /**
+     * The URL of a CSS file that styles the standalone DoenetML bundle.
+     * If autodetectVersion is `true` and a version is detected, this URL is ignored.
+     */
+    cssUrl?: string;
+    /**
+     * The version of standalone DoenetML bundle if urls are not provided.
+     * If autodetectVersion is `true` and a version is detected, this setting is ignored.
+     */
+    doenetmlVersion?: string;
+    /**
+     * If `true`, look for a xmlns attribute in an outer `<document>` tag
+     * and use that for the doenetmlVersion,
+     * overwriting any doenetmlVersion or urls provided
+     */
+    autodetectVersion?: boolean;
+    /**
+     * The width of the iframe (and the width of the editor-viewer widget)
+     */
+    width?: string;
+    /**
+     * The height of the iframe (and the height of the editor-viewer widget)
+     */
+    height?: string;
 };
 
 /**
- * Render DoenetML constrained to an iframe. A URL pointing to a version of DoenetML
+ * Render Doenet viewer constrained to an iframe. A URL pointing to a version of DoenetML
  * standalone must be provided (along with a URL to the corresponding CSS file).
  *
- * Parameters being passed to the underlying DoenetML component are passed via the `doenetMLProps` prop.
+ * Parameters being passed to the underlying DoenetML component are passed via the `DoenetViewerProps` prop.
  * However, only serializable parameters may be passed. E.g., callbacks **cannot** be passed to the underlying
- * DoenetML component. Instead you must use the message passing interface of `DoenetMLIframe` to communicate
+ * DoenetML component. Instead you must use the message passing interface of `DoenetViewer` to communicate
  * with the underlying DoenetML component.
  */
-export function DoenetMLIframe({
+export function DoenetViewer({
     doenetML,
-    doenetMLProps,
-    standaloneUrl,
-    cssUrl,
-    onMessage,
-}: DoenetMLIframeProps) {
+    standaloneUrl: specifiedStandaloneUrl,
+    cssUrl: specifiedCssUrl,
+    doenetmlVersion: specifiedDoenetmlVersion,
+    autodetectVersion = true,
+    scrollableContainer: _scrollableContainer,
+    ...doenetViewerProps
+}: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
     const [height, setHeight] = React.useState("0px");
+    const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
+        React.useState(false);
+
+    let standaloneUrl: string, cssUrl: string;
+    let foundAutoVersion = false;
+    let detectedVersion;
+
+    if (autodetectVersion && !ignoreDetectedVersion) {
+        let result = detectVersionFromDoenetML(doenetML);
+        if (result.version !== undefined) {
+            foundAutoVersion = true;
+            detectedVersion = result.version;
+        }
+    }
+
+    let selectedDoenetmlVersion =
+        detectedVersion ?? specifiedDoenetmlVersion ?? latestDoenetmlVersion;
+
+    if (specifiedStandaloneUrl && !foundAutoVersion) {
+        standaloneUrl = specifiedStandaloneUrl;
+    } else {
+        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/doenet-standalone.js`;
+    }
+    if (specifiedCssUrl && !foundAutoVersion) {
+        cssUrl = specifiedCssUrl;
+    } else {
+        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/style.css`;
+    }
 
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {
+            // forward response from SPLICE getState to iframe
+            if (event.data.subject === "SPLICE.getState.response") {
+                ref.current?.contentWindow?.postMessage(event.data);
+                return;
+            }
             if (
                 event.origin !== window.location.origin ||
                 event.data?.origin !== id
             ) {
                 return;
             }
-            if (onMessage) {
-                onMessage(event.data.data);
+
+            const data = event.data.data;
+
+            if (data.error) {
+                //@ts-ignore
+                return setInErrorState(data.error);
+            }
+
+            switch (data.callback) {
+                case "updateCreditAchievedCallback": {
+                    return doenetViewerProps.updateCreditAchievedCallback?.(
+                        data.args,
+                    );
+                }
+                case "updateActivityStatusCallback": {
+                    return doenetViewerProps.updateActivityStatusCallback?.(
+                        data.args,
+                    );
+                }
+                case "updateAttemptNumber": {
+                    return doenetViewerProps.updateAttemptNumber?.(data.args);
+                }
+                case "pageChangedCallback": {
+                    return doenetViewerProps.pageChangedCallback?.(data.args);
+                }
+                case "cidChangedCallback": {
+                    return doenetViewerProps.cidChangedCallback?.(data.args);
+                }
+                case "checkIfCidChanged": {
+                    return doenetViewerProps.checkIfCidChanged?.(data.args);
+                }
+                case "setActivityAsCompleted": {
+                    return doenetViewerProps.setActivityAsCompleted?.(
+                        data.args,
+                    );
+                }
+                case "setIsInErrorState": {
+                    return doenetViewerProps.setIsInErrorState?.(data.args);
+                }
+                case "generatedVariantCallback": {
+                    return doenetViewerProps.generatedVariantCallback?.(
+                        data.args,
+                    );
+                }
+                case "setErrorsAndWarningsCallback": {
+                    return doenetViewerProps.setErrorsAndWarningsCallback?.(
+                        data.args,
+                    );
+                }
             }
         };
         if (ref.current) {
@@ -74,13 +218,38 @@ export function DoenetMLIframe({
         };
     }, []);
 
+    if (inErrorState) {
+        if (foundAutoVersion) {
+            setIgnoreDetectedVersion(true);
+            setInErrorState("");
+            return null;
+        }
+
+        let errorIcon = (
+            <span style={{ fontSize: "1em", color: "#C1292E" }}>
+                <FontAwesomeIcon icon={faExclamationCircle} />
+            </span>
+        );
+        return (
+            <div
+                style={{
+                    fontSize: "1.3em",
+                    marginLeft: "20px",
+                    marginTop: "20px",
+                }}
+            >
+                {errorIcon} {inErrorState}
+            </div>
+        );
+    }
+
     return (
         <iframe
             ref={ref}
-            srcDoc={createHtmlForDoenetML(
+            srcDoc={createHtmlForDoenetViewer(
                 id,
                 doenetML,
-                doenetMLProps,
+                doenetViewerProps,
                 standaloneUrl,
                 cssUrl,
             )}
@@ -97,36 +266,167 @@ export function DoenetMLIframe({
 }
 
 /**
- * Create HTML for a single page document that renders the given DoenetML.
+ * Render Doenet Editor constrained to an iframe. A URL pointing to a version of DoenetML
+ * standalone must be provided (along with a URL to the corresponding CSS file).
+ *
+ * Parameters being passed to the underlying DoenetML component are passed via the `DoenetEditorProps` prop.
+ * However, only serializable parameters may be passed. E.g., callbacks **cannot** be passed to the underlying
+ * DoenetML component. Instead you must use the message passing interface of `DoenetEditor` to communicate
+ * with the underlying DoenetML component.
  */
-function createHtmlForDoenetML(
-    id: string,
-    doenetML: string,
-    doenetMLProps: DoenetMLProps,
-    standaloneUrl: string,
-    cssUrl: string,
-) {
-    return `
-    <html>
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-    </head>
-    <body>
-        <script type="module">
-            const id = "${id}";
-            const doenetMLProps = ${JSON.stringify(doenetMLProps)};
-            
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetMLProps are defined in the global scope.
-            ${iframeJsSource}
-        </script>
-        <div id="root">
-            <script type="text/doenetml">
-                ${doenetML}
-            </script>
-        </div>
-    </body>
-    </html>
-    `;
+export function DoenetEditor({
+    doenetML,
+    standaloneUrl: specifiedStandaloneUrl,
+    cssUrl: specifiedCssUrl,
+    doenetmlVersion: specifiedDoenetmlVersion,
+    width = "100%",
+    height = "500px",
+    autodetectVersion = true,
+    ...doenetEditorProps
+}: DoenetEditorIframeProps) {
+    const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
+    const ref = React.useRef<HTMLIFrameElement>(null);
+    const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
+        React.useState(false);
+    const [initialErrors, setInitialErrors] = React.useState<
+        ErrorDescription[]
+    >([]);
+
+    // Augment the DoenetEditor props by adding any initialErrors found
+    const augmentedDoenetEditorProps = { ...doenetEditorProps };
+    if (augmentedDoenetEditorProps.initialErrors) {
+        augmentedDoenetEditorProps.initialErrors = [
+            ...augmentedDoenetEditorProps.initialErrors,
+            ...initialErrors,
+        ];
+    } else {
+        augmentedDoenetEditorProps.initialErrors = initialErrors;
+    }
+
+    let standaloneUrl: string, cssUrl: string;
+    let foundAutoVersion = false;
+    let detectedVersion, detectedDoenetMLrange;
+
+    if (autodetectVersion && !ignoreDetectedVersion) {
+        let result = detectVersionFromDoenetML(doenetML);
+        if (result.version !== undefined) {
+            foundAutoVersion = true;
+            detectedVersion = result.version;
+            detectedDoenetMLrange = result.doenetMLrange;
+        }
+    }
+
+    let selectedDoenetmlVersion =
+        detectedVersion ?? specifiedDoenetmlVersion ?? latestDoenetmlVersion;
+
+    if (specifiedStandaloneUrl && !foundAutoVersion) {
+        standaloneUrl = specifiedStandaloneUrl;
+    } else {
+        standaloneUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/doenet-standalone.js`;
+    }
+    if (specifiedCssUrl && !foundAutoVersion) {
+        cssUrl = specifiedCssUrl;
+    } else {
+        cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/style.css`;
+    }
+
+    React.useEffect(() => {
+        const listener = (event: MessageEvent<IframeMessage>) => {
+            if (
+                event.origin !== window.location.origin ||
+                event.data?.origin !== id
+            ) {
+                return;
+            }
+
+            const data = event.data.data;
+
+            if (data.error) {
+                //@ts-ignore
+                return setInErrorState(data.error);
+            }
+
+            switch (data.callback) {
+                case "doenetmlChangeCallback": {
+                    return doenetEditorProps.doenetmlChangeCallback?.(
+                        data.args,
+                    );
+                }
+                case "immediateDoenetmlChangeCallback": {
+                    return doenetEditorProps.immediateDoenetmlChangeCallback?.(
+                        data.args,
+                    );
+                }
+            }
+        };
+        if (ref.current) {
+            window.addEventListener("message", listener);
+        }
+
+        return () => {
+            window.removeEventListener("message", listener);
+        };
+    }, []);
+
+    if (inErrorState) {
+        if (foundAutoVersion) {
+            setIgnoreDetectedVersion(true);
+            setInErrorState("");
+            let message = `DoenetML version ${detectedVersion} not found.`;
+            if (!specifiedStandaloneUrl) {
+                message += ` Falling back to version ${specifiedDoenetmlVersion ?? latestDoenetmlVersion}`;
+            }
+
+            // add line number to the doenetML range of the error
+            let allNewlines = findAllNewlines(doenetML);
+            Object.assign(
+                detectedDoenetMLrange!,
+                getLineCharRange(detectedDoenetMLrange!, allNewlines),
+            );
+
+            setInitialErrors([
+                { doenetMLrange: detectedDoenetMLrange!, message },
+            ]);
+            return null;
+        }
+
+        let errorIcon = (
+            <span style={{ fontSize: "1em", color: "#C1292E" }}>
+                <FontAwesomeIcon icon={faExclamationCircle} />
+            </span>
+        );
+        return (
+            <div
+                style={{
+                    fontSize: "1.3em",
+                    marginLeft: "20px",
+                    marginTop: "20px",
+                }}
+            >
+                {errorIcon} {inErrorState}
+            </div>
+        );
+    }
+
+    return (
+        <iframe
+            ref={ref}
+            srcDoc={createHtmlForDoenetEditor(
+                id,
+                doenetML,
+                width,
+                augmentedDoenetEditorProps,
+                standaloneUrl,
+                cssUrl,
+            )}
+            style={{
+                width,
+                boxSizing: "content-box",
+                overflow: "hidden",
+                border: "none",
+                height,
+            }}
+        />
+    );
 }

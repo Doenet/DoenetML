@@ -1,10 +1,4 @@
 import { defineConfig } from "vite";
-import { viteStaticCopy } from "vite-plugin-static-copy";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
-// These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = [];
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,11 +8,11 @@ export default defineConfig({
         minify: false,
         sourcemap: false,
         assetsInlineLimit: 0,
-        outDir: "dist/iframe",
+        outDir: "dist/iframe-editor",
         lib: {
-            entry: { "iframe-index": "./src/iframe-index.ts" },
-            fileName: "iframe-index",
-            name: "doenetIframe",
+            entry: { "iframe-editor-index": "./src/iframe-editor-index.ts" },
+            fileName: "iframe-editor-index",
+            name: "doenetEditorIframe",
             formats: ["iife"],
         },
         rollupOptions: {

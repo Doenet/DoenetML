@@ -21,6 +21,7 @@ export default defineConfig({
                         targetDir: "dist/component",
                     }),
                 },
+                { src: "README.md", dest: "./" },
             ],
         }),
     ],
@@ -45,5 +46,6 @@ export default defineConfig({
     },
     define: {
         "process.env.NODE_ENV": '"production"',
+        IFRAME_VERSION: JSON.stringify(process.env.npm_package_version),
     },
 });

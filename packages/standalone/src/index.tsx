@@ -5,18 +5,24 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { DoenetML } from "@doenet/doenetml/doenetml-inline-worker.js";
+import {
+    DoenetViewer,
+    DoenetEditor,
+} from "@doenet/doenetml/doenetml-inline-worker.js";
 import "@doenet/doenetml/style.css";
+import { nanoid } from "nanoid";
 
 // Re-export React and friends in case a user really wants to use them
-export { React, ReactDOM, DoenetML };
+export { React, ReactDOM, DoenetViewer, DoenetEditor };
+
+export const version: string = STANDALONE_VERSION;
 
 /**
- * Render DoenetML to a container element. If `doenetMLSource` is not provided,
+ * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which
  * stores the source.
  */
-export function renderDoenetToContainer(
+export function renderDoenetViewerToContainer(
     container: Element,
     doenetMLSource?: string,
     config?: object,
@@ -36,7 +42,7 @@ export function renderDoenetToContainer(
         doenetMLSource = doenetMLScript.innerHTML;
     }
     // We read off all the flags from data attributes on the container element
-    const attrs: Record<string, boolean> = {};
+    const attrs: Record<string, any> = {};
     for (const attr of container.attributes) {
         if (!attr.name.startsWith("data-doenet")) {
             continue;
@@ -50,12 +56,56 @@ export function renderDoenetToContainer(
     let { addVirtualKeyboard, ...rest } = attrs;
 
     ReactDOM.createRoot(container).render(
-        <DoenetML
+        <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
             flags={rest}
             {...config}
         />,
+    );
+}
+
+/**
+ * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
+ * it is assumed that `container` has a `<script type="text/doenetml">` child which
+ * stores the source.
+ */
+export function renderDoenetEditorToContainer(
+    container: Element,
+    doenetMLSource?: string,
+    config?: object,
+) {
+    if (!(container instanceof Element)) {
+        throw new Error("Container must be an DOM element");
+    }
+    if (!doenetMLSource) {
+        const doenetMLScript = container.querySelector(
+            'script[type="text/doenetml"]',
+        );
+        if (!doenetMLScript) {
+            throw new Error(
+                'If doenetMlSource is not provided, a <script type="text/doenetml"> child containing the DoenetML source code must be present',
+            );
+        }
+        doenetMLSource = doenetMLScript.innerHTML;
+    }
+
+    // We read off data attributes on the container element
+    const attrs: Record<string, any> = {};
+    for (const attr of container.attributes) {
+        if (!attr.name.startsWith("data-doenet")) {
+            continue;
+        }
+        const name = kebobCaseToCamelCase(
+            attr.name.replace(/^data-doenet-/, ""),
+        );
+
+        const value = normalizeBooleanAttr(attr.value);
+        attrs[name] = value;
+    }
+
+    ReactDOM.createRoot(container).render(
+        <DoenetEditor doenetML={doenetMLSource} {...attrs} {...config} />,
     );
 }
 
@@ -66,13 +116,15 @@ function normalizeBooleanAttr(attr: string | undefined | null) {
     if (attr === "false") {
         return false;
     }
-    return Boolean(attr);
+    return attr;
 }
 
 function kebobCaseToCamelCase(str: string) {
     return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// Expose renderDoenetToContainer on the global object
+// Expose renderDoenetViewerToContainer and renderDoenetEditorToContainer on the global object
 // @ts-ignore
-window.renderDoenetToContainer = renderDoenetToContainer;
+window.renderDoenetViewerToContainer = renderDoenetViewerToContainer;
+// @ts-ignore
+window.renderDoenetEditorToContainer = renderDoenetEditorToContainer;

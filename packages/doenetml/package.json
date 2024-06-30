@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.0-alpha7",
+    "version": "0.7.0-alpha14",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -12,8 +12,8 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/doenetml.js",
-            "require": "./dist/doenetml.js"
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
         },
         "./*": {
             "import": "./dist/*",
@@ -74,6 +74,7 @@
         "crypto-js": "^4.2.0",
         "cssesc": "^3.0.0",
         "esm-seedrandom": "^3.0.5",
+        "framer-motion": "^11.2.11",
         "handsontable": "^12.4.0",
         "hi-base32": "^0.5.1",
         "hyperformula": "^2.5.0",
@@ -94,7 +95,6 @@
         "recoil": "^0.7.7",
         "styled-components": "^5.3.11"
     },
-    "devDependencies": {},
     "prettier": {
         "tabWidth": 4
     }

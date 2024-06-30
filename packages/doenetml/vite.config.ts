@@ -39,6 +39,9 @@ export default defineConfig({
             ],
         }),
     ],
+    define: {
+        DOENETML_VERSION: JSON.stringify(process.env.npm_package_version),
+    },
     server: {
         port: 8012,
     },
@@ -46,8 +49,8 @@ export default defineConfig({
         minify: false,
         lib: {
             entry: {
-                doenetml: "./src/index.js",
-                "doenetml-inline-worker": "./src/index-inline-worker.ts",
+                index: "./src/index.ts",
+                "doenetml-inline-worker": "./src/doenetml-inline-worker.ts",
             },
             formats: ["es"],
         },

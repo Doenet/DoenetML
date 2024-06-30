@@ -1,4 +1,4 @@
-export { DoenetML } from "./doenetml";
+export { DoenetViewer, DoenetEditor } from "./doenetml";
 
 export {
     mathjaxConfig,
@@ -8,13 +8,13 @@ export {
     serializedComponentsReviver,
     // returnAllPossibleVariants,
 } from "@doenet/utils";
+export type { ErrorDescription, WarningDescription } from "@doenet/utils";
 export {
     calculateOrderAndVariants,
     determineNumberOfActivityVariants,
     parseActivityDefinition,
     returnNumberOfActivityVariantsForCid,
 } from "./utils/activityUtils";
-export { doenetSchema } from "@doenet/static-assets";
 
 export { CodeMirror } from "@doenet/codemirror";
 export { parseAndCompile } from "@doenet/parser";

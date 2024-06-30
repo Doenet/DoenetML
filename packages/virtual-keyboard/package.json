@@ -33,11 +33,14 @@
             "files": [
                 "src/**/*.ts",
                 "src/**/*.tsx",
+                "src/**/*.css",
                 "tsconfig.json",
+                "tailwind.config.js",
                 "vite.config.ts"
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
             ]
