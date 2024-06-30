@@ -6,6 +6,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
+import { version } from "./package.json";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom", "styled-components"];
@@ -40,7 +41,7 @@ export default defineConfig({
         }),
     ],
     define: {
-        DOENETML_VERSION: JSON.stringify(process.env.npm_package_version),
+        DOENETML_VERSION: JSON.stringify(version),
     },
     server: {
         port: 8012,
