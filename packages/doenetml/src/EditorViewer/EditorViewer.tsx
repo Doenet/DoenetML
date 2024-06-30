@@ -20,13 +20,13 @@ import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { ActivityViewer } from "../Viewer/ActivityViewer";
 import ErrorWarningPopovers from "./ErrorWarningPopovers";
-import { WarningDescription, ErrorDescription } from "@doenet/utils";
+import type { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
-    activityId = "",
+    activityId: specifiedActivityId,
     paginate = false,
     location = {},
     navigate,
@@ -47,6 +47,8 @@ export function EditorViewer({
     showFormatter = true,
     showErrorsWarnings = true,
     border = "1px solid",
+    initialErrors = [],
+    initialWarnings = [],
 }: {
     doenetML: string;
     activityId?: string;
@@ -70,6 +72,8 @@ export function EditorViewer({
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
     border?: string;
+    initialErrors?: ErrorDescription[];
+    initialWarnings?: WarningDescription[];
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -79,7 +83,8 @@ export function EditorViewer({
         platform = "Mac";
     }
 
-    const [id, setId] = useState(specifiedId ?? "editor" + nanoid(10));
+    const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
+    const [activityId, setActivityId] = useState(specifiedActivityId ?? id);
 
     const [codeChanged, setCodeChanged] = useState(false);
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function
@@ -112,10 +117,11 @@ export function EditorViewer({
     });
 
     const warningsLevel = 1; //TODO: eventually give user ability adjust warning level filter
-    const warningsObjs = errorsAndWarnings.warnings.filter(
-        (w) => w.level <= warningsLevel,
-    );
-    const errorsObjs = [...errorsAndWarnings.errors];
+    const warningsObjs = [
+        ...initialWarnings,
+        ...errorsAndWarnings.warnings.filter((w) => w.level <= warningsLevel),
+    ];
+    const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
     useEffect(() => {
         setEditorDoenetML(initialDoenetML);
@@ -287,8 +293,8 @@ export function EditorViewer({
             width="100%"
             height="100%"
             templateAreas={`"editor"
-                                "errorWarnings"
-                                "formatter"`}
+                            "errorWarnings"
+                            "formatter"`}
             gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
             gridTemplateColumns={`1fr`}
             boxSizing="border-box"
