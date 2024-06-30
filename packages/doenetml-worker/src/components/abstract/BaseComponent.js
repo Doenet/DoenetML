@@ -1097,6 +1097,40 @@ export default class BaseComponent {
                                     .numDimensions,
                             );
                     }
+                    let numDim =
+                        stateVariableDescriptions[varName].numDimensions;
+                    if (theStateDef.arrayVarNameFromPropIndex) {
+                        stateVariableDescriptions[
+                            varName
+                        ].arrayVarNameFromPropIndex =
+                            theStateDef.arrayVarNameFromPropIndex;
+                    } else if (numDim > 1) {
+                        stateVariableDescriptions[
+                            varName
+                        ].arrayVarNameFromPropIndex = function (
+                            propIndex,
+                            varName,
+                        ) {
+                            return (
+                                entryPrefixes[0] +
+                                [
+                                    ...propIndex.map((x) =>
+                                        Math.round(Number(x)),
+                                    ),
+                                    ...Array(numDim - propIndex.length).fill(1),
+                                ].join("_")
+                            );
+                        };
+                    } else {
+                        stateVariableDescriptions[
+                            varName
+                        ].arrayVarNameFromPropIndex = function (
+                            propIndex,
+                            varName,
+                        ) {
+                            return entryPrefixes[0] + propIndex[0];
+                        };
+                    }
                 }
             }
         }
