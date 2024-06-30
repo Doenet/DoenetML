@@ -63,7 +63,7 @@ export default function MathInput(props) {
     const [focused, setFocused] = useState(null);
     const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
 
-    const lastKeyboardAccessTime = useRef(0);
+    const lastBlurTime = useRef(0);
     const keyboardCausedBlur = useRef(false);
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
@@ -106,7 +106,14 @@ export default function MathInput(props) {
     };
 
     const handleVirtualKeyboardClick = ({ type, command, timestamp }) => {
-        lastKeyboardAccessTime.current = timestamp;
+        if (type == "accessed") {
+            // If the keyboard access was immediately preceded by the blur of this mathInput,
+            // then the blur was likely caused by clicking on the keyboard.
+            // (Now that the keyboard is in an iframe,
+            // the mousedown event on the keyboard seems to be processed after the blur event.)
+            keyboardCausedBlur.current =
+                Math.abs(lastBlurTime.current - new Date()) < 100;
+        }
 
         if (!mathField || !keyboardCausedBlur.current) {
             return;
@@ -160,14 +167,9 @@ export default function MathInput(props) {
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
         });
-        // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
         setFocused(false);
 
-        // If the keyboard blur was immediately preceded by a keyboard access,
-        // then the blur was likely caused by clicking on the keyboard.
-        // (The mousedown event on the keyboard seems to be processed before the blur event.)
-        keyboardCausedBlur.current =
-            Math.abs(lastKeyboardAccessTime.current - new Date()) < 100;
+        lastBlurTime.current = +new Date();
     };
 
     const onChangeHandler = (text) => {

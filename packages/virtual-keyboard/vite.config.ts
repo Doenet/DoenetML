@@ -20,6 +20,7 @@ export default defineConfig({
             external: [
                 "react",
                 "react-dom",
+                "react-dom/client",
                 "styled-components",
                 "recoil",
                 "@chakra-ui/react",

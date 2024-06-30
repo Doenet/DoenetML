@@ -20,6 +20,9 @@ const latestDoenetmlVersion: string = version;
 export { mathjaxConfig } from "@doenet/utils";
 export type { ErrorDescription, WarningDescription };
 
+import { OutsideIframeKeyboard } from "@doenet/virtual-keyboard";
+import "@doenet/virtual-keyboard/style.css";
+
 /**
  * A message that is sent from an iframe to the parent window.
  */
@@ -244,24 +247,27 @@ export function DoenetViewer({
     }
 
     return (
-        <iframe
-            ref={ref}
-            srcDoc={createHtmlForDoenetViewer(
-                id,
-                doenetML,
-                doenetViewerProps,
-                standaloneUrl,
-                cssUrl,
-            )}
-            style={{
-                width: "100%",
-                boxSizing: "border-box",
-                overflow: "hidden",
-                border: "none",
-                minHeight: 200,
-            }}
-            height={height}
-        />
+        <React.Fragment>
+            <OutsideIframeKeyboard />
+            <iframe
+                ref={ref}
+                srcDoc={createHtmlForDoenetViewer(
+                    id,
+                    doenetML,
+                    doenetViewerProps,
+                    standaloneUrl,
+                    cssUrl,
+                )}
+                style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    overflow: "hidden",
+                    border: "none",
+                    minHeight: 200,
+                }}
+                height={height}
+            />
+        </React.Fragment>
     );
 }
 
@@ -410,23 +416,26 @@ export function DoenetEditor({
     }
 
     return (
-        <iframe
-            ref={ref}
-            srcDoc={createHtmlForDoenetEditor(
-                id,
-                doenetML,
-                width,
-                augmentedDoenetEditorProps,
-                standaloneUrl,
-                cssUrl,
-            )}
-            style={{
-                width,
-                boxSizing: "content-box",
-                overflow: "hidden",
-                border: "none",
-                height,
-            }}
-        />
+        <React.Fragment>
+            <OutsideIframeKeyboard />
+            <iframe
+                ref={ref}
+                srcDoc={createHtmlForDoenetEditor(
+                    id,
+                    doenetML,
+                    width,
+                    augmentedDoenetEditorProps,
+                    standaloneUrl,
+                    cssUrl,
+                )}
+                style={{
+                    width,
+                    boxSizing: "content-box",
+                    overflow: "hidden",
+                    border: "none",
+                    height,
+                }}
+            />
+        </React.Fragment>
     );
 }
