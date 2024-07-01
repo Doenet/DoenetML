@@ -55,11 +55,6 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
      * overwriting any doenetmlVersion or urls provided
      */
     autodetectVersion?: boolean;
-    /**
-     * Added to remove the scrollableContainer attribute from DoenetViewerProps
-     * that will be stringified (as it has circular structure)
-     */
-    scrollableContainer?: any;
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
@@ -110,7 +105,6 @@ export function DoenetViewer({
     cssUrl: specifiedCssUrl,
     doenetmlVersion: specifiedDoenetmlVersion,
     autodetectVersion = true,
-    scrollableContainer: _scrollableContainer,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));

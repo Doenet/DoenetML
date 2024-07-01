@@ -9,6 +9,7 @@ import { mathjaxConfig } from "@doenet/utils";
 import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
+import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
 
@@ -117,6 +118,7 @@ export function DoenetViewer({
     forceShowSolution = false,
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
+    keyboardIsOutsideIframe = false,
     addBottomPadding = false,
     location,
     navigate,
@@ -153,6 +155,7 @@ export function DoenetViewer({
     forceShowSolution?: boolean;
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
+    keyboardIsOutsideIframe?: boolean;
     addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
@@ -248,7 +251,9 @@ export function DoenetViewer({
         }
     }
 
-    const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
+    const keyboard = addVirtualKeyboard ? (
+        <VirtualKeyboard keyboardIsOutsideIframe={keyboardIsOutsideIframe} />
+    ) : null;
 
     const viewer = (
         <ActivityViewer
@@ -311,6 +316,7 @@ export function DoenetEditor({
     activityId,
     paginate = false,
     addVirtualKeyboard = true,
+    keyboardIsOutsideIframe = false,
     addBottomPadding = false,
     location,
     navigate,
@@ -337,6 +343,7 @@ export function DoenetEditor({
     activityId?: string;
     paginate?: boolean;
     addVirtualKeyboard?: boolean;
+    keyboardIsOutsideIframe?: boolean;
     addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
@@ -359,7 +366,9 @@ export function DoenetEditor({
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
 }) {
-    const keyboard = addVirtualKeyboard ? <VirtualKeyboard /> : null;
+    const keyboard = addVirtualKeyboard ? (
+        <VirtualKeyboard keyboardIsOutsideIframe={keyboardIsOutsideIframe} />
+    ) : null;
 
     const editor = (
         <EditorViewer

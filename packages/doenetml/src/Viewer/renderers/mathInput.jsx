@@ -63,6 +63,7 @@ export default function MathInput(props) {
     const [focused, setFocused] = useState(null);
     const textareaRef = useRef(null); // Ref to keep track of the mathInput's disabled state
 
+    const lastKeyboardAccessTime = useRef(0);
     const lastBlurTime = useRef(0);
     const keyboardCausedBlur = useRef(false);
 
@@ -107,12 +108,21 @@ export default function MathInput(props) {
 
     const handleVirtualKeyboardClick = ({ type, command, timestamp }) => {
         if (type == "accessed") {
-            // If the keyboard access was immediately preceded by the blur of this mathInput,
-            // then the blur was likely caused by clicking on the keyboard.
-            // (Now that the keyboard is in an iframe,
-            // the mousedown event on the keyboard seems to be processed after the blur event.)
-            keyboardCausedBlur.current =
-                Math.abs(lastBlurTime.current - new Date()) < 100;
+            // record the time the keyboard was accessed
+            lastKeyboardAccessTime.current = timestamp;
+
+            // If there was a blur immediately preceding the keyboard access,
+            // we conclude that the blur was caused by the keyboard access.
+            // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
+            // after the initial blur.
+            if (
+                Math.abs(
+                    lastKeyboardAccessTime.current - lastBlurTime.current,
+                ) < 100
+            ) {
+                keyboardCausedBlur.current = true;
+            }
+            return;
         }
 
         if (!mathField || !keyboardCausedBlur.current) {
@@ -170,6 +180,14 @@ export default function MathInput(props) {
         setFocused(false);
 
         lastBlurTime.current = +new Date();
+
+        // If the blur was immediately preceded by a keyboard access,
+        // we conclude that the blur was caused by the keyboard access.
+        // If not, we currently indicate the blur was not caused by a keyboard access,
+        // though we'll also check if there is a keyboard access following the blur.
+        keyboardCausedBlur.current =
+            Math.abs(lastKeyboardAccessTime.current - lastBlurTime.current) <
+            100;
     };
 
     const onChangeHandler = (text) => {
