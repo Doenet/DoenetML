@@ -523,9 +523,8 @@ export default class Core {
     postErrorWarnings() {
         // keep only the last warnings
         let warningLimit = 1000;
-        this.errorWarnings.warnings = this.errorWarnings.warnings.slice(
-            -warningLimit,
-        );
+        this.errorWarnings.warnings =
+            this.errorWarnings.warnings.slice(-warningLimit);
 
         for (let errorWarning of [
             ...this.errorWarnings.errors,
@@ -6781,9 +6780,8 @@ export default class Core {
                             component.state[varName].usedDefaultByArrayKey[
                                 arrayKey
                             ] = false;
-                            valuesChanged[varName].arrayKeysChanged[
-                                arrayKey
-                            ] = true;
+                            valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                                true;
                         }
                     } else {
                         component.state[varName].setArrayValue({
@@ -6794,9 +6792,8 @@ export default class Core {
                         component.state[varName].usedDefaultByArrayKey[
                             arrayKey
                         ] = false;
-                        valuesChanged[varName].arrayKeysChanged[
-                            arrayKey
-                        ] = true;
+                        valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                            true;
                     }
                 }
             } else {
@@ -6987,14 +6984,12 @@ export default class Core {
                             arrayKey,
                         });
                         if (newValue !== prevValue) {
-                            valuesChanged[varName].arrayKeysChanged[
-                                arrayKey
-                            ] = true;
+                            valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                                true;
                         }
                     } else {
-                        valuesChanged[varName].arrayKeysChanged[
-                            arrayKey
-                        ] = true;
+                        valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                            true;
                     }
                 }
             } else {

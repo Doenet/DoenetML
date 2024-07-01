@@ -7,16 +7,20 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { focusedMathField } from "./MathInputSelector";
 import { VirtualKeyboard } from "./virtual-keyboard";
-import { RecoilRoot, useSetRecoilState } from "recoil";
+import { RecoilRoot, useSetRecoilState, useRecoilValue } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
+import { ManagedKeyboard } from "./virtual-keyboard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <ChakraProvider>
-        <RecoilRoot>
-            <App />
-        </RecoilRoot>
-    </ChakraProvider>,
+    <React.Fragment>
+        <ManagedKeyboard onClick={(e) => console.log("keyboard event", e)} />
+        <ChakraProvider>
+            <RecoilRoot>
+                <App />
+            </RecoilRoot>
+        </ChakraProvider>
+    </React.Fragment>,
 );
 
 function App() {
@@ -35,7 +39,7 @@ function App() {
             <p>
                 Last command received from the VirtualKeyboard:{" "}
                 <code style={{ fontWeight: "bold", color: "#f8a" }}>
-                    {lastCommand}
+                    {JSON.stringify(lastCommand)}
                 </code>
             </p>
             <textarea

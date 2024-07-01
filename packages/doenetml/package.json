@@ -108,7 +108,6 @@
         "eslint-plugin-react": "^7.33.2",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-react-refresh": "^0.3.5",
-        "prettier": "^3.0.3",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "rollup-plugin-polyfill-node": "^0.12.0",

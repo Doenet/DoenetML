@@ -94,9 +94,8 @@ export function postProcessCopy({
                         ][0].firstLevelReplacement = true;
                     }
                     if (markAsPrimaryShadow) {
-                        downDep[
-                            component.originalName
-                        ][0].isPrimaryShadow = true;
+                        downDep[component.originalName][0].isPrimaryShadow =
+                            true;
                     }
                     if (component.state) {
                         let stateVariables = Object.keys(component.state);
