@@ -3,6 +3,7 @@ import { sizeToCSS } from "./utils/css";
 import useDoenetRenderer from "../useDoenetRenderer";
 import me from "math-expressions";
 import VisibilitySensor from "react-visibility-sensor-v2";
+//@ts-ignore
 import JXG from "./jsxgraph-distrib/jsxgraphcore.mjs";
 // import JXG from './jsxgraph';
 import { cesc } from "@doenet/utils";
