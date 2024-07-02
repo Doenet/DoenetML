@@ -5,6 +5,12 @@
         "rootDir": "./src"
     },
     "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
-    "exclude": ["vite.config.ts"],
+    "exclude": [
+        "vite.config.ts",
+        "node_modules",
+        "runner-results",
+        ".wireit",
+        "**/dist/**/*"
+    ],
     "references": []
 }

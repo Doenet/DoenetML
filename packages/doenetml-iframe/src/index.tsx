@@ -20,6 +20,9 @@ const latestDoenetmlVersion: string = version;
 export { mathjaxConfig } from "@doenet/utils";
 export type { ErrorDescription, WarningDescription };
 
+import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
+import "@doenet/virtual-keyboard/style.css";
+
 /**
  * A message that is sent from an iframe to the parent window.
  */
@@ -52,11 +55,6 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
      * overwriting any doenetmlVersion or urls provided
      */
     autodetectVersion?: boolean;
-    /**
-     * Added to remove the scrollableContainer attribute from DoenetViewerProps
-     * that will be stringified (as it has circular structure)
-     */
-    scrollableContainer?: any;
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
@@ -107,7 +105,6 @@ export function DoenetViewer({
     cssUrl: specifiedCssUrl,
     doenetmlVersion: specifiedDoenetmlVersion,
     autodetectVersion = true,
-    scrollableContainer: _scrollableContainer,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
@@ -244,24 +241,27 @@ export function DoenetViewer({
     }
 
     return (
-        <iframe
-            ref={ref}
-            srcDoc={createHtmlForDoenetViewer(
-                id,
-                doenetML,
-                doenetViewerProps,
-                standaloneUrl,
-                cssUrl,
-            )}
-            style={{
-                width: "100%",
-                boxSizing: "border-box",
-                overflow: "hidden",
-                border: "none",
-                minHeight: 200,
-            }}
-            height={height}
-        />
+        <React.Fragment>
+            <ExternalVirtualKeyboard />
+            <iframe
+                ref={ref}
+                srcDoc={createHtmlForDoenetViewer(
+                    id,
+                    doenetML,
+                    doenetViewerProps,
+                    standaloneUrl,
+                    cssUrl,
+                )}
+                style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    overflow: "hidden",
+                    border: "none",
+                    minHeight: 200,
+                }}
+                height={height}
+            />
+        </React.Fragment>
     );
 }
 
@@ -410,23 +410,26 @@ export function DoenetEditor({
     }
 
     return (
-        <iframe
-            ref={ref}
-            srcDoc={createHtmlForDoenetEditor(
-                id,
-                doenetML,
-                width,
-                augmentedDoenetEditorProps,
-                standaloneUrl,
-                cssUrl,
-            )}
-            style={{
-                width,
-                boxSizing: "content-box",
-                overflow: "hidden",
-                border: "none",
-                height,
-            }}
-        />
+        <React.Fragment>
+            <ExternalVirtualKeyboard />
+            <iframe
+                ref={ref}
+                srcDoc={createHtmlForDoenetEditor(
+                    id,
+                    doenetML,
+                    width,
+                    augmentedDoenetEditorProps,
+                    standaloneUrl,
+                    cssUrl,
+                )}
+                style={{
+                    width,
+                    boxSizing: "content-box",
+                    overflow: "hidden",
+                    border: "none",
+                    height,
+                }}
+            />
+        </React.Fragment>
     );
 }

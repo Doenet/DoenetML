@@ -31,57 +31,32 @@ function App() {
 
     return (
         <React.Fragment>
-            <h4>DoenetML {DOENET_LEGACY_VERSION}:</h4>
-
-            <DoenetViewer
-                doenetML={`<p>Use this to test DoenetML</p>
-                <graph showNavigation="false">
-
-                  <line through="(-8,8) (9,6)" />
-                  <line through="(0,4)" slope="1/2" styleNumber="2" />
-
-                  <line equation="y=2x-8" styleNumber="3" />
-                  <line equation="x=-6" styleNumber="4" />
-
-                </graph>`}
-                doenetmlVersion={DOENET_LEGACY_VERSION}
-            />
             <h4>DoenetML {STANDALONE_VERSION} (locally-built copy):</h4>
             <DoenetViewer
-                doenetML={`<p>Use this to test DoenetML</p>
-                <graph showNavigation="false">
-
-                  <line through="(-8,8) (9,6)" />
-                  <line through="(0,4)" slope="1/2" styleNumber="2" />
-
-                  <line equation="y=2x-8" styleNumber="3" />
-                  <line equation="x=-6" styleNumber="4" />
-
-                </graph>`}
+                doenetML={`<mathInput /><p><mathInput />Use this to test DoenetML<mathInput /></p>
+                <graph />
+                <graph />
+                <graph />
+               <mathInput />`}
                 generatedVariantCallback={(variant: any) =>
                     console.log("found variant", variant)
                 }
-                flags={{ readOnly: true }}
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
             />
-            <h4>DoenetML {STANDALONE_VERSION} (locally-built copy) editor:</h4>
-            <DoenetEditor
-                doenetML={`<p>Use this to test DoenetML</p>
-                <graph showNavigation="false">
 
-                  <line through="(-8,8) (9,6)" />
-                  <line through="(0,4)" slope="1/2" styleNumber="2" />
-
-                  <line equation="y=2x-8" styleNumber="3" />
-                  <line equation="x=-6" styleNumber="4" />
-
-                </graph>`}
+            <h4>DoenetML {STANDALONE_VERSION} (locally-built copy):</h4>
+            <DoenetViewer
+                doenetML={`<mathInput /><p><mathInput />Use this to test DoenetML<mathInput /></p>
+                <graph />
+                <graph />
+                <graph />
+               <mathInput />`}
+                generatedVariantCallback={(variant: any) =>
+                    console.log("found variant", variant)
+                }
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
-                doenetmlChangeCallback={(doenetml: any) =>
-                    console.log("new doenetml", doenetml)
-                }
             />
         </React.Fragment>
     );

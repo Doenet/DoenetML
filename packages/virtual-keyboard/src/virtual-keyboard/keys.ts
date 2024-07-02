@@ -23,7 +23,7 @@ export const TEX_NAMES_LOWER = [
     "upsilon",
     "theta",
     "iota",
-    "omicron",
+    null,
     "pi",
     "alpha",
     "sigma",
@@ -92,7 +92,12 @@ export const KEYS = {
     greek_lower: [..."ϕ𝜍ερτυθιοπασδφγηξκλζχψωβνμ,'"].map((c, i) => ({
         displayName: c,
         name: c,
-        commands: [{ type: "write", command: `\\${TEX_NAMES_LOWER[i]}` }],
+        commands: [
+            {
+                type: "write",
+                command: TEX_NAMES_LOWER[i] ? `\\${TEX_NAMES_LOWER[i]}` : c,
+            },
+        ],
     })),
     // upper-case greek letters in QWERTY order
     greek_upper: [..."ΦΣΕΡΤΥΘΙΟΠΑΣΔΦΓΗΞΚΛΖΧΨΩΒΝΜ,'"].map((c, i) => ({
@@ -147,7 +152,7 @@ export const OPERATOR_KEYS = {
     times: {
         displayName: "×",
         name: "times",
-        commands: [{ type: "type", command: "\\times" }],
+        commands: [{ type: "write", command: "\\times" }],
     },
     divide: {
         displayName: "÷",
@@ -353,12 +358,12 @@ export const OTHER_SYMBOLS = {
     langle: {
         displayName: "⟨",
         name: "langle",
-        commands: [{ type: "write", command: "\\langle" }],
+        commands: [{ type: "cmd", command: "\\langle" }],
     },
     rangle: {
         displayName: "⟩",
         name: "rangle",
-        commands: [{ type: "write", command: "\\rangle" }],
+        commands: [{ type: "cmd", command: "\\rangle" }],
     },
     cdot: {
         displayName: "⋅",
@@ -373,7 +378,7 @@ export const OTHER_SYMBOLS = {
     conj: {
         displayName: "a\u0304",
         name: "conj",
-        commands: [{ type: "write", command: "overline{a}" }],
+        commands: [{ type: "cmd", command: "\\overline" }],
     },
     perp: {
         displayName: "⊥",
@@ -539,12 +544,12 @@ export const FUNCTION_KEYS = {
     nPr: {
         displayName: "nPr",
         name: "nPr",
-        commands: [{ type: "write", command: "nPr(" }],
+        commands: [{ type: "type", command: "nPr(" }],
     },
     nCr: {
         displayName: "nCr",
         name: "nCr",
-        commands: [{ type: "write", command: "nCr(" }],
+        commands: [{ type: "type", command: "nCr(" }],
     },
     factorial: {
         displayName: "n!",
