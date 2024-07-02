@@ -20,7 +20,7 @@ const latestDoenetmlVersion: string = version;
 export { mathjaxConfig } from "@doenet/utils";
 export type { ErrorDescription, WarningDescription };
 
-import { OutsideIframeKeyboard } from "@doenet/virtual-keyboard";
+import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 
 /**
@@ -242,7 +242,7 @@ export function DoenetViewer({
 
     return (
         <React.Fragment>
-            <OutsideIframeKeyboard />
+            <ExternalVirtualKeyboard />
             <iframe
                 ref={ref}
                 srcDoc={createHtmlForDoenetViewer(
@@ -411,7 +411,7 @@ export function DoenetEditor({
 
     return (
         <React.Fragment>
-            <OutsideIframeKeyboard />
+            <ExternalVirtualKeyboard />
             <iframe
                 ref={ref}
                 srcDoc={createHtmlForDoenetEditor(

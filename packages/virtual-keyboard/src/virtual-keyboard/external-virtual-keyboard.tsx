@@ -14,7 +14,7 @@ export type IframeMessage = {
 /**
  * Virtual keyboard that is connected via Recoil to math elements.
  */
-export function OutsideIframeKeyboard() {
+export function ExternalVirtualKeyboard() {
     return (
         <UniqueKeyboardTray
             onClick={(events) => {

@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
         undefined,
         {
             ...doenetViewerProps,
-            keyboardIsOutsideIframe: true,
+            externalVirtualKeyboardProvided: true,
             // Callbacks have to be explicitly overridden here so that they
             // can message the parent React component (outside the iframe).
             updateCreditAchievedCallback: (args: unknown) => {

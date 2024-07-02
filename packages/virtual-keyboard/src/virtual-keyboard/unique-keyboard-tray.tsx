@@ -3,24 +3,21 @@ import { createRoot, Root } from "react-dom/client";
 import { OnClick } from "./keyboard";
 import { KeyboardTray } from "./keyboard-tray";
 
-let virtualKeyboardState: {
+type VirtualKeyboardState = {
     count: number;
     keyboardDomNode: HTMLElement | null;
     keyboardReactRoot: Root | null;
     callbacks: OnClick[];
 };
 
-if ((window as any).virtualKeyboardState) {
-    virtualKeyboardState = (window as any).virtualKeyboardState;
-} else {
-    virtualKeyboardState = {
-        count: 0,
-        keyboardDomNode: null as HTMLElement | null,
-        keyboardReactRoot: null as Root | null,
-        callbacks: [] as OnClick[],
-    };
-    (window as any).virtualKeyboardState = virtualKeyboardState;
-}
+const virtualKeyboardState: VirtualKeyboardState = (window as any)
+    .virtualKeyboardState || {
+    count: 0,
+    keyboardDomNode: null,
+    keyboardReactRoot: null,
+    callbacks: [],
+};
+(window as any).virtualKeyboardState = virtualKeyboardState;
 
 /**
  * An expandable keyboard tray that is unique among the document. If multiple instances of `UniqueKeyboardTray` are used,

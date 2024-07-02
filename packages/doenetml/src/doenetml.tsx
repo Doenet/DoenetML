@@ -118,7 +118,7 @@ export function DoenetViewer({
     forceShowSolution = false,
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
-    keyboardIsOutsideIframe = false,
+    externalVirtualKeyboardProvided = false,
     addBottomPadding = false,
     location,
     navigate,
@@ -155,7 +155,7 @@ export function DoenetViewer({
     forceShowSolution?: boolean;
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
-    keyboardIsOutsideIframe?: boolean;
+    externalVirtualKeyboardProvided?: boolean;
     addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
@@ -252,7 +252,9 @@ export function DoenetViewer({
     }
 
     const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard keyboardIsOutsideIframe={keyboardIsOutsideIframe} />
+        <VirtualKeyboard
+            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+        />
     ) : null;
 
     const viewer = (
@@ -316,7 +318,7 @@ export function DoenetEditor({
     activityId,
     paginate = false,
     addVirtualKeyboard = true,
-    keyboardIsOutsideIframe = false,
+    externalVirtualKeyboardProvided = false,
     addBottomPadding = false,
     location,
     navigate,
@@ -343,7 +345,7 @@ export function DoenetEditor({
     activityId?: string;
     paginate?: boolean;
     addVirtualKeyboard?: boolean;
-    keyboardIsOutsideIframe?: boolean;
+    externalVirtualKeyboardProvided?: boolean;
     addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
@@ -367,7 +369,9 @@ export function DoenetEditor({
     initialWarnings?: WarningDescription[];
 }) {
     const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard keyboardIsOutsideIframe={keyboardIsOutsideIframe} />
+        <VirtualKeyboard
+            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+        />
     ) : null;
 
     const editor = (

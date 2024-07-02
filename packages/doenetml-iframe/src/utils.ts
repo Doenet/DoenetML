@@ -10,11 +10,11 @@ import { parseAndCompile } from "@doenet/parser";
 
 export type DoenetViewerProps = Omit<
     React.ComponentProps<typeof DoenetViewerOrig>,
-    "doenetML" | "scrollableContainer" | "keyboardIsOutsideIframe"
+    "doenetML" | "scrollableContainer" | "externalVirtualKeyboardProvided"
 >;
 export type DoenetEditorProps = Omit<
     React.ComponentProps<typeof DoenetEditorOrig>,
-    "doenetML" | "width" | "height" | "keyboardIsOutsideIframe"
+    "doenetML" | "width" | "height" | "externalVirtualKeyboardProvided"
 >;
 
 /**
