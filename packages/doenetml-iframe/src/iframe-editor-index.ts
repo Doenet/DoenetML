@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
         undefined,
         {
             ...doenetEditorProps,
+            keyboardIsOutsideIframe: true,
             // Callbacks have to be explicitly overridden here so that they
             // can message the parent React component (outside the iframe).
             doenetmlChangeCallback: (args: unknown) => {

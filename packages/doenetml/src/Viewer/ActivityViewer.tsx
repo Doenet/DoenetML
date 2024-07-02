@@ -749,7 +749,7 @@ export function ActivityViewer({
         // we need to check if the page has a doneetML attribute,
         // and load the doenetML if needed
 
-        let newOrder = [];
+        let newOrder: any[] = [];
 
         for (let page of order) {
             if (page.doenetML === undefined) {
@@ -1177,7 +1177,7 @@ export function ActivityViewer({
     async function submitAllAndFinishAssessment() {
         setProcessingSubmitAll(true);
 
-        let submitAndSavePromises = [];
+        let submitAndSavePromises: Promise<unknown>[] = [];
 
         for (let [
             pageInd,
@@ -1260,7 +1260,7 @@ export function ActivityViewer({
     }
 
     async function terminateAllCores() {
-        let terminatePromises = [];
+        let terminatePromises: Promise<unknown>[] = [];
 
         for (let [
             pageInd,
@@ -1322,7 +1322,7 @@ export function ActivityViewer({
     function collateErrorsAndWarnings() {
         let allErrors = [...errorsActivitySpecific.current];
 
-        let allWarnings = [];
+        let allWarnings: WarningDescription[] = [];
 
         for (let errWarn of errorsAndWarningsByPage.current) {
             if (errWarn) {
@@ -1497,7 +1497,7 @@ export function ActivityViewer({
 
     let title = <h1>{activityDefinition.title}</h1>;
 
-    let pages = [];
+    let pages: React.JSX.Element[] = [];
 
     if (order && variantsByPage) {
         for (let [ind, page] of order.entries()) {
@@ -1603,8 +1603,8 @@ export function ActivityViewer({
         }
     }
 
-    let pageControlsTop = null;
-    let pageControlsBottom = null;
+    let pageControlsTop: React.JSX.Element | null = null;
+    let pageControlsBottom: React.JSX.Element | null = null;
     if (paginate && nPages > 1) {
         pageControlsTop = (
             <div
@@ -1661,7 +1661,7 @@ export function ActivityViewer({
         }
     }
 
-    let finishAssessmentPrompt = null;
+    let finishAssessmentPrompt: React.JSX.Element | null = null;
 
     if (showFinishButton) {
         if (finishAssessmentMessageOpen) {
@@ -1749,19 +1749,19 @@ export function ActivityViewer({
         paddingStyle.paddingBottom = "50vh";
     }
 
-    let activityErrors = null;
+    let activityErrors: React.JSX.Element[] | null = null;
     if (errorsActivitySpecific.current.length > 0) {
         const errorsToDisplay = errorsActivitySpecific.current.filter(
             (x) => x.displayInActivity,
         );
         let errorStyle = {
             backgroundColor: "#ff9999",
-            textAlign: "center",
+            textAlign: "center" as const,
             borderWidth: 3,
             borderStyle: "solid",
         };
         activityErrors = errorsToDisplay.map((err, i) => {
-            let rangeMessage = null;
+            let rangeMessage: React.JSX.Element | null = null;
             if (err.doenetMLrange?.lineBegin !== undefined) {
                 rangeMessage = (
                     <>
