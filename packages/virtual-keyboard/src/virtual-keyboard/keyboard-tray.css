@@ -1,0 +1,79 @@
+/*
+Tailwind base is purposely not included because we want all styles to be prefixed. We manually copy in whatever is needed from tailwind preflight.
+@tailwind base;
+*/
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Some styles from tailwind preflight need to be included here
+ */
+:where(#virtual-keyboard-tray, .virtual-keyboard) {
+    button {
+        -webkit-appearance: button;
+        border-width: 0;
+        border-style: solid;
+        background: transparent;
+        cursor: pointer;
+    }
+}
+
+#virtual-keyboard-tray {
+    /*
+     * Some styles from tailwind preflight need to be included here
+     */
+    box-sizing: border-box;
+    border-stylke: solid;
+    --tw-border-spacing-x: 0;
+    --tw-border-spacing-y: 0;
+    --tw-translate-x: 0;
+    --tw-translate-y: 0;
+    --tw-rotate: 0;
+    --tw-skew-x: 0;
+    --tw-skew-y: 0;
+    --tw-scale-x: 1;
+    --tw-scale-y: 1;
+    --tw-scroll-snap-strictness: proximity;
+    --tw-ring-offset-width: 0px;
+    --tw-ring-offset-color: #fff;
+    --tw-ring-color: rgb(59 130 246 / 0.5);
+    --tw-ring-offset-shadow: 0 0 #0000;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-shadow: 0 0 #0000;
+    --tw-shadow-colored: 0 0 #0000;
+    --tw-border-opacity: 1;
+
+    --keyboard-tray-height: 280px;
+
+    border-top: 1px solid black;
+    @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
+    @apply transition-transform ease-in-out duration-300 translate-y-[100%];
+    min-height: var(--keyboard-tray-height);
+    max-height: calc(100vh - 1.5rem);
+    z-index: 10000;
+    background-color: white;
+
+    .close-keyboard-button {
+        @apply absolute top-0 right-0 m-2 rounded;
+        @apply hover:bg-slate-300 active:bg-slate-400;
+        @apply w-6 h-6 flex items-center justify-center text-2xl;
+    }
+
+    .open-keyboard-button {
+        @apply absolute top-[-1.5rem] left-0 rounded-t ms-4;
+        @apply border-b-black border-b;
+        @apply hover:bg-slate-300 active:bg-slate-400;
+        @apply w-12 h-[1.5rem] flex items-center justify-center;
+    }
+
+    .virtual-keyboard-tab-list {
+        @apply sm:mx-20 mx-5;
+    }
+    .virtual-keyboard {
+        @apply mx-auto;
+    }
+}
+
+#virtual-keyboard-tray.open {
+    @apply translate-y-0;
+}

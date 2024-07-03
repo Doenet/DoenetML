@@ -238,6 +238,8 @@ export default class Core {
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
+        numberAnswers(serializedComponents);
+
         this.componentIndexArray =
             extractComponentNamesAndIndices(serializedComponents);
 
@@ -518,9 +520,8 @@ export default class Core {
     postErrorWarnings() {
         // keep only the last warnings
         let warningLimit = 1000;
-        this.errorWarnings.warnings = this.errorWarnings.warnings.slice(
-            -warningLimit,
-        );
+        this.errorWarnings.warnings =
+            this.errorWarnings.warnings.slice(-warningLimit);
 
         for (let errorWarning of [
             ...this.errorWarnings.errors,
@@ -1178,7 +1179,7 @@ export default class Core {
         }
 
         if (triggeredAction && updateRenderersIfTriggered) {
-            this.updateAllChangedRenderers();
+            await this.updateAllChangedRenderers();
         }
     }
 
@@ -3692,6 +3693,7 @@ export default class Core {
             let stateVarDef = (stateVariableDefinitions[varName] = {
                 isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
+                provideEssentialValuesInDefinition: true,
             });
 
             if (attributeSpecification.public) {
@@ -3786,6 +3788,7 @@ export default class Core {
             stateVarDef.definition = function ({
                 dependencyValues,
                 usedDefault,
+                essentialValues,
             }) {
                 let attributeValue;
                 if (dependencyValues.attributeComponent) {
@@ -3812,7 +3815,11 @@ export default class Core {
                     let haveParentValue =
                         dependencyValues.parentValue !== undefined &&
                         dependencyValues.parentValue !== null;
-                    if (haveParentValue && !usedDefault.parentValue) {
+                    if (
+                        haveParentValue &&
+                        !usedDefault.parentValue &&
+                        essentialValues[varName] === undefined
+                    ) {
                         return {
                             setValue: {
                                 [varName]: dependencyValues.parentValue,
@@ -3847,6 +3854,7 @@ export default class Core {
                     desiredStateVariableValues,
                     dependencyValues,
                     usedDefault,
+                    essentialValues,
                 }) {
                     if (!dependencyValues.attributeComponent) {
                         if (
@@ -3869,7 +3877,11 @@ export default class Core {
                         let haveParentValue =
                             dependencyValues.parentValue !== undefined &&
                             dependencyValues.parentValue !== null;
-                        if (haveParentValue && !usedDefault.parentValue) {
+                        if (
+                            haveParentValue &&
+                            !usedDefault.parentValue &&
+                            essentialValues[varName] === undefined
+                        ) {
                             // value from parent was used, so propagate back to parent
                             return {
                                 success: true,
@@ -4189,6 +4201,7 @@ export default class Core {
             let stateVarDef = (stateVariableDefinitions[varName] = {
                 isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
+                provideEssentialValuesInDefinition: true,
             });
 
             let attributeFromPrimitive =
@@ -4286,6 +4299,7 @@ export default class Core {
             stateVarDef.definition = function ({
                 dependencyValues,
                 usedDefault,
+                essentialValues,
             }) {
                 let attributeValue;
                 if (dependencyValues.attributeComponent) {
@@ -4312,7 +4326,11 @@ export default class Core {
                     let haveParentValue =
                         dependencyValues.parentValue !== undefined &&
                         dependencyValues.parentValue !== null;
-                    if (haveParentValue && !usedDefault.parentValue) {
+                    if (
+                        haveParentValue &&
+                        !usedDefault.parentValue &&
+                        essentialValues[varName] === undefined
+                    ) {
                         return {
                             setValue: {
                                 [varName]: dependencyValues.parentValue,
@@ -4347,6 +4365,7 @@ export default class Core {
                     desiredStateVariableValues,
                     dependencyValues,
                     usedDefault,
+                    essentialValues,
                     stateValues,
                     workspace,
                 }) {
@@ -4371,7 +4390,11 @@ export default class Core {
                         let haveParentValue =
                             dependencyValues.parentValue !== undefined &&
                             dependencyValues.parentValue !== null;
-                        if (haveParentValue && !usedDefault.parentValue) {
+                        if (
+                            haveParentValue &&
+                            !usedDefault.parentValue &&
+                            essentialValues[varName] === undefined
+                        ) {
                             // value from parent was used, so propagate back to parent
                             return {
                                 success: true,
@@ -5925,7 +5948,7 @@ export default class Core {
 
             args.arraySize = await stateVarObj.arraySize;
 
-            // delete the interally added dependencies from args.stateValues
+            // delete the internally added dependencies from args.stateValues
             for (let key in args.stateValues) {
                 if (key.slice(0, 8) === "__array_") {
                     delete args.stateValues[key];
@@ -6845,7 +6868,7 @@ export default class Core {
 
         definitionArgs.freshnessInfo = stateVarObj.freshnessInfo;
 
-        // ararySize will be definited if have array or arrayEntry
+        // arraySize will be defined if have array or arrayEntry
         // (If have multiple state variables defined, they must be of same size)
         let arraySize = definitionArgs.arraySize;
 
@@ -6971,9 +6994,8 @@ export default class Core {
                             component.state[varName].usedDefaultByArrayKey[
                                 arrayKey
                             ] = false;
-                            valuesChanged[varName].arrayKeysChanged[
-                                arrayKey
-                            ] = true;
+                            valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                                true;
                         }
                     } else {
                         component.state[varName].setArrayValue({
@@ -6984,9 +7006,8 @@ export default class Core {
                         component.state[varName].usedDefaultByArrayKey[
                             arrayKey
                         ] = false;
-                        valuesChanged[varName].arrayKeysChanged[
-                            arrayKey
-                        ] = true;
+                        valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                            true;
                     }
                 }
             } else {
@@ -7177,14 +7198,12 @@ export default class Core {
                             arrayKey,
                         });
                         if (newValue !== prevValue) {
-                            valuesChanged[varName].arrayKeysChanged[
-                                arrayKey
-                            ] = true;
+                            valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                                true;
                         }
                     } else {
-                        valuesChanged[varName].arrayKeysChanged[
-                            arrayKey
-                        ] = true;
+                        valuesChanged[varName].arrayKeysChanged[arrayKey] =
+                            true;
                     }
                 }
             } else {
@@ -10997,7 +11016,7 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate) {
+        if (!skipRendererUpdate || recordItemSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
@@ -11005,8 +11024,6 @@ export default class Core {
             let itemsSubmitted = [
                 ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
             ];
-            let pageCreditAchieved =
-                await this.document.stateValues.creditAchieved;
             let itemCreditAchieved =
                 await this.document.stateValues.itemCreditAchieved;
 
@@ -11029,13 +11046,6 @@ export default class Core {
                 }
                 event.context.pageCreditAchieved =
                     await this.document.stateValues.creditAchieved;
-            }
-
-            // if itemNumber is zero, it means this document wasn't given any weight,
-            // so don't record the submission to the attempt tables
-            // (the event will still get recorded)
-            if (this.itemNumber > 0) {
-                this.saveSubmissions({ pageCreditAchieved });
             }
         }
 
@@ -11118,16 +11128,29 @@ export default class Core {
             }
         }
 
-        if (!doNotSave) {
+        let alreadySaved = false;
+        if (recordItemSubmissions.length > 0) {
+            // if itemNumber is zero, it means this document wasn't given any weight,
+            // so don't record the submission to the attempt tables
+            // (the event will still get recorded)
+            if (this.itemNumber > 0) {
+                let pageCreditAchieved =
+                    await this.document.stateValues.creditAchieved;
+                this.saveState(true, true);
+                this.saveSubmissions({ pageCreditAchieved });
+                alreadySaved = true;
+            }
+        }
+        if (!alreadySaved && !doNotSave) {
             clearTimeout(this.savePageStateTimeoutID);
 
-            //Debounce the save to database
+            //Debounce the save to localstorage and then to DB with a throttle
             this.savePageStateTimeoutID = setTimeout(() => {
                 this.saveState();
             }, 1000);
         }
 
-        // evalute itemCreditAchieved so that will be fresh
+        // evaluate itemCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
         await this.document.stateValues.itemCreditAchieved;
 
@@ -11225,11 +11248,18 @@ export default class Core {
             version: "0.1.1",
         };
 
-        try {
-            let resp = await axios.post(this.apiURLs.recordEvent, payload);
-            // console.log(">>>>resp from record event", resp.data)
-        } catch (e) {
-            console.error(`Error saving event: ${e.message}`);
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "sendEvent",
+                data: payload,
+            });
+        } else {
+            try {
+                let resp = await axios.post(this.apiURLs.recordEvent, payload);
+                // console.log(">>>>resp from record event", resp.data)
+            } catch (e) {
+                console.error(`Error saving event: ${e.message}`);
+            }
         }
     }
 
@@ -12353,6 +12383,13 @@ export default class Core {
                     ][stateVariable][dependencyName];
 
                 if (dep.dependencyType === "child") {
+                    if (newInstruction.childIndex === undefined) {
+                        newInstruction.childIndex = 0;
+                    }
+                    if (newInstruction.variableIndex === undefined) {
+                        newInstruction.variableIndex = 0;
+                    }
+
                     let childInd = newInstruction.childIndex;
 
                     if (dep.downstreamPrimitives[childInd] !== null) {
@@ -12769,7 +12806,7 @@ export default class Core {
         });
     }
 
-    async saveState(overrideThrottle = false) {
+    async saveState(overrideThrottle = false, onSubmission = false) {
         this.savePageStateTimeoutID = null;
 
         if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
@@ -12816,6 +12853,7 @@ export default class Core {
             saveId,
             serverSaveId: this.serverSaveId,
             updateDataOnContentChange: this.updateDataOnContentChange,
+            onSubmission,
         };
 
         // mark presence of changes
@@ -12866,6 +12904,15 @@ export default class Core {
         }
 
         this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
+
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "saveCreditForItem",
+                state: { ...this.pageStateToBeSavedToDatabase },
+                score: await this.document.stateValues.creditAchieved,
+            });
+            return;
+        }
 
         let resp;
 
@@ -12988,7 +13035,6 @@ export default class Core {
                 });
             }
         }
-
         // TODO: send message so that UI can show changes have been synchronized
 
         // console.log(">>>>recordContentInteraction data",data)
@@ -12996,6 +13042,12 @@ export default class Core {
 
     saveSubmissions({ pageCreditAchieved }) {
         if (!this.flags.allowSaveSubmissions) {
+            return;
+        }
+
+        if (this.apiURLs.postMessages) {
+            // do nothing, saving credit is combined with saving page state in the SPLICE api
+            // that is implemented by Runestone
             return;
         }
 
@@ -13573,4 +13625,20 @@ function calculateAllComponentsShadowing(component) {
     }
 
     return allShadowing;
+}
+
+function numberAnswers(components, numSoFar = 0) {
+    let count = numSoFar;
+
+    for (let comp of components) {
+        if (comp.componentType === "answer") {
+            count++;
+            comp.answerNumber = count;
+        } else if (comp.children) {
+            const result = numberAnswers(comp.children, count);
+            count = result.count;
+        }
+    }
+
+    return { count };
 }

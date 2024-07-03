@@ -1,0 +1,61 @@
+{
+    "name": "@doenet/docs-nextra",
+    "type": "module",
+    "description": "Documentation for DoenetML using Nextra",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "test": "echo \"No tests\"",
+        "dev": "npm run build:pre && next",
+        "build": "npm run build:pre && next build",
+        "start": "next start",
+        "build:pre": "npm run build:pre-copy && npm run build:pre-scripts",
+        "build:pre-copy": "wireit",
+        "build:pre-scripts": "wireit"
+    },
+    "wireit": {
+        "build:pre-copy": {
+            "command": "mkdir -p ./public/bundle && cp -r ../standalone/dist/* ./public/bundle/",
+            "files": [
+                "../standalone/dist/*",
+                "../doenetml/dist/fonts/files/*"
+            ],
+            "output": [
+                "public/bundle/**/*"
+            ],
+            "dependencies": [
+                "../standalone:build",
+                "../doenetml:build"
+            ]
+        },
+        "build:pre-scripts": {
+            "command": "vite build",
+            "files": [
+                "scripts/**/*.ts",
+                "scripts/**/*.tsx",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../static-assets:build"
+            ]
+        }
+    },
+    "dependencies": {
+        "nextra": "^3.0.0-alpha.24",
+        "nextra-theme-docs": "^3.0.0-alpha.24",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "devDependencies": {}
+}

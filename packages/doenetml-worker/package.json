@@ -41,25 +41,19 @@
             ],
             "dependencies": [
                 "../utils:build",
-                "../parser:build"
+                "../parser:build",
+                "../codemirror:build"
             ]
         }
     },
     "peerDependencies": {
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
         "styled-components": "^5.3.11"
     },
     "dependencies": {
         "compromise": "^13.11.4",
         "compromise-numbers": "^1.4.0"
     },
-    "devDependencies": {
-        "node-stdlib-browser": "^1.2.0",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "rollup-plugin-polyfill-node": "^0.12.0",
-        "vite": "^4.5.0",
-        "vite-plugin-static-copy": "^0.17.0"
-    }
+    "devDependencies": {}
 }

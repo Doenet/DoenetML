@@ -1,0 +1,163 @@
+import { DoenetML} from "../../../components/doenet"
+
+# User Input and Basic Answer Checking
+
+At this point, you know the basics of writing in DoenetML, and can define numbers and mathematical expressions and use them in computations. Now it's time to start harnessing the real power of DoenetML by creating interactive documents!
+
+Sometimes user input will be used to adjust what's 
+on the screen, e.g. by changing the coefficients of a polynomial. In other cases, you might ask a student to solve a problem, and then compare their input to the correct answer. Doenet can grant credit or give feedback depending on what the user has entered.
+
+### Introduction to `<mathInput>`
+
+The simplest way to have the user enter a number or mathematical expression is using a [`<mathInput>`](../../reference/doenetML_components/mathInput.mdx) tag. You can use the name attribute to give the `<mathInput>` a name and refer to it later; the contents of a `<mathInput>` object are essentially treated like a `<math>` object in later references.
+
+In the example below, enter a number in the input box, and press return.
+
+```html {2}
+<p>
+  Enter a value for <m>x</m>: <mathInput name="userNumber" />
+</p>
+
+<p><m>x^2 = <math simplify>$userNumber^2</math></m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+In that example, Doenet displays $\_  ^2$ until you have entered a number; when the `<mathInput>` is blank, Doenet does not have a number to square. Although this makes logical sense, it looks very odd on the screen. You can avoid this by providing a default value for the `<mathInput>` object, using the `prefill` attribute. In the following code, `userNumber` is assigned a default value of $3$, but you can type a new number in the input box.
+
+```html {3}
+<p>
+  Enter a value for <m>x</m>: 
+  <mathInput name="userNumber" prefill="3" />
+</p>
+
+<p><m>x^2 = <math simplify>$userNumber^2</math></m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+**Note #1:** The value of a `<mathInput>` does not have to be a number. Try replacing $3$ with an expression like $a + b$ in the previous example.
+
+**Note #2:** `<mathInput>` is a self-closing tag. Although you could write `<mathInput name="userNumber"></mathInput>`, it's simpler to write `<mathInput name="userNumber" />`.
+
+Similar to [Desmos](https://desmos.com/) and other websites, input in a `<mathInput>` is formatted as you type, using the [MathQuill](http://mathquill.com/) library. Try entering $a/b$ or $sqrt(1+3)$ in the example above. Doenet is also aware of complex numbers; if you enter $5i$ in the input box, the result is $x^2 = -25$.
+
+### Multiple Inputs
+
+DoenetML documents can have multiple `<mathInput>` tags. The following code is a modification of our earlier quadratic formula example; now that we've learned about user input, the reader can change the values of $a$, $b$, or $c$, and Doenet will solve the resulting equation.
+
+```html {2-4}
+<p>Enter the coefficients for <m>ax^2+bx+c</m>:</p> 
+ <p><m>a = </m> <mathInput name="a" prefill="1"/></p>
+ <p><m>b = </m> <mathInput name="b" prefill="-3"/></p>
+ <p><m>c = </m> <mathInput name="c" prefill="2"/></p>
+
+ <p>The solutions to 
+   <m><math simplify>$a x^2 + $b x + $c</math>=0</m>
+ are:</p>
+   
+ 
+<me>x = <math simplify>(-$b + sqrt($b^2- 4*$a*$c))/(2*$a)</math></me> 
+<me>x = <math simplify>(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math></me> 
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### Component Order
+
+Although it's not specific to `<mathInput>` components, this is a good moment to point out an important feature of Doenet. The following example is almost identical to the previous one; the only difference is that the quadratic formula calculations have been moved to a `<setup>` block, and then are referred to later on as `$solution1` and `$solution2`.
+
+```html {1,4}
+<setup>
+   <math simplify name="solution1">(-$b + sqrt($b^2- 4*$a*$c))/(2*$a)</math>
+   <math simplify name="solution2">(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math>
+</setup>
+ 
+<p>Enter the coefficients for <m>ax^2+bx+c</m>:</p> 
+ <p><m>a = </m> <mathInput name="a" prefill="1"/></p>
+ <p><m>b = </m> <mathInput name="b" prefill="-3"/></p>
+ <p><m>c = </m> <mathInput name="c" prefill="2"/></p>
+
+<p>The solutions to 
+   <m><math simplify>$a x^2 + $b x + $c</math>=0</m>
+ are:</p>
+
+<me>x = $solution1</me> 
+<me>x = $solution2</me> 
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+The surprising thing about this new version is that $a$, $b$, and $c$ are used in lines 2--3 of the setup block... even though they're not defined until lines 7--9 of the code! This can be confusing to people who are used to sequential programming languages, in which you have to define the variable a before you can use it in computations. In Doenet, by contrast, you can refer to `$a` at any point, as long as `a` is defined somewhere in the document.
+
+### Basic Answer Checking
+
+Often we want to pose a question to a user, have them type some input, and then compare their input to the correct answer. The easist way to check user input is with the `<answer>` tag, which creates a input box. When the users enters a number or expression, it's compared to the correct answer, which you provide to Doenet by including it between the `<answer>` and `</answer>` tags.
+
+The `<answer>` component provides visual feedback, with a blue "Enter" button that changes to a red X or green check mark, depending on whether the submitted answer is wrong or right.
+
+```html
+<p>Enter <m>5x^2-3</m>: <answer>5x^2-3</answer></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+The contents of an `<answer>` can depend on other objects. In the code below, you can enter constants to modify the linear equation, and then in the test editor check that you can correctly find the solution to the equation.
+
+```html {13}
+<setup>
+  <math simplify name="solution">($c-$b)/$a</math>
+</setup>
+
+<p>Enter the coefficients for <m>ax+b=c</m>.</p> 
+<p><m>a = </m> <mathInput name="a" prefill="2"/></p>
+<p><m>b = </m> <mathInput name="b" prefill="4"/></p>
+<p><m>c = </m> <mathInput name="c" prefill="10"/></p>
+
+<p>Enter the solution to 
+  <m><math simplify>$a x + $b</math> = $c</m>:</p>
+
+ <p><m>x = </m> <answer>$solution</answer></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### Multiple Answers and `<mathList>`
+Often a question has more than one answer; a quadratic equation could have two solutions, for example. The following code combines a few of our previous examples. You can adjust the coefficients of a quadratic equation, and then check whether you can correctly compute the solutions. You can enter both solutions, separated by a comma, and then check your answer.
+
+```html {16-18}
+<setup>
+  <math simplify name="solution1">(-$b + sqrt($b^2- 4*$a*$c))/(2*$a)</math>
+  <math simplify name="solution2">(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math>
+</setup>
+
+<p>Enter the coefficients for <m>ax^2+bx+c</m>:</p> 
+<p><m>a = </m> <mathInput name="a" prefill="1"/></p>
+<p><m>b = </m> <mathInput name="b" prefill="0"/></p>
+<p><m>c = </m> <mathInput name="c" prefill="-4"/></p>
+
+<p>Enter the solutions to
+  <m><math simplify>$a x^2 + $b x + $c</math>=0</m>
+</p>
+
+<p><m>x = </m>
+  <answer unorderedCompare>
+    <mathList>$solution1 $solution2</mathList>
+  </answer>
+</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+As you can see in the code, the correct response is defined as a `<mathList>`, which is a list of `<math>` objects:
+
+```html
+<mathList>$object1 ... $objectN</mathList>
+```
+
+Although the `<math>` components are separated by spaces in the code, the user's answers should be separated by commas in the answer blank.
+
+Notice that the code includes the unorderedCompare attribute in the `<answer>` tag. (As mentioned before, this is equivalent to `unorderedCompare="true"`.) This attribute tells Doenet:
+
+* The correct answer is a list of numbers or expressions, and
+* The user can enter the individual objects of that list in any order and still receive full credit.
+
+Finally, if you experimented with different coefficients in the last example, you may have noticed that the code is not robust enough to deal with the case where the quadratic equation has only one solution. If the equation is $x^2 = 0$, for example, you still have to enter $0,0$ to receive full credit, even though simply writing $x = 0$ would be more common in that case. Later on you'll learn how to write more complicated code that can account for multiple cases in an answer blank.
+
+### Next Steps
+We've only scratched the surface of answer checking in DoenetML. Later tutorials will talk about how to award partial credit, give feedback based on answers, show solutions after (or before!) a student has finished the problem, and more! The `<answer>` component can also check text answers, not just numbers and mathematical expressions, and there are options to fine-tune how close a student needs to be to the correct answer to receive credit.
+
+Although we'll return to answer checking in the future, for now we're going to move on to defining and evaluating mathematical functions in DoenetML.

@@ -10,5 +10,12 @@
         "./src/**/*.js",
         "./src/**/*.jsx"
     ],
-    "exclude": ["vite.config.ts"]
+    "exclude": [
+        "vite.config.ts",
+        "node_modules",
+        "runner-results",
+        ".wireit",
+        "**/dist/**/*"
+    ],
+    "references": []
 }

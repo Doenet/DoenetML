@@ -58,3 +58,5 @@ stats.html
 .wireit
 tsconfig.tsbuildinfo
 .vscode
+packages/docs-nextra/public/bundle
+.next

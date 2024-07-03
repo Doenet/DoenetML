@@ -1,9 +1,11 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
-import * as path from "node:path";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
+import { version } from "./package.json";
+
+// These are the dependencies that will not be bundled into the library.
+const EXTERNAL_DEPS = [];
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,11 +15,9 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: path.join(
-                        require.resolve("@doenet/doenetml"),
-                        "../fonts/*",
-                    ),
-                    dest: "fonts/",
+                    src: "package.json",
+                    dest: "./",
+                    transform: createPackageJsonTransformer(),
                 },
             ],
         }),
@@ -40,5 +40,6 @@ export default defineConfig({
     },
     define: {
         "process.env.NODE_ENV": '"production"',
+        STANDALONE_VERSION: JSON.stringify(version),
     },
 });

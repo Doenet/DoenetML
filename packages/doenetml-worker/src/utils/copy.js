@@ -94,17 +94,8 @@ export function postProcessCopy({
                         ][0].firstLevelReplacement = true;
                     }
                     if (markAsPrimaryShadow) {
-                        downDep[
-                            component.originalName
-                        ][0].isPrimaryShadow = true;
-                    }
-                    if (component.state) {
-                        let stateVariables = Object.keys(component.state);
-                        downDep[
-                            component.originalName
-                        ].downstreamStateVariables = stateVariables;
-                        downDep[component.originalName].upstreamStateVariables =
-                            stateVariables;
+                        downDep[component.originalName][0].isPrimaryShadow =
+                            true;
                     }
 
                     // create downstream dependency

@@ -55,6 +55,28 @@ jobs:
             - name: Cargo clippy
               working-directory: ./packages/doenetml-worker-rust
               run: cargo clippy -- -D warnings
+    build-docs:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [20.x]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Build Docs
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  cd packages/docs-nextra
+                  npm run build
 
     lint-ts:
         name: Lint Typescript Code
@@ -75,4 +97,4 @@ jobs:
             - run: npm ci
 
             - name: Prettier Check
-              run: npx prettier . --check
+              run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci

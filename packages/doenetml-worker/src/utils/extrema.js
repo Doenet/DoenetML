@@ -1030,7 +1030,7 @@ export function find_minima_of_piecewise({
 
         for (let domainPiece of childDomainPieces) {
             let thisDomain;
-            if (domainPiece === "∅") {
+            if (domainPiece === "emptyset") {
                 continue;
             } else if (domainPiece === "R") {
                 thisDomain = null;

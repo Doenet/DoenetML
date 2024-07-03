@@ -7,3 +7,6 @@ lib-js-wasm-binding/pkg
 **/generated-assets/*.json
 **/*.html
 **/*.md
+*.mdx
+generated-assets
+multi-reporter-config.json

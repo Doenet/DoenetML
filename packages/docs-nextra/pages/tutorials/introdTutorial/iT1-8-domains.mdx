@@ -1,0 +1,159 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Domains, Derivatives and Variables
+
+In this section we'll explore additional options and operations with functions in DoenetML. We'll begin with domains!
+
+### Specifying the Domain of a Function
+So far the functions we've used have been defined for all real numbers. If you want to restrict the domain of a function, you can use the domain attribute in the `<function>` tag. Any attempt to evaluate the function outside of its specified domain will return an empty result. In the example below, this happens for $f(3)$.
+
+```html
+<setup>
+  <function name="f" domain="[0,2]">
+    x^2
+  </function>      
+</setup> 
+
+<p><m>f(0) = $$f(0)</m></p>
+<p><m>f(1) = $$f(1)</m></p>
+<p><m>f(2) = $$f(2)</m></p>
+<p><m>f(3) = $$f(3)</m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+As of this writing, DoenetML supports any interval (open, closed, half open / half closed) as the domain of a single variable function. This includes intervals which stretch to infinity, e.g.
+
+```html
+<function name="f" domain="[1,infinity)">1/x</function>
+```
+
+### Computing Derivatives
+In DoenetML, we can compute the derivative of an elementary function using the `<derivative>` tag. The code
+
+```html
+<derivative name="fPrime">$f</derivative>
+```
+
+creates a new DoenetML function named `fPrime` which is the derivative of $f$. The new function `fPrime` can be used in all the same ways as the original function, including evaluation using the `$$` macro. Here's an example.
+
+```html
+<setup>
+  <function name="f">$userFormula</function>
+</setup>
+ 
+<p>Define your function: <m>f(x) = </m>
+  <mathInput name="userFormula" prefill="sin(ln(x))" />
+</p>
+ 
+<p>Enter a value for <m>x</m>: 
+   <mathInput name="x" prefill="2" />
+</p>
+ 
+<p><m>f'(x) = <derivative name="fPrime">$f</derivative></m></p>
+<p>Symbolic evaluation: <m>f'($x) = $$fPrime($x)</m></p>
+<p>Numeric evaluation: <m>f'($x) = <number>$$fPrime($x)</number></m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+If your original function has a specified `domain`, its derivative will have the same `domain`.
+
+### Functions with Different Variables
+The default variable in a DoenetML function is 
+$x$, but we can switch to a different variable using the `variable` attribute. This affects how the function is rendered on screen, and the `<derivative>` tag will use the correct variable as well.
+
+```html
+<p><m>f(u) = </m>
+  <function name="f" variable="u">cos(u)</function>
+</p>
+
+<p><m>f(0) = $$f(0)</m></p>
+
+<p><m>f'(u) = <derivative name="fPrime">$f</derivative></m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### Higher Order Derivatives
+You can compute higher order derivatives through repeated use of `<derivative>` tags. For example, the following code defines a function along with its first and second derivatives.
+
+```html
+<function name="f">x sin(x)</function>
+
+<derivative name="fP">$f</derivative>
+
+<derivative name="fPP">$fP</derivative>
+```
+
+However, if you don't need $f'(x)$, you can jump straight to the second (or higher) derivative using the `derivVariables` attribute, as demonstrated in the following example.
+
+```html
+<p><m>f(x) = </m>
+  <function name="f">x sin(x)</function>
+</p>
+
+<p><m>f''(x) = 
+    <derivative derivVariables="x x">$f</derivative>  
+   </m>
+</p>
+
+<p><m>f^{(4)}(x) = 
+    <derivative derivVariables="x x x x">$f</derivative>  
+   </m>
+</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### Multivariable Functions and Partial Derivatives
+For those familiar with multivariable calculus: now it's time to tie all of the concepts in this section together! We can define a multivariable function using the `variables` attribute with `<function>`. For example,
+
+```html
+<function name="f" variables="x y">x^2 cos(y)</function>
+```
+
+defines the function $f(x,y) = x^2 \cos (y)$ in DoenetML. The input variables should be listed (in order) in the variables attribute, separated by spaces. "In order" means that, if we evaluate `$$f(1,2)`, Doenet will set $x = 1$ and $y = 2$ because $x$ was listed first in the variables attribute, and $y$ second.
+
+```html
+<p><m>f(x,y) = </m>
+  <function name="f" variables="x y">x^2 cos(y)</function>
+</p>
+
+<p><m>f(2,y) = $$f(2,y)</m></p>
+<p><m>f(x,5) = $$f(x,5)</m></p>
+<p><m>f(3,4) = $$f(3,4)</m></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+To compute partial derivatives, we'll use the same `derivVariables` attribute from above. We can list one variable to specify which partial derivative to take. We can provide a list of variables to compute higher order (and mixed) partial derivatives.
+
+```html
+<p><m>f(x,y) = </m>
+  <function name="f" variables="x y">x^2 cos(y)</function>
+</p>
+
+<p><m>f_x (x,y) = 
+    <derivative derivVariables="x">$f</derivative></m>
+</p>
+
+<p><m>f_y (x,y) = 
+    <derivative derivVariables="y">$f</derivative></m>
+</p>
+
+<p><m>f_{xyy} (x,y) = 
+    <derivative derivVariables="x y y">$f</derivative></m>
+</p>
+
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Although it's not demonstrated in these examples, you can also define a `domain` for multivariable functions. In the following definition,
+
+```html
+<function name="f" variables="x y" domain="[0,1] (2,3)">x+y</function>
+```
+
+the function f would be defined for  $x \in [0,1]$ and $y \in (2,3)$; in other words, $f(x,y)$ would be defined on $\{ (x,y) \in [0,1] \times (2,3) \}$. As of this writing, DoenetML only supports multivariable function domains which are Cartesian products of intervals.
+
+### Next Steps
+At this point, you've learned all the basics of using functions in Doenet. Next up, we'll learn how to get user input using sliders, and then move on to creating graphics with DoenetML code.
+
+
+
