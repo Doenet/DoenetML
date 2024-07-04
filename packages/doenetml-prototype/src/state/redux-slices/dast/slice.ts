@@ -84,12 +84,18 @@ const dastSlice = createSlice({
                 if (elm.type === "error") {
                     throw new Error("Updating errors is not yet implemented");
                 }
-                if (update.changedState) {
+                // XXX: Check the types to see if this is even possible
+                if ((update as any).changedState) {
+                    // XXX: Suppressing type errors for now. This should be investigated and the correct type should be used.
+                    // @ts-ignore
                     elm.data ??= { id: Number(id), props: {} };
+                    // @ts-ignore
                     elm.data.props ??= {};
+                    // @ts-ignore
                     Object.assign(elm.data.props, update.changedState);
                 }
-                if (update.changedAttributes) {
+                // XXX: Check the types to see if this is even possible
+                if ((update as any).changedAttributes) {
                     console.warn("Updating attributes is not yet implemented");
                 }
                 if (update.newChildren) {

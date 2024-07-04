@@ -2,7 +2,6 @@ import { useDispatch, useSelector } from "react-redux";
 import type { TypedUseSelectorHook } from "react-redux";
 import type { RootState, AppDispatch } from "./store";
 import { AsyncThunkPayloadCreator, createAsyncThunk } from "@reduxjs/toolkit";
-import { AsyncThunkConfig } from "@reduxjs/toolkit/dist/createAsyncThunk";
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch: () => AppDispatch = useDispatch;
@@ -18,7 +17,7 @@ export const createLoggingAsyncThunk = <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<
         Returned,
         ThunkArg,
-        AsyncThunkConfig & { state: RootState }
+        { state: RootState }
     >,
 ) => {
     const wrappedPayloadCreator: typeof payloadCreator = (async (...args) => {

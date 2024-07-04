@@ -41,6 +41,8 @@
         "@ariakit/react": "^0.4.7",
         "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
         "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+        "@fortawesome/free-solid-svg-icons": "^6.5.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
         "@qualified/lsp-connection": "^0.3.0",
         "@qualified/vscode-jsonrpc-ww": "^0.3.0",
         "@rollup/pluginutils": "^5.1.0",

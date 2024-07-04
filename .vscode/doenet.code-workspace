@@ -10,9 +10,7 @@
         }
     ],
     "settings": {
-        "rust-analyzer.diagnostics.disabled": [
-            "non_snake_case"
-        ],
+        "rust-analyzer.diagnostics.disabled": ["non_snake_case"],
         "liveServer.settings.multiRootWorkspaceName": "All DoenetML Packages"
     }
 }

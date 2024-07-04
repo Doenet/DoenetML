@@ -144,13 +144,13 @@ export class CoreWorker {
     async _getTests() {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.
-        return this.doenetCore._get_tests();
+        return this.doenetCore?._get_tests();
     }
 
     async _runTest(testName: string) {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.
-        return this.doenetCore._run_test(testName);
+        return this.doenetCore?._run_test(testName);
     }
 }
 

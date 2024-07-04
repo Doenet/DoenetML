@@ -78,7 +78,7 @@ export function normalizeLatexString(
     latexString: string,
     { unionFromU = false } = {},
 ) {
-    let substitutions = mathAssets.latexSubstitutions;
+    let substitutions = mathAssets.latexSubstitutions as Record<string, string>;
 
     let re = new RegExp(Object.keys(substitutions).join("|"), "g");
     latexString = latexString.replace(re, function (matched) {
