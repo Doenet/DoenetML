@@ -60,6 +60,9 @@ describe("wasm tests", () => {
     describe("run_wasm_tests", async () => {
         const worker = await workerWithSource("<p>test</p>");
         const allTests = await worker._getTests();
+        if (!allTests) {
+            throw new Error("No tests found in wasm");
+        }
 
         for (const testName of allTests) {
             it(testName, async () => {
