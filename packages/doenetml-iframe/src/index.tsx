@@ -126,6 +126,8 @@ export function DoenetViewer({
         }
     }
 
+    const addVirtualKeyboard = doenetViewerProps.addVirtualKeyboard !== false;
+
     let selectedDoenetmlVersion =
         detectedVersion ?? specifiedDoenetmlVersion ?? latestDoenetmlVersion;
 
@@ -242,7 +244,7 @@ export function DoenetViewer({
 
     return (
         <React.Fragment>
-            <ExternalVirtualKeyboard />
+            {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
             <iframe
                 ref={ref}
                 srcDoc={createHtmlForDoenetViewer(
@@ -316,6 +318,8 @@ export function DoenetEditor({
             detectedDoenetMLrange = result.doenetMLrange;
         }
     }
+
+    const addVirtualKeyboard = doenetEditorProps.addVirtualKeyboard !== false;
 
     let selectedDoenetmlVersion =
         detectedVersion ?? specifiedDoenetmlVersion ?? latestDoenetmlVersion;
@@ -411,7 +415,7 @@ export function DoenetEditor({
 
     return (
         <React.Fragment>
-            <ExternalVirtualKeyboard />
+            {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
             <iframe
                 ref={ref}
                 srcDoc={createHtmlForDoenetEditor(
