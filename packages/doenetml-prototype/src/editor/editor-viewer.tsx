@@ -3,9 +3,12 @@ import { CodeMirror } from "@doenet/codemirror";
 import { ResizablePanelPair } from "./components/resizable-panel-pair";
 import { DoenetML } from "../DoenetML";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import Dropdown from "react-bootstrap/Dropdown";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./editor-viewer.css";
+import { prettyPrint } from "@doenet/parser";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -20,8 +23,19 @@ export type EditorViewerProps = {
 export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
     const [sourceForRender, setSourceForRender] = React.useState(doenetML);
     const [sourceInEditor, setSourceInEditor] = React.useState(doenetML);
+    const [formatMode, setFormatMode] = React.useState<"doenetml" | "xml">(
+        "doenetml",
+    );
 
     const canRefresh = sourceInEditor !== sourceForRender;
+    const doPrettyPrint = React.useCallback(() => {
+        prettyPrint(sourceInEditor, {
+            doenetSyntax: formatMode === "doenetml",
+            tabWidth: 2,
+        }).then((prettySource) => {
+            setSourceInEditor(prettySource);
+        });
+    }, [formatMode, sourceInEditor]);
 
     return (
         <div className="editor-viewer">
@@ -45,14 +59,48 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
             <div className="editor-viewer-panels">
                 <ResizablePanelPair
                     panelA={
-                        <CodeMirror
-                            value={sourceInEditor}
-                            onChange={(source) => {
-                                if (source !== sourceInEditor) {
-                                    setSourceInEditor(source);
-                                }
-                            }}
-                        />
+                        <div className="editor-panel">
+                            <div className="editor-panel-codemirror">
+                                <CodeMirror
+                                    value={sourceInEditor}
+                                    onChange={(source) => {
+                                        if (source !== sourceInEditor) {
+                                            setSourceInEditor(source);
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <div className="editor-panel-footer">
+                                <Dropdown as={ButtonGroup} size="sm">
+                                    <Button onClick={doPrettyPrint}>
+                                        {" "}
+                                        Pretty Print
+                                    </Button>
+                                    <Dropdown.Toggle split>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item
+                                                active={
+                                                    formatMode === "doenetml"
+                                                }
+                                                onClick={() =>
+                                                    setFormatMode("doenetml")
+                                                }
+                                            >
+                                                as DoenetML
+                                            </Dropdown.Item>
+                                            <Dropdown.Item
+                                                active={formatMode === "xml"}
+                                                onClick={() =>
+                                                    setFormatMode("xml")
+                                                }
+                                            >
+                                                as XML
+                                            </Dropdown.Item>{" "}
+                                        </Dropdown.Menu>
+                                    </Dropdown.Toggle>
+                                </Dropdown>
+                            </div>
+                        </div>
                     }
                     panelB={<DoenetML doenetML={sourceForRender} />}
                 />
