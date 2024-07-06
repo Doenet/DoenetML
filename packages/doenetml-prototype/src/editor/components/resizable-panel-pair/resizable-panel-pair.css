@@ -3,7 +3,7 @@
         cursor: ew-resize;
         @apply flex items-center mx-2 bg-slate-300 border-x border-slate-500 grow-0 overflow-hidden;
     }
-    
+
     .panel-inner {
         width: 100%;
         height: 100%;

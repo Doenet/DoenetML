@@ -44,7 +44,8 @@
             ],
             "dependencies": [
                 "../doenetml-worker-rust:build",
-                "../parser:build"
+                "../parser:build",
+                "../codemirror:build"
             ]
         }
     },
