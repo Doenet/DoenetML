@@ -1,7 +1,7 @@
 .resizable-panel-pair {
     .divider {
         cursor: ew-resize;
-        @apply flex items-center mx-2 bg-slate-300 border-x border-slate-500 grow-0 overflow-hidden;
+        @apply flex items-center bg-slate-300 border-x border-slate-500 grow-0 overflow-hidden;
     }
 
     .panel-inner {

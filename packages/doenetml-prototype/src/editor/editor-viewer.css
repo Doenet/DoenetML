@@ -1,0 +1,13 @@
+
+.editor-viewer {
+    height: 100%;
+    @apply flex flex-col overflow-hidden;
+
+    .editor-viewer-header {
+        @apply flex items-center bg-slate-300 border-x border-slate-500 gap-2 p-2;
+    }
+
+    .editor-viewer-panels {
+        @apply flex-grow basis-0 overflow-hidden;
+    }
+}
