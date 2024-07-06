@@ -100,7 +100,10 @@ export const Graph: BasicComponent = ({ node }) => {
     }, [boardRef]);
 
     const elementChildrenIds = React.useMemo(
-        () => node.children.filter((n) => typeof n === "number") as number[],
+        () =>
+            node.children
+                .filter((n) => typeof n === "object" && "id" in n)
+                .map((n) => (n as any).id) as number[],
         [node.children],
     );
 

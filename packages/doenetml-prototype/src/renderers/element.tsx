@@ -25,7 +25,7 @@ export const Element = React.memo(
         id: number;
         constraint?: ComponentConstraint;
         annotation?: ElementRefAnnotation;
-        ancestors: AncestorChain | undefined;
+        ancestors?: AncestorChain;
     }) => {
         const value = useAppSelector((state) => {
             const elementsArray = elementsArraySelector(state);
@@ -98,8 +98,8 @@ export const Element = React.memo(
  */
 export function flatDastChildrenToReactChildren(
     children: FlatDastElementContent[],
-    constraint: ComponentConstraint | undefined,
-    ancestors: AncestorChain | undefined,
+    constraint?: ComponentConstraint | undefined,
+    ancestors?: AncestorChain | undefined,
 ): React.ReactNode {
     return children.map((child) => {
         if (typeof child === "string") {

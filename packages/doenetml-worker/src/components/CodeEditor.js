@@ -7,7 +7,6 @@ export default class CodeEditor extends BlockComponent {
         Object.assign(this.actions, {
             updateImmediateValue: this.updateImmediateValue.bind(this),
             updateValue: this.updateValue.bind(this),
-            updateComponents: this.updateComponents.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
         });
     }
@@ -53,12 +52,10 @@ export default class CodeEditor extends BlockComponent {
             forRenderer: true,
             public: true,
         };
+
+        // TODO: deprecate this attribute
         attributes.viewerRatio = {
             createComponentOfType: "number",
-            createStateVariable: "viewerRatio",
-            defaultValue: 0.5,
-            forRenderer: true,
-            public: true,
         };
 
         attributes.showResults = {
@@ -87,6 +84,7 @@ export default class CodeEditor extends BlockComponent {
             validValues: ["bottom", "left", "right"],
         };
 
+        // TODO: deprecate these attributes
         // Note: these attributes don't accomplish anything
         // until we can find a way to communicate with the
         // rendered DoenetML again
@@ -101,86 +99,12 @@ export default class CodeEditor extends BlockComponent {
         return attributes;
     }
 
-    static keepChildrenSerialized({
-        serializedComponent,
-        componentInfoObjects,
-    }) {
+    static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
         } else {
-            let keepSerializedInds = [];
-            for (let [ind, child] of serializedComponent.children.entries()) {
-                if (
-                    !componentInfoObjects.componentIsSpecifiedType(
-                        child,
-                        "codeViewer",
-                    )
-                ) {
-                    keepSerializedInds.push(ind);
-                }
-            }
-
-            return keepSerializedInds;
+            return Object.keys(serializedComponent.children);
         }
-    }
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        let addCodeViewer = function ({
-            matchedChildren,
-            componentAttributes,
-        }) {
-            let codeViewer = {
-                componentType: "codeViewer",
-            };
-
-            //Update depends on this being the 1st index position
-            let newChildren = [codeViewer];
-
-            if (componentAttributes.renderedName) {
-                codeViewer.attributes = {
-                    renderedName: {
-                        primitive: componentAttributes.renderedName,
-                    },
-                };
-                codeViewer.children[0].props = {
-                    name: componentAttributes.renderedName,
-                };
-            }
-
-            // TODO: if we can come up with a way to communicate to the rendered doenetML
-            // we can revive the static version
-            // if (componentAttributes.staticName) {
-            //   let hiddenRenderDoenetML = {
-            //     componentType: "codeViewer",
-            //     attributes: {
-            //       hide: {
-            //         component: { componentType: "boolean", state: { value: true } },
-            //       },
-            //     },
-            //     children: [
-            //       {
-            //         componentType: "renderDoenetML",
-            //         props: { name: componentAttributes.staticName },
-            //       },
-            //     ],
-            //   };
-            //   //Update code depends on this being the 2nd index position
-            //   newChildren.push(hiddenRenderDoenetML);
-            // }
-
-            newChildren.push(...matchedChildren);
-
-            return {
-                success: true,
-                newChildren,
-            };
-        };
-        sugarInstructions.push({
-            replacementFunction: addCodeViewer,
-        });
-        return sugarInstructions;
     }
 
     static returnChildGroups() {
@@ -194,61 +118,6 @@ export default class CodeEditor extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.viewerHeight = {
-            returnDependencies: () => ({
-                height: {
-                    dependencyType: "stateVariable",
-                    variableName: "height",
-                },
-                viewerRatio: {
-                    dependencyType: "stateVariable",
-                    variableName: "viewerRatio",
-                },
-                resultsLocation: {
-                    dependencyType: "stateVariable",
-                    variableName: "resultsLocation",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                if (!dependencyValues.height.isAbsolute) {
-                    throw Error("Codeeditor relative height not implemented");
-                }
-                let size = dependencyValues.height.size;
-                if (dependencyValues.resultsLocation === "bottom") {
-                    size *= dependencyValues.viewerRatio;
-                }
-                let viewerHeight = { size, isAbsolute: true };
-                return { setValue: { viewerHeight } };
-            },
-        };
-
-        stateVariableDefinitions.viewerWidth = {
-            returnDependencies: () => ({
-                width: {
-                    dependencyType: "stateVariable",
-                    variableName: "width",
-                },
-                resultsLocation: {
-                    dependencyType: "stateVariable",
-                    variableName: "resultsLocation",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let viewerWidth;
-
-                if (
-                    dependencyValues.resultsLocation === "left" ||
-                    dependencyValues.resultsLocation === "right"
-                ) {
-                    viewerWidth = { size: 1000, isAbsolute: true };
-                } else {
-                    viewerWidth = dependencyValues.width.size;
-                }
-
-                return { setValue: { viewerWidth } };
-            },
-        };
 
         stateVariableDefinitions.prefillFromChildren = {
             returnDependencies: () => ({
@@ -530,72 +399,6 @@ export default class CodeEditor extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.childIndicesToRender = {
-            stateVariablesDeterminingDependencies: ["allChildren"],
-            additionalStateVariablesDefined: ["viewerChildName"],
-            returnDependencies({ stateValues }) {
-                let dependencies = {};
-                if (
-                    stateValues.allChildren[0]?.componentType === "codeViewer"
-                ) {
-                    dependencies.firstCodeViewerFromSugar = {
-                        dependencyType: "doenetAttribute",
-                        componentName: stateValues.allChildren[0].componentName,
-                        attributeName: "createdFromSugar",
-                    };
-                    dependencies.viewerChildName = {
-                        dependencyType: "value",
-                        value: stateValues.allChildren[0].componentName,
-                    };
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                let childIndicesToRender = [];
-                let viewerChildName = null;
-
-                if (dependencyValues.firstCodeViewerFromSugar) {
-                    childIndicesToRender.push(0);
-                    viewerChildName = dependencyValues.viewerChildName;
-                }
-
-                return { setValue: { childIndicesToRender, viewerChildName } };
-            },
-        };
-
-        stateVariableDefinitions.errorsAndWarnings = {
-            forRenderer: true,
-            stateVariablesDeterminingDependencies: [
-                "viewerChildName",
-                "showResults",
-            ],
-            returnDependencies({ stateValues }) {
-                if (stateValues.viewerChildName && stateValues.showResults) {
-                    return {
-                        errorsAndWarnings: {
-                            dependencyType: "stateVariable",
-                            componentName: stateValues.viewerChildName,
-                            variableName: "errorsAndWarnings",
-                        },
-                    };
-                } else {
-                    return {};
-                }
-            },
-            definition({ dependencyValues }) {
-                if (dependencyValues.errorsAndWarnings) {
-                    return {
-                        setValue: {
-                            errorsAndWarnings:
-                                dependencyValues.errorsAndWarnings,
-                        },
-                    };
-                } else {
-                    return { setValue: { errorsAndWarnings: null } };
-                }
-            },
-        };
-
         return stateVariableDefinitions;
     }
 
@@ -619,15 +422,6 @@ export default class CodeEditor extends BlockComponent {
                 },
             ];
 
-            let viewerChildName = await this.stateValues.viewerChildName;
-            if (viewerChildName) {
-                updateInstructions.push({
-                    updateType: "updateValue",
-                    componentName: viewerChildName,
-                    stateVariable: "codeChanged",
-                    value: true,
-                });
-            }
             return await this.coreFunctions.performUpdate({
                 updateInstructions,
                 actionId,
@@ -705,31 +499,7 @@ export default class CodeEditor extends BlockComponent {
                     sourceInformation,
                     skipRendererUpdate,
                 });
-                if (
-                    this.attributes.staticName &&
-                    this.definingChildren[1]?.componentType === "codeViewer" &&
-                    this.definingChildren[1].doenetAttributes.createdFromSugar
-                ) {
-                    await this.coreFunctions.performAction({
-                        componentName: this.definingChildren[1].componentName,
-                        actionName: "updateComponents",
-                        args: { sourceInformation, skipRendererUpdate },
-                    });
-                }
             }
-        }
-    }
-
-    async updateComponents(args) {
-        if (
-            this.definingChildren[0]?.componentType === "codeViewer" &&
-            this.definingChildren[0].doenetAttributes?.createdFromSugar
-        ) {
-            await this.coreFunctions.performAction({
-                componentName: this.definingChildren[0].componentName,
-                actionName: "updateComponents",
-                args,
-            });
         }
     }
 

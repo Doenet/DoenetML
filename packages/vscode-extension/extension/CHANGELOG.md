@@ -1,3 +1,12 @@
+## v0.7.8
+
+-   Updates to _doenetToMarkdown_
+
+## v0.7.7
+
+-   Update DoenetML to v0.7alpha7
+-   Add experimental _doenetToMarkdown_ support
+
 ## v0.7.6
 
 -   Refresh the contents of the preview window when it is first opened.

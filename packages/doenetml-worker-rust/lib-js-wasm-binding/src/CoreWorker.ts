@@ -17,6 +17,21 @@ export type Action = ActionsEnum & { componentIdx: number };
 
 type Flags = Record<string, unknown>;
 
+// Due to vite issue https://github.com/vitejs/vite/issues/17570 (related: https://github.com/vitejs/vite/issues/12611 )
+// vite assumes that globalThis.document is defined and relies on it when creating a WebWorker URL. Since it is not defined
+// in a worker itself, we define it here to prevent the error.
+// 2024-07-05
+if (typeof globalThis !== "undefined" && !globalThis.document) {
+    const url = new URL(
+        typeof location !== "undefined" ? location.href : "http://localhost",
+    );
+    const baseUrl = url.protocol + "//" + url.host + url.pathname;
+    // @ts-ignore
+    globalThis.document = {
+        URL: baseUrl,
+        baseURI: baseUrl,
+    };
+}
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
     wasm_initialized = false;
@@ -144,13 +159,13 @@ export class CoreWorker {
     async _getTests() {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.
-        return this.doenetCore._get_tests();
+        return this.doenetCore?._get_tests();
     }
 
     async _runTest(testName: string) {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.
-        return this.doenetCore._run_test(testName);
+        return this.doenetCore?._run_test(testName);
     }
 }
 

@@ -292,6 +292,11 @@ export default class Polygon extends Polyline {
             },
         };
 
+        stateVariableDefinitions.numSides = {
+            isAlias: true,
+            targetVariableName: "numVertices",
+        };
+
         delete stateVariableDefinitions.length;
 
         stateVariableDefinitions.perimeter = {
@@ -349,7 +354,7 @@ export default class Polygon extends Polyline {
         };
 
         // overwrite nearestPoint so that it includes
-        // segement between first and last vertex
+        // segment between first and last vertex
         stateVariableDefinitions.nearestPoint = {
             returnDependencies: () => ({
                 numDimensions: {
@@ -482,6 +487,123 @@ export default class Polygon extends Polyline {
                 };
             },
         };
+
+        stateVariableDefinitions.closed = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { closed: true } }),
+        };
+
+        stateVariableDefinitions.containsPoint = {
+            returnDependencies: () => ({
+                numericalVertices: {
+                    dependencyType: "stateVariable",
+                    variableName: "numericalVertices",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // Algorithm based on code from
+                // https://web.archive.org/web/20130126163405/http://geomalgorithms.com/a03-_inclusion.html
+                // which has this copyright:
+
+                // Copyright 2000 softSurfer, 2012 Dan Sunday
+                // This code may be freely used and modified for any purpose
+                // providing that this copyright notice is included with it.
+                // SoftSurfer makes no warranty for this code, and cannot be held
+                // liable for any real or imagined damage resulting from its use.
+                // Users of this code must verify correctness for their application.
+
+                let vertices = dependencyValues.numericalVertices;
+                let numVertices = vertices.length;
+                let dim = vertices[0]?.length;
+
+                if (dim !== 2) {
+                    return { setValue: { containsPoint: () => false } };
+                }
+
+                let minx = Infinity,
+                    maxx = -Infinity,
+                    miny = Infinity,
+                    maxy = -Infinity;
+                for (let vertex of vertices) {
+                    if (vertex[0] < minx) {
+                        minx = vertex[0];
+                    }
+                    if (vertex[0] > maxx) {
+                        maxx = vertex[0];
+                    }
+                    if (vertex[1] < miny) {
+                        miny = vertex[1];
+                    }
+                    if (vertex[1] > maxy) {
+                        maxy = vertex[1];
+                    }
+                }
+
+                // isLeft(): tests if a point is Left|On|Right of an infinite line.
+                //    Input:  three points P0, P1, and P2
+                //    Return: >0 for P2 left of the line through P0 and P1
+                //            =0 for P2  on the line
+                //            <0 for P2  right of the line
+                function isLeft(P0, P1, P2) {
+                    return (
+                        (P1[0] - P0[0]) * (P2[1] - P0[1]) -
+                        (P2[0] - P0[0]) * (P1[1] - P0[1])
+                    );
+                }
+
+                // winding number test for a point in a polygon
+                // Return: true if winding number != 0, i.e., point is in polygon
+                let containsPoint = function (P) {
+                    // short circuit if not in bounding box
+                    if (
+                        !(
+                            P[0] <= maxx &&
+                            P[0] >= minx &&
+                            P[1] <= maxy &&
+                            P[1] >= miny
+                        )
+                    ) {
+                        return false;
+                    }
+
+                    // winding number
+                    let wn = 0;
+
+                    // loop through all edges of the polygon
+                    for (let i = 0; i < numVertices; i++) {
+                        let iPlus1 = (i + 1) % numVertices;
+                        // edge from vertices[i] to  vertices[i+1]
+                        if (vertices[i][1] <= P[1]) {
+                            // start y <= P[1]
+                            if (vertices[iPlus1][1] > P[1]) {
+                                // end y > P[1], so segment crossed from below to above P
+                                if (
+                                    isLeft(vertices[i], vertices[iPlus1], P) > 0
+                                )
+                                    // an upward crossing
+                                    // P left of  edge
+                                    wn++; // have a valid up intersect
+                            }
+                        } else {
+                            // start y > P[1] (no test needed)
+                            if (vertices[iPlus1][1] <= P[1]) {
+                                // end y <= P[1], so segment crossed from above to below P
+                                if (
+                                    isLeft(vertices[i], vertices[iPlus1], P) < 0
+                                )
+                                    // a downward crossing
+                                    // P right of edge
+                                    wn--; // have a valid down intersect
+                            }
+                        }
+                    }
+                    return wn !== 0;
+                };
+
+                return { setValue: { containsPoint } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 }

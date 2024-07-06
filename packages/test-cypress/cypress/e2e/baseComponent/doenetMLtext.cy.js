@@ -642,4 +642,60 @@ ${theDoenetML3}
         cy.get(cesc2("#/s3/mdml")).should("have.text", mdml);
         cy.get(cesc2("#/s3/m2dml")).should("have.text", m2dml);
     });
+
+    it("doenetML of self-closing tags", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <section name="s1" newNamespace>
+      <p name="p1"/>
+      <p name="p2" />
+      <p name="p3"
+/>
+      <p name="p4"
+     
+      />
+          
+      <text name="p1dml" copySource="p1.doenetML" />
+      <text name="p2dml" copySource="p2.doenetML" />
+      <text name="p3dml" copySource="p3.doenetML" />
+      <text name="p4dml" copySource="p4.doenetML" />
+    </section>
+
+    <section name="s2" copySource="s1" />
+    <section name="s3" copySource="s1" link="false" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        let p1dml = `<p name="p1"/>`;
+        let p2dml = `<p name="p2" />`;
+        let p3dml = `<p name="p3"
+/>`;
+        // TODO: not sure why it is eating the spaces after the new lines.
+        // Do we care?
+        let p4dml = `<p name="p4"
+
+/>`;
+
+        cy.log("check original");
+
+        cy.get(cesc2("#/s1/p1dml")).should("have.text", p1dml);
+        cy.get(cesc2("#/s1/p2dml")).should("have.text", p2dml);
+        cy.get(cesc2("#/s1/p3dml")).should("have.text", p3dml);
+        cy.get(cesc2("#/s1/p4dml")).should("have.text", p4dml);
+
+        cy.get(cesc2("#/s2/p1dml")).should("have.text", p1dml);
+        cy.get(cesc2("#/s2/p2dml")).should("have.text", p2dml);
+        cy.get(cesc2("#/s2/p3dml")).should("have.text", p3dml);
+        cy.get(cesc2("#/s2/p4dml")).should("have.text", p4dml);
+
+        cy.get(cesc2("#/s3/p1dml")).should("have.text", p1dml);
+        cy.get(cesc2("#/s3/p2dml")).should("have.text", p2dml);
+        cy.get(cesc2("#/s3/p3dml")).should("have.text", p3dml);
+        cy.get(cesc2("#/s3/p4dml")).should("have.text", p4dml);
+    });
 });

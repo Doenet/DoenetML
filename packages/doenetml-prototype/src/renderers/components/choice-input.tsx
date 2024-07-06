@@ -9,7 +9,10 @@ import { flatDastChildrenToReactChildren } from "../element";
 
 export const ChoiceInput: BasicComponent = ({ node }) => {
     const childrenIds = React.useMemo(
-        () => node.children.filter((n) => typeof n === "number") as number[],
+        () =>
+            node.children.filter(
+                (n) => typeof n === "number",
+            ) as unknown[] as number[],
         [node.children],
     );
     const elements = useAppSelector(elementsArraySelector);

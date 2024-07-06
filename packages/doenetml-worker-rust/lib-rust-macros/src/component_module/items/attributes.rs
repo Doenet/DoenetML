@@ -201,6 +201,7 @@ pub struct AttributesVariant {
     pub default: Option<syn::Expr>,
     /// The explicit type for the attribute. This can be auto-computed if using one of the standard
     /// prop types.
+    #[allow(unused)]
     pub explicit_type: Option<Path>,
     /// Whether or not to preserve/expand references that are children in this attribute.
     #[darling(default)]

@@ -1,0 +1,87 @@
+import { Callout } from 'nextra/components'
+
+# How DoenetML works
+
+## Definitions: Components, Attributes, and Properties
+DoenetML is a **markup language** much like HTML. When creating content in DoenetML, you are essentially working with 3 types of data objects:
+
+* **Components** - also called "tags" informally, describe the type of content that is being defined or rendered. Typically, a component will consist of an opening tag `<componentName>` and a closing tag `</componentName>`, with content, content specifications, or other components occuring between these two tags. Some components, if they do not require additional information, may be self-closing, `<componentName/>`.
+
+* **Attributes** - provide information necessary to define the component's desired behavior within the opening tag. The syntax for specifying an attribute is: `<componentName attr="value">`.
+
+* **Properties** - information stored internally relating to a component that may be accessed by referencing the component by name, followed by the name of the property. 
+
+```html
+<p>This is a graphical component: 
+    <point name="p1">(1,2)</point>
+</p>
+
+<p>"draggable" is an attribute of the point component: 
+    <point name="p2" draggable="false">(-1,-2)</point>
+</p>
+
+<p>"x" is a property of the point component:</p>
+<p>p1.x = $p1.x</p>
+<p>p2.x = $p2.x</p>
+
+<p>Now, observe the points on a graph, and drag them to see their properties change.</p>
+<graph>$p1 $p2</graph>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+
+The available attributes and properties vary by component. See the [Component Examples](./doenetML_components/componentIndex.mdx) section for a full listing for each.
+
+## Component Types
+The components in DoeneML can be categorized into several functional types that characterize their most common use-case and functionality. The system presented here is not a formal, programmatic characterization; it is intended to mainly help authors of DoenetML find and select useful components when building activities, and to make learning components easier. 
+
+To see a list of components organized by type, see the [Index by Component Type](./doenetML_components/componentTypes.mdx) page.
+
+The different types are:
+
+| Type of Component    | Description                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| **Paragraph Markup** | used within a paragraph, or `<p>` tag to change the way text is rendered                 |
+| **Sectional**        | used to structure content on the page; may have auto-numbering                           |
+| **Input**            | used to gather user-input, such as text-boxes, multiple-choice selections, or checkboxes |
+| **Graphical**        | used to render interactive elements on a graph                                           |
+| **Display Math**     | used to render LaTeX; does not invoke the CAS                                            |
+| **Math**             | used to define mathematical content; can be symbolic or numerical                        |
+| **Math Operator**    | used to perform mathematical operations                                                  |
+| **General Operator** | used to perform operations on math and non-math components                               |
+| **Logic**            | used to define boolean conditions                                                        |
+| **Evaluation**       | used with answer validation and awarding of credit                                       |
+| **Text**             | any component that uses text strings outside the context of a paragraph                  |
+
+Some components may belong to more than one functional type, such as a `<sequence>`, which can generate either a numerical or a text sequence, or a `<mathInput>` which collects student's mathematical responses and also stores the value as a Math Component for use in computations by the CAS.
+
+## The Computer Algebra System (CAS)
+DoenetML is linked to a CAS which performs the basic computations necessary for the behavior of mathematical and graphical components, as well as answer-checking.
+
+All Math Components and Graphical Components have access to the CAS, which can be used when evaluating or responding to user interactions with these components. For example, when a user drags a `<line>`, dilates a `<circle>`, or updates the coefficient in an equation via a `<mathInput>`, the CAS instantaneously updates all of the stored property data relating to that component.
+
+Mathematical Display components, by contrast, do not access the CAS. 
+
+## Basic Language syntax
+Components can communicate information between one another by means of references. To create a reference, attach a `name` attribute to a defined component following the DoenetML naming convention.
+
+<Callout type="info">
+**DoenetML naming convention:**
+* Can only contain numbers, letters, and underscores
+* Cannot start with an underscore or a number
+* Is case-sensitive
+</Callout>
+
+When you need to access the value of the named component or one of its stored properties, use the notation `$componentName` to create a reference to the component itself, and use the notation `$componentName.propertyName` to create a reference to one of its properties. 
+
+```html
+<line name="line1" through="(1,2) (-7,5)"/>
+
+<p>Referencing the line component on a graph:</p>
+<graph>$line1</graph>
+
+<p>Accessing data from the line component:</p>
+<p>line1.yIntercept = $line1.yIntercept</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+

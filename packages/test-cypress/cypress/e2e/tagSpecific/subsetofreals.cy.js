@@ -87,7 +87,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -115,7 +115,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -143,7 +143,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -171,7 +171,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
     });
 
     it("single intervals, display as inequality", () => {
@@ -255,7 +255,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/o9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "x∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -283,7 +283,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/c9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "x∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -311,7 +311,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/oc9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "x∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -339,7 +339,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "x∈R");
         cy.get(cesc("#\\/co9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "x∈∅");
+            .should("have.text", "＿");
     });
 
     it("single intervals, display as inequality, change variable", () => {
@@ -423,7 +423,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/o9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "v∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -451,7 +451,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/c9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "v∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -479,7 +479,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/oc9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "v∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -507,7 +507,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "v∈R");
         cy.get(cesc("#\\/co9") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "v∈∅");
+            .should("have.text", "＿");
     });
 
     it("single inequality", () => {
@@ -564,6 +564,13 @@ describe("SubsetOfReals Tag Tests", function () {
   <p><subsetOfReals name="co10">-infinity <= x < infinity</subsetOfReals></p>
   <p><subsetOfReals name="co11">x < a</subsetOfReals></p>
 
+  <p><subsetOfReals name="ne1">x != 6</subsetOfReals></p>
+  <p><subsetOfReals name="ne2">x != infinity</subsetOfReals></p>
+  <p><subsetOfReals name="ne3">x != -infinity</subsetOfReals></p>
+  <p><subsetOfReals name="ne4">6 != x</subsetOfReals></p>
+  <p><subsetOfReals name="ne5">infinity != x</subsetOfReals></p>
+  <p><subsetOfReals name="ne6">-infinity != x</subsetOfReals></p>
+
 
   `,
                 },
@@ -604,7 +611,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -638,7 +645,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -672,7 +679,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -706,7 +713,26 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
+
+        cy.get(cesc("#\\/ne1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,6)∪(6,∞)");
+        cy.get(cesc("#\\/ne2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
+        cy.get(cesc("#\\/ne3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
+        cy.get(cesc("#\\/ne4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,6)∪(6,∞)");
+        cy.get(cesc("#\\/ne5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
+        cy.get(cesc("#\\/ne6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
     });
 
     it("single inequality, change variable", () => {
@@ -763,6 +789,12 @@ describe("SubsetOfReals Tag Tests", function () {
   <p><subsetOfReals variable="q" name="co10">-infinity <= q < infinity</subsetOfReals></p>
   <p><subsetOfReals variable="q" name="co11">q < a</subsetOfReals></p>
 
+  <p><subsetOfReals variable="q" name="ne1">q != 6</subsetOfReals></p>
+  <p><subsetOfReals variable="q" name="ne2">q != infinity</subsetOfReals></p>
+  <p><subsetOfReals variable="q" name="ne3">q != -infinity</subsetOfReals></p>
+  <p><subsetOfReals variable="q" name="ne4">6 != q</subsetOfReals></p>
+  <p><subsetOfReals variable="q" name="ne5">infinity != q</subsetOfReals></p>
+  <p><subsetOfReals variable="q" name="ne6">-infinity != q</subsetOfReals></p>
 
   `,
                 },
@@ -803,7 +835,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -837,7 +869,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -871,7 +903,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -905,7 +937,26 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
+
+        cy.get(cesc("#\\/ne1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,6)∪(6,∞)");
+        cy.get(cesc("#\\/ne2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
+        cy.get(cesc("#\\/ne3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
+        cy.get(cesc("#\\/ne4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,6)∪(6,∞)");
+        cy.get(cesc("#\\/ne5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
+        cy.get(cesc("#\\/ne6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "R");
     });
 
     it("single equality", () => {
@@ -938,7 +989,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "∅");
         cy.get(cesc("#\\/e4") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
     });
 
     it("single inequality in set notation", () => {
@@ -1035,7 +1086,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/o11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/c1") + " .mjx-mrow")
             .eq(0)
@@ -1069,7 +1120,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/c11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/oc1") + " .mjx-mrow")
             .eq(0)
@@ -1103,7 +1154,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/oc11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/co1") + " .mjx-mrow")
             .eq(0)
@@ -1137,7 +1188,7 @@ describe("SubsetOfReals Tag Tests", function () {
             .should("have.text", "R");
         cy.get(cesc("#\\/co11") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "∅");
+            .should("have.text", "＿");
     });
 
     it("union and intersections of intervals and singletons", () => {
@@ -2383,10 +2434,10 @@ describe("SubsetOfReals Tag Tests", function () {
             "{end}{backspace}y{enter}",
             { force: true },
         );
-        cy.get(cesc("#\\/result") + " .mjx-mrow").should("contain.text", "y∈∅");
+        cy.get(cesc("#\\/result") + " .mjx-mrow").should("contain.text", "＿");
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
-            .should("have.text", "y∈∅");
+            .should("have.text", "＿");
 
         cy.get(cesc("#\\/input") + " textarea").type(
             "{home}{rightArrow}{backspace}y{enter}",
@@ -2750,5 +2801,134 @@ describe("SubsetOfReals Tag Tests", function () {
         cy.get(cesc("#\\/Sclosed") + " .mjx-mrow")
             .eq(0)
             .should("have.text", "[−9,−6]∪[−1,8]");
+    });
+
+    it("point and interval properties", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <subsetOfReals name="empty">emptyset</subsetOfReals>
+  <subsetOfReals name="interval">[-1,2)</subsetOfReals>
+  <subsetOfReals name="intervalSingleton">(-1,2] union {-5}</subsetOfReals>
+  <subsetOfReals name="missPoint">(-infinity,3) union (3,infinity)</subsetOfReals>
+  <subsetOfReals name="R">R</subsetOfReals>
+
+  <p name="emptyPoints">empty points: $empty.points</p>
+  <p name="emptyPointsClosed">empty points closed: $empty.pointsClosed</p>
+  <p name="emptyIntervals">empty intervals: $empty.intervals</p>
+  <p name="emptyIsolated">empty isolated points: $empty.isolatedPoints</p>
+
+  <p name="intervalPoints">interval points: $interval.points</p>
+  <p name="intervalPointsClosed">interval points closed: $interval.pointsClosed</p>
+  <p name="intervalIntervals">interval intervals: $interval.intervals</p>
+  <p name="intervalIsolated">interval isolated points: $interval.isolatedPoints</p>
+
+  <p name="intervalSingletonPoints">intervalSingleton points: $intervalSingleton.points</p>
+  <p name="intervalSingletonPointsClosed">intervalSingleton points closed: $intervalSingleton.pointsClosed</p>
+  <p name="intervalSingletonIntervals">intervalSingleton intervals: $intervalSingleton.intervals</p>
+  <p name="intervalSingletonIsolated">intervalSingleton isolated points: $intervalSingleton.isolatedPoints</p>
+
+  <p name="missPointPoints">missPoint points: $missPoint.points</p>
+  <p name="missPointPointsClosed">missPoint points closed: $missPoint.pointsClosed</p>
+  <p name="missPointIntervals">missPoint intervals: $missPoint.intervals</p>
+  <p name="missPointIsolated">missPoint isolated points: $missPoint.isolatedPoints</p>
+
+  <p name="RPoints">R points: $R.points</p>
+  <p name="RPointsClosed">R points closed: $R.pointsClosed</p>
+  <p name="RIntervals">R intervals: $R.intervals</p>
+  <p name="RIsolated">R isolated points: $R.isolatedPoints</p>
+
+
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/emptyPoints") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/emptyPointsClosed")).should(
+            "have.text",
+            "empty points closed: ",
+        );
+        cy.get(cesc("#\\/emptyIntervals") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/emptyIsolated") + " .mjx-mrow").should("not.exist");
+
+        cy.get(cesc("#\\/intervalPoints") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "−1");
+        cy.get(cesc("#\\/intervalPoints") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "2");
+        cy.get(cesc("#\\/intervalPoints") + " .mjx-mrow")
+            .eq(2)
+            .should("not.exist");
+
+        cy.get(cesc("#\\/intervalPointsClosed")).should(
+            "have.text",
+            "interval points closed: true, false",
+        );
+
+        cy.get(cesc("#\\/intervalIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "[−1,2)");
+
+        cy.get(cesc("#\\/intervalIsolated") + " .mjx-mrow").should("not.exist");
+
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "−5");
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "−1");
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(2)
+            .should("have.text", "2");
+        cy.get(cesc("#\\/intervalSingletonPoints") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+
+        cy.get(cesc("#\\/intervalSingletonPointsClosed")).should(
+            "have.text",
+            "intervalSingleton points closed: true, false, true",
+        );
+        cy.get(cesc("#\\/intervalSingletonIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−1,2]");
+        cy.get(cesc("#\\/intervalSingletonIsolated") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "−5");
+
+        cy.get(cesc("#\\/missPointPoints") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc("#\\/missPointPoints") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc("#\\/missPointPointsClosed")).should(
+            "have.text",
+            "missPoint points closed: false",
+        );
+        cy.get(cesc("#\\/missPointIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,3)");
+        cy.get(cesc("#\\/missPointIntervals") + " .mjx-mrow")
+            .eq(2)
+            .should("have.text", "(3,∞)");
+        cy.get(cesc("#\\/missPointIsolated") + " .mjx-mrow").should(
+            "not.exist",
+        );
+
+        cy.get(cesc("#\\/RPoints") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/RPointsClosed")).should(
+            "have.text",
+            "R points closed: ",
+        );
+        cy.get(cesc("#\\/RIntervals") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(−∞,∞)");
+        cy.get(cesc("#\\/RIsolated") + " .mjx-mrow").should("not.exist");
     });
 });

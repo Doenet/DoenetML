@@ -33293,7 +33293,7 @@ describe("Answer Tag Tests", function () {
 
         cy.get(cesc("#\\/bsr")).should("have.text", "false");
         cy.get(cesc("#\\/bcr")).should("have.text", "false");
-        cy.get(cesc("#\\/b") + " .checkmark").click();
+        cy.get(cesc("#\\/b") + " .doenetml-checkmark").click();
         cy.get(cesc("#\\/bcr")).should("have.text", "true");
         cy.get(cesc("#\\/bsr")).should("have.text", "false");
         cy.get(cesc("#\\/b_submit")).click();

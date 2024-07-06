@@ -12,17 +12,17 @@ exports[`DAST > xml-3.doenet prints correctly in Xml format and Doenet format 1`
 
 exports[`DAST > xml-3.doenet prints correctly in Xml format and Doenet format 2`] = `"<a><b>c</b><d /></a>"`;
 
-exports[`DAST > xml-4.doenet prints correctly in Xml format and Doenet format 1`] = `"<a foo=\\"bar\\" />"`;
+exports[`DAST > xml-4.doenet prints correctly in Xml format and Doenet format 1`] = `"<a foo="bar" />"`;
 
-exports[`DAST > xml-4.doenet prints correctly in Xml format and Doenet format 2`] = `"<a foo=\\"bar\\" />"`;
+exports[`DAST > xml-4.doenet prints correctly in Xml format and Doenet format 2`] = `"<a foo="bar" />"`;
 
-exports[`DAST > xml-5.doenet prints correctly in Xml format and Doenet format 1`] = `"<a x=\\"one\\" y=\\"two\\" z=\\"three\\" />"`;
+exports[`DAST > xml-5.doenet prints correctly in Xml format and Doenet format 1`] = `"<a x="one" y="two" z="three" />"`;
 
-exports[`DAST > xml-5.doenet prints correctly in Xml format and Doenet format 2`] = `"<a x=\\"one\\" y=\\"two\\" z=\\"three\\" />"`;
+exports[`DAST > xml-5.doenet prints correctly in Xml format and Doenet format 2`] = `"<a x="one" y="two" z="three" />"`;
 
-exports[`DAST > xml-6.doenet prints correctly in Xml format and Doenet format 1`] = `"<a attr=\\"one&amp;two\\">&amp;C</a>"`;
+exports[`DAST > xml-6.doenet prints correctly in Xml format and Doenet format 1`] = `"<a attr="one&amp;two">&amp;C</a>"`;
 
-exports[`DAST > xml-6.doenet prints correctly in Xml format and Doenet format 2`] = `"<a attr=\\"one&two\\">&C</a>"`;
+exports[`DAST > xml-6.doenet prints correctly in Xml format and Doenet format 2`] = `"<a attr="one&two">&C</a>"`;
 
 exports[`DAST > xml-7.doenet prints correctly in Xml format and Doenet format 1`] = `
 "<!DOCTYPE html>
@@ -58,9 +58,9 @@ exports[`DAST > xml-10.doenet prints correctly in Xml format and Doenet format 1
 
 exports[`DAST > xml-10.doenet prints correctly in Xml format and Doenet format 2`] = `"<doc><![CDATA[ hello ]]></doc>"`;
 
-exports[`DAST > xml-12.doenet prints correctly in Xml format and Doenet format 1`] = `"<xml:foo ns:bar=\\"xx\\">yy</xml:foo>"`;
+exports[`DAST > xml-12.doenet prints correctly in Xml format and Doenet format 1`] = `"<xml:foo ns:bar="xx">yy</xml:foo>"`;
 
-exports[`DAST > xml-12.doenet prints correctly in Xml format and Doenet format 2`] = `"<xml:foo ns:bar=\\"xx\\">yy</xml:foo>"`;
+exports[`DAST > xml-12.doenet prints correctly in Xml format and Doenet format 2`] = `"<xml:foo ns:bar="xx">yy</xml:foo>"`;
 
 exports[`DAST > xml-doenet-ampersand-1.doenet prints correctly in Xml format and Doenet format 1`] = `
 "&amp;lt; &amp;#x25; &amp;#x25 -- this one is okay.
@@ -88,13 +88,13 @@ exports[`DAST > xml-doenet-ampersand-3.doenet prints correctly in Xml format and
 
 exports[`DAST > xml-doenet-ampersand-3.doenet prints correctly in Xml format and Doenet format 2`] = `"&"`;
 
-exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar=\\"true\\" baz=\\"hi\\" bang=\\"there\\" />"`;
+exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar="true" baz="hi" bang="there" />"`;
 
-exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar baz=\\"hi\\" bang=\\"there\\" />"`;
+exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar baz="hi" bang="there" />"`;
 
-exports[`DAST > xml-doenet-attributes-2.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar='\\"there\\"' baz=\\"&amp;hi\\" />"`;
+exports[`DAST > xml-doenet-attributes-2.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar='"there"' baz="&amp;hi" />"`;
 
-exports[`DAST > xml-doenet-attributes-2.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar='\\"there\\"' baz=\\"&hi\\" />"`;
+exports[`DAST > xml-doenet-attributes-2.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar='"there"' baz="&hi" />"`;
 
 exports[`DAST > xml-doenet-lessthan-in-text-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<math>2 &lt; 3</math>"`;
 

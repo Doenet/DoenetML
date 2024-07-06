@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import TestViewer from "./test/testViewer";
-import { DoenetML } from "@doenet/doenetml/doenetml-inline-worker.js";
+import { DoenetViewer } from "@doenet/doenetml/doenetml-inline-worker.js";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <TestViewer DoenetML={DoenetML} />,
+    <TestViewer DoenetML={DoenetViewer} />,
 );
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.

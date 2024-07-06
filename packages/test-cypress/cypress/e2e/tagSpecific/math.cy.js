@@ -11740,4 +11740,171 @@ describe("Math Tag Tests", function () {
             .eq(0)
             .should("have.text", "8");
     });
+
+    it("support for some logical operators", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <p>
+    <math name="not_a">not a</math>
+    <math name="not_b">!a</math>
+    <math name="not_c" format="latex">\\lnot a</math>
+    <math name="not_d" format="latex">\\neg a</math>
+    <math name="not_e" format="latex">!a</math>
+  </p>
+  <p>
+    <math name="implies_a">a implies b</math>
+    <math name="implies_b">a ⇒ b</math>
+    <math name="implies_c">a ⟹ b</math>
+    <math name="implies_d" format="latex">a \\implies b</math>
+    <math name="implies_e" format="latex">a \\Longrightarrow b</math>
+    <math name="implies_f" format="latex">a \\Rightarrow b</math>
+  </p>
+
+  <p>
+    <math name="impliedby_a">a impliedby b</math>
+    <math name="impliedby_b">a ⇐ b</math>
+    <math name="impliedby_c">a ⟸ b</math>
+    <math name="impliedby_d" format="latex">a \\impliedby b</math>
+    <math name="impliedby_e" format="latex">a \\Longleftarrow b</math>
+    <math name="impliedby_f" format="latex">a \\Leftarrow b</math>
+  </p>
+
+  <p>
+    <math name="iff_a">a iff b</math>
+    <math name="iff_b">a ⇔ b</math>
+    <math name="iff_c">a ⟺ b</math>
+    <math name="iff_d" format="latex">a \\iff b</math>
+    <math name="iff_e" format="latex">a \\Longleftrightarrow b</math>
+    <math name="iff_f" format="latex">a \\Leftrightarrow b</math>
+  </p>
+
+  <p>
+    <math name="rightarrow_a">a rightarrow b</math>
+    <math name="rightarrow_b">a → b</math>
+    <math name="rightarrow_c">a ⟶ b</math>
+    <math name="rightarrow_d" format="latex">a \\to b</math>
+    <math name="rightarrow_e" format="latex">a \\longrightarrow b</math>
+    <math name="rightarrow_f" format="latex">a \\rightarrow b</math>
+  </p>
+
+  <p>
+    <math name="leftarrow_a">a leftarrow b</math>
+    <math name="leftarrow_b">a ← b</math>
+    <math name="leftarrow_c">a ⟵ b</math>
+    <math name="leftarrow_d" format="latex">a \\gets b</math>
+    <math name="leftarrow_e" format="latex">a \\longleftarrow b</math>
+    <math name="leftarrow_f" format="latex">a \\leftarrow b</math>
+  </p>
+
+  <p>
+    <math name="leftrightarrow_a">a leftrightarrow b</math>
+    <math name="leftrightarrow_b">a ↔ b</math>
+    <math name="leftrightarrow_c">a ⟷ b</math>
+    <math name="leftrightarrow_d" format="latex">a \\longleftrightarrow b</math>
+    <math name="leftrightarrow_e" format="latex">a \\leftrightarrow b</math>
+  </p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
+
+        let nots = ["/not_a", "/not_b", "/not_c", "/not_d", "/not_e"];
+        let implies = [
+            "/implies_a",
+            "/implies_b",
+            "/implies_c",
+            "/implies_d",
+            "/implies_e",
+            "/implies_f",
+        ];
+        let impliedby = [
+            "/impliedby_a",
+            "/impliedby_b",
+            "/impliedby_c",
+            "/impliedby_d",
+            "/impliedby_e",
+            "/impliedby_f",
+        ];
+        let iff = ["/iff_a", "/iff_b", "/iff_c", "/iff_d", "/iff_e", "/iff_f"];
+
+        let rightarrow = [
+            "/rightarrow_a",
+            "/rightarrow_b",
+            "/rightarrow_c",
+            "/rightarrow_d",
+            "/rightarrow_e",
+            "/rightarrow_f",
+        ];
+        let leftarrow = [
+            "/leftarrow_a",
+            "/leftarrow_b",
+            "/leftarrow_c",
+            "/leftarrow_d",
+            "/leftarrow_e",
+            "/leftarrow_f",
+        ];
+        let leftrightarrow = [
+            "/leftrightarrow_a",
+            "/leftrightarrow_b",
+            "/leftrightarrow_c",
+            "/leftrightarrow_d",
+            "/leftrightarrow_e",
+        ];
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            for (let id of nots) {
+                expect(stateVariables[id].stateValues.value).eqls(["not", "a"]);
+            }
+            for (let id of implies) {
+                expect(stateVariables[id].stateValues.value).eqls([
+                    "implies",
+                    "a",
+                    "b",
+                ]);
+            }
+            for (let id of impliedby) {
+                expect(stateVariables[id].stateValues.value).eqls([
+                    "impliedby",
+                    "a",
+                    "b",
+                ]);
+            }
+            for (let id of iff) {
+                expect(stateVariables[id].stateValues.value).eqls([
+                    "iff",
+                    "a",
+                    "b",
+                ]);
+            }
+            for (let id of rightarrow) {
+                expect(stateVariables[id].stateValues.value).eqls([
+                    "rightarrow",
+                    "a",
+                    "b",
+                ]);
+            }
+            for (let id of leftarrow) {
+                expect(stateVariables[id].stateValues.value).eqls([
+                    "leftarrow",
+                    "a",
+                    "b",
+                ]);
+            }
+            for (let id of leftrightarrow) {
+                expect(stateVariables[id].stateValues.value).eqls([
+                    "leftrightarrow",
+                    "a",
+                    "b",
+                ]);
+            }
+        });
+    });
 });

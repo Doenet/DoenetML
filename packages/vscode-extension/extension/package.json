@@ -6,7 +6,7 @@
     "author": "Jason Siefken",
     "license": "AGPL",
     "publisher": "doenet",
-    "version": "0.7.6",
+    "version": "0.7.8",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"
@@ -60,6 +60,11 @@
                 "enablement": "resourceLangId == doenet",
                 "command": "doenet.formatAsXML",
                 "title": "Format Doenet Source as XML"
+            },
+            {
+                "enablement": "resourceLangId == doenet",
+                "command": "doenet.formatAsMarkdown",
+                "title": "Format Doenet Source as Markdown (experimental)"
             }
         ],
         "menus": {

@@ -1,0 +1,129 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Variables, Numbers, Arithmetic, and Algebra
+
+In this section we'll see how to define mathematical expressions and numbers which can be changed, used in computations, and rendered on screen. Later on, you'll learn how to let the user enter or change expressions, which allows for more interactive activities.
+
+This section will also introduce attributes, which are an important way to define and manipulate objects in DoenetML.
+
+### The `<math>` Tag
+In DoenetML, `<math>` denotes a mathematical expression that can be rendered on screen and used in computations.
+
+```html
+<p>
+  <math>1-2</math>
+</p>
+
+<p>
+  <math>sqrt(3^2+4^2)</math>
+</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Notice that the contents of a `<math>` tag are rendered in standard mathematical notation, just like `<m>` or `<me>` tags. The difference is that `<math>` can include arithmetic and algebraic operations. Unlike the `<m>` tag, common mathematical functions like "sqrt" and "sin" are recognized and rendered correctly.
+
+By default, DoenetML does not perform any simplifications on the contents of a `<math>` tag, but we can change that behavior using an attribute. Similar to HTML, attributes are used in DoenetML to provide additional information or configuration for an object. Attributes and their values are included in the opening tag when you define an object. (Most tags in DoenetML have many attributes you can use; they're all described in the [Component Examples](../../reference/doenetML_components/componentIndex.mdx) section of this documentation.)
+
+In the following examples, we've added `simplify="true"` to each opening `<math>` tag. Notice how Doenet now simplifies each expression, by computing $1 - 2 = -1$ and $\sqrt{3^2 + 4^2} = 5$.
+
+```html
+<p>
+  <math simplify="true">1-2</math>
+</p>
+
+<p>
+  <math simplify="true">sqrt(3^2+4^2)</math>
+</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+**Pro tip #1:** the expression `attribute="true"` can always be replaced with just `attribute`. In the test editor, try deleting `="true"` from the attributes above, click update, and verify that Doenet still simplifies the expressions.
+
+**Pro tip #2:** the `simplify` attribute has other possible settings, such as `simplify="numbers"`, which will combine constants but not group other variables together. See the following code sample for an example.
+
+```html
+<p> This expression will be fully simplified:
+  <math simplify>3x^2 - 2x^2 + 3x + 5x + 7 + 9</math>
+</p>
+
+<p> In this expression, the constants will be combined, but the various powers of <m>x</m> will not be grouped together:
+  <math simplify="numbers">3x^2 - 2x^2 + 3x + 5x + 7 + 9</math>
+</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### The name Attribute
+Perhaps the most commonly used attribute in DoenetML is `name`, which allows you to create a reference to an object (which could be *any* component, such as a `<p>`, an `<ol>`, or a `<math>`) so that you can refer to it later. (If you have a programing background, think: creating variables.) For example, the following code essentially amounts to "Let $x = 3$" in DoenetML:
+```html
+<math name="x">3</math>
+```
+
+Once we've defined a reference for $x$ with the `name` attribute, we can refer to it later on. 
+
+When you want to refer to an object (or an object property, which we will discuss in later tutorials), use the `$` symbol, followed by the `name` of the object. The following example illustrates one common use for an object reference: repeating back to the user a value they've entered in a `<textInput/>` component.
+
+```html
+<p>What is your name? <textInput name="userName"/></p>
+
+<p>Hello, $userName!</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Here is another example, where the original `<math>` component is used to define a value, and then later referenced to perform an algebraic substitution.
+
+```html
+<p>Define the value of <m>x</m> here:
+  <math name="x">3</math>
+</p>
+
+<p>Compute the value of <m>1 + x + x^2 + x^3</m> below:</p>
+<p>
+  <math name="y">1 + $x + $x^2 + $x^3</math>
+</p>
+
+<p>Now simplify that value: <math simplify>$y</math>.</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Did you notice that $x$ was used to define a new `<math>` object named $y$, which was later used to create a third `<math>`, which was the simplified value of $y$? We could have also included the simplify attribute when defining $y$:
+```html
+     <math name="y" simplify>1+$x+$x^2+$x^3</math>
+```
+
+You can use the `$` symbol to refer to any number of Doenet objects. The following example uses multiple references to solve the equation $a x - b = 10$. In the test editor, try changing the values of $a$ and $b$ and click update to solve the new equation.
+
+```html
+<p>Define <m>a</m> and <m>b</m> :
+  <math name="a">3</math>, 
+  <math name="b">8</math>
+</p>
+
+<p>Solution: <math simplify>(10+$b)/$a</math></p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### The `<number>` Tag
+The `<math>` tag can be used for symbolic or numerical expressions. If you just want to store a numerical value, you can use the `<number>` instead. Although you can use arithmetic and functions to define a `<number>`, only the resulting value will be stored. Compare how Doenet treats the expression $\sin(\frac{\pi}{4})$ inside `<math>` or `<number>` tags.
+
+```html
+<p><math>sin(pi/4)</math></p>
+
+<p><number>sin(pi/4)</number></p>  
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Unlike the contents of a `<math>` object, the value of a `<number>` is rendered as plain text, instead of using [MathJax](https://www.mathjax.org/). The difference can be visually jarring if it's next to other rendered mathematics or numbers. In some cases you might want to wrap your `<number>` between `<m>` and `</m>`:
+
+```html
+<p><math>0.707</math></p>
+
+<p><m>\sin(\pi/4)=</m> <number>sin(pi/4)</number></p>  
+
+<p><m>\sin(\pi/4) = <number>sin(pi/4)</number></m></p>  
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+**Pro tip #3:** As you learn DoenetML, it's usually easiest to deal with `<math>` objects and not use `<number>`, unless you really want to display a decimal approximation. The difference between the tags becomes more important later on, once you're writing more advanced DoenetML code. If you have to do hundreds of computations, for example, it's much faster to work with `<number>` than to do symbolic computations with `<math>` objects.
+
+### Next Steps
+Now that you can define numbers and expressions, and do calculations with them, you'll learn how to hide certain definitions and calculations from view, so the reader only sees the results. But first: because the `<m>` and `<math>` tags are similar, the next section will talk about when you should use each of those tags.

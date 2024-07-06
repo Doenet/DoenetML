@@ -1,0 +1,136 @@
+import { DoenetML} from "../../../components/doenet"
+
+# Properties and Lists
+
+### What is a Property?
+
+Throughout this tutorial we've used "attributes" to adjust the behavior of components in DoenetML. Often you don't want to change the value of an attribute, though; you just want to know what that value is. You can do this with **properties** in DoenetML. The general syntax to retrieve the value of a property in DoenetML is:
+
+```html
+     $objectName.propertyName
+```
+
+For example, if you have a line named `PQ`, you can access its `slope` by typing the following in your code:
+```html
+     $PQ.slope
+```
+
+You might recall that `slope `is one of the attributes of `<line>`. It's often the case that the values of attributes can be accessed as properties. For example, if you define a line as
+```html
+     <line name="PQ" through="(0,1)" slope="2"/>
+```
+then, unsurprisingly, `$PQ.slope` is $2$. However, even if you define the same line using different attributes, such as
+```html
+     <line name="PQ" through="(-1,1) (1,3)"/>
+```
+or
+```html
+     <line name="PQ" equation="2x-y=-1"/>,
+```
+Doenet will still calculate the slope of $\overset{\longleftrightarrow}{PQ}$ and set `$PQ.slope` equal to $2$. Furthermore, if the line changes because of some user interaction, the value of `$PQ.slope` will be updated.
+
+### How to Find Properties
+
+The documentation page for each DoenetML component, as found in either the [Alphabetical Index](../../reference/doenetML_components/componentIndex.mdx) or the [Index by Component Type](../../reference/doenetML_components/componentTypes.mdx)  shows which attributes can be accessed as properties, as well as any additional properties that are available. It's always worth checking the documentation before you write code to do a basic computation; it's possible that Doenet is already doing that calculation for you!
+
+As a basic example, the following code uses the $x$ and $y$-coordinates of points $P$ and $Q$ to compute the length of $\overline{PQ}$, via the distance formula. However, it turns out DoenetML already computes that distance; we can access it using the `length` property of the line segment.
+
+```html
+<graph showNavigation="false" size="small">
+
+  <point name="P" x="-8" y="-2" />
+  <point name="Q">(4,7)</point>
+
+  <lineSegment name="PQ" endpoints="$P $Q" />        
+</graph>
+
+<p>Using the Distance Formula:
+<m>PQ = 
+  <number>sqrt(($P.x-$Q.x)^2+($P.y-$Q.y)^2)
+  </number>
+</m>
+</p>
+
+<p>Using the <c>length</c> property:
+<m>PQ = $PQ.length</m></p> 
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+Drag the endpoints around and double check that the distances are updated correctly. Also notice that we can refer to `$Q.x` and `$Q.y`, even though we defined Q without using the `x` and `y` attributes.
+
+#### For object-oriented programmers
+*You don't need to have any previous experience with computer programming to write documents in DoenetML. If that describes you, just ignore the following paragraph!*
+
+For those who have written in object-oriented languages such as Java, however, it could be helpful to mention: attributes and properties of DoenetML objects are analogous to setter and getter methods for objects. As mentioned above, the values of many attributes are directly accessible as properties.
+
+Throughout the rest of this tutorial, you'll sometimes see attribute names used as properties. We'll also occasionally point out particularly useful properties which are *not* also attributes. However, it's always worth reading the [reference section of this documentation](../../reference/doenetML_components/componentTypes.mdx) for a DoenetML tag to see what properties are available.
+
+### Array Notation
+The `<mathList>` tag was briefly introduced in an earlier section. You might recall this is a space-separated list of `<math>` objects:
+```html
+<mathList>$object1 $object2 $object3</mathList>
+```
+
+Later in this tutorial we'll cover sequences and other lists of objects in DoenetML. For now, you should be aware of two things:
+
+* Some properties return a list of objects instead of one specific value.
+
+* To refer to the $n^{th}$ object in a list, use the following "array" notation: First, enter the name of the component, followed by the type of object or property that is being accessed, followed by square brackets enclosing the index value desired. The following example shows this notation for three different types of lists; `<mathList>`, `<textList>`, and `<booleanList>`.
+
+```html {2,5,8} 
+<p>A mathlist: <mathList name="ml">x xy pi^2 sqrt(2)</mathList></p>
+<p>The third "math" in the <tag>mathList</tag> is: $ml.maths[3]</p>
+
+<p>A textlist: <textList name="tl">red orange yellow green</textList></p>
+<p>The third "text" in the <tag>textList</tag> is: $tl.texts[3]</p>
+
+<p>A booleanlist: <booleanList name="bl">true 1 0 true</booleanList></p>
+<p>The third "boolean" in the <tag>booleanList</tag> is: $bl.booleans[3]</p>
+```
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+### Doenet Indexes from 1
+
+In some languages, `$listName.prop[0]` would be the first element, but DoenetML starts counting at $1$; the first item in any list (or vector, or map, etc...) is `$listName.prop[1]`.
+
+### Array Notation with Graphical Components
+
+The following code demonstrates the use of array notation and properties with graphical components. Two line segments are defined using the `endpoints` attribute; as we saw in the previous section, these endpoints are not drawn by default. However, the reference to `$line2.endpoints` (line 5) is nested within the `<graph>` component. That's why the endpoints of `line2` are displayed, and those of `line1` are not.
+
+Below the graph, you'll find references to the `endpoints` property of both line segements, as well as individual references to specific data from the `endpoints` property list (see lines 10-11).
+
+```html {5, 10-11}
+<graph size="small">
+  <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
+ 
+  <lineSegment name= "line2" endpoints="(6,6) (7,-5)" />
+  $line2.endpoints
+</graph>
+ 
+<p>Endpoints of <c>line1</c>: $line1.endpoints</p>
+<p>Endpoints of <c>line2</c>: $line2.endpoints</p>
+<p>First endpoint of <c>line2</c>: $line2.endpoints[1]</p>
+<p>Second endpoint of <c>line2</c>, first element (x): $line2.endpoints[2][1]</p>
+```
+<DoenetML>
+{`
+<graph size="small">
+  <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
+ 
+  <lineSegment name= "line2" endpoints="(6,6) (7,-5)" />
+  $line2.endpoints
+</graph>
+ 
+<p>Endpoints of <c>line1</c>: $line1.endpoints</p>
+<p>Endpoints of <c>line2</c>: $line2.endpoints</p>
+<p>First endpoint of <c>line2</c>: $line2.endpoints[1]</p>
+<p>Second endpoint of <c>line2</c>, first element (x): $line2.endpoints[2][1]</p>
+`}
+</DoenetML>
+
+Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+
+As usual, if you drag either of the line segments or the endpoints, all of the coordinates in the text below the graph will be updated.
+
+### Next Steps
+After this brief interlude about properties, the next section will continue introducing more of the graphical elements that are available in DoenetML, including polygons and circles.

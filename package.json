@@ -17,12 +17,15 @@
         "./packages/doenetml",
         "./packages/doenetml-prototype",
         "./packages/doenetml-worker-rust/lib-js-wasm-binding/pkg",
+        "./packages/docs-nextra",
         "./packages/*"
     ],
     "scripts": {
         "build": "npm run build --workspace packages/test-viewer",
         "build:all": "npm run build -ws --if-present",
-        "test": "npm run test -ws --if-present -- run"
+        "test": "npm run test -ws --if-present -- run",
+        "prettier:format": "prettier --write .",
+        "prettier:check": "prettier --check ."
     },
     "repository": {
         "type": "git",
@@ -35,38 +38,96 @@
     },
     "homepage": "https://github.com/Doenet/DoenetML/README.md",
     "devDependencies": {
+        "@ariakit/react": "^0.4.7",
+        "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+        "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+        "@fortawesome/free-solid-svg-icons": "^6.5.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
         "@qualified/lsp-connection": "^0.3.0",
         "@qualified/vscode-jsonrpc-ww": "^0.3.0",
-        "@rollup/pluginutils": "^5.0.5",
-        "@vitest/web-worker": "^0.34.6",
-        "@vscode/test-web": "^0.0.47",
+        "@rollup/pluginutils": "^5.1.0",
+        "@types/esprima": "^4.0.6",
+        "@types/react": "^18.3.3",
+        "@types/react-dom": "^18.3.0",
+        "@uiw/react-codemirror": "^4.22.2",
+        "@vitejs/plugin-react": "^4.3.1",
+        "@vitest/browser": "^1.6.0",
+        "@vitest/web-worker": "^1.6.0",
+        "@vscode/test-web": "^0.0.54",
+        "autoprefixer": "^10.4.19",
         "chalk": "^5.3.0",
         "compress-json": "^2.1.2",
         "jsdom": "^22.1.0",
         "postcss": "^8.4.32",
-        "prettier": "^3.0.3",
         "rollup-plugin-visualizer": "^5.9.2",
         "ts-morph": "^21.0.1",
         "typescript": "^5.2.2",
         "vite-node": "^0.34.6",
-        "vitest": "^0.34.6",
         "wasm-pack": "^0.12.1",
         "yargs": "^17.7.2"
-    },
-    "prettier": {
-        "tabWidth": 4
     },
     "dependencies": {
         "@ariakit/react": "^0.3.10",
         "@reduxjs/toolkit": "^2.0.1",
         "@uiw/react-codemirror": "^4.21.21",
         "autoprefixer": "^10.4.16",
+        "classnames": "^2.5.1",
         "comlink": "^4.4.1",
+        "compress-json": "^3.0.5",
+        "crypto-js": "^4.2.0",
+        "cypress": "^12.13.0",
+        "cypress-parallel": "^0.13.0",
+        "cypress-plugin-tab": "^1.0.5",
+        "cypress-wait-until": "^1.7.2",
+        "eslint": "^8.57.0",
+        "eslint-plugin-react": "^7.34.2",
+        "eslint-plugin-react-hooks": "^4.6.2",
+        "eslint-plugin-react-refresh": "^0.4.7",
+        "esprima": "^4.0.1",
+        "glob": "^10.4.1",
+        "jsdom": "^24.1.0",
+        "json-stringify-deterministic": "1.0.12",
         "jsxgraph": "^1.6.2",
+        "katex": "^0.16.10",
+        "math-expressions": "^2.0.0-alpha66",
         "micromark": "^4.0.0",
+        "nextra": "^3.0.0-alpha.24",
+        "nextra-theme-docs": "^3.0.0-alpha.24",
+        "node-stdlib-browser": "^1.2.0",
+        "postcss": "^8.4.38",
+        "prettier": "^3.3.2",
         "react-icons": "^4.12.0",
         "react-redux": "^9.0.4",
-        "tailwindcss": "^3.3.7",
-        "wireit": "^0.14.1"
+        "react-router": "^6.24.1",
+        "react-router-dom": "^6.24.1",
+        "rollup-plugin-polyfill-node": "^0.13.0",
+        "rollup-plugin-visualizer": "^5.12.0",
+        "tailwindcss": "^3.4.4",
+        "ts-morph": "^22.0.0",
+        "typescript": "^5.4.5",
+        "vite": "^5.3.3",
+        "vite-node": "^1.6.0",
+        "vite-plugin-compile-time": "^0.2.1",
+        "vite-plugin-dts": "^3.9.1",
+        "vite-plugin-static-copy": "^1.0.6",
+        "vitest": "^1.6.0",
+        "vscode-jsonrpc": "8.2.0",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-protocol": "^3.17.5",
+        "wireit": "^0.14.4"
+    },
+    "overrides": {
+        "@qualified/lsp-connection": {
+            "vscode-jsonrpc": "$vscode-jsonrpc"
+        },
+        "@qualified/vscode-jsonrpc-ww": {
+            "vscode-jsonrpc": "$vscode-jsonrpc"
+        },
+        "vscode-languageserver-protocol": {
+            "vscode-jsonrpc": "$vscode-jsonrpc"
+        }
+    },
+    "prettier": {
+        "tabWidth": 4
     }
 }

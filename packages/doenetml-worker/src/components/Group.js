@@ -20,6 +20,8 @@ export default class Group extends CompositeComponent {
 
     static createsVariants = true;
 
+    static serializeReplacementsForChildren = true;
+
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 

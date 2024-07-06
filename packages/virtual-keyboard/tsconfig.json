@@ -2,7 +2,8 @@
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
         "outDir": "./dist/",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "types": ["vite-plugin-compile-time/client"]
     },
     "include": ["./**/*.ts", "./**/*.tsx"],
     "exclude": [

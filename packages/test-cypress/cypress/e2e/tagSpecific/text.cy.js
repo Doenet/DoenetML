@@ -1009,4 +1009,24 @@ describe("Text Tag Tests", function () {
                 .should("have.text", "(−5,−4)");
         });
     });
+
+    it("numCharacters", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text name="t">Hello there</text>!</p>
+
+    <p name="p2">Number of characters is $t.numCharacters.</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("p" + cesc2("#/p2")).should(
+            "have.text",
+            "Number of characters is 11.",
+        );
+    });
 });

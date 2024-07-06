@@ -20,8 +20,8 @@
         "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters"
     },
     "peerDependencies": {
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
         "styled-components": "^5.3.11"
     },
     "dependencies": {
@@ -29,6 +29,6 @@
     },
     "devDependencies": {
         "cypress-vite": "^1.4.2",
-        "vite": "^4.3.9"
+        "vite": "^5.3.3"
     }
 }

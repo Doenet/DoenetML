@@ -28,8 +28,9 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
-                "tsconfig.json",
-                "vite.config.ts"
+                "vite.config.ts",
+                "src/**/*.json",
+                "tsconfig.json"
             ],
             "output": [
                 "dist/**/*.js",

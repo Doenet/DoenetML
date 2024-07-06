@@ -1,4 +1,4 @@
-type DoenetMLRange = {
+export type DoenetMLRange = {
     begin?: number;
     end?: number;
     selfCloseBegin?: number;
@@ -65,7 +65,7 @@ function getBeginEndFromDoenetMLRange(doenetMLrange: DoenetMLRange) {
     return { begin, end };
 }
 
-export function findAllNewlines(inText: "string") {
+export function findAllNewlines(inText: string) {
     let allNewlines = [];
     for (let i = 0; i < inText.length; i++) {
         if (inText[i] == "\n") {
