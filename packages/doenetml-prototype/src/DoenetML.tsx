@@ -3,8 +3,6 @@ import { MathJaxContext } from "better-react-mathjax";
 import { PageViewer } from "./viewer/page-viewer";
 import { Provider } from "react-redux";
 import { store } from "./state/store";
-import { useAppDispatch, useAppSelector } from "./state/hooks";
-import { dastActions, elementsArraySelector } from "./state/redux-slices/dast";
 
 export type DoenetMLFlags = {
     showCorrectness: boolean;
