@@ -5,7 +5,7 @@ import type { Root as XastRoot } from "xast";
  */
 export function ensureDocType(xmlAst: XastRoot) {
     const hasDocType = Boolean(
-        xmlAst.children.find((child) => child.type === "doctype")
+        xmlAst.children.find((child) => child.type === "doctype"),
     );
     if (!hasDocType) {
         xmlAst.children.unshift({ type: "text", value: "\n" });

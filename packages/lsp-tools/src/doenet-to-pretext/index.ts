@@ -45,7 +45,7 @@ export function doenetToPretext(flatDast: FlatDastRoot): XastRoot {
 
     ensurePretextAndRootDivision(xmlAst);
     ensureDocType(xmlAst);
-    
+
     // Now that the whole tree is built, we can replace the doenet-specific elements with their PreTeXt equivalents
     expandDoenetElementsToPretext(xmlAst, flatDast.elements);
 
