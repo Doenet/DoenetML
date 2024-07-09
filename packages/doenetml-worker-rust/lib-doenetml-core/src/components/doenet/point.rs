@@ -1,26 +1,37 @@
 use crate::components::prelude::*;
-use crate::general_prop::MathProp;
+use crate::general_prop::{BooleanProp, MathProp};
 use crate::props::UpdaterObject;
 use crate::state::types::math_expr::MathExpr;
-use crate::state::types::math_expr::MathParser;
 
 #[component(name = Point)]
 mod component {
 
-    use crate::general_prop::{BooleanProp, MathProp};
+    use super::*;
 
     enum Props {
         /// Whether the `<point>` should be hidden.
         #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
         Hidden,
-        #[prop(value_type = PropValueType::Math)]
+        #[prop(value_type = PropValueType::Math,
+            profile = PropProfile::Math,
+            is_public, for_render)]
         X,
+        #[prop(value_type = PropValueType::Math,
+            profile = PropProfile::Math,
+            is_public, for_render)]
+        Y,
     }
 
     enum Attributes {
         /// Whether the `<point>` should be hidden.
         #[attribute(prop = BooleanProp, default = false)]
         Hide,
+        /// The point's x-coordinate
+        #[attribute(prop = MathProp, default = MathExpr::default())]
+        X,
+        /// The point's y-coordinate
+        #[attribute(prop = MathProp, default = MathExpr::default())]
+        Y,
     }
 }
 
@@ -35,16 +46,12 @@ impl PropGetUpdater for PointProps {
             PointProps::Hidden => as_updater_object::<_, component::props::types::Hidden>(
                 component::attrs::Hide::get_prop_updater(),
             ),
-            PointProps::X => {
-                as_updater_object::<_, component::props::types::X>(MathProp::new_from_children(
-                    MathExpr::default(),
-                    // TODO: specify parser via attribute once we implement enum attributes and props
-                    MathParser::Text,
-                    MathProps::SplitSymbols.local_idx(),
-                    // TODO: specify function_symbols via attribute once we implement array attributes and props
-                    vec!["f".to_string(), "g".to_string()],
-                ))
-            }
+            PointProps::X => as_updater_object::<_, component::props::types::X>(
+                component::attrs::X::get_prop_updater(),
+            ),
+            PointProps::Y => as_updater_object::<_, component::props::types::Y>(
+                component::attrs::Y::get_prop_updater(),
+            ),
         }
     }
 }
