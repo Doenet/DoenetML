@@ -12,15 +12,12 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
     const board = React.useContext(GraphContext);
     const pointRef = React.useRef<JSG.Point | null>(null);
 
-    // TODO: the data in `node.data.props.x` does not match the typescript type.
-    // `node.data.props.x` is a string,
-    // while the type definition is that `node.data.props.x.math_object` is the string
     let x = JSON.parse(
-        node.data.props.x,
+        node.data.props.x.math_object,
         serializedComponentsReviver,
     ).evaluate_to_constant();
     let y = JSON.parse(
-        node.data.props.y,
+        node.data.props.y.math_object,
         serializedComponentsReviver,
     ).evaluate_to_constant();
 
