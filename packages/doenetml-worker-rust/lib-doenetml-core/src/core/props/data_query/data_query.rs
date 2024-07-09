@@ -95,6 +95,8 @@ pub enum PropSpecifier {
 pub enum PickPropSource {
     /// Search for the props on the children of the querying component.
     Children,
+    /// Search for the props on the attribute `attribute_name` of the querying component
+    Attribute { attribute_name: AttributeName },
     /// Search for the prop on the ancestors of the querying component.
     /// Only return the prop from the first matching ancestor (if one exists).
     NearestMatchingAncestor,
