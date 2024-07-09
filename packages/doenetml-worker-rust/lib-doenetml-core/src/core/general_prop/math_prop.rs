@@ -50,12 +50,6 @@ pub struct MathProp {
     /// A enum determining whether we should use the latex or text parser.
     parser: MathParser,
 
-    /// Data query that should return a `PropView<bool>`.
-    ///
-    /// If `true`, we split multi-character symbols into the product of the characters
-    /// when parsing the string to a math expression
-    split_symbols_local_prop_idx: LocalPropIdx,
-
     // TODO: this should be based on a data query for a prop/attribute once we implement array props or attributes
     /// A vector of the symbols that should be treated as functions if they are followed by parentheses.  
     function_symbols: Vec<String>,
@@ -83,15 +77,12 @@ impl MathProp {
     /// Arguments:
     /// - `default_value`: If there are no matching children, the prop will be initialized with `default_value`.
     /// - `parser`: Determine whether that latex or text parser is used to parse strings into math.
-    /// - `split_symbols`: If `true`, we split multi-character symbols into the product of the characters
-    ///   when parsing the string to a math expression
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
     pub fn new_from_children<S: Into<MathExpr>>(
         default_value: S,
         parser: MathParser,
-        split_symbols_local_prop_idx: LocalPropIdx,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
@@ -110,52 +101,13 @@ impl MathProp {
                 ),
             },
             parser,
-            split_symbols_local_prop_idx,
+            // split_symbols_local_prop_idx,
             function_symbols,
             default_value: default_value.into(),
             propagate_came_from_default: true,
             cache: Default::default(),
         }
     }
-
-    // TODO: significant work needed to add math as an attribute
-    // - We need to generalized `PropFromAttribute` to allow passing in more parameters
-    // - We need to extend `DataQuery::Attribute` to handle something like PropSpecifier::MatchingPair
-    //   or somehow treat the attribute case specially
-
-    // /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
-    // /// basing the calculation on the attribute components that match the `String` and `Math` profiles.
-    // ///
-    // ///
-    // /// Arguments:
-    // /// - `default_value`: If there are no matching attribute components,
-    // ///   the prop will be initialized with `default_value`.
-    // /// - `parser`: Determine whether that latex or text parser is used to parse strings into math.
-    // /// - `split_symbols`: If `true`, we split multi-character symbols into the product of the characters
-    // ///   when parsing the string to a math expression
-    // /// - `function_symbols`: a list of the symbols that will be treated as a function,
-    // ///   i.e., one of these symbols followed by arguments in parentheses
-    // ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    // pub fn new_from_attribute<S: Into<MathExpr>>(
-    //     attr_name: AttributeName,
-    //     default_value: S,
-    //     parser: MathParser,
-    //     split_symbols_local_prop_idx: LocalPropIdx,
-    //     function_symbols: Vec<String>,
-    // ) -> Self {
-    //     MathProp {
-    //         data_query: DataQuery::Attribute {
-    //             attribute_name: attr_name,
-    //             match_profiles: vec![PropProfile::String, PropProfile::Math],
-    //         },
-    //         parser,
-    //         split_symbols_local_prop_idx,
-    //         function_symbols,
-    //         default_value: default_value.into(),
-    //         propagate_came_from_default: true,
-    //         cache: Default::default(),
-    //     }
-    // }
 
     /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
     /// when there is only one matching math dependency.
@@ -193,13 +145,43 @@ impl From<MathProp> for UpdaterObject {
     }
 }
 
+// TODO: determine `math_parser` and `function_symbols`
+impl PropFromAttribute<MathExpr> for MathProp {
+    /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `String` or `Math` profile.
+    ///
+    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
+    fn new_from_attribute(attr_name: AttributeName, default_value: MathExpr) -> Self {
+        MathProp {
+            math_strings_data_query: DataQuery::Attribute {
+                attribute_name: attr_name,
+                match_profiles: vec![PropProfile::String, PropProfile::Math],
+            },
+            data_query_with_fixed: DataQuery::PickProp {
+                source: PickPropSource::Attribute {
+                    attribute_name: attr_name,
+                },
+                prop_specifier: PropSpecifier::MatchingPair(
+                    vec![PropProfile::String, PropProfile::Math],
+                    vec![PropProfile::Fixed],
+                ),
+            },
+            default_value,
+            propagate_came_from_default: true,
+            parser: MathParser::Text,
+            function_symbols: vec!["f".to_string(), "g".to_string()],
+            cache: Default::default(),
+        }
+    }
+}
+
 #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = &MathProp)]
 struct RequiredData {
     independent_state: PropView<prop_type::Math>,
     maths_and_strings: Vec<PropView<PropValue>>,
     with_fixed: Vec<PropView<prop_type::PropVec>>,
-    split_symbols: PropView<prop_type::Boolean>,
+    split_symbols: Option<PropView<prop_type::Boolean>>,
 }
 impl DataQueries for RequiredData {
     fn independent_state_query(_: &MathProp) -> DataQuery {
@@ -211,10 +193,10 @@ impl DataQueries for RequiredData {
     fn with_fixed_query(math_prop: &MathProp) -> DataQuery {
         math_prop.data_query_with_fixed.clone()
     }
-    fn split_symbols_query(math_prop: &MathProp) -> DataQuery {
+    fn split_symbols_query(_: &MathProp) -> DataQuery {
         DataQuery::Prop {
             source: PropSource::Me,
-            prop_specifier: math_prop.split_symbols_local_prop_idx.into(),
+            prop_specifier: PropSpecifier::Matching(vec![PropProfile::SplitSymbols]),
         }
     }
 }
@@ -277,18 +259,25 @@ impl PropUpdater for MathProp {
                     } => {
                         // TODO: once `function_symbols` is based on data query,
                         // check if that changed as well
-                        if *changed || split_symbols.changed {
+                        if *changed
+                            || split_symbols
+                                .as_ref()
+                                .map(|ss| ss.changed)
+                                .unwrap_or_default()
+                        {
+                            let split_symbols_value =
+                                split_symbols.map(|ss| ss.value).unwrap_or(true);
                             // If we are basing a math on a single string value,
                             // then parse that string into a math expression.
                             let math_expr = match self.parser {
                                 MathParser::Text => MathExpr::from_text(
                                     &(**string_value),
-                                    split_symbols.value,
+                                    split_symbols_value,
                                     &self.function_symbols,
                                 ),
                                 MathParser::Latex => MathExpr::from_latex(
                                     &(**string_value),
-                                    split_symbols.value,
+                                    split_symbols_value,
                                     &self.function_symbols,
                                 ),
                             };
@@ -333,17 +322,24 @@ impl PropUpdater for MathProp {
                     .iter()
                     .any(|view| matches!(view.value, PropValue::Math(_)) && view.changed);
 
-                if string_changed || split_symbols.changed {
+                if string_changed
+                    || split_symbols
+                        .as_ref()
+                        .map(|ss| ss.changed)
+                        .unwrap_or_default()
+                {
                     // Either a string child has changed or split_symbols changed
                     // (the latter condition will catch the first time calculate_old() is called).
                     // We need to recalculate the expression template.
+
+                    let split_symbols_value = split_symbols.map(|ss| ss.value).unwrap_or(true);
 
                     // Create the expression template from concatenating all values
                     // while substituting codes for the math values
                     let (expression_template, math_codes) = calc_expression_template(
                         &maths_and_strings,
                         self.parser,
-                        split_symbols.value,
+                        split_symbols_value,
                         &self.function_symbols,
                     );
 
