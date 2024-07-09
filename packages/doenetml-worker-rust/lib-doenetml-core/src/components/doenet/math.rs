@@ -35,6 +35,7 @@ mod component {
         /// If true, then split multi-characters symbols that don't contain numbers into the product of their characters, e.g., "xy" and "x*y" are interpreted in the same way.
         #[prop(
             value_type = PropValueType::Boolean,
+            profile = PropProfile::SplitSymbols,
             is_public,
         )]
         SplitSymbols,
@@ -86,7 +87,6 @@ impl PropGetUpdater for MathProps {
                     MathExpr::default(),
                     // TODO: specify parser via attribute once we implement enum attributes and props
                     MathParser::Text,
-                    MathProps::SplitSymbols.local_idx(),
                     // TODO: specify function_symbols via attribute once we implement array attributes and props
                     vec!["f".to_string(), "g".to_string()],
                 ))
