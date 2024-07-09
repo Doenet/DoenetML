@@ -83,4 +83,22 @@ describe("doenet-to-pretext", () => {
           </article></pretext>"
         `);
     });
+    it("expands <division> to pretext element", async () => {
+        const worker = await workerWithSource(`
+            <division>
+                <title>Foo</title>
+                <p>How about foo?</p>
+            </division>
+        `);
+        const flatDast = flatDastFilterPositionInfo(await worker.returnDast());
+
+        const pretext = doenetToPretext(flatDast);
+        expect(toXml(pretext)).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+<pretext><article>
+<section><title>Foo</title>
+                
+                <p>How about foo?</p>
+            </section>
+</article></pretext>`);
+    });
 });

@@ -4,11 +4,16 @@ import { elementsArraySelector } from "../state/redux-slices/dast";
 import { DastErrorComponent } from "./error";
 import { ComponentConstraint, getComponent } from "./get-component";
 import { VisibilitySensor } from "./visibility-sensor";
-import {
+import type {
     ElementRefAnnotation,
     FlatDastElementContent,
 } from "@doenet/doenetml-worker-rust";
 import { AncestorChain, extendAncestorChain } from "./utils";
+import { renderModeSelector } from "../state/redux-slices/global";
+import {
+    PRETEXT_GRAPH_MODE_COMPONENTS,
+    PRETEXT_TEXT_MODE_COMPONENTS,
+} from "./renderers";
 
 const NO_ELEMENTS = Symbol("NO_ELEMENTS");
 
@@ -34,6 +39,7 @@ export const Element = React.memo(
             }
             return elementsArray[id];
         });
+        const renderMode = useAppSelector(renderModeSelector);
 
         if (value === NO_ELEMENTS) {
             // If there are no elements at all, we silently do nothing (we're probably waiting for
@@ -57,7 +63,13 @@ export const Element = React.memo(
             ancestors = "";
         }
 
-        const Component = getComponent(value, constraint);
+        const Component =
+            renderMode === "doenet"
+                ? getComponent(value, constraint)
+                : getComponent(value, constraint, {
+                      textMode: PRETEXT_TEXT_MODE_COMPONENTS,
+                      graphMode: PRETEXT_GRAPH_MODE_COMPONENTS,
+                  });
 
         // We should render the children and pass them into the component
         const children = Component.passthroughChildren

@@ -9,6 +9,7 @@ import type {
 } from "@doenet/doenetml-worker-rust";
 import { visit } from "unist-util-visit";
 import { FlatDastElementWithProps } from "../types";
+import { _recursiveToPretext } from "..";
 
 type AllDoenetTagNames = FlatDastElementWithProps["name"];
 
@@ -16,7 +17,7 @@ type AllDoenetTagNames = FlatDastElementWithProps["name"];
  * Expand all DoenetML-specific tags to their PreTeXt equivalents.
  */
 export function expandDoenetElementsToPretext(
-    xastRoot: XastRoot,
+    xastRoot: XastRoot | XastRootContent,
     doenetElements: FlatDastRoot["elements"],
 ) {
     visit(xastRoot, "element", (element, index, parent) => {
@@ -33,6 +34,17 @@ export function expandDoenetElementsToPretext(
                 break;
             }
             case "division": {
+                const divisionType = doenetElement.data.props.divisionType;
+                const titleId = doenetElement.data.props.title;
+                if (titleId != null) {
+                    const titleElement = _recursiveToPretext(
+                        { id: titleId, annotation: "original" },
+                        doenetElements,
+                    );
+                    expandDoenetElementsToPretext(titleElement, doenetElements);
+                    element.children.unshift(titleElement);
+                }
+                Object.assign(element, { name: divisionType });
                 break;
             }
             case "document": {

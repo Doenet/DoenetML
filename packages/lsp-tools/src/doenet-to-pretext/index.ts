@@ -26,7 +26,7 @@ export function doenetToPretext(flatDast: FlatDastRoot): XastRoot {
     let xmlAst = x(
         null,
         flatDast.children.map((child) =>
-            recursiveToPretext(child, flatDast.elements),
+            _recursiveToPretext(child, flatDast.elements),
         ),
     );
 
@@ -55,7 +55,7 @@ export function doenetToPretext(flatDast: FlatDastRoot): XastRoot {
 /**
  * Recursively construct an XML tree from `node`.
  */
-function recursiveToPretext(
+export function _recursiveToPretext(
     node: FlatDastElementContent,
     elements: FlatDastRoot["elements"],
 ): XastElementContent {
@@ -68,7 +68,7 @@ function recursiveToPretext(
     }
 
     const children: XastElementContent[] = element.children.map((child) =>
-        recursiveToPretext(child, elements),
+        _recursiveToPretext(child, elements),
     );
 
     const attributes = Object.fromEntries(
@@ -77,6 +77,9 @@ function recursiveToPretext(
             value.children.map((c) => textContent(c, elements)).join(""),
         ]),
     );
+    if (node.annotation !== "original") {
+        delete attributes["name"];
+    }
     const ret = x(element.name, attributes, children);
     ret.data ??= {};
     Object.assign(ret.data, { doenetId: element.data.id });
