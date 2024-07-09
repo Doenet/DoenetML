@@ -4,6 +4,7 @@ pub mod _fragment;
 pub mod boolean;
 pub mod division;
 pub mod document;
+pub mod graph;
 pub mod li;
 pub mod math;
 pub mod ol;
