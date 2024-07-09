@@ -2,26 +2,37 @@ import React from "react";
 import { BasicComponent } from "../types";
 import { GraphContext, LAYER_OFFSETS } from "./graph";
 import * as JSG from "jsxgraph";
-import { attachStandardGraphListeners } from "./jsxgraph/listeners";
+import {
+    attachStandardGraphListeners,
+    GraphListenerActions,
+    GraphListeners,
+    removeStandardGraphListeners,
+} from "./jsxgraph/listeners";
 import { serializedComponentsReviver } from "@doenet/utils";
-import { PointProps } from "@doenet/doenetml-worker-rust";
+import { Action, PointProps } from "@doenet/doenetml-worker-rust";
+import { useAppDispatch } from "../../state/hooks";
+import { coreActions } from "../../state/redux-slices/core";
 
 type PointData = { props: PointProps };
 
 export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
     const board = React.useContext(GraphContext);
     const pointRef = React.useRef<JSG.Point | null>(null);
+    const pointListenersActions = React.useRef<GraphListenerActions>({});
+    const pointListenersAttached = React.useRef<GraphListeners>({});
+    const hadNonNumericCoords = React.useRef(false);
+    const id = node.data.id;
 
-    const x = JSON.parse(
+    const dispatch = useAppDispatch();
+
+    const x: number = JSON.parse(
         node.data.props.x.math_object,
         serializedComponentsReviver,
     ).evaluate_to_constant();
-    const y = JSON.parse(
+    const y: number = JSON.parse(
         node.data.props.y.math_object,
         serializedComponentsReviver,
     ).evaluate_to_constant();
-
-    // TODO: if x or y change, move the point
 
     React.useEffect(() => {
         if (!board) {
@@ -49,22 +60,58 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
         }
 
         // TODO: call actions when point moves
-        attachStandardGraphListeners(point);
+
+        pointListenersActions.current.drag = function (e, interactionState) {
+            let action: Action = {
+                component: "point",
+                actionName: "move",
+                componentIdx: id,
+                args: { x: pointRef.current!.X(), y: pointRef.current!.Y() },
+            };
+            dispatch(coreActions.dispatchAction(action));
+        };
+
+        pointListenersAttached.current = attachStandardGraphListeners(
+            point,
+            pointListenersActions.current,
+        );
 
         return () => {
-            point.off("drag");
-            point.off("down");
-            point.off("hit");
-            point.off("up");
-            point.off("keyfocusout");
-            point.off("keydown");
+            removeStandardGraphListeners(point, pointListenersAttached.current);
             board.removeObject(point);
         };
     }, [board, pointRef]);
 
-    if (!board) {
+    if (!board || !pointRef.current) {
         return null;
     }
+
+    // We have a pre-existing point. Update the rendered point so that it matches values from the props.
+
+    if (pointRef.current.hasLabel) {
+        // the the point has a label, need to update it so that it moves if the point moves
+        pointRef.current.label!.needsUpdate = true;
+        pointRef.current.label!.update();
+    }
+
+    // move the point to the current location determined by the props
+    pointRef.current.coords.setCoordinates(JXG.COORDS_BY_USER, [1, x, y]);
+
+    // update the point and the board so the point actually moves to the specified location
+    pointRef.current.needsUpdate = true;
+    // if the point previous had non-numeric coordinates,
+    // it appears that the point requires a fullUpdate to get it to reappear.
+    if (hadNonNumericCoords.current) {
+        //@ts-ignore
+        pointRef.current.fullUpdate();
+    } else {
+        pointRef.current.update();
+    }
+
+    // record for next time whether or not we have non-numeric coordinates
+    hadNonNumericCoords.current = !Number.isFinite(x) || !Number.isFinite(y);
+
+    board.updateRenderer();
 
     return null;
 };

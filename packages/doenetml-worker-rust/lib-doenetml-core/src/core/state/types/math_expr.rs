@@ -5,9 +5,12 @@ use strum_macros::Display;
 #[cfg(all(not(feature = "testing"), feature = "web"))]
 use web_sys::js_sys::JsString;
 
-use crate::math_via_wasm::{
-    eval_js, math_to_latex, math_to_text, normalize_math, parse_latex_into_math,
-    parse_text_into_math, substitute_into_math,
+use crate::{
+    math_via_wasm::{
+        eval_js, math_to_latex, math_to_text, normalize_math, parse_latex_into_math,
+        parse_text_into_math, substitute_into_math,
+    },
+    props::prop_type,
 };
 
 const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
@@ -232,6 +235,15 @@ impl MathExpr {
         match math_to_latex(&self.math_object, params) {
             Ok(res) => res,
             Err(_) => "\u{FF3f}".to_string(),
+        }
+    }
+
+    pub fn from_number(x: prop_type::Number) -> Self {
+        MathExpr {
+            math_object: JsMathExpr(format!(
+                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                x,
+            )),
         }
     }
 
