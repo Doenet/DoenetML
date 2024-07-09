@@ -1,3 +1,4 @@
+use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 use strum_macros::Display;
 
@@ -68,7 +69,9 @@ impl serde::Serialize for MathExpr {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.math_object.0)
+        let mut m = serializer.serialize_struct("MathExpr", 1)?;
+        m.serialize_field("math_object", &self.math_object.0)?;
+        m.end()
     }
 }
 
