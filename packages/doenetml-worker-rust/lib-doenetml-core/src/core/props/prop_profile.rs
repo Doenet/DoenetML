@@ -92,7 +92,7 @@ pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
         PropProfile::ListCodeNumber => PropValueType::String,
         PropProfile::Renderable => PropValueType::ComponentRef,
         PropProfile::RenderedChildren => PropValueType::AnnotatedContentRefs,
-        PropProfile::SplitSymbols => super::PropValueDiscriminants::Boolean,
+        PropProfile::SplitSymbols => super::PropValueType::Boolean,
         PropProfile::_Ref => PropValueType::ComponentRef,
         PropProfile::XrefLabel => PropValueType::XrefLabel,
         PropProfile::XrefDisplayContent => PropValueType::AnnotatedContentRefs,

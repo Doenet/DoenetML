@@ -69,6 +69,7 @@ impl serde::Serialize for MathExpr {
     where
         S: serde::Serializer,
     {
+        // Serialize as a struct named `MathExpr` with `1` field: `math_object`
         let mut m = serializer.serialize_struct("MathExpr", 1)?;
         m.serialize_field("math_object", &self.math_object.0)?;
         m.end()

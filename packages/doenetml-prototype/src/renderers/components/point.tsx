@@ -12,11 +12,11 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
     const board = React.useContext(GraphContext);
     const pointRef = React.useRef<JSG.Point | null>(null);
 
-    let x = JSON.parse(
+    const x = JSON.parse(
         node.data.props.x.math_object,
         serializedComponentsReviver,
     ).evaluate_to_constant();
-    let y = JSON.parse(
+    const y = JSON.parse(
         node.data.props.y.math_object,
         serializedComponentsReviver,
     ).evaluate_to_constant();
