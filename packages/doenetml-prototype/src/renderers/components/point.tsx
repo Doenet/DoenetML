@@ -3,10 +3,28 @@ import { BasicComponent } from "../types";
 import { GraphContext, LAYER_OFFSETS } from "./graph";
 import * as JSG from "jsxgraph";
 import { attachStandardGraphListeners } from "./jsxgraph/listeners";
+import { serializedComponentsReviver } from "@doenet/utils";
+import { PointProps } from "@doenet/doenetml-worker-rust";
 
-export const PointInGraph: BasicComponent = ({ node }) => {
+type PointData = { props: PointProps };
+
+export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
     const board = React.useContext(GraphContext);
     const pointRef = React.useRef<JSG.Point | null>(null);
+
+    // TODO: the data in `node.data.props.x` does not match the typescript type.
+    // `node.data.props.x` is a string,
+    // while the type definition is that `node.data.props.x.math_object` is the string
+    let x = JSON.parse(
+        node.data.props.x,
+        serializedComponentsReviver,
+    ).evaluate_to_constant();
+    let y = JSON.parse(
+        node.data.props.y,
+        serializedComponentsReviver,
+    ).evaluate_to_constant();
+
+    // TODO: if x or y change, move the point
 
     React.useEffect(() => {
         if (!board) {
@@ -17,7 +35,7 @@ export const PointInGraph: BasicComponent = ({ node }) => {
             return;
         }
         const point = createPoint(board, {
-            coords: [1, 1],
+            coords: [x, y],
             labelForGraph: "test",
             lineColor: "var(--mainPurple)",
             hidden: false,
@@ -33,6 +51,7 @@ export const PointInGraph: BasicComponent = ({ node }) => {
             return;
         }
 
+        // TODO: call actions when point moves
         attachStandardGraphListeners(point);
 
         return () => {
