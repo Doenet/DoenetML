@@ -1,6 +1,5 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import { Element } from "../element";
 import type { XrefProps } from "@doenet/doenetml-worker-rust";
 
 export const Xref: BasicComponentWithPassthroughChildren<{
@@ -24,10 +23,12 @@ export const Xref: BasicComponentWithPassthroughChildren<{
     //    </details>;
     //}
 
-    return (
-        <a className="xref" href={`#${referentHtmlId}`}>
+    return React.createElement(
+        "xref",
+        {},
+        <React.Fragment>
             {children}
             {label}
-        </a>
+        </React.Fragment>,
     );
 };

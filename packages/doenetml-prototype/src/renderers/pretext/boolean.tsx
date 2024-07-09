@@ -5,5 +5,5 @@ import type { BooleanProps } from "@doenet/doenetml-worker-rust";
 type BooleanData = { props: BooleanProps };
 
 export const Boolean: BasicComponent<BooleanData> = ({ node }) => {
-    return <span>{node.data.props.value.toString()}</span>;
+    return <em>{node.data.props.value.toString()}</em>;
 };

@@ -5,5 +5,5 @@ import type { TextProps } from "@doenet/doenetml-worker-rust";
 type TextData = { props: TextProps };
 
 export const Text: BasicComponent<TextData> = ({ node }) => {
-    return <span>{node.data.props.value}</span>;
+    return <React.Fragment>{node.data.props.value}</React.Fragment>;
 };

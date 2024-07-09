@@ -8,8 +8,7 @@ import { lezerToDast, filterPositionInfo } from "@doenet/parser";
 import { normalizeDocumentDast } from "../src/state/redux-slices/dast/utils/normalize-dast";
 import { doenetGlobalConfig } from "../src/global-config";
 
-// @ts-ignore
-import { doenetToPretext } from "../../lsp-tools/src/doenet-to-pretext";
+import { renderToPretext } from "../src/utils/pretext/render-to-pretext";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
@@ -59,7 +58,7 @@ describe("doenet-to-pretext", () => {
         `);
         const flatDast = flatDastFilterPositionInfo(await worker.returnDast());
 
-        const pretext = doenetToPretext(flatDast);
+        const pretext = renderToPretext(flatDast);
         expect(toXml(pretext)).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext><article>
@@ -74,7 +73,7 @@ describe("doenet-to-pretext", () => {
         `);
         const flatDast = flatDastFilterPositionInfo(await worker.returnDast());
 
-        const pretext = doenetToPretext(flatDast);
+        const pretext = renderToPretext(flatDast);
         expect(toXml(pretext)).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext><article>
@@ -92,7 +91,7 @@ describe("doenet-to-pretext", () => {
         `);
         const flatDast = flatDastFilterPositionInfo(await worker.returnDast());
 
-        const pretext = doenetToPretext(flatDast);
+        const pretext = renderToPretext(flatDast);
         expect(toXml(pretext)).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <pretext><article>
 <section><title>Foo</title>

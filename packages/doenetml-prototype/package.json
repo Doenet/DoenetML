@@ -24,10 +24,24 @@
         "dev": "vite",
         "build": "wireit",
         "preview": "vite preview",
+        "test:before": "wireit",
         "test": "vitest",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
     },
     "wireit": {
+        "test:before": {
+            "command": "vite build -c vite.rust-tests.config.ts",
+            "files": [
+                "test/utils/**/*.ts",
+                "vite.rust-tests.config.ts"
+            ],
+            "output": [
+                "test/utils/dist/**/*.js"
+            ],
+            "dependencies": [
+                "../parser:build"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [

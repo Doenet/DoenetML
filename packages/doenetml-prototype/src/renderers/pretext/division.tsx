@@ -9,11 +9,8 @@ export const Division: BasicComponentWithPassthroughChildren<{
 }> = ({ children, node, annotation, ancestors }) => {
     const htmlId = generateHtmlId(node, annotation, ancestors);
     const titleElmId = node.data.props.title;
-    const codeNumber = node.data.props.codeNumber;
-    const xrefLabel = node.data.props.xrefLabel;
-    const displayName = `${xrefLabel.label}${
-        codeNumber ? ` ${codeNumber}.` : ""
-    }`;
+
+    const divisionType = node.data.props.divisionType;
 
     const title =
         titleElmId != null ? (
@@ -22,12 +19,12 @@ export const Division: BasicComponentWithPassthroughChildren<{
             ""
         );
 
-    return (
-        <div className="section" id={htmlId}>
-            <title>
-                {displayName} {title}
-            </title>
+    return React.createElement(
+        divisionType,
+        {},
+        <React.Fragment>
+            {title}
             {children}
-        </div>
+        </React.Fragment>,
     );
 };

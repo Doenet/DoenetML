@@ -1,6 +1,7 @@
 import type {
     AnnotatedElementRef,
     FlatDastRoot,
+    FlatDastElement,
 } from "@doenet/doenetml-worker-rust";
 
 /**
@@ -23,23 +24,56 @@ export function ensurePretextTag(
         }
     }
 
-    const hasPretextElement = flatDast.children.find(
+    let pretextElement = flatDast.children.find(
         (r) => isAnnotatedElementRef(r) && elements[r.id].name === "pretext",
-    );
-    if (!hasPretextElement) {
+    ) as FlatDastElement | undefined;
+    if (!pretextElement) {
         const id = elements.length;
-        elements.push({
+        pretextElement = {
             type: "element",
             name: "pretext",
             children: flatDast.children,
             attributes: {},
             data: { id },
-        });
+        } as FlatDastElement;
+        elements.push(pretextElement);
         flatDast.children = [{ id, annotation: "original" }];
     }
-    console.log(flatDast)
 
-    // XXX: Finish ensuring the division
+    // Ensure that a <book> or <article> tag is immediately inside the <pretext> tag
+    // There may be a <docinfo> tag that is a sibling of the division tag.
+    const hasDivisionTag = pretextElement.children.find(
+        (r) =>
+            isAnnotatedElementRef(r) &&
+            (elements[r.id].name === "book" ||
+                elements[r.id].name === "article"),
+    );
+    if (!hasDivisionTag) {
+        const docinfoElementPos = pretextElement.children.findIndex(
+            (r) =>
+                isAnnotatedElementRef(r) && elements[r.id].name === "docinfo",
+        );
+        const siblings = pretextElement.children.slice(
+            0,
+            Math.max(docinfoElementPos, 0),
+        );
+        const children = pretextElement.children.slice(docinfoElementPos + 1);
+
+        const divisionElement = {
+            type: "element",
+            name: ensuredDivisionType,
+            children,
+            attributes: {},
+            data: { id: elements.length },
+        } as FlatDastElement;
+        elements.push(divisionElement);
+
+        pretextElement.children = siblings;
+        pretextElement.children.push({
+            id: divisionElement.data.id,
+            annotation: "original",
+        });
+    }
 }
 
 function isAnnotatedElementRef(node: any): node is AnnotatedElementRef {

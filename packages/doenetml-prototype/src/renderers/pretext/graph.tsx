@@ -12,11 +12,8 @@ import {
 import * as JSG from "jsxgraph";
 import { JSXGraph } from "jsxgraph";
 import { BasicComponent } from "../types";
-import "./graph.css";
 import { Toolbar, ToolbarItem } from "@ariakit/react";
 import { Element } from "../element";
-
-(window as any).JSG = JSG;
 
 export const GraphContext = React.createContext<JSG.Board | null>(null);
 

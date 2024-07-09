@@ -56,6 +56,10 @@ const SIMPLE_FLAT_DAST = {
 describe("Pretext export", async () => {
     it("Wraps root in <pretext> tag", () => {
         const flatDast = structuredClone(SIMPLE_FLAT_DAST);
-        expect(renderToPretext(flatDast)).toMatchObject("");
+        expect(renderToPretext(flatDast)).toMatchInlineSnapshot(`
+          "<pretext><article><p>
+            Hi
+          </p></article></pretext>"
+        `);
     });
 });

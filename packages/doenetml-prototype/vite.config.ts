@@ -3,9 +3,9 @@ import { PluginOption, defineConfig } from "vite";
 import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 import * as path from "node:path";
-import { createRequire } from "module";
 import { visualizer } from "rollup-plugin-visualizer";
 import { version } from "./package.json";
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
