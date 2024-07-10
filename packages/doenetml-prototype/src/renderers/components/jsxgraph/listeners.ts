@@ -6,7 +6,9 @@ export type InteractionState = {
     pointerIsDown: boolean;
 };
 
-// functions giving that actions to be performed within the listeners
+/**
+ * Functions giving that actions to be performed within the listeners
+ */
 export type GraphListenerActions = {
     drag?: (e: MouseEvent, interactionState: InteractionState) => void;
     down?: (e: MouseEvent, interactionState: InteractionState) => void;
@@ -42,6 +44,7 @@ export function attachStandardGraphListeners<T extends JSG.GeometryElement>(
     const listenersAdded: GraphListeners = {};
 
     if (listenerActions.drag) {
+        const drag = listenerActions.drag;
         const dragListener = function (_e: Event) {
             const e = _e as MouseEvent;
             const viaPointer = e.type === "pointermove";
@@ -54,7 +57,7 @@ export function attachStandardGraphListeners<T extends JSG.GeometryElement>(
             ) {
                 interactionState.dragActive = true;
             }
-            listenerActions.drag?.(e, interactionState);
+            drag(e, interactionState);
         };
 
         obj.on("drag", dragListener);
@@ -62,54 +65,58 @@ export function attachStandardGraphListeners<T extends JSG.GeometryElement>(
     }
 
     if (listenerActions.down) {
+        const down = listenerActions.down;
         const downListener = function (_e: Event) {
             const e = _e as MouseEvent;
             interactionState.pointerAtDown = [e.x, e.y];
             interactionState.pointerIsDown = true;
-            listenerActions.down?.(e, interactionState);
+            down(e, interactionState);
         };
         obj.on("down", downListener);
         listenersAdded.down = downListener;
     }
 
     if (listenerActions.up) {
+        const up = listenerActions.up;
         const upListener = function (_e: Event) {
             const e = _e as MouseEvent;
             interactionState.dragActive = false;
             interactionState.pointerIsDown = false;
-            listenerActions.up?.(e, interactionState);
+            up(e, interactionState);
         };
         obj.on("up", upListener);
         listenersAdded.up = upListener;
     }
 
     if (listenerActions.hit) {
+        const hit = listenerActions.hit;
         const hitListener = function (e: Event) {
             interactionState.dragActive = false;
-            listenerActions.hit?.(e, interactionState);
+            hit(e, interactionState);
         };
         obj.on("hit", hitListener);
         listenersAdded.hit = hitListener;
     }
 
     if (listenerActions.keyfocusout) {
+        const keyfocusout = listenerActions.keyfocusout;
         const keyfocusoutListener = function (_e: Event) {
             const e = _e as KeyboardEvent;
             interactionState.dragActive = false;
-            listenerActions.keyfocusout?.(e, interactionState);
+            keyfocusout(e, interactionState);
         };
         obj.on("keyfocusout", keyfocusoutListener);
         listenersAdded.keyfocusout = keyfocusoutListener;
     }
 
     if (listenerActions.keydown) {
+        const keydown = listenerActions.keydown;
         const keydownListener = function (_e: Event) {
             const e = _e as KeyboardEvent;
             if (e.key === "Enter") {
                 interactionState.dragActive = false;
             }
-            console.log("keydown", obj.elType, { interactionState, obj });
-            listenerActions.keydown?.(e, interactionState);
+            keydown(e, interactionState);
         };
         obj.on("keydown", keydownListener);
         listenersAdded.keydown = keydownListener;
