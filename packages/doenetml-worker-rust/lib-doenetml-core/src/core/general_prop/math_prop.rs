@@ -335,7 +335,7 @@ impl PropUpdater for MathProp {
 
                 if string_changed || split_symbols.changed {
                     // Either a string child has changed or split_symbols changed
-                    // (the latter condition will catch the first time calculate_old() is called).
+                    // (the latter condition will catch the first time calculate() is called).
                     // We need to recalculate the expression template.
 
                     // Create the expression template from concatenating all values

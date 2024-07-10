@@ -42,7 +42,7 @@ impl MathExpr {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct JsMathExpr(pub String);
 
@@ -390,7 +390,7 @@ impl serde::Serialize for MathArg {
         // one still has to call JSON.parse() to finish the hydration,
         // given that this last step is required for the Math variant
         match self {
-            Self::Math(math_expr) => math_expr.serialize(serializer),
+            Self::Math(math_expr) => math_expr.math_object.serialize(serializer),
             Self::Number(num) => serializer.serialize_str(&num.to_string()),
             Self::Integer(num) => serializer.serialize_str(&num.to_string()),
             Self::Symbol(var_name) => {
