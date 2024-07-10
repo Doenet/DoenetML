@@ -309,7 +309,7 @@ pub fn substitute_into_math(
     ))
 }
 
-/// Return a normalize mathematical expression from `math_object` as specified in `params`.
+/// Return a normalized mathematical expression from `math_object` as specified in `params`.
 ///
 /// Example:
 ///
@@ -351,6 +351,44 @@ pub fn normalize_math(
 ) -> Result<JsMathExpr, anyhow::Error> {
     Err(anyhow!(
         "normalize_math is only available when compiled with the `web` feature".to_string()
+    ))
+}
+
+/// Evaluates mathematical expression from `math_object` as a number,
+/// returning NaN if the expression cannot be evaluated as a constant number.
+///
+/// Example:
+///
+/// ```
+/// let expr = parse_text_into_math("3/e^0", true, &["f"]).unwrap();
+///
+/// assert_eq!(
+///     evaluate_to_number(&expr).unwrap(),
+///     3
+/// );
+///
+/// let expr2 = parse_text_into_math("x", true, &["f"]).unwrap();
+///
+/// assert!(
+///     evaluate_to_number(&expr2).unwrap().is_nan()
+/// );
+/// ```
+#[cfg(all(not(feature = "testing"), feature = "web"))]
+pub fn evaluate_to_number(
+    math_object: &JsMathExpr,
+) -> Result<crate::props::prop_type::Number, anyhow::Error> {
+    let result: JsValue =
+        evaluateToNumber(math_object.to_js_string()).map_err(|e| anyhow!("{:?}", e))?;
+    result
+        .as_f64()
+        .ok_or(anyhow!("evaluateToNumber() did not return a number!"))
+}
+#[cfg(any(feature = "testing", not(feature = "web")))]
+pub fn evaluate_to_number(
+    _math_object: &JsMathExpr,
+) -> Result<crate::props::prop_type::Number, anyhow::Error> {
+    Err(anyhow!(
+        "evaluate_to_number is only available when compiled with the `web` feature".to_string()
     ))
 }
 
@@ -404,4 +442,7 @@ extern "C" {
         createVectors: Boolean,
         createIntervals: Boolean,
     ) -> Result<JsString, JsValue>;
+
+    #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]
+    pub fn evaluateToNumber(mathObject: JsString) -> Result<JsValue, JsValue>;
 }

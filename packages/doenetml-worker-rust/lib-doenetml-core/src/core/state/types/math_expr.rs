@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 use strum_macros::Display;
@@ -7,8 +8,8 @@ use web_sys::js_sys::JsString;
 
 use crate::{
     math_via_wasm::{
-        eval_js, math_to_latex, math_to_text, normalize_math, parse_latex_into_math,
-        parse_text_into_math, substitute_into_math,
+        eval_js, evaluate_to_number, math_to_latex, math_to_text, normalize_math,
+        parse_latex_into_math, parse_text_into_math, substitute_into_math,
     },
     props::prop_type,
 };
@@ -238,15 +239,6 @@ impl MathExpr {
         }
     }
 
-    pub fn from_number(x: prop_type::Number) -> Self {
-        MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
-                x,
-            )),
-        }
-    }
-
     /// Create a new mathematical expression formed by substituting variables with new expressions
     ///
     /// Parameters:
@@ -364,6 +356,56 @@ impl MathExpr {
         });
 
         MathExpr { math_object }
+    }
+
+    /// Evaluates the `self` as a number, returning `NaN` if value is non-numerical.
+    pub fn to_number(&self) -> prop_type::Number {
+        match evaluate_to_number(&self.math_object) {
+            Ok(res) => res,
+            Err(..) => prop_type::Number::NAN,
+        }
+    }
+
+    /// Attempts to evaluate `self` as a number.
+    /// Return an `Err` if value is non-numerical.
+    pub fn try_to_number(&self) -> Result<prop_type::Number, anyhow::Error> {
+        let res = evaluate_to_number(&self.math_object)?;
+
+        if res.is_nan() {
+            Err(anyhow!(
+                "Math expression could not be evaluated into a number"
+            ))
+        } else {
+            Ok(res)
+        }
+    }
+}
+
+impl From<prop_type::Number> for MathExpr {
+    fn from(value: prop_type::Number) -> Self {
+        MathExpr {
+            math_object: JsMathExpr(format!(
+                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                value,
+            )),
+        }
+    }
+}
+
+impl From<prop_type::Integer> for MathExpr {
+    fn from(value: prop_type::Integer) -> Self {
+        MathExpr {
+            math_object: JsMathExpr(format!(
+                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                value,
+            )),
+        }
+    }
+}
+
+impl From<MathExpr> for prop_type::Number {
+    fn from(expr: MathExpr) -> Self {
+        expr.to_number()
     }
 }
 

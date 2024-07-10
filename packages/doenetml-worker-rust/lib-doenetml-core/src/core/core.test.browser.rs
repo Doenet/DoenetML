@@ -84,15 +84,6 @@ pub fn run_test(test_name: &str) -> Vec<String> {
     embed_test!(
         all_tests,
         test_name,
-        fn math_expr_from_number() {
-            let expr = MathExpr::from_number(3.4);
-            assert_eq!(expr.to_latex(ToLatexParams::default()), "3.4");
-        }
-    );
-
-    embed_test!(
-        all_tests,
-        test_name,
         fn math_expr_from_text() {
             // `x` times `y`
             let expr = MathExpr::from_text("xy", true, &["f"]);
@@ -311,6 +302,46 @@ pub fn run_test(test_name: &str) -> Vec<String> {
 
             assert_eq!(expr_divide.to_text(ToTextParams::default()), "3/6");
             assert_eq!(expr_divide_simplify.to_text(ToTextParams::default()), "1/2");
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn math_expr_converted_to_number() {
+            let expr1 = MathExpr::from_text("3/e^0", true, &["f"]);
+
+            let num1 = expr1.to_number();
+            assert_eq!(num1, 3.0);
+
+            let num1 = expr1.try_to_number().unwrap();
+            assert_eq!(num1, 3.0);
+
+            let num1: f64 = expr1.into();
+            assert_eq!(num1, 3.0);
+
+            let expr2 = MathExpr::from_text("x", true, &["f"]);
+
+            let num2 = expr2.to_number();
+            assert!(num2.is_nan());
+
+            let num2_result = expr2.try_to_number();
+            assert!(num2_result.is_err());
+
+            let num2: f64 = expr2.into();
+            assert!(num2.is_nan());
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn math_expr_from_numbers() {
+            let expr1: MathExpr = 5.into();
+            assert_eq!(expr1.to_text(ToTextParams::default()), "5");
+
+            let expr2: MathExpr = 5.5.into();
+            assert_eq!(expr2.to_text(ToTextParams::default()), "5.5");
         }
     );
 
