@@ -63,7 +63,8 @@ describe("Pretext export", async () => {
     it("Wraps root in <pretext> tag", () => {
         const flatDast = structuredClone(SIMPLE_FLAT_DAST);
         expect(renderToPretext(flatDast)).toMatchInlineSnapshot(`
-          "<pretext>
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
           <article>
           <p>
             Hi
@@ -80,9 +81,10 @@ describe("Pretext export", async () => {
         const pretext = renderToPretext(flatDast);
         expect(pretext).toMatchInlineSnapshot(
             `
-          "<pretext>
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
           <article>
-          <p>How about</p>
+          <p myAttr="hi">How about</p>
           </article>
           </pretext>"
         `,
@@ -96,7 +98,8 @@ describe("Pretext export", async () => {
 
         const pretext = renderToPretext(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
-          "<pretext>
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
           <article>
           <em>foo</em>
                       <p>How about foo?</p>
@@ -114,7 +117,8 @@ describe("Pretext export", async () => {
 
         const pretext = renderToPretext(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
-          "<pretext>
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
           <article>
           <section>
               <title>Foo</title>

@@ -4,6 +4,7 @@ import type { PProps } from "@doenet/doenetml-worker-rust";
 
 export const P: BasicComponentWithPassthroughChildren<{ props: PProps }> = ({
     children,
+    node,
 }) => {
-    return <p>{children}</p>;
+    return <p {...node.attributes}>{children}</p>;
 };

@@ -4,7 +4,6 @@ import {
     dastReducer,
 } from "../../state/redux-slices/dast";
 import { toXml } from "xast-util-to-xml";
-import { renderToStaticMarkup } from "react-dom/server";
 import { FlatDastRoot } from "../../../../doenetml-worker-rust/dist/CoreWorker";
 import { configureStore } from "@reduxjs/toolkit";
 import {
@@ -14,6 +13,7 @@ import {
 import { Provider } from "react-redux";
 import { Element } from "../../renderers";
 import { ensurePretextTag } from "./ensure-pretext-tag";
+import { renderReactToXast } from "./xast-reconciler";
 
 /**
  * Use React's rendering pipeline to render the FlatDast to PreTeXt.
@@ -35,7 +35,7 @@ export function renderToPretext(flatDast: FlatDastRoot) {
     store.dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
     store.dispatch(_globalReducerActions._setRenderMode("pretext"));
 
-    return renderToStaticMarkup(
+    const xast = renderReactToXast(
         <Provider store={store}>
             {flatDast.children.map((child) => {
                 if (typeof child === "string") {
@@ -52,4 +52,14 @@ export function renderToPretext(flatDast: FlatDastRoot) {
             })}
         </Provider>,
     );
+
+    // Make sure we include an `<?xml version="1.0" encoding="UTF-8"?>` instruction on the first line
+    xast.children.unshift({ type: "text", value: "\n" });
+    xast.children.unshift({
+        type: "instruction",
+        name: "xml",
+        value: 'version="1.0" encoding="UTF-8"',
+    });
+
+    return toXml(xast);
 }

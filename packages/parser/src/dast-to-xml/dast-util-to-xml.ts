@@ -38,7 +38,7 @@ export function toXml(
  * Serialize a node.
  */
 export function nodesToXml(
-    node: DastNodes | DastNodes[],
+    node: DastNodes | DastNodes[] | DastAttribute,
     options: PrintOptions,
 ): string {
     if (Array.isArray(node)) {
@@ -79,6 +79,9 @@ export function nodesToXml(
             }
 
             return result + ">";
+        }
+        case "attribute": {
+            return attrToString(node, options);
         }
         case "element": {
             const nodeName = name(node.name);
