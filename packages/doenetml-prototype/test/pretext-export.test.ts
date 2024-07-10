@@ -154,7 +154,7 @@ describe("Pretext export", async () => {
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
-          <myCustomTag ref="foo"><p ref="hi"></p>Hi</myCustomTag>
+          <myCustomTag ref="foo"><p ref="hi" />Hi</myCustomTag>
           </article>
           </pretext>"
         `);
@@ -186,6 +186,21 @@ describe("Pretext export", async () => {
              <book>
           Hi
           </book> Z 
+          </pretext>"
+        `);
+    });
+    it("<docinfo> is not included in the auto-inserted division", async () => {
+        const flatDast = await coreRunner.processToFatDast(`
+            <docinfo>Hi</docinfo> <section>Foo</section>
+        `);
+
+        const pretext = renderToPretext(flatDast);
+        expect(pretext).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <docinfo>Hi</docinfo><article>
+           <section xml:id="doenet-id-2">Foo</section>
+          </article>
           </pretext>"
         `);
     });

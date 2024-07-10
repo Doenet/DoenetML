@@ -67,5 +67,5 @@ export function renderToPretext(flatDast: FlatDastRoot) {
         value: 'version="1.0" encoding="UTF-8"',
     });
 
-    return toXml(xast);
+    return toXml(xast, { closeEmptyElements: true });
 }
