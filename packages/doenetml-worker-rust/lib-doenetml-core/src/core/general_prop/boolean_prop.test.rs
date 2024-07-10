@@ -67,25 +67,21 @@ fn from_independent_state() {
     assert_boolean_calculated_value(prop.calculate_untyped(data), true);
 }
 
-/// Calling invert on a boolean prop no children
+/// Calling invert on a boolean prop with no children
 /// causes the independent state to receive that requested value
 #[test]
 fn invert_with_independent_state() {
     let prop = as_updater_object::<_, prop_type::Boolean>(BooleanProp::new_from_children(false));
 
+    let no_children = DataQueryResult { values: vec![] };
     let independent_state = return_single_boolean_data_query_result(false, true);
-
-    // with single boolean child, from default
-    let boolean_child = return_single_boolean_data_query_result(false, true);
-    let data = DataQueryResults::from_vec(vec![independent_state.clone(), boolean_child]);
+    let data = DataQueryResults::from_vec(vec![independent_state.clone(), no_children]);
 
     let invert_results = prop.invert_untyped(data, true.into(), false).unwrap().vec;
 
-    // independent state is unchanged
-    assert_eq!(invert_results[0].values[0].changed, false);
-    // request change in child
+    // request change in independent state
     assert_eq!(
-        invert_results[1].values,
+        invert_results[0].values,
         vec![PropWithMeta {
             value: true.into(),
             changed: true,
