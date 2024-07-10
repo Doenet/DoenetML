@@ -20,6 +20,7 @@ export default defineWorkspace([
         test: {
             name: "node",
             include: ["test/*.test.ts"],
+            testTimeout: 10000,
         },
     },
     {
@@ -32,6 +33,7 @@ export default defineWorkspace([
                 name: "chrome",
                 headless: true,
             },
+            testTimeout: 10000,
         },
         plugins: [
             // vitest running in th browser won't transform CSS correctly, so we strip away all CSS files
