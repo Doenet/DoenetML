@@ -3,7 +3,6 @@ import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
 import type { DivisionProps } from "@doenet/doenetml-worker-rust";
 import { generateHtmlId } from "../utils";
-import { normalizeAttrs } from "../../utils/pretext/normalize-attrs";
 
 export const Division: BasicComponentWithPassthroughChildren<{
     props: DivisionProps;
@@ -32,7 +31,7 @@ export const Division: BasicComponentWithPassthroughChildren<{
 
     return React.createElement(
         divisionType,
-        normalizeAttrs({ ...node.attributes, ...additionalAttrs }),
+        { ...node.attributes, ...additionalAttrs },
         <React.Fragment>
             {title}
             {children}

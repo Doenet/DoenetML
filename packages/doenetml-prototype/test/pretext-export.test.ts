@@ -120,12 +120,72 @@ describe("Pretext export", async () => {
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
-          <section>
+          <section xml:id="doenet-id-1">
               <title>Foo</title>
                           
                           <p>How about foo?</p>
                       </section>
           </article>
+          </pretext>"
+        `);
+    });
+    it("passes through unknown elements", async () => {
+        const flatDast = await coreRunner.processToFatDast(`
+            <myCustomTag withAttr="foo">Hi</myCustomTag>
+        `);
+
+        const pretext = renderToPretext(flatDast);
+        expect(pretext).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <myCustomTag withAttr="foo">Hi</myCustomTag>
+          </article>
+          </pretext>"
+        `);
+    });
+    it("passes through attributes that conflict with special React prop names", async () => {
+        const flatDast = await coreRunner.processToFatDast(`
+            <myCustomTag ref="foo"><p ref="hi" />Hi</myCustomTag>
+        `);
+
+        const pretext = renderToPretext(flatDast);
+        expect(pretext).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <myCustomTag ref="foo"><p ref="hi"></p>Hi</myCustomTag>
+          </article>
+          </pretext>"
+        `);
+    });
+    it("preserved existing <book> or <article> or <pretext> tags", async () => {
+        const flatDast = await coreRunner.processToFatDast(`
+            <book>Hi</book>
+        `);
+
+        const pretext = renderToPretext(flatDast);
+        expect(pretext).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <book>
+          Hi
+          </book>
+          </pretext>"
+        `);
+    });
+    it("preserved existing <book> or <article> or <pretext> tags 2", async () => {
+        const flatDast = await coreRunner.processToFatDast(`
+            <pretext>   <book>Hi</book> Z </pretext>
+        `);
+
+        const pretext = renderToPretext(flatDast);
+        expect(pretext).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+             <book>
+          Hi
+          </book> Z 
           </pretext>"
         `);
     });

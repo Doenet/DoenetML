@@ -14,6 +14,7 @@ import { Provider } from "react-redux";
 import { Element } from "../../renderers";
 import { ensurePretextTag } from "./ensure-pretext-tag";
 import { renderReactToXast } from "./xast-reconciler";
+import { normalizeAttrs } from "./normalize-attrs";
 
 /**
  * Use React's rendering pipeline to render the FlatDast to PreTeXt.
@@ -22,6 +23,11 @@ export function renderToPretext(flatDast: FlatDastRoot) {
     // Do some pre-processing on the root
     flatDast = structuredClone(flatDast);
     ensurePretextTag(flatDast);
+
+    // Make sure none of the attribute names clash with special React names (e.g. `ref` and `key`).
+    for (const element of flatDast.elements) {
+        element.attributes = normalizeAttrs(element.attributes);
+    }
 
     // Create a new store independent of the existing Redux store.
     // We will configure it separately
