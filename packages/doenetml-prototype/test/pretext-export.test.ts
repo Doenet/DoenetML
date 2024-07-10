@@ -63,9 +63,13 @@ describe("Pretext export", async () => {
     it("Wraps root in <pretext> tag", () => {
         const flatDast = structuredClone(SIMPLE_FLAT_DAST);
         expect(renderToPretext(flatDast)).toMatchInlineSnapshot(`
-          "<pretext><article><p>
+          "<pretext>
+          <article>
+          <p>
             Hi
-          </p></article></pretext>"
+          </p>
+          </article>
+          </pretext>"
         `);
     });
     it("passes through attributes", async () => {
@@ -75,7 +79,13 @@ describe("Pretext export", async () => {
 
         const pretext = renderToPretext(flatDast);
         expect(pretext).toMatchInlineSnapshot(
-            `"<pretext><article><p>How about</p></article></pretext>"`,
+            `
+          "<pretext>
+          <article>
+          <p>How about</p>
+          </article>
+          </pretext>"
+        `,
         );
     });
     it("expands <text> to pretext element", async () => {
@@ -86,8 +96,12 @@ describe("Pretext export", async () => {
 
         const pretext = renderToPretext(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
-          "<pretext><article><em>foo</em>
-                      <p>How about foo?</p></article></pretext>"
+          "<pretext>
+          <article>
+          <em>foo</em>
+                      <p>How about foo?</p>
+          </article>
+          </pretext>"
         `);
     });
     it("expands <division> to pretext element", async () => {
@@ -100,10 +114,15 @@ describe("Pretext export", async () => {
 
         const pretext = renderToPretext(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
-          "<pretext><article><section><title>Foo</title>
+          "<pretext>
+          <article>
+          <section>
+              <title>Foo</title>
                           
                           <p>How about foo?</p>
-                      </section></article></pretext>"
+                      </section>
+          </article>
+          </pretext>"
         `);
     });
 });

@@ -5,7 +5,6 @@ import {
     _dastReducerActions,
     flatDastSelector,
 } from "../../state/redux-slices/dast";
-import { doenetToPretext } from "@doenet/lsp-tools";
 import { toXml } from "xast-util-to-xml";
 import { _globalReducerActions } from "../../state/redux-slices/global";
 import { renderToPretext } from "../../utils/pretext/render-to-pretext";
@@ -16,7 +15,6 @@ export function DownloadPretextDropdownItem() {
         <DropdownItem
             onClick={() => {
                 console.log(flatDast);
-                console.log(toXml(doenetToPretext(flatDast)));
                 console.log(renderToPretext(flatDast));
             }}
         >

@@ -14,7 +14,11 @@ export const Division: BasicComponentWithPassthroughChildren<{
 
     const title =
         titleElmId != null ? (
-            <Element id={titleElmId} ancestors={ancestors} />
+            // We put a newline before a title just to make the formatting of the document look a little better
+            <React.Fragment>
+                {"\n    "}
+                <Element id={titleElmId} ancestors={ancestors} />
+            </React.Fragment>
         ) : (
             ""
         );

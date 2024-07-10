@@ -18,3 +18,4 @@ export * from "./ul";
 export * from "./li";
 export * from "./choice-input";
 export * from "./_pass-through-with-tag";
+export * from "./_pass-through-with-tag-and-newline";

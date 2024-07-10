@@ -126,15 +126,15 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
 
     // For PreTeXt compatibility
     pretext: {
-        component: PretextComponent._PassThroughWithTag,
+        component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },
     article: {
-        component: PretextComponent._PassThroughWithTag,
+        component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },
     book: {
-        component: PretextComponent._PassThroughWithTag,
+        component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },
 };
