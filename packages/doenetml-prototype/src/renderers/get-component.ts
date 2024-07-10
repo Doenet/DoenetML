@@ -1,5 +1,6 @@
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 import {
+    FALLBACK_RENDERER_KEY,
     GRAPH_MODE_COMPONENTS,
     RendererObject,
     TEXT_MODE_COMPONENTS,
@@ -43,7 +44,8 @@ export function getComponent(
               ? GRAPH_MODE_COMPONENTS
               : TEXT_MODE_COMPONENTS;
 
-    const component = componentLookup[node?.name];
+    const component =
+        componentLookup[node?.name] ?? componentLookup[FALLBACK_RENDERER_KEY];
     if (!component) {
         return {
             component: makeNullComponentWithMessage(

@@ -1,5 +1,6 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
+import { normalizeAttrs } from "../../utils/pretext/normalize-attrs";
 
 /**
  * A _PassThroughWithTag component is a special component that cannot be directly authored.
@@ -9,5 +10,9 @@ export const _PassThroughWithTag: BasicComponentWithPassthroughChildren<{}> = ({
     children,
     node,
 }) => {
-    return React.createElement(node.name, node.attributes, children);
+    return React.createElement(
+        node.name,
+        normalizeAttrs(node.attributes),
+        children,
+    );
 };

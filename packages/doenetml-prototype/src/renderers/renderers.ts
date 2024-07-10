@@ -39,9 +39,16 @@ export type ComponentWithPassthroughChildren = {
 } & CommonProps;
 
 export type RendererObject = Record<
-    string,
+    string | symbol,
     Component | ComponentWithPassthroughChildren
 >;
+
+/**
+ * A key used to identify the fallback renderer in the renderer object.
+ * If a renderer is present with this key, it will be used in the case where no
+ * specific renderer is found for a given tag name.
+ */
+export const FALLBACK_RENDERER_KEY = Symbol("fallback");
 
 /**
  * A map of tag names to components. This is used for naive component rendering, where the
@@ -135,6 +142,12 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     },
     book: {
         component: PretextComponent._PassThroughWithTagAndNewline,
+        passthroughChildren: true,
+    },
+    // Provide a renderer for unrecognized elements. This allows us to support
+    // pretext tags we don't currently know about.
+    [FALLBACK_RENDERER_KEY]: {
+        component: PretextComponent._PassThroughWithTag,
         passthroughChildren: true,
     },
 };

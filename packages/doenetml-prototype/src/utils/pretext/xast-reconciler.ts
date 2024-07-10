@@ -11,6 +11,7 @@ import type {
     DastAttribute,
 } from "@doenet/doenetml-worker-rust";
 import { toXml as toDoenet } from "@doenet/parser";
+import { denormalizeAttrs } from "./normalize-attrs";
 
 type RootContainer = Xast.Root & {
     _rootContainer?: ReactReconciler.FiberRoot;
@@ -65,7 +66,7 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
     ) {
         const { children, ...rest } = props;
         const attributes = Object.fromEntries(
-            Object.entries(rest).map(([key, value]) => {
+            Object.entries(denormalizeAttrs(rest)).map(([key, value]) => {
                 if (typeof value === "string") {
                     return [key, value];
                 }
