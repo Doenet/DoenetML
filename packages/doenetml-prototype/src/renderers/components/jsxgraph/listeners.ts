@@ -21,7 +21,9 @@ export type GraphListenerActions = {
     keydown?: (e: KeyboardEvent, interactionState: InteractionState) => void;
 };
 
-// The actual listener functions that were attached
+/**
+ * The actual listener functions that were attached
+ */
 export type GraphListeners = {
     drag?: (e: Event) => void;
     down?: (e: Event) => void;
