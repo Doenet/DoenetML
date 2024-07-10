@@ -10,7 +10,7 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: {
-                "index": "./dast-to-flat-dast.ts",
+                index: "./dast-to-flat-dast.ts",
             },
             formats: ["es"],
         },

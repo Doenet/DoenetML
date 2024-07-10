@@ -14,7 +14,6 @@ const workerBlobUrl = URL.createObjectURL(
 );
 doenetGlobalConfig.doenetWorkerUrl = workerBlobUrl;
 
-
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
  */

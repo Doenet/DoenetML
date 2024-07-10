@@ -74,7 +74,9 @@ describe("Pretext export", async () => {
         `);
 
         const pretext = renderToPretext(flatDast);
-        expect(pretext).toMatchInlineSnapshot(`"<pretext><article><p>How about</p></article></pretext>"`);
+        expect(pretext).toMatchInlineSnapshot(
+            `"<pretext><article><p>How about</p></article></pretext>"`,
+        );
     });
     it("expands <text> to pretext element", async () => {
         const flatDast = await coreRunner.processToFatDast(`

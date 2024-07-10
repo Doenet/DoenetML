@@ -11,7 +11,7 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: {
-                "index": "./run.ts",
+                index: "./run.ts",
             },
             formats: ["es"],
         },
