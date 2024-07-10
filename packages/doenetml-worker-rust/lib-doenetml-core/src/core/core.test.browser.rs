@@ -70,6 +70,7 @@ pub fn run_test(test_name: &str) -> Vec<String> {
             let expr2 = expr1.substitute(&substitutions);
             assert_eq!(expr2.to_latex(ToLatexParams::default()), "x + q");
 
+            #[allow(clippy::approx_constant)]
             let substitutions = HashMap::from([("y".to_string(), MathArg::Number(3.14))]);
             let expr2 = expr1.substitute(&substitutions);
             assert_eq!(expr2.to_latex(ToLatexParams::default()), "x + 3.14");
