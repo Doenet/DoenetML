@@ -38,6 +38,11 @@ export function renderToPretext(flatDast: FlatDastRoot) {
         },
     });
 
+    // Strip off any `name` attribute left over from the DAST
+    for (const element of flatDast.elements) {
+        delete element.attributes.name;
+    }
+
     store.dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
     store.dispatch(_globalReducerActions._setRenderMode("pretext"));
 

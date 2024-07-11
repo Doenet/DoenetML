@@ -204,4 +204,19 @@ describe("Pretext export", async () => {
           </pretext>"
         `);
     });
+    it("name attribute is removed but pretext:name is not", async () => {
+        const flatDast = await coreRunner.processToFatDast(`
+            <pretext><article><p name="foo">hi</p><p pretext:name="foo">there</p></article></pretext>
+        `);
+
+        const pretext = renderToPretext(flatDast);
+        expect(pretext).toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <p>hi</p><p name="foo">there</p>
+          </article>
+          </pretext>"
+        `);
+    });
 });
