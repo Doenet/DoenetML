@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, afterAll } from "vitest";
 import util from "util";
 import { lezerToDast, toXml } from "@doenet/parser";
 import { normalizeDocumentDast } from "../src/state/redux-slices/dast/utils/normalize-dast";
@@ -55,6 +55,10 @@ const SIMPLE_FLAT_DAST = {
 } as FlatDastRoot;
 
 const coreRunner = new RunThroughCore();
+
+afterAll(async () => {
+    await coreRunner.close();
+});
 
 describe("Pretext export", async () => {
     it("Can process doenet code run through core", async () => {
