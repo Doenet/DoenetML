@@ -1,12 +1,8 @@
 import React from "react";
 import reconciler, * as ReactReconciler from "react-reconciler";
-import {
-    DefaultEventPriority,
-} from "react-reconciler/constants";
+import { DefaultEventPriority } from "react-reconciler/constants";
 import type * as Xast from "xast";
-import type {
-    DastAttribute,
-} from "@doenet/doenetml-worker-rust";
+import type { DastAttribute } from "@doenet/doenetml-worker-rust";
 import { denormalizeAttrs } from "./normalize-attrs";
 
 type RootContainer = Xast.Root & {
