@@ -5,6 +5,7 @@ import { DoenetML } from "../DoenetML";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Dropdown from "react-bootstrap/Dropdown";
+import { VscRefresh, VscWarning, VscCloudDownload } from "react-icons/vsc";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./editor-viewer.css";
@@ -13,6 +14,7 @@ import { DownloadMarkdownDropdownItem } from "./components/download-markdown";
 import { Provider } from "react-redux";
 import { store } from "../state/store";
 import { DownloadPretextDropdownItem } from "./components/download-pretext";
+import { DownloadInspector } from "./components/download-inspector";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -30,6 +32,14 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
     const [formatMode, setFormatMode] = React.useState<"doenetml" | "xml">(
         "doenetml",
     );
+    const [showDownloadInspector, setShowDownloadInspector] =
+        React.useState(false);
+    const [fileList, setFileList] = React.useState<Record<string, string>>({});
+
+    const setFiles = (files: Record<string, string>) => {
+        setFileList(files);
+        setShowDownloadInspector(true);
+    };
 
     const canRefresh = sourceInEditor !== sourceForRender;
     const doPrettyPrint = React.useCallback(() => {
@@ -43,10 +53,16 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
 
     return (
         <Provider store={store}>
+            <DownloadInspector
+                fileList={fileList}
+                show={showDownloadInspector}
+                setShow={setShowDownloadInspector}
+            />
             <div className="editor-viewer">
                 <div className="editor-viewer-header">
                     <Button
                         size="sm"
+                        className="icon-button"
                         disabled={!canRefresh}
                         title={
                             canRefresh
@@ -57,7 +73,7 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                             setSourceForRender(sourceInEditor);
                         }}
                     >
-                        Refresh
+                        <VscRefresh /> Refresh
                     </Button>
                     <div>Version: {DOENETML_VERSION}</div>
                 </div>
@@ -110,12 +126,29 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                                         </Dropdown.Toggle>
                                     </Dropdown>
                                     <Dropdown>
-                                        <Dropdown.Toggle size="sm">
+                                        <Dropdown.Toggle
+                                            size="sm"
+                                            className="icon-button"
+                                            title={
+                                                canRefresh
+                                                    ? 'Warning: The exported code and the code in the editor are out of sync. Press "Refresh" before you download to synchronize them.'
+                                                    : "Export in various formats"
+                                            }
+                                        >
+                                            {canRefresh ? (
+                                                <VscWarning />
+                                            ) : (
+                                                <VscCloudDownload />
+                                            )}{" "}
                                             Export
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu>
-                                            <DownloadMarkdownDropdownItem />
-                                            <DownloadPretextDropdownItem />
+                                            <DownloadMarkdownDropdownItem
+                                                setFiles={setFiles}
+                                            />
+                                            <DownloadPretextDropdownItem
+                                                setFiles={setFiles}
+                                            />
                                         </Dropdown.Menu>
                                     </Dropdown>
                                 </div>

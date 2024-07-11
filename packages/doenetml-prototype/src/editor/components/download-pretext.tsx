@@ -5,20 +5,27 @@ import {
     _dastReducerActions,
     flatDastSelector,
 } from "../../state/redux-slices/dast";
-import { toXml } from "xast-util-to-xml";
 import { _globalReducerActions } from "../../state/redux-slices/global";
 import { renderToPretext } from "../../utils/pretext/render-to-pretext";
+import { VscCode } from "react-icons/vsc";
 
-export function DownloadPretextDropdownItem() {
+export function DownloadPretextDropdownItem({
+    setFiles,
+}: {
+    setFiles: (files: Record<string, string>) => void;
+}) {
     const flatDast = useAppSelector(flatDastSelector);
     return (
         <DropdownItem
+            className="icon-button"
             onClick={() => {
-                console.log(flatDast);
-                console.log(renderToPretext(flatDast));
+                const fileList = {
+                    "main.ptx": renderToPretext(flatDast),
+                };
+                setFiles(fileList);
             }}
         >
-            PreTeXt
+            <VscCode /> PreTeXt
         </DropdownItem>
     );
 }
