@@ -56,7 +56,6 @@ export function ensurePretextTag(
             (r) =>
                 isAnnotatedElementRef(r) && elements[r.id].name === "docinfo",
         );
-        console.log({ docinfoElementPos });
         const siblings = pretextElement.children.slice(
             0,
             docinfoElementPos + 1,
