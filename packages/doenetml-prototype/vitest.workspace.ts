@@ -1,4 +1,17 @@
+import { Plugin, PluginOption } from "vite";
 import { defineWorkspace, defaultInclude } from "vitest/config";
+
+const omitCssPlugin: Plugin = {
+    name: "omit-css",
+    enforce: "pre",
+    transform(code, id) {
+        if (id.endsWith(".css")) {
+            return {
+                code: "",
+            };
+        }
+    },
+};
 
 export default defineWorkspace([
     {
@@ -6,7 +19,8 @@ export default defineWorkspace([
         extends: "./vite.config.ts",
         test: {
             name: "node",
-            include: ["test/*.test.ts"],
+            include: ["test/*.test.ts", "test/*.test.tsx"],
+            testTimeout: 20000,
         },
     },
     {
@@ -19,6 +33,11 @@ export default defineWorkspace([
                 name: "chrome",
                 headless: true,
             },
+            testTimeout: 20000,
         },
+        plugins: [
+            // vitest running in th browser won't transform CSS correctly, so we strip away all CSS files
+            omitCssPlugin,
+        ],
     },
 ]);

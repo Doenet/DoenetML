@@ -46,6 +46,11 @@ impl Core {
         flat_root.compactify();
         let normalized_flat_root = flat_root.into_normalized_root();
 
+        // If we are initializing, we need to make sure that pre-existing data doesn't mess things up.
+        // The easiest way is to recreate ourself.
+        // TODO: think about whether we can update existing structures.
+        *self = Self::new();
+
         let component_builder = ComponentBuilder::from_normalized_root(&normalized_flat_root);
         self.document_model.init_from_builder(component_builder);
         resolver

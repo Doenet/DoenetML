@@ -114,6 +114,12 @@ export const dastReducer = dastSlice.reducer;
 export const _dastReducerActions = { ...dastSlice.actions };
 
 const selfSelector = (state: RootState) => state.dast;
+export const dastSelector = (state: RootState) =>
+    selfSelector(state).dastFromSource;
+export const flatDastSelector = (state: RootState) =>
+    selfSelector(state).flatDastRoot;
+export const doenetSourceSelector = (state: RootState) =>
+    selfSelector(state).source;
 export const errorsSelector = (state: RootState) =>
     selfSelector(state).dastErrors;
 

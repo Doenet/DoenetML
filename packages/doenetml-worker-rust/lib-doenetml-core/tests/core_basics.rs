@@ -70,3 +70,21 @@ fn test_core_can_get_component_index_by_name() {
     assert_eq!(core.get_component_index_by_name("t2"), 2);
     assert_eq!(core.get_component_index_by_name("t3"), 3);
 }
+
+#[test]
+fn test_can_change_source_on_an_initialized_core() {
+    let dast_root1 = dast_root_no_position(r#"<text name="t1"/>"#);
+    let dast_root2 =
+        dast_root_no_position(r#"<text name="t1"/><text name="t2"><text name="t3"/></text>"#);
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root1);
+    core.to_flat_dast();
+
+    core.init_from_dast_root(&dast_root2);
+    core.to_flat_dast();
+
+    assert_eq!(core.get_component_index_by_name("t1"), 1);
+    assert_eq!(core.get_component_index_by_name("t2"), 2);
+    assert_eq!(core.get_component_index_by_name("t3"), 3);
+}

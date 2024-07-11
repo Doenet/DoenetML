@@ -3,8 +3,6 @@ import { MathJaxContext } from "better-react-mathjax";
 import { PageViewer } from "./viewer/page-viewer";
 import { Provider } from "react-redux";
 import { store } from "./state/store";
-import { useAppDispatch, useAppSelector } from "./state/hooks";
-import { dastActions, elementsArraySelector } from "./state/redux-slices/dast";
 
 export type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -55,7 +53,6 @@ export function DoenetML({
 
     return (
         <Provider store={store}>
-            <UpdateSectionButton />
             <MathJaxContext>
                 <PageViewer
                     source={doenetML}
@@ -64,40 +61,5 @@ export function DoenetML({
                 />
             </MathJaxContext>
         </Provider>
-    );
-}
-
-function UpdateSectionButton() {
-    const dispatch = useAppDispatch();
-    const elements = useAppSelector(elementsArraySelector);
-    return (
-        <button
-            onClick={() => {
-                // Find the first math element and update it
-                const id = elements.findIndex(
-                    (e) => e.type === "element" && e.name === "m",
-                );
-                if (id === -1) {
-                    console.warn("No <section> element found", elements);
-                    return;
-                }
-                dispatch(
-                    dastActions.updateElements([
-                        [
-                            id,
-                            {
-                                type: "element",
-                                name: "m",
-                                attributes: {},
-                                children: [`\\frac{2}{${Math.random()}}`],
-                                data: { id },
-                            },
-                        ],
-                    ]),
-                );
-            }}
-        >
-            Update Math
-        </button>
     );
 }
