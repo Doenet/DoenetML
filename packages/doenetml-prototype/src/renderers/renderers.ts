@@ -21,7 +21,7 @@ import {
     Ul,
     ChoiceInput,
 } from "./doenet";
-import * as PretextComponent from "./pretext";
+import * as PretextComponent from "./pretext-xml";
 
 export type CommonProps = {
     monitorVisibility?: boolean;
