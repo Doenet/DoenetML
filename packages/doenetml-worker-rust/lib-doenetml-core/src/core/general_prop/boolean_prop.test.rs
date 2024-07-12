@@ -1,7 +1,13 @@
-use crate::props::cache::PropWithMeta;
+use crate::{
+    general_prop::test_utils::{
+        assert_boolean_calculated_value, assert_boolean_default_result,
+        return_empty_data_query_result, return_single_boolean_data_query_result,
+        return_single_string_data_query_result, return_two_string_data_query_result,
+    },
+    props::cache::PropWithMeta,
+};
 
 use super::*;
-use setup_functions::*;
 
 /// check that a boolean prop created from children
 /// gives the correct default and data query that requests string and boolean children
@@ -54,7 +60,7 @@ fn check_default_and_attribute_data_queries() {
 fn from_independent_state() {
     let prop = as_updater_object::<_, prop_type::Boolean>(BooleanProp::new_from_children(false));
 
-    let no_children = DataQueryResult { values: vec![] };
+    let no_children = return_empty_data_query_result();
 
     // with default value
     let independent_state = return_single_boolean_data_query_result(false, true);
@@ -73,7 +79,7 @@ fn from_independent_state() {
 fn invert_with_independent_state() {
     let prop = as_updater_object::<_, prop_type::Boolean>(BooleanProp::new_from_children(false));
 
-    let no_children = DataQueryResult { values: vec![] };
+    let no_children = return_empty_data_query_result();
     let independent_state = return_single_boolean_data_query_result(false, true);
     let data = DataQueryResults::from_vec(vec![independent_state.clone(), no_children]);
 
@@ -270,89 +276,4 @@ fn boolean_prop_calculated_from_a_blank_string_attribute_component_is_true() {
     let attribute_component = return_single_string_data_query_result(" ", true);
     let data = DataQueryResults::from_vec(vec![independent_state.clone(), attribute_component]);
     assert_boolean_calculated_value(prop.calculate_untyped(data), false);
-}
-
-mod setup_functions {
-
-    use super::*;
-
-    pub fn return_single_boolean_data_query_result(
-        value: bool,
-        came_from_default: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![PropWithMeta {
-                value: PropValue::Boolean(value),
-                came_from_default,
-                changed: true,
-                origin: None,
-            }],
-        }
-    }
-
-    pub fn return_single_string_data_query_result(
-        value: &str,
-        came_from_default: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![PropWithMeta {
-                value: PropValue::String(value.to_string().into()),
-                came_from_default,
-                changed: true,
-                origin: None,
-            }],
-        }
-    }
-
-    pub fn return_two_string_data_query_result(
-        value1: &str,
-        value2: &str,
-        came_from_default1: bool,
-        came_from_default2: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![
-                PropWithMeta {
-                    value: PropValue::String(value1.to_string().into()),
-                    came_from_default: came_from_default1,
-                    changed: true,
-                    origin: None,
-                },
-                PropWithMeta {
-                    value: PropValue::String(value2.to_string().into()),
-                    came_from_default: came_from_default2,
-                    changed: true,
-                    origin: None,
-                },
-            ],
-        }
-    }
-
-    pub fn assert_boolean_calculated_value(result: PropCalcResult<PropValue>, value: bool) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(_) => {
-                panic!("incorrectly from default")
-            }
-            PropCalcResult::Calculated(boolean_prop) => {
-                assert_eq!(boolean_prop, value)
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
-
-    pub fn assert_boolean_default_result(result: PropCalcResult<PropValue>, value: bool) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(boolean_prop) => {
-                assert_eq!(boolean_prop, value)
-            }
-            PropCalcResult::Calculated(_) => {
-                panic!("incorrectly calculated")
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
 }

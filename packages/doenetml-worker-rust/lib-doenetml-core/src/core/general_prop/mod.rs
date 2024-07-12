@@ -13,6 +13,9 @@ mod string_prop;
 mod string_to_integer_prop;
 mod util;
 
+#[cfg(any(test, debug_assertions))]
+pub mod test_utils;
+
 pub use self::alias_prop::PropAlias;
 pub use self::boolean_prop::BooleanProp;
 pub use self::boolean_to_string_prop::BooleanToStringProp;

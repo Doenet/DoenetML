@@ -1,7 +1,13 @@
-use crate::props::cache::PropWithMeta;
+use crate::{
+    general_prop::test_utils::{
+        assert_number_calculated_value, assert_number_default_result,
+        return_empty_data_query_result, return_single_number_data_query_result,
+        return_single_string_data_query_result, return_two_string_data_query_result,
+    },
+    props::cache::PropWithMeta,
+};
 
 use super::*;
-use setup_functions::*;
 
 /// check that a number prop created from children
 /// gives the correct default and data query that requests string and number children
@@ -59,7 +65,7 @@ fn check_default_and_attribute_data_queries() {
 fn from_independent_state() {
     let prop = as_updater_object::<_, prop_type::Number>(NumberProp::new_from_children(7.0));
 
-    let no_children = DataQueryResult { values: vec![] };
+    let no_children = return_empty_data_query_result();
 
     // with default value
     let independent_state = return_single_number_data_query_result(7.0, true);
@@ -78,7 +84,7 @@ fn from_independent_state() {
 fn invert_with_independent_state() {
     let prop = as_updater_object::<_, prop_type::Number>(NumberProp::new_from_children(7.0));
 
-    let no_children = DataQueryResult { values: vec![] };
+    let no_children = return_empty_data_query_result();
     let independent_state = return_single_number_data_query_result(7.0, true);
     let data = DataQueryResults::from_vec(vec![independent_state.clone(), no_children]);
 
@@ -222,95 +228,4 @@ fn number_prop_calculated_from_single_number_attribute_component() {
     let attribute_component = return_single_number_data_query_result(5.8, false);
     let data = DataQueryResults::from_vec(vec![independent_state.clone(), attribute_component]);
     assert_number_calculated_value(prop.calculate_untyped(data), 5.8);
-}
-
-mod setup_functions {
-
-    use super::*;
-
-    pub fn return_single_number_data_query_result(
-        value: prop_type::Number,
-        came_from_default: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![PropWithMeta {
-                value: PropValue::Number(value),
-                came_from_default,
-                changed: true,
-                origin: None,
-            }],
-        }
-    }
-
-    pub fn return_single_string_data_query_result(
-        value: &str,
-        came_from_default: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![PropWithMeta {
-                value: PropValue::String(value.to_string().into()),
-                came_from_default,
-                changed: true,
-                origin: None,
-            }],
-        }
-    }
-
-    pub fn return_two_string_data_query_result(
-        value1: &str,
-        value2: &str,
-        came_from_default1: bool,
-        came_from_default2: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![
-                PropWithMeta {
-                    value: PropValue::String(value1.to_string().into()),
-                    came_from_default: came_from_default1,
-                    changed: true,
-                    origin: None,
-                },
-                PropWithMeta {
-                    value: PropValue::String(value2.to_string().into()),
-                    came_from_default: came_from_default2,
-                    changed: true,
-                    origin: None,
-                },
-            ],
-        }
-    }
-
-    pub fn assert_number_calculated_value(
-        result: PropCalcResult<PropValue>,
-        value: prop_type::Number,
-    ) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(_) => {
-                panic!("incorrectly from default")
-            }
-            PropCalcResult::Calculated(number_prop) => {
-                assert_eq!(number_prop, value)
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
-
-    pub fn assert_number_default_result(
-        result: PropCalcResult<PropValue>,
-        value: prop_type::Number,
-    ) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(number_prop) => {
-                assert_eq!(number_prop, value)
-            }
-            PropCalcResult::Calculated(_) => {
-                panic!("incorrectly calculated")
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
 }
