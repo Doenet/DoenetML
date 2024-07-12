@@ -1,7 +1,10 @@
 //! Tests that can only be executed when run in a full WASM environment inside of a browser.
 
+#[path = "math_expr_wasm.test.rs"]
 mod math_expr_tests;
+#[path = "math_prop_wasm.test.rs"]
 mod math_prop_tests;
+#[path = "number_prop_wasm.test.rs"]
 mod number_prop_tests;
 
 use crate::{
