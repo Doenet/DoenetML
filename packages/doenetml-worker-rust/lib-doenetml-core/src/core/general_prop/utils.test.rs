@@ -152,6 +152,34 @@ pub fn assert_number_default_result(result: PropCalcResult<PropValue>, value: pr
     }
 }
 
+pub fn assert_math_calculated_value(result: PropCalcResult<PropValue>, value: prop_type::Math) {
+    let value: PropValue = value.into();
+
+    match result {
+        PropCalcResult::FromDefault(_) => {
+            panic!("incorrectly from default")
+        }
+        PropCalcResult::Calculated(math_prop) => {
+            assert_eq!(math_prop, value)
+        }
+        PropCalcResult::NoChange => panic!("Incorrectly no change"),
+    }
+}
+
+pub fn assert_math_default_result(result: PropCalcResult<PropValue>, value: prop_type::Math) {
+    let value: PropValue = value.into();
+
+    match result {
+        PropCalcResult::FromDefault(number_prop) => {
+            assert_eq!(number_prop, value)
+        }
+        PropCalcResult::Calculated(_) => {
+            panic!("incorrectly calculated")
+        }
+        PropCalcResult::NoChange => panic!("Incorrectly no change"),
+    }
+}
+
 pub fn assert_string_calculated_value(result: PropCalcResult<PropValue>, value: &str) {
     let value: PropValue = value.into();
 
