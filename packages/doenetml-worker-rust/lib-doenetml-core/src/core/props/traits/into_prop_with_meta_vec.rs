@@ -25,6 +25,16 @@ where
     }
 }
 
+impl<T> IntoPropWithMetaVec for Option<PropView<T>>
+where
+    PropView<T>: Into<PropWithMeta>,
+{
+    /// Convert an option of `PropView` into a vector of `PropWithMeta`.
+    fn into_prop_with_meta_vec(self) -> Vec<PropWithMeta> {
+        self.into_iter().map(|v| v.into()).collect()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use prop_value::prop_type;

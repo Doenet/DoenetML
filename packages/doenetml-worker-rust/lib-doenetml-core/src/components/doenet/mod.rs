@@ -9,6 +9,7 @@ pub mod li;
 pub mod math;
 pub mod ol;
 pub mod p;
+pub mod point;
 pub mod text;
 pub mod text_input;
 pub mod title;

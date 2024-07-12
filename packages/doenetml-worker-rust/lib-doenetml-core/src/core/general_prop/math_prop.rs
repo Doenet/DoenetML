@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// A math prop that calculates its value by
-/// - concatenating all string and math dependencies into a string,
+/// - concatenating all string, math, and number dependencies into a string,
 ///   replacing the math dependencies with placeholder variables,
 /// - parsing that string into a math expression, and
 /// - substituting in the values of the math dependencies for their placeholder variables.
@@ -30,8 +30,8 @@ use crate::{
 ///   Instead this prop's `came_from_default` flag will always be `false` whenever it is based on one or more dependency.
 #[derive(Debug)]
 pub struct MathProp {
-    /// The data query that returns the math and string values used to create the math value
-    math_strings_data_query: DataQuery,
+    /// The data query that returns the math, number and string values used to create the math value
+    math_number_strings_data_query: DataQuery,
 
     /// The data query that includes the fixed prop along with the math/strings prop
     data_query_with_fixed: DataQuery,
@@ -49,12 +49,6 @@ pub struct MathProp {
     // TODO: this should be based on a data query for a prop/attribute once we implement enum props or attributes
     /// A enum determining whether we should use the latex or text parser.
     parser: MathParser,
-
-    /// Data query that should return a `PropView<bool>`.
-    ///
-    /// If `true`, we split multi-character symbols into the product of the characters
-    /// when parsing the string to a math expression
-    split_symbols_local_prop_idx: LocalPropIdx,
 
     // TODO: this should be based on a data query for a prop/attribute once we implement array props or attributes
     /// A vector of the symbols that should be treated as functions if they are followed by parentheses.  
@@ -78,84 +72,42 @@ pub struct MathPropCache {
 
 impl MathProp {
     /// Creates a math prop that calculates its value from the component's children
-    /// matching the `String` and `Math` profiles.
+    /// matching the `String`, `Math`, and `Number` profiles.
     ///
     /// Arguments:
     /// - `default_value`: If there are no matching children, the prop will be initialized with `default_value`.
     /// - `parser`: Determine whether that latex or text parser is used to parse strings into math.
-    /// - `split_symbols`: If `true`, we split multi-character symbols into the product of the characters
-    ///   when parsing the string to a math expression
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
     pub fn new_from_children<S: Into<MathExpr>>(
         default_value: S,
         parser: MathParser,
-        split_symbols_local_prop_idx: LocalPropIdx,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
-            math_strings_data_query: DataQuery::PickProp {
+            math_number_strings_data_query: DataQuery::PickProp {
                 source: PickPropSource::Children,
                 prop_specifier: PropSpecifier::Matching(vec![
                     PropProfile::String,
                     PropProfile::Math,
+                    PropProfile::Number,
                 ]),
             },
             data_query_with_fixed: DataQuery::PickProp {
                 source: PickPropSource::Children,
                 prop_specifier: PropSpecifier::MatchingPair(
-                    vec![PropProfile::String, PropProfile::Math],
+                    vec![PropProfile::String, PropProfile::Math, PropProfile::Number],
                     vec![PropProfile::Fixed],
                 ),
             },
             parser,
-            split_symbols_local_prop_idx,
             function_symbols,
             default_value: default_value.into(),
             propagate_came_from_default: true,
             cache: Default::default(),
         }
     }
-
-    // TODO: significant work needed to add math as an attribute
-    // - We need to generalized `PropFromAttribute` to allow passing in more parameters
-    // - We need to extend `DataQuery::Attribute` to handle something like PropSpecifier::MatchingPair
-    //   or somehow treat the attribute case specially
-
-    // /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
-    // /// basing the calculation on the attribute components that match the `String` and `Math` profiles.
-    // ///
-    // ///
-    // /// Arguments:
-    // /// - `default_value`: If there are no matching attribute components,
-    // ///   the prop will be initialized with `default_value`.
-    // /// - `parser`: Determine whether that latex or text parser is used to parse strings into math.
-    // /// - `split_symbols`: If `true`, we split multi-character symbols into the product of the characters
-    // ///   when parsing the string to a math expression
-    // /// - `function_symbols`: a list of the symbols that will be treated as a function,
-    // ///   i.e., one of these symbols followed by arguments in parentheses
-    // ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    // pub fn new_from_attribute<S: Into<MathExpr>>(
-    //     attr_name: AttributeName,
-    //     default_value: S,
-    //     parser: MathParser,
-    //     split_symbols_local_prop_idx: LocalPropIdx,
-    //     function_symbols: Vec<String>,
-    // ) -> Self {
-    //     MathProp {
-    //         data_query: DataQuery::Attribute {
-    //             attribute_name: attr_name,
-    //             match_profiles: vec![PropProfile::String, PropProfile::Math],
-    //         },
-    //         parser,
-    //         split_symbols_local_prop_idx,
-    //         function_symbols,
-    //         default_value: default_value.into(),
-    //         propagate_came_from_default: true,
-    //         cache: Default::default(),
-    //     }
-    // }
 
     /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
     /// when there is only one matching math dependency.
@@ -193,28 +145,58 @@ impl From<MathProp> for UpdaterObject {
     }
 }
 
+// TODO: determine `math_parser` and `function_symbols`
+impl PropFromAttribute<MathExpr> for MathProp {
+    /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `String`, `Math` or `Number` profile.
+    ///
+    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
+    fn new_from_attribute(attr_name: AttributeName, default_value: MathExpr) -> Self {
+        MathProp {
+            math_number_strings_data_query: DataQuery::Attribute {
+                attribute_name: attr_name,
+                match_profiles: vec![PropProfile::String, PropProfile::Math, PropProfile::Number],
+            },
+            data_query_with_fixed: DataQuery::PickProp {
+                source: PickPropSource::Attribute {
+                    attribute_name: attr_name,
+                },
+                prop_specifier: PropSpecifier::MatchingPair(
+                    vec![PropProfile::String, PropProfile::Math, PropProfile::Number],
+                    vec![PropProfile::Fixed],
+                ),
+            },
+            default_value,
+            propagate_came_from_default: true,
+            parser: MathParser::Text,
+            function_symbols: vec!["f".to_string(), "g".to_string()],
+            cache: Default::default(),
+        }
+    }
+}
+
 #[derive(TryFromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = &MathProp)]
 struct RequiredData {
     independent_state: PropView<prop_type::Math>,
-    maths_and_strings: Vec<PropView<PropValue>>,
+    math_number_strings: Vec<PropView<PropValue>>,
     with_fixed: Vec<PropView<prop_type::PropVec>>,
-    split_symbols: PropView<prop_type::Boolean>,
+    split_symbols: Option<PropView<prop_type::Boolean>>,
 }
 impl DataQueries for RequiredData {
     fn independent_state_query(_: &MathProp) -> DataQuery {
         DataQuery::State
     }
-    fn maths_and_strings_query(math_prop: &MathProp) -> DataQuery {
-        math_prop.math_strings_data_query.clone()
+    fn math_number_strings_query(math_prop: &MathProp) -> DataQuery {
+        math_prop.math_number_strings_data_query.clone()
     }
     fn with_fixed_query(math_prop: &MathProp) -> DataQuery {
         math_prop.data_query_with_fixed.clone()
     }
-    fn split_symbols_query(math_prop: &MathProp) -> DataQuery {
+    fn split_symbols_query(_: &MathProp) -> DataQuery {
         DataQuery::Prop {
             source: PropSource::Me,
-            prop_specifier: math_prop.split_symbols_local_prop_idx.into(),
+            prop_specifier: PropSpecifier::Matching(vec![PropProfile::SplitSymbols]),
         }
     }
 }
@@ -233,10 +215,22 @@ impl PropUpdater for MathProp {
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         let required_data = RequiredData::try_from_data_query_results(data).unwrap();
         let independent_state = required_data.independent_state;
-        let maths_and_strings = required_data.maths_and_strings;
+        let math_number_strings = required_data.math_number_strings;
         let split_symbols = required_data.split_symbols;
 
-        match maths_and_strings.len() {
+        for prop in &math_number_strings {
+            match &prop.value {
+                PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
+                _ => {
+                    panic!(
+                        "Should get number, math, or string dependency for number, found {:?}",
+                        prop
+                    )
+                }
+            }
+        }
+
+        match math_number_strings.len() {
             0 => {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
@@ -248,16 +242,15 @@ impl PropUpdater for MathProp {
             }
             1 => {
                 // if the math expression is based just one component,
-                // then either propagate the value of a math
+                // then either propagate the value of a math or a number
                 // or parse a string into a math
-                match &maths_and_strings[0] {
+                match &math_number_strings[0] {
                     PropView {
                         value: PropValue::Math(math_value),
                         came_from_default,
                         changed,
                         ..
                     } => {
-                        // PropValue::Math(math_value) => {
                         if *changed {
                             if self.propagate_came_from_default && *came_from_default {
                                 // if we are basing it on a single variable and propagating came_from_default,
@@ -271,24 +264,42 @@ impl PropUpdater for MathProp {
                         }
                     }
                     PropView {
+                        value: PropValue::Number(number_value),
+                        changed,
+                        ..
+                    } => {
+                        if *changed {
+                            PropCalcResult::Calculated(Rc::new((*number_value).into()))
+                        } else {
+                            PropCalcResult::NoChange
+                        }
+                    }
+                    PropView {
                         value: PropValue::String(string_value),
                         changed,
                         ..
                     } => {
                         // TODO: once `function_symbols` is based on data query,
                         // check if that changed as well
-                        if *changed || split_symbols.changed {
+                        if *changed
+                            || split_symbols
+                                .as_ref()
+                                .map(|ss| ss.changed)
+                                .unwrap_or_default()
+                        {
+                            let split_symbols_value =
+                                split_symbols.map(|ss| ss.value).unwrap_or(true);
                             // If we are basing a math on a single string value,
                             // then parse that string into a math expression.
                             let math_expr = match self.parser {
                                 MathParser::Text => MathExpr::from_text(
                                     &(**string_value),
-                                    split_symbols.value,
+                                    split_symbols_value,
                                     &self.function_symbols,
                                 ),
                                 MathParser::Latex => MathExpr::from_latex(
                                     &(**string_value),
-                                    split_symbols.value,
+                                    split_symbols_value,
                                     &self.function_symbols,
                                 ),
                             };
@@ -297,17 +308,14 @@ impl PropUpdater for MathProp {
                             PropCalcResult::NoChange
                         }
                     }
-                    _ => panic!(
-                        "Should get math or string dependency for math, found {:?}",
-                        maths_and_strings[0].value
-                    ),
+                    _ => unreachable!(),
                 }
             }
             _ => {
                 // Now we have the more complicated case where that math expression is based on multiple components.
                 //
                 // Overall strategy: create a "expression template" by concatenating all values
-                // while replacing all maths by with a unique code
+                // while replacing all maths and numbers by with a unique code
                 // (typically m1, m2, etc., unless "m" appears in a string)
                 // and parsing the resulting string into a math expression.
                 // We cache that expression template, along with the codes used, onto `self`,
@@ -317,33 +325,37 @@ impl PropUpdater for MathProp {
                 // The final step is to substitute the values of the math components
                 // for their codes into the expression_template.
 
-                let string_changed = maths_and_strings
+                let string_changed = math_number_strings
                     .iter()
                     .filter(|view| match view.value {
-                        PropValue::Math(_) => false,
+                        PropValue::Math(_) | PropValue::Number(_) => false,
                         PropValue::String(_) => true,
-                        _ => panic!(
-                            "Should get math or string dependency for math, found {:?}",
-                            view.value
-                        ),
+                        _ => unreachable!(),
                     })
                     .any(|view| view.changed);
 
-                let math_changed = maths_and_strings
-                    .iter()
-                    .any(|view| matches!(view.value, PropValue::Math(_)) && view.changed);
+                let math_number_changed = math_number_strings.iter().any(|view| {
+                    matches!(view.value, PropValue::Math(_) | PropValue::Number(_)) && view.changed
+                });
 
-                if string_changed || split_symbols.changed {
+                if string_changed
+                    || split_symbols
+                        .as_ref()
+                        .map(|ss| ss.changed)
+                        .unwrap_or_default()
+                {
                     // Either a string child has changed or split_symbols changed
                     // (the latter condition will catch the first time calculate() is called).
                     // We need to recalculate the expression template.
 
+                    let split_symbols_value = split_symbols.map(|ss| ss.value).unwrap_or(true);
+
                     // Create the expression template from concatenating all values
                     // while substituting codes for the math values
                     let (expression_template, math_codes) = calc_expression_template(
-                        &maths_and_strings,
+                        &math_number_strings,
                         self.parser,
-                        split_symbols.value,
+                        split_symbols_value,
                         &self.function_symbols,
                     );
 
@@ -354,40 +366,46 @@ impl PropUpdater for MathProp {
                     cache.math_codes = math_codes;
                 }
 
-                if string_changed || math_changed {
-                    // create the substitutions map,
-                    // where the keys are the codes for the math values
-                    // and the values are the math values
-                    let mut substitutions = HashMap::new();
-                    substitutions.extend(
-                        maths_and_strings
-                            .iter()
-                            .filter_map(|prop| match &prop.value {
-                                PropValue::Math(math_prop) => Some(math_prop),
-                                PropValue::String(_) => None,
-                                _ => unreachable!(),
-                            })
-                            .enumerate()
-                            .map(|(idx, math_prop)| {
-                                (
-                                    self.cache.borrow().math_codes[idx].clone(),
-                                    MathArg::Math((**math_prop).clone()),
-                                )
-                            }),
-                    );
-
-                    // substitute into the expression template
-                    PropCalcResult::Calculated(Rc::new(
-                        self.cache
-                            .borrow()
-                            .expression_template
-                            .as_ref()
-                            .unwrap()
-                            .substitute(&substitutions),
-                    ))
-                } else {
-                    PropCalcResult::NoChange
+                if !(string_changed || math_number_changed) {
+                    return PropCalcResult::NoChange;
                 }
+
+                // create the substitutions map,
+                // where the keys are the codes for the math values
+                // and the values are the math values
+                let mut substitutions = HashMap::new();
+                substitutions.extend(
+                    math_number_strings
+                        .iter()
+                        .filter_map(|prop| match &prop.value {
+                            PropValue::Math(_) | PropValue::Number(_) => Some(prop),
+                            PropValue::String(_) => None,
+                            _ => unreachable!(),
+                        })
+                        .enumerate()
+                        .map(|(idx, prop)| {
+                            (
+                                self.cache.borrow().math_codes[idx].clone(),
+                                match &prop.value {
+                                    PropValue::Math(math_prop) => {
+                                        MathArg::Math((**math_prop).clone())
+                                    }
+                                    PropValue::Number(number_prop) => MathArg::Number(*number_prop),
+                                    _ => unreachable!(),
+                                },
+                            )
+                        }),
+                );
+
+                // substitute into the expression template
+                PropCalcResult::Calculated(Rc::new(
+                    self.cache
+                        .borrow()
+                        .expression_template
+                        .as_ref()
+                        .unwrap()
+                        .substitute(&substitutions),
+                ))
             }
         }
     }
@@ -400,25 +418,41 @@ impl PropUpdater for MathProp {
     ) -> Result<DataQueryResults, InvertError> {
         let mut desired = RequiredData::try_new_desired(&data).unwrap();
         let required_data = RequiredData::try_from_data_query_results(data).unwrap();
-        let maths_and_strings = required_data.maths_and_strings;
+        let math_number_strings = required_data.math_number_strings;
 
-        match maths_and_strings.len() {
+        for prop in &math_number_strings {
+            match &prop.value {
+                PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
+                _ => {
+                    panic!(
+                        "Should get number, math, or string dependency for number, found {:?}",
+                        prop
+                    )
+                }
+            }
+        }
+
+        match math_number_strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
                 desired.independent_state.change_to(requested_value);
             }
             1 => {
                 // based on a single value, so we can invert
-                match &maths_and_strings[0].value {
+                match &math_number_strings[0].value {
                     PropValue::Math(_) => {
-                        desired.maths_and_strings[0].change_to(requested_value.into());
+                        desired.math_number_strings[0].change_to(requested_value.into());
+                    }
+                    PropValue::Number(_) => {
+                        let desired_number: prop_type::Number = (*requested_value).clone().into();
+                        desired.math_number_strings[0].change_to(desired_number.into());
                     }
                     PropValue::String(_) => {
                         let desired_string_value = match self.parser {
                             MathParser::Text => requested_value.to_text(ToTextParams::default()),
                             MathParser::Latex => requested_value.to_latex(ToLatexParams::default()),
                         };
-                        desired.maths_and_strings[0].change_to(desired_string_value.into());
+                        desired.math_number_strings[0].change_to(desired_string_value.into());
                     }
                     _ => unreachable!(),
                 }
@@ -426,7 +460,7 @@ impl PropUpdater for MathProp {
             // TODO: implement `invert` for the case with multiple values
             _ => {
                 return Err(InvertError::CouldNotUpdate);
-                // let fixed_maths_and_strings = required_data
+                // let fixed_math_number_strings = required_data
                 //     .with_fixed
                 //     .iter()
                 //     .filter_map(|p| {
@@ -453,11 +487,11 @@ impl PropUpdater for MathProp {
                 //     })
                 //     .collect_vec();
 
-                // if fixed_maths_and_strings.len() != maths_and_strings.len() {
+                // if fixed_math_number_strings.len() != math_number_strings.len() {
                 //     panic!(
                 //         "Inconsistent lengths with fixed math and strings: {}, {}",
-                //         fixed_maths_and_strings.len(),
-                //         maths_and_strings.len()
+                //         fixed_math_number_strings.len(),
+                //         math_number_strings.len()
                 //     )
                 // }
             }
@@ -475,7 +509,7 @@ impl PropUpdater for MathProp {
 //         prop: &PropView<MathExpr>,
 //         _is_direct_change_from_action: bool,
 //     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-//         match data.maths_and_strings.len() {
+//         match data.math_number_strings.len() {
 //             0 => {
 //                 if self.propagate_came_from_default {
 //                     // if propagate_came_from_default is true,
@@ -493,7 +527,7 @@ impl PropUpdater for MathProp {
 //             1 => {
 //                 // based on a single value, so we can invert
 //                 let requested_value = prop.get_requested_value().clone();
-//                 match &mut data.maths_and_strings[0] {
+//                 match &mut data.math_number_strings[0] {
 //                     MathOrString::Math(boolean_value) => {
 //                         boolean_value.queue_update(requested_value);
 //                     }
@@ -519,7 +553,7 @@ impl PropUpdater for MathProp {
 /// eliminating the need for the relatively expensive re-parsing of the string.
 ///
 /// Parameters:
-/// - `maths_and_strings`: the math and string values forming the expression
+/// - `math_number_strings`: the math and string values forming the expression
 /// - `parser`: an enum specifying whether to use the latex or text parser to create the `MathExpr`
 /// - `split_symbols`: if true, the parse will split multi-character variables that don't contain digits
 ///   into the product of their characters
@@ -530,18 +564,18 @@ impl PropUpdater for MathProp {
 /// - the expression template
 /// - the generated codes for each math value
 fn calc_expression_template(
-    maths_and_strings: &[PropView<PropValue>],
+    math_number_strings: &[PropView<PropValue>],
     parser: MathParser,
     split_symbols: bool,
     function_symbols: &[String],
 ) -> (MathExpr, Vec<String>) {
     let string_children =
         Vec::from_iter(
-            maths_and_strings
+            math_number_strings
                 .iter()
                 .filter_map(|prop| match &prop.value {
                     PropValue::String(string_prop) => Some(string_prop),
-                    PropValue::Math(_) => None,
+                    PropValue::Math(_) | PropValue::Number(_) => None,
                     _ => unreachable!(),
                 }),
         );
@@ -558,9 +592,9 @@ fn calc_expression_template(
         code_prefix
     };
 
-    // concatenate the maths and strings, with maths replaced by the generated codes
+    // concatenate the maths, numbers and strings, with maths and numbers replaced by the generated codes
     let (template_string, math_codes) =
-        create_template_string(maths_and_strings, code_prefix, parser);
+        create_template_string(math_number_strings, code_prefix, parser);
 
     // parse this string into a `MathExpr`, which is the expression template
     let expression_template = match parser {
@@ -576,7 +610,7 @@ fn calc_expression_template(
 /// The code for each math value is `code_prefix` followed by a number.
 ///
 /// Parameters:
-/// - `maths_and_strings`: the math and string values forming the expression
+/// - `math_number_strings`: the math and string values forming the expression
 /// - `code_prefix`: the beginning of each generated code used to represent the math values
 /// - `parser`: an enum specifying whether we will use the latex or text parser to create the `MathExpr`
 ///
@@ -585,12 +619,12 @@ fn calc_expression_template(
 /// - the math codes used to represent each math value
 ///
 /// Example:
-/// If `maths_and_strings` was derived from `3+<math>x^2</math> + y<math>z</math>`,
+/// If `math_number_strings` was derived from `3+<math>x^2</math> + y<math>z</math>`,
 /// and the `code_prefix` was `"m"`,
 /// then the template string (assuming the text `parser`) would become `"3+ m1  + y m2"`
 /// and the codes returned would be the vector of `("m1", "m2")`.
 fn create_template_string(
-    maths_and_strings: &[PropView<PropValue>],
+    math_number_strings: &[PropView<PropValue>],
     code_prefix: String,
     parser: MathParser,
 ) -> (String, Vec<String>) {
@@ -598,12 +632,12 @@ fn create_template_string(
     let mut math_idx = 0;
     let mut math_codes = Vec::new();
 
-    template_string.extend(maths_and_strings.iter().map(|prop| {
+    template_string.extend(math_number_strings.iter().map(|prop| {
         match &prop.value {
             PropValue::String(str_prop) => {
                 format!(" {} ", str_prop)
             }
-            PropValue::Math(_) => {
+            PropValue::Math(_) | PropValue::Number(_) => {
                 let code = format!("{}{}", code_prefix, math_idx);
                 math_codes.push(code.clone());
                 math_idx += 1;
