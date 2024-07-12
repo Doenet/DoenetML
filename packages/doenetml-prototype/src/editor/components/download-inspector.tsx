@@ -5,6 +5,7 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
+import { VscCopy } from "react-icons/vsc";
 
 /**
  * A popup window that allows the user to inspect or download files in `fileList`.
@@ -62,6 +63,7 @@ export function DownloadInspector({
                             key={filename}
                         >
                             <div className="file-preview">
+                                <CopyButton source={content} />
                                 <pre>{content}</pre>
                             </div>
                         </Tab>
@@ -85,5 +87,32 @@ export function DownloadInspector({
                 </Button>
             </Modal.Footer>
         </Modal>
+    );
+}
+
+function CopyButton({ source }: { source?: string }) {
+    const handleCopy = () => {
+        if (!source) {
+            return;
+        }
+        // Add your copy source code here
+        navigator.clipboard
+            .writeText(source)
+            .catch((err) => console.error("Could not copy text: ", err));
+    };
+
+    if (!source) {
+        return null;
+    }
+
+    return (
+        <Button
+            variant="light"
+            onClick={handleCopy}
+            title="Copy to clipboard"
+            className="copy-button"
+        >
+            <VscCopy />
+        </Button>
     );
 }
