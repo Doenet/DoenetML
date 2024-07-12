@@ -14,7 +14,7 @@ use crate::{
     props::prop_type,
 };
 
-const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
+const BLANK_MATH_OBJECT: &str = "\u{ff3f}";
 
 /// A symbolic mathematical expression.
 ///
@@ -37,8 +37,8 @@ impl MathExpr {
     /// that will be revived into the `math-expression` object when eval'ed in Javascript.
     pub fn to_reviver_string(&self) -> String {
         format!(
-            "JSON.parse({}, serializedComponentsReviver)",
-            serde_json::to_string(&self.math_object.0).unwrap()
+            "JSON.parse(\'{{\"objectType\":\"math-expression\",\"tree\":{}}}\', serializedComponentsReviver)",
+            self.math_object.0
         )
     }
 }
@@ -393,10 +393,7 @@ impl MathExpr {
 impl From<prop_type::Number> for MathExpr {
     fn from(value: prop_type::Number) -> Self {
         MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{}}}",
-                value,
-            )),
+            math_object: JsMathExpr(format!("{}", value,)),
         }
     }
 }
@@ -404,10 +401,7 @@ impl From<prop_type::Number> for MathExpr {
 impl From<prop_type::Integer> for MathExpr {
     fn from(value: prop_type::Integer) -> Self {
         MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{}}}",
-                value,
-            )),
+            math_object: JsMathExpr(format!("{}", value,)),
         }
     }
 }
@@ -442,8 +436,8 @@ impl serde::Serialize for MathArg {
         // given that this last step is required for the Math variant
         match self {
             Self::Math(math_expr) => math_expr.math_object.serialize(serializer),
-            Self::Number(num) => serializer.serialize_str(&num.to_string()),
-            Self::Integer(num) => serializer.serialize_str(&num.to_string()),
+            Self::Number(num) => serializer.serialize_f64(*num),
+            Self::Integer(num) => serializer.serialize_i64(*num),
             Self::Symbol(var_name) => {
                 serializer.serialize_str(&serde_json::to_value(var_name).unwrap().to_string())
             }
@@ -456,7 +450,7 @@ impl MathArg {
     /// that will be revived into a Javascript object when eval'ed in Javascript.
     pub fn to_reviver_string(&self) -> String {
         format!(
-            "JSON.parse({}, serializedComponentsReviver)",
+            "JSON.parse(\'{{\"objectType\":\"math-expression\",\"tree\":{}}}\', serializedComponentsReviver)",
             serde_json::to_string(&self).unwrap()
         )
     }

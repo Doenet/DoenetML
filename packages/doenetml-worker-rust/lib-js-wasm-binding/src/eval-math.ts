@@ -10,7 +10,7 @@ import { latexToMathFactory, textToMathFactory } from "./math-utils";
 
 /**
  * Evaluate the Javascript source code with `MathExpressions` and `window` in scope.
- * Return the `JSON.stringify`ed results.
+ * Assume the result is a math expression and return the `JSON.stringify`ed tree.
  */
 export function evalWithMathExpressionsInScope(source: string) {
     function _eval(MathExpressions: any, window: Window) {
@@ -28,7 +28,7 @@ export function evalWithMathExpressionsInScope(source: string) {
             );
         }
 
-        return JSON.stringify(eval(source), serializedComponentsReplacer);
+        return JSON.stringify(eval(source).tree, serializedComponentsReplacer);
     }
     return _eval(me, globalThis);
 }
@@ -64,7 +64,7 @@ export function parseTextIntoMath(
         console.warn("Invalid value for a math of text format: " + text);
     }
 
-    return JSON.stringify(expression, serializedComponentsReplacer);
+    return JSON.stringify(expression.tree, serializedComponentsReplacer);
 }
 
 /**
@@ -85,7 +85,9 @@ export function toText(
     padToDigits?: number,
     showBlanks?: boolean,
 ) {
-    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+    let mathExpr = me.fromAst(
+        JSON.parse(mathObject, serializedComponentsReviver),
+    );
 
     return mathExpr.toString({
         padToDecimals,
@@ -125,7 +127,7 @@ export function parseLatexIntoMath(
         console.warn("Invalid value for a math of latex format: " + latex);
     }
 
-    return JSON.stringify(expression, serializedComponentsReplacer);
+    return JSON.stringify(expression.tree, serializedComponentsReplacer);
 }
 
 /**
@@ -146,7 +148,9 @@ export function toLatex(
     padToDigits?: number,
     showBlanks?: boolean,
 ) {
-    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+    let mathExpr = me.fromAst(
+        JSON.parse(mathObject, serializedComponentsReviver),
+    );
 
     return mathExpr.toLatex({
         padToDecimals,
@@ -166,17 +170,21 @@ export function substituteIntoMath(
     mathObject: string,
     substitutions: Map<string, any>,
 ) {
-    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+    let mathExpr = me.fromAst(
+        JSON.parse(mathObject, serializedComponentsReviver),
+    );
 
     // math-expressions substitute expects an object, not a Map
     let subs_object: Record<string, any> = {};
     for (const [key, value] of substitutions.entries()) {
-        subs_object[key] = JSON.parse(value, serializedComponentsReviver);
+        subs_object[key] = me.fromAst(
+            JSON.parse(value, serializedComponentsReviver),
+        );
     }
 
     let newExpr = mathExpr.substitute(subs_object);
 
-    return JSON.stringify(newExpr, serializedComponentsReplacer);
+    return JSON.stringify(newExpr.tree, serializedComponentsReplacer);
 }
 
 /**
@@ -206,7 +214,9 @@ export function normalizeMath(
     createVectors: boolean,
     createIntervals: boolean,
 ) {
-    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+    let mathExpr = me.fromAst(
+        JSON.parse(mathObject, serializedComponentsReviver),
+    );
 
     let newExpr = normalizeMathExpression({
         value: mathExpr,
@@ -216,7 +226,7 @@ export function normalizeMath(
         createIntervals,
     });
 
-    return JSON.stringify(newExpr, serializedComponentsReplacer);
+    return JSON.stringify(newExpr.tree, serializedComponentsReplacer);
 }
 
 /**
@@ -226,7 +236,9 @@ export function normalizeMath(
  * @mathObject - the stringified math expression
  */
 export function evaluateToNumber(mathObject: string) {
-    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+    let mathExpr = me.fromAst(
+        JSON.parse(mathObject, serializedComponentsReviver),
+    );
 
     let newNumber = mathExpr.evaluate_to_constant();
 
