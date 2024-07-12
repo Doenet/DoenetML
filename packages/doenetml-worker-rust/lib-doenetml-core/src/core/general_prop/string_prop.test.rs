@@ -1,7 +1,13 @@
-use crate::props::cache::PropWithMeta;
+use crate::{
+    general_prop::test_utils::{
+        assert_string_calculated_value, assert_string_default_result,
+        return_empty_data_query_result, return_single_string_data_query_result,
+        return_two_string_data_query_result,
+    },
+    props::cache::PropWithMeta,
+};
 
 use super::*;
-use setup_functions::*;
 
 /// check that a string prop created from children
 /// gives the correct default and data query that requests string children
@@ -64,7 +70,7 @@ fn from_independent_state() {
     let prop =
         as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
 
-    let no_children = DataQueryResult { values: vec![] };
+    let no_children = return_empty_data_query_result();
 
     // with default value
     let independent_state = return_single_string_data_query_result("", true);
@@ -111,7 +117,7 @@ fn invert_with_independent_state() {
     let prop =
         as_updater_object::<_, prop_type::String>(StringProp::new_from_children(String::from("")));
 
-    let no_children = DataQueryResult { values: vec![] };
+    let no_children = return_empty_data_query_result();
     let independent_state = return_single_string_data_query_result("", true);
     let data = DataQueryResults::from_vec(vec![independent_state, no_children]);
 
@@ -175,75 +181,4 @@ fn cannot_invert_string_prop_that_has_two_string_children() {
     let invert_results = prop.invert_untyped(data, "new".into(), false);
 
     assert!(invert_results.is_err());
-}
-
-mod setup_functions {
-
-    use super::*;
-
-    pub fn return_single_string_data_query_result(
-        value: &str,
-        came_from_default: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![PropWithMeta {
-                value: PropValue::String(value.to_string().into()),
-                came_from_default,
-                changed: true,
-                origin: None,
-            }],
-        }
-    }
-
-    pub fn return_two_string_data_query_result(
-        value1: &str,
-        value2: &str,
-        came_from_default1: bool,
-        came_from_default2: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![
-                PropWithMeta {
-                    value: PropValue::String(value1.to_string().into()),
-                    came_from_default: came_from_default1,
-                    changed: true,
-                    origin: None,
-                },
-                PropWithMeta {
-                    value: PropValue::String(value2.to_string().into()),
-                    came_from_default: came_from_default2,
-                    changed: true,
-                    origin: None,
-                },
-            ],
-        }
-    }
-
-    pub fn assert_string_calculated_value(result: PropCalcResult<PropValue>, value: &str) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(_) => {
-                panic!("incorrectly from default")
-            }
-            PropCalcResult::Calculated(string_prop) => {
-                assert_eq!(string_prop, value)
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
-
-    pub fn assert_string_default_result(result: PropCalcResult<PropValue>, value: &str) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(string_prop) => {
-                assert_eq!(string_prop, value)
-            }
-            PropCalcResult::Calculated(_) => {
-                panic!("incorrectly calculated")
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
 }

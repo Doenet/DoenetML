@@ -92,5 +92,5 @@ pub mod testing_features {
 #[path = "./core.test.rs"]
 mod test;
 
-#[path = "./core.test.browser.rs"]
+#[path = "./test_browser/mod.rs"]
 mod test_browser;
