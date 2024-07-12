@@ -12,8 +12,10 @@ import { FlatDastRoot } from "../../../../doenetml-worker-rust/dist/CoreWorker";
 
 export function DownloadPretextDropdownItem({
     setFiles,
+    setError,
 }: {
     setFiles: (files: Record<string, string>) => void;
+    setError: (error: string) => void;
 }) {
     const { elements, ...rest } = useAppSelector(flatDastSelector);
     // The flat dast may have errors in it. None of these errors should be shown when converting to PreTeXt.
@@ -25,10 +27,15 @@ export function DownloadPretextDropdownItem({
         <DropdownItem
             className="icon-button"
             onClick={() => {
-                const fileList = {
-                    "main.ptx": renderToPretext(flatDast),
-                };
-                setFiles(fileList);
+                try {
+                    const fileList = {
+                        "main.ptx": renderToPretext(flatDast),
+                    };
+                    setFiles(fileList);
+                } catch (e) {
+                    setError("Could not convert to PreTeXt");
+                    console.error(e);
+                }
             }}
         >
             <VscCode /> PreTeXt

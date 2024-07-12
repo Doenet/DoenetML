@@ -168,6 +168,10 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
     },
     prepareScopeUpdate(scopeInstance, instance) {},
     scheduleTimeout(fn, delay) {},
+    removeChildFromContainer(container, child) {
+        container.children = container.children.filter((c) => c !== child);
+        console.log("removeChildFromContainer", container, child);
+    },
 };
 
 const renderer = reconciler(HOST_CONFIG);

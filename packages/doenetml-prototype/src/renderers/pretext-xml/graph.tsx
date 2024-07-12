@@ -1,18 +1,7 @@
 import React from "react";
-import {
-    VscChevronDown,
-    VscChevronLeft,
-    VscChevronRight,
-    VscChevronUp,
-    VscScreenNormal,
-    VscTarget,
-    VscZoomIn,
-    VscZoomOut,
-} from "react-icons/vsc";
 import * as JSG from "jsxgraph";
 import { JSXGraph } from "jsxgraph";
 import { BasicComponent } from "../types";
-import { Toolbar, ToolbarItem } from "@ariakit/react";
 import { Element } from "../element";
 
 export const GraphContext = React.createContext<JSG.Board | null>(null);
@@ -116,102 +105,6 @@ export const Graph: BasicComponent = ({ node }) => {
                     <Element key={id} id={id} constraint="graph" />
                 ))}
             </GraphContext.Provider>
-            <NavButtons board={board} />
         </div>
     );
 };
-
-function NavButtons({ board }: { board: JSG.Board | null }) {
-    if (!board) {
-        return "No Board";
-    }
-    return (
-        <div className="jsxgraph-nav-buttons">
-            <Toolbar className="toolbar grouped-buttons">
-                <ToolbarItem
-                    className="button"
-                    title="Zoom Out"
-                    onClick={() => {
-                        board.zoomOut();
-                    }}
-                >
-                    <VscZoomOut />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button"
-                    title="Reset Zoom"
-                    onClick={() => {
-                        board.zoom100();
-                    }}
-                >
-                    <VscScreenNormal />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button"
-                    title="Zoom In"
-                    onClick={() => {
-                        board.zoomIn();
-                    }}
-                >
-                    <VscZoomIn />
-                </ToolbarItem>
-            </Toolbar>
-            <Toolbar className="toolbar pan-buttons">
-                <ToolbarItem
-                    className="button west"
-                    title="Pan Left"
-                    onClick={() => {
-                        board.clickLeftArrow();
-                    }}
-                >
-                    <VscChevronLeft />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button east"
-                    title="Pan Right"
-                    onClick={() => {
-                        board.clickRightArrow();
-                    }}
-                >
-                    <VscChevronRight />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button north"
-                    title="Pan Down"
-                    onClick={() => {
-                        board.clickDownArrow();
-                    }}
-                >
-                    <VscChevronUp />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button south"
-                    title="Pan Up"
-                    onClick={() => {
-                        board.clickUpArrow();
-                    }}
-                >
-                    <VscChevronDown />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button center"
-                    title="Center"
-                    onClick={() => {
-                        const [xmin, ymax, xmax, ymin] = board.getBoundingBox();
-                        const width = xmax - xmin;
-                        const height = ymax - ymin;
-
-                        board.setBoundingBox([
-                            -width / 2,
-                            height / 2,
-                            width / 2,
-                            -height / 2,
-                        ]);
-                    }}
-                >
-                    <VscTarget />
-                </ToolbarItem>
-            </Toolbar>
-        </div>
-    );
-}

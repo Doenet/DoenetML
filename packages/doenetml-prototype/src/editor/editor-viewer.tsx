@@ -15,6 +15,7 @@ import { Provider } from "react-redux";
 import { store } from "../state/store";
 import { DownloadPretextDropdownItem } from "./components/download-pretext";
 import { DownloadInspector } from "./components/download-inspector";
+import Alert from "react-bootstrap/Alert";
 
 // Injected by vite
 declare const DOENETML_VERSION: string;
@@ -35,6 +36,13 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
     const [showDownloadInspector, setShowDownloadInspector] =
         React.useState(false);
     const [fileList, setFileList] = React.useState<Record<string, string>>({});
+    const [errors, setErrors] = React.useState<string[]>([]);
+    const [_errorsVisible, setErrorsVisible] = React.useState(false);
+    const errorsVisible = !(errors.length === 0) && _errorsVisible;
+    const addError = (error: string) => {
+        setErrors((errors) => [...errors, error]);
+        setErrorsVisible(true);
+    };
 
     const setFiles = (files: Record<string, string>) => {
         setFileList(files);
@@ -77,6 +85,21 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                     </Button>
                     <div>Version: {DOENETML_VERSION}</div>
                 </div>
+                {errorsVisible && (
+                    <Alert
+                        variant="danger"
+                        onClose={() => {
+                            setErrorsVisible(false);
+                            setErrors([]);
+                        }}
+                        dismissible
+                    >
+                        <Alert.Heading>Errors</Alert.Heading>
+                        {errors.map((error, i) => (
+                            <p key={i}>{error}</p>
+                        ))}
+                    </Alert>
+                )}
                 <div className="editor-viewer-panels">
                     <ResizablePanelPair
                         panelA={
@@ -145,9 +168,11 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                                         <Dropdown.Menu>
                                             <DownloadMarkdownDropdownItem
                                                 setFiles={setFiles}
+                                                setError={addError}
                                             />
                                             <DownloadPretextDropdownItem
                                                 setFiles={setFiles}
+                                                setError={addError}
                                             />
                                         </Dropdown.Menu>
                                     </Dropdown>
