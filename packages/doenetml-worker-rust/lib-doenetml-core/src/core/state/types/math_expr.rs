@@ -385,7 +385,7 @@ impl From<prop_type::Number> for MathExpr {
     fn from(value: prop_type::Number) -> Self {
         MathExpr {
             math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                "{{\"objectType\":\"math-expression\",\"tree\":{}}}",
                 value,
             )),
         }
@@ -396,7 +396,7 @@ impl From<prop_type::Integer> for MathExpr {
     fn from(value: prop_type::Integer) -> Self {
         MathExpr {
             math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                "{{\"objectType\":\"math-expression\",\"tree\":{}}}",
                 value,
             )),
         }
