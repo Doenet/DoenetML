@@ -4,7 +4,7 @@ import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
 import type {
     ActionResponse,
-    FlatDastRoot,
+    FlatDastRootWithErrors,
 } from "@doenet/doenetml-worker-rust";
 
 type ElementUpdates = ActionResponse["payload"];
@@ -20,7 +20,7 @@ export interface DastState {
      */
     dastFromSource: DastRoot;
     dastErrors: DastError[];
-    flatDastRoot: FlatDastRoot;
+    flatDastRoot: FlatDastRootWithErrors;
 }
 
 // Define the initial state using that type
@@ -44,7 +44,10 @@ const dastSlice = createSlice({
         _setDastErrors: (state, action: PayloadAction<DastError[]>) => {
             state.dastErrors = action.payload;
         },
-        _setFlatDastRoot: (state, action: PayloadAction<FlatDastRoot>) => {
+        _setFlatDastRoot: (
+            state,
+            action: PayloadAction<FlatDastRootWithErrors>,
+        ) => {
             state.flatDastRoot = action.payload;
         },
         /**
@@ -53,7 +56,9 @@ const dastSlice = createSlice({
          */
         updateElements: (
             state,
-            action: PayloadAction<[number, FlatDastRoot["elements"][number]][]>,
+            action: PayloadAction<
+                [number, FlatDastRootWithErrors["elements"][number]][]
+            >,
         ) => {
             for (const [index, element] of action.payload) {
                 state.flatDastRoot.elements[index] = element;

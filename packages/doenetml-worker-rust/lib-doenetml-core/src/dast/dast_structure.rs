@@ -337,6 +337,9 @@ pub struct Point {
 /// All `text` nodes are converted into literal strings. Each `element` is given
 /// a unique id and children of elements/roots are represented as an array of
 /// ids and string literals.
+///
+/// **Typescript Warning**: Since `FlatDastElement` may be serialized into a `DastError` instead
+/// of an element, this type is not correct. Use the `FlatDastRootWithErrors` type instead.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]

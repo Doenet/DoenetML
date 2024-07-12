@@ -26,7 +26,10 @@ export function renderToPretext(flatDast: FlatDastRoot) {
 
     // Make sure none of the attribute names clash with special React names (e.g. `ref` and `key`).
     for (const element of flatDast.elements) {
-        element.attributes = normalizeAttrs(element.attributes);
+        if (element.attributes == null) {
+            console.warn("Found element without attributes", element);
+        }
+        element.attributes = normalizeAttrs(element.attributes) ?? {};
     }
 
     // Create a new store independent of the existing Redux store.
@@ -40,7 +43,7 @@ export function renderToPretext(flatDast: FlatDastRoot) {
 
     // Strip off any `name` attribute left over from the DAST
     for (const element of flatDast.elements) {
-        delete element.attributes.name;
+        delete element.attributes?.name;
     }
 
     store.dispatch(_dastReducerActions._setFlatDastRoot(flatDast));

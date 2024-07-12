@@ -7,7 +7,20 @@ import init, {
     DastRoot as DastRootInCore,
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
+import type {
+    FlatDastRoot,
+    DastError,
+    FlatDastElement,
+} from "lib-doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
+
+/**
+ * The correct type of `FlatDastRoot`. **This should be used instead of
+ * `FlatDastRoot`**
+ */
+export interface FlatDastRootWithErrors extends Omit<FlatDastRoot, "elements"> {
+    elements: (DastError | FlatDastElement)[];
+}
 
 /**
  * Action type for use with typescript. There are errors with the type
@@ -87,7 +100,7 @@ export class CoreWorker {
         resolve();
     }
 
-    async returnDast() {
+    async returnDast(): Promise<FlatDastRootWithErrors> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
