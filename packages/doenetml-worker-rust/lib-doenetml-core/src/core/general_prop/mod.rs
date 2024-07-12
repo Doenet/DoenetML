@@ -14,6 +14,7 @@ mod string_to_integer_prop;
 mod util;
 
 #[cfg(any(test, debug_assertions))]
+#[path = "utils.test.rs"]
 pub mod test_utils;
 
 pub use self::alias_prop::PropAlias;

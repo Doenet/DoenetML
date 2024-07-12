@@ -189,26 +189,23 @@ impl PropUpdater for NumberProp {
                 } else {
                     // Have multiple string variables. Concatenate the string values into a single string
 
-                    if numbers_maths_and_strings.iter().any(|prop| prop.changed) {
-                        let mut value = String::new();
+                    if numbers_maths_and_strings.iter().all(|prop| !prop.changed) {
+                        return PropCalcResult::NoChange;
+                    }
 
-                        for prop in numbers_maths_and_strings {
-                            match &prop.value {
-                                PropValue::String(string_value) => value += string_value,
-                                _ => {
-                                    panic!(
-                                        "Should get boolean or string for boolean, found {:?}",
-                                        prop
-                                    )
-                                }
+                    let mut value = String::new();
+
+                    for prop in numbers_maths_and_strings {
+                        match &prop.value {
+                            PropValue::String(string_value) => value += string_value,
+                            _ => {
+                                panic!("Should get number, math, or string dependency for number, found {:?}", prop)
                             }
                         }
-
-                        let converted_number = value.parse().unwrap_or(prop_type::Number::NAN);
-                        PropCalcResult::Calculated(converted_number)
-                    } else {
-                        PropCalcResult::NoChange
                     }
+
+                    let converted_number = value.parse().unwrap_or(prop_type::Number::NAN);
+                    PropCalcResult::Calculated(converted_number)
                 }
             }
         }
