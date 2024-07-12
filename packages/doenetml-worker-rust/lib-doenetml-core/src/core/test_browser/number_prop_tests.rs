@@ -65,7 +65,7 @@ pub fn add_number_prop_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) 
             let invert_results = prop.invert_untyped(data, 2.9.into(), false).unwrap().vec;
 
             // independent state is unchanged
-            assert_eq!(invert_results[0].values[0].changed, false);
+            assert!(!invert_results[0].values[0].changed);
             let new_math_expr: MathExpr = 2.9.into();
             // request change in child
             assert_eq!(
