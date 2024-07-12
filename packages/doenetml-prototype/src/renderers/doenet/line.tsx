@@ -2,11 +2,16 @@ import React from "react";
 import { BasicComponent } from "../types";
 import { GraphContext, LAYER_OFFSETS } from "./graph";
 import * as JSG from "jsxgraph";
-import { attachStandardGraphListeners } from "./jsxgraph/listeners";
+import {
+    attachStandardGraphListeners,
+    GraphListeners,
+    removeStandardGraphListeners,
+} from "./jsxgraph/listeners";
 
 export const LineInGraph: BasicComponent = ({ node }) => {
     const board = React.useContext(GraphContext);
     const lineRef = React.useRef<JSG.Line | null>(null);
+    const lineListenersAttached = React.useRef<GraphListeners>({});
 
     React.useEffect(() => {
         if (!board) {
@@ -36,15 +41,11 @@ export const LineInGraph: BasicComponent = ({ node }) => {
             return;
         }
 
-        attachStandardGraphListeners(line);
+        // TODO: actually create the line listeners and actions
+        lineListenersAttached.current = attachStandardGraphListeners(line, {});
 
         return () => {
-            line.off("drag");
-            line.off("down");
-            line.off("hit");
-            line.off("up");
-            line.off("keyfocusout");
-            line.off("keydown");
+            removeStandardGraphListeners(line, lineListenersAttached.current);
             board.removeObject(line);
         };
     }, [board, lineRef]);
