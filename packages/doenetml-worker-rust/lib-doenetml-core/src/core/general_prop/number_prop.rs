@@ -141,6 +141,18 @@ impl PropUpdater for NumberProp {
         let independent_state = required_data.independent_state;
         let numbers_maths_and_strings = required_data.numbers_maths_and_strings;
 
+        for prop in &numbers_maths_and_strings {
+            match &prop.value {
+                PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
+                _ => {
+                    panic!(
+                        "Should get number, math, or string dependency for number, found {:?}",
+                        prop
+                    )
+                }
+            }
+        }
+
         match numbers_maths_and_strings.len() {
             0 => {
                 // If we reach here, then there were no dependencies returned from the data query.
@@ -173,10 +185,7 @@ impl PropUpdater for NumberProp {
                             string_value.parse().unwrap_or(prop_type::Number::NAN);
                         PropCalcResult::Calculated(converted_number)
                     }
-                    _ => panic!(
-                        "Should get number, math, or string dependency for number, found {:?}",
-                        numbers_maths_and_strings[0].value
-                    ),
+                    _ => unreachable!(),
                 }
             }
             _ => {
@@ -198,9 +207,7 @@ impl PropUpdater for NumberProp {
                     for prop in numbers_maths_and_strings {
                         match &prop.value {
                             PropValue::String(string_value) => value += string_value,
-                            _ => {
-                                panic!("Should get number, math, or string dependency for number, found {:?}", prop)
-                            }
+                            _ => unreachable!(),
                         }
                     }
 
@@ -222,6 +229,18 @@ impl PropUpdater for NumberProp {
 
         let numbers_maths_and_strings = required_data.numbers_maths_and_strings;
 
+        for prop in &numbers_maths_and_strings {
+            match &prop.value {
+                PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
+                _ => {
+                    panic!(
+                        "Should get number, math, or string dependency for number, found {:?}",
+                        prop
+                    )
+                }
+            }
+        }
+
         match numbers_maths_and_strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
@@ -241,10 +260,7 @@ impl PropUpdater for NumberProp {
                         desired.numbers_maths_and_strings[0]
                             .change_to(requested_value.to_string().into());
                     }
-                    _ => panic!(
-                        "Should get number, math or string dependency for number, found {:?}",
-                        numbers_maths_and_strings[0].value
-                    ),
+                    _ => unreachable!(),
                 };
             }
             _ => return Err(InvertError::CouldNotUpdate),
