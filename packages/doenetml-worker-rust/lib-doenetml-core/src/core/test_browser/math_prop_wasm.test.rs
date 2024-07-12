@@ -6,17 +6,104 @@ use crate::{
         self,
         test_utils::{
             assert_math_calculated_value, assert_math_default_result,
-            assert_number_calculated_value, return_empty_data_query_result,
-            return_single_boolean_data_query_result, return_single_math_data_query_result,
-            return_single_number_data_query_result,
+            return_empty_data_query_result, return_single_boolean_data_query_result,
+            return_single_math_data_query_result,
         },
-        NumberProp,
     },
-    props::{as_updater_object, cache::PropWithMeta, prop_type, DataQueryResults, PropValue},
+    props::{as_updater_object, cache::PropWithMeta, prop_type, DataQueryResults},
     state::types::math_expr::{MathExpr, MathParser},
 };
 
 pub fn add_math_prop_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) {
+    embed_test!(
+        all_tests,
+        test_name,
+        fn math_prop_from_independent_state() {
+            // Check that math prop from children is calculated from the independent state dependency
+            // if there are no children.
+            // The result is marked as default if the independent prop is marked came_from_default.
+
+            let prop =
+                as_updater_object::<_, prop_type::Math>(general_prop::MathProp::new_from_children(
+                    0.7,
+                    MathParser::Text,
+                    vec!["f".to_string()],
+                ));
+
+            let no_children = return_empty_data_query_result();
+
+            // with default value
+            let independent_state = return_single_math_data_query_result(Rc::new(5.2.into()), true);
+            let with_fixed_not_needed = return_empty_data_query_result();
+            let split_symbols_result = return_single_boolean_data_query_result(true, true);
+
+            let data = DataQueryResults::from_vec(vec![
+                independent_state,
+                no_children.clone(),
+                with_fixed_not_needed.clone(),
+                split_symbols_result.clone(),
+            ]);
+
+            assert_math_default_result(prop.calculate_untyped(data), Rc::new(5.2.into()));
+
+            // with non-default value
+            let independent_state =
+                return_single_math_data_query_result(Rc::new(1.2.into()), false);
+            let data = DataQueryResults::from_vec(vec![
+                independent_state,
+                no_children.clone(),
+                with_fixed_not_needed.clone(),
+                split_symbols_result.clone(),
+            ]);
+
+            assert_math_calculated_value(prop.calculate_untyped(data), Rc::new(1.2.into()));
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn invert_math_prop_with_independent_state() {
+            // Calling invert on a math prop with no children
+            // causes the independent state to receive that requested value
+            let prop =
+                as_updater_object::<_, prop_type::Math>(general_prop::MathProp::new_from_children(
+                    0.7,
+                    MathParser::Text,
+                    vec!["f".to_string()],
+                ));
+
+            let no_children = return_empty_data_query_result();
+            let independent_state = return_single_math_data_query_result(Rc::new(7.0.into()), true);
+            let with_fixed_not_needed = return_empty_data_query_result();
+            let split_symbols_result = return_single_boolean_data_query_result(true, true);
+
+            let data = DataQueryResults::from_vec(vec![
+                independent_state.clone(),
+                no_children,
+                with_fixed_not_needed.clone(),
+                split_symbols_result.clone(),
+            ]);
+
+            let desired_math: MathExpr = 5.7.into();
+            let invert_results = prop
+                .invert_untyped(data, desired_math.clone().into(), false)
+                .unwrap()
+                .vec;
+
+            // request change in independent state
+            assert_eq!(
+                invert_results[0].values,
+                vec![PropWithMeta {
+                    value: desired_math.into(),
+                    changed: true,
+                    came_from_default: false,
+                    origin: None
+                }]
+            );
+        }
+    );
+
     embed_test!(
         all_tests,
         test_name,
@@ -57,7 +144,7 @@ pub fn add_math_prop_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) {
     embed_test!(
         all_tests,
         test_name,
-        fn invert_with_single_math_child() {
+        fn invert_math_prop_with_single_math_child() {
             let prop =
                 as_updater_object::<_, prop_type::Math>(general_prop::MathProp::new_from_children(
                     0.7,
