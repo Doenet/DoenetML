@@ -24,10 +24,40 @@
         "dev": "vite",
         "build": "wireit",
         "preview": "vite preview",
-        "test": "vitest",
+        "test:before": "npm run build:test2",
+        "build:test1": "wireit",
+        "build:test2": "wireit",
+        "test": "npm run build:test1 && vitest",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
     },
     "wireit": {
+        "build:test1": {
+            "command": "cd test/utils && vite build -c vite.dast-to-flat-dast.config.ts",
+            "files": [
+                "test/utils/dast-to-flat-dast.ts",
+                "test/utils/vite.dast-to-flat-dast.config.ts"
+            ],
+            "output": [
+                "test/utils/dist/dast-to-flat-dast/**/*.js"
+            ],
+            "dependencies": [
+                "../doenetml-worker-rust:build",
+                "../parser:build"
+            ]
+        },
+        "build:test2": {
+            "command": "cd test/utils && vite build -c vite.run.config.ts",
+            "files": [
+                "test/utils/run.ts",
+                "test/utils/vite.run.config.ts"
+            ],
+            "output": [
+                "test/utils/dist/run/**/*.js"
+            ],
+            "dependencies": [
+                "build:test1"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [
@@ -44,7 +74,8 @@
             ],
             "dependencies": [
                 "../doenetml-worker-rust:build",
-                "../parser:build"
+                "../parser:build",
+                "../codemirror:build"
             ]
         }
     },

@@ -132,7 +132,7 @@ export function parseLatexIntoMath(
  * Return a LaTeX string that corresponds to a mathematical expression.
  *
  * Arguments:
- * @mathObject - the stringify math expression
+ * @mathObject - the stringified math expression
  * @padToDecimals - If present, then pad numbers with zeros so they have at least
  *    this many decimal places after the decimal point displayed.
  * @padToDigits - If present, then pad numbers with zeros so they have at least
@@ -159,7 +159,7 @@ export function toLatex(
  * Create a new mathematical expression formed by substituting variables with new expressions
  *
  * Arguments:
- * @mathObject - the stringify math expression
+ * @mathObject - the stringified math expression
  * @substitutions - a mapping of variable names and the values to substitute for those variables
  */
 export function substituteIntoMath(
@@ -183,7 +183,7 @@ export function substituteIntoMath(
  * Return a normalize mathematical expression as specified by the parameters
  *
  * Arguments:
- * @mathObject - the stringify math expression
+ * @mathObject - the stringified math expression
  * @simplify - We currently support four options for `simplify`:
  * - `"none"`: no simplification
  * - `"numberspreserveorder"`: simplify numbers within the expression, such as simplify `1+1` to 2,
@@ -217,4 +217,18 @@ export function normalizeMath(
     });
 
     return JSON.stringify(newExpr, serializedComponentsReplacer);
+}
+
+/**
+ * Attempts to evaluate the math expression to a constant number, returning NaN if failure
+ *
+ * Arguments:
+ * @mathObject - the stringified math expression
+ */
+export function evaluateToNumber(mathObject: string) {
+    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+
+    let newNumber = mathExpr.evaluate_to_constant();
+
+    return newNumber;
 }

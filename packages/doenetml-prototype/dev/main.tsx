@@ -1,9 +1,14 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { DoenetML } from "../src/index";
+import { DoenetML, EditorViewer } from "../src/index";
 
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
+import { ResizablePanelPair } from "../src/editor/components/resizable-panel-pair";
 
 const root = createRoot(document.getElementById("root")!);
-root.render(<DoenetML doenetML={doenetMLstring} />);
+root.render(<App />);
+
+function App() {
+    return <EditorViewer doenetML={doenetMLstring} />;
+}

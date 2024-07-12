@@ -1,5 +1,4 @@
 export * from "./p";
-export * from "./document";
 export * from "./m";
 export * from "./math";
 export * from "./graph";
@@ -17,3 +16,6 @@ export * from "./xref";
 export * from "./ol";
 export * from "./ul";
 export * from "./li";
+export * from "./choice-input";
+export * from "./_pass-through-with-tag";
+export * from "./_pass-through-with-tag-and-newline";

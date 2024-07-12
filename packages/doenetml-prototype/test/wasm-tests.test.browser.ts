@@ -77,4 +77,24 @@ describe("wasm tests", () => {
             });
         }
     });
+
+    it("can set the source of a worker multiple times", async () => {
+        let source: string;
+        const worker = createWrappedCoreWorker();
+        await worker.setFlags({ flags: {} });
+
+        source = "<p>test</p>";
+        await worker.setSource({
+            source,
+            dast: toDast(source),
+        });
+        await worker.returnDast();
+
+        source = "<section><p>test2</p></section><invalidElement />";
+        await worker.setSource({
+            source,
+            dast: toDast(source),
+        });
+        await worker.returnDast();
+    });
 });

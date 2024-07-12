@@ -1,4 +1,5 @@
 /// Macros for logging.
+#[macro_export]
 #[allow(unused)]
 macro_rules! log {
     ( $( $t:tt )* ) => {
@@ -17,6 +18,7 @@ macro_rules! log {
       }
     }
 }
+#[macro_export]
 #[allow(unused)]
 macro_rules! log_json {
     ( $label:expr, $a:expr ) => {
@@ -30,6 +32,7 @@ macro_rules! log_json {
         }
     };
 }
+#[macro_export]
 #[allow(unused)]
 macro_rules! log_debug {
     ( $( $t:tt )* ) => {
@@ -46,9 +49,12 @@ macro_rules! log_debug {
     }
 }
 
+#[macro_export]
 #[allow(unused)]
 pub(crate) use log;
+#[macro_export]
 #[allow(unused)]
 pub(crate) use log_debug;
+#[macro_export]
 #[allow(unused)]
 pub(crate) use log_json;
