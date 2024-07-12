@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::{
     components::prelude::*,
     props::{InvertError, UpdaterObject},
+    state::types::math_expr::MathExpr,
 };
 
 /// A number prop that calculates its value from dependencies.
@@ -236,7 +237,8 @@ impl PropUpdater for NumberProp {
                         desired.numbers_maths_and_strings[0].change_to(requested_value.into());
                     }
                     PropValue::Math(..) => {
-                        desired.numbers_maths_and_strings[0].change_to(requested_value.into());
+                        let requested_math: MathExpr = requested_value.into();
+                        desired.numbers_maths_and_strings[0].change_to(requested_math.into());
                     }
                     PropValue::String(..) => {
                         desired.numbers_maths_and_strings[0]
