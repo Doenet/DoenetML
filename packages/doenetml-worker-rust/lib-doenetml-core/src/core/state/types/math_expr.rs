@@ -1,12 +1,17 @@
+use anyhow::anyhow;
+use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 use strum_macros::Display;
 
 #[cfg(all(not(feature = "testing"), feature = "web"))]
 use web_sys::js_sys::JsString;
 
-use crate::math_via_wasm::{
-    eval_js, math_to_latex, math_to_text, normalize_math, parse_latex_into_math,
-    parse_text_into_math, substitute_into_math,
+use crate::{
+    math_via_wasm::{
+        eval_js, evaluate_to_number, math_to_latex, math_to_text, normalize_math,
+        parse_latex_into_math, parse_text_into_math, substitute_into_math,
+    },
+    props::prop_type,
 };
 
 const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
@@ -38,7 +43,7 @@ impl MathExpr {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct JsMathExpr(pub String);
 
@@ -68,7 +73,10 @@ impl serde::Serialize for MathExpr {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.math_object.0)
+        // Serialize as a struct named `MathExpr` with `1` field: `math_object`
+        let mut m = serializer.serialize_struct("MathExpr", 1)?;
+        m.serialize_field("math_object", &self.math_object.0)?;
+        m.end()
     }
 }
 
@@ -349,6 +357,56 @@ impl MathExpr {
 
         MathExpr { math_object }
     }
+
+    /// Evaluates the `self` as a number, returning `NaN` if value is non-numerical.
+    pub fn to_number(&self) -> prop_type::Number {
+        match evaluate_to_number(&self.math_object) {
+            Ok(res) => res,
+            Err(..) => prop_type::Number::NAN,
+        }
+    }
+
+    /// Attempts to evaluate `self` as a number.
+    /// Return an `Err` if value is non-numerical.
+    pub fn try_to_number(&self) -> Result<prop_type::Number, anyhow::Error> {
+        let res = evaluate_to_number(&self.math_object)?;
+
+        if res.is_nan() {
+            Err(anyhow!(
+                "Math expression could not be evaluated into a number"
+            ))
+        } else {
+            Ok(res)
+        }
+    }
+}
+
+impl From<prop_type::Number> for MathExpr {
+    fn from(value: prop_type::Number) -> Self {
+        MathExpr {
+            math_object: JsMathExpr(format!(
+                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                value,
+            )),
+        }
+    }
+}
+
+impl From<prop_type::Integer> for MathExpr {
+    fn from(value: prop_type::Integer) -> Self {
+        MathExpr {
+            math_object: JsMathExpr(format!(
+                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                value,
+            )),
+        }
+    }
+}
+
+impl From<MathExpr> for prop_type::Number {
+    fn from(expr: MathExpr) -> Self {
+        expr.to_number()
+    }
 }
 
 /// An mathematical value that can be used in the arguments of functions exposed on `MathExpr`.
@@ -374,7 +432,7 @@ impl serde::Serialize for MathArg {
         // one still has to call JSON.parse() to finish the hydration,
         // given that this last step is required for the Math variant
         match self {
-            Self::Math(math_expr) => math_expr.serialize(serializer),
+            Self::Math(math_expr) => math_expr.math_object.serialize(serializer),
             Self::Number(num) => serializer.serialize_str(&num.to_string()),
             Self::Integer(num) => serializer.serialize_str(&num.to_string()),
             Self::Symbol(var_name) => {
