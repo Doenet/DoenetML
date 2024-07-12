@@ -1,6 +1,10 @@
 //! Tests that can only be executed when run in a full WASM environment inside of a browser.
 
+#[path = "math_expr_wasm.test.rs"]
 mod math_expr_tests;
+#[path = "math_prop_wasm.test.rs"]
+mod math_prop_tests;
+#[path = "number_prop_wasm.test.rs"]
 mod number_prop_tests;
 
 use crate::{
@@ -49,6 +53,7 @@ pub fn run_test(test_name: &str) -> Vec<String> {
 
     math_expr_tests::add_math_expr_wasm_tests(&mut all_tests, test_name);
     number_prop_tests::add_number_prop_wasm_tests(&mut all_tests, test_name);
+    math_prop_tests::add_math_prop_wasm_tests(&mut all_tests, test_name);
 
     all_tests
 }

@@ -61,6 +61,9 @@ pub enum PropProfile {
     RenderedChildren,
     /// Matches a prop that stores a reference to another component.
     _Ref,
+    /// Matches a prop that stores whether or not to split multi-characters symbols that don't contain numbers
+    /// into the product of their characters when parsing into mathematics
+    SplitSymbols,
     /// Matches a prop that stores a label suitable for a text-only reference to the component.
     XrefLabel,
     /// Matches a prop that stores `ContentRefs` to any content that should be "expanded" when an xref is clicked.
@@ -89,6 +92,7 @@ pub const fn prop_profile_to_type(profile: PropProfile) -> PropValueType {
         PropProfile::ListCodeNumber => PropValueType::String,
         PropProfile::Renderable => PropValueType::ComponentRef,
         PropProfile::RenderedChildren => PropValueType::AnnotatedContentRefs,
+        PropProfile::SplitSymbols => super::PropValueType::Boolean,
         PropProfile::_Ref => PropValueType::ComponentRef,
         PropProfile::XrefLabel => PropValueType::XrefLabel,
         PropProfile::XrefDisplayContent => PropValueType::AnnotatedContentRefs,

@@ -4,6 +4,7 @@ use crate::{
     components::{
         prelude::DataQuery,
         types::{ComponentIdx, PropPointer},
+        ComponentNode,
     },
     props::{cache::PropStatus, FilterData, PickPropSource, PropSource, PropSpecifier},
 };
@@ -223,6 +224,26 @@ impl DocumentModel {
                         container_nodes
                     }
 
+                    PickPropSource::Attribute { attribute_name } => {
+                        let document_structure = self.document_structure.borrow();
+                        let attr_node = document_structure
+                            .get_attr_node(prop_pointer.component_idx, attribute_name)
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "Cannot find attribute `{}` on component `{}`",
+                                    attribute_name,
+                                    document_structure
+                                        .get_component(prop_pointer.component_idx)
+                                        .get_component_type()
+                                )
+                            });
+
+                        let container_nodes = document_structure
+                            .get_attribute_content_children(attr_node)
+                            .collect();
+                        container_nodes
+                    }
+
                     PickPropSource::NearestMatchingAncestor => {
                         let document_structure = self.document_structure.borrow();
                         let container_nodes = document_structure
@@ -244,8 +265,8 @@ impl DocumentModel {
                             .map(|node| (query_node, node));
 
                         match source {
-                            PickPropSource::Children => {
-                                // for children, use all edges
+                            PickPropSource::Children | PickPropSource::Attribute { .. } => {
+                                // for children or attribute, use all edges
                                 fn_add_edges(edges.collect());
                             }
                             PickPropSource::NearestMatchingAncestor => {
@@ -284,8 +305,8 @@ impl DocumentModel {
                             });
 
                         match source {
-                            PickPropSource::Children => {
-                                // for children, use all edges
+                            PickPropSource::Children | PickPropSource::Attribute { .. } => {
+                                // for children or attribute, use all edges
                                 let edges =
                                     matching_props.flat_map(|(virtual_node, prop1, prop2)| {
                                         [
