@@ -102,7 +102,6 @@ impl MathProp {
                 ),
             },
             parser,
-            // split_symbols_local_prop_idx,
             function_symbols,
             default_value: default_value.into(),
             propagate_came_from_default: true,

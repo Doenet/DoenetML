@@ -239,6 +239,15 @@ impl MathExpr {
         }
     }
 
+    pub fn from_number(x: prop_type::Number) -> Self {
+        MathExpr {
+            math_object: JsMathExpr(format!(
+                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
+                x,
+            )),
+        }
+    }
+
     /// Create a new mathematical expression formed by substituting variables with new expressions
     ///
     /// Parameters:
