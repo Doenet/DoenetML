@@ -12,6 +12,8 @@ import { serializedComponentsReviver } from "@doenet/utils";
 import { Action, PointProps } from "@doenet/doenetml-worker-rust";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
+//@ts-ignore
+import me from "math-expressions";
 
 type PointData = { props: PointProps };
 
@@ -25,14 +27,22 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
 
     const dispatch = useAppDispatch();
 
-    const x: number = JSON.parse(
-        node.data.props.x.math_object,
-        serializedComponentsReviver,
-    ).evaluate_to_constant();
-    const y: number = JSON.parse(
-        node.data.props.y.math_object,
-        serializedComponentsReviver,
-    ).evaluate_to_constant();
+    const x: number = me
+        .fromAst(
+            JSON.parse(
+                node.data.props.x.math_object,
+                serializedComponentsReviver,
+            ),
+        )
+        .evaluate_to_constant();
+    const y: number = me
+        .fromAst(
+            JSON.parse(
+                node.data.props.y.math_object,
+                serializedComponentsReviver,
+            ),
+        )
+        .evaluate_to_constant();
 
     React.useEffect(() => {
         if (!board) {
@@ -138,7 +148,7 @@ function createPoint(
     const lineColor = props.lineColor;
 
     // Things to be passed to JSXGraph as attributes
-    const jsxLineAttributes: JSG.PointAttributes = {
+    const jsxPointAttributes: JSG.PointAttributes = {
         name: props.labelForGraph,
         visible: !props.hidden,
         fixed: props.fixed,
@@ -153,13 +163,13 @@ function createPoint(
         highlight: !props.fixLocation,
     };
 
-    const line: JSG.Point = board.create(
+    const point: JSG.Point = board.create(
         "point",
         props.coords,
-        jsxLineAttributes,
+        jsxPointAttributes,
     );
 
-    return line;
+    return point;
 }
 
 /**

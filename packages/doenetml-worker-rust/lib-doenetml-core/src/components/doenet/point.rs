@@ -3,7 +3,6 @@ use std::rc::Rc;
 use crate::components::prelude::*;
 use crate::general_prop::{BooleanProp, MathProp};
 use crate::props::UpdaterObject;
-use crate::state::types::math_expr::MathExpr;
 
 #[component(name = Point)]
 mod component {
