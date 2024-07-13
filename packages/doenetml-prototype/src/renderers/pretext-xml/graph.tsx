@@ -37,11 +37,12 @@ export const Graph: BasicComponent = ({ node }) => {
             svgElm.outerHTML,
             "image/svg+xml",
         );
-        const svg = svgDom.firstElementChild;
+        const svg = svgDom.documentElement;
         if (!svg) {
             throw new Error("Could not parse SVG");
         }
-        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        // For some reason, xmlns won't serialize, so we mangle the name and replace it later
+        svg.setAttribute("XXxmlnsXX", "http://www.w3.org/2000/svg");
         svg.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
         svg.setAttribute("version", "1.1");
 
@@ -72,6 +73,7 @@ export const Graph: BasicComponent = ({ node }) => {
         svgSource =
             `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n` +
             new XMLSerializer().serializeToString(svgDom);
+        svgSource = svgSource.replace(/XXxmlnsXX/g, "xmlns");
     }
 
     return React.createElement("graph", { svgSource });
