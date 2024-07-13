@@ -244,3 +244,28 @@ export function evaluateToNumber(mathObject: string) {
 
     return newNumber;
 }
+
+/**
+ * Attempts to parse the string into a math expression using the text parses,
+ * and then evaluate the math expression to a constant number, returning NaN if failure
+ *
+ * Arguments:
+ * @text - the source string
+ */
+export function parseTextIntoNumber(text: string): number {
+    let fromText = textToMathFactory({
+        splitSymbols: true,
+        functionSymbols: [],
+    });
+    let expression;
+    try {
+        expression = fromText(text);
+    } catch (e) {
+        console.warn("Invalid value for a math of text format: " + text);
+        return NaN;
+    }
+
+    let newNumber = expression.evaluate_to_constant();
+
+    return newNumber;
+}

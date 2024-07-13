@@ -9,7 +9,7 @@ use web_sys::js_sys::JsString;
 use crate::{
     math_via_wasm::{
         eval_js, evaluate_to_number, math_to_latex, math_to_text, normalize_math,
-        parse_latex_into_math, parse_text_into_math, substitute_into_math,
+        parse_latex_into_math, parse_text_into_math, parse_text_into_number, substitute_into_math,
     },
     props::prop_type,
 };
@@ -356,6 +356,14 @@ impl MathExpr {
         });
 
         MathExpr { math_object }
+    }
+
+    pub fn number_from_text<TXT: AsRef<str>>(text: TXT) -> prop_type::Number {
+        let string = text.as_ref();
+
+        string
+            .parse::<prop_type::Number>()
+            .unwrap_or_else(|_| parse_text_into_number(string).unwrap_or(prop_type::Number::NAN))
     }
 
     /// Evaluates the `self` as a number, returning `NaN` if value is non-numerical.

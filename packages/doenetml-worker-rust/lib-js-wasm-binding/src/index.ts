@@ -7,6 +7,7 @@ import {
     substituteIntoMath,
     normalizeMath,
     evaluateToNumber,
+    parseTextIntoNumber,
 } from "./eval-math";
 import { globalThis } from "./global-this";
 
@@ -24,6 +25,7 @@ declare global {
             substituteIntoMath: typeof substituteIntoMath;
             normalizeMath: typeof normalizeMath;
             evaluateToNumber: typeof evaluateToNumber;
+            parseTextIntoNumber: typeof parseTextIntoNumber;
         };
     }
 }
@@ -38,4 +40,5 @@ globalThis.__forDoenetWorker = {
     substituteIntoMath,
     normalizeMath,
     evaluateToNumber,
+    parseTextIntoNumber,
 };
