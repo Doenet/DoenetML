@@ -24,87 +24,15 @@ export const LAYER_OFFSETS = {
 
 export const Graph: BasicComponent = ({ node }) => {
     const boardId = "jsxgraph-board-" + node.data.id;
-    const boardRef = React.useRef<HTMLDivElement>(null);
-    const [board, setBoard] = React.useState<JSG.Board | null>(null);
-    const [xaxis, setXaxis] = React.useState<JSG.Axis | null>(null);
-    const [yaxis, setYaxis] = React.useState<JSG.Axis | null>(null);
+    // TODO: this isn't a very good way to do this and may lead to different
+    // exports on different computers and will be affected by dark mode, etc.
+    // It also probably won't handle export math labels on graphs.
+    // BUT for now, we grab the SVG source of the graph with the same id on the page.
+    // We export that as data to be turned into an included file later.
 
-    React.useLayoutEffect(() => {
-        if (!boardRef.current) {
-            return;
-        }
-        const board = JSXGraph.initBoard(boardRef.current, {
-            axis: false,
-            grid: false,
-            showNavigation: false,
-            showCopyright: false,
-            boundingBox: [-5, 5, 5, -5],
-            // Sometimes needed to keep the board from continually expanding
-            resize: { enabled: false, throttle: 100 },
-        });
+    const svgSource = document
+        .getElementById(boardId)
+        ?.querySelector("svg")?.outerHTML;
 
-        const xaxis = board.create(
-            "axis",
-            [
-                [0, 0],
-                [1, 0],
-            ],
-            {
-                ticks: {
-                    visible: true,
-                    majorHeight: 10,
-                    minorHeight: 5,
-                    strokeColor: "var(--canvastext)",
-                    strokeWidth: 1,
-                },
-                highlight: false,
-                strokeColor: "var(--canvastext)",
-            },
-        );
-        setXaxis(xaxis);
-        const yaxis = board.create(
-            "axis",
-            [
-                [0, 0],
-                [0, 1],
-            ],
-            {
-                ticks: {
-                    visible: true,
-                    majorHeight: 10,
-                    minorHeight: 5,
-                    strokeColor: "var(--canvastext)",
-                    strokeWidth: 1,
-                },
-                highlight: false,
-                strokeColor: "var(--canvastext)",
-            },
-        );
-        setYaxis(yaxis);
-
-        setBoard(board);
-    }, [boardRef]);
-
-    const elementChildrenIds = React.useMemo(
-        () =>
-            node.children
-                .filter((n) => typeof n === "object" && "id" in n)
-                .map((n) => (n as any).id) as number[],
-        [node.children],
-    );
-
-    return (
-        <div className="graph-container">
-            <div
-                className="jsxgraph-container"
-                id={boardId}
-                ref={boardRef}
-            ></div>
-            <GraphContext.Provider value={board}>
-                {elementChildrenIds.map((id) => (
-                    <Element key={id} id={id} constraint="graph" />
-                ))}
-            </GraphContext.Provider>
-        </div>
-    );
+    return React.createElement("graph", { svgSource });
 };

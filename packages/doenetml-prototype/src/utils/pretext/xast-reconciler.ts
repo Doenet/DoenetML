@@ -121,17 +121,21 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
         rootContainerInstance,
         hostContext,
     ) {
-        return null;
+        const { children, ...rest } = newProps;
+        // We don't need to be efficient and calculate a diff. Just update all the props each time.
+        return rest;
     },
 
     commitUpdate(
         instance,
-        updatePayload,
+        updatePayload: Xast.Attributes,
         type,
         oldProps,
         newProps,
         internalInstanceHandle,
-    ) {},
+    ) {
+        instance.attributes = { ...instance.attributes, ...updatePayload };
+    },
 
     commitTextUpdate(textInstance, oldText, newText) {
         textInstance.value = newText;
@@ -170,7 +174,6 @@ const HOST_CONFIG: ReactReconciler.HostConfig<
     scheduleTimeout(fn, delay) {},
     removeChildFromContainer(container, child) {
         container.children = container.children.filter((c) => c !== child);
-        console.log("removeChildFromContainer", container, child);
     },
 };
 
@@ -193,6 +196,13 @@ export function renderReactToXast(element: React.ReactNode): Xast.Root {
     );
 
     renderer.updateContainer(element, container);
+    renderer.flushSync(() => {});
+    // Save our return XAST before we clear the container
+    const ret = structuredClone(xastRoot);
 
-    return xastRoot;
+    // We render `null` to the container to force all the
+    // useEffect cleanup blocks to run.
+    renderer.updateContainer(null, container);
+
+    return ret;
 }

@@ -9,6 +9,7 @@ import { _globalReducerActions } from "../../state/redux-slices/global";
 import { renderToPretext } from "../../utils/pretext/render-to-pretext";
 import { VscCode } from "react-icons/vsc";
 import { FlatDastRoot } from "../../../../doenetml-worker-rust/dist/CoreWorker";
+import { extractImages } from "../../utils/pretext/extract-images";
 
 export function DownloadPretextDropdownItem({
     setFiles,
@@ -28,9 +29,9 @@ export function DownloadPretextDropdownItem({
             className="icon-button"
             onClick={() => {
                 try {
-                    const fileList = {
-                        "main.ptx": renderToPretext(flatDast),
-                    };
+                    const rendered = renderToPretext(flatDast);
+                    const fileList = extractImages(rendered);
+
                     setFiles(fileList);
                 } catch (e) {
                     setError("Could not convert to PreTeXt");

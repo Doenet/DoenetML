@@ -3,7 +3,7 @@ import {
     _dastReducerActions,
     dastReducer,
 } from "../../state/redux-slices/dast";
-import { toXml } from "xast-util-to-xml";
+import * as Xast from "xast";
 import { FlatDastRoot } from "../../../../doenetml-worker-rust/dist/CoreWorker";
 import { configureStore } from "@reduxjs/toolkit";
 import {
@@ -17,9 +17,10 @@ import { renderReactToXast } from "./xast-reconciler";
 import { normalizeAttrs } from "./normalize-attrs";
 
 /**
- * Use React's rendering pipeline to render the FlatDast to PreTeXt.
+ * Use React's rendering pipeline to render the FlatDast to PreTeXt in the form of a XAST
+ * XML Abstract Syntax Tree. This can be turned into a string using `xast-util-to-xml`.
  */
-export function renderToPretext(flatDast: FlatDastRoot) {
+export function renderToPretext(flatDast: FlatDastRoot): Xast.Root {
     // Do some pre-processing on the root
     flatDast = structuredClone(flatDast);
     ensurePretextTag(flatDast);
@@ -75,5 +76,5 @@ export function renderToPretext(flatDast: FlatDastRoot) {
         value: 'version="1.0" encoding="UTF-8"',
     });
 
-    return toXml(xast, { closeEmptyElements: true });
+    return xast;
 }

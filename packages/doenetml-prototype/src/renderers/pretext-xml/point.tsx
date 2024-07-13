@@ -2,7 +2,6 @@ import React from "react";
 import { BasicComponent } from "../types";
 import { GraphContext, LAYER_OFFSETS } from "./graph";
 import * as JSG from "jsxgraph";
-import { attachStandardGraphListeners } from "./jsxgraph/listeners";
 
 export const PointInGraph: BasicComponent = ({ node }) => {
     const board = React.useContext(GraphContext);
@@ -29,22 +28,7 @@ export const PointInGraph: BasicComponent = ({ node }) => {
             dashed: false,
         });
         pointRef.current = point;
-        if (!point) {
-            return;
-        }
-
-        attachStandardGraphListeners(point);
-
-        return () => {
-            point.off("drag");
-            point.off("down");
-            point.off("hit");
-            point.off("up");
-            point.off("keyfocusout");
-            point.off("keydown");
-            board.removeObject(point);
-        };
-    }, [board, pointRef]);
+    }, [board]);
 
     if (!board) {
         return null;

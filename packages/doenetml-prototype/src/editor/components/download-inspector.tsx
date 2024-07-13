@@ -55,7 +55,7 @@ export function DownloadInspector({
                 <Modal.Title>Exported</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Tabs>
+                <Tabs transition={false}>
                     {Object.entries(fileList).map(([filename, content]) => (
                         <Tab
                             eventKey={filename}

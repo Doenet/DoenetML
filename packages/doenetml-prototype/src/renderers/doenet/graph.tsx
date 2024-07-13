@@ -55,7 +55,9 @@ export const Graph: BasicComponent = ({ node }) => {
             boundingBox: [-5, 5, 5, -5],
             // Sometimes needed to keep the board from continually expanding
             resize: { enabled: false, throttle: 100 },
+            renderer: "svg",
         });
+        board.options.text.display = "internal";
 
         const xaxis = board.create(
             "axis",
