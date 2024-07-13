@@ -30,9 +30,49 @@ export const Graph: BasicComponent = ({ node }) => {
     // BUT for now, we grab the SVG source of the graph with the same id on the page.
     // We export that as data to be turned into an included file later.
 
-    const svgSource = document
-        .getElementById(boardId)
-        ?.querySelector("svg")?.outerHTML;
+    const svgElm = document.getElementById(boardId)?.querySelector("svg");
+    let svgSource = svgElm?.outerHTML;
+    if (svgElm) {
+        const svgDom = new DOMParser().parseFromString(
+            svgElm.outerHTML,
+            "image/svg+xml",
+        );
+        const svg = svgDom.firstElementChild;
+        if (!svg) {
+            throw new Error("Could not parse SVG");
+        }
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svg.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
+        svg.setAttribute("version", "1.1");
+
+        const style = svgDom.createElement("style");
+        style.textContent = `
+            :root {
+              --canvastext: black;
+              --lightBlue: hsl(209, 54%, 82%);
+              --solidLightBlue: #8fb8de;
+              --mainGray: #e3e3e3;
+              --donutBody: #eea177;
+              --donutTopping: #6d4445;
+              --mainBorder: 2px solid black;
+              --mainBorderRadius: 5px;
+              --mainRed: #c1292e;
+              --lightRed: hsl(0, 54%, 82%);
+              --mainGreen: #459152;
+              --lightGreen: #a6f19f;
+              --lightYellow: #f5ed85;
+              --whiteBlankLink: #6d4445;
+              --mainYellow: #94610a;
+              --mainPurple: #4a03d9;
+            }
+        `;
+        // Prepend the style element
+        svg.insertBefore(style, svg.firstChild);
+
+        svgSource =
+            `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n` +
+            new XMLSerializer().serializeToString(svgDom);
+    }
 
     return React.createElement("graph", { svgSource });
 };
