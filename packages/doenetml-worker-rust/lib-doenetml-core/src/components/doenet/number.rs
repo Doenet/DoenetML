@@ -3,7 +3,8 @@ use crate::general_prop::NumberProp;
 use crate::general_prop::NumberToStringProp;
 use crate::props::UpdaterObject;
 
-/// The `<number>` component calculates a numerical value from its contents and display the result as text
+/// The `<number>` component calculates a numerical (floating point) value from its contents
+/// and displays the result as text.
 #[component(name = Number, extend_via_default_prop)]
 mod component {
 
