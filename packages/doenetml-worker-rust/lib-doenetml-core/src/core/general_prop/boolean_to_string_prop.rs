@@ -4,7 +4,7 @@ use crate::{components::prelude::*, props::UpdaterObject};
 
 use super::util::string_to_boolean;
 
-/// A string prop converts a boolean into a string
+/// A boolean to string prop converts a boolean into a string
 ///
 /// Constructor:
 /// - `new(boolean_local_prop_idx)`: create a prop converts
