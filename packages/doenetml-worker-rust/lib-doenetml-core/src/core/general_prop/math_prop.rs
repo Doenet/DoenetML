@@ -478,7 +478,7 @@ impl PropUpdater for MathProp {
 /// verified to have only math, number, and string values.
 ///
 ///
-/// /// Parameters:
+/// # Parameters
 /// - `math_number_strings`: the math, number and string values forming the expression
 /// - `split_symbols`: if true or none, the parse will split multi-character variables that don't contain digits
 /// - `parser`: an enum specifying whether to use the latex or text parser to create the `MathExpr`
@@ -488,7 +488,8 @@ impl PropUpdater for MathProp {
 /// - cache: a cache to store data from parsing the overall structure,
 ///   which can be reused if the strings and parameters are unchanged
 ///
-/// Return a result
+/// # Returns
+/// A result:
 /// - Ok: the math expression calculated
 /// - Err: if there was no changed detected
 pub fn calculate_math_from_prop_value_vector(
@@ -588,7 +589,7 @@ pub fn calculate_math_from_prop_value_vector(
 /// The key is that the expression template doesn't change if the math values change,
 /// eliminating the need for the relatively expensive re-parsing of the string.
 ///
-/// Parameters:
+/// # Parameters
 /// - `math_number_strings`: the math, number and string values forming the expression
 /// - `parser`: an enum specifying whether to use the latex or text parser to create the `MathExpr`
 /// - `split_symbols`: if true, the parse will split multi-character variables that don't contain digits
@@ -596,7 +597,8 @@ pub fn calculate_math_from_prop_value_vector(
 /// - `function_symbols`: the list of variable names that will be treated as a function if they are followed
 ///   by parentheses.
 ///
-/// Return a tuple of:
+/// # Returns
+/// A tuple of:
 /// - the expression template
 /// - the generated codes for each math value
 fn calc_expression_template(
@@ -645,16 +647,17 @@ fn calc_expression_template(
 ///
 /// The code for each math value is `code_prefix` followed by a number.
 ///
-/// Parameters:
+/// # Parameters
 /// - `math_number_strings`: the math, number and string values forming the expression
 /// - `code_prefix`: the beginning of each generated code used to represent the math values
 /// - `parser`: an enum specifying whether we will use the latex or text parser to create the `MathExpr`
 ///
-/// Returns a tuple of:
+/// # Returns
+/// A tuple of:
 /// - the template string that will be parsed into the expression template
 /// - the math codes used to represent each math value
 ///
-/// Example:
+/// # Example
 /// If `math_number_strings` was derived from `3+<math>x^2</math> + y<math>z</math>`,
 /// and the `code_prefix` was `"m"`,
 /// then the template string (assuming the text `parser`) would become `"3+ m1  + y m2"`
