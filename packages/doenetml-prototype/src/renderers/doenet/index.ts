@@ -10,6 +10,7 @@ export * from "./text-input";
 export * from "./line";
 export * from "./point";
 export * from "./text";
+export * from "./number";
 export * from "./boolean";
 export * from "./title";
 export * from "./_fragment";
