@@ -475,10 +475,10 @@ pub fn add_math_prop_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) {
             };
 
             let data = DataQueryResults::from_vec(vec![
-                independent_state.clone(),
-                children.clone(),
-                with_fixed_not_needed.clone(),
-                split_symbols_result.clone(),
+                independent_state,
+                children,
+                with_fixed_not_needed,
+                split_symbols_result,
             ]);
 
             assert_math_calculated_value(

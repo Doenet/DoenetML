@@ -6,11 +6,14 @@ use crate::{
         self,
         test_utils::{
             assert_number_calculated_value, return_single_math_data_query_result,
-            return_single_number_data_query_result,
+            return_single_number_data_query_result, return_two_string_data_query_result,
         },
         NumberProp,
     },
-    props::{as_updater_object, cache::PropWithMeta, prop_type, DataQueryResults},
+    props::{
+        as_updater_object, cache::PropWithMeta, prop_type, DataQueryResult, DataQueryResults,
+        PropValue,
+    },
     state::types::math_expr::MathExpr,
 };
 
@@ -77,6 +80,72 @@ pub fn add_number_prop_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) 
                     origin: None
                 }]
             );
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn from_multiple_string_children() {
+            let prop =
+                as_updater_object::<_, prop_type::Number>(NumberProp::new_from_children(0.7));
+
+            let independent_state = return_single_number_data_query_result(3.1, true);
+
+            // with two children, ignore default
+            let two_children = return_two_string_data_query_result("7", "3", true, true);
+            let data = DataQueryResults::from_vec(vec![independent_state.clone(), two_children]);
+            assert_number_calculated_value(prop.calculate_untyped(data), 21.0);
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn number_prop_from_string_numbers_and_maths() {
+            let prop =
+                as_updater_object::<_, prop_type::Number>(NumberProp::new_from_children(0.7));
+
+            let independent_state = return_single_number_data_query_result(3.1, true);
+
+            let children = DataQueryResult {
+                values: vec![
+                    PropWithMeta {
+                        value: PropValue::String("3cos(0)+".to_string().into()),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::Math(Rc::new(MathExpr::from_text("5", true, &["f"]))),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::String(" - ".to_string().into()),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::Number(7.1),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::Math(Rc::new(MathExpr::from_text("2", true, &["f"]))),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                ],
+            };
+
+            let data = DataQueryResults::from_vec(vec![independent_state, children]);
+
+            assert_number_calculated_value(prop.calculate_untyped(data), 3.0 + 5.0 - 7.1 * 2.0);
         }
     );
 }
