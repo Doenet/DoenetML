@@ -239,15 +239,6 @@ impl MathExpr {
         }
     }
 
-    pub fn from_number(x: prop_type::Number) -> Self {
-        MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
-                x,
-            )),
-        }
-    }
-
     /// Create a new mathematical expression formed by substituting variables with new expressions
     ///
     /// Parameters:
@@ -369,6 +360,13 @@ impl MathExpr {
 
     /// Evaluates the `self` as a number, returning `NaN` if value is non-numerical.
     pub fn to_number(&self) -> prop_type::Number {
+        match self.math_object.0.parse::<prop_type::Number>() {
+            Ok(converted_number) => {
+                return converted_number;
+            }
+            Err(..) => {}
+        }
+
         match evaluate_to_number(&self.math_object) {
             Ok(res) => res,
             Err(..) => prop_type::Number::NAN,
@@ -378,6 +376,13 @@ impl MathExpr {
     /// Attempts to evaluate `self` as a number.
     /// Return an `Err` if value is non-numerical.
     pub fn try_to_number(&self) -> Result<prop_type::Number, anyhow::Error> {
+        match self.math_object.0.parse::<prop_type::Number>() {
+            Ok(converted_number) => {
+                return Ok(converted_number);
+            }
+            Err(..) => {}
+        }
+
         let res = evaluate_to_number(&self.math_object)?;
 
         if res.is_nan() {

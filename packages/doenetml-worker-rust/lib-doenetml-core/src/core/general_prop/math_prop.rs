@@ -279,6 +279,17 @@ impl PropUpdater for MathProp {
                         changed,
                         ..
                     } => {
+                        // first check if string is just a number, in which case we have
+                        // a shortcut to create the math
+
+                        match string_value.parse::<prop_type::Number>() {
+                            Ok(converted_number) => {
+                                let math_expr: MathExpr = converted_number.into();
+                                return PropCalcResult::Calculated(Rc::new(math_expr));
+                            }
+                            Err(..) => {}
+                        }
+
                         // TODO: once `function_symbols` is based on data query,
                         // check if that changed as well
                         if *changed
