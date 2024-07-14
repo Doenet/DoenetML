@@ -8,12 +8,10 @@ import {
     GraphListeners,
     removeStandardGraphListeners,
 } from "./jsxgraph/listeners";
-import { serializedComponentsReviver } from "@doenet/utils";
 import { Action, PointProps } from "@doenet/doenetml-worker-rust";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
-//@ts-ignore
-import me from "math-expressions";
+import { numberFromSerializedAst } from "../../utils/math/math-expression-utils";
 
 type PointData = { props: PointProps };
 
@@ -27,22 +25,8 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
 
     const dispatch = useAppDispatch();
 
-    const x: number = me
-        .fromAst(
-            JSON.parse(
-                node.data.props.x.math_object,
-                serializedComponentsReviver,
-            ),
-        )
-        .evaluate_to_constant();
-    const y: number = me
-        .fromAst(
-            JSON.parse(
-                node.data.props.y.math_object,
-                serializedComponentsReviver,
-            ),
-        )
-        .evaluate_to_constant();
+    const x: number = numberFromSerializedAst(node.data.props.x.math_object);
+    const y: number = numberFromSerializedAst(node.data.props.y.math_object);
 
     React.useEffect(() => {
         if (!board) {
