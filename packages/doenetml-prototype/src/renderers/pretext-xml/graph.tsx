@@ -47,6 +47,8 @@ export const Graph: BasicComponent = ({ node }) => {
         svg.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
         svg.setAttribute("version", "1.1");
 
+        // These shouldn't be needed because we are replacing all `var(--foo)` with their values,
+        // but we keep them as a backup
         const style = svgDom.createElement("style");
         style.textContent = `
             :root {
@@ -86,10 +88,10 @@ export const Graph: BasicComponent = ({ node }) => {
 
 /**
  * Replace instances of `var(--name)` with the actual value of the CSS variable `--name`
+ * if found. Otherwise leave the variable as is.
  */
 function replaceCssVars(str: string, css: CSSStyleDeclaration): string {
-    return str.replace(/var\((--[^)]+)\)/g, (_, name) => {
-        console.log("replaceCssVars", name, css.getPropertyValue(name).trim());
-        return css.getPropertyValue(name).trim();
+    return str.replace(/var\((--[^)]+)\)/g, (wholeMatch, name) => {
+        return css.getPropertyValue(name).trim() || wholeMatch;
     });
 }
