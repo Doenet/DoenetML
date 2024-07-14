@@ -41,6 +41,7 @@ export const Graph: BasicComponent = ({ node }) => {
         if (!svg) {
             throw new Error("Could not parse SVG");
         }
+
         // For some reason, xmlns won't serialize, so we mangle the name and replace it later
         svg.setAttribute("XXxmlnsXX", "http://www.w3.org/2000/svg");
         svg.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
@@ -55,8 +56,6 @@ export const Graph: BasicComponent = ({ node }) => {
               --mainGray: #e3e3e3;
               --donutBody: #eea177;
               --donutTopping: #6d4445;
-              --mainBorder: 2px solid black;
-              --mainBorderRadius: 5px;
               --mainRed: #c1292e;
               --lightRed: hsl(0, 54%, 82%);
               --mainGreen: #459152;
@@ -74,7 +73,23 @@ export const Graph: BasicComponent = ({ node }) => {
             `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n` +
             new XMLSerializer().serializeToString(svgDom);
         svgSource = svgSource.replace(/XXxmlnsXX/g, "xmlns");
+
+        // Replace CSS variables with actual values
+        // Doing raw string manipulation isn't ideal.
+        // Replace when a better method is found.
+        const css = window.getComputedStyle(svgElm);
+        svgSource = replaceCssVars(svgSource, css);
     }
 
     return React.createElement("graph", { svgSource });
 };
+
+/**
+ * Replace instances of `var(--name)` with the actual value of the CSS variable `--name`
+ */
+function replaceCssVars(str: string, css: CSSStyleDeclaration): string {
+    return str.replace(/var\((--[^)]+)\)/g, (_, name) => {
+        console.log("replaceCssVars", name, css.getPropertyValue(name).trim());
+        return css.getPropertyValue(name).trim();
+    });
+}
