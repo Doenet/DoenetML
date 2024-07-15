@@ -12,6 +12,9 @@ const SPECIAL_PROP_NAMES = new Set([
  * For example `ref` becomes `pretext:ref`.
  */
 export function normalizeAttrs<T extends Record<string, unknown>>(attrs: T): T {
+    if (typeof attrs !== "object" || attrs === null) {
+        return attrs;
+    }
     return Object.fromEntries(
         Object.entries(attrs).map(([key, value]) => {
             if (SPECIAL_PROP_NAMES.has(key)) {

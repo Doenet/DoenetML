@@ -10,3 +10,6 @@ lib-js-wasm-binding/pkg
 *.mdx
 generated-assets
 multi-reporter-config.json
+bundle
+extension/build
+.next

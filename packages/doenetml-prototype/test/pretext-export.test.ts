@@ -1,6 +1,7 @@
 import { describe, expect, it, afterAll } from "vitest";
 import util from "util";
 import { lezerToDast, toXml } from "@doenet/parser";
+import { toXml as xastToXml } from "xast-util-to-xml";
 import { normalizeDocumentDast } from "../src/state/redux-slices/dast/utils/normalize-dast";
 import { ensurePretextTag } from "../src/utils/pretext/ensure-pretext-tag";
 import { FlatDastRoot } from "@doenet/doenetml-worker-rust";
@@ -56,6 +57,10 @@ const SIMPLE_FLAT_DAST = {
 
 const coreRunner = new RunThroughCore();
 
+function renderToPretextString(flatDast: FlatDastRoot) {
+    return xastToXml(renderToPretext(flatDast), { closeEmptyElements: true });
+}
+
 afterAll(async () => {
     await coreRunner.close();
 });
@@ -66,7 +71,7 @@ describe("Pretext export", async () => {
     });
     it("Wraps root in <pretext> tag", () => {
         const flatDast = structuredClone(SIMPLE_FLAT_DAST);
-        expect(renderToPretext(flatDast)).toMatchInlineSnapshot(`
+        expect(renderToPretextString(flatDast)).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
           <article>
@@ -82,7 +87,7 @@ describe("Pretext export", async () => {
             <p myAttr="hi">How about</p>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(
             `
           "<?xml version="1.0" encoding="UTF-8"?>
@@ -100,7 +105,7 @@ describe("Pretext export", async () => {
             <p>How about $mi?</p>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -119,7 +124,7 @@ describe("Pretext export", async () => {
             </division>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -138,7 +143,7 @@ describe("Pretext export", async () => {
             <myCustomTag withAttr="foo">Hi</myCustomTag>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -153,7 +158,7 @@ describe("Pretext export", async () => {
             <myCustomTag ref="foo"><p ref="hi" />Hi</myCustomTag>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -168,7 +173,7 @@ describe("Pretext export", async () => {
             <book>Hi</book>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -183,7 +188,7 @@ describe("Pretext export", async () => {
             <pretext>   <book>Hi</book> Z </pretext>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -198,7 +203,7 @@ describe("Pretext export", async () => {
             <docinfo>Hi</docinfo> <section>Foo</section>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -213,7 +218,7 @@ describe("Pretext export", async () => {
             <pretext><article><p name="foo">hi</p><p pretext:name="foo">there</p></article></pretext>
         `);
 
-        const pretext = renderToPretext(flatDast);
+        const pretext = renderToPretextString(flatDast);
         expect(pretext).toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>

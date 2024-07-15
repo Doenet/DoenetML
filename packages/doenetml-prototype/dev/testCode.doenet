@@ -1,22 +1,13 @@
-<section name="s1">
-  <title>The S1 Section</title>
-  <division name="d2">
-    <title>A subdivision</title>
-    <p>Some content</p>
-    <division name="dd1">Super deep</division>
-  </division>
+<section name="fun">
+  <title>My cool section $ti.immediateValue</title>
+  <p>Some content</p>
+  <p>Go ahead and edit the title: <textInput prefill="_sample_" name="ti" /></p>
 </section>
+<section>
+  <title>My other part</title>
+  <p>Some content</p>
 
-<textInput />
-
-<section extend="$s1">
-  <title>Inheriting section</title>
-  <division name="d3">
-    <title>Additional subdivision</title>
-    <p>More content</p>
-  </division>
+  <graph>
+    <point x="3" y="1" />
+  </graph>
 </section>
-
-<p>
-  Some references: <xref ref="$s1" />, <xref ref="$d2" />, <xref ref="$d3" />, <xref ref="$dd1" />
-</p>

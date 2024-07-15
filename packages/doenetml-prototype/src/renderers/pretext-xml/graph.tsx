@@ -1,18 +1,7 @@
 import React from "react";
-import {
-    VscChevronDown,
-    VscChevronLeft,
-    VscChevronRight,
-    VscChevronUp,
-    VscScreenNormal,
-    VscTarget,
-    VscZoomIn,
-    VscZoomOut,
-} from "react-icons/vsc";
 import * as JSG from "jsxgraph";
 import { JSXGraph } from "jsxgraph";
 import { BasicComponent } from "../types";
-import { Toolbar, ToolbarItem } from "@ariakit/react";
 import { Element } from "../element";
 
 export const GraphContext = React.createContext<JSG.Board | null>(null);
@@ -35,183 +24,74 @@ export const LAYER_OFFSETS = {
 
 export const Graph: BasicComponent = ({ node }) => {
     const boardId = "jsxgraph-board-" + node.data.id;
-    const boardRef = React.useRef<HTMLDivElement>(null);
-    const [board, setBoard] = React.useState<JSG.Board | null>(null);
-    const [xaxis, setXaxis] = React.useState<JSG.Axis | null>(null);
-    const [yaxis, setYaxis] = React.useState<JSG.Axis | null>(null);
+    // TODO: this isn't a very good way to do this and may lead to different
+    // exports on different computers and will be affected by dark mode, etc.
+    // It also probably won't handle export math labels on graphs.
+    // BUT for now, we grab the SVG source of the graph with the same id on the page.
+    // We export that as data to be turned into an included file later.
 
-    React.useLayoutEffect(() => {
-        if (!boardRef.current) {
-            return;
+    const svgElm = document.getElementById(boardId)?.querySelector("svg");
+    let svgSource = svgElm?.outerHTML;
+    if (svgElm) {
+        const svgDom = new DOMParser().parseFromString(
+            svgElm.outerHTML,
+            "image/svg+xml",
+        );
+        const svg = svgDom.documentElement;
+        if (!svg) {
+            throw new Error("Could not parse SVG");
         }
-        const board = JSXGraph.initBoard(boardRef.current, {
-            axis: false,
-            grid: false,
-            showNavigation: false,
-            showCopyright: false,
-            boundingBox: [-5, 5, 5, -5],
-            // Sometimes needed to keep the board from continually expanding
-            resize: { enabled: false, throttle: 100 },
-        });
 
-        const xaxis = board.create(
-            "axis",
-            [
-                [0, 0],
-                [1, 0],
-            ],
-            {
-                ticks: {
-                    visible: true,
-                    majorHeight: 10,
-                    minorHeight: 5,
-                    strokeColor: "var(--canvastext)",
-                    strokeWidth: 1,
-                },
-                highlight: false,
-                strokeColor: "var(--canvastext)",
-            },
-        );
-        setXaxis(xaxis);
-        const yaxis = board.create(
-            "axis",
-            [
-                [0, 0],
-                [0, 1],
-            ],
-            {
-                ticks: {
-                    visible: true,
-                    majorHeight: 10,
-                    minorHeight: 5,
-                    strokeColor: "var(--canvastext)",
-                    strokeWidth: 1,
-                },
-                highlight: false,
-                strokeColor: "var(--canvastext)",
-            },
-        );
-        setYaxis(yaxis);
+        // For some reason, xmlns won't serialize, so we mangle the name and replace it later
+        svg.setAttribute("XXxmlnsXX", "http://www.w3.org/2000/svg");
+        svg.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
+        svg.setAttribute("version", "1.1");
 
-        setBoard(board);
-    }, [boardRef]);
+        // These shouldn't be needed because we are replacing all `var(--foo)` with their values,
+        // but we keep them as a backup
+        const style = svgDom.createElement("style");
+        style.textContent = `
+            :root {
+              --canvastext: black;
+              --lightBlue: hsl(209, 54%, 82%);
+              --solidLightBlue: #8fb8de;
+              --mainGray: #e3e3e3;
+              --donutBody: #eea177;
+              --donutTopping: #6d4445;
+              --mainRed: #c1292e;
+              --lightRed: hsl(0, 54%, 82%);
+              --mainGreen: #459152;
+              --lightGreen: #a6f19f;
+              --lightYellow: #f5ed85;
+              --whiteBlankLink: #6d4445;
+              --mainYellow: #94610a;
+              --mainPurple: #4a03d9;
+            }
+        `;
+        // Prepend the style element
+        svg.insertBefore(style, svg.firstChild);
 
-    const elementChildrenIds = React.useMemo(
-        () =>
-            node.children
-                .filter((n) => typeof n === "object" && "id" in n)
-                .map((n) => (n as any).id) as number[],
-        [node.children],
-    );
+        svgSource =
+            `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n` +
+            new XMLSerializer().serializeToString(svgDom);
+        svgSource = svgSource.replace(/XXxmlnsXX/g, "xmlns");
 
-    return (
-        <div className="graph-container">
-            <div
-                className="jsxgraph-container"
-                id={boardId}
-                ref={boardRef}
-            ></div>
-            <GraphContext.Provider value={board}>
-                {elementChildrenIds.map((id) => (
-                    <Element key={id} id={id} constraint="graph" />
-                ))}
-            </GraphContext.Provider>
-            <NavButtons board={board} />
-        </div>
-    );
+        // Replace CSS variables with actual values
+        // Doing raw string manipulation isn't ideal.
+        // Replace when a better method is found.
+        const css = window.getComputedStyle(svgElm);
+        svgSource = replaceCssVars(svgSource, css);
+    }
+
+    return React.createElement("graph", { svgSource });
 };
 
-function NavButtons({ board }: { board: JSG.Board | null }) {
-    if (!board) {
-        return "No Board";
-    }
-    return (
-        <div className="jsxgraph-nav-buttons">
-            <Toolbar className="toolbar grouped-buttons">
-                <ToolbarItem
-                    className="button"
-                    title="Zoom Out"
-                    onClick={() => {
-                        board.zoomOut();
-                    }}
-                >
-                    <VscZoomOut />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button"
-                    title="Reset Zoom"
-                    onClick={() => {
-                        board.zoom100();
-                    }}
-                >
-                    <VscScreenNormal />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button"
-                    title="Zoom In"
-                    onClick={() => {
-                        board.zoomIn();
-                    }}
-                >
-                    <VscZoomIn />
-                </ToolbarItem>
-            </Toolbar>
-            <Toolbar className="toolbar pan-buttons">
-                <ToolbarItem
-                    className="button west"
-                    title="Pan Left"
-                    onClick={() => {
-                        board.clickLeftArrow();
-                    }}
-                >
-                    <VscChevronLeft />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button east"
-                    title="Pan Right"
-                    onClick={() => {
-                        board.clickRightArrow();
-                    }}
-                >
-                    <VscChevronRight />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button north"
-                    title="Pan Down"
-                    onClick={() => {
-                        board.clickDownArrow();
-                    }}
-                >
-                    <VscChevronUp />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button south"
-                    title="Pan Up"
-                    onClick={() => {
-                        board.clickUpArrow();
-                    }}
-                >
-                    <VscChevronDown />
-                </ToolbarItem>
-                <ToolbarItem
-                    className="button center"
-                    title="Center"
-                    onClick={() => {
-                        const [xmin, ymax, xmax, ymin] = board.getBoundingBox();
-                        const width = xmax - xmin;
-                        const height = ymax - ymin;
-
-                        board.setBoundingBox([
-                            -width / 2,
-                            height / 2,
-                            width / 2,
-                            -height / 2,
-                        ]);
-                    }}
-                >
-                    <VscTarget />
-                </ToolbarItem>
-            </Toolbar>
-        </div>
-    );
+/**
+ * Replace instances of `var(--name)` with the actual value of the CSS variable `--name`
+ * if found. Otherwise leave the variable as is.
+ */
+function replaceCssVars(str: string, css: CSSStyleDeclaration): string {
+    return str.replace(/var\((--[^)]+)\)/g, (wholeMatch, name) => {
+        return css.getPropertyValue(name).trim() || wholeMatch;
+    });
 }

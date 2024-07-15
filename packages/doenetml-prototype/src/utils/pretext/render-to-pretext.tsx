@@ -3,7 +3,7 @@ import {
     _dastReducerActions,
     dastReducer,
 } from "../../state/redux-slices/dast";
-import { toXml } from "xast-util-to-xml";
+import * as Xast from "xast";
 import { FlatDastRoot } from "../../../../doenetml-worker-rust/dist/CoreWorker";
 import { configureStore } from "@reduxjs/toolkit";
 import {
@@ -17,16 +17,20 @@ import { renderReactToXast } from "./xast-reconciler";
 import { normalizeAttrs } from "./normalize-attrs";
 
 /**
- * Use React's rendering pipeline to render the FlatDast to PreTeXt.
+ * Use React's rendering pipeline to render the FlatDast to PreTeXt in the form of a XAST
+ * XML Abstract Syntax Tree. This can be turned into a string using `xast-util-to-xml`.
  */
-export function renderToPretext(flatDast: FlatDastRoot) {
+export function renderToPretext(flatDast: FlatDastRoot): Xast.Root {
     // Do some pre-processing on the root
     flatDast = structuredClone(flatDast);
     ensurePretextTag(flatDast);
 
     // Make sure none of the attribute names clash with special React names (e.g. `ref` and `key`).
     for (const element of flatDast.elements) {
-        element.attributes = normalizeAttrs(element.attributes);
+        if (element.attributes == null) {
+            console.warn("Found element without attributes", element);
+        }
+        element.attributes = normalizeAttrs(element.attributes) ?? {};
     }
 
     // Create a new store independent of the existing Redux store.
@@ -40,7 +44,7 @@ export function renderToPretext(flatDast: FlatDastRoot) {
 
     // Strip off any `name` attribute left over from the DAST
     for (const element of flatDast.elements) {
-        delete element.attributes.name;
+        delete element.attributes?.name;
     }
 
     store.dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
@@ -72,5 +76,5 @@ export function renderToPretext(flatDast: FlatDastRoot) {
         value: 'version="1.0" encoding="UTF-8"',
     });
 
-    return toXml(xast, { closeEmptyElements: true });
+    return xast;
 }
