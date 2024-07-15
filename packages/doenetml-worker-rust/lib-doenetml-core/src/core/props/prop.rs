@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use crate::components::{types::PropPointer, Boolean, Text, _Fragment};
+use crate::components::{types::PropPointer, Boolean, Math, Number, Text, _Fragment};
 
-use super::{PropProfile, PropUpdaterUntyped, PropValueDiscriminants};
+use super::{PropProfile, PropUpdaterUntyped, PropValueType};
 
 /// Data associated with a prop that is "owned" by a component.
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ pub type UpdaterObject = Rc<dyn PropUpdaterUntyped>;
 pub struct PropDefinition {
     /// The updater holds all of the `calculate`, etc. functions for the prop.
     pub updater: UpdaterObject,
-    pub variant: PropValueDiscriminants,
+    pub variant: PropValueType,
     /// Information about the prop that can only be determined from the parent component.
     pub meta: PropDefinitionMeta,
 }
@@ -39,32 +39,40 @@ impl PropDefinition {
     /// type that should be used to wrap the prop.
     pub fn preferred_component_type(&self) -> &'static str {
         match self.variant {
-            PropValueDiscriminants::Integer => {
-                unimplemented!("haven't yet created a number component")
+            PropValueType::Number => Number::NAME,
+            PropValueType::Math => Math::NAME,
+            PropValueType::String => Text::NAME,
+            PropValueType::Boolean => Boolean::NAME,
+
+            PropValueType::Integer => {
+                unimplemented!("haven't yet created a integer component")
             }
-            PropValueDiscriminants::Number => {
-                unimplemented!("haven't yet created a number component")
+
+            PropValueType::ComponentRef
+            | PropValueType::ComponentRefs
+            | PropValueType::AnnotatedContentRefs
+            | PropValueType::ContentRefs
+            | PropValueType::ContentRef => _Fragment::NAME,
+
+            PropValueType::XrefLabel
+            | PropValueType::ListDepth
+            | PropValueType::ListMarker
+            | PropValueType::DivisionType => {
+                panic!("no bare references to {:?} allowed", self.variant)
             }
-            PropValueDiscriminants::XrefLabel
-            | PropValueDiscriminants::ListDepth
-            | PropValueDiscriminants::ListMarker
-            | PropValueDiscriminants::DivisionType => {
-                panic!("no bare references to allowed")
+            _ => {
+                panic!("No preferred component type for {:?}", self.variant)
             }
-            PropValueDiscriminants::String => Text::NAME,
-            PropValueDiscriminants::Boolean => Boolean::NAME,
-            PropValueDiscriminants::Math => "math",
-            PropValueDiscriminants::ComponentRef
-            | PropValueDiscriminants::ComponentRefs
-            | PropValueDiscriminants::AnnotatedContentRefs
-            | PropValueDiscriminants::ContentRefs
-            | PropValueDiscriminants::ContentRef => _Fragment::NAME,
-            PropValueDiscriminants::PropVec => {
-                panic!("No preferred component type for PropVec")
-            }
-            PropValueDiscriminants::None => {
-                panic!("No preferred component type for None")
-            }
+        }
+    }
+
+    pub fn profile_from_prop_value_type(&self) -> Option<PropProfile> {
+        match self.variant {
+            PropValueType::Number => Some(PropProfile::Number),
+            PropValueType::Math => Some(PropProfile::Math),
+            PropValueType::String => Some(PropProfile::String),
+            PropValueType::Boolean => Some(PropProfile::Boolean),
+            _ => None,
         }
     }
 }
