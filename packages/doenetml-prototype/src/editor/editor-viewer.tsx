@@ -78,6 +78,7 @@ export function EditorViewer({ doenetML = "" }: EditorViewerProps) {
                                 : "The code has not changes since the last render"
                         }
                         onClick={() => {
+                            setErrors([]);
                             setSourceForRender(sourceInEditor);
                         }}
                     >
