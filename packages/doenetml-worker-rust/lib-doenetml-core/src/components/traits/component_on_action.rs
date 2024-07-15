@@ -3,7 +3,9 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 
 use crate::components::{
-    doenet::{point::PointActions, text::TextActions, text_input::TextInputActions},
+    doenet::{
+        graph::GraphActions, point::PointActions, text::TextActions, text_input::TextInputActions,
+    },
     types::{ActionQueryProp, UpdateFromAction},
     ComponentEnum,
 };
@@ -21,6 +23,7 @@ pub enum ActionsEnum {
     Text(TextActions),
     TextInput(TextInputActions),
     Point(PointActions),
+    Graph(GraphActions),
 }
 
 /// The `ComponentOnAction` trait allows a component to handle actions sent to the component.

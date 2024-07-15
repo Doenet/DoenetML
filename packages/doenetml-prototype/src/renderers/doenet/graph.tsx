@@ -15,6 +15,9 @@ import { BasicComponent } from "../types";
 import "./graph.css";
 import { Toolbar, ToolbarItem } from "@ariakit/react";
 import { Element } from "../element";
+import { Action, GraphProps } from "@doenet/doenetml-worker-rust";
+import { useAppDispatch } from "../../state/hooks";
+import { coreActions } from "../../state/redux-slices/core";
 
 (window as any).JSG = JSG;
 
@@ -36,23 +39,41 @@ export const LAYER_OFFSETS = {
     text: 6,
 };
 
-export const Graph: BasicComponent = ({ node }) => {
+type GraphData = { props: GraphProps };
+type BoundingBox = [x1: number, y1: number, x2: number, y2: number];
+
+export const Graph: BasicComponent<GraphData> = ({ node }) => {
     const boardId = "jsxgraph-board-" + node.data.id;
     const boardRef = React.useRef<HTMLDivElement>(null);
     const [board, setBoard] = React.useState<JSG.Board | null>(null);
     const [xaxis, setXaxis] = React.useState<JSG.Axis | null>(null);
     const [yaxis, setYaxis] = React.useState<JSG.Axis | null>(null);
+    const previousBoundingBox = React.useRef<BoundingBox | null>(null);
+
+    // whether or not we're in the process of setting the bounding box
+    const settingBoundingBox = React.useRef(false);
+
+    const dispatch = useAppDispatch();
 
     React.useLayoutEffect(() => {
         if (!boardRef.current) {
             return;
         }
+
+        let boundingBox: BoundingBox = [
+            node.data.props.xMin,
+            node.data.props.yMax,
+            node.data.props.xMax,
+            node.data.props.yMin,
+        ];
+        previousBoundingBox.current = boundingBox;
+
         const board = JSXGraph.initBoard(boardRef.current, {
             axis: false,
             grid: false,
             showNavigation: false,
             showCopyright: false,
-            boundingBox: [-5, 5, 5, -5],
+            boundingBox: boundingBox,
             // Sometimes needed to keep the board from continually expanding
             resize: { enabled: false, throttle: 100 },
             renderer: "svg",
@@ -98,8 +119,69 @@ export const Graph: BasicComponent = ({ node }) => {
         );
         setYaxis(yaxis);
 
+        board.on("boundingbox", () => {
+            if (!settingBoundingBox.current) {
+                let newBoundingBox = board.getBoundingBox();
+                let [xMin, yMax, xMax, yMin] = newBoundingBox;
+
+                // look for a change in bounding box that isn't due to round-off error
+                let xScale = Math.abs(xMax - xMin);
+                let yScale = Math.abs(yMax - yMin);
+                let diffs = newBoundingBox.map((v, i) =>
+                    Math.abs(v - (previousBoundingBox.current?.[i] ?? 0)),
+                );
+                if (
+                    Math.max(
+                        diffs[0] / xScale,
+                        diffs[1] / yScale,
+                        diffs[2] / xScale,
+                        diffs[3] / yScale,
+                    ) > 1e-12
+                ) {
+                    previousBoundingBox.current = newBoundingBox;
+
+                    let action: Action = {
+                        component: "graph",
+                        actionName: "changeAxisLimits",
+                        componentIdx: node.data.id,
+                        args: {
+                            x_min: xMin,
+                            x_max: xMax,
+                            y_min: yMin,
+                            y_max: yMax,
+                        },
+                    };
+                    dispatch(coreActions.dispatchAction(action));
+                }
+            }
+        });
+
         setBoard(board);
+
+        return () => {
+            board.off("boundingbox");
+        };
     }, [boardRef]);
+
+    let boundingBox: BoundingBox = [
+        node.data.props.xMin,
+        node.data.props.yMax,
+        node.data.props.xMax,
+        node.data.props.yMin,
+    ];
+
+    if (
+        board &&
+        boundingBox.some((v, i) => v !== previousBoundingBox.current?.[i])
+    ) {
+        settingBoundingBox.current = true;
+        board.setBoundingBox(boundingBox);
+        settingBoundingBox.current = false;
+        // seem to need to call fullUpdate to get the ticks correct
+        board.fullUpdate();
+
+        previousBoundingBox.current = boundingBox;
+    }
 
     const elementChildrenIds = React.useMemo(
         () =>
