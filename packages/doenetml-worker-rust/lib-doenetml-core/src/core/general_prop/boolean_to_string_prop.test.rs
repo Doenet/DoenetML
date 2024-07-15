@@ -1,7 +1,11 @@
-use crate::props::cache::PropWithMeta;
+use crate::{
+    general_prop::test_utils::{
+        assert_string_calculated_value, return_single_boolean_data_query_result,
+    },
+    props::cache::PropWithMeta,
+};
 
 use super::*;
-use setup_functions::*;
 
 /// check that a boolean-to_string prop
 /// gives the correct data query that requests correct prop
@@ -113,37 +117,4 @@ fn inverting_boolean_to_string_is_case_insensitive() {
             origin: None
         }]
     );
-}
-
-mod setup_functions {
-
-    use super::*;
-
-    pub fn return_single_boolean_data_query_result(
-        value: bool,
-        came_from_default: bool,
-    ) -> DataQueryResult {
-        DataQueryResult {
-            values: vec![PropWithMeta {
-                value: PropValue::Boolean(value),
-                came_from_default,
-                changed: true,
-                origin: None,
-            }],
-        }
-    }
-
-    pub fn assert_string_calculated_value(result: PropCalcResult<PropValue>, value: &str) {
-        let value: PropValue = value.into();
-
-        match result {
-            PropCalcResult::FromDefault(_) => {
-                panic!("incorrectly from default")
-            }
-            PropCalcResult::Calculated(string_prop) => {
-                assert_eq!(string_prop, value)
-            }
-            PropCalcResult::NoChange => panic!("Incorrectly no change"),
-        }
-    }
 }

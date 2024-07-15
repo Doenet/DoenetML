@@ -1,10 +1,12 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     components::prelude::*,
     props::{InvertError, UpdaterObject},
-    state::types::math_expr::MathExpr,
+    state::types::math_expr::{MathExpr, MathParser},
 };
+
+use super::math_prop::{calculate_math_from_prop_value_vector, MathPropCache};
 
 /// A number prop that calculates its value from dependencies.
 ///
@@ -42,6 +44,10 @@ pub struct NumberProp {
     /// If `false`, then `came_from_default` will be true only if no dependencies were found
     /// and we are returning an independent value that hasn't yet been changed from its default.
     propagate_came_from_default: bool,
+
+    /// A cached value of the expression template used to calculate the final mathematical expression,
+    /// saved here in order to prevent the need for its recalculation if only math values change
+    cache: RefCell<MathPropCache>,
 }
 
 impl NumberProp {
@@ -61,6 +67,7 @@ impl NumberProp {
             },
             default_value,
             propagate_came_from_default: true,
+            cache: Default::default(),
         }
     }
     /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
@@ -106,6 +113,7 @@ impl PropFromAttribute<prop_type::Number> for NumberProp {
             },
             default_value,
             propagate_came_from_default: true,
+            cache: Default::default(),
         }
     }
 }
@@ -181,38 +189,22 @@ impl PropUpdater for NumberProp {
                         PropCalcResult::Calculated(math_value.to_number())
                     }
                     PropValue::String(string_value) => {
-                        let converted_number =
-                            string_value.parse().unwrap_or(prop_type::Number::NAN);
-                        PropCalcResult::Calculated(converted_number)
+                        // attempt to convert string into a number
+                        PropCalcResult::Calculated(MathExpr::number_from_text(&**string_value))
                     }
                     _ => unreachable!(),
                 }
             }
             _ => {
-                if numbers_maths_and_strings
-                    .iter()
-                    .any(|prop| matches!(&prop.value, PropValue::Math(_) | PropValue::Number(_)))
-                {
-                    // invalid combination. Haven't implemented number dependency with others
-                    PropCalcResult::Calculated(prop_type::Number::NAN)
-                } else {
-                    // Have multiple string variables. Concatenate the string values into a single string
-
-                    if numbers_maths_and_strings.iter().all(|prop| !prop.changed) {
-                        return PropCalcResult::NoChange;
-                    }
-
-                    let mut value = String::new();
-
-                    for prop in numbers_maths_and_strings {
-                        match &prop.value {
-                            PropValue::String(string_value) => value += string_value,
-                            _ => unreachable!(),
-                        }
-                    }
-
-                    let converted_number = value.parse().unwrap_or(prop_type::Number::NAN);
-                    PropCalcResult::Calculated(converted_number)
+                match calculate_math_from_prop_value_vector(
+                    numbers_maths_and_strings,
+                    None,
+                    MathParser::Text,
+                    &[],
+                    &self.cache,
+                ) {
+                    Ok(math_expr) => PropCalcResult::Calculated(math_expr.to_number()),
+                    Err(()) => PropCalcResult::NoChange,
                 }
             }
         }

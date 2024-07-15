@@ -36,7 +36,7 @@ pub fn eval_js(_source: &str) -> Result<String, anyhow::Error> {
     ))
 }
 
-/// Parsing a string into math using the `math-expressions` text parser.
+/// Parse a string into math using the `math-expressions` text parser.
 ///
 /// Parameters:
 /// - `text`: the string to be parsed
@@ -152,7 +152,7 @@ pub fn math_to_text(
     ))
 }
 
-/// Parsing a string into math using the `math-expressions` latex parser.
+/// Parse a string into math using the `math-expressions` latex parser.
 ///
 /// Parameters:
 /// - `latex`: the string to be parsed
@@ -392,6 +392,33 @@ pub fn evaluate_to_number(
     ))
 }
 
+/// Parse a string into math using the `math-expressions` text parser and then attempt to evaluate the result
+/// as a number
+///
+/// Parameters:
+/// - `text`: the string to be parsed
+///
+/// Examples:
+/// - `parse_text_into_number("3-e^0")` is 2.
+#[cfg(all(not(feature = "testing"), feature = "web"))]
+pub fn parse_text_into_number<Text: AsRef<str>>(
+    text: Text,
+) -> Result<crate::props::prop_type::Number, anyhow::Error> {
+    let result: JsValue =
+        parseTextIntoNumber(JsString::from(text.as_ref())).map_err(|e| anyhow!("{:?}", e))?;
+    result
+        .as_f64()
+        .ok_or(anyhow!("parseTextIntoNumber() did not return a number!"))
+}
+#[cfg(any(feature = "testing", not(feature = "web")))]
+pub fn parse_text_into_number<Text: AsRef<str>>(
+    _text: Text,
+) -> Result<crate::props::prop_type::Number, anyhow::Error> {
+    Err(anyhow!(
+        "parse_text_into_number is only available when compiled with the `web` feature".to_string()
+    ))
+}
+
 #[cfg(all(not(feature = "testing"), feature = "web"))]
 #[wasm_bindgen]
 extern "C" {
@@ -445,4 +472,7 @@ extern "C" {
 
     #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]
     pub fn evaluateToNumber(mathObject: JsString) -> Result<JsValue, JsValue>;
+
+    #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]
+    pub fn parseTextIntoNumber(source: JsString) -> Result<JsValue, JsValue>;
 }

@@ -292,6 +292,16 @@ pub fn add_math_expr_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) {
     embed_test!(
         all_tests,
         test_name,
+        fn parse_text_into_numbers() {
+            assert_eq!(MathExpr::number_from_text("3/e^0"), 3.0);
+
+            assert!(MathExpr::number_from_text("x").is_nan());
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
         fn math_expr_from_numbers() {
             let expr1: MathExpr = 5.into();
             assert_eq!(expr1.to_text(ToTextParams::default()), "5");

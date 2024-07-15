@@ -7,6 +7,7 @@ pub mod document;
 pub mod graph;
 pub mod li;
 pub mod math;
+pub mod number;
 pub mod ol;
 pub mod p;
 pub mod point;

@@ -11,7 +11,10 @@ use crate::{
             return_single_string_data_query_result,
         },
     },
-    props::{as_updater_object, cache::PropWithMeta, prop_type, DataQueryResults},
+    props::{
+        as_updater_object, cache::PropWithMeta, prop_type, DataQueryResult, DataQueryResults,
+        PropValue,
+    },
     state::types::math_expr::{MathExpr, MathParser},
 };
 
@@ -347,6 +350,140 @@ pub fn add_math_prop_wasm_tests(all_tests: &mut Vec<String>, test_name: &str) {
                     came_from_default: false,
                     origin: None
                 }]
+            );
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn math_prop_keep_fraction_from_single_string_child() {
+            let prop =
+                as_updater_object::<_, prop_type::Math>(general_prop::MathProp::new_from_children(
+                    0.7,
+                    MathParser::Text,
+                    vec!["f".to_string()],
+                ));
+
+            let independent_state = return_single_math_data_query_result(Rc::new(3.1.into()), true);
+            let with_fixed_not_needed = return_empty_data_query_result();
+            let split_symbols_result = return_single_boolean_data_query_result(true, true);
+
+            // with single string child that is a fraction
+            let string_child = return_single_string_data_query_result("6/3", false);
+            let data = DataQueryResults::from_vec(vec![
+                independent_state.clone(),
+                string_child,
+                with_fixed_not_needed.clone(),
+                split_symbols_result.clone(),
+            ]);
+            assert_math_calculated_value(
+                prop.calculate_untyped(data),
+                Rc::new(MathExpr::from_text("6/3", true, &["f"])),
+            );
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn math_prop_from_string_with_split_symbols() {
+            let prop =
+                as_updater_object::<_, prop_type::Math>(general_prop::MathProp::new_from_children(
+                    0.7,
+                    MathParser::Text,
+                    vec!["f".to_string()],
+                ));
+
+            let independent_state = return_single_math_data_query_result(Rc::new(3.1.into()), true);
+            let with_fixed_not_needed = return_empty_data_query_result();
+            let split_symbols_result = return_single_boolean_data_query_result(true, false);
+            let no_split_symbols_result = return_single_boolean_data_query_result(false, false);
+            let string_child = return_single_string_data_query_result("xyz", false);
+
+            let data = DataQueryResults::from_vec(vec![
+                independent_state.clone(),
+                string_child.clone(),
+                with_fixed_not_needed.clone(),
+                split_symbols_result.clone(),
+            ]);
+            assert_math_calculated_value(
+                prop.calculate_untyped(data),
+                Rc::new(MathExpr::from_text("xyz", true, &["f"])),
+            );
+            let data = DataQueryResults::from_vec(vec![
+                independent_state.clone(),
+                string_child.clone(),
+                with_fixed_not_needed.clone(),
+                no_split_symbols_result.clone(),
+            ]);
+            assert_math_calculated_value(
+                prop.calculate_untyped(data),
+                Rc::new(MathExpr::from_text("xyz", false, &["f"])),
+            );
+        }
+    );
+
+    embed_test!(
+        all_tests,
+        test_name,
+        fn math_prop_from_string_numbers_and_maths() {
+            let prop =
+                as_updater_object::<_, prop_type::Math>(general_prop::MathProp::new_from_children(
+                    0.7,
+                    MathParser::Text,
+                    vec!["f".to_string()],
+                ));
+
+            let independent_state = return_single_math_data_query_result(Rc::new(3.1.into()), true);
+            let with_fixed_not_needed = return_empty_data_query_result();
+            let split_symbols_result = return_single_boolean_data_query_result(true, false);
+
+            let children = DataQueryResult {
+                values: vec![
+                    PropWithMeta {
+                        value: PropValue::String("x+".to_string().into()),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::Math(Rc::new(MathExpr::from_text("y", true, &["f"]))),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::String(" - ".to_string().into()),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::Number(7.1),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                    PropWithMeta {
+                        value: PropValue::Math(Rc::new(MathExpr::from_text("z", true, &["f"]))),
+                        came_from_default: false,
+                        changed: true,
+                        origin: None,
+                    },
+                ],
+            };
+
+            let data = DataQueryResults::from_vec(vec![
+                independent_state,
+                children,
+                with_fixed_not_needed,
+                split_symbols_result,
+            ]);
+
+            assert_math_calculated_value(
+                prop.calculate_untyped(data),
+                Rc::new(MathExpr::from_text("x+y-7.1z", true, &["f"])),
             );
         }
     );

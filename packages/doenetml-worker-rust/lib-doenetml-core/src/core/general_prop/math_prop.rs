@@ -279,6 +279,17 @@ impl PropUpdater for MathProp {
                         changed,
                         ..
                     } => {
+                        // first check if string is just a number, in which case we have
+                        // a shortcut to create the math
+
+                        match string_value.parse::<prop_type::Number>() {
+                            Ok(converted_number) => {
+                                let math_expr: MathExpr = converted_number.into();
+                                return PropCalcResult::Calculated(Rc::new(math_expr));
+                            }
+                            Err(..) => {}
+                        }
+
                         // TODO: once `function_symbols` is based on data query,
                         // check if that changed as well
                         if *changed
@@ -312,100 +323,16 @@ impl PropUpdater for MathProp {
                 }
             }
             _ => {
-                // Now we have the more complicated case where that math expression is based on multiple components.
-                //
-                // Overall strategy: create a "expression template" by concatenating all values
-                // while replacing all maths and numbers by with a unique code
-                // (typically m1, m2, etc., unless "m" appears in a string)
-                // and parsing the resulting string into a math expression.
-                // We cache that expression template, along with the codes used, onto `self`,
-                // so that we don't have to recalculate it unless a string changes
-                // or a parameter that controls parsing is changed.
-                //
-                // The final step is to substitute the values of the math components
-                // for their codes into the expression_template.
-
-                let string_changed = math_number_strings
-                    .iter()
-                    .filter(|view| match view.value {
-                        PropValue::Math(_) | PropValue::Number(_) => false,
-                        PropValue::String(_) => true,
-                        _ => unreachable!(),
-                    })
-                    .any(|view| view.changed);
-
-                let math_number_changed = math_number_strings.iter().any(|view| {
-                    matches!(view.value, PropValue::Math(_) | PropValue::Number(_)) && view.changed
-                });
-
-                if string_changed
-                    || split_symbols
-                        .as_ref()
-                        .map(|ss| ss.changed)
-                        .unwrap_or_default()
-                {
-                    // Either a string child has changed or split_symbols changed
-                    // (the latter condition will catch the first time calculate() is called).
-                    // We need to recalculate the expression template.
-
-                    let split_symbols_value = split_symbols.map(|ss| ss.value).unwrap_or(true);
-
-                    // Create the expression template from concatenating all values
-                    // while substituting codes for the math values
-                    let (expression_template, math_codes) = calc_expression_template(
-                        &math_number_strings,
-                        self.parser,
-                        split_symbols_value,
-                        &self.function_symbols,
-                    );
-
-                    // save the expression template and codes
-                    // so that we can avoid parsing the strings if only a math value changes
-                    let mut cache = self.cache.borrow_mut();
-                    cache.expression_template = Some(expression_template);
-                    cache.math_codes = math_codes;
+                match calculate_math_from_prop_value_vector(
+                    math_number_strings,
+                    split_symbols,
+                    self.parser,
+                    &self.function_symbols,
+                    &self.cache,
+                ) {
+                    Ok(math_expr) => PropCalcResult::Calculated(Rc::new(math_expr)),
+                    Err(()) => PropCalcResult::NoChange,
                 }
-
-                if !(string_changed || math_number_changed) {
-                    return PropCalcResult::NoChange;
-                }
-
-                // create the substitutions map,
-                // where the keys are the codes for the math values
-                // and the values are the math values
-                let mut substitutions = HashMap::new();
-                substitutions.extend(
-                    math_number_strings
-                        .iter()
-                        .filter_map(|prop| match &prop.value {
-                            PropValue::Math(_) | PropValue::Number(_) => Some(prop),
-                            PropValue::String(_) => None,
-                            _ => unreachable!(),
-                        })
-                        .enumerate()
-                        .map(|(idx, prop)| {
-                            (
-                                self.cache.borrow().math_codes[idx].clone(),
-                                match &prop.value {
-                                    PropValue::Math(math_prop) => {
-                                        MathArg::Math((**math_prop).clone())
-                                    }
-                                    PropValue::Number(number_prop) => MathArg::Number(*number_prop),
-                                    _ => unreachable!(),
-                                },
-                            )
-                        }),
-                );
-
-                // substitute into the expression template
-                PropCalcResult::Calculated(Rc::new(
-                    self.cache
-                        .borrow()
-                        .expression_template
-                        .as_ref()
-                        .unwrap()
-                        .substitute(&substitutions),
-                ))
             }
         }
     }
@@ -544,6 +471,116 @@ impl PropUpdater for MathProp {
 //     }
 // }
 
+/// Calculate a math expression from multiple components,
+/// where components are math, number, or string prop values.
+///
+/// Note: we assume that `math_number_strings` has already been
+/// verified to have only math, number, and string values.
+///
+///
+/// # Parameters
+/// - `math_number_strings`: the math, number and string values forming the expression
+/// - `split_symbols`: if true or none, the parse will split multi-character variables that don't contain digits
+/// - `parser`: an enum specifying whether to use the latex or text parser to create the `MathExpr`
+///   into the product of their characters
+/// - `function_symbols`: the list of variable names that will be treated as a function if they are followed
+///   by parentheses.
+/// - cache: a cache to store data from parsing the overall structure,
+///   which can be reused if the strings and parameters are unchanged
+///
+/// # Returns
+/// A result:
+/// - Ok: the math expression calculated
+/// - Err: if there was no changed detected
+pub fn calculate_math_from_prop_value_vector(
+    math_number_strings: Vec<PropView<PropValue>>,
+    split_symbols: Option<PropView<bool>>,
+    parser: MathParser,
+    function_symbols: &[String],
+    cache: &RefCell<MathPropCache>,
+) -> Result<MathExpr, ()> {
+    // Overall strategy: create a "expression template" by concatenating all values
+    // while replacing all maths and numbers by with a unique code
+    // (typically m1, m2, etc., unless "m" appears in a string)
+    // and parsing the resulting string into a math expression.
+    // We cache that expression template, along with the codes used, onto `self`,
+    // so that we don't have to recalculate it unless a string changes
+    // or a parameter that controls parsing is changed.
+    //
+    // The final step is to substitute the values of the math components
+    // for their codes into the expression_template.
+
+    let string_changed = math_number_strings
+        .iter()
+        .filter(|view| match view.value {
+            PropValue::Math(_) | PropValue::Number(_) => false,
+            PropValue::String(_) => true,
+            _ => unreachable!(),
+        })
+        .any(|view| view.changed);
+    let math_number_changed = math_number_strings.iter().any(|view| {
+        matches!(view.value, PropValue::Math(_) | PropValue::Number(_)) && view.changed
+    });
+    if string_changed
+        || split_symbols
+            .as_ref()
+            .map(|ss| ss.changed)
+            .unwrap_or_default()
+    {
+        // Either a string child has changed or split_symbols changed
+        // (the latter condition will catch the first time calculate() is called).
+        // We need to recalculate the expression template.
+
+        let split_symbols_value = split_symbols.map(|ss| ss.value).unwrap_or(true);
+
+        // Create the expression template from concatenating all values
+        // while substituting codes for the math values
+        let (expression_template, math_codes) = calc_expression_template(
+            &math_number_strings,
+            parser,
+            split_symbols_value,
+            function_symbols,
+        );
+
+        // save the expression template and codes
+        // so that we can avoid parsing the strings if only a math value changes
+        let mut borrowed_cache = cache.borrow_mut();
+        borrowed_cache.expression_template = Some(expression_template);
+        borrowed_cache.math_codes = math_codes;
+    }
+    if !(string_changed || math_number_changed) {
+        return Err(());
+    }
+    let mut substitutions = HashMap::new();
+    substitutions.extend(
+        math_number_strings
+            .iter()
+            .filter_map(|prop| match &prop.value {
+                PropValue::Math(_) | PropValue::Number(_) => Some(prop),
+                PropValue::String(_) => None,
+                _ => unreachable!(),
+            })
+            .enumerate()
+            .map(|(idx, prop)| {
+                (
+                    cache.borrow().math_codes[idx].clone(),
+                    match &prop.value {
+                        PropValue::Math(math_prop) => MathArg::Math((**math_prop).clone()),
+                        PropValue::Number(number_prop) => MathArg::Number(*number_prop),
+                        _ => unreachable!(),
+                    },
+                )
+            }),
+    );
+
+    Ok(cache
+        .borrow()
+        .expression_template
+        .as_ref()
+        .unwrap()
+        .substitute(&substitutions))
+}
+
 /// Calculate an expression template by concatenating all math and string values,
 /// but using a generated unique code for each math value.
 ///
@@ -552,15 +589,16 @@ impl PropUpdater for MathProp {
 /// The key is that the expression template doesn't change if the math values change,
 /// eliminating the need for the relatively expensive re-parsing of the string.
 ///
-/// Parameters:
-/// - `math_number_strings`: the math and string values forming the expression
+/// # Parameters
+/// - `math_number_strings`: the math, number and string values forming the expression
 /// - `parser`: an enum specifying whether to use the latex or text parser to create the `MathExpr`
 /// - `split_symbols`: if true, the parse will split multi-character variables that don't contain digits
 ///   into the product of their characters
 /// - `function_symbols`: the list of variable names that will be treated as a function if they are followed
 ///   by parentheses.
 ///
-/// Return a tuple of:
+/// # Returns
+/// A tuple of:
 /// - the expression template
 /// - the generated codes for each math value
 fn calc_expression_template(
@@ -609,16 +647,17 @@ fn calc_expression_template(
 ///
 /// The code for each math value is `code_prefix` followed by a number.
 ///
-/// Parameters:
-/// - `math_number_strings`: the math and string values forming the expression
+/// # Parameters
+/// - `math_number_strings`: the math, number and string values forming the expression
 /// - `code_prefix`: the beginning of each generated code used to represent the math values
 /// - `parser`: an enum specifying whether we will use the latex or text parser to create the `MathExpr`
 ///
-/// Returns a tuple of:
+/// # Returns
+/// A tuple of:
 /// - the template string that will be parsed into the expression template
 /// - the math codes used to represent each math value
 ///
-/// Example:
+/// # Example
 /// If `math_number_strings` was derived from `3+<math>x^2</math> + y<math>z</math>`,
 /// and the `code_prefix` was `"m"`,
 /// then the template string (assuming the text `parser`) would become `"3+ m1  + y m2"`

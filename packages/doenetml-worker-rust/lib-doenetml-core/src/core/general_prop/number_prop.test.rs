@@ -168,11 +168,6 @@ fn from_string_children() {
     let single_child = return_single_string_data_query_result("6", false);
     let data = DataQueryResults::from_vec(vec![independent_state.clone(), single_child]);
     assert_number_calculated_value(prop.calculate_untyped(data), 6.0);
-
-    // with two children, ignore default
-    let two_children = return_two_string_data_query_result("7", "3", true, true);
-    let data = DataQueryResults::from_vec(vec![independent_state.clone(), two_children]);
-    assert_number_calculated_value(prop.calculate_untyped(data), 73.0);
 }
 
 /// Calling invert on a number prop with string children

@@ -11,6 +11,7 @@ pub use super::doenet::document::Document;
 pub use super::doenet::graph::Graph;
 pub use super::doenet::li::Li;
 pub use super::doenet::math::Math;
+pub use super::doenet::number::Number;
 pub use super::doenet::ol::Ol;
 pub use super::doenet::p::P;
 pub use super::doenet::point::Point;
@@ -39,6 +40,7 @@ pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
     Math(Math),
+    Number(Number),
     Boolean(Boolean),
     Division(Division),
     Title(Title),

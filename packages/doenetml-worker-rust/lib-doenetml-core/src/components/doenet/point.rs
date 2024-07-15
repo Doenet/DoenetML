@@ -3,7 +3,6 @@ use std::rc::Rc;
 use crate::components::prelude::*;
 use crate::general_prop::{BooleanProp, MathProp};
 use crate::props::UpdaterObject;
-use crate::state::types::math_expr::MathExpr;
 
 #[component(name = Point)]
 mod component {
@@ -29,10 +28,10 @@ mod component {
         #[attribute(prop = BooleanProp, default = false)]
         Hide,
         /// The point's x-coordinate
-        #[attribute(prop = MathProp, default = MathExpr::default())]
+        #[attribute(prop = MathProp, default = 0.0.into())]
         X,
         /// The point's y-coordinate
-        #[attribute(prop = MathProp, default = MathExpr::default())]
+        #[attribute(prop = MathProp, default = 0.0.into())]
         Y,
     }
 
@@ -85,11 +84,11 @@ impl ComponentOnAction for Point {
             PointActions::Move(ActionBody { args }) => Ok(vec![
                 UpdateFromAction {
                     local_prop_idx: PointProps::X.local_idx(),
-                    requested_value: PropValue::Math(Rc::new(MathExpr::from_number(args.x))),
+                    requested_value: PropValue::Math(Rc::new(args.x.into())),
                 },
                 UpdateFromAction {
                     local_prop_idx: PointProps::Y.local_idx(),
-                    requested_value: PropValue::Math(Rc::new(MathExpr::from_number(args.y))),
+                    requested_value: PropValue::Math(Rc::new(args.y.into())),
                 },
             ]),
         }

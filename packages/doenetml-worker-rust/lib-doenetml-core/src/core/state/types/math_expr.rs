@@ -9,12 +9,12 @@ use web_sys::js_sys::JsString;
 use crate::{
     math_via_wasm::{
         eval_js, evaluate_to_number, math_to_latex, math_to_text, normalize_math,
-        parse_latex_into_math, parse_text_into_math, substitute_into_math,
+        parse_latex_into_math, parse_text_into_math, parse_text_into_number, substitute_into_math,
     },
     props::prop_type,
 };
 
-const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
+const BLANK_MATH_OBJECT: &str = "\u{ff3f}";
 
 /// A symbolic mathematical expression.
 ///
@@ -37,8 +37,8 @@ impl MathExpr {
     /// that will be revived into the `math-expression` object when eval'ed in Javascript.
     pub fn to_reviver_string(&self) -> String {
         format!(
-            "JSON.parse({}, serializedComponentsReviver)",
-            serde_json::to_string(&self.math_object.0).unwrap()
+            "JSON.parse(\'{{\"objectType\":\"math-expression\",\"tree\":{}}}\', serializedComponentsReviver)",
+            self.math_object.0
         )
     }
 }
@@ -239,15 +239,6 @@ impl MathExpr {
         }
     }
 
-    pub fn from_number(x: prop_type::Number) -> Self {
-        MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{} }}",
-                x,
-            )),
-        }
-    }
-
     /// Create a new mathematical expression formed by substituting variables with new expressions
     ///
     /// Parameters:
@@ -367,8 +358,23 @@ impl MathExpr {
         MathExpr { math_object }
     }
 
+    pub fn number_from_text<TXT: AsRef<str>>(text: TXT) -> prop_type::Number {
+        let string = text.as_ref();
+
+        string
+            .parse::<prop_type::Number>()
+            .unwrap_or_else(|_| parse_text_into_number(string).unwrap_or(prop_type::Number::NAN))
+    }
+
     /// Evaluates the `self` as a number, returning `NaN` if value is non-numerical.
     pub fn to_number(&self) -> prop_type::Number {
+        match self.math_object.0.parse::<prop_type::Number>() {
+            Ok(converted_number) => {
+                return converted_number;
+            }
+            Err(..) => {}
+        }
+
         match evaluate_to_number(&self.math_object) {
             Ok(res) => res,
             Err(..) => prop_type::Number::NAN,
@@ -378,6 +384,13 @@ impl MathExpr {
     /// Attempts to evaluate `self` as a number.
     /// Return an `Err` if value is non-numerical.
     pub fn try_to_number(&self) -> Result<prop_type::Number, anyhow::Error> {
+        match self.math_object.0.parse::<prop_type::Number>() {
+            Ok(converted_number) => {
+                return Ok(converted_number);
+            }
+            Err(..) => {}
+        }
+
         let res = evaluate_to_number(&self.math_object)?;
 
         if res.is_nan() {
@@ -393,10 +406,7 @@ impl MathExpr {
 impl From<prop_type::Number> for MathExpr {
     fn from(value: prop_type::Number) -> Self {
         MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{}}}",
-                value,
-            )),
+            math_object: JsMathExpr(format!("{}", value,)),
         }
     }
 }
@@ -404,10 +414,7 @@ impl From<prop_type::Number> for MathExpr {
 impl From<prop_type::Integer> for MathExpr {
     fn from(value: prop_type::Integer) -> Self {
         MathExpr {
-            math_object: JsMathExpr(format!(
-                "{{\"objectType\":\"math-expression\",\"tree\":{}}}",
-                value,
-            )),
+            math_object: JsMathExpr(format!("{}", value,)),
         }
     }
 }
@@ -442,8 +449,8 @@ impl serde::Serialize for MathArg {
         // given that this last step is required for the Math variant
         match self {
             Self::Math(math_expr) => math_expr.math_object.serialize(serializer),
-            Self::Number(num) => serializer.serialize_str(&num.to_string()),
-            Self::Integer(num) => serializer.serialize_str(&num.to_string()),
+            Self::Number(num) => serializer.serialize_f64(*num),
+            Self::Integer(num) => serializer.serialize_i64(*num),
             Self::Symbol(var_name) => {
                 serializer.serialize_str(&serde_json::to_value(var_name).unwrap().to_string())
             }
@@ -456,7 +463,7 @@ impl MathArg {
     /// that will be revived into a Javascript object when eval'ed in Javascript.
     pub fn to_reviver_string(&self) -> String {
         format!(
-            "JSON.parse({}, serializedComponentsReviver)",
+            "JSON.parse(\'{{\"objectType\":\"math-expression\",\"tree\":{}}}\', serializedComponentsReviver)",
             serde_json::to_string(&self).unwrap()
         )
     }
