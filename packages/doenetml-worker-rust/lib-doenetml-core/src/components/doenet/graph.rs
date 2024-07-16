@@ -98,19 +98,19 @@ impl ComponentOnAction for Graph {
             GraphActions::ChangeAxisLimits(ActionBody { args }) => Ok(vec![
                 UpdateFromAction {
                     local_prop_idx: GraphProps::XMin.local_idx(),
-                    requested_value: PropValue::Number(args.x_min.into()),
+                    requested_value: PropValue::Number(args.x_min),
                 },
                 UpdateFromAction {
                     local_prop_idx: GraphProps::XMax.local_idx(),
-                    requested_value: PropValue::Number(args.x_max.into()),
+                    requested_value: PropValue::Number(args.x_max),
                 },
                 UpdateFromAction {
                     local_prop_idx: GraphProps::YMin.local_idx(),
-                    requested_value: PropValue::Number(args.y_min.into()),
+                    requested_value: PropValue::Number(args.y_min),
                 },
                 UpdateFromAction {
                     local_prop_idx: GraphProps::YMax.local_idx(),
-                    requested_value: PropValue::Number(args.y_max.into()),
+                    requested_value: PropValue::Number(args.y_max),
                 },
             ]),
         }
