@@ -74,4 +74,4 @@ jobs:
             - run: npm ci
 
             - name: Prettier Check
-              run: npx prettier . --check
+              run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci

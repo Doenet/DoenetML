@@ -10790,7 +10790,7 @@ describe("Function Tag Tests", function () {
 
         cy.log("set dark mode");
         cy.get("#testRunner_toggleControls").click();
-        cy.get("#testRunner_darkmode").click();
+        cy.get("#testRunner_darkMode").click();
         cy.wait(100);
         cy.get("#testRunner_toggleControls").click();
 

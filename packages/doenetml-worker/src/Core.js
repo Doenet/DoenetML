@@ -1179,7 +1179,7 @@ export default class Core {
         }
 
         if (triggeredAction && updateRenderersIfTriggered) {
-            this.updateAllChangedRenderers();
+            await this.updateAllChangedRenderers();
         }
     }
 
@@ -3693,6 +3693,7 @@ export default class Core {
             let stateVarDef = (stateVariableDefinitions[varName] = {
                 isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
+                provideEssentialValuesInDefinition: true,
             });
 
             if (attributeSpecification.public) {
@@ -3787,6 +3788,7 @@ export default class Core {
             stateVarDef.definition = function ({
                 dependencyValues,
                 usedDefault,
+                essentialValues,
             }) {
                 let attributeValue;
                 if (dependencyValues.attributeComponent) {
@@ -3813,7 +3815,11 @@ export default class Core {
                     let haveParentValue =
                         dependencyValues.parentValue !== undefined &&
                         dependencyValues.parentValue !== null;
-                    if (haveParentValue && !usedDefault.parentValue) {
+                    if (
+                        haveParentValue &&
+                        !usedDefault.parentValue &&
+                        essentialValues[varName] === undefined
+                    ) {
                         return {
                             setValue: {
                                 [varName]: dependencyValues.parentValue,
@@ -3848,6 +3854,7 @@ export default class Core {
                     desiredStateVariableValues,
                     dependencyValues,
                     usedDefault,
+                    essentialValues,
                 }) {
                     if (!dependencyValues.attributeComponent) {
                         if (
@@ -3870,7 +3877,11 @@ export default class Core {
                         let haveParentValue =
                             dependencyValues.parentValue !== undefined &&
                             dependencyValues.parentValue !== null;
-                        if (haveParentValue && !usedDefault.parentValue) {
+                        if (
+                            haveParentValue &&
+                            !usedDefault.parentValue &&
+                            essentialValues[varName] === undefined
+                        ) {
                             // value from parent was used, so propagate back to parent
                             return {
                                 success: true,
@@ -4190,6 +4201,7 @@ export default class Core {
             let stateVarDef = (stateVariableDefinitions[varName] = {
                 isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
+                provideEssentialValuesInDefinition: true,
             });
 
             let attributeFromPrimitive =
@@ -4287,6 +4299,7 @@ export default class Core {
             stateVarDef.definition = function ({
                 dependencyValues,
                 usedDefault,
+                essentialValues,
             }) {
                 let attributeValue;
                 if (dependencyValues.attributeComponent) {
@@ -4313,7 +4326,11 @@ export default class Core {
                     let haveParentValue =
                         dependencyValues.parentValue !== undefined &&
                         dependencyValues.parentValue !== null;
-                    if (haveParentValue && !usedDefault.parentValue) {
+                    if (
+                        haveParentValue &&
+                        !usedDefault.parentValue &&
+                        essentialValues[varName] === undefined
+                    ) {
                         return {
                             setValue: {
                                 [varName]: dependencyValues.parentValue,
@@ -4348,6 +4365,7 @@ export default class Core {
                     desiredStateVariableValues,
                     dependencyValues,
                     usedDefault,
+                    essentialValues,
                     stateValues,
                     workspace,
                 }) {
@@ -4372,7 +4390,11 @@ export default class Core {
                         let haveParentValue =
                             dependencyValues.parentValue !== undefined &&
                             dependencyValues.parentValue !== null;
-                        if (haveParentValue && !usedDefault.parentValue) {
+                        if (
+                            haveParentValue &&
+                            !usedDefault.parentValue &&
+                            essentialValues[varName] === undefined
+                        ) {
                             // value from parent was used, so propagate back to parent
                             return {
                                 success: true,
@@ -6846,7 +6868,7 @@ export default class Core {
 
         definitionArgs.freshnessInfo = stateVarObj.freshnessInfo;
 
-        // ararySize will be definited if have array or arrayEntry
+        // arraySize will be defined if have array or arrayEntry
         // (If have multiple state variables defined, they must be of same size)
         let arraySize = definitionArgs.arraySize;
 

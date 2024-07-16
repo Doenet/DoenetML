@@ -68950,11 +68950,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "viewerRatio",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
                     "name": "showResults",
                     "type": "boolean",
                     "isArray": false

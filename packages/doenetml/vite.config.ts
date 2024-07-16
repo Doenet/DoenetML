@@ -6,6 +6,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
+import { version } from "./package.json";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom", "styled-components"];
@@ -39,6 +40,9 @@ export default defineConfig({
             ],
         }),
     ],
+    define: {
+        DOENETML_VERSION: JSON.stringify(version),
+    },
     server: {
         port: 8012,
     },
@@ -46,8 +50,8 @@ export default defineConfig({
         minify: false,
         lib: {
             entry: {
-                doenetml: "./src/index.js",
-                "doenetml-inline-worker": "./src/index-inline-worker.ts",
+                index: "./src/index.ts",
+                "doenetml-inline-worker": "./src/doenetml-inline-worker.ts",
             },
             formats: ["es"],
         },
@@ -57,6 +61,13 @@ export default defineConfig({
                 globals: Object.fromEntries(
                     EXTERNAL_DEPS.map((dep) => [dep, dep]),
                 ),
+            },
+            onwarn(warning, warn) {
+                // Ignore warnings about module level directives. I.e., literal strings like `"use strict";` included at the top of source code.
+                if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+                    return;
+                }
+                warn(warning);
             },
         },
     },

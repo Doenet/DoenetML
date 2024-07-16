@@ -2,7 +2,7 @@ import React from "react";
 import { vscode } from "./utilities/vscode";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 // @ts-ignore
-import { DoenetML } from "@doenet/doenetml/doenetml-inline-worker.js";
+import { DoenetViewer } from "@doenet/doenetml/doenetml-inline-worker.js";
 import "./App.css";
 import "@doenet/doenetml/style.css";
 import { onClassChange, setColorStyle } from "./utilities/dark-mode-monitor";
@@ -77,7 +77,7 @@ function App() {
                 </VSCodeButton>
             </div>
             <div className="doenet-preview">
-                <DoenetML doenetML={source} darkMode={darkMode} />
+                <DoenetViewer doenetML={source} darkMode={darkMode} />
             </div>
         </div>
     );

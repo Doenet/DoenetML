@@ -603,7 +603,7 @@ export default class BaseComponent {
             },
         };
 
-        // If fixed is set to true, then the inverseDefinitioin
+        // If fixed is set to true, then the inverseDefinition
         // of any state variable, except those marked with ignoreFixed, will fail.
         // Note that fixed does not influence the forward definition,
         // so that if state variables of a fixed component are based other state variables,
@@ -1201,21 +1201,36 @@ export default class BaseComponent {
         }
 
         if (includeDefiningChildren) {
-            for (let child of this.definingChildren) {
-                if (typeof child !== "object") {
-                    serializedChildren.push(child);
-                } else {
-                    serializedChildren.push(
-                        await child.serialize(parametersForChildren),
-                    );
+            if (
+                this.constructor.serializeReplacementsForChildren &&
+                this.isExpanded
+            ) {
+                for (let repl of this.replacements) {
+                    if (typeof repl !== "object") {
+                        serializedChildren.push(repl);
+                    } else {
+                        serializedChildren.push(
+                            await repl.serialize(parametersForChildren),
+                        );
+                    }
                 }
-            }
+            } else {
+                for (let child of this.definingChildren) {
+                    if (typeof child !== "object") {
+                        serializedChildren.push(child);
+                    } else {
+                        serializedChildren.push(
+                            await child.serialize(parametersForChildren),
+                        );
+                    }
+                }
 
-            if (this.serializedChildren !== undefined) {
-                for (let child of this.serializedChildren) {
-                    serializedChildren.push(
-                        this.copySerializedComponent(child),
-                    );
+                if (this.serializedChildren !== undefined) {
+                    for (let child of this.serializedChildren) {
+                        serializedChildren.push(
+                            this.copySerializedComponent(child),
+                        );
+                    }
                 }
             }
 
@@ -1268,31 +1283,54 @@ export default class BaseComponent {
                     this.constructor.primaryStateVariableForDefinition;
             }
 
-            // primaryEssentialStateVariable is the state variable we want to set in the copy,
-            // but it might have a differently named essential state variable
-            // associated with it.
-            if (this.state[primaryEssentialStateVariable].essentialVarName) {
-                primaryEssentialStateVariable =
-                    this.state[primaryEssentialStateVariable].essentialVarName;
-            }
+            if (this.state[primaryEssentialStateVariable]) {
+                // primaryEssentialStateVariable is the state variable we want to set in the copy,
+                // but it might have a differently named essential state variable
+                // associated with it.
+                if (
+                    this.state[primaryEssentialStateVariable].essentialVarName
+                ) {
+                    primaryEssentialStateVariable =
+                        this.state[primaryEssentialStateVariable]
+                            .essentialVarName;
+                }
 
-            let stateVariableToBeShadowed = "value";
-            if (this.constructor.stateVariableToBeShadowed) {
-                stateVariableToBeShadowed =
-                    this.constructor.stateVariableToBeShadowed;
-            } else if (this.constructor.primaryStateVariableForDefinition) {
-                stateVariableToBeShadowed =
-                    this.constructor.primaryStateVariableForDefinition;
-            }
+                let stateVariableToBeShadowed = "value";
+                if (this.constructor.stateVariableToBeShadowed) {
+                    stateVariableToBeShadowed =
+                        this.constructor.stateVariableToBeShadowed;
+                } else if (this.constructor.primaryStateVariableForDefinition) {
+                    stateVariableToBeShadowed =
+                        this.constructor.primaryStateVariableForDefinition;
+                }
 
-            // copy the value of stateVariableToBeShadowed of source
-            // to the state of primaryEssentialStateVariable of the copy
+                if (this.state[stateVariableToBeShadowed]) {
+                    // copy the value of stateVariableToBeShadowed of source
+                    // to the state of primaryEssentialStateVariable of the copy
+                    if (!serializedComponent.state) {
+                        serializedComponent.state = {};
+                    }
+
+                    serializedComponent.state[primaryEssentialStateVariable] =
+                        await this.stateValues[stateVariableToBeShadowed];
+                }
+            }
+        }
+
+        if (parameters.copyEssentialState) {
             if (!serializedComponent.state) {
                 serializedComponent.state = {};
             }
 
-            serializedComponent.state[primaryEssentialStateVariable] =
-                await this.stateValues[stateVariableToBeShadowed];
+            for (let varName in this.state) {
+                if (!(varName in serializedComponent.state)) {
+                    let stateVar = this.state[varName];
+                    if (stateVar.hasEssential) {
+                        serializedComponent.state[varName] =
+                            await this.stateValues[varName];
+                    }
+                }
+            }
         }
 
         if (this.doenetMLrange) {

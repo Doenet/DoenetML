@@ -1,0 +1,89 @@
+@tailwind components;
+@tailwind utilities;
+
+.keyboard-button {
+    @apply inline-flex h-10 basis-4 flex-grow max-w-[4em] justify-center;
+    @apply rounded-md border border-slate-300 hover:bg-slate-100 items-center active:bg-slate-300;
+}
+
+.special-button {
+    @apply bg-slate-200 border-slate-200 hover:bg-slate-300 hover:border-slate-300 active:bg-slate-400 active:border-slate-400 active:text-slate-50;
+}
+
+.virtual-keyboard {
+    @apply flex gap-y-1 justify-center max-w-2xl sm:gap-y-2 gap-x-3;
+    @apply flex-wrap sm:flex-nowrap;
+    .row {
+        @apply flex gap-x-1 basis-full justify-center sm:gap-x-2;
+    }
+
+    .keyboard-region {
+        @apply grid grid-cols-4 gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-2;
+        .key {
+            @apply px-2 sm:px-4;
+        }
+    }
+    .sub-keyboard {
+        @apply flex gap-y-1 flex-wrap justify-center max-w-2xl sm:gap-y-2;
+        @apply h-full;
+    }
+
+    button {
+        background-color: #fff;
+        @apply keyboard-button;
+    }
+
+    .break {
+        @apply basis-full h-0;
+    }
+
+    .key {
+        @apply font-bold;
+    }
+    .key.math {
+        @apply font-normal;
+    }
+
+    .key-space,
+    .key-backspace,
+    .key-left,
+    .key-right,
+    .key-shift,
+    .key-enter {
+        @apply special-button;
+    }
+
+    .key-shift,
+    .key-backspace {
+        @apply flex-grow max-w-none;
+    }
+    .key-space {
+        @apply flex-grow max-w-none;
+    }
+
+    .svg-inline--fa {
+        display: inline-block;
+        height: 1em;
+    }
+}
+
+.virtual-keyboard.numeric .key-backspace {
+    @apply max-w-[4em];
+}
+.virtual-keyboard.alpha,
+.virtual-keyboard.greek {
+    @apply flex-wrap;
+}
+.virtual-keyboard.symbol .keyboard-region {
+    @apply grid-cols-5;
+}
+
+.virtual-keyboard-tab-list {
+    @apply flex flex-nowrap;
+    button {
+        @apply p-1 sm:p-2 px-1 sm:px-3 pb-1 border-b-2 mb-3;
+    }
+    button[aria-selected="true"] {
+        @apply border-blue-400 text-blue-500;
+    }
+}

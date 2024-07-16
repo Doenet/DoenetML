@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
+import { version } from "./package.json";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = [];
@@ -39,5 +40,6 @@ export default defineConfig({
     },
     define: {
         "process.env.NODE_ENV": '"production"',
+        STANDALONE_VERSION: JSON.stringify(version),
     },
 });

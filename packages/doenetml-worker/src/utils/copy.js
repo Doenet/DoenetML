@@ -97,14 +97,6 @@ export function postProcessCopy({
                         downDep[component.originalName][0].isPrimaryShadow =
                             true;
                     }
-                    if (component.state) {
-                        let stateVariables = Object.keys(component.state);
-                        downDep[
-                            component.originalName
-                        ].downstreamStateVariables = stateVariables;
-                        downDep[component.originalName].upstreamStateVariables =
-                            stateVariables;
-                    }
 
                     // create downstream dependency
                     component.downstreamDependencies = downDep;

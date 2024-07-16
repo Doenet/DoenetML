@@ -68,6 +68,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
             });
             return {
                 success: false,
+                errors,
             };
         }
         documentProps[prop.toLowerCase()] = serializedDocument.props[prop];
@@ -92,6 +93,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 });
                 return {
                     success: false,
+                    errors,
                 };
             }
             jsonDefinition.itemWeights = documentProps.itemweights
@@ -135,6 +137,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
 
                 return {
                     success: false,
+                    errors,
                 };
             }
         } else {
@@ -177,7 +180,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
 
         jsonDefinition.children = result.order.children;
 
-        return { activityJSON: jsonDefinition, errors };
+        return { success: true, activityJSON: jsonDefinition, errors };
     } else {
         let page = {
             type: "page",
@@ -211,7 +214,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
             console.warn("no xmlns of activity!");
         }
 
-        return { activityJSON: jsonDefinition, errors };
+        return { success: true, activityJSON: jsonDefinition, errors };
     }
 
     async function validateOrder(order, activityDoenetML) {

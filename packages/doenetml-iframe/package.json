@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml-iframe",
     "type": "module",
     "description": "A renderer for DoenetML contained in an iframe",
-    "version": "0.7.0-alpha7",
+    "version": "0.7.0-alpha18",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -13,26 +13,41 @@
     "exports": {
         ".": {
             "import": "./dist/component/index.js"
+        },
+        "./*": {
+            "import": "./dist/component/*"
         }
     },
     "scripts": {
-        "dev": "npm run build:iframe && vite",
-        "build": "npm run build:iframe && npm run build:component",
+        "dev": "npm run build:iframe-viewer && npm run build:iframe-editor && vite",
+        "build": "npm run build:iframe-viewer && npm run build:iframe-editor && npm run build:component",
         "build:component": "wireit",
-        "build:iframe": "wireit",
+        "build:iframe-viewer": "wireit",
+        "build:iframe-editor": "wireit",
         "publish": "npm run build && cd dist/component && npm publish",
         "test": "echo \"No tests \""
     },
     "wireit": {
-        "build:iframe": {
-            "command": "vite -c vite.config-iframe.ts build",
+        "build:iframe-viewer": {
+            "command": "vite -c vite.config-iframe-viewer.ts build",
             "files": [
-                "src/iframe-index.ts",
-                "vite.config-iframe.ts",
+                "src/iframe-viewer-index.ts",
+                "vite.config-iframe-viewer.ts",
                 "tsconfig.json"
             ],
             "output": [
-                "dist/iframe/*"
+                "dist/iframe-viewer/*"
+            ]
+        },
+        "build:iframe-editor": {
+            "command": "vite -c vite.config-iframe-editor.ts build",
+            "files": [
+                "src/iframe-editor-index.ts",
+                "vite.config-iframe-editor.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/iframe-editor/*"
             ]
         },
         "build:component": {
@@ -42,7 +57,8 @@
                 "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config.ts",
-                "dist/iframe/*"
+                "dist/iframe-viewer/*",
+                "dist/iframe-editor/*"
             ],
             "output": [
                 "dist/component/*"

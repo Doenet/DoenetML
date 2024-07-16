@@ -1,5 +1,6 @@
 import type { SyntaxNode, TreeCursor } from "@lezer/common";
 import { parser } from "./generated-assets/lezer-doenet";
+import { ErrorDescription } from "@doenet/utils";
 
 // Re-export parser for CodeMirror instances
 export { parser };
@@ -37,10 +38,7 @@ type DummyElement = {
 
 export type Node = Element | DummyElement | string;
 
-export type ParseError = {
-    message: string;
-    doenetMLrange: { begin: number; end: number };
-};
+export type ParseError = ErrorDescription;
 
 /**
  *  takes in a string an outputs a TreeCursor

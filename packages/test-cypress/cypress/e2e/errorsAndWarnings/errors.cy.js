@@ -1413,7 +1413,7 @@ $A{assignNames="a" assignnames="b"}
         cy.window().then(async (win) => {
             let errorWarnings = await win.returnErrorWarnings1();
 
-            expect(errorWarnings.errors.length).eq(2);
+            expect(errorWarnings.errors.length).eq(1);
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
@@ -1423,14 +1423,6 @@ $A{assignNames="a" assignnames="b"}
             expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(11);
             expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(9);
             expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(55);
-
-            expect(errorWarnings.errors[1].message).contain(
-                "Duplicate component name: f",
-            );
-            expect(errorWarnings.errors[1].doenetMLrange.lineBegin).eq(14);
-            expect(errorWarnings.errors[1].doenetMLrange.charBegin).eq(7);
-            expect(errorWarnings.errors[1].doenetMLrange.lineEnd).eq(14);
-            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(40);
         });
     });
 });
