@@ -1,26 +1,33 @@
 use std::rc::Rc;
 
 use crate::components::prelude::*;
-use crate::general_prop::{BooleanProp, MathProp};
+use crate::general_prop::{BooleanProp, LatexProp, MathProp};
 use crate::props::UpdaterObject;
 
 #[component(name = Point)]
 mod component {
 
     use super::*;
+    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// Whether the `<point>` should be hidden.
         #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
         Hidden,
         #[prop(value_type = PropValueType::Math,
-            profile = PropProfile::Math,
-            is_public, for_render)]
+            is_public, for_render(in_graph))]
         X,
         #[prop(value_type = PropValueType::Math,
-            profile = PropProfile::Math,
-            is_public, for_render)]
+            is_public, for_render(in_graph))]
         Y,
+        #[prop(value_type = PropValueType::Math,
+            profile = PropProfile::Math,
+            is_public)]
+        Coords,
+        #[prop(value_type = PropValueType::String,
+            profile = PropProfile::String,
+            for_render(in_text))]
+        CoordsLatex,
     }
 
     enum Attributes {
@@ -66,6 +73,14 @@ impl PropGetUpdater for PointProps {
             PointProps::Y => as_updater_object::<_, component::props::types::Y>(
                 component::attrs::Y::get_prop_updater(),
             ),
+            PointProps::Coords => {
+                as_updater_object::<_, component::props::types::Coords>(custom_props::Coords::new())
+            }
+            PointProps::CoordsLatex => {
+                as_updater_object::<_, component::props::types::CoordsLatex>(LatexProp::new(
+                    PointProps::Coords.local_idx(),
+                ))
+            }
         }
     }
 }
@@ -91,6 +106,71 @@ impl ComponentOnAction for Point {
                     requested_value: PropValue::Math(Rc::new(args.y.into())),
                 },
             ]),
+        }
+    }
+}
+
+mod custom_props {
+    use super::*;
+
+    pub use coords::*;
+
+    mod coords {
+
+        use crate::state::types::math_expr::MathExpr;
+
+        use super::*;
+
+        /// Information about how to reference this component from an `xref`
+        #[derive(Debug, Default)]
+        pub struct Coords {}
+
+        impl Coords {
+            pub fn new() -> Self {
+                Coords {}
+            }
+        }
+
+        /// Structure to hold data generated from the data queries
+        #[derive(TryFromDataQueryResults, Debug)]
+        #[data_query(query_trait = DataQueries)]
+        #[derive(TestDataQueryTypes)]
+        #[owning_component(Point)]
+        struct RequiredData {
+            x: PropView<prop_type::Math>,
+            y: PropView<prop_type::Math>,
+        }
+
+        impl DataQueries for RequiredData {
+            fn x_query() -> DataQuery {
+                DataQuery::Prop {
+                    source: PropSource::Me,
+                    prop_specifier: PointProps::X.local_idx().into(),
+                }
+            }
+            fn y_query() -> DataQuery {
+                DataQuery::Prop {
+                    source: PropSource::Me,
+                    prop_specifier: PointProps::Y.local_idx().into(),
+                }
+            }
+        }
+
+        impl PropUpdater for Coords {
+            type PropType = prop_type::Math;
+
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::try_from_data_query_results(data).unwrap();
+                let x = required_data.x.value;
+                let y = required_data.y.value;
+
+                let coords = MathExpr::new_vector(&[(*x).clone(), (*y).clone()]);
+
+                PropCalcResult::Calculated(coords.into())
+            }
         }
     }
 }

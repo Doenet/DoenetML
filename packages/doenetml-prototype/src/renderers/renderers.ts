@@ -23,6 +23,7 @@ import {
     ChoiceInput,
 } from "./doenet";
 import * as PretextComponent from "./pretext-xml";
+import { PointInText } from "./doenet/text-point";
 
 export type CommonProps = {
     monitorVisibility?: boolean;
@@ -63,6 +64,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     m: { component: M, passthroughChildren: true },
     math: { component: Math },
     graph: { component: Graph },
+    point: { component: PointInText },
     division: {
         component: Division,
         passthroughChildren: true,
