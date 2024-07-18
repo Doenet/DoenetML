@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::{BooleanProp, IndependentProp, StringProp};
-use crate::props::UpdaterObject;
+use crate::props::{ForRenderOutputs, UpdaterObject};
 
 #[component(name = TextInput, extend_via_default_prop, ref_transmutes_to="text")]
 pub(super) mod component {

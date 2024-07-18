@@ -9,6 +9,7 @@ mod component {
 
     use super::*;
     use crate::general_prop::BooleanProp;
+    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// Whether the `<ol>` should be hidden.

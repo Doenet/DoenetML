@@ -1,11 +1,11 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
-import type { DivisionProps } from "@doenet/doenetml-worker-rust";
+import type { DivisionPropsInText } from "@doenet/doenetml-worker-rust";
 import { generateHtmlId } from "../utils";
 
 export const Division: BasicComponentWithPassthroughChildren<{
-    props: DivisionProps;
+    props: DivisionPropsInText;
 }> = ({ children, node, visibilityRef, annotation, ancestors }) => {
     const htmlId = generateHtmlId(node, annotation, ancestors);
     const titleElmId = node.data.props.title;

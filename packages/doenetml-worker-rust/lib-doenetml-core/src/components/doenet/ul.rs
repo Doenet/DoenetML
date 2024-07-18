@@ -8,6 +8,7 @@ mod component {
 
     use super::*;
     use crate::general_prop::{BooleanProp, EnumProp, StringToIntegerProp};
+    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// Whether the `<ul>` should be hidden.

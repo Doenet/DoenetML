@@ -14,12 +14,26 @@ pub struct PropDefinitionMeta {
     /// The profile that this prop matches.
     pub profile: Option<PropProfile>,
     /// Whether this prop is _always_ computed whenever this component is rendered.
-    pub for_render: bool,
+    pub for_render: ForRenderOutputs,
     pub public: bool,
 }
 
 /// Type of `PropUpdater` trait object.
 pub type UpdaterObject = Rc<dyn PropUpdaterUntyped>;
+
+/// `ForRenderOutputs` specifies whether or not a prop is sent to the UI when the component is
+/// being rendered in a graph or in text.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ForRenderOutputs {
+    pub in_graph: bool,
+    pub in_text: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum RenderContext {
+    InGraph,
+    InText,
+}
 
 /// A `PropDefinition` stores functions needed to compute a `PropValue` as required
 /// by a component.

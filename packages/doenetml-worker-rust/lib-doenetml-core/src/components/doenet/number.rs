@@ -9,6 +9,7 @@ use crate::props::UpdaterObject;
 mod component {
 
     use crate::general_prop::BooleanProp;
+    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// The value of the `<number>`.

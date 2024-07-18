@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use itertools::Itertools;
 use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 use strum_macros::Display;
@@ -236,6 +237,19 @@ impl MathExpr {
         match math_to_latex(&self.math_object, params) {
             Ok(res) => res,
             Err(_) => "\u{FF3f}".to_string(),
+        }
+    }
+
+    /// Create a new math expression that is a vector with components
+    /// given by `components`.
+    pub fn new_vector(components: &[MathExpr]) -> Self {
+        let vector_object = JsMathExpr(format!(
+            "[\"vector\",{}]",
+            components.iter().map(|comp| &comp.math_object.0).join(",")
+        ));
+
+        MathExpr {
+            math_object: vector_object,
         }
     }
 

@@ -15,7 +15,7 @@ import { BasicComponent } from "../types";
 import "./graph.css";
 import { Toolbar, ToolbarItem } from "@ariakit/react";
 import { Element } from "../element";
-import { Action, GraphProps } from "@doenet/doenetml-worker-rust";
+import { Action, GraphPropsInText } from "@doenet/doenetml-worker-rust";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
 
@@ -39,7 +39,7 @@ export const LAYER_OFFSETS = {
     text: 6,
 };
 
-type GraphData = { props: GraphProps };
+type GraphData = { props: GraphPropsInText };
 type BoundingBox = [x1: number, y1: number, x2: number, y2: number];
 
 export const Graph: BasicComponent<GraphData> = ({ node }) => {

@@ -2,7 +2,9 @@
 //! as-is when converted into `FlatDast`.
 
 use crate::{
-    components::prelude::*, general_prop::RenderedChildrenPassthroughProp, props::UpdaterObject,
+    components::prelude::*,
+    general_prop::RenderedChildrenPassthroughProp,
+    props::{ForRenderOutputs, RenderContext, UpdaterObject},
 };
 
 #[derive(Debug, Default, Clone)]
@@ -15,7 +17,10 @@ impl _External {
     const PROPS: &'static [_ExternalProps] = &[_ExternalProps::RenderedChildren];
     pub const PROP_NAMES: &'static [&'static str] = &["renderedChildren"];
     const PROP_PROFILES: &'static [Option<PropProfile>] = &[Some(PropProfile::RenderedChildren)];
-    const PROP_FOR_RENDERS: &'static [bool] = &[false];
+    const PROP_FOR_RENDERS: &'static [ForRenderOutputs] = &[ForRenderOutputs {
+        in_graph: false,
+        in_text: false,
+    }];
     const PROP_IS_PUBLICS: &'static [bool] = &[false];
     const PROP_VALUE_TYPES: &'static [PropValueType] = &[PropValueType::ContentRefs];
     const DEFAULT_PROP: Option<LocalPropIdx> = None;
@@ -54,7 +59,10 @@ impl ComponentProps for _External {
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
-    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+    fn get_for_render_local_prop_indices(
+        &self,
+        _render_context: RenderContext,
+    ) -> impl Iterator<Item = LocalPropIdx> {
         vec![].into_iter()
     }
     fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
@@ -95,7 +103,7 @@ impl ComponentVariantProps for _External {
     fn get_num_props(&self) -> usize {
         _External::PROP_NAMES.len()
     }
-    fn get_prop_is_for_render(&self, local_prop_idx: LocalPropIdx) -> bool {
+    fn get_prop_for_render_outputs(&self, local_prop_idx: LocalPropIdx) -> ForRenderOutputs {
         _External::PROP_FOR_RENDERS[local_prop_idx.as_usize()]
     }
     fn get_prop_name(&self, local_prop_idx: LocalPropIdx) -> &'static str {

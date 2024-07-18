@@ -3,7 +3,7 @@ use enum_dispatch::enum_dispatch;
 use crate::{
     components::{types::LocalPropIdx, ComponentEnum},
     core::props::{PropProfile, PropValueType},
-    props::{PropUpdater, PropUpdaterUntyped, UpdaterObject},
+    props::{ForRenderOutputs, PropUpdater, PropUpdaterUntyped, UpdaterObject},
 };
 
 // TODO: remove the default implementations for these methods. It should be a compiler
@@ -32,9 +32,9 @@ pub trait ComponentVariantProps {
     fn get_num_props(&self) -> usize {
         unimplemented!()
     }
-    /// Get whether a specific prop is marked as `for_render`. I.e., it should
-    /// _always_ be sent to the UI.
-    fn get_prop_is_for_render(&self, local_prop_idx: LocalPropIdx) -> bool {
+    /// Get whether a specific prop is marked as `for_render` for one or more render outputs. I.e., it should
+    /// be sent to the UI if the component is in a graph or in text.
+    fn get_prop_for_render_outputs(&self, local_prop_idx: LocalPropIdx) -> ForRenderOutputs {
         unimplemented!()
     }
     /// Get the name of a prop.

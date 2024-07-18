@@ -1,9 +1,9 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import type { OlProps } from "@doenet/doenetml-worker-rust";
+import type { OlPropsInText } from "@doenet/doenetml-worker-rust";
 
 export const Ol: BasicComponentWithPassthroughChildren<{
-    props: OlProps;
+    props: OlPropsInText;
 }> = ({ children, node }) => {
     return <ol>{children}</ol>;
 };

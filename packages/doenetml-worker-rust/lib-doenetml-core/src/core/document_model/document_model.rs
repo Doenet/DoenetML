@@ -15,7 +15,8 @@ use crate::{
     graph_node::{DependencyGraph, GraphNode},
     props::{
         cache::{PropCache, PropStatus, PropWithMeta},
-        DataQuery, DataQueryResults, PropDefinition, PropProfile, StateCache, UpdaterObject,
+        DataQuery, DataQueryResults, PropDefinition, PropProfile, RenderContext, StateCache,
+        UpdaterObject,
     },
 };
 
@@ -174,9 +175,26 @@ impl DocumentModel {
     ) -> impl Iterator<Item = PropPointer> {
         let local_prop_indices = {
             let document_structure = self.document_structure.borrow();
+
+            // Determine whether or not component is in a graph (i.e., has a graph ancestor).
+            // If so, we'll look for props that are rendered `in_graph` rather than `in_text`.
+            let in_graph = document_structure
+                .get_true_component_ancestors(component_idx)
+                .any(|ancestor_idx| {
+                    document_structure
+                        .get_component(ancestor_idx)
+                        .get_component_type()
+                        == "graph"
+                });
+
+            let render_context = match in_graph {
+                true => RenderContext::InGraph,
+                false => RenderContext::InText,
+            };
+
             let iterator = document_structure
                 .get_component(component_idx)
-                .get_for_render_local_prop_indices();
+                .get_for_render_local_prop_indices(render_context);
             // Note: collect into a vector so that stop borrowing from document_structure.components
             iterator.collect::<Vec<_>>()
         };

@@ -8,6 +8,7 @@ mod component {
 
     use super::*;
     use crate::general_prop::{BooleanProp, ComponentRefProp};
+    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// Whether the `<xref>` should be hidden.

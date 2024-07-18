@@ -6,6 +6,7 @@ use crate::props::UpdaterObject;
 mod component {
 
     use crate::general_prop::{BooleanProp, NumberProp};
+    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// Whether the `<graph>` should be hidden.

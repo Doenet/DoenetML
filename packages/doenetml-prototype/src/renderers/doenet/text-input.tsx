@@ -1,12 +1,15 @@
 import React from "react";
-import type { Action, TextInputProps } from "@doenet/doenetml-worker-rust";
+import type {
+    Action,
+    TextInputPropsInText,
+} from "@doenet/doenetml-worker-rust";
 import { BasicComponent } from "../types";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./text-input.css";
 import { coreActions } from "../../state/redux-slices/core";
 
-type TextInputData = { props: TextInputProps };
+type TextInputData = { props: TextInputPropsInText };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const onServer = useAppSelector(renderingOnServerSelector);

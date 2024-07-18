@@ -6,6 +6,8 @@ use crate::props::UpdaterObject;
 #[component(name = Title)]
 mod component {
 
+    use crate::props::ForRenderOutputs;
+
     enum Props {
         #[prop(
             value_type = PropValueType::AnnotatedContentRefs,
