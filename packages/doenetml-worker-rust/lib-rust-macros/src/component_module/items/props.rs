@@ -199,6 +199,8 @@ impl PropsEnum {
                 descriptions.push("- Private: this prop can only be used internally.".to_string())
             }
         }
+
+        #[allow(clippy::collapsible_else_if)]
         if variant.for_render().in_graph {
             if variant.for_render().in_text {
                 descriptions.push(
