@@ -118,7 +118,9 @@ mod try_from_ref;
 /// - `profile = ...` - Optional; the profile that the prop satisfies. It should be specified as one of the `PropProfile::...` variants.
 /// If set, this prop will match [`DataQuery`]s for the specified profile.
 /// - `default` - Optional; if set, this prop will be the default prop for the component. Only **one** prop can be the default prop.
-/// - `for_render` - Optional; if set, this prop will be sent to the renderer. That is, if set, this prop will be included in data sent to the UI.
+/// - `for_render` or `for_render(...)` - Optional. If specify `for_render` without arguments, this prop will always be sent to the renderer, whether in a graph or in text.
+/// If specify `for_render(in_graph)` or `for_render(in_text)`, the prop will be sent to the renderer only if the component is in a graph or in text.
+/// If `for_render` is not given, this prop will be not included in data sent to the UI.
 ///
 #[proc_macro_attribute]
 pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {

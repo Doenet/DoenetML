@@ -1,7 +1,7 @@
 //! Parse the `enum Props {...}` in a component module.
 
 use convert_case::{Case, Casing};
-use darling::{FromDeriveInput, FromVariant};
+use darling::{util::Override, FromDeriveInput, FromMeta, FromVariant};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::{parse_quote, Path, Variant};
@@ -27,11 +27,41 @@ pub struct PropsVariant {
     #[darling(default)]
     pub default: bool,
     #[darling(default)]
-    pub for_render: bool,
+    pub for_render: Option<Override<ForRenderOutputs>>,
 
     pub attrs: Vec<syn::Attribute>,
     #[darling(default)]
     pub doc: Option<String>,
+}
+
+impl PropsVariant {
+    /// The `for_render()` method returns a cleaned-up `for_render` value from the result of darling's `Override` processing.
+    /// In the cleaned-up result,
+    /// - an absence of `for_render` leads to no render outputs,
+    /// - a simple `for_render` leads to all render outputs, and
+    /// - an explicit specification of the outputs, as in `for_render(in_graph)`, contains only the specified outputs.
+    fn for_render(&self) -> ForRenderOutputs {
+        match &self.for_render {
+            Some(Override::Explicit(value)) => value.clone(),
+            Some(Override::Inherit) => ForRenderOutputs {
+                in_text: true,
+                in_graph: true,
+            },
+            None => ForRenderOutputs {
+                in_text: false,
+                in_graph: false,
+            },
+        }
+    }
+}
+
+/// The resulting render outputs calculated from the `for_render` attribute.
+#[derive(Debug, Clone, FromMeta)]
+pub struct ForRenderOutputs {
+    #[darling(default)]
+    pub in_text: bool,
+    #[darling(default)]
+    pub in_graph: bool,
 }
 
 /// The `enum Props {...}` in a component module.
@@ -104,8 +134,8 @@ impl PropsEnum {
     }
 
     /// The `for_render` property of all props defined on this component
-    pub fn get_prop_for_renders(&self) -> Vec<bool> {
-        self.get_variants().iter().map(|x| x.for_render).collect()
+    pub fn get_prop_for_renders(&self) -> Vec<ForRenderOutputs> {
+        self.get_variants().iter().map(|x| x.for_render()).collect()
     }
 
     /// The `is_public` property of all props defined on this component
@@ -169,12 +199,29 @@ impl PropsEnum {
                 descriptions.push("- Private: this prop can only be used internally.".to_string())
             }
         }
-        match variant.for_render {
-            true => descriptions.push(
-                "- ForRender: this prop is always rendered and available to the UI.".to_string(),
-            ),
-            false => descriptions.push("- NotForRender: this prop is not rendered.".to_string()),
+        if variant.for_render().in_graph {
+            if variant.for_render().in_text {
+                descriptions.push(
+                    "- ForRender: this prop is always rendered and available to the UI."
+                        .to_string(),
+                );
+            } else {
+                descriptions.push(
+                    "- ForRender: this prop is rendered and available to the UI only in a graph."
+                        .to_string(),
+                );
+            }
+        } else {
+            if variant.for_render().in_text {
+                descriptions.push(
+                    "- ForRender: this prop is rendered and available to the UI only in text."
+                        .to_string(),
+                );
+            } else {
+                descriptions.push("- NotForRender: this prop is not rendered.".to_string());
+            }
         }
+
         match &variant.profile {
             Some(profile) => descriptions.push(format!(
                 "- Profile: [`{}`]",
@@ -297,16 +344,22 @@ impl PropsEnum {
         }
     }
 
-    /// Generate a typescript type for all the props marked as `for_render`.
+    /// Generate two typescript types for all the props marked as `for_render`.
+    /// - `[ComponentName]PropsInGraph`: the props that are marked `for_render` in a graph,
+    /// - `[ComponentName]PropsInText`: the props that are marked `for_render` in text,
     fn generate_for_render_props_typescript(&self, component_name: &str) -> TokenStream {
-        let type_name = format!("{}Props", component_name);
+        let type_name_in_graph = format!("{}PropsInGraph", component_name);
+        let type_name_in_text = format!("{}PropsInText", component_name);
         let for_render_props = self
             .get_prop_names()
             .into_iter()
             .zip(self.get_prop_for_renders())
-            .zip(self.get_prop_value_types())
-            .filter_map(|((prop_name, is_public), value_type)| {
-                if !is_public {
+            .zip(self.get_prop_value_types());
+
+        let for_render_props_in_graph = for_render_props
+            .clone()
+            .filter_map(|((prop_name, for_render), value_type)| {
+                if !for_render.in_graph {
                     return None;
                 }
                 // The type should be specified as a `PropTypeValue::Foo`, where `Foo` is the prop value
@@ -318,14 +371,40 @@ impl PropsEnum {
             })
             .collect::<Vec<_>>();
 
-        let for_render_props_ts = for_render_props
+        let for_render_props_in_text = for_render_props
+            .filter_map(|((prop_name, for_render), value_type)| {
+                if !for_render.in_text {
+                    return None;
+                }
+                // The type should be specified as a `PropTypeValue::Foo`, where `Foo` is the prop value
+                // discriminant. It should be safe (if component authors follow the convention) to use the
+                // `Foo` as a literal type name. (The corresponding type definition of `Foo` should be exported elsewhere.)
+                let value_type_name = value_type.segments.last().unwrap().ident.to_string();
+
+                Some((prop_name, value_type_name))
+            })
+            .collect::<Vec<_>>();
+
+        let for_render_props_in_graph_ts = for_render_props_in_graph
+            .iter()
+            .map(|(prop_name, value_type_name)| format!("{}: {}", prop_name, value_type_name))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let for_render_props_in_text_ts = for_render_props_in_text
             .iter()
             .map(|(prop_name, value_type_name)| format!("{}: {}", prop_name, value_type_name))
             .collect::<Vec<_>>()
             .join(", ");
 
         // This is the actual typescript that we want to end up in the generated file.
-        let type_string = format!("export type {} = {{ {} }};", type_name, for_render_props_ts);
+        let type_string_in_graph = format!(
+            "export type {} = {{ {} }};",
+            type_name_in_graph, for_render_props_in_graph_ts
+        );
+        let type_string_in_text = format!(
+            "export type {} = {{ {} }};",
+            type_name_in_text, for_render_props_in_text_ts
+        );
 
         quote! {
             // Generated typescript for all props marked as `for_render`.
@@ -334,7 +413,11 @@ impl PropsEnum {
                 pub use wasm_bindgen::prelude::*;
 
                 #[wasm_bindgen(typescript_custom_section)]
-                const TS_APPEND_CONTENT: &'static str = #type_string;
+                const TS_APPEND_CONTENT_IN_GRAPH: &'static str = #type_string_in_graph;
+
+                #[wasm_bindgen(typescript_custom_section)]
+                const TS_APPEND_CONTENT_IN_TEXT: &'static str = #type_string_in_text;
+
             };
         }
     }

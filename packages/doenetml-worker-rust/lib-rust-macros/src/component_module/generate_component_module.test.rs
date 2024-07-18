@@ -116,9 +116,14 @@ mod component {
     enum Props {
         #[prop(
             value_type = PropValueType::ContentRefs,
-            profile = PropProfile::RenderedChildren
+            profile = PropProfile::RenderedChildren,
+            for_render,
         )]
         RenderedChildren,
+        #[prop(value_type = PropValueType::Number, for_render(in_graph))]
+        InGraph,
+        #[prop(value_type = PropValueType::Number)]
+        None
     }
     //enum Attributes {
     //    #[attribute(prop = BooleanProp<Foo>)]
