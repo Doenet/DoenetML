@@ -112,6 +112,7 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     m: { component: PretextComponent.M, passthroughChildren: true },
     math: { component: PretextComponent.Math },
     graph: { component: PretextComponent.Graph },
+    point: { component: PretextComponent.PointInText },
     division: {
         component: PretextComponent.Division,
         passthroughChildren: true,
@@ -156,7 +157,4 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     },
 };
 
-export const PRETEXT_GRAPH_MODE_COMPONENTS: RendererObject = {
-    line: { component: PretextComponent.LineInGraph },
-    point: { component: PretextComponent.PointInGraph },
-};
+export const PRETEXT_GRAPH_MODE_COMPONENTS: RendererObject = {};

@@ -3,8 +3,9 @@ import { MathJax } from "better-react-mathjax";
 import { BasicComponent } from "../types";
 import { useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
+import { MathPropsInText } from "@doenet/doenetml-worker-rust";
 
-type MathData = { props: { latex: string } };
+type MathData = { props: MathPropsInText };
 
 export const Math: BasicComponent<MathData> = ({ node }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
