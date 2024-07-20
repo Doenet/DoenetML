@@ -59,6 +59,7 @@ mod component {
 pub use component::Point;
 pub use component::PointActions;
 pub use component::PointAttributes;
+pub use component::PointMoveActionArgs;
 pub use component::PointProps;
 
 impl PropGetUpdater for PointProps {
