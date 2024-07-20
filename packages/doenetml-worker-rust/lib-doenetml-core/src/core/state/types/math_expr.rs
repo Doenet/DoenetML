@@ -253,6 +253,48 @@ impl MathExpr {
         }
     }
 
+    /// Calculate an array of math expressions corresponding to the vector components
+    /// of `self`.
+    ///
+    /// Return a Result with
+    /// - a `Vec` of the `MathExpr` corresponding to the vector components, if `self` is a vector
+    /// - an `Err` if `self` is not a vector
+    pub fn to_vector_components(&self) -> Result<Vec<MathExpr>, anyhow::Error> {
+        let math_string = &self.math_object.0;
+
+        let val: serde_json::Value = serde_json::from_str(math_string)?;
+
+        let components = match val {
+            serde_json::Value::Array(c) => c,
+            _ => {
+                return Err(anyhow!("Math expression is not a vector"));
+            }
+        };
+
+        let operator = match &components[0] {
+            serde_json::Value::String(op) => op,
+            _ => {
+                return Err(anyhow!("Math expression is invalid"));
+            }
+        };
+
+        if operator != "vector" && operator != "tuple" {
+            return Err(anyhow!("Math expression is not a vector"));
+        }
+
+        let math_strings = components[1..]
+            .iter()
+            .map(|val| serde_json::to_string(val))
+            .collect::<Result<Vec<_>, _>>()?
+            .iter()
+            .map(|s| MathExpr {
+                math_object: JsMathExpr(s.to_string()),
+            })
+            .collect::<Vec<_>>();
+
+        Ok(math_strings)
+    }
+
     /// Create a new mathematical expression formed by substituting variables with new expressions
     ///
     /// Parameters:

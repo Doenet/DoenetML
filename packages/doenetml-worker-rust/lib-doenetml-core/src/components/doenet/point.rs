@@ -132,7 +132,7 @@ mod custom_props {
         }
 
         /// Structure to hold data generated from the data queries
-        #[derive(TryFromDataQueryResults, Debug)]
+        #[derive(TryFromDataQueryResults, IntoDataQueryResults, Debug)]
         #[data_query(query_trait = DataQueries)]
         #[derive(TestDataQueryTypes)]
         #[owning_component(Point)]
@@ -170,6 +170,29 @@ mod custom_props {
                 let coords = MathExpr::new_vector(&[(*x).clone(), (*y).clone()]);
 
                 PropCalcResult::Calculated(coords.into())
+            }
+
+            fn invert(
+                &self,
+                data: DataQueryResults,
+                requested_value: Self::PropType,
+                _is_direct_change_from_action: bool,
+            ) -> Result<DataQueryResults, InvertError> {
+                let mut desired = RequiredData::try_new_desired(&data).unwrap();
+
+                match requested_value.to_vector_components() {
+                    Err(_) => Err(InvertError::CouldNotUpdate),
+                    Ok(components) => {
+                        if components.len() < 2 {
+                            return Err(InvertError::CouldNotUpdate);
+                        }
+                        let mut comp_iter = components.into_iter();
+                        desired.x.change_to(comp_iter.next().unwrap().into());
+                        desired.y.change_to(comp_iter.next().unwrap().into());
+
+                        Ok(desired.into_data_query_results())
+                    }
+                }
             }
         }
     }
