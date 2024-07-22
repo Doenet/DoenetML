@@ -6,6 +6,7 @@ use doenetml_core::{
         types::{Action, ActionBody},
         ActionsEnum,
     },
+    dast::{ForRenderPropValue, ForRenderPropValueOrContent, ForRenderProps},
     state::types::math_expr::{JsMathExpr, MathExpr},
 };
 
@@ -246,4 +247,61 @@ fn move_point_with_x_and_y() {
     assert_eq!(x_prop.value, math_x.clone().into());
     assert_eq!(y_prop.value, math_y.into());
     assert_eq!(coords_prop.value, math_coords.into());
+}
+
+#[test]
+fn dast_of_point_in_graph_returns_x_and_y() {
+    let dast_root = dast_root_no_position(r#"<graph><point name="P" x="8.9" y="6.2"/></graph>"#);
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    let point_idx = core.get_component_index_by_name("P");
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+
+    let point_renderer = &flat_dast.elements[point_idx];
+
+    let math_x: MathExpr = 8.9.into();
+    let math_y: MathExpr = 6.2.into();
+    assert_eq!(
+        point_renderer.data.props,
+        Some(ForRenderProps(vec![
+            ForRenderPropValue {
+                name: "x",
+                value: ForRenderPropValueOrContent::PropValue(math_x.into())
+            },
+            ForRenderPropValue {
+                name: "y",
+                value: ForRenderPropValueOrContent::PropValue(math_y.into())
+            }
+        ]))
+    )
+}
+
+#[test]
+fn dast_of_point_outside_graph_returns_coords_latex() {
+    let dast_root = dast_root_no_position(r#"<point name="P" x="8.9" y="6.2"/>"#);
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    let point_idx = core.get_component_index_by_name("P");
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+
+    let point_renderer = &flat_dast.elements[point_idx];
+
+    // Note: since don't have access to wasm, the contents of the coordsLatex prop are not correct
+    let for_render_props_vec = &point_renderer.data.props.as_ref().unwrap().0;
+    assert_eq!(for_render_props_vec.len(), 1);
+    assert!(matches!(
+        for_render_props_vec[0],
+        ForRenderPropValue {
+            name: "coordsLatex",
+            value: ForRenderPropValueOrContent::PropValue(..)
+        }
+    ));
 }

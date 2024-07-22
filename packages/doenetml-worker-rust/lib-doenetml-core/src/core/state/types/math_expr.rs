@@ -284,7 +284,7 @@ impl MathExpr {
 
         let math_strings = components[1..]
             .iter()
-            .map(|val| serde_json::to_string(val))
+            .map(serde_json::to_string)
             .collect::<Result<Vec<_>, _>>()?
             .iter()
             .map(|s| MathExpr {
