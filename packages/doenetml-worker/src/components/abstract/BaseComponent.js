@@ -532,7 +532,9 @@ export default class BaseComponent {
                 if (!usedDefault.disabledPreliminary) {
                     return {
                         setValue: {
-                            disabled: dependencyValues.disabledPreliminary,
+                            disabled: Boolean(
+                                dependencyValues.disabledPreliminary,
+                            ),
                         },
                     };
                 }

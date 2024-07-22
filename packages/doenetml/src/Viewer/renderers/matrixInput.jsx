@@ -111,6 +111,7 @@ export default React.memo(function MatrixInput(props) {
         cursor: "pointer",
         padding: "1px 6px 1px 6px",
     };
+    let checkWorkTabIndex = "0";
 
     if (disabled) {
         // Disable the checkWorkButton
@@ -119,6 +120,7 @@ export default React.memo(function MatrixInput(props) {
         ).getPropertyValue("--mainGray");
         checkWorkStyle.color = "black";
         checkWorkStyle.cursor = "not-allowed";
+        checkWorkTabIndex = "-1";
     }
 
     //Assume we don't have a check work button
@@ -128,7 +130,7 @@ export default React.memo(function MatrixInput(props) {
             checkWorkButton = (
                 <Button
                     id={id + "_submit"}
-                    tabIndex="0"
+                    tabIndex={checkWorkTabIndex}
                     disabled={disabled}
                     style={checkWorkStyle}
                     onClick={() =>
@@ -162,7 +164,11 @@ export default React.memo(function MatrixInput(props) {
                         document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
-                        <Button id={id + "_correct"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_correct"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             <FontAwesomeIcon icon={faCheck} />
                         </Button>
                     );
@@ -175,7 +181,11 @@ export default React.memo(function MatrixInput(props) {
 
                     checkWorkStyle.backgroundColor = "#efab34";
                     checkWorkButton = (
-                        <Button id={id + "_partial"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_partial"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             {partialCreditContents}
                         </Button>
                     );
@@ -185,7 +195,11 @@ export default React.memo(function MatrixInput(props) {
                         document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
-                        <Button id={id + "_incorrect"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_incorrect"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             <FontAwesomeIcon icon={faTimes} />
                         </Button>
                     );
@@ -195,7 +209,11 @@ export default React.memo(function MatrixInput(props) {
                 checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
                 checkWorkStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
                 checkWorkButton = (
-                    <Button id={id + "_saved"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_saved"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faCloud} />
                     </Button>
                 );
@@ -260,7 +278,7 @@ export default React.memo(function MatrixInput(props) {
                                 args: { numRows: SVs.numRows - 1 },
                             })
                         }
-                        disabled={SVs.numRows < 2}
+                        disabled={SVs.numRows < 2 || disabled}
                     >
                         r-
                     </ActionButton>
@@ -273,6 +291,7 @@ export default React.memo(function MatrixInput(props) {
                                 args: { numRows: SVs.numRows + 1 },
                             })
                         }
+                        disabled={disabled}
                     >
                         r+
                     </ActionButton>
@@ -294,7 +313,7 @@ export default React.memo(function MatrixInput(props) {
                                 args: { numColumns: SVs.numColumns - 1 },
                             })
                         }
-                        disabled={SVs.numColumns < 2}
+                        disabled={SVs.numColumns < 2 || disabled}
                     >
                         c-
                     </ActionButton>
@@ -307,6 +326,7 @@ export default React.memo(function MatrixInput(props) {
                                 args: { numColumns: SVs.numColumns + 1 },
                             })
                         }
+                        disabled={disabled}
                     >
                         c+
                     </ActionButton>
