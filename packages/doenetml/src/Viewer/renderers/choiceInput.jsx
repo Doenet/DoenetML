@@ -154,6 +154,23 @@ export default React.memo(function ChoiceInput(props) {
             padding: "1px 6px 1px 6px",
             width: "24px",
         };
+        let checkWorkTabIndex = "0";
+
+        let selectStyle = {};
+
+        if (disabled) {
+            // Disable the checkWorkButton
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+            checkWorkTabIndex = "-1";
+            selectStyle.cursor = "not-allowed";
+            selectStyle.borderColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+        }
 
         //Assume we don't have a check work button
         let checkWorkButton = null;
@@ -168,7 +185,7 @@ export default React.memo(function ChoiceInput(props) {
                     <Button
                         id={id + "_submit"}
                         disabled={disabled}
-                        tabIndex="0"
+                        tabIndex={checkWorkTabIndex}
                         // ref={c => { this.target = c && ReactDOM.findDOMNode(c); }}
                         style={checkWorkStyle}
                         onClick={() =>
@@ -202,7 +219,11 @@ export default React.memo(function ChoiceInput(props) {
                             document.documentElement,
                         ).getPropertyValue("--mainGreen");
                         checkWorkButton = (
-                            <Button id={id + "_correct"} style={checkWorkStyle}>
+                            <Button
+                                id={id + "_correct"}
+                                style={checkWorkStyle}
+                                tabIndex={checkWorkTabIndex}
+                            >
                                 <FontAwesomeIcon icon={faCheck} />
                             </Button>
                         );
@@ -215,7 +236,11 @@ export default React.memo(function ChoiceInput(props) {
 
                         checkWorkStyle.backgroundColor = "#efab34";
                         checkWorkButton = (
-                            <Button id={id + "_partial"} style={checkWorkStyle}>
+                            <Button
+                                id={id + "_partial"}
+                                style={checkWorkStyle}
+                                tabIndex={checkWorkTabIndex}
+                            >
                                 {partialCreditContents}
                             </Button>
                         );
@@ -228,6 +253,7 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_incorrect"}
                                 style={checkWorkStyle}
+                                tabIndex={checkWorkTabIndex}
                             >
                                 <FontAwesomeIcon icon={faTimes} />
                             </Button>
@@ -238,7 +264,11 @@ export default React.memo(function ChoiceInput(props) {
                     checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
                     checkWorkStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
                     checkWorkButton = (
-                        <Button id={id + "_saved"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_saved"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             <FontAwesomeIcon icon={faCloud} />
                         </Button>
                     );
@@ -311,6 +341,7 @@ export default React.memo(function ChoiceInput(props) {
                         value={value}
                         disabled={disabled}
                         multiple={SVs.selectMultiple}
+                        style={selectStyle}
                     >
                         <option hidden={true} value="">
                             {SVs.placeHolder}
@@ -329,6 +360,17 @@ export default React.memo(function ChoiceInput(props) {
             cursor: "pointer",
             // fontWeight: "bold",
         };
+        let checkWorkTabIndex = "0";
+
+        if (disabled) {
+            // Disable the checkWorkButton
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+            checkWorkTabIndex = "-1";
+        }
 
         let checkworkComponent = null;
 
@@ -346,7 +388,7 @@ export default React.memo(function ChoiceInput(props) {
                 checkworkComponent = (
                     <Button
                         id={id + "_submit"}
-                        tabIndex="0"
+                        tabIndex={checkWorkTabIndex}
                         disabled={disabled}
                         style={checkWorkStyle}
                         onClick={() =>
@@ -382,7 +424,11 @@ export default React.memo(function ChoiceInput(props) {
                             document.documentElement,
                         ).getPropertyValue("--mainGreen");
                         checkworkComponent = (
-                            <Button id={id + "_correct"} style={checkWorkStyle}>
+                            <Button
+                                id={id + "_correct"}
+                                style={checkWorkStyle}
+                                tabIndex={checkWorkTabIndex}
+                            >
                                 <FontAwesomeIcon icon={faCheck} />
                                 &nbsp; Correct
                             </Button>
@@ -395,6 +441,7 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_incorrect"}
                                 style={checkWorkStyle}
+                                tabIndex={checkWorkTabIndex}
                             >
                                 <FontAwesomeIcon icon={faTimes} />
                                 &nbsp; Incorrect
@@ -406,7 +453,11 @@ export default React.memo(function ChoiceInput(props) {
                         let partialCreditContents = `${percent}% Correct`;
 
                         checkworkComponent = (
-                            <Button id={id + "_partial"} style={checkWorkStyle}>
+                            <Button
+                                id={id + "_partial"}
+                                style={checkWorkStyle}
+                                tabIndex={checkWorkTabIndex}
+                            >
                                 {partialCreditContents}
                             </Button>
                         );
@@ -414,7 +465,11 @@ export default React.memo(function ChoiceInput(props) {
                 } else {
                     checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
                     checkworkComponent = (
-                        <Button id={id + "_saved"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_saved"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             <FontAwesomeIcon icon={faCloud} />
                             &nbsp; Response Saved
                         </Button>
