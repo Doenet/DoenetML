@@ -1,23 +1,45 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
     faLevelDownAlt,
     faTimes,
     faCloud,
-    faPercentage,
 } from "@fortawesome/free-solid-svg-icons";
+import styled from "styled-components";
 import { faCaretRight as twirlIsClosed } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 
 import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { PageContext } from "../PageViewer";
+
+// Moved most of checkWorkStyle styling into Button
+const Button = styled.button`
+    position: relative;
+    height: 24px;
+    display: inline-block;
+    color: white;
+    background-color: var(--mainBlue);
+    padding: 2px;
+    /* border: var(--mainBorder); */
+    border: none;
+    border-radius: var(--mainBorderRadius);
+    margin: 0px 4px 4px 0px;
+
+    &:hover {
+        background-color: var(--lightBlue);
+        color: black;
+    }
+`;
 
 export default React.memo(function Section(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
     // console.log("name: ", name, " SVs: ", SVs," Children",children);
+
+    const { showAnswerTitles } = useContext(PageContext) || {};
 
     let onChangeVisibility = (isVisible) => {
         callAction({
@@ -40,6 +62,8 @@ export default React.memo(function Section(props) {
     }
 
     let validationState = useRef(null);
+
+    let disabled = SVs.disabled;
 
     const updateValidationState = () => {
         validationState.current = "unvalidated";
@@ -184,23 +208,30 @@ export default React.memo(function Section(props) {
         updateValidationState();
 
         let checkWorkStyle = {
-            height: "23px",
-            display: "inline-block",
-            backgroundColor: "var(--mainBlue)",
+            cursor: "pointer",
             padding: "1px 6px 1px 6px",
-            color: "white",
-            fontWeight: "bold",
-            marginBottom: "30px", //Space after check work
         };
+
+        let checkWorkTabIndex = "0";
+        if (disabled) {
+            checkWorkStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            checkWorkStyle.color = "black";
+            checkWorkStyle.cursor = "not-allowed";
+            checkWorkTabIndex = "-1";
+        }
 
         let checkWorkText = SVs.submitLabel;
         if (!SVs.showCorrectness) {
             checkWorkText = SVs.submitLabelNoCorrectness;
         }
+
         checkworkComponent = (
-            <button
+            <Button
                 id={id + "_submit"}
-                tabIndex="0"
+                tabIndex={checkWorkTabIndex}
+                disabled={disabled}
                 style={checkWorkStyle}
                 onClick={submitAllAnswers}
                 onKeyPress={(e) => {
@@ -208,6 +239,7 @@ export default React.memo(function Section(props) {
                         submitAllAnswers();
                     }
                 }}
+                title={showAnswerTitles ? `Answer name: ${name}` : null}
             >
                 <FontAwesomeIcon
                     icon={faLevelDownAlt}
@@ -215,46 +247,66 @@ export default React.memo(function Section(props) {
                 />
                 &nbsp;
                 {checkWorkText}
-            </button>
+            </Button>
         );
 
         if (SVs.showCorrectness) {
             if (validationState.current === "correct") {
-                checkWorkStyle.backgroundColor = "var(--mainGreen)";
+                checkWorkStyle.backgroundColor = getComputedStyle(
+                    document.documentElement,
+                ).getPropertyValue("--mainGreen");
                 checkworkComponent = (
-                    <span id={id + "_correct"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_correct"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faCheck} />
                         &nbsp; Correct
-                    </span>
+                    </Button>
                 );
             } else if (validationState.current === "incorrect") {
-                checkWorkStyle.backgroundColor = "var(--mainRed)";
+                checkWorkStyle.backgroundColor = getComputedStyle(
+                    document.documentElement,
+                ).getPropertyValue("--mainRed");
                 checkworkComponent = (
-                    <span id={id + "_incorrect"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_incorrect"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faTimes} />
                         &nbsp; Incorrect
-                    </span>
+                    </Button>
                 );
             } else if (validationState.current === "partialcorrect") {
-                checkWorkStyle.backgroundColor = "var(--mainYellow)";
+                checkWorkStyle.backgroundColor = "#efab34";
                 let percent = Math.round(SVs.creditAchieved * 100);
                 let partialCreditContents = `${percent}% Correct`;
 
                 checkworkComponent = (
-                    <span id={id + "_partial"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_partial"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         {partialCreditContents}
-                    </span>
+                    </Button>
                 );
             }
         } else {
             // showCorrectness is false
             if (validationState.current !== "unvalidated") {
-                checkWorkStyle.backgroundColor = "var(--mainPurple)";
+                checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
                 checkworkComponent = (
-                    <span id={id + "_saved"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_saved"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faCloud} />
                         &nbsp; Response Saved
-                    </span>
+                    </Button>
                 );
             }
         }
