@@ -121,7 +121,6 @@ mod custom_props {
 
         use super::*;
 
-        /// Information about how to reference this component from an `xref`
         #[derive(Debug, Default)]
         pub struct Coords {}
 

@@ -6,7 +6,6 @@ use crate::props::UpdaterObject;
 /// For example, this component is used to render `$s.title` in `<section name="s" />$s.title`.
 #[component(name = _Fragment)]
 mod component {
-
     enum Props {
         #[prop(
             value_type = PropValueType::AnnotatedContentRefs,
