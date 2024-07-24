@@ -34,6 +34,11 @@ pub fn pick_prop(
             if profile.is_some() && match_profiles.contains(&profile.unwrap()) {
                 return Some(node);
             }
+
+            let profile = prop.profile_from_prop_value_type();
+            if profile.is_some() && match_profiles.contains(&profile.unwrap()) {
+                return Some(node);
+            }
         }
         GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
             unreachable!(
