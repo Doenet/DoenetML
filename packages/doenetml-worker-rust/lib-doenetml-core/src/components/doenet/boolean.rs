@@ -7,7 +7,6 @@ use crate::props::UpdaterObject;
 #[component(name = Boolean, extend_via_default_prop)]
 mod component {
     use crate::general_prop::BooleanProp;
-    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// The value of the `<boolean>`. This is the content that will be displayed inside

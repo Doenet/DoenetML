@@ -5,7 +5,6 @@ use crate::props::UpdaterObject;
 /// The `Document` component is the root of every _DoenetML_ document.
 #[component(name = Document)]
 pub mod component {
-    use crate::props::ForRenderOutputs;
 
     enum Props {
         #[prop(

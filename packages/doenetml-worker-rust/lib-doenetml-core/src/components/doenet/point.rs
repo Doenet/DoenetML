@@ -8,7 +8,6 @@ use crate::props::UpdaterObject;
 mod component {
 
     use super::*;
-    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// Whether the `<point>` should be hidden.

@@ -12,7 +12,6 @@ use crate::state::types::math_expr::MathParser;
 mod component {
 
     use super::*;
-    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// The value of the `<math>` component as a math-expression.

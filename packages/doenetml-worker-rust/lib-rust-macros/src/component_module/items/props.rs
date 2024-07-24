@@ -27,7 +27,7 @@ pub struct PropsVariant {
     #[darling(default)]
     pub default: bool,
     #[darling(default)]
-    pub for_render: Option<Override<ForRenderOutputs>>,
+    pub for_render: Option<Override<ForRenderOutputsPrelim>>,
 
     pub attrs: Vec<syn::Attribute>,
     #[darling(default)]
@@ -40,14 +40,14 @@ impl PropsVariant {
     /// - an absence of `for_render` leads to no render outputs,
     /// - a simple `for_render` leads to all render outputs, and
     /// - an explicit specification of the outputs, as in `for_render(in_graph)`, contains only the specified outputs.
-    fn for_render(&self) -> ForRenderOutputs {
+    fn for_render(&self) -> ForRenderOutputsPrelim {
         match &self.for_render {
             Some(Override::Explicit(value)) => value.clone(),
-            Some(Override::Inherit) => ForRenderOutputs {
+            Some(Override::Inherit) => ForRenderOutputsPrelim {
                 in_text: true,
                 in_graph: true,
             },
-            None => ForRenderOutputs {
+            None => ForRenderOutputsPrelim {
                 in_text: false,
                 in_graph: false,
             },
@@ -57,7 +57,7 @@ impl PropsVariant {
 
 /// The resulting render outputs calculated from the `for_render` attribute.
 #[derive(Debug, Clone, FromMeta)]
-pub struct ForRenderOutputs {
+pub struct ForRenderOutputsPrelim {
     #[darling(default)]
     pub in_text: bool,
     #[darling(default)]
@@ -134,7 +134,7 @@ impl PropsEnum {
     }
 
     /// The `for_render` property of all props defined on this component
-    pub fn get_prop_for_renders(&self) -> Vec<ForRenderOutputs> {
+    pub fn get_prop_for_renders(&self) -> Vec<ForRenderOutputsPrelim> {
         self.get_variants().iter().map(|x| x.for_render()).collect()
     }
 

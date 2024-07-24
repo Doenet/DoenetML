@@ -15,7 +15,6 @@ use crate::state::types::division_type::DivisionType;
 mod component {
 
     use super::*;
-    use crate::props::ForRenderOutputs;
 
     enum Props {
         /// The `<title>` child of the `<division>` that contain's the division's title
