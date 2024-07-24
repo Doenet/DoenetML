@@ -42,7 +42,7 @@ mod component {
     #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
     #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
     #[serde(expecting = "`x_min`, `x_max`, `y_min`, and `y_max` must be numbers")]
-    pub struct GraphChangeAxisLimitsActionArgs {
+    pub struct GraphChangeBoundingBoxActionArgs {
         pub x_min: prop_type::Number,
         pub x_max: prop_type::Number,
         pub y_min: prop_type::Number,
@@ -50,7 +50,7 @@ mod component {
     }
 
     enum Actions {
-        ChangeAxisLimits(ActionBody<GraphChangeAxisLimitsActionArgs>),
+        ChangeBoundingBox(ActionBody<GraphChangeBoundingBoxActionArgs>),
     }
 }
 
@@ -96,7 +96,7 @@ impl ComponentOnAction for Graph {
         let action: GraphActions = action.try_into()?;
 
         match action {
-            GraphActions::ChangeAxisLimits(ActionBody { args }) => Ok(vec![
+            GraphActions::ChangeBoundingBox(ActionBody { args }) => Ok(vec![
                 UpdateFromAction {
                     local_prop_idx: GraphProps::XMin.local_idx(),
                     requested_value: PropValue::Number(args.x_min),

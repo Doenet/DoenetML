@@ -51,9 +51,6 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
     const [yaxis, setYaxis] = React.useState<JSG.Axis | null>(null);
     const previousBoundingBox = React.useRef<BoundingBox | null>(null);
 
-    // whether or not we're in the process of setting the bounding box
-    const settingBoundingBox = React.useRef(false);
-
     const dispatch = useAppDispatch();
 
     React.useLayoutEffect(() => {
@@ -121,34 +118,31 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
         setYaxis(yaxis);
 
         board.on("boundingbox", () => {
-            if (!settingBoundingBox.current) {
-                const newBoundingBox = board.getBoundingBox();
-                const [xMin, yMax, xMax, yMin] = newBoundingBox;
+            const newBoundingBox = board.getBoundingBox();
+            const [xMin, yMax, xMax, yMin] = newBoundingBox;
 
-                // look for a change in bounding box that isn't due to round-off error
-                const xScale = Math.abs(xMax - xMin);
-                const yScale = Math.abs(yMax - yMin);
-                const diffs = newBoundingBox.map((v, i) =>
-                    Math.abs(v - (previousBoundingBox.current?.[i] ?? 0)),
-                );
-                const eps = 1e-12;
+            // look for a change in bounding box that isn't due to round-off error
+            const xScale = Math.abs(xMax - xMin);
+            const yScale = Math.abs(yMax - yMin);
+            const diffs = newBoundingBox.map((v, i) =>
+                Math.abs(v - (previousBoundingBox.current?.[i] ?? 0)),
+            );
+            const eps = 1e-12;
+            if (
+                diffs[0] / xScale > eps ||
+                diffs[1] / yScale > eps ||
+                diffs[2] / xScale > eps ||
+                diffs[3] / yScale > eps
+            ) {
+                previousBoundingBox.current = newBoundingBox;
 
-                if (
-                    diffs[0] / xScale > eps ||
-                    diffs[1] / yScale > eps ||
-                    diffs[2] / xScale > eps ||
-                    diffs[3] / yScale > eps
-                ) {
-                    previousBoundingBox.current = newBoundingBox;
-
-                    const action: Action = {
-                        component: "graph",
-                        actionName: "changeAxisLimits",
-                        componentIdx: node.data.id,
-                        args: { xMin, xMax, yMin, yMax },
-                    };
-                    dispatch(coreActions.dispatchAction(action));
-                }
+                const action: Action = {
+                    component: "graph",
+                    actionName: "changeBoundingBox",
+                    componentIdx: node.data.id,
+                    args: { xMin, xMax, yMin, yMax },
+                };
+                dispatch(coreActions.dispatchAction(action));
             }
         });
 
@@ -171,9 +165,7 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
         (!previousBoundingBox.current ||
             !arrayEq(boundingBox, previousBoundingBox.current))
     ) {
-        settingBoundingBox.current = true;
         board.setBoundingBox(boundingBox);
-        settingBoundingBox.current = false;
         // seem to need to call fullUpdate to get the ticks correct
         board.fullUpdate();
 
