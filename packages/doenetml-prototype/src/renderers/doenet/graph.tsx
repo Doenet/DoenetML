@@ -18,6 +18,7 @@ import { Element } from "../element";
 import { Action, GraphProps } from "@doenet/doenetml-worker-rust";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
+import { arrayEq } from "../../utils/array";
 
 (window as any).JSG = JSG;
 
@@ -60,7 +61,7 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
             return;
         }
 
-        let boundingBox: BoundingBox = [
+        const boundingBox: BoundingBox = [
             node.data.props.xMin,
             node.data.props.yMax,
             node.data.props.xMax,
@@ -121,35 +122,30 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
 
         board.on("boundingbox", () => {
             if (!settingBoundingBox.current) {
-                let newBoundingBox = board.getBoundingBox();
-                let [xMin, yMax, xMax, yMin] = newBoundingBox;
+                const newBoundingBox = board.getBoundingBox();
+                const [xMin, yMax, xMax, yMin] = newBoundingBox;
 
                 // look for a change in bounding box that isn't due to round-off error
-                let xScale = Math.abs(xMax - xMin);
-                let yScale = Math.abs(yMax - yMin);
-                let diffs = newBoundingBox.map((v, i) =>
+                const xScale = Math.abs(xMax - xMin);
+                const yScale = Math.abs(yMax - yMin);
+                const diffs = newBoundingBox.map((v, i) =>
                     Math.abs(v - (previousBoundingBox.current?.[i] ?? 0)),
                 );
+                const eps = 1e-12;
+
                 if (
-                    Math.max(
-                        diffs[0] / xScale,
-                        diffs[1] / yScale,
-                        diffs[2] / xScale,
-                        diffs[3] / yScale,
-                    ) > 1e-12
+                    diffs[0] / xScale > eps ||
+                    diffs[1] / yScale > eps ||
+                    diffs[2] / xScale > eps ||
+                    diffs[3] / yScale > eps
                 ) {
                     previousBoundingBox.current = newBoundingBox;
 
-                    let action: Action = {
+                    const action: Action = {
                         component: "graph",
                         actionName: "changeAxisLimits",
                         componentIdx: node.data.id,
-                        args: {
-                            x_min: xMin,
-                            x_max: xMax,
-                            y_min: yMin,
-                            y_max: yMax,
-                        },
+                        args: { xMin, xMax, yMin, yMax },
                     };
                     dispatch(coreActions.dispatchAction(action));
                 }
@@ -163,7 +159,7 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
         };
     }, [boardRef]);
 
-    let boundingBox: BoundingBox = [
+    const boundingBox: BoundingBox = [
         node.data.props.xMin,
         node.data.props.yMax,
         node.data.props.xMax,
@@ -172,7 +168,8 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
 
     if (
         board &&
-        boundingBox.some((v, i) => v !== previousBoundingBox.current?.[i])
+        (!previousBoundingBox.current ||
+            !arrayEq(boundingBox, previousBoundingBox.current))
     ) {
         settingBoundingBox.current = true;
         board.setBoundingBox(boundingBox);

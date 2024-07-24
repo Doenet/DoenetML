@@ -40,6 +40,7 @@ mod component {
     #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
     #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
     #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+    #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
     #[serde(expecting = "`x_min`, `x_max`, `y_min`, and `y_max` must be numbers")]
     pub struct GraphChangeAxisLimitsActionArgs {
         pub x_min: prop_type::Number,
