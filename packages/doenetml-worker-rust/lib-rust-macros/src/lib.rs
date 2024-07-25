@@ -69,9 +69,9 @@ mod try_from_ref;
 ///  It has the following options:
 /// - `name = ...` - Required; the name of your component in PascalCase supplied as an unquoted string. E.g. `name = MyComponent`.
 /// - `ref_transmutes_to = ...` - Optional; supplied as an unquoted string. If this component is used directly as a reference (i.e. using `$foo`
-/// syntax), then instead of creating a component `<self>`, create the component specified by `ref_transmutes_to`.
-/// This is used, for example, in the `textInput` component where the code `<textInput name="a"/>$a` should render as
-/// `<textInput name="a"/><text extend="$a"/>` rather than `<textInput name="a"/><textInput extend="$a"/>`.
+///   syntax), then instead of creating a component `<self>`, create the component specified by `ref_transmutes_to`.
+///   This is used, for example, in the `textInput` component where the code `<textInput name="a"/>$a` should render as
+///   `<textInput name="a"/><text extend="$a"/>` rather than `<textInput name="a"/><textInput extend="$a"/>`.
 ///
 /// ### `#[attribute(...)]`
 ///
@@ -88,12 +88,12 @@ mod try_from_ref;
 ///
 /// It has the following options:
 /// - `prop = ...` - Required; the prop that will process this attribute's value. It can be a general prop (e.g. `BooleanProp` or
-/// `StringProp`) or a custom prop defined elsewhere.
+///   `StringProp`) or a custom prop defined elsewhere.
 /// - `default = ...` - Required; the default value of the attribute. For strings use `String::new()`, for other types, you can specify
-/// their value literally.
+///   their value literally.
 /// - `explicit_type = ...` - Optional; the type of the attribute. If not provided, the type will be inferred from the `prop` attribute.
 /// - `preserve_refs` - Optional; if set, the references in this attribute will not be expanded into components. Instead, they will become
-/// an internal-use-only `_ref` component which preserves a pointer back to the referent component.
+///   an internal-use-only `_ref` component which preserves a pointer back to the referent component.
 ///
 /// ### `#[prop(...)]`
 ///
@@ -116,11 +116,11 @@ mod try_from_ref;
 /// - `value_type = ...` - Required; the type of the prop. It should be specified as one of the `PropValueType::...` variants.
 /// - `is_public` - Optional; if set, the prop will be accessible by a ref in the document. E.g. with `$foo.prop`.
 /// - `profile = ...` - Optional; the profile that the prop satisfies. It should be specified as one of the `PropProfile::...` variants.
-/// If set, this prop will match [`DataQuery`]s for the specified profile.
+///   If set, this prop will match [`DataQuery`]s for the specified profile.
 /// - `default` - Optional; if set, this prop will be the default prop for the component. Only **one** prop can be the default prop.
 /// - `for_render` or `for_render(...)` - Optional. If specify `for_render` without arguments, this prop will always be sent to the renderer, whether in a graph or in text.
-/// If specify `for_render(in_graph)` or `for_render(in_text)`, the prop will be sent to the renderer only if the component is in a graph or in text.
-/// If `for_render` is not given, this prop will be not included in data sent to the UI.
+///   If specify `for_render(in_graph)` or `for_render(in_text)`, the prop will be sent to the renderer only if the component is in a graph or in text.
+///   If `for_render` is not given, this prop will be not included in data sent to the UI.
 ///
 #[proc_macro_attribute]
 pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -152,8 +152,8 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ### Options
 /// - `query_trait = ...` - Required; the name of the trait that will be created.
 /// - `pass_data = ...` - Optional; the type of data that should be passed to each `*_query` functions.
-/// If provided, the `*_query` functions will have the signature `*_query(&self, arg: <PassDataType>)`,
-/// and you must pass in the specified data when calling `to_data_queries(...)`.
+///   If provided, the `*_query` functions will have the signature `*_query(&self, arg: <PassDataType>)`,
+///   and you must pass in the specified data when calling `to_data_queries(...)`.
 ///
 /// ## Example
 /// ```ignore
