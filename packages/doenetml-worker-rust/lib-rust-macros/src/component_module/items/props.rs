@@ -200,26 +200,26 @@ impl PropsEnum {
             }
         }
 
-        #[allow(clippy::collapsible_else_if)]
-        if variant.for_render().in_graph {
-            if variant.for_render().in_text {
+        match (variant.for_render().in_graph, variant.for_render().in_text) {
+            (true, true) => {
                 descriptions.push(
                     "- ForRender: this prop is always rendered and available to the UI."
                         .to_string(),
                 );
-            } else {
+            }
+            (true, false) => {
                 descriptions.push(
                     "- ForRender: this prop is rendered and available to the UI only in a graph."
                         .to_string(),
                 );
             }
-        } else {
-            if variant.for_render().in_text {
+            (false, true) => {
                 descriptions.push(
                     "- ForRender: this prop is rendered and available to the UI only in text."
                         .to_string(),
                 );
-            } else {
+            }
+            (false, false) => {
                 descriptions.push("- NotForRender: this prop is not rendered.".to_string());
             }
         }
