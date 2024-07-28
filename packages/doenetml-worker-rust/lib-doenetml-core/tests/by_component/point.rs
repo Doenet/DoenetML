@@ -305,3 +305,89 @@ fn dast_of_point_outside_graph_returns_coords_latex() {
         }
     ));
 }
+
+#[test]
+fn rendered_props_with_references() {
+    let dast_root = dast_root_no_position(
+        r#"
+<graph>
+  <point x="3" y="1" name="P" />
+  <point extend="$Q" name="Q2" />
+</graph>
+<point extend="$P" name="P2" />
+<point x="-1" y="7" name="Q" />
+"#,
+    );
+
+    let mut core = TestCore::new();
+    core.init_from_dast_root(&dast_root);
+
+    let p_dast_idx = 2;
+    let q2_dast_idx = 3;
+    let p2_dast_idx = 4;
+    let q_dast_idx = 5;
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+
+    let p_renderer = &flat_dast.elements[p_dast_idx];
+    let p2_renderer = &flat_dast.elements[p2_dast_idx];
+    let q_renderer = &flat_dast.elements[q_dast_idx];
+    let q2_renderer = &flat_dast.elements[q2_dast_idx];
+
+    // Since P and Q2 are in the graph, they have x and y rendered props
+    let p_x: MathExpr = 3.0.into();
+    let p_y: MathExpr = 1.0.into();
+    let q2_x: MathExpr = (-1.0).into();
+    let q2_y: MathExpr = 7.0.into();
+    assert_eq!(
+        p_renderer.data.props,
+        Some(ForRenderProps(vec![
+            ForRenderPropValue {
+                name: "x",
+                value: ForRenderPropValueOrContent::PropValue(p_x.into())
+            },
+            ForRenderPropValue {
+                name: "y",
+                value: ForRenderPropValueOrContent::PropValue(p_y.into())
+            }
+        ]))
+    );
+
+    assert_eq!(
+        q2_renderer.data.props,
+        Some(ForRenderProps(vec![
+            ForRenderPropValue {
+                name: "x",
+                value: ForRenderPropValueOrContent::PropValue(q2_x.into())
+            },
+            ForRenderPropValue {
+                name: "y",
+                value: ForRenderPropValueOrContent::PropValue(q2_y.into())
+            }
+        ]))
+    );
+
+    // Since P2 and Q are not in a graph, they have rendered coordsLatex prop
+    // Note: since don't have access to wasm, the contents of the coordsLatex prop are not correct
+
+    let p2_for_render_props_vec = &p2_renderer.data.props.as_ref().unwrap().0;
+    let q_for_render_props_vec = &q_renderer.data.props.as_ref().unwrap().0;
+
+    assert_eq!(p2_for_render_props_vec.len(), 1);
+    assert!(matches!(
+        p2_for_render_props_vec[0],
+        ForRenderPropValue {
+            name: "coordsLatex",
+            value: ForRenderPropValueOrContent::PropValue(..)
+        }
+    ));
+    assert_eq!(q_for_render_props_vec.len(), 1);
+    assert!(matches!(
+        q_for_render_props_vec[0],
+        ForRenderPropValue {
+            name: "coordsLatex",
+            value: ForRenderPropValueOrContent::PropValue(..)
+        }
+    ));
+}
