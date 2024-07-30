@@ -136,8 +136,8 @@ export default withNextra({
     assetPrefix,
     basePath,
     images: {
-        unoptimized: true
-    }
+        unoptimized: true,
+    },
 });
 
 // If you have other Next.js configurations, you can pass them as the parameter:
