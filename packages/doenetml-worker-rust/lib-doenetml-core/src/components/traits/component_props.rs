@@ -1,4 +1,4 @@
-use crate::{components::types::LocalPropIdx, core::props::PropDefinition};
+use crate::{components::types::LocalPropIdx, core::props::PropDefinition, props::RenderContext};
 
 /// The main `Component` struct, which wraps all component variants, implements
 /// `ComponentProps`. This is used by `Core` to initialize props.
@@ -26,6 +26,10 @@ pub trait ComponentProps {
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx>;
 
     /// Get the vector of the indices of all this component's props
-    /// that have been marked `for_render`.
-    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx>;
+    /// that have been marked `for_render`,
+    /// depending on the render context (either `in_graph` or `in_text`)
+    fn get_for_render_local_prop_indices(
+        &self,
+        render_context: RenderContext,
+    ) -> impl Iterator<Item = LocalPropIdx>;
 }

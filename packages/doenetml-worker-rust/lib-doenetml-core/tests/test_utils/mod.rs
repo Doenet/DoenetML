@@ -1,7 +1,7 @@
 //! This file contains utilities for testing DoenetMLCore.
-use doenetml_core::components::types::{ComponentIdx, LocalPropIdx, PropPointer};
+use doenetml_core::components::types::{Action, ComponentIdx, LocalPropIdx, PropPointer};
 use doenetml_core::dast::ref_resolve::Resolver;
-use doenetml_core::dast::{DastRoot, FlatDastRoot, PathPart};
+use doenetml_core::dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot, PathPart};
 use doenetml_core::props::cache::PropWithMeta;
 use doenetml_core::props::traits::IntoPropView;
 use doenetml_core::props::{PropValue, PropView};
@@ -9,6 +9,7 @@ use doenetml_core::Core;
 use serde_json;
 #[allow(unused)]
 pub use serde_json::{json, Value};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -251,5 +252,12 @@ impl TestCore {
     }
     pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
         self.resolver = Some(self.core.init_from_dast_root(dast_root));
+    }
+
+    pub fn dispatch_action(
+        &mut self,
+        action: Action,
+    ) -> Result<HashMap<ComponentIdx, FlatDastElementUpdate>, String> {
+        self.core.dispatch_action(action)
     }
 }

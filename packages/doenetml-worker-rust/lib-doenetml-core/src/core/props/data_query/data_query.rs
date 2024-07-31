@@ -116,9 +116,9 @@ pub enum DataQuery {
     /// `filter`. Results in a `prop_type::ComponentRefs` with the matching component refs.
     ///
     /// - `container`: the component whose children will be searched. For example, `PropComponent::Me`
-    /// to search your own children, or `PropComponent::Parent` to search your parent's children.
+    ///   to search your own children, or `PropComponent::Parent` to search your parent's children.
     /// - `filter`: A composition of `ContentFilter`s. These can be combined with `Op::And`, `Op::Or`,
-    /// and `OpNot`.
+    ///   and `OpNot`.
     ///
     /// ## Example
     /// ```rust

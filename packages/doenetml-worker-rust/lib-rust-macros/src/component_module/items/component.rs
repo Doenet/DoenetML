@@ -74,7 +74,18 @@ impl ComponentModule {
                 }
             })
             .collect::<Vec<_>>();
-        let prop_for_renders = self.props.get_prop_for_renders();
+        let prop_for_renders = self
+            .props
+            .get_prop_for_renders()
+            .iter()
+            .map(|x| {
+                let in_graph = x.in_graph;
+                let in_text = x.in_text;
+                quote! {
+                    crate::props::ForRenderOutputs { in_graph: #in_graph, in_text: #in_text}
+                }
+            })
+            .collect::<Vec<_>>();
         let prop_is_publics = self.props.get_prop_is_publics();
         let prop_value_types = self.props.get_prop_value_types();
         let default_prop = match self.props.get_default_prop_local_index() {
@@ -117,7 +128,7 @@ impl ComponentModule {
 
                 const PROP_PROFILES: &'static [Option<PropProfile>] = &[#(#prop_profiles),*];
 
-                const PROP_FOR_RENDERS: &'static [bool] = &[#(#prop_for_renders),*];
+                const PROP_FOR_RENDERS: &'static [crate::props::ForRenderOutputs] = &[#(#prop_for_renders),*];
 
                 const PROP_IS_PUBLICS: &'static [bool] = &[#(#prop_is_publics),*];
 
@@ -161,7 +172,7 @@ impl ComponentModule {
                 fn get_num_props(&self) -> usize {
                     Component::PROP_NAMES.len()
                 }
-                fn get_prop_is_for_render(&self, local_prop_idx: LocalPropIdx) -> bool {
+                fn get_prop_for_render_outputs(&self, local_prop_idx: LocalPropIdx) -> crate::props::ForRenderOutputs {
                     Component::PROP_FOR_RENDERS[local_prop_idx.as_usize()]
                 }
                 fn get_prop_name(&self, local_prop_idx: LocalPropIdx) -> &'static str {

@@ -201,7 +201,7 @@ impl DocumentModel {
 
                 // if prop is marked for render, add to components_with_changed_for_render_prop
                 let prop_meta = &self.get_prop_definition(node).meta;
-                if prop_meta.for_render {
+                if prop_meta.for_render.in_graph || prop_meta.for_render.in_text {
                     let component_idx = prop_meta.prop_pointer.component_idx;
                     changed_components[component_idx.as_usize()] = true;
                 }

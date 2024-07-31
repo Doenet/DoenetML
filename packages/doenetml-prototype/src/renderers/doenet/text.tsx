@@ -1,8 +1,8 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import type { TextProps } from "@doenet/doenetml-worker-rust";
+import type { TextPropsInText } from "@doenet/doenetml-worker-rust";
 
-type TextData = { props: TextProps };
+type TextData = { props: TextPropsInText };
 
 export const Text: BasicComponent<TextData> = ({ node }) => {
     return <span>{node.data.props.value}</span>;

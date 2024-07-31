@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 use crate::core::props::{PropDefinition, PropDefinitionMeta, PropProfile};
 use crate::dast::Position as DastPosition;
+use crate::props::RenderContext;
 
 use super::_error::_Error;
 use super::_external::_External;
@@ -76,7 +77,7 @@ impl ComponentProps for Component {
                 PropDefinition {
                     meta: PropDefinitionMeta {
                         name: self.variant.get_prop_name(local_prop_idx),
-                        for_render: self.variant.get_prop_is_for_render(local_prop_idx),
+                        for_render: self.variant.get_prop_for_render_outputs(local_prop_idx),
                         profile: self.variant.get_prop_profile(local_prop_idx),
                         prop_pointer: PropPointer {
                             component_idx,
@@ -122,11 +123,21 @@ impl ComponentProps for Component {
         self.variant.get_default_prop_local_index()
     }
 
-    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
-        (0..self.variant.get_num_props()).filter_map(|i| {
-            self.variant
-                .get_prop_is_for_render(LocalPropIdx::new(i))
-                .then_some(LocalPropIdx::new(i))
+    fn get_for_render_local_prop_indices(
+        &self,
+        render_context: RenderContext,
+    ) -> impl Iterator<Item = LocalPropIdx> {
+        (0..self.variant.get_num_props()).filter_map(move |i| {
+            let for_render = self
+                .variant
+                .get_prop_for_render_outputs(LocalPropIdx::new(i));
+
+            let rendered_in_either = match render_context {
+                RenderContext::InGraph => for_render.in_graph,
+                RenderContext::InText => for_render.in_text,
+            };
+
+            rendered_in_either.then_some(LocalPropIdx::new(i))
         })
     }
 }

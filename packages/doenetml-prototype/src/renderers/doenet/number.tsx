@@ -1,8 +1,8 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import type { NumberProps } from "@doenet/doenetml-worker-rust";
+import type { NumberPropsInText } from "@doenet/doenetml-worker-rust";
 
-type NumberData = { props: NumberProps };
+type NumberData = { props: NumberPropsInText };
 
 export const Number: BasicComponent<NumberData> = ({ node }) => {
     return <span>{node.data.props.text}</span>;

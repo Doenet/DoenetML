@@ -18,6 +18,7 @@ use crate::utils::rc_serde;
 /// These values follow a naming convention:
 ///  1. They are all in the form `PropValue::VariantName(prop_type::VariantName)`.
 ///  2. There is a corresponding type alias `VariantName` in the `prop_type` module.
+///
 /// This naming convention is relied upon by macros that implement type checking.
 #[derive(
     Debug,

@@ -1,9 +1,9 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import type { UlProps } from "@doenet/doenetml-worker-rust";
+import type { UlPropsInText } from "@doenet/doenetml-worker-rust";
 
 export const Ul: BasicComponentWithPassthroughChildren<{
-    props: UlProps;
+    props: UlPropsInText;
 }> = ({ children, node }) => {
     return <ul>{children}</ul>;
 };

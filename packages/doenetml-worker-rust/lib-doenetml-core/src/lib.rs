@@ -5,12 +5,12 @@
 //!
 //! ## Features
 //!  - [`Components`](components) are the building blocks of _DoenetML_. They are the smallest unit of a
-//!  _DoenetML_ document, and (most of the time) correspond to XML tags that the user has typed
-//!  in their _DoenetML_ source code. Examples include `<p />` and `<textInput />`
+//!    _DoenetML_ document, and (most of the time) correspond to XML tags that the user has typed
+//!    in their _DoenetML_ source code. Examples include `<p />` and `<textInput />`
 //!  - [`Core`](core) computes properties and relationships between DoenetML components. It enables
-//!  interactivity via `Action`s, allowing components to respond and re-render based on user input.
+//!    interactivity via `Action`s, allowing components to respond and re-render based on user input.
 //!  - [`Graph`](graph) provides an abstract implementation of a directed graph which is used
-//!  to track dependencies among _DoenetML_ components and their properties.
+//!    to track dependencies among _DoenetML_ components and their properties.
 
 #![allow(clippy::single_match)]
 

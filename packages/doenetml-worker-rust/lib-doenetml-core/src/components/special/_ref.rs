@@ -8,7 +8,9 @@
 use std::rc::Rc;
 
 use crate::{
-    components::prelude::*, general_prop::IndependentProp, props::UpdaterObject,
+    components::prelude::*,
+    general_prop::IndependentProp,
+    props::{ForRenderOutputs, RenderContext, UpdaterObject},
     state::types::component_refs::ComponentRef,
 };
 
@@ -41,7 +43,10 @@ impl ComponentProps for _Ref {
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
-    fn get_for_render_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+    fn get_for_render_local_prop_indices(
+        &self,
+        _render_context: RenderContext,
+    ) -> impl Iterator<Item = LocalPropIdx> {
         vec![].into_iter()
     }
     fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
@@ -68,8 +73,8 @@ impl ComponentVariantProps for _Ref {
     fn get_num_props(&self) -> usize {
         1
     }
-    fn get_prop_is_for_render(&self, _local_prop_idx: LocalPropIdx) -> bool {
-        false
+    fn get_prop_for_render_outputs(&self, _local_prop_idx: LocalPropIdx) -> ForRenderOutputs {
+        ForRenderOutputs::default()
     }
     fn get_prop_name(&self, local_prop_idx: LocalPropIdx) -> &'static str {
         self.get_prop_names()[local_prop_idx.as_usize()]
