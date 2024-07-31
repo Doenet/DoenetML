@@ -117,8 +117,28 @@ const withNextra = nextraConfig({
 // module.exports = require('nextra')({
 //     latex: true
 //   });
+//
+const isGithubActions = process.env.GITHUB_ACTIONS || false;
 
-export default withNextra();
+let assetPrefix = "";
+let basePath = "";
+
+if (isGithubActions) {
+    // trim off `<owner>/`
+    const repo = process.env.GITHUB_REPOSITORY.replace(/.*?\//, "");
+
+    assetPrefix = `/${repo}/`;
+    basePath = `/${repo}`;
+}
+
+export default withNextra({
+    output: "export",
+    assetPrefix,
+    basePath,
+    images: {
+        unoptimized: true,
+    },
+});
 
 // If you have other Next.js configurations, you can pass them as the parameter:
 // module.exports = withNextra({ /* other next.js config */ })
