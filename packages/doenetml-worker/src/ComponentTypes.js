@@ -161,7 +161,6 @@ import CodeViewer from "./components/CodeViewer";
 import HasSameFactoring from "./components/HasSameFactoring";
 import DataFrame from "./components/DataFrame";
 import SummaryStatistics from "./components/SummaryStatistics";
-import Chart from "./components/Chart";
 import Legend from "./components/Legend";
 import Label from "./components/Label";
 import MatchesPattern from "./components/MatchesPattern";
@@ -358,7 +357,6 @@ const componentTypeArray = [
     HasSameFactoring,
     DataFrame,
     SummaryStatistics,
-    Chart,
     Legend,
     Label,
     MatchesPattern,
