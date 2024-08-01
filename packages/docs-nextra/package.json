@@ -30,6 +30,7 @@
                 "public/bundle/**/*"
             ],
             "dependencies": [
+                "../doenetml-iframe:build",
                 "../standalone:build",
                 "../doenetml:build"
             ]

@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createPortal } from "react-dom";
 import { OnClick } from "./keyboard";
 import { ManagedKeyboard } from "./managed-keyboard";
 import classNames from "classnames";
@@ -27,7 +27,7 @@ const KeyboardIcon = () => (
 export function KeyboardTray({ onClick }: { onClick: OnClick }) {
     const [open, setOpen] = React.useState(false);
 
-    return ReactDOM.createPortal(
+    return createPortal(
         <div
             id="virtual-keyboard-tray"
             className={classNames({ open })}
