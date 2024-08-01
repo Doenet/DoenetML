@@ -41,7 +41,7 @@ export function trimLeadingWhitespace(
     // Find the number of whitespace characters at the start of each line, with `\t` counting as `tabWidth` spaces.
     const leadingWhitespace = lines.flatMap((line) =>
         // Blank lines count as having infinite amounts of whitespace, so they are skipped over.
-        line.length === 0 ? [] : (line.match(/^(\s*)/)?.[0] ?? ""),
+        line.length === 0 ? [] : line.match(/^(\s*)/)?.[0] ?? "",
     );
     const whitespaceCount = leadingWhitespace.map((sp) =>
         sp.split("").reduce((acc, c) => acc + (c === "\t" ? tabWidth : 1), 0),
