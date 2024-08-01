@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Properties and Lists
 
@@ -6,25 +6,25 @@ import { DoenetML} from "../../../components/doenet"
 
 Throughout this tutorial we've used "attributes" to adjust the behavior of components in DoenetML. Often you don't want to change the value of an attribute, though; you just want to know what that value is. You can do this with **properties** in DoenetML. The general syntax to retrieve the value of a property in DoenetML is:
 
-```html
+```doenet
      $objectName.propertyName
 ```
 
 For example, if you have a line named `PQ`, you can access its `slope` by typing the following in your code:
-```html
+```doenet
      $PQ.slope
 ```
 
 You might recall that `slope `is one of the attributes of `<line>`. It's often the case that the values of attributes can be accessed as properties. For example, if you define a line as
-```html
+```doenet
      <line name="PQ" through="(0,1)" slope="2"/>
 ```
 then, unsurprisingly, `$PQ.slope` is $2$. However, even if you define the same line using different attributes, such as
-```html
+```doenet
      <line name="PQ" through="(-1,1) (1,3)"/>
 ```
 or
-```html
+```doenet
      <line name="PQ" equation="2x-y=-1"/>,
 ```
 Doenet will still calculate the slope of $\overset{\longleftrightarrow}{PQ}$ and set `$PQ.slope` equal to $2$. Furthermore, if the line changes because of some user interaction, the value of `$PQ.slope` will be updated.
@@ -35,7 +35,7 @@ The documentation page for each DoenetML component, as found in either the [Alph
 
 As a basic example, the following code uses the $x$ and $y$-coordinates of points $P$ and $Q$ to compute the length of $\overline{PQ}$, via the distance formula. However, it turns out DoenetML already computes that distance; we can access it using the `length` property of the line segment.
 
-```html
+```doenet
 <graph showNavigation="false" size="small">
 
   <point name="P" x="-8" y="-2" />
@@ -67,7 +67,7 @@ Throughout the rest of this tutorial, you'll sometimes see attribute names used 
 
 ### Array Notation
 The `<mathList>` tag was briefly introduced in an earlier section. You might recall this is a space-separated list of `<math>` objects:
-```html
+```doenet
 <mathList>$object1 $object2 $object3</mathList>
 ```
 
@@ -77,7 +77,7 @@ Later in this tutorial we'll cover sequences and other lists of objects in Doene
 
 * To refer to the $n^{th}$ object in a list, use the following "array" notation: First, enter the name of the component, followed by the type of object or property that is being accessed, followed by square brackets enclosing the index value desired. The following example shows this notation for three different types of lists; `<mathList>`, `<textList>`, and `<booleanList>`.
 
-```html {2,5,8} 
+```doenet {2,5,8} 
 <p>A mathlist: <mathList name="ml">x xy pi^2 sqrt(2)</mathList></p>
 <p>The third "math" in the <tag>mathList</tag> is: $ml.maths[3]</p>
 
@@ -99,7 +99,22 @@ The following code demonstrates the use of array notation and properties with gr
 
 Below the graph, you'll find references to the `endpoints` property of both line segements, as well as individual references to specific data from the `endpoints` property list (see lines 10-11).
 
-```html {5, 10-11}
+
+<DoenetEditor source ={`
+<graph size="small">
+  <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
+ 
+  <lineSegment name= "line2" endpoints="(6,6) (7,-5)" />
+  $line2.endpoints
+</graph>
+ 
+<p>Endpoints of <c>line1</c>: $line1.endpoints</p>
+<p>Endpoints of <c>line2</c>: $line2.endpoints</p>
+<p>First endpoint of <c>line2</c>: $line2.endpoints[1]</p>
+<p>Second endpoint of <c>line2</c>, first element (x): $line2.endpoints[2][1]</p>
+`} />
+
+```doenet-editor
 <graph size="small">
   <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
  
@@ -112,21 +127,7 @@ Below the graph, you'll find references to the `endpoints` property of both line
 <p>First endpoint of <c>line2</c>: $line2.endpoints[1]</p>
 <p>Second endpoint of <c>line2</c>, first element (x): $line2.endpoints[2][1]</p>
 ```
-<DoenetML>
-{`
-<graph size="small">
-  <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
- 
-  <lineSegment name= "line2" endpoints="(6,6) (7,-5)" />
-  $line2.endpoints
-</graph>
- 
-<p>Endpoints of <c>line1</c>: $line1.endpoints</p>
-<p>Endpoints of <c>line2</c>: $line2.endpoints</p>
-<p>First endpoint of <c>line2</c>: $line2.endpoints[1]</p>
-<p>Second endpoint of <c>line2</c>, first element (x): $line2.endpoints[2][1]</p>
-`}
-</DoenetML>
+
 
 Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
