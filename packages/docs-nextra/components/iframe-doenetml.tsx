@@ -1,6 +1,6 @@
 import React from "react";
 import { DoenetViewer } from "@doenet/doenetml-iframe";
-import "@doenet/virtual-keyboard/style.css"
+import "@doenet/virtual-keyboard/style.css";
 
 /**
  * Render DoenetML in an iframe so that its styling/state is completely isolated from the page.
@@ -20,30 +20,4 @@ export function IframeDoenetML({ children }: React.PropsWithChildren<{}>) {
         );
     }
     return <DoenetViewer doenetML={children} />;
-}
-
-/**
- * Create HTML for a single page document that renders the given DoenetML.
- */
-function createHtmlForDoenetML(doenetML: string) {
-    return `
-    <html>
-    <head>
-        <script type="module" src="/bundle/doenet-standalone.js"></script>
-        <link rel="stylesheet" href="/bundle/style.css">
-    </head>
-    <body>
-        <script type="module">
-            document.addEventListener("DOMContentLoaded", () => {
-                window.renderDoenetToContainer(document.getElementById("root"));
-            });
-        </script>
-        <div id="root" data-doenet-add-virtual-keyboard="false">
-            <script type="text/doenetml">
-                ${doenetML}
-            </script>
-        </div>
-    </body>
-    </html>
-    `;
 }
