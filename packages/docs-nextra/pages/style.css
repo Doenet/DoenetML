@@ -1,7 +1,14 @@
-.doenetml-example-container {
-    border: 2px dashed black;
+.doenet-example-container {
+    border: 2px solid rgb(229, 231, 235);
     border-radius: 10px;
+    padding: 0px;
+    margin-top:1.5rem;
 }
+
+.doenet-editor-container {
+    margin-top:1.5rem;
+}
+
 
 .attr-table,
 .prop-table {

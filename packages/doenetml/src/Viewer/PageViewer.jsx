@@ -1392,7 +1392,7 @@ export function PageViewer({
     if (!coreCreated.current) {
         if (!documentRenderer) {
             noCoreWarning = (
-                <div style={{ backgroundColor: "lightCyan", padding: "10px" }}>
+                <div style={{ backgroundColor: "lightCyan" }}>
                     <p>Initializing....</p>
                 </div>
             );
