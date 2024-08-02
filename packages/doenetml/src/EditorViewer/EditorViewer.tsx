@@ -83,6 +83,10 @@ export function EditorViewer({
         platform = "Mac";
     }
 
+    if (readOnly) {
+        showFormatter = false;
+    }
+
     const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
     const [activityId, setActivityId] = useState(specifiedActivityId ?? id);
 

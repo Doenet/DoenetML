@@ -204,6 +204,7 @@ export default function TestViewer() {
             height="calc(100vh - 94px)"
             width="100%"
             viewerLocation={viewerLocation}
+            readOnly={readOnly}
         />
     );
 
