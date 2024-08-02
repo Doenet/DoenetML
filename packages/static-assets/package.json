@@ -21,13 +21,14 @@
     "scripts": {
         "test": "echo \"No tests \"",
         "build": "wireit",
-        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts"
+        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts"
     },
     "wireit": {
         "build": {
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "scripts/**/*.ts",
                 "src/**/*.json",
                 "tsconfig.json"
             ],
