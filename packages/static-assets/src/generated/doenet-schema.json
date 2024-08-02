@@ -1172,7 +1172,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -2147,7 +2146,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -2466,7 +2464,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -2785,7 +2782,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -22022,7 +22018,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -22482,7 +22477,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -22942,7 +22936,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -23402,7 +23395,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -23862,7 +23854,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -24335,7 +24326,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -24795,7 +24785,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -25255,7 +25244,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -25715,7 +25703,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -26175,7 +26162,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -26635,7 +26621,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -27095,7 +27080,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -27555,7 +27539,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -28015,7 +27998,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -28475,7 +28457,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -28942,7 +28923,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -29396,7 +29376,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -30080,7 +30059,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -34145,7 +34123,6 @@
                 "codeEditor",
                 "codeViewer",
                 "summaryStatistics",
-                "chart",
                 "blockQuote",
                 "contentPicker"
             ],
@@ -34683,7 +34660,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -35452,7 +35428,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -35771,7 +35746,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -36090,7 +36064,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -36409,7 +36382,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -36748,7 +36720,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -37444,7 +37415,6 @@
                 "codeEditor",
                 "codeViewer",
                 "summaryStatistics",
-                "chart",
                 "blockQuote",
                 "contentPicker"
             ],
@@ -37766,7 +37736,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -40870,7 +40839,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -49543,7 +49511,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -52486,7 +52453,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -52821,7 +52787,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -53855,7 +53820,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -54787,7 +54751,6 @@
                 "codeEditor",
                 "codeViewer",
                 "summaryStatistics",
-                "chart",
                 "blockQuote",
                 "contentPicker"
             ],
@@ -55098,7 +55061,6 @@
                 "codeEditor",
                 "codeViewer",
                 "summaryStatistics",
-                "chart",
                 "blockQuote",
                 "contentPicker"
             ],
@@ -55727,7 +55689,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -57657,7 +57618,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -58650,7 +58610,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -60301,7 +60260,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -61568,7 +61526,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -62481,7 +62438,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -62798,7 +62754,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -63117,7 +63072,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -64349,7 +64303,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -64788,7 +64741,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -65332,7 +65284,6 @@
                 "codeEditor",
                 "codeViewer",
                 "summaryStatistics",
-                "chart",
                 "blockQuote",
                 "contentPicker"
             ],
@@ -66047,7 +65998,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -66399,7 +66349,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -67711,7 +67660,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -68824,7 +68772,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -69818,304 +69765,6 @@
                 },
                 {
                     "name": "range",
-                    "type": "number",
-                    "isArray": false
-                }
-            ],
-            "top": true,
-            "acceptsStringChildren": false
-        },
-        {
-            "name": "chart",
-            "children": [],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
-                {
-                    "name": "target"
-                },
-                {
-                    "name": "hide",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "disabled",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "fixed",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "newNamespace",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "type",
-                    "values": [
-                        "histogram",
-                        "dotplot",
-                        "frequencytable",
-                        "box",
-                        "bar"
-                    ]
-                },
-                {
-                    "name": "column"
-                },
-                {
-                    "name": "xmin"
-                },
-                {
-                    "name": "xmax"
-                },
-                {
-                    "name": "ymin"
-                },
-                {
-                    "name": "ymax"
-                },
-                {
-                    "name": "width"
-                },
-                {
-                    "name": "height"
-                },
-                {
-                    "name": "identicalAxisScales",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "displayXAxis",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "displayYAxis",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "displayXAxisTickLabels",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "displayYAxisTickLabels",
-                    "values": ["true", "false"]
-                },
-                {
-                    "name": "xlabel"
-                },
-                {
-                    "name": "xlabelPosition",
-                    "values": ["right", "left"]
-                },
-                {
-                    "name": "ylabel"
-                },
-                {
-                    "name": "ylabelPosition",
-                    "values": ["top", "bottom"]
-                },
-                {
-                    "name": "ylabelAlignment",
-                    "values": ["left", "right"]
-                },
-                {
-                    "name": "displayDigits"
-                },
-                {
-                    "name": "displayDecimals"
-                },
-                {
-                    "name": "displaySmallAsZero"
-                },
-                {
-                    "name": "padZeros",
-                    "values": ["true", "false"]
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "newNamespace",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "width",
-                    "type": "_componentSize",
-                    "isArray": false
-                },
-                {
-                    "name": "height",
-                    "type": "_componentSize",
-                    "isArray": false
-                },
-                {
-                    "name": "identicalAxisScales",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "displayXAxis",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "displayYAxis",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "displayXAxisTickLabels",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "displayYAxisTickLabels",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "xlabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "xlabelPosition",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "ylabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "ylabelPosition",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "ylabelAlignment",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "columnName",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "xmin",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "xmax",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "ymin",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "ymax",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "xscale",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "yscale",
                     "type": "number",
                     "isArray": false
                 }
@@ -72106,7 +71755,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
@@ -72425,7 +72073,6 @@
                 "hasSameFactoring",
                 "dataFrame",
                 "summaryStatistics",
-                "chart",
                 "legend",
                 "label",
                 "matchesPattern",
