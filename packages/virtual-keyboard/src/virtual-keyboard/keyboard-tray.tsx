@@ -52,6 +52,7 @@ export function KeyboardTray({ onClick }: { onClick: OnClick }) {
                 className="open-keyboard-button"
                 onClick={() => setOpen((old) => !old)}
                 title={open ? "Close Keyboard" : "Open Keyboard"}
+                aria-label={open ? "Close Keyboard" : "Open Keyboard"}
             >
                 <KeyboardIcon />
             </button>
@@ -60,6 +61,7 @@ export function KeyboardTray({ onClick }: { onClick: OnClick }) {
                     className="close-keyboard-button"
                     onClick={() => setOpen(false)}
                     title="Close Keyboard"
+                    aria-label="Close Keyboard"
                 >
                     &times;
                 </button>
