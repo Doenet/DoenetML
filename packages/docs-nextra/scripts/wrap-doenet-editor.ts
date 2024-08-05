@@ -3,6 +3,7 @@ import { Plugin } from "unified";
 
 import { Root as MdastRoot } from "mdast";
 import { MdxJsxFlowElement } from "./types";
+import { objectToEstree } from "./object-to-estree";
 
 /**
  * Wraps codeblocks of type `doenet-editor` with a JSX element that renders the editor with the output.
@@ -30,7 +31,11 @@ export const wrapDoenetEditor: Plugin<void[], MdastRoot, MdastRoot> =
                         {
                             type: "mdxJsxAttribute",
                             name: "source",
-                            value: node.value,
+                            value: {
+                                type: "mdxJsxAttributeValueExpression",
+                                value: JSON.stringify(node.value),
+                                data: { estree: objectToEstree(node.value) },
+                            },
                         },
                     ],
                     children: [],
