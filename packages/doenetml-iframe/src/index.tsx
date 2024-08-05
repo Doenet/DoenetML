@@ -259,7 +259,7 @@ export function DoenetViewer({
                     boxSizing: "border-box",
                     overflow: "hidden",
                     border: "none",
-                    minHeight: 200,
+                    minHeight: 50,
                 }}
                 height={height}
             />

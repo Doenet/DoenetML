@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # `<abs>`
 
@@ -18,7 +18,7 @@ The `<abs>` component has no attibutes or properties.
 
 <a id="math-ex"></a>
 ### Example: Render the absolute value of a math expression
-```html
+```doenet
 <m>|5 - 8| = <abs>5 - 8</abs></m>
 ```
 The `<abs>` component is used to render the absolute value of a math expression. Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
@@ -26,7 +26,7 @@ The `<abs>` component is used to render the absolute value of a math expression.
 
 <a id="mathInput-ex"></a>
 ### Example: Absolute value of `<mathInput>`
-```html 
+```doenet 
 <p>Type any number: <mathInput name="userN"/></p>
 <p><m>|$userN| = <abs>$userN</abs></m></p>
 ```
@@ -34,7 +34,7 @@ The `<abs>` component is used to render the absolute value of a named `<mathInpu
 
 <a id="numProps-ex"></a>
 ### Example: Absolute value of numerical properties
-```html {5}
+```doenet {5}
     <p>Move the point in the third quadrant.</p>
     <graph size="small" name="g1" newNameSpace>
         <point name="p1" styleNumber="2">(-5,-5)</point>
@@ -47,7 +47,7 @@ Children of the `<abs>` component can include references to `<mathInput>` values
 
 <a id="function-ex"></a>
 ### Example: Absolute value of a function
-```html {4}
+```doenet {4}
     <graph size="small" name="g2" newNameSpace>
        <function name="f">(1/4)x^2 - 4</function>
        <function styleNumber="2">

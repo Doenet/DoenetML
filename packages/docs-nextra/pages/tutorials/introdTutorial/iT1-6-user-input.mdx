@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # User Input and Basic Answer Checking
 
@@ -13,7 +13,7 @@ The simplest way to have the user enter a number or mathematical expression is u
 
 In the example below, enter a number in the input box, and press return.
 
-```html {2}
+```doenet {2}
 <p>
   Enter a value for <m>x</m>: <mathInput name="userNumber" />
 </p>
@@ -24,7 +24,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 In that example, Doenet displays $\_  ^2$ until you have entered a number; when the `<mathInput>` is blank, Doenet does not have a number to square. Although this makes logical sense, it looks very odd on the screen. You can avoid this by providing a default value for the `<mathInput>` object, using the `prefill` attribute. In the following code, `userNumber` is assigned a default value of $3$, but you can type a new number in the input box.
 
-```html {3}
+```doenet {3}
 <p>
   Enter a value for <m>x</m>: 
   <mathInput name="userNumber" prefill="3" />
@@ -44,7 +44,7 @@ Similar to [Desmos](https://desmos.com/) and other websites, input in a `<mathIn
 
 DoenetML documents can have multiple `<mathInput>` tags. The following code is a modification of our earlier quadratic formula example; now that we've learned about user input, the reader can change the values of $a$, $b$, or $c$, and Doenet will solve the resulting equation.
 
-```html {2-4}
+```doenet {2-4}
 <p>Enter the coefficients for <m>ax^2+bx+c</m>:</p> 
  <p><m>a = </m> <mathInput name="a" prefill="1"/></p>
  <p><m>b = </m> <mathInput name="b" prefill="-3"/></p>
@@ -64,7 +64,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 Although it's not specific to `<mathInput>` components, this is a good moment to point out an important feature of Doenet. The following example is almost identical to the previous one; the only difference is that the quadratic formula calculations have been moved to a `<setup>` block, and then are referred to later on as `$solution1` and `$solution2`.
 
-```html {1,4}
+```doenet {1,4}
 <setup>
    <math simplify name="solution1">(-$b + sqrt($b^2- 4*$a*$c))/(2*$a)</math>
    <math simplify name="solution2">(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math>
@@ -92,14 +92,14 @@ Often we want to pose a question to a user, have them type some input, and then 
 
 The `<answer>` component provides visual feedback, with a blue "Enter" button that changes to a red X or green check mark, depending on whether the submitted answer is wrong or right.
 
-```html
+```doenet
 <p>Enter <m>5x^2-3</m>: <answer>5x^2-3</answer></p>
 ```
 Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 The contents of an `<answer>` can depend on other objects. In the code below, you can enter constants to modify the linear equation, and then in the test editor check that you can correctly find the solution to the equation.
 
-```html {13}
+```doenet {13}
 <setup>
   <math simplify name="solution">($c-$b)/$a</math>
 </setup>
@@ -119,7 +119,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 ### Multiple Answers and `<mathList>`
 Often a question has more than one answer; a quadratic equation could have two solutions, for example. The following code combines a few of our previous examples. You can adjust the coefficients of a quadratic equation, and then check whether you can correctly compute the solutions. You can enter both solutions, separated by a comma, and then check your answer.
 
-```html {16-18}
+```doenet {16-18}
 <setup>
   <math simplify name="solution1">(-$b + sqrt($b^2- 4*$a*$c))/(2*$a)</math>
   <math simplify name="solution2">(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math>
@@ -144,7 +144,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 As you can see in the code, the correct response is defined as a `<mathList>`, which is a list of `<math>` objects:
 
-```html
+```doenet
 <mathList>$object1 ... $objectN</mathList>
 ```
 
