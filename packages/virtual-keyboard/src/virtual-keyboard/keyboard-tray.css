@@ -63,8 +63,7 @@ Tailwind base is purposely not included because we want all styles to be prefixe
         @apply border-b-black border-b;
         @apply hover:bg-slate-300 active:bg-slate-400;
         @apply w-12 h-[1.5rem] flex items-center justify-center;
-        background-color: white;
-        border-width: 1px;
+        @apply bg-white border
     }
 
     .virtual-keyboard-tab-list {
