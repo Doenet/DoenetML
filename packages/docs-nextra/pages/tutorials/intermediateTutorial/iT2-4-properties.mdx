@@ -100,21 +100,7 @@ The following code demonstrates the use of array notation and properties with gr
 Below the graph, you'll find references to the `endpoints` property of both line segements, as well as individual references to specific data from the `endpoints` property list (see lines 10-11).
 
 
-<DoenetEditor source ={`
-<graph size="small">
-  <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
- 
-  <lineSegment name= "line2" endpoints="(6,6) (7,-5)" />
-  $line2.endpoints
-</graph>
- 
-<p>Endpoints of <c>line1</c>: $line1.endpoints</p>
-<p>Endpoints of <c>line2</c>: $line2.endpoints</p>
-<p>First endpoint of <c>line2</c>: $line2.endpoints[1]</p>
-<p>Second endpoint of <c>line2</c>, first element (x): $line2.endpoints[2][1]</p>
-`} />
-
-```doenet-editor
+```doenet-editor-horiz
 <graph size="small">
   <lineSegment name= "line1" endpoints="(-8,-8) (-8,8)" />
  

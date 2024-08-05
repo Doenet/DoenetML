@@ -17,11 +17,22 @@ export function DoenetViewer({
 export function DoenetEditor({
     source,
     showFormatter = false,
-}: React.PropsWithChildren<{ source: string; showFormatter?: boolean }>) {
-    console.log("source for editor", JSON.stringify(source));
+    viewerLocation = "right",
+    height = "500px",
+}: React.PropsWithChildren<{
+    source: string;
+    showFormatter?: boolean;
+    viewerLocation?: "left" | "right" | "top" | "bottom";
+    height?: string;
+}>) {
     return (
         <div className="doenet-editor-container">
-            <DoenetEditorOrig doenetML={source} showFormatter={showFormatter} />
+            <DoenetEditorOrig
+                doenetML={source}
+                showFormatter={showFormatter}
+                viewerLocation={viewerLocation}
+                height={height}
+            />
         </div>
     );
 }

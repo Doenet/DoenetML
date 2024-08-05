@@ -5,7 +5,7 @@ import { Root as MdastRoot } from "mdast";
 import { MdxJsxFlowElement } from "./types";
 
 /**
- * Wraps codeblocks of type `doenet-editor` with a JSX element that renders the output.
+ * Wraps codeblocks of type `doenet-viewer` with a JSX element that renders the output.
  */
 export const wrapDoenetViewer: Plugin<void[], MdastRoot, MdastRoot> =
     function () {

@@ -3,6 +3,7 @@ import {
     autoInsertAttrPropDescriptions,
     wrapDoenetExample,
     wrapDoenetEditor,
+    wrapDoenetEditorHorizontal,
     wrapDoenetViewer,
 } from "./dist/index.js";
 import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
@@ -67,6 +68,7 @@ const withNextra = nextraConfig({
             autoInsertAttrPropDescriptions,
             wrapDoenetExample,
             wrapDoenetEditor,
+            wrapDoenetEditorHorizontal,
             wrapDoenetViewer,
         ],
         rehypePlugins: [

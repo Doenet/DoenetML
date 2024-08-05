@@ -19,10 +19,53 @@ export const wrapDoenetEditor: Plugin<void[], MdastRoot, MdastRoot> =
                     return;
                 }
 
-                console.log(
-                    "value for wrapped editor",
-                    JSON.stringify(node.value),
-                );
+                const newNode: MdxJsxFlowElement = {
+                    type: "mdxJsxFlowElement",
+                    name: "DoenetEditor",
+                    attributes: [
+                        {
+                            type: "mdxJsxAttribute",
+                            name: "source",
+                            value: {
+                                type: "mdxJsxAttributeValueExpression",
+                                value: JSON.stringify(node.value),
+                                data: { estree: objectToEstree(node.value) },
+                            },
+                        },
+                        {
+                            type: "mdxJsxAttribute",
+                            name: "viewerLocation",
+                            value: "bottom",
+                        },
+                        {
+                            type: "mdxJsxAttribute",
+                            name: "height",
+                            value: "600px",
+                        },
+                    ],
+                    children: [],
+                };
+
+                // Override the original node with the new one.
+                Object.assign(node, newNode);
+            });
+        };
+    };
+
+/**
+ * Wraps codeblocks of type `doenet-editor-horiz` with a JSX element that renders the editor with the output
+ * where the editor defaults to being at the left.
+ */
+export const wrapDoenetEditorHorizontal: Plugin<void[], MdastRoot, MdastRoot> =
+    function () {
+        return (tree) => {
+            visit(tree, (node) => {
+                if (node?.type !== "code") {
+                    return;
+                }
+                if (node.lang !== "doenet-editor-horiz") {
+                    return;
+                }
 
                 const newNode: MdxJsxFlowElement = {
                     type: "mdxJsxFlowElement",
@@ -36,6 +79,16 @@ export const wrapDoenetEditor: Plugin<void[], MdastRoot, MdastRoot> =
                                 value: JSON.stringify(node.value),
                                 data: { estree: objectToEstree(node.value) },
                             },
+                        },
+                        {
+                            type: "mdxJsxAttribute",
+                            name: "viewerLocation",
+                            value: "right",
+                        },
+                        {
+                            type: "mdxJsxAttribute",
+                            name: "height",
+                            value: "500px",
                         },
                     ],
                     children: [],
