@@ -13242,7 +13242,7 @@ export default class Core {
             };
         }
 
-        if (this.apiUrls.postMessages) {
+        if (this.apiURLs.postMessages) {
             postMessage({
                 messageType: "recordSolutionView",
                 activityId: this.activityId,
