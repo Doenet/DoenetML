@@ -316,6 +316,11 @@ export function PageViewer({
                     ...e.data,
                     subject: "SPLICE.reportScoreAndState",
                 });
+            } else if (e.data.messageType === "recordSolutionView") {
+                window.postMessage({
+                    ...e.data,
+                    subject: "SPLICE.recordSolutionView",
+                });
             } else if (e.data.messageType === "sendEvent") {
                 window.postMessage({
                     ...e.data,

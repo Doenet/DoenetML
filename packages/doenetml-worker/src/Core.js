@@ -13242,6 +13242,22 @@ export default class Core {
             };
         }
 
+        if (this.apiURLs.postMessages) {
+            postMessage({
+                messageType: "recordSolutionView",
+                activityId: this.activityId,
+                itemNumber: this.itemNumber,
+                pageNumber: this.pageNumber,
+                attemptNumber: this.attemptNumber,
+            });
+
+            return {
+                allowView: true,
+                message: "",
+                scoredComponent: this.documentName,
+            };
+        }
+
         try {
             const resp = await axios.post(this.apiURLs.reportSolutionViewed, {
                 activityId: this.activityId,
