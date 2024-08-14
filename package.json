@@ -36,7 +36,7 @@
         "@qualified/lsp-connection": "^0.3.0",
         "@qualified/vscode-jsonrpc-ww": "^0.3.0",
         "@rollup/pluginutils": "^5.0.5",
-        "@vitest/web-worker": "^0.34.6",
+        "@vitest/web-worker": "^2.0.5",
         "@vscode/test-web": "^0.0.47",
         "autoprefixer": "^10.4.19",
         "chalk": "^5.3.0",
@@ -52,7 +52,7 @@
         "typescript": "^5.2.2",
         "vite-node": "^0.34.6",
         "vite-plugin-compile-time": "^0.2.1",
-        "vitest": "^0.34.6"
+        "vitest": "^2.0.5"
     },
     "prettier": {
         "tabWidth": 4
