@@ -23,7 +23,6 @@ Tailwind base is purposely not included because we want all styles to be prefixe
      * Some styles from tailwind preflight need to be included here
      */
     box-sizing: border-box;
-    border-stylke: solid;
     --tw-border-spacing-x: 0;
     --tw-border-spacing-y: 0;
     --tw-translate-x: 0;
@@ -64,6 +63,7 @@ Tailwind base is purposely not included because we want all styles to be prefixe
         @apply border-b-black border-b;
         @apply hover:bg-slate-300 active:bg-slate-400;
         @apply w-12 h-[1.5rem] flex items-center justify-center;
+        @apply bg-white border;
     }
 
     .virtual-keyboard-tab-list {
