@@ -52,6 +52,7 @@
         "typescript": "^5.2.2",
         "vite-node": "^0.34.6",
         "vite-plugin-compile-time": "^0.2.1",
+        "vite-plugin-static-copy": "^0.17.0",
         "vitest": "^2.0.5"
     },
     "prettier": {
