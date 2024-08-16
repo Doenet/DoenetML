@@ -1756,7 +1756,7 @@ export function ActivityViewer({
         );
         let errorStyle = {
             backgroundColor: "#ff9999",
-            textAlign: "center",
+            textAlign: "center" as const,
             borderWidth: 3,
             borderStyle: "solid",
         };

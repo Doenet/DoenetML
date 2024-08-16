@@ -10,9 +10,9 @@ import { UniqueKeyboardTray } from "./unique-keyboard-tray";
  * Virtual keyboard that is connected via Recoil to math elements.
  */
 export function RecoilVirtualKeyboard({
-    keyboardIsOutsideIframe = false,
+    externalVirtualKeyboardProvided = false,
 }: {
-    keyboardIsOutsideIframe: boolean;
+    externalVirtualKeyboardProvided: boolean;
 }) {
     const callback = useRecoilValue(focusedMathField);
     const returnCallback = useRecoilValue(focusedMathFieldReturn);
@@ -41,7 +41,7 @@ export function RecoilVirtualKeyboard({
     }, [recoilEvents]);
 
     React.useEffect(() => {
-        if (keyboardIsOutsideIframe) {
+        if (externalVirtualKeyboardProvided) {
             // If the keyboard is outside the iframe,
             // then the keyboard events will be sent via messages on the parent.
             const listener = (
@@ -68,7 +68,7 @@ export function RecoilVirtualKeyboard({
     // If the keyboard is not outside the iframe,
     // then we add a reference to the keyboard here
     // that will return the events via a callback.
-    return keyboardIsOutsideIframe ? null : (
+    return externalVirtualKeyboardProvided ? null : (
         <UniqueKeyboardTray
             onClick={(events) => {
                 setRecoilEvents(translateKeyboardEvent(events));
