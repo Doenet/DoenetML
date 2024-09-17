@@ -1,10 +1,12 @@
 import BaseComponent from "./abstract/BaseComponent";
-import { normalizeIndex } from "../utils/table";
 
 export default class Row extends BaseComponent {
     static componentType = "row";
     static rendererType = "row";
     static renderChildren = true;
+
+    static includeBlankStringChildren = true;
+    static removeBlankStringChildrenPostSugar = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
