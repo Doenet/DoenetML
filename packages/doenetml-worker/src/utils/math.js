@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { subsets } from "@doenet/utils";
 
 export var appliedFunctionSymbolsDefault = [
     "abs",
@@ -1063,7 +1064,11 @@ export function removeFunctionsMathExpressionClass(value) {
         value = undefined;
     } else if (Array.isArray(value)) {
         value = value.map((x) => removeFunctionsMathExpressionClass(x));
-    } else if (typeof value === "object" && value !== null) {
+    } else if (
+        typeof value === "object" &&
+        value !== null &&
+        !(value instanceof subsets.Subset)
+    ) {
         let valueCopy = {};
         for (let key in value) {
             valueCopy[key] = removeFunctionsMathExpressionClass(value[key]);
