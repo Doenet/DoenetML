@@ -10,6 +10,7 @@ import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
     cesc,
+    data_format_version,
 } from "@doenet/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
@@ -880,6 +881,11 @@ export function PageViewer({
                 localInfo = await idb_get(
                     `${activityId}|${pageNumber}|${attemptNumber}|${cid}`,
                 );
+
+                if (localInfo.data_format_version !== data_format_version) {
+                    // the data saved does not match the current version, so we ignore it
+                    localInfo = undefined;
+                }
             } catch (e) {
                 // ignore error
             }
@@ -920,28 +926,40 @@ export function PageViewer({
                     }
                 }
 
-                if (localInfo.rendererState.__componentNeedingUpdateValue) {
+                const coreState = JSON.parse(
+                    localInfo.coreState,
+                    serializedComponentsReviver,
+                );
+                const rendererState = JSON.parse(
+                    localInfo.rendererState,
+                    serializedComponentsReviver,
+                );
+                const coreInfo = JSON.parse(
+                    localInfo.coreInfo,
+                    serializedComponentsReviver,
+                );
+
+                if (rendererState.__componentNeedingUpdateValue) {
                     callAction({
                         action: {
                             actionName: "updateValue",
                             componentName:
-                                localInfo.rendererState
-                                    .__componentNeedingUpdateValue,
+                                rendererState.__componentNeedingUpdateValue,
                         },
                         args: { doNotIgnore: true },
                     });
                 }
 
                 initializeRenderers({
-                    rendererState: localInfo.rendererState,
-                    coreInfo: localInfo.coreInfo,
+                    rendererState,
+                    coreInfo,
                 });
 
                 initialCoreData.current = {
-                    coreState: localInfo.coreState,
+                    coreState,
                     serverSaveId: localInfo.saveId,
                     requestedVariant: JSON.parse(
-                        localInfo.coreInfo.generatedVariantString,
+                        coreInfo.generatedVariantString,
                         serializedComponentsReviver,
                     ),
                 };
@@ -1117,18 +1135,9 @@ export function PageViewer({
 
         let pageStateToBeSavedToDatabase = {
             cid,
-            coreInfo: JSON.stringify(
-                localInfo.coreInfo,
-                serializedComponentsReplacer,
-            ),
-            coreState: JSON.stringify(
-                localInfo.coreState,
-                serializedComponentsReplacer,
-            ),
-            rendererState: JSON.stringify(
-                localInfo.rendererState,
-                serializedComponentsReplacer,
-            ),
+            coreInfo: localInfo.coreInfo,
+            coreState: localInfo.coreState,
+            rendererState: localInfo.rendererState,
             pageNumber,
             attemptNumber,
             activityId,
@@ -1163,18 +1172,10 @@ export function PageViewer({
 
         if (data.stateOverwritten) {
             let newLocalInfo = {
-                coreState: JSON.parse(
-                    data.coreState,
-                    serializedComponentsReviver,
-                ),
-                rendererState: JSON.parse(
-                    data.rendererState,
-                    serializedComponentsReviver,
-                ),
-                coreInfo: JSON.parse(
-                    data.coreInfo,
-                    serializedComponentsReviver,
-                ),
+                data_format_version,
+                coreState: data.coreState,
+                rendererState: data.rendererState,
+                coreInfo: data.coreInfo,
                 saveId: data.saveId,
             };
 

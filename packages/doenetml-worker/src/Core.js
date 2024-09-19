@@ -19,6 +19,7 @@ import {
     extractComponentNamesAndIndices,
     extractRangeIndexPieces,
     convertToErrorComponent,
+    data_format_version,
 } from "@doenet/utils";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
 import {
@@ -12543,13 +12544,23 @@ export default class Core {
 
         let saveId = nanoid();
 
+        let coreStateString = JSON.stringify(
+            this.cumulativeStateVariableChanges,
+            serializedComponentsReplacer,
+        );
+        let rendererStateString = JSON.stringify(
+            this.rendererState,
+            serializedComponentsReplacer,
+        );
+
         if (this.flags.allowLocalState) {
             await idb_set(
                 `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}`,
                 {
-                    coreState: this.cumulativeStateVariableChanges,
-                    rendererState: this.rendererState,
-                    coreInfo: this.coreInfo,
+                    data_format_version,
+                    coreState: coreStateString,
+                    rendererState: rendererStateString,
+                    coreInfo: this.coreInfoString,
                     saveId,
                 },
             );
@@ -12567,14 +12578,8 @@ export default class Core {
         this.pageStateToBeSavedToDatabase = {
             cid: this.cid,
             coreInfo: this.coreInfoString,
-            coreState: JSON.stringify(
-                this.cumulativeStateVariableChanges,
-                serializedComponentsReplacer,
-            ),
-            rendererState: JSON.stringify(
-                this.rendererState,
-                serializedComponentsReplacer,
-            ),
+            coreState: coreStateString,
+            rendererState: rendererStateString,
             pageNumber: this.pageNumber,
             attemptNumber: this.attemptNumber,
             activityId: this.activityId,
@@ -12726,18 +12731,10 @@ export default class Core {
                     await idb_set(
                         `${this.activityId}|${this.pageNumber}|${data.attemptNumber}|${data.cid}`,
                         {
-                            coreState: JSON.parse(
-                                data.coreState,
-                                serializedComponentsReviver,
-                            ),
-                            rendererState: JSON.parse(
-                                data.rendererState,
-                                serializedComponentsReviver,
-                            ),
-                            coreInfo: JSON.parse(
-                                data.coreInfo,
-                                serializedComponentsReviver,
-                            ),
+                            data_format_version,
+                            coreState: data.coreState,
+                            rendererState: data.rendererState,
+                            coreInfo: data.coreInfo,
                             saveId: data.saveId,
                         },
                     );

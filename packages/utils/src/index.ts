@@ -19,3 +19,5 @@ export * from "./math/subset-of-reals";
 export * from "./style/style";
 export * from "./url/url";
 export * from "./version/doenetMLversion";
+
+export const data_format_version = "0.6.0";
