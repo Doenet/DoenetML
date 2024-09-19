@@ -65,7 +65,7 @@ export default class Core {
         previousComponentTypeCounts = {},
         theme,
         prerender = false,
-        stateVariableChanges = {},
+        stateVariableChanges: stateVariableChangesString,
         coreId,
         updateDataOnContentChange,
         apiURLs = {},
@@ -106,7 +106,12 @@ export default class Core {
 
         this.previousComponentTypeCounts = previousComponentTypeCounts;
 
-        // Note: this changes the stateVariableChanges passed into core as an argument
+        const stateVariableChanges = stateVariableChangesString
+            ? JSON.parse(
+                  stateVariableChangesString,
+                  serializedComponentsReviver,
+              )
+            : {};
         for (let cName in stateVariableChanges) {
             let componentSVChanges = stateVariableChanges[cName];
             for (let varName in componentSVChanges) {
