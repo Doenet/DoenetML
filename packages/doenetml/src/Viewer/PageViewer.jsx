@@ -1222,7 +1222,10 @@ export function PageViewer({
                 activityVariantIndex,
                 requestedVariant: initialCoreData.current.requestedVariant,
                 stateVariableChanges: initialCoreData.current.coreState
-                    ? initialCoreData.current.coreState
+                    ? JSON.stringify(
+                          initialCoreData.current.coreState,
+                          serializedComponentsReplacer,
+                      )
                     : undefined,
                 apiURLs: apiURLs,
             },
