@@ -1,7 +1,7 @@
 // @ts-ignore
 import me from "math-expressions";
 
-import { vectorOperators } from "@doenet/utils";
+import { subsets, vectorOperators } from "@doenet/utils";
 
 export var appliedFunctionSymbolsDefault = [
     "abs",
@@ -929,7 +929,12 @@ export function removeFunctionsMathExpressionClass(value: any) {
         value = undefined;
     } else if (Array.isArray(value)) {
         value = value.map((x) => removeFunctionsMathExpressionClass(x));
-    } else if (typeof value === "object" && value !== null) {
+    } else if (
+        typeof value === "object" &&
+        value !== null &&
+        //@ts-ignore
+        !(value instanceof subsets.Subset)
+    ) {
         let valueCopy: any = {};
         for (let key in value) {
             valueCopy[key] = removeFunctionsMathExpressionClass(value[key]);
