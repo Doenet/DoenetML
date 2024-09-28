@@ -944,13 +944,44 @@ export function removeFunctionsMathExpressionClass(value: any) {
     return value;
 }
 
+/**
+ * Preprocess the desired value within the inverse definition of a math state variable
+ * to fill in any any vector components.
+ *
+ * If the workspace already have values from a previous call to
+ * `preprocessMathInverseDefinition` with the current state variable,
+ * then use the values from the workspace to fill in empty components.
+ * Otherwise, use values from the current value of the state variable
+ * to fill in empty components.
+ *
+ * If the desired value is a list, then recurse on the list components,
+ * keeping track of the list indices used in order to find the current value
+ * of the given list component.
+ */
 export async function preprocessMathInverseDefinition({
     desiredValue,
     stateValues,
     variableName = "value",
     arrayKey,
     workspace,
+    listIndex = [],
 }: any) {
+    if (desiredValue.tree[0] === "list") {
+        let newAst = ["list"];
+        for (let [ind, entry] of desiredValue.tree.slice(1).entries()) {
+            let newEntryResult = await preprocessMathInverseDefinition({
+                desiredValue: me.fromAst(entry),
+                stateValues,
+                variableName,
+                arrayKey,
+                workspace,
+                listIndex: [...listIndex, ind],
+            });
+            newAst.push(newEntryResult.desiredValue.tree);
+        }
+        return { desiredValue: me.fromAst(newAst) };
+    }
+
     if (
         !vectorOperators.includes(desiredValue.tree[0]) ||
         !desiredValue.tree.includes()
@@ -966,6 +997,9 @@ export async function preprocessMathInverseDefinition({
     if (arrayKey !== undefined) {
         workspaceKey += `_${arrayKey}`;
     }
+    if (listIndex.length > 0) {
+        workspaceKey += `_list_` + listIndex.join("_");
+    }
 
     if (workspace[workspaceKey]) {
         // if have value from workspace
@@ -974,17 +1008,30 @@ export async function preprocessMathInverseDefinition({
     } else {
         let currentValue = await stateValues[variableName];
 
-        currentValue = currentValue.expand().simplify();
+        if (currentValue) {
+            currentValue = currentValue.expand().simplify();
 
-        if (currentValue && arrayKey !== undefined) {
-            // TODO: generalize to multi-dimensional arrays?
-            currentValue = currentValue[arrayKey];
-        }
+            if (arrayKey !== undefined && currentValue[arrayKey]) {
+                // TODO: generalize to multi-dimensional arrays?
+                currentValue = currentValue[arrayKey];
+            }
 
-        if (currentValue && vectorOperators.includes(currentValue.tree[0])) {
-            // if we have a currentValue that is a vector
-            // we will merge components from desired value into current value
-            valueAst = currentValue.tree.slice(0, desiredValue.tree.length);
+            if (listIndex.length > 0) {
+                for (let ind of listIndex) {
+                    if (
+                        currentValue.tree[0] === "list" &&
+                        currentValue.tree[ind + 1]
+                    ) {
+                        currentValue = me.fromAst(currentValue.tree[ind + 1]);
+                    }
+                }
+            }
+
+            if (vectorOperators.includes(currentValue.tree[0])) {
+                // if we have a currentValue that is a vector
+                // we will merge components from desired value into current value
+                valueAst = currentValue.tree.slice(0, desiredValue.tree.length);
+            }
         }
     }
 
