@@ -43,6 +43,8 @@ import axios from "axios";
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
 
+var postMessage = postMessage || function () {};
+
 export default class Core {
     constructor({
         doenetML,
