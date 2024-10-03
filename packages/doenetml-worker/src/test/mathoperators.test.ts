@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import me from "math-expressions";
-import { cleanLatex } from "./utils/math";
-import {
-    updateBooleanInputValue,
-    updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
-} from "./utils/actions";
+import { updateMathInputValue } from "./utils/actions";
 
 describe("Math operator tests", async () => {
     it("sum", async () => {
