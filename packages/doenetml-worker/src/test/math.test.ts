@@ -1,4 +1,4 @@
-import { describe, expect, it, afterAll } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import { cleanLatex } from "./utils/math";
 import {
@@ -8,7 +8,7 @@ import {
     updateTextInputValue,
 } from "./utils/actions";
 
-describe("Math test", async () => {
+describe("Math tag tests", async () => {
     it("1+1", async () => {
         let core = await createTestCore({
             doenetML: `

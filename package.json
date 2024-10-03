@@ -99,5 +99,9 @@
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "dependencies": {
+        "math-expressions": "^2.0.0-alpha68",
+        "react-router-dom": "^6.26.2"
     }
 }
