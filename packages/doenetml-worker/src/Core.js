@@ -43,8 +43,6 @@ import axios from "axios";
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
 
-var postMessage = postMessage || function () {};
-
 export default class Core {
     constructor({
         doenetML,
@@ -73,6 +71,10 @@ export default class Core {
         apiURLs = {},
     }) {
         // console.time('core');
+
+        if (typeof postMessage === "undefined") {
+            globalThis.postMessage = function () {};
+        }
 
         this.coreId = coreId;
         this.activityId = activityId;
