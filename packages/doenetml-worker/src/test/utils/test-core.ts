@@ -5,7 +5,7 @@ import {
 } from "../../utils/expandDoenetML";
 import Core from "../../Core";
 
-export async function createTestCore({ doenetML }) {
+export async function createTestCore({ doenetML, requestedVariantIndex = 1 }) {
     let componentInfoObjects = createComponentInfoObjects();
 
     let expandResult = await expandDoenetMLsToFullSerializedComponents({
@@ -29,8 +29,8 @@ export async function createTestCore({ doenetML }) {
         pageNumber: 1,
         serverSaveId: "",
         activityVariantIndex: 1,
-        requestedVariant: 1,
-        requestedVariantIndex: 1,
+        requestedVariant: null,
+        requestedVariantIndex: requestedVariantIndex,
         stateVariableChanges: "",
         coreId: "",
         updateDataOnContentChange: null,
