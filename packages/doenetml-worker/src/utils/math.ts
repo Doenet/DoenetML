@@ -417,6 +417,7 @@ export function normalizeLatexString(
         ["\u2212", "-"], // minus sign
         ["\u22C5", " \\cdot "], // dot operator
         ["\u00B7", " \\cdot "], // middle dot
+        ["\u00D7", " \\times "], // times operator
         ["\u222A", " \\cup "], // ∪
         ["\u2229", " \\cap "], // ∩
         ["\u221E", " \\infty "], // ∞

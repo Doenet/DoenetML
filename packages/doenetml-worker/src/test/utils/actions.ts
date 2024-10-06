@@ -46,6 +46,38 @@ export async function updateMathInputValue({
     });
 }
 
+export async function updateMathInputImmediateValue({
+    latex,
+    componentName,
+    core,
+}: {
+    latex: string;
+    componentName: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName,
+        actionName: "updateRawValue",
+        args: { rawRendererValue: latex },
+        event: null,
+    });
+}
+
+export async function updateMathInputValueToImmediateValue({
+    componentName,
+    core,
+}: {
+    componentName: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName,
+        actionName: "updateValue",
+        args: {},
+        event: null,
+    });
+}
+
 export async function updateBooleanInputValue({
     boolean,
     componentName,
