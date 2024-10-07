@@ -45,13 +45,24 @@ export async function createTestCore({ doenetML, requestedVariantIndex = 1 }) {
 
 export async function returnAllStateVariables(core) {
     if (!core?.components) {
-        return {};
+        throw Error("No core or components");
     }
 
-    let componentsObj = {};
+    type CompObj = {
+        componentName: string;
+        componentType: string;
+        stateValues: any;
+        activeChildren: any[];
+        replacements: null | any[];
+        replacementsToWithhold: null | any[];
+        replacementOf: any;
+        sharedParameters: any;
+    };
+    let componentsObj: { [key: string]: CompObj } = {};
     for (let componentName in core.components) {
         let component = core.components[componentName];
-        let compObj = (componentsObj[componentName] = {
+
+        let compObj: CompObj = {
             componentName,
             componentType: component.componentType,
             stateValues: {},
@@ -60,7 +71,8 @@ export async function returnAllStateVariables(core) {
             replacementsToWithhold: null,
             replacementOf: null,
             sharedParameters: null,
-        });
+        };
+
         for (let vName in component.state) {
             compObj.stateValues[vName] = await component.state[vName].value;
         }
@@ -90,6 +102,8 @@ export async function returnAllStateVariables(core) {
             compObj.replacementOf = component.replacementOf.componentName;
         }
         compObj.sharedParameters = component.sharedParameters;
+
+        componentsObj[componentName] = compObj;
     }
 
     return componentsObj;
