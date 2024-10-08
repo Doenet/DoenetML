@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import { cleanLatex } from "./utils/math";
 import {
@@ -6,6 +6,9 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "./utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 describe("Text tag tests", async () => {
     it("spaces preserved between tags", async () => {

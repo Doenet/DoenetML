@@ -1,13 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import { updateMathInputValue } from "./utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 describe("When tag tests", async () => {
     it("value, fractionSatisfied, conditionSatisfied are public", async () => {
         let core = await createTestCore({
             doenetML: `
   <text>a</text>
-  <mathinput name="n" />
+  <mathInput name="n" />
   <when matchPartial name="w">
     $n > 0 and $n > 1
   </when>

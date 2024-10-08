@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 describe("P tag tests", async () => {
     it("two paragraphs", async () => {

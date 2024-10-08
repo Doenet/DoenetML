@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import { cleanLatex } from "./utils/math";
 import {
@@ -9,6 +9,9 @@ import {
     updateTextInputValue,
 } from "./utils/actions";
 import { getLatexToMathConverter, normalizeLatexString } from "../utils/math";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 async function test_math_answer({
     doenetML,

@@ -72,10 +72,6 @@ export default class Core {
     }) {
         // console.time('core');
 
-        if (typeof postMessage === "undefined") {
-            globalThis.postMessage = function () {};
-        }
-
         this.coreId = coreId;
         this.activityId = activityId;
         this.activityCid = activityCid;

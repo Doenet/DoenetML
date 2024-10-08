@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import me from "math-expressions";
 import { updateMathInputValue } from "./utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 describe("Math operator tests", async () => {
     it("sum", async () => {

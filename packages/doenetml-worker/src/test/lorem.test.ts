@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import { updateMathInputValue } from "./utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 describe("lorem tag tests", async () => {
     it("paragraphs, sentences, and words", async () => {
@@ -45,19 +48,19 @@ describe("lorem tag tests", async () => {
             nSentences = 3,
             nWords = 3;
 
-        expect(stateVariables["/paragraphs/lPars"].replacements.length).eq(
+        expect(stateVariables["/paragraphs/lPars"].replacements!.length).eq(
             nParagraphs,
         );
-        expect(stateVariables["/sentences/lSens"].replacements.length).eq(
+        expect(stateVariables["/sentences/lSens"].replacements!.length).eq(
             2 * nSentences - 1,
         );
-        expect(stateVariables["/words/lWords"].replacements.length).eq(
+        expect(stateVariables["/words/lWords"].replacements!.length).eq(
             2 * nWords - 1,
         );
 
         for (let [ind, repl] of stateVariables[
             "/paragraphs/lPars"
-        ].replacements.entries()) {
+        ].replacements!.entries()) {
             expect(
                 stateVariables[`/paragraphs/${names[ind]}`].stateValues.text,
             ).eq(stateVariables[repl.componentName].activeChildren[0]);
@@ -65,7 +68,7 @@ describe("lorem tag tests", async () => {
 
         for (let [ind, repl] of stateVariables[
             "/sentences/lSens"
-        ].replacements.entries()) {
+        ].replacements!.entries()) {
             if (ind % 2 === 1) {
                 continue;
             }
@@ -77,7 +80,7 @@ describe("lorem tag tests", async () => {
 
         for (let [ind, repl] of stateVariables[
             "/words/lWords"
-        ].replacements.entries()) {
+        ].replacements!.entries()) {
             if (ind % 2 === 1) {
                 continue;
             }
@@ -108,19 +111,19 @@ describe("lorem tag tests", async () => {
         });
         stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/paragraphs/lPars"].replacements.length).eq(
+        expect(stateVariables["/paragraphs/lPars"].replacements!.length).eq(
             nParagraphs,
         );
-        expect(stateVariables["/sentences/lSens"].replacements.length).eq(
+        expect(stateVariables["/sentences/lSens"].replacements!.length).eq(
             2 * nSentences - 1,
         );
-        expect(stateVariables["/words/lWords"].replacements.length).eq(
+        expect(stateVariables["/words/lWords"].replacements!.length).eq(
             2 * nWords - 1,
         );
 
         for (let [ind, repl] of stateVariables[
             "/paragraphs/lPars"
-        ].replacements.entries()) {
+        ].replacements!.entries()) {
             expect(
                 stateVariables[`/paragraphs/${names[ind]}`].stateValues.text,
             ).eq(stateVariables[repl.componentName].activeChildren[0]);
@@ -128,7 +131,7 @@ describe("lorem tag tests", async () => {
 
         for (let [ind, repl] of stateVariables[
             "/sentences/lSens"
-        ].replacements.entries()) {
+        ].replacements!.entries()) {
             if (ind % 2 === 1) {
                 continue;
             }
@@ -140,7 +143,7 @@ describe("lorem tag tests", async () => {
 
         for (let [ind, repl] of stateVariables[
             "/words/lWords"
-        ].replacements.entries()) {
+        ].replacements!.entries()) {
             if (ind % 2 === 1) {
                 continue;
             }
@@ -163,11 +166,11 @@ describe("lorem tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/n"].stateValues.value).eq(1);
-        expect(stateVariables["/lPars"].replacements.length).eq(1);
+        expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
         let paragraph0 =
             stateVariables[
-                stateVariables["/lPars"].replacements[0].componentName
+                stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0];
 
         expect(stateVariables["/a"].stateValues.text).eq(paragraph0);
@@ -183,11 +186,11 @@ describe("lorem tag tests", async () => {
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/n"].stateValues.value).eq(1);
-        expect(stateVariables["/lPars"].replacements.length).eq(1);
+        expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
         expect(
             stateVariables[
-                stateVariables["/lPars"].replacements[0].componentName
+                stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0],
         ).eq(paragraph0);
 
@@ -204,11 +207,11 @@ describe("lorem tag tests", async () => {
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/n"].stateValues.value).eq(2);
-        expect(stateVariables["/lPars"].replacements.length).eq(1);
+        expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
         let paragraph1 =
             stateVariables[
-                stateVariables["/lPars"].replacements[0].componentName
+                stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0];
         expect(paragraph1).not.eq(paragraph0);
 
@@ -226,11 +229,11 @@ describe("lorem tag tests", async () => {
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/n"].stateValues.value).eq(2);
-        expect(stateVariables["/lPars"].replacements.length).eq(1);
+        expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
         expect(
             stateVariables[
-                stateVariables["/lPars"].replacements[0].componentName
+                stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0],
         ).eq(paragraph1);
 

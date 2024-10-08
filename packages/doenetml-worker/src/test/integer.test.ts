@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "./utils/test-core";
 import { updateMathInputValue } from "./utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
 describe("Integer tag tests", async () => {
     it("1.2+1.1", async () => {
