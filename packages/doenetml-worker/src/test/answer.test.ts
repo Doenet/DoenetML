@@ -26,7 +26,7 @@ async function test_math_answer({
         preAction?: {
             componentName: string;
             value: string;
-            type: "math" | "text" | "boolean";
+            type: "math" | "text" | "boolean" | "choice";
         };
         submissionPrevented?: boolean;
         overrideResponse?: any;
@@ -84,11 +84,20 @@ async function test_math_answer({
                     componentName: response.preAction.componentName,
                     core,
                 });
-            } else {
+            } else if (response.preAction.type === "boolean") {
                 await updateBooleanInputValue({
                     boolean: response.preAction.value === "true",
                     componentName: response.preAction.componentName,
                     core,
+                });
+            } else {
+                await core.requestAction({
+                    componentName: response.preAction.componentName,
+                    actionName: "updateSelectedIndices",
+                    args: {
+                        selectedIndices: [parseInt(response.preAction.value)],
+                    },
+                    event: null,
                 });
             }
         }
@@ -5519,5 +5528,163 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables["/short_sr"].stateValues.valueForDisplay).eq(
             1.23,
         );
+    });
+
+    it("conditional text used as correct answer", async () => {
+        let core = await createTestCore({
+            doenetML: `
+  <p>Enter a slope: <mathInput name="m" /></p>
+
+  <p>If this is the slope at an equilibrium of a discrete dynamical system, the equilibrium is
+  <answer name="a">
+    <choiceInput name="ci" inline="true" shuffleOrder><choice>stable</choice><choice>unstable</choice></choiceInput>
+    <award><when>
+      $ci.selectedValue
+      =
+      <text>
+        <conditionalContent condition="abs($m) < 1" >
+          stable
+        </conditionalContent>
+        <conditionalContent condition="abs($m) > 1" >
+          unstable
+        </conditionalContent>
+      </text>
+    </when></award>
+  </answer>
+  </p>
+  `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        let indexByName = {};
+        for (let [ind, val] of stateVariables[
+            "/ci"
+        ].stateValues.choiceTexts.entries()) {
+            indexByName[val] = ind + 1;
+        }
+
+        async function submit_selection(name: string) {
+            await core.requestAction({
+                componentName: "/ci",
+                actionName: "updateSelectedIndices",
+                args: { selectedIndices: [indexByName[name]] },
+                event: null,
+            });
+            await core.requestAction({
+                componentName: "/a",
+                actionName: "submitAnswer",
+                args: {},
+                event: null,
+            });
+        }
+
+        await submit_selection("stable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        await submit_selection("unstable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+
+        await updateMathInputValue({ latex: "3", componentName: "/m", core });
+        await submit_selection("stable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        await submit_selection("unstable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+
+        await updateMathInputValue({
+            latex: "-0.8",
+            componentName: "/m",
+            core,
+        });
+        await submit_selection("stable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+        await submit_selection("unstable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+
+        await updateMathInputValue({ latex: "1/3", componentName: "/m", core });
+        await submit_selection("stable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+        await submit_selection("unstable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+
+        await updateMathInputValue({
+            latex: "-7/5",
+            componentName: "/m",
+            core,
+        });
+        await submit_selection("stable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        await submit_selection("unstable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
+
+        await updateMathInputValue({ latex: "1", componentName: "/m", core });
+        await submit_selection("stable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+        await submit_selection("unstable");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
+    });
+
+    it("conditional math used as correct answer", async () => {
+        const doenetML = `
+  <p>Require <choiceInput inline="true" name="c"><choice>positive</choice><choice>negative</choice></choiceInput>.</p>
+
+  <p>Condition on <m>x</m>:
+  <answer name="a">
+    <mathInput name="x" />
+    <award><when>
+      $x
+      =
+      <math>
+        <conditionalContent condition="$c = positive" >
+          x > 0
+        </conditionalContent>
+        <conditionalContent condition="$c = negative" >
+          x < 0
+        </conditionalContent>
+      </math>
+    </when></award>
+  </answer>
+  </p>
+  `;
+
+        await test_math_answer({
+            doenetML,
+            answerName: "/a",
+            answers: [
+                { latex: "x > 0", credit: 0 },
+                { latex: "x < 0", credit: 0 },
+                {
+                    latex: "x < 0",
+                    credit: 1,
+                    preAction: {
+                        componentName: "/c",
+                        type: "choice",
+                        value: "2",
+                    },
+                },
+                { latex: "x > 0", credit: 0 },
+                {
+                    latex: "x > 0",
+                    credit: 1,
+                    preAction: {
+                        componentName: "/c",
+                        type: "choice",
+                        value: "1",
+                    },
+                },
+                { latex: "x < 0", credit: 0 },
+            ],
+        });
     });
 });
