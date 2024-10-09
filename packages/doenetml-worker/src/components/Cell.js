@@ -278,7 +278,7 @@ export default class Cell extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["maths", "anything"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                     variablesOptional: true,
                 },
                 prefill: {

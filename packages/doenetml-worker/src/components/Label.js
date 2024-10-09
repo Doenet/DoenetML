@@ -209,6 +209,7 @@ export default class Label extends InlineComponent {
                         "value",
                         "hasLatex",
                         "renderAsMath",
+                        "hidden",
                     ],
                     variablesOptional: true,
                 },
@@ -241,6 +242,8 @@ export default class Label extends InlineComponent {
                 ) {
                     if (typeof comp !== "object") {
                         return comp.toString();
+                    } else if (comp.stateValues.hidden) {
+                        return "";
                     } else if (
                         typeof comp.stateValues.hasLatex === "boolean" &&
                         typeof comp.stateValues.value === "string" &&

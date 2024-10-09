@@ -5062,6 +5062,35 @@ class ChildDependency extends Dependency {
             downstreamComponentTypes.push(child.componentType);
         }
 
+        if (
+            this.originalDownstreamVariableNames.includes("hidden") &&
+            this.downstreamPrimitives.find((x) => x !== null)
+        ) {
+            // We are asking for the hidden state variable and the result includes primitives.
+            // Since primitives don't have a hidden state variable, we instead depend on the hidden state variable
+            // of the composite.
+
+            for (let compositeObj of this.compositeReplacementRange) {
+                downstreamComponentNames.push(compositeObj.compositeName);
+                downstreamComponentTypes.push(
+                    this.dependencyHandler._components[
+                        compositeObj.compositeName
+                    ].componentType,
+                );
+
+                this.addedCompositeHiddenDependency = true;
+            }
+
+            if (
+                this.addedCompositeHiddenDependency &&
+                this.originalDownstreamVariableNames.length > 1
+            ) {
+                // Added a composite hidden dependency but there are other variables that may not be on the composite.
+                // Make variables optional so we don't cause an unexpected error.
+                this.variablesOptional = true;
+            }
+        }
+
         return {
             success: true,
             downstreamComponentNames,
@@ -5074,6 +5103,28 @@ class ChildDependency extends Dependency {
 
         // TODO: do we have to adjust anything else from result
         // if we add primitives to result.value?
+
+        let compositeReplacementRange = this.compositeReplacementRange;
+
+        if (this.addedCompositeHiddenDependency) {
+            // We added composite hidden dependencies.
+            // Delete them off the actual dependencies returned
+            // and instead add them to the compositeReplacesRange object returned.
+
+            let nDepsAdded = compositeReplacementRange.length;
+            let extraDependencies = result.value.splice(
+                result.value.length - nDepsAdded,
+                nDepsAdded,
+            );
+
+            compositeReplacementRange = JSON.parse(
+                JSON.stringify(compositeReplacementRange),
+            );
+
+            for (let [ind, range] of compositeReplacementRange.entries()) {
+                range.hidden = extraDependencies[ind].stateValues.hidden;
+            }
+        }
 
         let resultValueWithPrimitives = [];
         let resultInd = 0;
@@ -5088,7 +5139,7 @@ class ChildDependency extends Dependency {
         }
 
         resultValueWithPrimitives.compositeReplacementRange =
-            this.compositeReplacementRange;
+            compositeReplacementRange;
 
         result.value = resultValueWithPrimitives;
 
