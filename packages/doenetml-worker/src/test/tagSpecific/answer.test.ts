@@ -1,14 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "./utils/test-core";
-import { cleanLatex } from "./utils/math";
+import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateMatrixInputValue,
     updateTextInputValue,
-} from "./utils/actions";
-import { getLatexToMathConverter, normalizeLatexString } from "../utils/math";
+} from "../utils/actions";
+import {
+    getLatexToMathConverter,
+    normalizeLatexString,
+} from "../../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

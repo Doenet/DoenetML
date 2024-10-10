@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "./utils/test-core";
-import { cleanLatex } from "./utils/math";
+import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
-} from "./utils/actions";
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
