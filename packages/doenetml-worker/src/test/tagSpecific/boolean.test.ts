@@ -96,17 +96,23 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
-            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
         }
     });
 
     it("boolean based on math", async () => {
         let core = await createTestCore({
             doenetML: `
-    <mathinput name="mi" prefill="0" />
+    <mathInput name="mi" prefill="0" />
 
     <boolean name="b">$mi</boolean>
       Hello there!
@@ -166,10 +172,16 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
-            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
         }
     });
 
@@ -267,10 +279,16 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
-            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
         }
     });
 
@@ -1024,10 +1042,16 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
-            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
         }
     });
 
@@ -1052,10 +1076,16 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
-            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
         }
     });
 
@@ -1401,10 +1431,88 @@ describe("Boolean tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
         }
         for (let i = 1; i <= nFalses; i++) {
-            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
+        }
+    });
+
+    it("symbolicEquality correctly matches negative numbers", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <math name="p5">5</math>
+    <math name="p5x">5x</math>
+    <math name="n5">-5</math>
+    <math name="n5b">-$p5</math>
+    <math name="nn5">-$n5</math>
+    <math name="nn5b">-$n5b</math>
+    <math name="n5x">-5x</math>
+    <math name="n5xb">-$p5x</math>
+    <math name="n5xc">$n5 x</math>
+    <math name="n5xd">$n5b x</math>
+    <math name="nn5x">-$n5x</math>
+    <math name="nn5xb">-$n5xb</math>
+    <math name="nn5xc">-$n5xc</math>
+    <math name="nn5xd">-$n5xd</math>
+
+    <boolean name="t1" symbolicEquality>$n5 = -5</boolean>
+    <boolean name="t2" symbolicEquality>$n5b = -5</boolean>
+    <boolean name="t3" symbolicEquality>$n5 = $n5b</boolean>
+    <boolean name="t4" symbolicEquality>$nn5 = $nn5b</boolean>
+    <boolean name="t5" symbolicEquality>$n5x = -5x</boolean>
+    <boolean name="t6" symbolicEquality>$n5xb = -5x</boolean>
+    <boolean name="t7" symbolicEquality>$n5xc = -5x</boolean>
+    <boolean name="t8" symbolicEquality>$n5xd = -5x</boolean>
+    <boolean name="t9" symbolicEquality>$n5xb = $n5x</boolean>
+    <boolean name="t10" symbolicEquality>$n5xc = $n5x</boolean>
+    <boolean name="t11" symbolicEquality>$n5xd = $n5x</boolean>
+    <boolean name="t12" symbolicEquality>$n5xc = $n5xb</boolean>
+    <boolean name="t13" symbolicEquality>$n5xd = $n5xb</boolean>
+    <boolean name="t14" symbolicEquality>$n5xd = $n5xc</boolean>
+    <boolean name="t15" symbolicEquality>7-$p5-$p5x = 7-5-5x</boolean>
+    <boolean name="t16" symbolicEquality>7+$n5+$n5x = 7-5-5x</boolean>
+
+    <boolean name="f1" symbolicEquality>$nn5 = $p5</boolean>
+    <boolean name="f2" symbolicEquality>$nn5b = $p5</boolean>
+    <boolean name="f3" symbolicEquality>$nn5 = 5</boolean>
+    <boolean name="f4" symbolicEquality>$nn5b = 5</boolean>
+    <boolean name="f5" symbolicEquality>$nn5x = $p5x</boolean>
+    <boolean name="f6" symbolicEquality>$nn5xb = $p5x</boolean>
+    <boolean name="f7" symbolicEquality>$nn5xc = $p5x</boolean>
+    <boolean name="f8" symbolicEquality>$nn5xd = $p5x</boolean>
+    <boolean name="f9" symbolicEquality>$nn5x = 5x</boolean>
+    <boolean name="f10" symbolicEquality>$nn5xb = 5x</boolean>
+    <boolean name="f11" symbolicEquality>$nn5xc = 5x</boolean>
+    <boolean name="f12" symbolicEquality>$nn5xd = 5x</boolean>
+    <boolean name="f13" symbolicEquality>7-$n5-$n5x = 7+5+5x</boolean>
+    <boolean name="f14" symbolicEquality>7-$p5x-$p5 = 7-5-5x</boolean>
+    <boolean name="f15" symbolicEquality>7+$n5x+$n5 = 7-5-5x</boolean>
+
+    `,
+        });
+
+        let nTrues = 16,
+            nFalses = 15;
+
+        let stateVariables = await returnAllStateVariables(core);
+        for (let i = 1; i <= nTrues; i++) {
+            expect(
+                stateVariables[`/t${i}`].stateValues.value,
+                `expected t${i} to be true`,
+            ).to.be.true;
+        }
+        for (let i = 1; i <= nFalses; i++) {
+            expect(
+                stateVariables[`/f${i}`].stateValues.value,
+                `expected f${i} to be false`,
+            ).to.be.false;
         }
     });
 });
