@@ -1,20 +1,20 @@
-import { cesc } from "@doenet/utils";
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { cleanLatex } from "../utils/math";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
-describe("MatchesPattern Tag Tests", function () {
-    beforeEach(() => {
-        cy.clearIndexedDB();
-        cy.visit("/");
-    });
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
-    it("match linear pattern", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+describe("MatchesPattern tag tests", async () => {
+    it("match linear pattern", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <p>Pattern: <math name="pattern">()x+()</math></p>
   <p>Expression: <mathinput name="expr" /></p>
-  <p><booleanInput name="bi"/> <boolean name="b" copySource="bi" /></p>
 
   <p>Default settings: <matchesPattern name="default" pattern="$pattern">
     $expr
@@ -48,12 +48,7 @@ describe("MatchesPattern Tag Tests", function () {
 
 
   `,
-                },
-                "*",
-            );
         });
-
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
 
         let matchNames = {
             default: ["dm1", "dm2"],
@@ -76,7 +71,7 @@ describe("MatchesPattern Tag Tests", function () {
             x: {
                 default: false,
                 noperm: false,
-                implicitIdents: [1, 0],
+                implicitIdents: ["1", "0"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
@@ -84,48 +79,48 @@ describe("MatchesPattern Tag Tests", function () {
             "x+y": {
                 default: false,
                 noperm: false,
-                implicitIdents: [1, "y"],
+                implicitIdents: ["1", "y"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
             },
             "2x+y": {
-                default: [2, "y"],
-                noperm: [2, "y"],
-                implicitIdents: [2, "y"],
+                default: ["2", "y"],
+                noperm: ["2", "y"],
+                implicitIdents: ["2", "y"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
             },
             "y+2x": {
-                default: [2, "y"],
+                default: ["2", "y"],
                 noperm: false,
-                implicitIdents: [2, "y"],
+                implicitIdents: ["2", "y"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
             },
             "x*2+y": {
-                default: [2, "y"],
+                default: ["2", "y"],
                 noperm: false,
-                implicitIdents: [2, "y"],
+                implicitIdents: ["2", "y"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
             },
-            "(y+z)x+7+e^q+5": {
-                default: ["y+z", "7+eq+5"],
-                noperm: ["y+z", "7+eq+5"],
-                implicitIdents: ["y+z", "7+eq+5"],
+            "(y+z)x+7+e^{q+5}": {
+                default: ["y+z", "7+e^{q+5}"],
+                noperm: ["y+z", "7+e^{q+5}"],
+                implicitIdents: ["y+z", "7+e^{q+5}"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
             },
-            "pi x+sqrt3": {
-                default: ["π", "√3"],
-                noperm: ["π", "√3"],
-                implicitIdents: ["π", "√3"],
-                requireNumeric: ["π", "√3"],
+            "\\pi x+\\sqrt{3}": {
+                default: ["\\pi", "\\sqrt{3}"],
+                noperm: ["\\pi", "\\sqrt{3}"],
+                implicitIdents: ["\\pi", "\\sqrt{3}"],
+                requireNumeric: ["\\pi", "\\sqrt{3}"],
                 requireVariable: false,
                 excludeX: false,
             },
@@ -179,52 +174,52 @@ describe("MatchesPattern Tag Tests", function () {
             },
         };
 
-        let b = false;
-
         for (let expr in desiredResults) {
-            cy.log(`trying: ${expr}`);
-            cy.get(cesc("#\\/expr") + " textarea").type(
-                `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true },
-            );
-            cy.get(cesc("#\\/bi")).click();
-            b = !b;
-            cy.get(cesc("#\\/b")).should("have.text", b.toString()); // to make sure change occured
+            await updateMathInputValue({
+                latex: expr,
+                componentName: "/expr",
+                core,
+            });
+            let stateVariables = await returnAllStateVariables(core);
 
             let dResults = desiredResults[expr];
 
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
-                    cy.get(cesc(`#\\/${name}`)).should("have.text", "true");
-                    cy.get(cesc(`#\\/${matchNames[name][0]}`) + ` .mjx-mrow`)
-                        .eq(0)
-                        .should("have.text", res[0]);
-                    cy.get(cesc(`#\\/${matchNames[name][1]}`) + ` .mjx-mrow`)
-                        .eq(0)
-                        .should("have.text", res[1]);
+                    expect(stateVariables[`/${name}`].stateValues.value).to.be
+                        .true;
+                    expect(
+                        cleanLatex(
+                            stateVariables[`/${matchNames[name][0]}`]
+                                .stateValues.latex,
+                        ),
+                    ).eq(res[0]);
+                    expect(
+                        cleanLatex(
+                            stateVariables[`/${matchNames[name][1]}`]
+                                .stateValues.latex,
+                        ),
+                    ).eq(res[1]);
                 } else {
-                    cy.get(cesc(`#\\/${name}`)).should("have.text", "false");
-                    cy.get(cesc(`#\\/${matchNames[name][0]}`)).should(
-                        "not.exist",
+                    expect(stateVariables[`/${name}`].stateValues.value).to.be
+                        .false;
+                    expect(stateVariables[`/${matchNames[name][0]}`]).eq(
+                        undefined,
                     );
-                    cy.get(cesc(`#\\/${matchNames[name][1]}`)).should(
-                        "not.exist",
+                    expect(stateVariables[`/${matchNames[name][1]}`]).eq(
+                        undefined,
                     );
                 }
             }
         }
     });
 
-    it("match quadratic pattern, base test", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+    it("match quadratic pattern, base test", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <p>Pattern: <math name="pattern">()x^2+()x+()</math></p>
   <p>Expression: <mathinput name="expr" /></p>
-  <p><booleanInput name="bi"/> <boolean name="b" copySource="bi" /></p>
 
   <p>Default settings: <matchesPattern name="default" pattern="$pattern">
     $expr
@@ -258,12 +253,7 @@ describe("MatchesPattern Tag Tests", function () {
 
 
   `,
-                },
-                "*",
-            );
         });
-
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
 
         let matchNames = {
             default: ["dm1", "dm2", "dm3"],
@@ -299,23 +289,23 @@ describe("MatchesPattern Tag Tests", function () {
                 requireVariable: false,
                 excludeX: false,
             },
-            "x^2{rightArrow}+x": {
+            "x^2+x": {
                 default: false,
                 noperm: false,
-                implicitIdents: [1, 1, 0],
+                implicitIdents: ["1", "1", "0"],
                 requireNumeric: false,
                 requireVariable: false,
                 excludeX: false,
             },
-            "1x^2{rightArrow}+1x+0": {
-                default: [1, 1, 0],
-                noperm: [1, 1, 0],
-                implicitIdents: [1, 1, 0],
-                requireNumeric: [1, 1, 0],
+            "1x^2+1x+0": {
+                default: ["1", "1", "0"],
+                noperm: ["1", "1", "0"],
+                implicitIdents: ["1", "1", "0"],
+                requireNumeric: ["1", "1", "0"],
                 requireVariable: false,
                 excludeX: false,
             },
-            "ax^2{rightArrow}+bx+c": {
+            "ax^2+bx+c": {
                 default: ["a", "b", "c"],
                 noperm: ["a", "b", "c"],
                 implicitIdents: ["a", "b", "c"],
@@ -323,7 +313,7 @@ describe("MatchesPattern Tag Tests", function () {
                 requireVariable: ["a", "b", "c"],
                 excludeX: ["a", "b", "c"],
             },
-            "ax^2{rightArrow}+c+bx": {
+            "ax^2+c+bx": {
                 default: ["a", "b", "c"],
                 noperm: false,
                 implicitIdents: ["a", "b", "c"],
@@ -331,7 +321,7 @@ describe("MatchesPattern Tag Tests", function () {
                 requireVariable: ["a", "b", "c"],
                 excludeX: ["a", "b", "c"],
             },
-            "xx^2{rightArrow}+bx+c": {
+            "xx^2+bx+c": {
                 default: ["x", "b", "c"],
                 noperm: ["x", "b", "c"],
                 implicitIdents: ["x", "b", "c"],
@@ -341,53 +331,53 @@ describe("MatchesPattern Tag Tests", function () {
             },
         };
 
-        let b = false;
-
         for (let expr in desiredResults) {
-            cy.log(`trying: ${expr}`);
-            cy.get(cesc("#\\/expr") + " textarea").type(
-                `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true },
-            );
-            cy.get(cesc("#\\/bi")).click();
-            b = !b;
-            cy.get(cesc("#\\/b")).should("have.text", b.toString()); // to make sure change occured
+            await updateMathInputValue({
+                latex: expr,
+                componentName: "/expr",
+                core,
+            });
+            let stateVariables = await returnAllStateVariables(core);
 
             let dResults = desiredResults[expr];
 
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
-                    cy.get(cesc(`#\\/${name}`)).should("have.text", "true");
-                    cy.get(cesc(`#\\/${matchNames[name][0]}`) + ` .mjx-mrow`)
-                        .eq(0)
-                        .should("have.text", res[0]);
-                    cy.get(cesc(`#\\/${matchNames[name][1]}`) + ` .mjx-mrow`)
-                        .eq(0)
-                        .should("have.text", res[1]);
+                    expect(stateVariables[`/${name}`].stateValues.value).to.be
+                        .true;
+                    expect(
+                        cleanLatex(
+                            stateVariables[`/${matchNames[name][0]}`]
+                                .stateValues.latex,
+                        ),
+                    ).eq(res[0]);
+                    expect(
+                        cleanLatex(
+                            stateVariables[`/${matchNames[name][1]}`]
+                                .stateValues.latex,
+                        ),
+                    ).eq(res[1]);
                 } else {
-                    cy.get(cesc(`#\\/${name}`)).should("have.text", "false");
-                    cy.get(cesc(`#\\/${matchNames[name][0]}`)).should(
-                        "not.exist",
+                    expect(stateVariables[`/${name}`].stateValues.value).to.be
+                        .false;
+                    expect(stateVariables[`/${matchNames[name][0]}`]).eq(
+                        undefined,
                     );
-                    cy.get(cesc(`#\\/${matchNames[name][1]}`)).should(
-                        "not.exist",
+                    expect(stateVariables[`/${matchNames[name][1]}`]).eq(
+                        undefined,
                     );
                 }
             }
         }
     });
 
-    it("match quadratic pattern, combine matches for flexibility", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+    it("match quadratic pattern, combine matches for flexibility", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <p>Pattern 1: <math name="pattern1">()x^2+()x+()</math></p>
   <p>Pattern 2: <math name="pattern2">()x^2+()</math></p>
   <p>Expression: <mathinput name="expr" /></p>
-  <p><booleanInput name="bi"/> <boolean name="b" copySource="bi" /></p>
 
   <p>base: <boolean name="base">
     <matchesPattern name="base1" pattern="$pattern1" allowImplicitIdentities>$expr</matchesPattern>
@@ -422,12 +412,7 @@ describe("MatchesPattern Tag Tests", function () {
     </conditionalContent>
   </p>
   `,
-                },
-                "*",
-            );
         });
-
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
 
         let matchNames = {
             base: ["bm1", "bm2", "bm3"],
@@ -442,120 +427,132 @@ describe("MatchesPattern Tag Tests", function () {
                 excludeX: false,
             },
             "x^2": {
-                base: [1, 0, 0],
-                requireNumeric: [1, 0, 0],
-                excludeX: [1, 0, 0],
+                base: ["1", "0", "0"],
+                requireNumeric: ["1", "0", "0"],
+                excludeX: ["1", "0", "0"],
             },
-            "x^2{rightArrow}+x": {
-                base: [1, 1, 0],
-                requireNumeric: [1, 1, 0],
-                excludeX: [1, 1, 0],
+            "x^2+x": {
+                base: ["1", "1", "0"],
+                requireNumeric: ["1", "1", "0"],
+                excludeX: ["1", "1", "0"],
             },
-            "x^2{rightArrow}+x+1": {
-                base: [1, 1, 1],
-                requireNumeric: [1, 1, 1],
-                excludeX: [1, 1, 1],
+            "x^2+x+1": {
+                base: ["1", "1", "1"],
+                requireNumeric: ["1", "1", "1"],
+                excludeX: ["1", "1", "1"],
             },
-            "3x^2{rightArrow}-5x+pi": {
-                base: [3, "−5", "pi"],
-                requireNumeric: [3, "−5", "pi"],
-                excludeX: [3, "−5", "pi"],
+            "3x^2-5x+\\pi": {
+                base: ["3", "-5", "\\pi"],
+                requireNumeric: ["3", "-5", "\\pi"],
+                excludeX: ["3", "-5", "\\pi"],
             },
-            "ax^2{rightArrow}+bx+c": {
+            "ax^2+bx+c": {
                 base: ["a", "b", "c"],
                 requireNumeric: false,
                 excludeX: ["a", "b", "c"],
             },
-            "ax^2{rightArrow}+c": {
+            "ax^2+c": {
                 base: ["a", "0", "c"],
                 requireNumeric: false,
                 excludeX: ["a", "0", "c"],
             },
-            "xx^2{rightArrow}+c": {
+            "xx^2+c": {
                 base: ["x", "0", "c"],
                 requireNumeric: false,
                 excludeX: false,
             },
-            "xx^2{rightArrow}+bx+c": {
+            "xx^2+bx+c": {
                 base: ["x", "b", "c"],
                 requireNumeric: false,
                 excludeX: false,
             },
-            "3/2{rightArrow}x^2{rightArrow}+5/7{rightArrow}x+2/3": {
-                base: ["32", "57", "23"],
-                requireNumeric: ["32", "57", "23"],
-                excludeX: ["32", "57", "23"],
+            "3/2x^2+5/7x+2/3": {
+                base: ["\\frac{3}{2}", "\\frac{5}{7}", "\\frac{2}{3}"],
+                requireNumeric: [
+                    "\\frac{3}{2}",
+                    "\\frac{5}{7}",
+                    "\\frac{2}{3}",
+                ],
+                excludeX: ["\\frac{3}{2}", "\\frac{5}{7}", "\\frac{2}{3}"],
             },
-            "3/2{rightArrow}x^2{rightArrow}+2/3": {
-                base: ["32", "0", "23"],
-                requireNumeric: ["32", "0", "23"],
-                excludeX: ["32", "0", "23"],
+            "3/2x^2+2/3": {
+                base: ["\\frac{3}{2}", "0", "\\frac{2}{3}"],
+                requireNumeric: ["\\frac{3}{2}", "0", "\\frac{2}{3}"],
+                excludeX: ["\\frac{3}{2}", "0", "\\frac{2}{3}"],
             },
         };
 
-        let b = false;
-
         for (let expr in desiredResults) {
-            cy.log(`trying: ${expr}`);
-            cy.get(cesc("#\\/expr") + " textarea").type(
-                `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true },
-            );
-            cy.get(cesc("#\\/bi")).click();
-            b = !b;
-            cy.get(cesc("#\\/b")).should("have.text", b.toString()); // to make sure change occured
+            await updateMathInputValue({
+                latex: expr,
+                componentName: "/expr",
+                core,
+            });
+            let stateVariables = await returnAllStateVariables(core);
 
             let dResults = desiredResults[expr];
 
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
-                    cy.get(cesc(`#\\/${name}`)).should("have.text", "true");
-                    cy.get(cesc(`#\\/${matchNames[name][0]}`) + ` .mjx-mrow`)
-                        .eq(0)
-                        .should("have.text", res[0]);
-                    cy.get(cesc(`#\\/${matchNames[name][1]}`) + ` .mjx-mrow`)
-                        .eq(0)
-                        .should("have.text", res[1]);
+                    expect(stateVariables[`/${name}`].stateValues.value).to.be
+                        .true;
+                    let match1 = stateVariables[`/${matchNames[name][0]}`];
+                    if (match1.componentType === "copy") {
+                        match1 =
+                            stateVariables[
+                                match1.replacements![0].componentName
+                            ];
+                    }
+                    expect(cleanLatex(match1.stateValues.latex)).eq(res[0]);
+                    let match2 = stateVariables[`/${matchNames[name][1]}`];
+                    if (match2.componentType === "copy") {
+                        match2 =
+                            stateVariables[
+                                match2.replacements![0].componentName
+                            ];
+                    }
+                    expect(cleanLatex(match2.stateValues.latex)).eq(res[1]);
+                    let match3 = stateVariables[`/${matchNames[name][2]}`];
+                    if (match3.componentType === "copy") {
+                        match3 =
+                            stateVariables[
+                                match3.replacements![0].componentName
+                            ];
+                    }
+                    expect(cleanLatex(match3.stateValues.latex)).eq(res[2]);
                 } else {
-                    cy.get(cesc(`#\\/${name}`)).should("have.text", "false");
-                    cy.get(cesc(`#\\/${matchNames[name][0]}`)).should(
-                        "not.exist",
+                    expect(stateVariables[`/${name}`].stateValues.value).to.be
+                        .false;
+                    expect(stateVariables[`/${matchNames[name][0]}`]).eq(
+                        undefined,
                     );
-                    cy.get(cesc(`#\\/${matchNames[name][1]}`)).should(
-                        "not.exist",
+                    expect(stateVariables[`/${matchNames[name][1]}`]).eq(
+                        undefined,
+                    );
+                    expect(stateVariables[`/${matchNames[name][2]}`]).eq(
+                        undefined,
                     );
                 }
             }
         }
     });
 
-    it("handle case with no pattern specified", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+    it("handle case with no pattern specified", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <p><matchesPattern name="mp">hello</matchesPattern></p>
-
-
   `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/mp")).should("have.text", "false");
+        expect(stateVariables[`/mp`].stateValues.value).to.be.false;
     });
 
-    it("works with string or multiple children", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+    it("works with string or multiple children", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <p><matchesPattern name="mps" pattern="()^()">e^(x+2)</matchesPattern></p>
   <p>Matches: <copy source="mps.patternMatches" assignNames="mpsm1 mpsm2" /></p>
   <p><matchesPattern name="mpm" pattern="()^()">e^(<math>x</math>+<math>2</math>)</matchesPattern></p>
@@ -563,34 +560,26 @@ describe("MatchesPattern Tag Tests", function () {
 
 
   `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/mps")).should("have.text", "true");
-        cy.get(cesc("#\\/mpsm1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "e");
-        cy.get(cesc("#\\/mpsm2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+2");
-        cy.get(cesc("#\\/mpm")).should("have.text", "true");
-        cy.get(cesc("#\\/mpmm1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "e");
-        cy.get(cesc("#\\/mpmm2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+2");
+        expect(stateVariables[`/mps`].stateValues.value).to.be.true;
+        expect(cleanLatex(stateVariables[`/mpsm1`].stateValues.latex)).eq("e");
+        expect(cleanLatex(stateVariables[`/mpsm2`].stateValues.latex)).eq(
+            "x+2",
+        );
+
+        expect(stateVariables[`/mpm`].stateValues.value).to.be.true;
+        expect(cleanLatex(stateVariables[`/mpmm1`].stateValues.latex)).eq("e");
+        expect(cleanLatex(stateVariables[`/mpmm2`].stateValues.latex)).eq(
+            "x+2",
+        );
     });
 
-    it("match expression with blanks", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it("match expression with blanks", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <text>a</text>
   <p>Pattern: <math name="pattern"> < </math></p>
   <p>Expression: <mathinput name="expr" /></p>
@@ -603,12 +592,7 @@ describe("MatchesPattern Tag Tests", function () {
 
 
   `,
-                },
-                "*",
-            );
         });
-
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
 
         let desiredResults = {
             "": {
@@ -647,58 +631,70 @@ describe("MatchesPattern Tag Tests", function () {
                 default: false,
                 blanks: ["\uff3f", "c"],
             },
-            "q/r{rightArrow} < st": {
-                default: ["qr", "st"],
-                blanks: ["qr", "st"],
+            "q/r < st": {
+                default: ["\\frac{q}{r}", "st"],
+                blanks: ["\\frac{q}{r}", "st"],
             },
-            "q/{rightArrow}  < st": {
+            "q/ < st": {
                 default: false,
-                blanks: ["q\uff3f", "st"],
+                blanks: ["\\frac{q}{\uff3f}", "st"],
             },
         };
 
         for (let expr in desiredResults) {
-            cy.log(`trying: ${expr}`);
-            cy.get(cesc("#\\/expr") + " textarea").type(
-                `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true },
-            );
-            cy.get(cesc("#\\/matchBlanks")).click();
-            cy.get(cesc("#\\/matchBlanks2")).should("have.text", "true"); // to make sure change occured
+            await updateMathInputValue({
+                latex: expr,
+                componentName: "/expr",
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentName: "/matchBlanks",
+                core,
+            });
+
+            let stateVariables = await returnAllStateVariables(core);
 
             let dResults = desiredResults[expr];
 
             let res = dResults.blanks;
             if (res) {
-                cy.get(cesc(`#\\/match`)).should("have.text", "true");
-                cy.get(cesc(`#\\/m1`) + ` .mjx-mrow`)
-                    .eq(0)
-                    .should("have.text", res[0]);
-                cy.get(cesc(`#\\/m2`) + ` .mjx-mrow`)
-                    .eq(0)
-                    .should("have.text", res[1]);
+                expect(stateVariables[`/match`].stateValues.value).to.be.true;
+                expect(cleanLatex(stateVariables[`/m1`].stateValues.latex)).eq(
+                    res[0],
+                );
+                expect(cleanLatex(stateVariables[`/m2`].stateValues.latex)).eq(
+                    res[1],
+                );
             } else {
-                cy.get(cesc(`#\\/match`)).should("have.text", "false");
-                cy.get(cesc(`#\\/m1`)).should("not.exist");
-                cy.get(cesc(`#\\/m2`)).should("not.exist");
+                expect(stateVariables[`/match`].stateValues.value).to.be.false;
+                expect(stateVariables[`/m1`]).eq(undefined);
+                expect(stateVariables[`/m2`]).eq(undefined);
             }
 
-            cy.get(cesc("#\\/matchBlanks")).click();
-            cy.get(cesc("#\\/matchBlanks2")).should("have.text", "false"); // to make sure change occured
+            await updateBooleanInputValue({
+                boolean: false,
+                componentName: "/matchBlanks",
+                core,
+            });
+
+            stateVariables = await returnAllStateVariables(core);
+
+            dResults = desiredResults[expr];
 
             res = dResults.default;
             if (res) {
-                cy.get(cesc(`#\\/match`)).should("have.text", "true");
-                cy.get(cesc(`#\\/m1`) + ` .mjx-mrow`)
-                    .eq(0)
-                    .should("have.text", res[0]);
-                cy.get(cesc(`#\\/m2`) + ` .mjx-mrow`)
-                    .eq(0)
-                    .should("have.text", res[1]);
+                expect(stateVariables[`/match`].stateValues.value).to.be.true;
+                expect(cleanLatex(stateVariables[`/m1`].stateValues.latex)).eq(
+                    res[0],
+                );
+                expect(cleanLatex(stateVariables[`/m2`].stateValues.latex)).eq(
+                    res[1],
+                );
             } else {
-                cy.get(cesc(`#\\/match`)).should("have.text", "false");
-                cy.get(cesc(`#\\/m1`)).should("not.exist");
-                cy.get(cesc(`#\\/m2`)).should("not.exist");
+                expect(stateVariables[`/match`].stateValues.value).to.be.false;
+                expect(stateVariables[`/m1`]).eq(undefined);
+                expect(stateVariables[`/m2`]).eq(undefined);
             }
         }
     });

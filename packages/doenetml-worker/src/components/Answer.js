@@ -1595,6 +1595,13 @@ export default class Answer extends InlineComponent {
                         awardCredits.reduce((a, c) => a + c, 0),
                     );
                 }
+
+                // remove any trailing null's in awardsUsed
+                let lastNull = awardsUsed.indexOf(null);
+                if (lastNull !== -1) {
+                    awardsUsed = awardsUsed.slice(0, lastNull);
+                }
+
                 return {
                     setValue: {
                         creditAchievedIfSubmit: creditAchieved,
@@ -2068,6 +2075,11 @@ export default class Answer extends InlineComponent {
     }) {
         let numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
+            return;
+        }
+
+        let disabled = await this.stateValues.disabled;
+        if (disabled) {
             return;
         }
 

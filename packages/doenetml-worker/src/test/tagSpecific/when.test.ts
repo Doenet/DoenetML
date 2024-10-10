@@ -1,18 +1,16 @@
-import { cesc } from "@doenet/utils";
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { updateMathInputValue } from "../utils/actions";
 
-describe("When Tag Tests", function () {
-    beforeEach(() => {
-        cy.clearIndexedDB();
-        cy.visit("/");
-    });
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
-    it("value, fractionSatisfied, conditionSatisfied are public", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+describe("When tag tests", async () => {
+    it("value, fractionSatisfied, conditionSatisfied are public", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <text>a</text>
-  <mathinput name="n" />
+  <mathInput name="n" />
   <when matchPartial name="w">
     $n > 0 and $n > 1
   </when>
@@ -22,42 +20,39 @@ describe("When Tag Tests", function () {
   <p>Fraction satisfied: $w.fractionSatisfied{assignNames="fs"}</p>
 
   `,
-                },
-                "*",
-            );
         });
 
-        // to wait for page to load
-        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/v")).should("have.text", "false");
-        cy.get(cesc("#\\/cs")).should("have.text", "false");
-        cy.get(cesc("#\\/fs")).should("have.text", "0");
+        expect(stateVariables["/v"].stateValues.value).eq(false);
+        expect(stateVariables["/cs"].stateValues.value).eq(false);
+        expect(stateVariables["/fs"].stateValues.value).eq(0);
 
-        cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/fs")).should("have.text", "0.5");
-        cy.get(cesc("#\\/v")).should("have.text", "false");
-        cy.get(cesc("#\\/cs")).should("have.text", "false");
+        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/v")).should("have.text", "true");
-        cy.get(cesc("#\\/cs")).should("have.text", "true");
-        cy.get(cesc("#\\/fs")).should("have.text", "1");
+        expect(stateVariables["/v"].stateValues.value).eq(false);
+        expect(stateVariables["/cs"].stateValues.value).eq(false);
+        expect(stateVariables["/fs"].stateValues.value).eq(0.5);
 
-        cy.get(cesc("#\\/n") + " textarea").type("{home}-{enter}", {
-            force: true,
-        });
-        cy.get(cesc("#\\/v")).should("have.text", "false");
-        cy.get(cesc("#\\/cs")).should("have.text", "false");
-        cy.get(cesc("#\\/fs")).should("have.text", "0");
+        await updateMathInputValue({ latex: "11", componentName: "/n", core });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/v"].stateValues.value).eq(true);
+        expect(stateVariables["/cs"].stateValues.value).eq(true);
+        expect(stateVariables["/fs"].stateValues.value).eq(1);
+
+        await updateMathInputValue({ latex: "-11", componentName: "/n", core });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/v"].stateValues.value).eq(false);
+        expect(stateVariables["/cs"].stateValues.value).eq(false);
+        expect(stateVariables["/fs"].stateValues.value).eq(0);
     });
 
-    it("fraction satisfied on 2x2 matrix compare", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+    it("fraction satisfied on 2x2 matrix compare", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <math name="A" format="latex">\\begin{pmatrix}1 & 2\\\\ 3 & 4\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}5 & 6\\\\ 7 & 8\\end{pmatrix}</math>
   <math name="C" format="latex">\\begin{pmatrix}1 & 6\\\\ 7 & 8\\end{pmatrix}</math>
@@ -98,41 +93,34 @@ describe("When Tag Tests", function () {
   <p>Fraction satisfied DD: <number name="fsDD" copySource="DD.fractionSatisfied" /></p>
 
   `,
-                },
-                "*",
-            );
         });
 
-        // to wait for page to load
-        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/fsAA")).should("have.text", "1");
-        cy.get(cesc("#\\/fsAB")).should("have.text", "0");
-        cy.get(cesc("#\\/fsAC")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsAD")).should("have.text", "0.25");
+        expect(stateVariables["/fsAA"].stateValues.value).eq(1);
+        expect(stateVariables["/fsAB"].stateValues.value).eq(0);
+        expect(stateVariables["/fsAC"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsAD"].stateValues.value).eq(0.25);
 
-        cy.get(cesc("#\\/fsBA")).should("have.text", "0");
-        cy.get(cesc("#\\/fsBB")).should("have.text", "1");
-        cy.get(cesc("#\\/fsBC")).should("have.text", "0.75");
-        cy.get(cesc("#\\/fsBD")).should("have.text", "0.25");
+        expect(stateVariables["/fsBA"].stateValues.value).eq(0);
+        expect(stateVariables["/fsBB"].stateValues.value).eq(1);
+        expect(stateVariables["/fsBC"].stateValues.value).eq(0.75);
+        expect(stateVariables["/fsBD"].stateValues.value).eq(0.25);
 
-        cy.get(cesc("#\\/fsCA")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsCB")).should("have.text", "0.75");
-        cy.get(cesc("#\\/fsCC")).should("have.text", "1");
-        cy.get(cesc("#\\/fsCD")).should("have.text", "0.5");
+        expect(stateVariables["/fsCA"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsCB"].stateValues.value).eq(0.75);
+        expect(stateVariables["/fsCC"].stateValues.value).eq(1);
+        expect(stateVariables["/fsCD"].stateValues.value).eq(0.5);
 
-        cy.get(cesc("#\\/fsDA")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsDB")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsDC")).should("have.text", "0.5");
-        cy.get(cesc("#\\/fsDD")).should("have.text", "1");
+        expect(stateVariables["/fsDA"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsDB"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsDC"].stateValues.value).eq(0.5);
+        expect(stateVariables["/fsDD"].stateValues.value).eq(1);
     });
 
-    it("fraction satisfied on mismatched size matrix compare", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-  <text>a</text>
+    it("fraction satisfied on mismatched size matrix compare", async () => {
+        let core = await createTestCore({
+            doenetML: `
   <math name="A" format="latex">\\begin{pmatrix}1\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}1 & 8\\end{pmatrix}</math>
   <math name="C" format="latex">\\begin{pmatrix}1\\\\8\\end{pmatrix}</math>
@@ -173,32 +161,28 @@ describe("When Tag Tests", function () {
   <p>Fraction satisfied DD: <number name="fsDD" copySource="DD.fractionSatisfied" /></p>
 
   `,
-                },
-                "*",
-            );
         });
 
-        // to wait for page to load
-        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/fsAA")).should("have.text", "1");
-        cy.get(cesc("#\\/fsAB")).should("have.text", "0.5");
-        cy.get(cesc("#\\/fsAC")).should("have.text", "0.5");
-        cy.get(cesc("#\\/fsAD")).should("have.text", "0.25");
+        expect(stateVariables["/fsAA"].stateValues.value).eq(1);
+        expect(stateVariables["/fsAB"].stateValues.value).eq(0.5);
+        expect(stateVariables["/fsAC"].stateValues.value).eq(0.5);
+        expect(stateVariables["/fsAD"].stateValues.value).eq(0.25);
 
-        cy.get(cesc("#\\/fsBA")).should("have.text", "0.5");
-        cy.get(cesc("#\\/fsBB")).should("have.text", "1");
-        cy.get(cesc("#\\/fsBC")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsBD")).should("have.text", "0.25");
+        expect(stateVariables["/fsBA"].stateValues.value).eq(0.5);
+        expect(stateVariables["/fsBB"].stateValues.value).eq(1);
+        expect(stateVariables["/fsBC"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsBD"].stateValues.value).eq(0.25);
 
-        cy.get(cesc("#\\/fsCA")).should("have.text", "0.5");
-        cy.get(cesc("#\\/fsCB")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsCC")).should("have.text", "1");
-        cy.get(cesc("#\\/fsCD")).should("have.text", "0.5");
+        expect(stateVariables["/fsCA"].stateValues.value).eq(0.5);
+        expect(stateVariables["/fsCB"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsCC"].stateValues.value).eq(1);
+        expect(stateVariables["/fsCD"].stateValues.value).eq(0.5);
 
-        cy.get(cesc("#\\/fsDA")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsDB")).should("have.text", "0.25");
-        cy.get(cesc("#\\/fsDC")).should("have.text", "0.5");
-        cy.get(cesc("#\\/fsDD")).should("have.text", "1");
+        expect(stateVariables["/fsDA"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsDB"].stateValues.value).eq(0.25);
+        expect(stateVariables["/fsDC"].stateValues.value).eq(0.5);
+        expect(stateVariables["/fsDD"].stateValues.value).eq(1);
     });
 });

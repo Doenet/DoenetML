@@ -34,7 +34,7 @@ export default class InlineRenderInlineChildren extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlines"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                     variablesOptional: true,
                 },
             }),

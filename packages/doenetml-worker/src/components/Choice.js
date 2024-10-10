@@ -60,7 +60,7 @@ export default class Choice extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["children"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                     variablesOptional: true,
                 },
             }),

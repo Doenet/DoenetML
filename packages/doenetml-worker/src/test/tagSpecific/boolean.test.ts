@@ -1,18 +1,18 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
 
-describe("Boolean Tag Tests", function () {
-    beforeEach(() => {
-        cy.clearIndexedDB();
-        cy.visit("/");
-    });
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 
-    it("basic boolean evaluation", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
-
+describe("Boolean tag tests", async () => {
+    it("basic boolean evaluation", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <p>
     <boolean name="t1">true</boolean>
     <boolean name="t2">trUe</boolean>
@@ -89,75 +89,54 @@ describe("Boolean Tag Tests", function () {
     </p>
 
     `,
-                },
-                "*",
-            );
         });
-
-        cy.get(cesc("#\\/_text1")).should("contain.text", "a");
 
         let nTrues = 37,
             nFalses = 31;
+
+        let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            cy.get(cesc(`#\\/t${i}`)).should("have.text", "true");
+            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
         }
-
         for (let i = 1; i <= nFalses; i++) {
-            cy.get(cesc(`#\\/f${i}`)).should("have.text", "false");
+            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
         }
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            for (let i = 1; i <= nTrues; i++) {
-                expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
-            }
-            for (let i = 1; i <= nFalses; i++) {
-                expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
-            }
-        });
     });
 
-    it("boolean based on math", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <mathinput prefill="0" />
+    it("boolean based on math", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <mathinput name="mi" prefill="0" />
 
-    <text hide="$_mathinput1">
+    <boolean name="b">$mi</boolean>
       Hello there!
     </text>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b`].stateValues.value).to.be.false;
 
-        cy.get(cesc("#\\/_mathinput1") + " textarea").type(
-            "{end}{backspace}3{enter}",
-            { force: true },
-        );
-        cy.get(cesc("#\\/_text1")).should("not.exist");
+        await updateMathInputValue({ latex: "3", componentName: "/mi", core });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b`].stateValues.value).to.be.true;
 
-        cy.get(cesc("#\\/_mathinput1") + " textarea").type(
-            "{end}{backspace}2x{enter}",
-            { force: true },
-        );
-        cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
+        await updateMathInputValue({ latex: "2x", componentName: "/mi", core });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b`].stateValues.value).to.be.false;
 
-        cy.get(cesc("#\\/_mathinput1") + " textarea").type("{end}-x-x{enter}", {
-            force: true,
+        await updateMathInputValue({
+            latex: "2x-x-x",
+            componentName: "/mi",
+            core,
         });
-        cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b`].stateValues.value).to.be.false;
     });
 
-    it("boolean based on complex numbers", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it("boolean based on complex numbers", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <p><number name="a">3+4i</number> <number name="b">3i</number> <number name="c">pi+e i</number></p>
 
     <p><boolean name="t1">isnumber(re($c))</boolean></p>
@@ -180,86 +159,64 @@ describe("Boolean Tag Tests", function () {
     <p><boolean name="f9">abs($a) < 5</boolean></p>
         
     `,
-                },
-                "*",
-            );
         });
 
         let nTrues = 9,
             nFalses = 9;
+
+        let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
-            cy.get(cesc(`#\\/t${i}`)).should("have.text", "true");
+            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
         }
-
         for (let i = 1; i <= nFalses; i++) {
-            cy.get(cesc(`#\\/f${i}`)).should("have.text", "false");
+            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
         }
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            for (let i = 1; i <= nTrues; i++) {
-                expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
-            }
-            for (let i = 1; i <= nFalses; i++) {
-                expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
-            }
-        });
     });
 
-    it("boolean from computation", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it("boolean from computation", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <mathinput prefill="1" name="i" />
 
-    <boolean>mod($i,2) = 1</boolean>
-    <boolean>abs(cos(pi*$i/2)) < 10^(-12)</boolean>
-    <boolean>(-1)^$i = 1</boolean>
-    <boolean>floor(($i+1)/2) = ceil(($i-1)/2)</boolean>
+    <boolean name="b1">mod($i,2) = 1</boolean>
+    <boolean name="b2">abs(cos(pi*$i/2)) < 10^(-12)</boolean>
+    <boolean name="b3">(-1)^$i = 1</boolean>
+    <boolean name="b4">floor(($i+1)/2) = ceil(($i-1)/2)</boolean>
     
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean4")).should("have.text", "false");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.false;
 
-        cy.get(cesc("#\\/i") + " textarea").type("{end}{backspace}4{enter}", {
-            force: true,
-        });
-        cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean3")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
+        await updateMathInputValue({ latex: "4", componentName: "/i", core });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
 
-        cy.get(cesc("#\\/i") + " textarea").type("{end}{backspace}-7{enter}", {
-            force: true,
-        });
-        cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean4")).should("have.text", "false");
+        await updateMathInputValue({ latex: "-7", componentName: "/i", core });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.false;
 
-        cy.get(cesc("#\\/i") + " textarea").type(
-            "{end}{backspace}{backspace}0{enter}",
-            { force: true },
-        );
-        cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean3")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
+        await updateMathInputValue({ latex: "0", componentName: "/i", core });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
     });
 
-    it("boolean with lists", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it("boolean with lists", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="t1"><math>1,2</math> = <mathlist>1 2</mathlist></boolean>
     <boolean name="t2"><math>1,2</math> = <mathlist unordered>2 1</mathlist></boolean>
     <boolean name="t3"><math unordered>1,2</math> = <mathlist>2 1</mathlist></boolean>
@@ -303,55 +260,21 @@ describe("Boolean Tag Tests", function () {
     <boolean name="f19"><text>a, b</text> = <textlist>b a</textlist></boolean>
 
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/t1")).should("have.text", "true");
-        cy.get(cesc("#\\/t2")).should("have.text", "true");
-        cy.get(cesc("#\\/t3")).should("have.text", "true");
-        cy.get(cesc("#\\/t4")).should("have.text", "true");
-        cy.get(cesc("#\\/t5")).should("have.text", "true");
-        cy.get(cesc("#\\/t6")).should("have.text", "true");
-        cy.get(cesc("#\\/t7")).should("have.text", "true");
-        cy.get(cesc("#\\/t8")).should("have.text", "true");
-        cy.get(cesc("#\\/t9")).should("have.text", "true");
-        cy.get(cesc("#\\/t10")).should("have.text", "true");
-        cy.get(cesc("#\\/t11")).should("have.text", "true");
-        cy.get(cesc("#\\/t12")).should("have.text", "true");
-        cy.get(cesc("#\\/t13")).should("have.text", "true");
-        cy.get(cesc("#\\/t14")).should("have.text", "true");
-        cy.get(cesc("#\\/t15")).should("have.text", "true");
-        cy.get(cesc("#\\/t16")).should("have.text", "true");
-        cy.get(cesc("#\\/t17")).should("have.text", "true");
-        cy.get(cesc("#\\/t18")).should("have.text", "true");
-        cy.get(cesc("#\\/t19")).should("have.text", "true");
-        cy.get(cesc("#\\/t20")).should("have.text", "true");
-        cy.get(cesc("#\\/t21")).should("have.text", "true");
+        let nTrues = 21,
+            nFalses = 19;
 
-        cy.get(cesc("#\\/f1")).should("have.text", "false");
-        cy.get(cesc("#\\/f2")).should("have.text", "false");
-        cy.get(cesc("#\\/f3")).should("have.text", "false");
-        cy.get(cesc("#\\/f4")).should("have.text", "false");
-        cy.get(cesc("#\\/f5")).should("have.text", "false");
-        cy.get(cesc("#\\/f6")).should("have.text", "false");
-        cy.get(cesc("#\\/f7")).should("have.text", "false");
-        cy.get(cesc("#\\/f8")).should("have.text", "false");
-        cy.get(cesc("#\\/f9")).should("have.text", "false");
-        cy.get(cesc("#\\/f10")).should("have.text", "false");
-        cy.get(cesc("#\\/f11")).should("have.text", "false");
-        cy.get(cesc("#\\/f12")).should("have.text", "false");
-        cy.get(cesc("#\\/f13")).should("have.text", "false");
-        cy.get(cesc("#\\/f14")).should("have.text", "false");
-        cy.get(cesc("#\\/f15")).should("have.text", "false");
-        cy.get(cesc("#\\/f16")).should("have.text", "false");
-        cy.get(cesc("#\\/f17")).should("have.text", "false");
-        cy.get(cesc("#\\/f18")).should("have.text", "false");
-        cy.get(cesc("#\\/f19")).should("have.text", "false");
+        let stateVariables = await returnAllStateVariables(core);
+        for (let i = 1; i <= nTrues; i++) {
+            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+        }
+        for (let i = 1; i <= nFalses; i++) {
+            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+        }
     });
 
-    it("element of list, set, or string", () => {
+    it("element of list, set, or string", async () => {
         let elements = [
             {
                 element: "1",
@@ -731,7 +654,7 @@ describe("Boolean Tag Tests", function () {
             },
         ];
 
-        let doenetML = "<text>a</text>";
+        let doenetML = "";
 
         for (let [ind, info] of elements.entries()) {
             doenetML += `\n<boolean name="s${ind}">${info.element} elementof ${info.set}</boolean>`;
@@ -740,42 +663,33 @@ describe("Boolean Tag Tests", function () {
             doenetML += `\n<boolean caseInsensitiveMatch name="nsci${ind}">${info.element} notelementof ${info.set}</boolean>`;
         }
 
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                },
-                "*",
-            );
+        let core = await createTestCore({
+            doenetML,
         });
 
-        cy.get(cesc2("#/_text1")).should("contain.text", "a");
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-
-            for (let [ind, info] of elements.entries()) {
-                expect(
-                    stateVariables[`/s${ind}`].stateValues.value,
-                    `Checking if ${info.element} is element of ${info.set}`,
-                ).eq(info.isElement && !info.isInvalid);
-                expect(
-                    stateVariables[`/n${ind}`].stateValues.value,
-                    `Checking if ${info.element} is not element of ${info.set}`,
-                ).eq(!info.isElement && !info.isInvalid);
-                expect(
-                    stateVariables[`/sci${ind}`].stateValues.value,
-                    `Checking if ${info.element} is case-insensitive element of ${info.set}`,
-                ).eq(info.isElementCaseInsensitive && !info.isInvalid);
-                expect(
-                    stateVariables[`/nsci${ind}`].stateValues.value,
-                    `Checking if ${info.element} is not case-insensitive element of ${info.set}`,
-                ).eq(!info.isElementCaseInsensitive && !info.isInvalid);
-            }
-        });
+        for (let [ind, info] of elements.entries()) {
+            expect(
+                stateVariables[`/s${ind}`].stateValues.value,
+                `Checking if ${info.element} is element of ${info.set}`,
+            ).eq(info.isElement && !info.isInvalid);
+            expect(
+                stateVariables[`/n${ind}`].stateValues.value,
+                `Checking if ${info.element} is not element of ${info.set}`,
+            ).eq(!info.isElement && !info.isInvalid);
+            expect(
+                stateVariables[`/sci${ind}`].stateValues.value,
+                `Checking if ${info.element} is case-insensitive element of ${info.set}`,
+            ).eq(info.isElementCaseInsensitive && !info.isInvalid);
+            expect(
+                stateVariables[`/nsci${ind}`].stateValues.value,
+                `Checking if ${info.element} is not case-insensitive element of ${info.set}`,
+            ).eq(!info.isElementCaseInsensitive && !info.isInvalid);
+        }
     });
 
-    it("subset or superset of list or set", () => {
+    it("subset or superset of list or set", async () => {
         let elements = [
             {
                 set1: "<mathList>x+x y-y</mathList>",
@@ -1027,7 +941,7 @@ describe("Boolean Tag Tests", function () {
             },
         ];
 
-        let doenetML = "<text>a</text>";
+        let doenetML = "";
 
         for (let [ind, info] of elements.entries()) {
             doenetML += `\n<boolean name="sb${ind}">${info.set1} subset ${info.set2}</boolean>`;
@@ -1040,62 +954,51 @@ describe("Boolean Tag Tests", function () {
             doenetML += `\n<boolean caseInsensitiveMatch name="nspci${ind}">${info.set1} notsuperset ${info.set2}</boolean>`;
         }
 
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                },
-                "*",
-            );
+        let core = await createTestCore({
+            doenetML,
         });
 
-        cy.get(cesc2("#/_text1")).should("contain.text", "a");
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-
-            for (let [ind, info] of elements.entries()) {
-                expect(
-                    stateVariables[`/sb${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is subset of ${info.set2}`,
-                ).eq(info.isSubset && !info.isInvalid);
-                expect(
-                    stateVariables[`/nsb${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is not subset of ${info.set2}`,
-                ).eq(!info.isSubset && !info.isInvalid);
-                expect(
-                    stateVariables[`/sp${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is superset of ${info.set2}`,
-                ).eq(info.isSuperset && !info.isInvalid);
-                expect(
-                    stateVariables[`/nsp${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is not superset of ${info.set2}`,
-                ).eq(!info.isSuperset && !info.isInvalid);
-                expect(
-                    stateVariables[`/sbci${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is case-insensitive subset of ${info.set2}`,
-                ).eq(info.isSubsetCaseInsensitive && !info.isInvalid);
-                expect(
-                    stateVariables[`/nsbci${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is not case-insensitive subset of ${info.set2}`,
-                ).eq(!info.isSubsetCaseInsensitive && !info.isInvalid);
-                expect(
-                    stateVariables[`/spci${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is case-insensitive superset of ${info.set2}`,
-                ).eq(info.isSupersetCaseInsensitive && !info.isInvalid);
-                expect(
-                    stateVariables[`/nspci${ind}`].stateValues.value,
-                    `Checking if ${info.set1} is not case-insensitive superset of ${info.set2}`,
-                ).eq(!info.isSupersetCaseInsensitive && !info.isInvalid);
-            }
-        });
+        for (let [ind, info] of elements.entries()) {
+            expect(
+                stateVariables[`/sb${ind}`].stateValues.value,
+                `Checking if ${info.set1} is subset of ${info.set2}`,
+            ).eq(info.isSubset && !info.isInvalid);
+            expect(
+                stateVariables[`/nsb${ind}`].stateValues.value,
+                `Checking if ${info.set1} is not subset of ${info.set2}`,
+            ).eq(!info.isSubset && !info.isInvalid);
+            expect(
+                stateVariables[`/sp${ind}`].stateValues.value,
+                `Checking if ${info.set1} is superset of ${info.set2}`,
+            ).eq(info.isSuperset && !info.isInvalid);
+            expect(
+                stateVariables[`/nsp${ind}`].stateValues.value,
+                `Checking if ${info.set1} is not superset of ${info.set2}`,
+            ).eq(!info.isSuperset && !info.isInvalid);
+            expect(
+                stateVariables[`/sbci${ind}`].stateValues.value,
+                `Checking if ${info.set1} is case-insensitive subset of ${info.set2}`,
+            ).eq(info.isSubsetCaseInsensitive && !info.isInvalid);
+            expect(
+                stateVariables[`/nsbci${ind}`].stateValues.value,
+                `Checking if ${info.set1} is not case-insensitive subset of ${info.set2}`,
+            ).eq(!info.isSubsetCaseInsensitive && !info.isInvalid);
+            expect(
+                stateVariables[`/spci${ind}`].stateValues.value,
+                `Checking if ${info.set1} is case-insensitive superset of ${info.set2}`,
+            ).eq(info.isSupersetCaseInsensitive && !info.isInvalid);
+            expect(
+                stateVariables[`/nspci${ind}`].stateValues.value,
+                `Checking if ${info.set1} is not case-insensitive superset of ${info.set2}`,
+            ).eq(!info.isSupersetCaseInsensitive && !info.isInvalid);
+        }
     });
 
-    it("boolean with texts", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it("boolean with texts", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="t1"><text>hello there</text> = hello there</boolean>
     <boolean name="t2"><text>hello there</text> = <text>hello</text> <text>there</text></boolean>
     <boolean name="t3"><text>hello there</text> = hello  there</boolean>
@@ -1108,79 +1011,57 @@ describe("Boolean Tag Tests", function () {
     <boolean name="t10"><textlist>hello there</textlist> = <text>hello, there</text></boolean>
     <boolean name="t11"><textlist>hello there</textlist> = <text> hello ,   there   </text></boolean>
 
-
     <boolean name="f1"><text>hello there</text> = hellothere</boolean>
     <boolean name="f2"><text>hello there</text> = <text>hellothere</text></boolean>
     <boolean name="f3"><text>hello there</text> = <text><text>hello</text><text>there</text></text></boolean>
     <boolean name="f4"><textlist>hello there</textlist> = hello there</boolean>
     <boolean name="f5"><textlist>hello there</textlist> = hello, there</boolean>
-
-
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/t1")).should("have.text", "true");
-        cy.get(cesc("#\\/t2")).should("have.text", "true");
-        cy.get(cesc("#\\/t3")).should("have.text", "true");
-        cy.get(cesc("#\\/t4")).should("have.text", "true");
-        cy.get(cesc("#\\/t5")).should("have.text", "true");
-        cy.get(cesc("#\\/t5")).should("have.text", "true");
-        cy.get(cesc("#\\/t6")).should("have.text", "true");
-        cy.get(cesc("#\\/t7")).should("have.text", "true");
-        cy.get(cesc("#\\/t8")).should("have.text", "true");
-        cy.get(cesc("#\\/t9")).should("have.text", "true");
-        cy.get(cesc("#\\/t10")).should("have.text", "true");
-        cy.get(cesc("#\\/t11")).should("have.text", "true");
+        let nTrues = 11,
+            nFalses = 5;
 
-        cy.get(cesc("#\\/f1")).should("have.text", "false");
-        cy.get(cesc("#\\/f2")).should("have.text", "false");
-        cy.get(cesc("#\\/f3")).should("have.text", "false");
-        cy.get(cesc("#\\/f4")).should("have.text", "false");
-        cy.get(cesc("#\\/f5")).should("have.text", "false");
+        let stateVariables = await returnAllStateVariables(core);
+        for (let i = 1; i <= nTrues; i++) {
+            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+        }
+        for (let i = 1; i <= nFalses; i++) {
+            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+        }
     });
 
-    it("math errors and invalid targets are not equal", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it("math errors and invalid targets are not equal", async () => {
+        let core = await createTestCore({
+            doenetML: `
 
-    <boolean><math></math> = <math></math></boolean>
-    <boolean><math></math> != <math></math></boolean>
-    <boolean><math>/</math> = <math>-</math></boolean>
-    <boolean><math>/</math> != <math>-</math></boolean>
+    <boolean name="f1"><math></math> = <math></math></boolean>
+    <boolean name="t1"><math></math> != <math></math></boolean>
+    <boolean name="f2"><math>/</math> = <math>-</math></boolean>
+    <boolean name="t2"><math>/</math> != <math>-</math></boolean>
 
-    <boolean>$invalid = $invalid</boolean>
-    <boolean>$invalid != $invalid</boolean>
-    <boolean>$nothing = $nada</boolean>
-    <boolean>$nothing != $nada</boolean>
+    <boolean name="f3">$invalid = $invalid</boolean>
+    <boolean name="t3">$invalid != $invalid</boolean>
+    <boolean name="f4">$nothing = $nada</boolean>
+    <boolean name="t4">$nothing != $nada</boolean>
     
     `,
-                },
-                "*",
-            );
         });
+        let nTrues = 4,
+            nFalses = 4;
 
-        cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
-
-        cy.get(cesc("#\\/_boolean5")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean6")).should("have.text", "true");
-        cy.get(cesc("#\\/_boolean7")).should("have.text", "false");
-        cy.get(cesc("#\\/_boolean8")).should("have.text", "true");
+        let stateVariables = await returnAllStateVariables(core);
+        for (let i = 1; i <= nTrues; i++) {
+            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+        }
+        for (let i = 1; i <= nFalses; i++) {
+            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+        }
     });
 
-    it("boolean with number strings for text", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("boolean with number strings for text", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <choiceinput name="c">
       <choice>1</choice>
       <choice>2</choice>
@@ -1193,134 +1074,213 @@ describe("Boolean Tag Tests", function () {
     <boolean name="three">$c = three</boolean>
     <boolean name="four">$c = <text>four</text></boolean>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/one")).should("have.text", "false");
-        cy.get(cesc("#\\/two")).should("have.text", "false");
-        cy.get(cesc("#\\/three")).should("have.text", "false");
-        cy.get(cesc("#\\/four")).should("have.text", "false");
+        expect(stateVariables[`/one`].stateValues.value).to.be.false;
+        expect(stateVariables[`/two`].stateValues.value).to.be.false;
+        expect(stateVariables[`/three`].stateValues.value).to.be.false;
+        expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
-        cy.get(cesc(`#\\/c_choice1_input`)).click();
-        cy.get(cesc("#\\/one")).should("have.text", "true");
-        cy.get(cesc("#\\/two")).should("have.text", "false");
-        cy.get(cesc("#\\/three")).should("have.text", "false");
-        cy.get(cesc("#\\/four")).should("have.text", "false");
+        await core.requestAction({
+            actionName: "updateSelectedIndices",
+            componentName: "/c",
+            args: { selectedIndices: [1] },
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc(`#\\/c_choice2_input`)).click();
-        cy.get(cesc("#\\/one")).should("have.text", "false");
-        cy.get(cesc("#\\/two")).should("have.text", "true");
-        cy.get(cesc("#\\/three")).should("have.text", "false");
-        cy.get(cesc("#\\/four")).should("have.text", "false");
+        expect(stateVariables[`/one`].stateValues.value).to.be.true;
+        expect(stateVariables[`/two`].stateValues.value).to.be.false;
+        expect(stateVariables[`/three`].stateValues.value).to.be.false;
+        expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
-        cy.get(cesc(`#\\/c_choice3_input`)).click();
-        cy.get(cesc("#\\/one")).should("have.text", "false");
-        cy.get(cesc("#\\/two")).should("have.text", "false");
-        cy.get(cesc("#\\/three")).should("have.text", "true");
-        cy.get(cesc("#\\/four")).should("have.text", "false");
+        await core.requestAction({
+            actionName: "updateSelectedIndices",
+            componentName: "/c",
+            args: { selectedIndices: [2] },
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc(`#\\/c_choice4_input`)).click();
-        cy.get(cesc("#\\/one")).should("have.text", "false");
-        cy.get(cesc("#\\/two")).should("have.text", "false");
-        cy.get(cesc("#\\/three")).should("have.text", "false");
-        cy.get(cesc("#\\/four")).should("have.text", "true");
+        expect(stateVariables[`/one`].stateValues.value).to.be.false;
+        expect(stateVariables[`/two`].stateValues.value).to.be.true;
+        expect(stateVariables[`/three`].stateValues.value).to.be.false;
+        expect(stateVariables[`/four`].stateValues.value).to.be.false;
+
+        await core.requestAction({
+            actionName: "updateSelectedIndices",
+            componentName: "/c",
+            args: { selectedIndices: [3] },
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/one`].stateValues.value).to.be.false;
+        expect(stateVariables[`/two`].stateValues.value).to.be.false;
+        expect(stateVariables[`/three`].stateValues.value).to.be.true;
+        expect(stateVariables[`/four`].stateValues.value).to.be.false;
+
+        await core.requestAction({
+            actionName: "updateSelectedIndices",
+            componentName: "/c",
+            args: { selectedIndices: [4] },
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/one`].stateValues.value).to.be.false;
+        expect(stateVariables[`/two`].stateValues.value).to.be.false;
+        expect(stateVariables[`/three`].stateValues.value).to.be.false;
+        expect(stateVariables[`/four`].stateValues.value).to.be.true;
     });
 
-    it("boolean adapts to text", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
-    <booleaninput name="bi" />
+    it("boolean adapts to text", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi" />
     <p><text name="t">You are hungry. $bi</text></p>
-    <p>Are you sure? <textinput bindvalueto="$bi" name="ti" /></p>
+    <p>Are you sure? <textInput bindValueTo="$bi" name="ti" /></p>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. false",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("false");
 
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentName: "/bi",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/ti_input")).clear().type("false{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. true",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        cy.get(cesc("#\\/ti_input")).clear().type("tRuE{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+        await updateTextInputValue({
+            text: "false",
+            componentName: "/ti",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/ti_input")).clear().type("0{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. false",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("false");
 
-        cy.get(cesc("#\\/ti_input")).clear().type("1=0{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+        await updateTextInputValue({
+            text: "tRuE",
+            componentName: "/ti",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/ti_input")).clear().type("f{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. true",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        cy.get(cesc("#\\/ti_input")).clear().type("FALSE{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+        await updateTextInputValue({ text: "0", componentName: "/ti", core });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/ti_input")).clear().type("1{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. true",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        cy.get(cesc("#\\/ti_input")).clear().type("t{enter}");
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+        await updateTextInputValue({ text: "1=0", componentName: "/ti", core });
+        stateVariables = await returnAllStateVariables(core);
 
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. true",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+        await updateTextInputValue({ text: "f", componentName: "/ti", core });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. true",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+
+        await updateTextInputValue({
+            text: "FALSE",
+            componentName: "/ti",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. false",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+
+        await updateTextInputValue({ text: "1", componentName: "/ti", core });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. false",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+
+        await updateTextInputValue({ text: "t", componentName: "/ti", core });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. false",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("false");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentName: "/bi",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. true",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("true");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentName: "/bi",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables[`/t`].stateValues.value).eq(
+            "You are hungry. false",
+        );
+        expect(stateVariables[`/ti`].stateValues.value).eq("false");
     });
 
-    it("boolean does not adapt while number adapts", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("boolean does not adapt while number adapts", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="b1"><number>3</number> != 1 and <boolean>true</boolean></boolean>
     <boolean name="b2"><number>3</number> != 1 and <boolean>true</boolean> and <number>4</number> = <math>4</math></boolean>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-        cy.get(cesc("#\\/b1")).should("have.text", "true");
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
     });
 
-    it("overwrite properties when copying", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("overwrite properties when copying", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="b">x+x = 2x</boolean>
 
     $b{symbolicEquality name="b1"}
@@ -1331,28 +1291,21 @@ describe("Boolean Tag Tests", function () {
     $b4{simplifyOnCompare="false" name="b5"}
     $b5{simplifyOnCompare="true" name="b6"}
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-        cy.get(cesc("#\\/b")).should("have.text", "true");
-        cy.get(cesc("#\\/b1")).should("have.text", "false");
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
-        cy.get(cesc("#\\/b3")).should("have.text", "false");
-        cy.get(cesc("#\\/b4")).should("have.text", "true");
-        cy.get(cesc("#\\/b5")).should("have.text", "false");
-        cy.get(cesc("#\\/b6")).should("have.text", "true");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b5`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b6`].stateValues.value).to.be.true;
     });
 
-    it("boolean simplifyOnCompare bug", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("verify fix of boolean simplifyOnCompare bug", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean simplifyOnCompare symbolicEquality name="b1">
       <math>-5e^(-t)</math> = <math simplify>-5e^(-t)</math>
     </boolean>
@@ -1360,23 +1313,16 @@ describe("Boolean Tag Tests", function () {
       <math name="orig">-5e^(-t)</math> = $orig.value{simplify}
     </boolean>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-        cy.get(cesc("#\\/b1")).should("have.text", "true");
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
     });
 
-    it("case insensitive match", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("case insensitive match", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="b1">a/B = A/b</boolean>
     <boolean name="b2" caseInsensitiveMatch>a/B = A/b</boolean>
     <boolean name="b3"><math>a/B</math> = <math>A/b</math></boolean>
@@ -1384,27 +1330,20 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b5"><text>one Word</text> = <text>One word</text></boolean>
     <boolean name="b6" caseInsensitiveMatch><text>one Word</text> = <text>One word</text></boolean>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-        cy.get(cesc("#\\/b1")).should("have.text", "false");
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
-        cy.get(cesc("#\\/b3")).should("have.text", "false");
-        cy.get(cesc("#\\/b4")).should("have.text", "true");
-        cy.get(cesc("#\\/b5")).should("have.text", "false");
-        cy.get(cesc("#\\/b6")).should("have.text", "true");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b5`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b6`].stateValues.value).to.be.true;
     });
 
-    it("match blanks", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("match blanks", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="b1">/a = /a</boolean>
     <boolean name="b2" matchBlanks>/a = /a</boolean>
     <boolean name="b3"><math>/a</math> = <math>/a</math></boolean>
@@ -1414,29 +1353,22 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b7"><math>_6^14C</math> = <math>_6^14C</math></boolean>
     <boolean name="b8" matchBlanks><math>_6^14C</math> = <math>_6^14C</math></boolean>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-        cy.get(cesc("#\\/b1")).should("have.text", "false");
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
-        cy.get(cesc("#\\/b3")).should("have.text", "false");
-        cy.get(cesc("#\\/b4")).should("have.text", "true");
-        cy.get(cesc("#\\/b5")).should("have.text", "false");
-        cy.get(cesc("#\\/b6")).should("have.text", "true");
-        cy.get(cesc("#\\/b7")).should("have.text", "false");
-        cy.get(cesc("#\\/b8")).should("have.text", "true");
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables[`/b1`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b2`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b3`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b4`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b5`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b6`].stateValues.value).to.be.true;
+        expect(stateVariables[`/b7`].stateValues.value).to.be.false;
+        expect(stateVariables[`/b8`].stateValues.value).to.be.true;
     });
 
-    it("boolean with symbolic functions", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <text>a</text>
+    it("boolean with symbolic functions", async () => {
+        let core = await createTestCore({
+            doenetML: `
     <boolean name="t1">
       <math>(f(a)-g(b))(x)</math> = <math>(g(b)-f(a))(-x)</math>
     </boolean>
@@ -1462,21 +1394,17 @@ describe("Boolean Tag Tests", function () {
       <math>(f^3(a)-g^2(b))(x)</math> = <math>(g^3(b)-f^2(a))(-x)</math>
     </boolean>
     `,
-                },
-                "*",
-            );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+        let nTrues = 4,
+            nFalses = 4;
 
-        cy.get(cesc("#\\/t1")).should("have.text", "true");
-        cy.get(cesc("#\\/t2")).should("have.text", "true");
-        cy.get(cesc("#\\/t3")).should("have.text", "true");
-        cy.get(cesc("#\\/t4")).should("have.text", "true");
-
-        cy.get(cesc("#\\/f1")).should("have.text", "false");
-        cy.get(cesc("#\\/f2")).should("have.text", "false");
-        cy.get(cesc("#\\/f3")).should("have.text", "false");
-        cy.get(cesc("#\\/f4")).should("have.text", "false");
+        let stateVariables = await returnAllStateVariables(core);
+        for (let i = 1; i <= nTrues; i++) {
+            expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+        }
+        for (let i = 1; i <= nFalses; i++) {
+            expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+        }
     });
 });
