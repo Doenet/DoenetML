@@ -227,7 +227,6 @@ export default class Core {
         };
 
         this.finishCoreConstruction().catch((e) => {
-            // throw e;
             this.rejectInitialized(e);
         });
     }

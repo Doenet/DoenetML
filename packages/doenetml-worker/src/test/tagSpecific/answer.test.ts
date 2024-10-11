@@ -1428,65 +1428,6 @@ describe("Answer tag tests", async () => {
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
     });
 
-    async function check_award_based_on_submitted_response(
-        core: any,
-        eventually_correct = true,
-    ) {
-        let errorWarnings = core.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
-
-        expect(errorWarnings.warnings[0].message).contain(
-            "An award for this answer is based on the answer's own submitted response",
-        );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
-        expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
-        expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(13);
-
-        let stateVariables = await returnAllStateVariables(core);
-        let mathInputName =
-            stateVariables["/ans"].stateValues.inputChildren[0].componentName;
-
-        // have to submit the correct answer twice before it is marked correct
-        await updateMathInputValue({
-            latex: "5",
-            componentName: mathInputName,
-            core,
-        });
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        // answer is not correct because the submitted response was initially blank
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
-        // justSubmitted becomes false at the criteria (based on submitted response)
-        // change when the answer is submitted
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
-
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        // if `eventually correct` is set to `true`, then
-        // the second time, the answer is marked correct and justSubmitted stays true
-        // because the submitted response starts off correct and doesn't change
-        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
-            eventually_correct ? 1 : 0,
-        );
-        expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
-    }
-
     it("warning for award depending on submitted response", async () => {
         const doenetMLs = [
             `
@@ -1510,6 +1451,66 @@ describe("Answer tag tests", async () => {
         <award><when>$ans.submittedResponses=5</when></award>
     </answer>`,
         ];
+
+        async function check_award_based_on_submitted_response(
+            core: any,
+            eventually_correct = true,
+        ) {
+            let errorWarnings = core.errorWarnings;
+
+            expect(errorWarnings.errors.length).eq(0);
+            expect(errorWarnings.warnings.length).eq(1);
+
+            expect(errorWarnings.warnings[0].message).contain(
+                "An award for this answer is based on the answer's own submitted response",
+            );
+            expect(errorWarnings.warnings[0].level).eq(1);
+            expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
+            expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
+            expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
+            expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(13);
+
+            let stateVariables = await returnAllStateVariables(core);
+            let mathInputName =
+                stateVariables["/ans"].stateValues.inputChildren[0]
+                    .componentName;
+
+            // have to submit the correct answer twice before it is marked correct
+            await updateMathInputValue({
+                latex: "5",
+                componentName: mathInputName,
+                core,
+            });
+            await core.requestAction({
+                componentName: "/ans",
+                actionName: "submitAnswer",
+                args: {},
+                event: null,
+            });
+            stateVariables = await returnAllStateVariables(core);
+
+            // answer is not correct because the submitted response was initially blank
+            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
+            // justSubmitted becomes false at the criteria (based on submitted response)
+            // change when the answer is submitted
+            expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
+
+            await core.requestAction({
+                componentName: "/ans",
+                actionName: "submitAnswer",
+                args: {},
+                event: null,
+            });
+            stateVariables = await returnAllStateVariables(core);
+
+            // if `eventually correct` is set to `true`, then
+            // the second time, the answer is marked correct and justSubmitted stays true
+            // because the submitted response starts off correct and doesn't change
+            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
+                eventually_correct ? 1 : 0,
+            );
+            expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
+        }
 
         for (let doenetML of doenetMLs) {
             let core = await createTestCore({
