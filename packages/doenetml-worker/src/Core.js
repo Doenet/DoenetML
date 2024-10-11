@@ -196,33 +196,39 @@ export default class Core {
         this.parameterStack.parameters.prerender = prerender;
 
         this.initialized = false;
-        this.initializedPromiseResolves = [];
+        this.initializedPromiseResolveRejects = [];
         this.postInitializedMessages = [];
         this.resolveInitialized = () => {
-            this.initializedPromiseResolves.forEach((resolve) => resolve(true));
+            this.initializedPromiseResolveRejects.forEach(({ resolve }) =>
+                resolve(true),
+            );
             this.initialized = true;
             for (let message of this.postInitializedMessages) {
                 postMessage(message);
             }
             this.postInitializedMessages = [];
         };
+        this.rejectInitialized = (e) => {
+            this.initializedPromiseResolveRejects.forEach(({ reject }) =>
+                reject(e),
+            );
+        };
         this.getInitializedPromise = () => {
             if (this.initialized) {
                 return Promise.resolve(true);
             } else {
                 return new Promise((resolve, reject) => {
-                    this.initializedPromiseResolves.push(resolve);
+                    this.initializedPromiseResolveRejects.push({
+                        resolve,
+                        reject,
+                    });
                 });
             }
         };
 
         this.finishCoreConstruction().catch((e) => {
             // throw e;
-            postMessage({
-                messageType: "inErrorState",
-                coreId: this.coreId,
-                args: { errMsg: e.message },
-            });
+            this.rejectInitialized(e);
         });
     }
 
