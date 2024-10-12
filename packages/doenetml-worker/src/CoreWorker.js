@@ -174,13 +174,21 @@ async function createCore(args) {
         Object.assign(coreArgs, args);
 
         core = new Core(coreArgs);
-        core.getInitializedPromise().then(() => {
+
+        try {
+            await core.getInitializedPromise();
             // console.log('actions to process', queuedRequestActions)
             for (let action of queuedRequestActions) {
                 core.requestAction(action);
             }
             queuedRequestActions = [];
-        });
+        } catch (e) {
+            postMessage({
+                messageType: "inErrorState",
+                coreId: coreArgs.coreId,
+                args: { errMsg: e.message },
+            });
+        }
     } else {
         let errMsg =
             initializeResult.success === false

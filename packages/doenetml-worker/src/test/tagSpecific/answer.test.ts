@@ -1428,6 +1428,124 @@ describe("Answer tag tests", async () => {
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
     });
 
+    it("warning for award depending on submitted response", async () => {
+        const doenetMLs = [
+            `
+    <answer name="ans">
+        <mathInput />
+        <award><when>$ans</when></award>
+    </answer>`,
+            `
+    <answer name="ans">
+        <mathInput />
+        <award><when>$ans.submittedResponse=5</when></award>
+    </answer>`,
+            `
+    <answer name="ans">
+        <mathInput />
+        <award><when>$ans.submittedResponse1=5</when></award>
+    </answer>`,
+            `
+    <answer name="ans">
+        <mathInput />
+        <award><when>$ans.submittedResponses=5</when></award>
+    </answer>`,
+        ];
+
+        async function check_award_based_on_submitted_response(
+            core: any,
+            eventually_correct = true,
+        ) {
+            let errorWarnings = core.errorWarnings;
+
+            expect(errorWarnings.errors.length).eq(0);
+            expect(errorWarnings.warnings.length).eq(1);
+
+            expect(errorWarnings.warnings[0].message).contain(
+                "An award for this answer is based on the answer's own submitted response",
+            );
+            expect(errorWarnings.warnings[0].level).eq(1);
+            expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
+            expect(errorWarnings.warnings[0].doenetMLrange.charBegin).eq(5);
+            expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
+            expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(13);
+
+            let stateVariables = await returnAllStateVariables(core);
+            let mathInputName =
+                stateVariables["/ans"].stateValues.inputChildren[0]
+                    .componentName;
+
+            // have to submit the correct answer twice before it is marked correct
+            await updateMathInputValue({
+                latex: "5",
+                componentName: mathInputName,
+                core,
+            });
+            await core.requestAction({
+                componentName: "/ans",
+                actionName: "submitAnswer",
+                args: {},
+                event: null,
+            });
+            stateVariables = await returnAllStateVariables(core);
+
+            // answer is not correct because the submitted response was initially blank
+            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
+            // justSubmitted becomes false at the criteria (based on submitted response)
+            // change when the answer is submitted
+            expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
+
+            await core.requestAction({
+                componentName: "/ans",
+                actionName: "submitAnswer",
+                args: {},
+                event: null,
+            });
+            stateVariables = await returnAllStateVariables(core);
+
+            // if `eventually correct` is set to `true`, then
+            // the second time, the answer is marked correct and justSubmitted stays true
+            // because the submitted response starts off correct and doesn't change
+            expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
+                eventually_correct ? 1 : 0,
+            );
+            expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
+        }
+
+        for (let doenetML of doenetMLs) {
+            let core = await createTestCore({
+                doenetML,
+            });
+            await check_award_based_on_submitted_response(core);
+        }
+
+        let doenetML = `
+    <answer name="ans">
+        <mathInput />
+        <award><when>$ans.submittedResponse2=5</when></award>
+    </answer>`;
+
+        let core = await createTestCore({
+            doenetML,
+        });
+        await check_award_based_on_submitted_response(core, false);
+    });
+
+    it("award depending on current response throws error", async () => {
+        const doenetMLs = [
+            `<answer name="ans"><mathInput /><award><when>$ans.currentResponse=5</when></award></answer>`,
+            `<answer name="ans"><mathInput /><award><when>$ans.currentResponse1=5</when></award></answer>`,
+            `<answer name="ans"><mathInput /><award><when>$ans.currentResponse2=5</when></award></answer>`,
+            `<answer name="ans"><mathInput /><award><when>$ans.currentResponses=5</when></award></answer>`,
+        ];
+
+        for (let doenetML of doenetMLs) {
+            await expect(createTestCore({ doenetML })).rejects.toThrow(
+                "Circular dependency",
+            );
+        }
+    });
+
     it("answer award with math", async () => {
         const doenetML = `
     <answer name="answer1"><award><math>x+y</math></award></answer>

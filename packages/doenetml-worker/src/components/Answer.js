@@ -1710,22 +1710,46 @@ export default class Answer extends InlineComponent {
                     includeOnlyEssentialValues: true,
                 },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentName }) {
                 // Use stringify from json-stringify-deterministic
                 // so that the string will be the same
                 // even if the object was built in a different order
                 // (as can happen when reloading from a database)
 
+                let warnings = [];
+
+                let selfDependencies =
+                    dependencyValues.currentCreditAchievedDependencies.find(
+                        (x) => x.componentName === componentName,
+                    );
+
+                if (selfDependencies) {
+                    // look for a dependency on a submitted response
+                    if (
+                        Object.keys(selfDependencies.stateValues).find(
+                            (x) => x.substring(0, 17) === "submittedResponse",
+                        )
+                    ) {
+                        warnings.push({
+                            message:
+                                "An award for this answer is based on the answer's own submitted response, which will lead to unexpected behavior.",
+                            level: 1,
+                        });
+                    }
+                }
+
                 let stringified = stringify(
                     dependencyValues.currentCreditAchievedDependencies,
                     { replacer: serializedComponentsReplacer },
                 );
+
                 return {
                     setValue: {
                         creditAchievedDependencies: Base64.stringify(
                             sha1(stringified),
                         ),
                     },
+                    sendWarnings: warnings,
                 };
             },
             markStale: () => ({ answerCreditPotentiallyChanged: true }),
