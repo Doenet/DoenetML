@@ -4149,7 +4149,7 @@ function getNearestPointFunctionCurve({ dependencyValues, numerics }) {
                 return result;
             }
 
-            // if we don't have finite values for both componentts
+            // if we don't have finite values for both components
             // there's nothing more we can do
             if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
                 return {};
@@ -4183,7 +4183,7 @@ function getNearestPointFunctionCurve({ dependencyValues, numerics }) {
         if (parMin !== -Infinity) {
             minT = parMin;
         }
-        if (parMax !== -Infinity) {
+        if (parMax !== Infinity) {
             maxT = parMax;
         }
 
