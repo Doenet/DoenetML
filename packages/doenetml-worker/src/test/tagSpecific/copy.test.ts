@@ -7383,8 +7383,6 @@ describe("Copy tag tests", async () => {
         let P21Dec4 = round({ val: P21, decimals: 4 });
         let P22Dec4 = round({ val: P22, decimals: 4 });
 
-        console.log({ P11Dig2 });
-
         const stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/p1"].stateValues.text).eq(
@@ -8588,8 +8586,6 @@ describe("Copy tag tests", async () => {
             stateVariables["/ans"].stateValues.inputChildren[0].componentName;
 
         expect(stateVariables["/num"].stateValues.value).eqls(NaN);
-
-        console.log(tiName);
 
         await updateMathInputValue({ latex: "4", componentName: tiName, core });
         await core.requestAction({

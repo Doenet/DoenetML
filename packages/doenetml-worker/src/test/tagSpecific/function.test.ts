@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
-import {
-    updateBooleanInputValue,
-    updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
-} from "../utils/actions";
+import { updateMathInputValue } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+
+function constantFromAst(tree) {
+    //@ts-ignore
+    return me.fromAst(tree).evaluate_to_constant();
+}
 
 describe("Function tag tests", async () => {
     it("function with nothing", async () => {
@@ -1070,8 +1070,8 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
@@ -1087,9 +1087,9 @@ describe("Function tag tests", async () => {
         p = stateVariables["/P"];
 
         // @ts-ignore
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
         // @ts-ignore
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
@@ -1105,9 +1105,9 @@ describe("Function tag tests", async () => {
         p = stateVariables["/P"];
 
         // @ts-ignore
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
         // @ts-ignore
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
     });
@@ -1131,14 +1131,11 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        expect(me.fromAst(p.stateValues.xs[0]).evaluate_to_constant()).closeTo(
+        expect(constantFromAst(p.stateValues.xs[0])).closeTo(
             Math.sqrt(2),
             1e-6,
         );
-        expect(me.fromAst(p.stateValues.xs[1]).evaluate_to_constant()).closeTo(
-            2,
-            1e-6,
-        );
+        expect(constantFromAst(p.stateValues.xs[1])).closeTo(2, 1e-6);
 
         await core.requestAction({
             actionName: "movePoint",
@@ -1151,14 +1148,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        expect(me.fromAst(p.stateValues.xs[0]).evaluate_to_constant()).closeTo(
-            -2,
-            1e-6,
-        );
-        expect(me.fromAst(p.stateValues.xs[1]).evaluate_to_constant()).closeTo(
-            4,
-            1e-6,
-        );
+        expect(constantFromAst(p.stateValues.xs[0])).closeTo(-2, 1e-6);
+        expect(constantFromAst(p.stateValues.xs[1])).closeTo(4, 1e-6);
     });
 
     it("point constrained to function, restrict to closed domain", async () => {
@@ -1179,8 +1170,8 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(1, 1e-12);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
@@ -1196,8 +1187,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(-4, 1e-12);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
@@ -1213,8 +1204,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(6, 1e-12);
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
@@ -1230,8 +1221,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(7, 1e-12);
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
@@ -1255,8 +1246,8 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(1, 1e-12);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
@@ -1272,8 +1263,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).greaterThan(-4 + 1e-12);
         expect(x).lessThan(-4 + 1e-3);
@@ -1290,8 +1281,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(6, 1e-12);
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
@@ -1307,8 +1298,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).lessThan(7 - 1e-12);
         expect(x).greaterThan(7 - 1e-3);
@@ -1321,14 +1312,8 @@ describe("Function tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
 
         let p = stateVariables["/P"];
-        expect(me.fromAst(p.stateValues.xs[0]).evaluate_to_constant()).closeTo(
-            1,
-            1e-6,
-        );
-        expect(me.fromAst(p.stateValues.xs[1]).evaluate_to_constant()).closeTo(
-            f(1),
-            1e-6,
-        );
+        expect(constantFromAst(p.stateValues.xs[0])).closeTo(1, 1e-6);
+        expect(constantFromAst(p.stateValues.xs[1])).closeTo(f(1), 1e-6);
 
         await core.requestAction({
             actionName: "movePoint",
@@ -1341,10 +1326,9 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
-        console.log({ x, y });
         expect(y).closeTo(f(x), 1e-6);
 
         await core.requestAction({
@@ -1358,8 +1342,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(y).closeTo(f(x), 1e-6);
 
@@ -1374,8 +1358,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(y).closeTo(f(x), 1e-6);
 
@@ -1390,8 +1374,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(y).closeTo(f(x), 1e-6);
     }
@@ -1744,8 +1728,8 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
@@ -1760,8 +1744,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
@@ -1776,8 +1760,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
     });
@@ -1802,8 +1786,8 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).greaterThan(0.1 + 1e-12);
         expect(x).lessThan(0.1 + 1e-3);
@@ -1820,8 +1804,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(4, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
@@ -1837,8 +1821,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(6, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
@@ -1854,8 +1838,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).greaterThan(0.1 + 1e-12);
         expect(x).lessThan(0.1 + 1e-3);
@@ -1882,8 +1866,8 @@ describe("Function tag tests", async () => {
 
         let p = stateVariables["/P"];
 
-        let x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        let y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        let x = constantFromAst(p.stateValues.xs[0]);
+        let y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).eq(0.1);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
@@ -1899,8 +1883,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(4, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
@@ -1916,8 +1900,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).lessThan(6 - 1e-12);
         expect(x).greaterThan(6 - 1e-3);
@@ -1934,8 +1918,8 @@ describe("Function tag tests", async () => {
 
         p = stateVariables["/P"];
 
-        x = me.fromAst(p.stateValues.xs[0]).evaluate_to_constant();
-        y = me.fromAst(p.stateValues.xs[1]).evaluate_to_constant();
+        x = constantFromAst(p.stateValues.xs[0]);
+        y = constantFromAst(p.stateValues.xs[1]);
 
         expect(x).closeTo(0.1, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
