@@ -2656,6 +2656,7 @@ describe("UpdateValue tag tests", async () => {
         expect(stateVariables["/pAnchor2"].stateValues.text).eq(
             "Anchor 2 coordinates: ( -8, -7 )",
         );
+
         // fix location
         await updateBooleanInputValue({
             boolean: true,
