@@ -1462,7 +1462,7 @@ describe("Answer tag tests", async () => {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "An award for this answer is based on the answer's own submitted response",
+                "An award for this answer is based on the answer tag's own submitted response",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);

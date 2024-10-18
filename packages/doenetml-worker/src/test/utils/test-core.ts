@@ -54,7 +54,7 @@ export async function returnAllStateVariables(core) {
         stateValues: any;
         activeChildren: any[];
         replacements: null | any[];
-        replacementsToWithhold: null | any[];
+        replacementsToWithhold: null | number;
         replacementOf: any;
         sharedParameters: any;
     };

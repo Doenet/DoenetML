@@ -1732,7 +1732,7 @@ export default class Answer extends InlineComponent {
                     ) {
                         warnings.push({
                             message:
-                                "An award for this answer is based on the answer's own submitted response, which will lead to unexpected behavior.",
+                                "An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.",
                             level: 1,
                         });
                     }
