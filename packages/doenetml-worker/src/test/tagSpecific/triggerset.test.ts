@@ -1091,7 +1091,7 @@ describe("TriggerSet tag tests", async () => {
         );
     });
 
-    it.only("triggerSet in graph", async () => {
+    it("triggerSet in graph", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>n: <number name="n">1</number></p>
