@@ -1,10 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
-    updateMatrixInputValue,
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
@@ -18,11 +16,15 @@ describe("SelectFromSequence tag tests", async () => {
         componentNames,
         valid_values,
         num_samples,
+        must_be_distinct = false,
+        is_math = false,
     }: {
         doenetML: string;
         componentNames: string[];
         valid_values: any[][];
         num_samples: number;
+        must_be_distinct?: boolean;
+        is_math?: boolean;
     }) {
         for (let i = 0; i < num_samples; i++) {
             let core = await createTestCore({
@@ -32,37 +34,27 @@ describe("SelectFromSequence tag tests", async () => {
             const stateVariables = await returnAllStateVariables(core);
             for (let [ind, name] of componentNames.entries()) {
                 let value = stateVariables[name].stateValues.value;
-                expect(valid_values[ind].includes(value)).eq(
-                    true,
-                    `Expected ${value} to be in ${valid_values[ind]}`,
-                );
+                expect(
+                    is_math
+                        ? valid_values[ind].some((v) => v.equals(value))
+                        : valid_values[ind].includes(value),
+                ).eq(true, `Expected ${value} to be in ${valid_values[ind]}`);
             }
-        }
-    }
 
-    async function test_values_separately_math({
-        doenetML,
-        componentNames,
-        valid_values,
-        num_samples,
-    }: {
-        doenetML: string;
-        componentNames: string[];
-        valid_values: any[][];
-        num_samples: number;
-    }) {
-        for (let i = 0; i < num_samples; i++) {
-            let core = await createTestCore({
-                doenetML,
-                requestedVariantIndex: i,
-            });
-            const stateVariables = await returnAllStateVariables(core);
-            for (let [ind, name] of componentNames.entries()) {
-                let value = stateVariables[name].stateValues.value;
-                expect(valid_values[ind].some((v) => v.equals(value))).eq(
-                    true,
-                    `Expected ${value} to be in ${valid_values[ind]}`,
-                );
+            if (must_be_distinct) {
+                for (let name1 of componentNames) {
+                    let val1 = stateVariables[name1].stateValues.value;
+                    for (let name2 of componentNames) {
+                        if (name2 !== name1) {
+                            let val2 = stateVariables[name2].stateValues.value;
+                            if (is_math) {
+                                expect(val2.equals(val1)).eq(false);
+                            } else {
+                                expect(val2).not.eq(val1);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -72,11 +64,13 @@ describe("SelectFromSequence tag tests", async () => {
         componentNames,
         valid_combinations,
         num_samples,
+        is_math = false,
     }: {
         doenetML: string;
         componentNames: string[];
         valid_combinations: any[][];
         num_samples: number;
+        is_math?: boolean;
     }) {
         for (let i = 0; i < num_samples; i++) {
             let core = await createTestCore({
@@ -90,39 +84,9 @@ describe("SelectFromSequence tag tests", async () => {
 
             expect(
                 valid_combinations.some((comb) =>
-                    comb.every((v, i) => v === values[i]),
-                ),
-            ).eq(
-                true,
-                `Expected (${values}) to be in ${valid_combinations.map((comb) => `(${comb})`)}`,
-            );
-        }
-    }
-
-    async function test_combined_values_math({
-        doenetML,
-        componentNames,
-        valid_combinations,
-        num_samples,
-    }: {
-        doenetML: string;
-        componentNames: string[];
-        valid_combinations: any[][];
-        num_samples: number;
-    }) {
-        for (let i = 0; i < num_samples; i++) {
-            let core = await createTestCore({
-                doenetML,
-                requestedVariantIndex: i,
-            });
-            const stateVariables = await returnAllStateVariables(core);
-            let values = componentNames.map(
-                (name) => stateVariables[name].stateValues.value,
-            );
-
-            expect(
-                valid_combinations.some((comb) =>
-                    comb.every((v, i) => v.equals(values[i])),
+                    comb.every((v, i) =>
+                        is_math ? v.equals(values[i]) : v === values[i],
+                    ),
                 ),
             ).eq(
                 true,
@@ -222,6 +186,7 @@ describe("SelectFromSequence tag tests", async () => {
             valid_values,
             componentNames,
             num_samples: 30,
+            must_be_distinct: true,
         });
     });
 
@@ -387,6 +352,7 @@ describe("SelectFromSequence tag tests", async () => {
             valid_values,
             componentNames,
             num_samples: 10,
+            must_be_distinct: true,
         });
     });
 
@@ -441,6 +407,7 @@ describe("SelectFromSequence tag tests", async () => {
             valid_values,
             componentNames,
             num_samples: 5,
+            must_be_distinct: true,
         });
     });
 
@@ -685,7 +652,6 @@ describe("SelectFromSequence tag tests", async () => {
         });
 
         async function check_sampled_numbers(sampledNumbers: number[]) {
-            let num = sampledNumbers.length;
             const stateVariables = await returnAllStateVariables(core);
 
             expect(
@@ -805,11 +771,12 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/res"];
 
-        await test_values_separately_math({
+        await test_values_separately({
             doenetML,
             valid_values,
             componentNames,
             num_samples: 3,
+            is_math: true,
         });
     });
 
@@ -822,11 +789,13 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/res1", "/res2", "/res3"];
 
-        await test_values_separately_math({
+        await test_values_separately({
             doenetML,
             valid_values,
             componentNames,
             num_samples: 3,
+            is_math: true,
+            must_be_distinct: true,
         });
     });
 
@@ -839,11 +808,13 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/s/res1", "/s/res2", "/s/res3"];
 
-        await test_values_separately_math({
+        await test_values_separately({
             doenetML,
             valid_values,
             componentNames,
             num_samples: 3,
+            is_math: true,
+            must_be_distinct: true,
         });
     });
 
@@ -895,11 +866,12 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/res1", "/res2"];
 
-        await test_combined_values_math({
+        await test_combined_values({
             doenetML,
             valid_combinations,
             componentNames,
             num_samples: 10,
+            is_math: true,
         });
     });
 
@@ -912,11 +884,12 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/res1", "/res2"];
 
-        await test_combined_values_math({
+        await test_combined_values({
             doenetML,
             valid_combinations,
             componentNames,
             num_samples: 10,
+            is_math: true,
         });
     });
 
@@ -936,11 +909,12 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/res1", "/res2"];
 
-        await test_combined_values_math({
+        await test_combined_values({
             doenetML,
             valid_combinations,
             componentNames,
             num_samples: 10,
+            is_math: true,
         });
     });
 
@@ -953,11 +927,12 @@ describe("SelectFromSequence tag tests", async () => {
         ];
         const componentNames = ["/res1", "/res2"];
 
-        await test_combined_values_math({
+        await test_combined_values({
             doenetML,
             valid_combinations,
             componentNames,
             num_samples: 10,
+            is_math: true,
         });
     });
 
