@@ -3703,7 +3703,7 @@ describe("Evaluate tag tests", async () => {
         expect(stateVariables["/pha"].stateValues.text).eq("5");
     });
 
-    it.only("evaluate functions based on interpolated function", async () => {
+    it("evaluate functions based on interpolated function", async () => {
         let core = await createTestCore({
             doenetML: `
   <p>f: <function maxima="(5,4)" name="f">x^2</function></p>
