@@ -7669,14 +7669,14 @@ describe("Copy tag tests", async () => {
             expect(cleanLatex(stateVariables["/p31"].stateValues.text)).eq(
                 `${P12latex || P12},${P22latex || P22}`,
             );
-            expect(cleanLatex(stateVariables["/p32"].stateValues.text)).eq(`,`);
+            expect(cleanLatex(stateVariables["/p32"].stateValues.text)).eq(``);
             expect(cleanLatex(stateVariables["/p33"].stateValues.text)).eq(
                 `${P11latex || P11},${P21latex || P21}`,
             );
             expect(cleanLatex(stateVariables["/p34"].stateValues.text)).eq(
                 `${P12latex || P12},${P22latex || P22}`,
             );
-            expect(cleanLatex(stateVariables["/p35"].stateValues.text)).eq(`,`);
+            expect(cleanLatex(stateVariables["/p35"].stateValues.text)).eq(``);
 
             expect(cleanLatex(stateVariables["/p36"].stateValues.text)).eq(
                 `(${P11latex || P11},${P12latex || P12})`,
