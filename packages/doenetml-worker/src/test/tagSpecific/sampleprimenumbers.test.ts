@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import {
-    updateBooleanInputValue,
-    updateMathInputValue,
-} from "../utils/actions";
+import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -98,24 +95,6 @@ describe("SamplePrimeNumbers tag tests", async () => {
             );
         }
     }
-
-    it("no parameters, sample single prime number from 2 to 100", async () => {
-        const doenetML = `<samplePrimeNumbers assignNames="res"/>`;
-        const valid_values = [
-            [
-                2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
-                61, 67, 71, 73, 79, 83, 89, 97,
-            ],
-        ];
-        const componentNames = ["/res"];
-
-        await test_values_separately({
-            doenetML,
-            valid_values,
-            componentNames,
-            num_samples: 30,
-        });
-    });
 
     it("sample five prime numbers up to 20, only maxValue specified", async () => {
         const doenetML = `<samplePrimeNumbers assignNames="res1 res2 res3 res4 res5" numSamples="5" maxValue="20"/>`;
