@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import {
-    updateBooleanInputValue,
-    updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
-} from "../utils/actions";
+import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
