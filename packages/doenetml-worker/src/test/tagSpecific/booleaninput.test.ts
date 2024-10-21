@@ -318,7 +318,7 @@ describe("BooleanInput tag tests", async () => {
         expect(stateVariables["/b1"].stateValues.value).eq(false);
     });
 
-    it("downstream from booleanInput via child, bindValueToIgnored", async () => {
+    it("downstream from booleanInput via child, bindValueTo ignored", async () => {
         let core = await createTestCore({
             doenetML: `
     <p>Original boolean: <boolean name="b1">true</boolean></p>

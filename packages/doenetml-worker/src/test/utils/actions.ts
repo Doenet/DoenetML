@@ -23,6 +23,38 @@ export async function updateTextInputValue({
     });
 }
 
+export async function updateTextInputImmediateValue({
+    text,
+    componentName,
+    core,
+}: {
+    text: string;
+    componentName: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName,
+        actionName: "updateImmediateValue",
+        args: { text },
+        event: null,
+    });
+}
+
+export async function updateTextInputValueToImmediateValue({
+    componentName,
+    core,
+}: {
+    componentName: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName,
+        actionName: "updateValue",
+        args: {},
+        event: null,
+    });
+}
+
 export async function updateMathInputValue({
     latex,
     componentName,
