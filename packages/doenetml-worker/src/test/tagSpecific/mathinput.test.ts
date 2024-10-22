@@ -345,7 +345,7 @@ describe("MathInput tag tests", async () => {
         ]);
         expect(stateVariables["/mi2"].stateValues.value.tree).to.eq("\uFF3F");
 
-        // update value (e.g., press enter) in mathInput 3
+        // update value (e.g., update value) in mathInput 3
         await updateMathInputValueToImmediateValue({
             componentName: "/mi2",
             core,
@@ -1066,7 +1066,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/mi1"].stateValues.value.tree).eqls("＿");
         expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("＿");
 
-        // Update value (e.g., press enter)
+        // Update value (e.g., update value)
         await updateMathInputValueToImmediateValue({
             componentName: "/mi1",
             core,
@@ -1299,7 +1299,7 @@ describe("MathInput tag tests", async () => {
             ["-", ["*", "y", "＿"]],
         ]);
 
-        // Update value (e.g., press enter)
+        // Update value (e.g., update value)
         await updateMathInputValueToImmediateValue({
             componentName: "/mi1",
             core,
@@ -1427,7 +1427,7 @@ describe("MathInput tag tests", async () => {
             "y",
         ]);
 
-        // press enter
+        // update value
         await updateMathInputValueToImmediateValue({
             componentName: "/mi1",
             core,
@@ -1785,7 +1785,7 @@ describe("MathInput tag tests", async () => {
             "y",
         ]);
 
-        // press enter
+        // update value
         await updateMathInputValueToImmediateValue({
             componentName: "/mi1",
             core,
@@ -2230,7 +2230,7 @@ describe("MathInput tag tests", async () => {
             ["*", 2, "x", "z"],
         ]);
 
-        // value revert when updateValue (e.g., press enter)
+        // value revert when updateValue (e.g., update value)
         await updateMathInputValueToImmediateValue({
             componentName: "/mi1",
             core,
@@ -8644,238 +8644,229 @@ describe("MathInput tag tests", async () => {
 
     `;
 
+        async function check_items(
+            [mi1, mi2, mi3, mi4]: [
+                mi1: string,
+                mi2: string,
+                mi3: string,
+                mi4: string,
+            ],
+            [mi1iv, mi2iv, mi3iv, mi4iv]: [
+                mi1iv: string,
+                mi2iv: string,
+                mi3iv: string,
+                mi4iv: string,
+            ],
+            [mi1changed, mi2changed, mi3changed, mi4changed]: [
+                mi1changed: boolean,
+                mi2changed: boolean,
+                mi3changed: boolean,
+                mi4changed: boolean,
+            ],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged]: [
+                mi1ivchanged: boolean,
+                mi2ivchanged: boolean,
+                mi3ivchanged: boolean,
+                mi4ivchanged: boolean,
+            ],
+        ) {
+            const stateVariables = await returnAllStateVariables(core);
+            expect(stateVariables["/mi1"].stateValues.value.tree).eq(mi1);
+            expect(stateVariables["/mi2"].stateValues.value.tree).eq(mi2);
+            expect(stateVariables["/mi3"].stateValues.value.tree).eq(mi3);
+            expect(stateVariables["/mi4"].stateValues.value.tree).eq(mi4);
+
+            expect(stateVariables["/mi1a"].stateValues.value.tree).eq(mi1);
+            expect(stateVariables["/mi2a"].stateValues.value.tree).eq(mi2);
+            expect(stateVariables["/mi3a"].stateValues.value.tree).eq(mi3);
+            expect(stateVariables["/mi4a"].stateValues.value.tree).eq(mi4);
+
+            expect(stateVariables["/mi1iva"].stateValues.value.tree).eq(mi1iv);
+            expect(stateVariables["/mi2iva"].stateValues.value.tree).eq(mi2iv);
+            expect(stateVariables["/mi3iva"].stateValues.value.tree).eq(mi3iv);
+            expect(stateVariables["/mi4iva"].stateValues.value.tree).eq(mi4iv);
+
+            expect(stateVariables["/mi1changed"].stateValues.value).eq(
+                mi1changed,
+            );
+            expect(stateVariables["/mi2changed"].stateValues.value).eq(
+                mi2changed,
+            );
+            expect(stateVariables["/mi3changed"].stateValues.value).eq(
+                mi3changed,
+            );
+            expect(stateVariables["/mi4changed"].stateValues.value).eq(
+                mi4changed,
+            );
+
+            expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(
+                mi1ivchanged,
+            );
+            expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(
+                mi2ivchanged,
+            );
+            expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(
+                mi3ivchanged,
+            );
+            expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(
+                mi4ivchanged,
+            );
+        }
+
         let core = await createTestCore({
             doenetML,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("x");
+        let mi1 = "\uff3f",
+            mi2 = "x",
+            mi3 = "\uff3f",
+            mi4 = "x";
+        let mi1iv = "\uff3f",
+            mi2iv = "x",
+            mi3iv = "\uff3f",
+            mi4iv = "x";
+        let mi1changed = false,
+            mi2changed = false,
+            mi3changed = false,
+            mi4changed = false;
+        let mi1ivchanged = false,
+            mi2ivchanged = false,
+            mi3ivchanged = false,
+            mi4ivchanged = false;
 
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
+
+        let stateVariables = await returnAllStateVariables(core);
 
         // type in first marks only first immediate value as changed
-
+        mi1iv = "y";
+        mi1ivchanged = true;
         await updateMathInputImmediateValue({
-            latex: "y",
+            latex: mi1iv,
             componentName: "/mi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("x");
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
-
-        // press enter in first marks only first value as changed
-
+        // update value in first marks only first value as changed
+        mi1 = mi3 = mi3iv = mi1iv;
+        mi1changed = true;
         await updateMathInputValueToImmediateValue({
             componentName: "/mi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("x");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
         // type in second marks only second immediate value as changed
+        mi4 = mi4iv = mi2iv = "z";
+        mi2ivchanged = true;
         await updateMathInputImmediateValue({
-            latex: "z",
+            latex: mi2iv,
             componentName: "/mi2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("z");
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
-
-        // press enter in second marks only second value as changed
+        // update value in second marks only second value as changed
+        mi2 = mi2iv;
+        mi2changed = true;
         await updateMathInputValueToImmediateValue({
             componentName: "/mi2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("z");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
         // type in third marks third immediate value as changed
-
+        mi3iv = "a";
+        mi3ivchanged = true;
         await updateMathInputImmediateValue({
-            latex: "a",
+            latex: mi3iv,
             componentName: "/mi3",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("z");
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
-
-        // press enter in third marks third value as changed
+        // update value in third marks third value as changed
+        mi1 = mi1iv = mi3 = mi3iv;
+        mi3changed = true;
 
         await updateMathInputValueToImmediateValue({
             componentName: "/mi3",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("z");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
         // type in fourth marks fourth immediate value as changed
-
+        mi4iv = "b";
+        mi4ivchanged = true;
         await updateMathInputImmediateValue({
-            latex: "b",
+            latex: mi4iv,
             componentName: "/mi4",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("b");
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(true);
-
-        // press enter in fourth marks fourth value as changed
-
+        // update value in fourth marks fourth value as changed
+        mi2 = mi2iv = mi4 = mi4iv;
+        mi4changed = true;
         await updateMathInputValueToImmediateValue({
             componentName: "/mi4",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("b");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("b");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("b");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("a");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("b");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(true);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
         // reload
 
@@ -8883,130 +8874,93 @@ describe("MathInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("x");
+        mi1 = "\uff3f";
+        mi2 = "x";
+        mi3 = "\uff3f";
+        mi4 = "x";
+        mi1iv = "\uff3f";
+        mi2iv = "x";
+        mi3iv = "\uff3f";
+        mi4iv = "x";
+        mi1changed = false;
+        mi2changed = false;
+        mi3changed = false;
+        mi4changed = false;
+        mi1ivchanged = false;
+        mi2ivchanged = false;
+        mi3ivchanged = false;
+        mi4ivchanged = false;
 
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
         // type in third marks only third immediate value as changed
-
+        mi3iv = "y";
+        mi3ivchanged = true;
         await updateMathInputImmediateValue({
-            latex: "y",
+            latex: mi3iv,
             componentName: "/mi3",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("\uff3f");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("x");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
-
-        // press enter in third marks first and third value/immediateValue as changed
+        // update value in third marks first and third value/immediateValue as changed
+        mi1 = mi1iv = mi3 = mi3iv;
+        mi1changed = true;
+        mi1ivchanged = true;
+        mi3changed = true;
 
         await updateMathInputValueToImmediateValue({
             componentName: "/mi3",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("x");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(false);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
         // type in fourth marks only fourth immediate value as changed
+        mi4iv = "z";
+        mi4ivchanged = true;
 
         await updateMathInputImmediateValue({
-            latex: "z",
+            latex: mi4iv,
             componentName: "/mi4",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
 
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("x");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("z");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(false);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(false);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(true);
-
-        // press enter in fourth marks third and fourth value/immediateValue as changed
-
+        // update value in fourth marks third and fourth value/immediateValue as changed
+        mi2 = mi2iv = mi4 = mi4iv;
+        mi2changed = true;
+        mi2ivchanged = true;
+        mi4changed = true;
         await updateMathInputValueToImmediateValue({
             componentName: "/mi4",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/mi1a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3a"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4a"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi1iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi2iva"].stateValues.value.tree).eqls("z");
-        expect(stateVariables["/mi3iva"].stateValues.value.tree).eqls("y");
-        expect(stateVariables["/mi4iva"].stateValues.value.tree).eqls("z");
-
-        expect(stateVariables["/mi1changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4changed"].stateValues.value).eq(true);
-        expect(stateVariables["/mi1ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi2ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi3ivchanged"].stateValues.value).eq(true);
-        expect(stateVariables["/mi4ivchanged"].stateValues.value).eq(true);
+        await check_items(
+            [mi1, mi2, mi3, mi4],
+            [mi1iv, mi2iv, mi3iv, mi4iv],
+            [mi1changed, mi2changed, mi3changed, mi4changed],
+            [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
+        );
     });
 
     it("math input with label", async () => {
@@ -9221,5 +9175,203 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/mi2v"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi2iv"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi2rv"].stateValues.value).eq("1");
+    });
+
+    it("mathInputs specifying point", async () => {
+        // two mathInputs specifying the x and y coordinate of a single point
+        // demonstrates two-way data binding
+
+        let core = await createTestCore({
+            doenetML: `
+    <mathInput name="x" prefill="1"/>
+    <mathInput name="y" prefill="2"/>
+    <graph>
+    <point name="P">($x,$y)</point>
+    </graph>
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(1);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(1);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
+
+        // Enter -3 for x
+        await updateMathInputValue({ latex: "-3", componentName: "/x", core });
+
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(-3);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
+
+        // Enter -4 for y
+        await updateMathInputValue({ latex: "-4", componentName: "/y", core });
+
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(-3);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(-4);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-4);
+
+        // move point to (5,-6)
+        await core.requestAction({
+            actionName: "movePoint",
+            componentName: "/P",
+            args: { x: 5, y: -6 },
+            event: null,
+        });
+
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(5);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(-6);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(5);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-6);
+    });
+
+    it("mathInput specifying point -- non-invertible x", async () => {
+        // x-coordinate is the square of the first mathInput
+        // therefore, cannot invert from x-coordinate to mathInput
+        // so that cannot change x-coordinate directly by dragging point
+
+        let core = await createTestCore({
+            doenetML: `
+    <mathInput name="x" prefill="3"/>
+    <mathInput name="y" prefill="2"/>
+    <graph>
+    <point name="P">($x^2,$y)</point>
+    </graph>
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(3);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(9);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
+
+        // Enter -1.2 for x
+        await updateMathInputValue({
+            latex: "-1.2",
+            componentName: "/x",
+            core,
+        });
+
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(-1.2);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(1.44);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
+
+        // try to move point to (5,6), only y changes
+        await core.requestAction({
+            actionName: "movePoint",
+            componentName: "/P",
+            args: { x: 5, y: 6 },
+            event: null,
+        });
+
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/x"].stateValues.value.tree).eq(-1.2);
+        expect(stateVariables["/y"].stateValues.value.tree).eq(6);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(1.44);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(6);
+    });
+
+    it("mathInput specifying point -- product", async () => {
+        // x-coordinate of a point is product of mathInputs
+        // Since cannot determine both factors from the product
+        // the transformation is non-invertible
+        // and cannot directly change the x-coordinate of point by dragging
+
+        let core = await createTestCore({
+            doenetML: `
+    <mathInput name="a" prefill="-3"/>
+    <mathInput name="b" prefill="2"/>
+    <graph>
+        <point name="P">($a$b, -7)</point>
+    </graph>
+   `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.value.tree).eq(-3);
+        expect(stateVariables["/b"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-6);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-7);
+
+        // Enter -1.5 for a
+        await updateMathInputValue({
+            latex: "-1.5",
+            componentName: "/a",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
+        expect(stateVariables["/b"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-7);
+
+        // try to move point to (5,6), only y changes
+        await core.requestAction({
+            actionName: "movePoint",
+            componentName: "/P",
+            args: { x: 5, y: 6 },
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
+        expect(stateVariables["/b"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(6);
+    });
+
+    it("mathInput specifying point -- product, make invertible", async () => {
+        // x-coordinate of a point is product of mathInputs
+        // Since one factor is marked with modifyIndirectly=false,
+        // we leave that factor constant when changing the x-coordinate by dragging
+        // and modify the other factor to match the new x-coordinate
+
+        let core = await createTestCore({
+            doenetML: `
+    <mathInput name="a" prefill="-3"/>
+    <mathInput name="b" prefill="2"/>
+    <graph>
+    <point name="P">($a$b{modifyIndirectly="false"}, -7)</point>
+    </graph>
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.value.tree).eq(-3);
+        expect(stateVariables["/b"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-6);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-7);
+
+        // Enter -1.5 for a
+        await updateMathInputValue({
+            latex: "-1.5",
+            componentName: "/a",
+            core,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
+        expect(stateVariables["/b"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-7);
+
+        // try to move point to (5,6)
+        await core.requestAction({
+            actionName: "movePoint",
+            componentName: "/P",
+            args: { x: 5, y: 6 },
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/a"].stateValues.value.tree).eqls(["/", 5, 2]);
+        expect(stateVariables["/b"].stateValues.value.tree).eq(2);
+        expect(stateVariables["/P"].stateValues.xs[0].tree).eq(5);
+        expect(stateVariables["/P"].stateValues.xs[1].tree).eq(6);
     });
 });

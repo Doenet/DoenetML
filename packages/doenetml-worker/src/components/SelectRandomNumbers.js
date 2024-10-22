@@ -15,6 +15,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         let attributes = super.createAttributesObject();
 
         delete attributes.numSamples;
+        delete attributes.variantDeterminesSeed;
 
         attributes.assignNamesSkip = {
             createPrimitiveOfType: "number",

@@ -7857,7 +7857,6 @@ describe("Math tag tests", async () => {
             <p name="pFixLocation2">FixLocation 2: $fixLocation2</p>
             <p>Change fixLocation 1 <booleanInput name="fixLocation1" prefill="false" /></p>
             <p>Change fixLocation 2 <booleanInput name="fixLocation2" bindValueTo="$math2.fixLocation" /></p>
-            <p><booleaninput name="bi" /> <boolean name="b" copySource="bi" /></p>
         
             `,
         });

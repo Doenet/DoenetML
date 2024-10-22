@@ -1786,7 +1786,6 @@ describe("Number tag tests", async () => {
     <p name="pContent2">Content 2: $number2</p>
     <p>Content 1 <mathinput name="content1" prefill="11" /></p>
     <p>Content 2 <mathinput name="content2" bindValueTo="$number2" /></p>
-    <p><booleaninput name="bi" /> <boolean name="b" copySource="bi" /></p>
 
     `,
         });
