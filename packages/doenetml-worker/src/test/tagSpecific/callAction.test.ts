@@ -2613,4 +2613,28 @@ describe("callAction tag tests", async () => {
             "Disabled 2: true",
         );
     });
+
+    it("buttons can be styled", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <setup>
+        <styleDefinitions>
+            <styleDefinition styleNumber="1" fillColor="green" />
+            <styleDefinition styleNumber="2" fillColor="yellow" />
+        </styleDefinitions>
+    </setup>
+
+    <callAction name="ca1" />
+    <callAction name="ca2" styleNumber="2" />
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/ca1"].stateValues.selectedStyle.fillColor).eq(
+            "green",
+        );
+        expect(stateVariables["/ca2"].stateValues.selectedStyle.fillColor).eq(
+            "yellow",
+        );
+    });
 });

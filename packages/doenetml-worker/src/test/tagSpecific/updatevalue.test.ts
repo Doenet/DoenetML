@@ -2898,4 +2898,28 @@ describe("UpdateValue tag tests", async () => {
                 .length,
         ).eq(2);
     });
+
+    it("buttons can be styled", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <setup>
+        <styleDefinitions>
+            <styleDefinition styleNumber="1" fillColor="green" />
+            <styleDefinition styleNumber="2" fillColor="yellow" />
+        </styleDefinitions>
+    </setup>
+
+    <updateValue name="uv1" />
+    <updateValue name="uv2" styleNumber="2" />
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/uv1"].stateValues.selectedStyle.fillColor).eq(
+            "green",
+        );
+        expect(stateVariables["/uv2"].stateValues.selectedStyle.fillColor).eq(
+            "yellow",
+        );
+    });
 });

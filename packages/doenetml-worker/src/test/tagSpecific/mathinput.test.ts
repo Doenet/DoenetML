@@ -6,8 +6,6 @@ import {
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
