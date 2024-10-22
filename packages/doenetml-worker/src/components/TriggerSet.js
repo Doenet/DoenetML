@@ -9,7 +9,7 @@ import {
     returnStandardTriggeringAttributes,
 } from "../utils/triggering";
 import InlineComponent from "./abstract/InlineComponent";
-import me from "math-expressions";
+import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 
 export default class triggerSet extends InlineComponent {
     constructor(args) {
@@ -71,6 +71,11 @@ export default class triggerSet extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        let selectedStyleDefinition =
+            returnSelectedStyleStateVariableDefinition();
+
+        Object.assign(stateVariableDefinitions, selectedStyleDefinition);
 
         addStandardTriggeringStateVariableDefinitions(
             stateVariableDefinitions,

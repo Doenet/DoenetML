@@ -10,6 +10,7 @@ import {
     returnStandardTriggeringAttributes,
 } from "../utils/triggering";
 import InlineComponent from "./abstract/InlineComponent";
+import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 
 export default class UpdateValue extends InlineComponent {
     constructor(args) {
@@ -129,6 +130,11 @@ export default class UpdateValue extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        let selectedStyleDefinition =
+            returnSelectedStyleStateVariableDefinition();
+
+        Object.assign(stateVariableDefinitions, selectedStyleDefinition);
 
         addStandardTriggeringStateVariableDefinitions(
             stateVariableDefinitions,

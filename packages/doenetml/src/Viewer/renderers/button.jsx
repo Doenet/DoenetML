@@ -384,6 +384,7 @@ export default React.memo(function ButtonComponent(props) {
                 disabled={SVs.disabled}
                 value={label}
                 valueHasLatex={SVs.labelHasLatex}
+                fillColor={SVs.selectedStyle.fillColor}
             />
         </div>
     );
