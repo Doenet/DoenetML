@@ -4,6 +4,7 @@ import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import { cesc } from "@doenet/utils";
 
 export default React.memo(function ButtonComponent(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(
@@ -38,6 +39,8 @@ export default React.memo(function ButtonComponent(props) {
 
     let label = SVs.label ? SVs.label : "Button";
 
+    let fillColor = SVs.selectedStyle.fillColor;
+
     useEffect(() => {
         //On unmount
         return () => {
@@ -54,6 +57,7 @@ export default React.memo(function ButtonComponent(props) {
             disabled: SVs.disabled,
             useMathJax: SVs.labelHasLatex,
             parse: false,
+            highlight: false,
         };
 
         let newAnchorPointJXG;
@@ -366,7 +370,26 @@ export default React.memo(function ButtonComponent(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        // Create css to color the button based on the fillColor from the style definition.
+        // Note: couldn't figure out how to do it with JSXgraphs cssStyle attribute,
+        // as that styled the div container rather than the button itself.
+        // Instead, we're just using an inline style.
+        let containerId = buttonJXG.current.rendNode.id;
+        let buttonCSS = `
+            #${cesc(containerId)} button {
+                background-color: ${fillColor};
+            }
+            #${cesc(containerId)} button:hover {
+                background-color: oklch(from ${fillColor} calc(l * 1.5) c h);
+                color: black;
+            }`;
+
+        return (
+            <React.Fragment>
+                <style>{buttonCSS}</style>
+                <a name={id} />
+            </React.Fragment>
+        );
     }
 
     // not in board
@@ -384,7 +407,7 @@ export default React.memo(function ButtonComponent(props) {
                 disabled={SVs.disabled}
                 value={label}
                 valueHasLatex={SVs.labelHasLatex}
-                fillColor={SVs.selectedStyle.fillColor}
+                fillColor={fillColor}
             />
         </div>
     );
