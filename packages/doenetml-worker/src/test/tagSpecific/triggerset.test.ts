@@ -1558,4 +1558,28 @@ describe("TriggerSet tag tests", async () => {
             "Disabled 2: true",
         );
     });
+
+    it("buttons can be styled", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <setup>
+        <styleDefinitions>
+            <styleDefinition styleNumber="1" fillColor="green" />
+            <styleDefinition styleNumber="2" fillColor="yellow" />
+        </styleDefinitions>
+    </setup>
+
+    <triggerSet name="ts1" />
+    <triggerSet name="ts2" styleNumber="2" />
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/ts1"].stateValues.selectedStyle.fillColor).eq(
+            "green",
+        );
+        expect(stateVariables["/ts2"].stateValues.selectedStyle.fillColor).eq(
+            "yellow",
+        );
+    });
 });

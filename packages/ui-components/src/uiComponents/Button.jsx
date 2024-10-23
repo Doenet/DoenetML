@@ -11,7 +11,9 @@ const ButtonStyling = styled.button`
     // border-width: 2px;
     color: white;
     background-color: ${(props) =>
-        props.alert ? "var(--mainRed)" : "var(--mainBlue)"};
+        props.alert
+            ? "var(--mainRed)"
+            : (props.fillColor ?? "var(--mainBlue)")};
     border-radius: ${(props) => props.theme.borderRadius};
     padding: ${(props) => props.theme.padding};
     cursor: pointer;
@@ -20,7 +22,11 @@ const ButtonStyling = styled.button`
 
     &:hover {
         background-color: ${(props) =>
-            props.alert ? "var(--lightRed)" : "var(--lightBlue)"};
+            props.alert
+                ? "var(--lightRed)"
+                : props.fillColor
+                  ? `oklch(from ${props.fillColor} calc(l * 1.5) c h)`
+                  : "var(--lightBlue)"};
         color: black;
     }
 
