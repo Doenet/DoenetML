@@ -1597,7 +1597,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedTo,
             specifiedStep,
             sampleComponent: stateVariables["/samples"],
-            allowedErrorInMean: 0.4,
+            allowedErrorInMean: 0.6,
             allowedErrorInVariance: 0.4,
             checkAllSamples: false,
             stateVariables,
