@@ -2584,7 +2584,8 @@ export default class Core {
         }
 
         if (
-            component.shadows
+            component.shadows &&
+            !component.shadows.propVariable
             //&&
             // this.componentInfoObjects.isCompositeComponent({
             //   componentType: component.componentType,
@@ -3201,6 +3202,7 @@ export default class Core {
             });
             component.replacements = replacementResult.components;
         } catch (e) {
+            // throw e;
             component.replacements = await this.setErrorReplacements({
                 composite: component,
                 message: e.message,
@@ -4118,6 +4120,7 @@ export default class Core {
         }
         let stateDef =
             stateVariableDefinitions[primaryStateVariableForDefinition];
+        stateDef.isShadow = true;
         stateDef.returnDependencies = () => ({
             adapterTargetVariable: {
                 dependencyType: "stateVariable",
@@ -9598,6 +9601,7 @@ export default class Core {
 
                         newComponents = createResult.components;
                     } catch (e) {
+                        // throw e;
                         newComponents = await this.setErrorReplacements({
                             composite: component,
                             message: e.message,
@@ -10320,6 +10324,7 @@ export default class Core {
                     });
                     newComponents = createResult.components;
                 } catch (e) {
+                    // throw e;
                     newComponents = await this.setErrorReplacements({
                         composite: shadowingComponent,
                         message: e.message,

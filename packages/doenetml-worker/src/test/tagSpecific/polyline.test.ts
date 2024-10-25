@@ -3884,7 +3884,7 @@ describe("Polyline tag tests", async () => {
 
         // cannot move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -3908,7 +3908,7 @@ describe("Polyline tag tests", async () => {
 
         // cannot move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -3944,7 +3944,7 @@ describe("Polyline tag tests", async () => {
 
         // can move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -3968,7 +3968,7 @@ describe("Polyline tag tests", async () => {
 
         // cannot move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -4004,7 +4004,7 @@ describe("Polyline tag tests", async () => {
 
         // can move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -4028,7 +4028,7 @@ describe("Polyline tag tests", async () => {
 
         // can move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -4064,7 +4064,7 @@ describe("Polyline tag tests", async () => {
 
         // cannot move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -4088,7 +4088,7 @@ describe("Polyline tag tests", async () => {
 
         // can move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolyline",
             componentName: "/p",
             args: {
@@ -4502,7 +4502,7 @@ describe("Polyline tag tests", async () => {
     <mathList name="vertices">$vertexInput</mathList>
 
     <graph name="g1" newNamespace>
-        <polyline vertices="$(../vertices.maths)" name="pg" />
+        <polyline vertices="$(../vertices)" name="pg" />
     </graph>
     <graph name="g2" newNamespace>
         $(../g1/pg{name="pg"})

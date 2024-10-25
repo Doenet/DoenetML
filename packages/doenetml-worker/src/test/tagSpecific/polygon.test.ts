@@ -4447,7 +4447,7 @@ describe("Polygon tag tests", async () => {
 
         // cannot move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4471,7 +4471,7 @@ describe("Polygon tag tests", async () => {
 
         // cannot move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4507,7 +4507,7 @@ describe("Polygon tag tests", async () => {
 
         // can move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4531,7 +4531,7 @@ describe("Polygon tag tests", async () => {
 
         // cannot move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4567,7 +4567,7 @@ describe("Polygon tag tests", async () => {
 
         // can move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4591,7 +4591,7 @@ describe("Polygon tag tests", async () => {
 
         // can move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4627,7 +4627,7 @@ describe("Polygon tag tests", async () => {
 
         // cannot move single vertex
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -4651,7 +4651,7 @@ describe("Polygon tag tests", async () => {
 
         // can move all vertices
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/p",
             args: {
@@ -6065,7 +6065,7 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/g2/pg",
             args: {
@@ -6214,7 +6214,7 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/g2/pg",
             args: {
@@ -6327,7 +6327,7 @@ describe("Polygon tag tests", async () => {
             0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
         ];
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/g1/pg",
             args: {
@@ -6351,7 +6351,7 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/g2/pg",
             args: {
@@ -6378,7 +6378,7 @@ describe("Polygon tag tests", async () => {
             -2 * (vertices[2][1] - centroid[1]) + centroid[1],
         ];
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePolygon",
             componentName: "/g3/pg",
             args: {
@@ -6405,7 +6405,7 @@ describe("Polygon tag tests", async () => {
             -0.25 * (vertices[3][0] - centroid[0]) + centroid[1],
         ];
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePoint",
             componentName: "/g2/v4",
             args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
@@ -6675,7 +6675,7 @@ describe("Polygon tag tests", async () => {
 
         // change rotation point, then moving single copied vertex gets rotation and dilation
 
-        await await core.requestAction({
+        await core.requestAction({
             actionName: "movePoint",
             componentName: "/g1/rotationPoint",
             args: { x: 6, y: -2 },

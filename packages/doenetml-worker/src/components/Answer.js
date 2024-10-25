@@ -355,7 +355,7 @@ export default class Answer extends InlineComponent {
                             } else if (
                                 componentIsSpecifiedType(grandChild, "when")
                             ) {
-                                // have to test for when before boolean, sincd when is derived from boolean!
+                                // have to test for `when` before `boolean`, since `when` is derived from `boolean`!
                             } else if (
                                 componentIsSpecifiedType(grandChild, "math") ||
                                 componentIsSpecifiedType(

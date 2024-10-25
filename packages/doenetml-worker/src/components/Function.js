@@ -258,7 +258,7 @@ export default class Function extends InlineComponent {
         };
 
         let roundingDefinitions = returnRoundingStateVariableDefinitions({
-            childsGroupIfSingleMatch: ["functions"],
+            childGroupsIfSingleMatch: ["functions"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 

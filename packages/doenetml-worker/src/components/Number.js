@@ -144,9 +144,8 @@ export default class NumberComponent extends InlineComponent {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         let roundingDefinitions = returnRoundingStateVariableDefinitions({
-            childsGroupIfSingleMatch: ["maths", "numbers"],
+            childGroupsIfSingleMatch: ["maths", "numbers"],
             childGroupsToStopSingleMatch: ["strings", "texts", "booleans"],
-            includeListParents: true,
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
@@ -296,7 +295,7 @@ export default class NumberComponent extends InlineComponent {
 
                 for (let child of dependencyValues.allChildren) {
                     if (typeof child !== "string") {
-                        // a math, mathList, text, textList, boolean, or booleanList
+                        // a math, number, text, or boolean
                         let code = codePre + subnum;
 
                         if (

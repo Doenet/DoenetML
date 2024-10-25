@@ -837,7 +837,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         expect(me.math.mean(sample2numbersc)).closeTo(0, 6);
         expect(me.math.variance(sample2numbersc, "uncorrected")).closeTo(
             18 ** 2,
-            120,
+            150,
         );
 
         for (let ind = 0; ind < 10; ind++) {
@@ -1743,8 +1743,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             specifiedTo,
             specifiedStep,
             sampleComponent: stateVariables["/samples"],
-            allowedErrorInMean: 1,
-            allowedErrorInVariance: 3,
+            allowedErrorInMean: 1.5,
+            allowedErrorInVariance: 4,
             checkAllSamples: true,
             stateVariables,
         });

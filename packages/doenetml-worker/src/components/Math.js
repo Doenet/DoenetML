@@ -198,9 +198,8 @@ export default class MathComponent extends InlineComponent {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         let roundingDefinitions = returnRoundingStateVariableDefinitions({
-            childsGroupIfSingleMatch: ["maths"],
+            childGroupsIfSingleMatch: ["maths"],
             childGroupsToStopSingleMatch: ["strings"],
-            includeListParents: true,
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
@@ -710,33 +709,12 @@ export default class MathComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "expand",
                 },
-                parentNComponentsToDisplayByChild: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "mathList",
-                    variableName: "numComponentsToDisplayByChild",
-                },
             }),
-            definition: function ({ dependencyValues, componentName }) {
+            definition: function ({ dependencyValues }) {
                 let value = dependencyValues.value;
 
-                if (
-                    dependencyValues.parentNComponentsToDisplayByChild?.[
-                        componentName
-                    ] > 0
-                ) {
-                    // math is a list inside a mathList that is displaying only a fraction of the list
-                    value = me.fromAst(
-                        value.tree.slice(
-                            0,
-                            dependencyValues.parentNComponentsToDisplayByChild[
-                                componentName
-                            ] + 1,
-                        ),
-                    );
-                }
-
                 // for display via latex and text, round any decimal numbers to the significant digits
-                // determined by displaydigits, displaydecimals, and/or displaySmallAsZero
+                // determined by displayDigits, displayDecimals, and/or displaySmallAsZero
                 let rounded = roundForDisplay({
                     value,
                     dependencyValues,
@@ -1894,7 +1872,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
 // concatenate strings and with a numbered code for each math child
 // (that will be parsed to form expression with codes)
 // If compositeReplacementAsList is true,
-// then add commas betweeen the components that are all from one composite,
+// then add commas between the components that are all from one composite,
 // if that composite has asList set to true.
 // Put parens around that list in some cases, as described below.
 function createInputStringFromChildren({
@@ -2101,7 +2079,7 @@ function createInputStringFromChildrenSub({
                 newChildren.push(listString);
             } else {
                 // We are not turning the children in a list,
-                // so just concatentate the strings
+                // so just concatenate the strings
                 newChildren.push(childrenInRange.join(""));
             }
 

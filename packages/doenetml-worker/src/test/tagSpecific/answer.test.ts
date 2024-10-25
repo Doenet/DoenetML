@@ -1745,6 +1745,35 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer from numberList", async () => {
+        const doenetML = `
+    <mathInput name="mi1" /> <mathInput name="mi2" />
+    <answer matchPartial name="answer1"><award><when>
+      <numberList isResponse>$mi1 $mi2</numberList> = <numberList>1 2</numberList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["1", "2"], credit: 1 },
+                { values: ["3", "2"], credit: 0.5 },
+                { values: ["3", ""], credit: 0 },
+                { values: ["2", ""], credit: 0.5 },
+                { values: ["", "2"], credit: 0.5 },
+                { values: ["", "3"], credit: 0 },
+                { values: ["", "1"], credit: 0.5 },
+                { values: ["1", ""], credit: 0.5 },
+                { values: ["2", "1"], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "math", name: "/mi1" },
+                { type: "math", name: "/mi2" },
+            ],
+        });
+    });
+
     it("answer award with text", async () => {
         const doenetML = `
     <answer name="answer1"><award><text>  hello there </text></award></answer>
@@ -1843,7 +1872,7 @@ describe("Answer tag tests", async () => {
         });
     });
 
-    it("answer award with text, initally unresolved", async () => {
+    it("answer award with text, initially unresolved", async () => {
         const doenetML = `
     <answer name="answer1"><award><text>$n</text></award></answer>
 

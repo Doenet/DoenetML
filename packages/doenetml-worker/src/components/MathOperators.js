@@ -286,10 +286,9 @@ export class Round extends MathBaseOperatorOneInput {
 
         // change default rounding to 14
         // so that actual rounding result can be seen.
-        // Don't include maths for childsGroupIfSingleMatch
+        // Don't include maths for childGroupsIfSingleMatch
         // so that this overrides display rounding from children
         let roundingDefinitions = returnRoundingStateVariableDefinitions({
-            includeListParents: true,
             displayDigitsDefault: 14,
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
