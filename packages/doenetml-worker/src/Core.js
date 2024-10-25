@@ -1872,6 +1872,7 @@ export default class Core {
                     mediatingShadowComposite.mediatesShadows.push({
                         shadowing: newComponent.componentName,
                         shadowed: name,
+                        propVariable: dep.propVariable,
                     });
 
                     if (dep.isPrimaryShadow) {
@@ -2856,9 +2857,9 @@ export default class Core {
         // mediates the shadow of compositeMediatingTheShadow
 
         let foundCircular = false;
-        let shadowedByShadowed = shadowedComposite.mediatesShadows?.map(
-            (v) => v.shadowed,
-        );
+        let shadowedByShadowed = shadowedComposite.mediatesShadows
+            ?.filter((v) => v.propVariable === undefined)
+            .map((v) => v.shadowed);
 
         while (shadowedByShadowed?.length > 0) {
             if (
@@ -2893,7 +2894,9 @@ export default class Core {
                 if (comp.mediatesShadows) {
                     return [
                         ...acc,
-                        ...comp.mediatesShadows.map((v) => v.shadowed),
+                        ...comp.mediatesShadows
+                            .filter((v) => v.propVariable === undefined)
+                            .map((v) => v.shadowed),
                     ];
                 } else {
                     return acc;
@@ -4180,7 +4183,6 @@ export default class Core {
         componentClass,
     }) {
         let targetComponent = this._components[redefineDependencies.targetName];
-        let core = this;
 
         if (redefineDependencies.propVariable) {
             // if we have an array entry state variable that hasn't been created yet
@@ -9448,7 +9450,7 @@ export default class Core {
         let addedComponents = {};
         let parentsOfDeleted = new Set();
 
-        if (component.shadows) {
+        if (component.shadows && !component.shadows.propVariable) {
             // if shadows, don't update replacements
             // instead, replacements will get updated when shadowed component
             // is updated
