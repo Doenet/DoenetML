@@ -589,6 +589,32 @@ describe("Graph tag tests", async () => {
         ]);
     });
 
+    it("correctly shadow references to number list grid", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <section name="sec">
+        <graph grid="1 2" name="g" />
+
+        <p>Grid: $g.grid{name="cgr" assignNames="gr"}</p>
+        <p>Grid2: $cgr{assignNames="gr2a gr2b"}</p>
+        <p>Grid3: $gr{name="gr3"}</p>
+    </section>
+
+    <section copySource="sec" name="sec2" newNamespace />
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/gr"].stateValues.numbers).eqls([1, 2]);
+        expect(stateVariables["/gr2a"].stateValues.value).eq(1);
+        expect(stateVariables["/gr2b"].stateValues.value).eq(2);
+        expect(stateVariables["/gr3"].stateValues.numbers).eqls([1, 2]);
+        expect(stateVariables["/sec2/gr"].stateValues.numbers).eqls([1, 2]);
+        expect(stateVariables["/sec2/gr2a"].stateValues.value).eq(1);
+        expect(stateVariables["/sec2/gr2b"].stateValues.value).eq(2);
+        expect(stateVariables["/sec2/gr3"].stateValues.numbers).eqls([1, 2]);
+    });
+
     // check for bug in placeholder adapter
     it("graph with label as submitted response, createComponentOfType specified", async () => {
         let core = await createTestCore({

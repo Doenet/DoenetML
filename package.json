@@ -101,7 +101,7 @@
         "tabWidth": 4
     },
     "dependencies": {
-        "math-expressions": "^2.0.0-alpha70",
+        "math-expressions": "^2.0.0-alpha71",
         "react-router-dom": "^6.26.2"
     }
 }

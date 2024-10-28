@@ -50,6 +50,10 @@ export default class MathList extends CompositeComponent {
             leaveRaw: true,
         };
 
+        attributes.isResponse = {
+            leaveRaw: true,
+        };
+
         for (let attrName in returnRoundingAttributes()) {
             attributes[attrName] = {
                 leaveRaw: true,
@@ -102,26 +106,8 @@ export default class MathList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({
-                matchedChildren,
-                componentAttributes,
-            }) {
-                let result = groupIntoMathsSeparatedBySpaces({
-                    matchedChildren,
-                });
-
-                // Since an answer ignores composite descendants when calculating responses,
-                // we need to add isResponse from the mathList to its children.
-                if (componentAttributes.isResponse) {
-                    for (let child of result.newChildren) {
-                        if (!child.attributes) {
-                            child.attributes = {};
-                        }
-                        child.attributes.isResponse = { primitive: true };
-                    }
-                }
-
-                return result;
+            replacementFunction: function ({ matchedChildren }) {
+                return groupIntoMathsSeparatedBySpaces({ matchedChildren });
             },
         });
 
@@ -556,6 +542,7 @@ export default class MathList extends CompositeComponent {
         let attributesToConvert = {};
         for (let attr of [
             "fixed",
+            "isResponse",
             ...Object.keys(returnRoundingAttributes()),
         ]) {
             if (attr in component.attributes) {
@@ -565,7 +552,7 @@ export default class MathList extends CompositeComponent {
 
         let newNamespace = component.attributes.newNamespace?.primitive;
 
-        // allow one to override the fixed attributes
+        // allow one to override the fixed and isResponse attributes
         // as well as rounding settings
         // by specifying it on the mathList
         let attributesFromComposite = {};

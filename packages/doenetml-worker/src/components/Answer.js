@@ -167,6 +167,8 @@ export default class Answer extends InlineComponent {
         };
         attributes.type = {
             createPrimitiveOfType: "string",
+            createStateVariable: "type",
+            defaultValue: null,
         };
 
         attributes.disableAfterCorrect = {
@@ -251,8 +253,8 @@ export default class Answer extends InlineComponent {
             componentAttributes,
             componentInfoObjects,
         }) {
-            // if chidren are strings and macros
-            // wrap with award and type
+            // if children are strings and macros
+            // wrap with award
 
             function checkForResponseDescendant(components) {
                 for (let component of components) {
@@ -596,28 +598,7 @@ export default class Answer extends InlineComponent {
                     ...childrenToNotWrapEnd,
                 ];
             } else {
-                // if have one child and it has a specified componentType
-                // then no need to wrap with componentType
-
-                let needToWrapWithComponentType =
-                    childrenToWrap.length > 1 ||
-                    (componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: childrenToWrap[0].componentType,
-                        baseComponentType: "_composite",
-                    }) &&
-                        !childrenToWrap[0].props?.componentType);
-
-                let awardChildren;
-                if (needToWrapWithComponentType) {
-                    awardChildren = [
-                        {
-                            componentType: type,
-                            children: childrenToWrap,
-                        },
-                    ];
-                } else {
-                    awardChildren = childrenToWrap;
-                }
+                let awardChildren = childrenToWrap;
                 newChildren = [
                     ...childrenToNotWrapBegin,
                     {

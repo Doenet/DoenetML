@@ -125,7 +125,7 @@ function textFromChildrenSub({
                     newChildren.push(
                         childrenInRange
                             .map(textFromComponentConverter)
-                            .filter((v) => v.trim() !== "")
+                            .filter((v) => v !== "")
                             .map((v, i, a) =>
                                 i === a.length - 1 ? v : v.trimEnd(),
                             )
@@ -167,4 +167,222 @@ function textFromChildrenSub({
     }
 
     return { newChildren, newPotentialListComponents };
+}
+
+export function returnTextPieceStateVariableDefinitions() {
+    let stateVariableDefinitions: any = {};
+
+    stateVariableDefinitions.numWords = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        returnDependencies: () => ({
+            value: {
+                dependencyType: "stateVariable",
+                variableName: "value",
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { value: string };
+        }) {
+            return {
+                setValue: {
+                    numWords: dependencyValues.value.trim().split(/\s+/).length,
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.words = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "text",
+        },
+        isArray: true,
+        entryPrefixes: ["word"],
+        returnArraySizeDependencies: () => ({
+            numWords: {
+                dependencyType: "stateVariable",
+                variableName: "numWords",
+            },
+        }),
+        returnArraySize({
+            dependencyValues,
+        }: {
+            dependencyValues: { numWords: number };
+        }) {
+            return [dependencyValues.numWords];
+        },
+        returnArrayDependenciesByKey() {
+            let globalDependencies = {
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+            };
+
+            return { globalDependencies };
+        },
+        arrayDefinitionByKey({
+            globalDependencyValues,
+        }: {
+            globalDependencyValues: { value: string };
+        }) {
+            return {
+                setValue: {
+                    words: globalDependencyValues.value.trim().split(/\s+/),
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.numCharacters = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        returnDependencies: () => ({
+            value: {
+                dependencyType: "stateVariable",
+                variableName: "value",
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { value: string };
+        }) {
+            // @ts-ignore
+            const itr = new Intl.Segmenter("en", {
+                granularity: "grapheme",
+            }).segment(dependencyValues.value);
+            return {
+                setValue: { numCharacters: [...itr].length },
+            };
+        },
+    };
+
+    stateVariableDefinitions.characters = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "text",
+        },
+        isArray: true,
+        entryPrefixes: ["character"],
+        returnArraySizeDependencies: () => ({
+            numCharacters: {
+                dependencyType: "stateVariable",
+                variableName: "numCharacters",
+            },
+        }),
+        returnArraySize({
+            dependencyValues,
+        }: {
+            dependencyValues: { numCharacters: number };
+        }) {
+            return [dependencyValues.numCharacters];
+        },
+        returnArrayDependenciesByKey() {
+            let globalDependencies = {
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+            };
+
+            return { globalDependencies };
+        },
+        arrayDefinitionByKey({
+            globalDependencyValues,
+        }: {
+            globalDependencyValues: { value: string };
+        }) {
+            // @ts-ignore
+            const itr = new Intl.Segmenter("en", {
+                granularity: "grapheme",
+            }).segment(globalDependencyValues.value);
+
+            return {
+                setValue: {
+                    characters: Array.from(itr, ({ segment }) => segment),
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.numListItems = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        returnDependencies: () => ({
+            value: {
+                dependencyType: "stateVariable",
+                variableName: "value",
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { value: string };
+        }) {
+            return {
+                setValue: {
+                    numListItems: dependencyValues.value.trim().split(",")
+                        .length,
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.listItems = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "text",
+        },
+        isArray: true,
+        entryPrefixes: ["listItem"],
+        returnArraySizeDependencies: () => ({
+            numListItems: {
+                dependencyType: "stateVariable",
+                variableName: "numListItems",
+            },
+        }),
+        returnArraySize({
+            dependencyValues,
+        }: {
+            dependencyValues: { numListItems: number };
+        }) {
+            return [dependencyValues.numListItems];
+        },
+        returnArrayDependenciesByKey() {
+            let globalDependencies = {
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+            };
+
+            return { globalDependencies };
+        },
+        arrayDefinitionByKey({
+            globalDependencyValues,
+        }: {
+            globalDependencyValues: { value: string };
+        }) {
+            return {
+                setValue: {
+                    listItems: globalDependencyValues.value
+                        .trim()
+                        .split(",")
+                        .map((s) => s.trim()),
+                },
+            };
+        },
+    };
+
+    return stateVariableDefinitions;
 }

@@ -7,7 +7,10 @@ import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
-import { textFromChildren } from "../utils/text";
+import {
+    returnTextPieceStateVariableDefinitions,
+    textFromChildren,
+} from "../utils/text";
 import { getLatexToMathConverter, getTextToMathConverter } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
@@ -93,6 +96,36 @@ export default class Text extends InlineComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
+        stateVariableDefinitions.inUnorderedList = {
+            defaultValue: false,
+            returnDependencies: () => ({
+                sourceCompositeUnordered: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "unordered",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (
+                    dependencyValues.sourceCompositeUnordered !== null &&
+                    !usedDefault.sourceCompositeUnordered
+                ) {
+                    return {
+                        setValue: {
+                            inUnorderedList: Boolean(
+                                dependencyValues.sourceCompositeUnordered,
+                            ),
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            inUnorderedList: false,
+                        },
+                    };
+                }
+            },
+        };
+
         stateVariableDefinitions.value = {
             public: true,
             shadowingInstructions: {
@@ -164,24 +197,6 @@ export default class Text extends InlineComponent {
                                     : String(desiredStateVariableValues.value),
                         },
                     ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.numCharacters = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: { numCharacters: dependencyValues.value.length },
                 };
             },
         };
@@ -295,6 +310,9 @@ export default class Text extends InlineComponent {
                 };
             },
         };
+
+        let pieceDefs = returnTextPieceStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, pieceDefs);
 
         return stateVariableDefinitions;
     }

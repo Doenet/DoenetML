@@ -149,6 +149,36 @@ export default class NumberComponent extends InlineComponent {
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
+        stateVariableDefinitions.inUnorderedList = {
+            defaultValue: false,
+            returnDependencies: () => ({
+                sourceCompositeUnordered: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "unordered",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (
+                    dependencyValues.sourceCompositeUnordered !== null &&
+                    !usedDefault.sourceCompositeUnordered
+                ) {
+                    return {
+                        setValue: {
+                            inUnorderedList: Boolean(
+                                dependencyValues.sourceCompositeUnordered,
+                            ),
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            inUnorderedList: false,
+                        },
+                    };
+                }
+            },
+        };
+
         stateVariableDefinitions.singleNumberOrStringChild = {
             additionalStateVariablesDefined: ["singleMathChild"],
             returnDependencies: () => ({

@@ -126,33 +126,17 @@ export default class When extends BooleanComponent {
                     dependencyType: "stateVariable",
                     variableName: "booleanChildrenByCode",
                 },
-                booleanListChildrenByCode: {
-                    dependencyType: "stateVariable",
-                    variableName: "booleanListChildrenByCode",
-                },
                 textChildrenByCode: {
                     dependencyType: "stateVariable",
                     variableName: "textChildrenByCode",
-                },
-                textListChildrenByCode: {
-                    dependencyType: "stateVariable",
-                    variableName: "textListChildrenByCode",
                 },
                 mathChildrenByCode: {
                     dependencyType: "stateVariable",
                     variableName: "mathChildrenByCode",
                 },
-                mathListChildrenByCode: {
-                    dependencyType: "stateVariable",
-                    variableName: "mathListChildrenByCode",
-                },
                 numberChildrenByCode: {
                     dependencyType: "stateVariable",
                     variableName: "numberChildrenByCode",
-                },
-                numberListChildrenByCode: {
-                    dependencyType: "stateVariable",
-                    variableName: "numberListChildrenByCode",
                 },
                 otherChildrenByCode: {
                     dependencyType: "stateVariable",

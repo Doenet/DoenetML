@@ -42,6 +42,10 @@ export default class NumberList extends CompositeComponent {
             leaveRaw: true,
         };
 
+        attributes.isResponse = {
+            leaveRaw: true,
+        };
+
         for (let attrName in returnRoundingAttributes()) {
             attributes[attrName] = {
                 leaveRaw: true,
@@ -63,26 +67,8 @@ export default class NumberList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({
-                matchedChildren,
-                componentAttributes,
-            }) {
-                let result = groupIntoNumbersSeparatedBySpaces({
-                    matchedChildren,
-                });
-
-                // Since an answer ignores composite descendants when calculating responses,
-                // we need to add isResponse from the numberList to its children.
-                if (componentAttributes.isResponse) {
-                    for (let child of result.newChildren) {
-                        if (!child.attributes) {
-                            child.attributes = {};
-                        }
-                        child.attributes.isResponse = { primitive: true };
-                    }
-                }
-
-                return result;
+            replacementFunction: function ({ matchedChildren }) {
+                return groupIntoNumbersSeparatedBySpaces({ matchedChildren });
             },
         });
 
@@ -162,10 +148,7 @@ export default class NumberList extends CompositeComponent {
                 }
 
                 return {
-                    setValue: {
-                        numComponents,
-                        childNameByComponent,
-                    },
+                    setValue: { numComponents, childNameByComponent },
                     checkForActualChange: { numComponents: true },
                 };
             },

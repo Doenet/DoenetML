@@ -226,7 +226,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/b4`].stateValues.value).to.be.true;
     });
 
-    it("boolean with lists", async () => {
+    it("boolean with lists and sequences", async () => {
         let core = await createTestCore({
             doenetML: `
     <boolean name="t1"><math>1,2</math> = <mathlist>1 2</mathlist></boolean>
@@ -239,17 +239,20 @@ describe("Boolean tag tests", async () => {
     <boolean name="t8"><numberlist unordered>1 2</numberlist> = <numberlist>2 1</numberlist></boolean>
     <boolean name="t9"><textlist unordered>a b</textlist> = <textlist>b a</textlist></boolean>
     <boolean name="t10"><booleanlist unordered>true false</booleanlist> = <booleanlist>false true</booleanlist></boolean>
-    <boolean name="t11"><mathlist></mathlist> = <mathlist></mathlist></boolean>
-    <boolean name="t12"><mathlist></mathlist> = <numberlist></numberlist></boolean>
-    <boolean name="t13"><numberlist></numberlist> = <numberlist></numberlist></boolean>
-    <boolean name="t14"><textlist></textlist> = <textlist></textlist></boolean>
-    <boolean name="t15"><mathlist>1</mathlist> = <math>1</math></boolean>
-    <boolean name="t16"><mathlist>1</mathlist> = <number>1</number></boolean>
-    <boolean name="t17"><numberlist>1</numberlist> = <math>1</math></boolean>
-    <boolean name="t18"><numberlist>1</numberlist> = <number>1</number></boolean>
-    <boolean name="t19"><text>a, b</text> = <textlist>a b</textlist></boolean>
-    <boolean name="t20"><text>a, b</text> = <textlist unordered>b a</textlist></boolean>
-    <boolean name="t21"><text>a,b</text> = <textlist>a b</textlist></boolean>
+    <boolean name="t11"><mathlist>1</mathlist> = <math>1</math></boolean>
+    <boolean name="t12"><mathlist>1</mathlist> = <number>1</number></boolean>
+    <boolean name="t13"><numberlist>1</numberlist> = <math>1</math></boolean>
+    <boolean name="t14"><numberlist>1</numberlist> = <number>1</number></boolean>
+    <boolean name="t15"><text>a, b</text> = <textlist>a b</textlist></boolean>
+    <boolean name="t16"><text>a, b</text> = <textlist unordered>b a</textlist></boolean>
+    <boolean name="t17"><text>a,b</text> = <textlist>a b</textlist></boolean>
+    <boolean name="t18"><mathList>1 2</mathList> = <sequence from="1" to="2" /></boolean>
+    <boolean name="t19"><numberList>1 2</numberList> = <sequence from="1" to="2" /></boolean>
+    <boolean name="t20"><math>1, 2</math> = <sequence from="1" to="2" /></boolean>
+    <boolean name="t21"><textList>d f</textList> = <sequence type="letters" from="d" to="f" step="2" /></boolean>
+    <boolean name="t22"><mathList>2x 3x</mathList> = <sequence type="math" from="2x" step="x" length="2" /></boolean>
+
+
 
     <boolean name="f1"><math>1,2</math> = <mathlist>2 1</mathlist></boolean>
     <boolean name="f2"><mathlist>1 2</mathlist> = <mathlist>2 1</mathlist></boolean>
@@ -270,12 +273,18 @@ describe("Boolean tag tests", async () => {
     <boolean name="f17"><numberlist></numberlist> = <number></number></boolean>
     <boolean name="f18"><textlist></textlist> = <text></text></boolean>
     <boolean name="f19"><text>a, b</text> = <textlist>b a</textlist></boolean>
+    <boolean name="f20"><math>1</math><math>2</math> = <sequence from="1" to="2" /></boolean>
+    <boolean name="f21"><math>(1, 2)</math> = <mathList>1 2</mathList></boolean>
+    <boolean name="f22">(1, 2) = <mathList>1 2</mathList></boolean>
+    <boolean name="f23">1, 2 = <mathList>1 2</mathList></boolean>
+    <boolean name="f24"><textList>d e f</textList> = <sequence type="letters" from="d" to="f" step="2" /></boolean>
+    <boolean name="f25"><mathList>2x 3x</mathList> = <sequence type="math" from="2x" step="x" length="3" /></boolean>
 
     `,
         });
 
-        let nTrues = 21,
-            nFalses = 19;
+        let nTrues = 22,
+            nFalses = 25;
 
         let stateVariables = await returnAllStateVariables(core);
         for (let i = 1; i <= nTrues; i++) {
@@ -292,7 +301,7 @@ describe("Boolean tag tests", async () => {
         }
     });
 
-    it("element of list, set, or string", async () => {
+    it("element of list, set, composite, or string", async () => {
         let elements = [
             {
                 element: "1",
@@ -325,6 +334,12 @@ describe("Boolean tag tests", async () => {
                 isElementCaseInsensitive: true,
             },
             {
+                element: "1",
+                set: "<sequence from='1' to='2' />",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
                 element: "<math>1</math>",
                 set: "<mathlist>1 2</mathlist>",
                 isElement: true,
@@ -355,6 +370,12 @@ describe("Boolean tag tests", async () => {
                 isElementCaseInsensitive: true,
             },
             {
+                element: "<math>1</math>",
+                set: "<sequence from='1' to='2' />",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
                 element: "<number>1</number>",
                 set: "<mathlist>1 2</mathlist>",
                 isElement: true,
@@ -385,6 +406,18 @@ describe("Boolean tag tests", async () => {
                 isElementCaseInsensitive: true,
             },
             {
+                element: "<number>1</number>",
+                set: "<sequence from='1' to='2' />",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<numberList>1</numberList>",
+                set: "<sequence from='1' to='2' />",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
                 element: "3",
                 set: "<mathlist>1 2</mathlist>",
                 isElement: false,
@@ -411,15 +444,32 @@ describe("Boolean tag tests", async () => {
             {
                 element: "3",
                 set: "{1,2}",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "3",
+                set: "<sequence from='1' to='2' />",
                 isElement: false,
                 isElementCaseInsensitive: false,
             },
             {
                 element: "3",
                 set: "3",
-                isElement: false,
-                isElementCaseInsensitive: false,
-                isInvalid: true,
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "3",
+                set: "<mathList>3</mathList>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "3",
+                set: "<numberList>3</numberList>",
+                isElement: true,
+                isElementCaseInsensitive: true,
             },
             {
                 element: "2, 3",
@@ -513,6 +563,12 @@ describe("Boolean tag tests", async () => {
                 isElementCaseInsensitive: true,
             },
             {
+                element: "2x",
+                set: "<sequence type='math' from='x' step='x' length='3' />",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
                 element: "<math>2x</math>",
                 set: "<mathlist>x+x y/2</mathlist>",
                 isElement: true,
@@ -533,6 +589,18 @@ describe("Boolean tag tests", async () => {
             {
                 element: "<math>2x</math>",
                 set: "{x+x, y/2}",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>2x</math>",
+                set: "<sequence type='math' from='x' step='x' length='3' />",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "x+x",
                 isElement: true,
                 isElementCaseInsensitive: true,
             },
@@ -558,8 +626,7 @@ describe("Boolean tag tests", async () => {
                 element: "2x",
                 set: "x+X",
                 isElement: false,
-                isElementCaseInsensitive: false,
-                isInvalid: true,
+                isElementCaseInsensitive: true,
             },
             {
                 element: "x",
@@ -584,7 +651,6 @@ describe("Boolean tag tests", async () => {
                 set: "abc",
                 isElement: false,
                 isElementCaseInsensitive: false,
-                isInvalid: true,
             },
             {
                 element: "b",
@@ -625,8 +691,8 @@ describe("Boolean tag tests", async () => {
             {
                 element: "b",
                 set: "<textlist>abc</textlist>",
-                isElement: false,
-                isElementCaseInsensitive: false,
+                isElement: true,
+                isElementCaseInsensitive: true,
             },
             {
                 element: "b",
@@ -760,20 +826,18 @@ describe("Boolean tag tests", async () => {
             {
                 set1: "z",
                 set2: "<mathList>z 2x</mathList>",
-                isSubset: false,
-                isSubsetCaseInsensitive: false,
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
             },
             {
                 set1: "<math>z</math>",
                 set2: "<mathList>z 2x</mathList>",
-                isSubset: false,
-                isSubsetCaseInsensitive: false,
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
             },
             {
                 set1: "<mathList>z</mathList>",
@@ -826,11 +890,10 @@ describe("Boolean tag tests", async () => {
             {
                 set1: "3",
                 set2: "[2,4)",
-                isSubset: false,
-                isSubsetCaseInsensitive: false,
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
             },
             {
                 set1: "2,3",
@@ -900,20 +963,98 @@ describe("Boolean tag tests", async () => {
             {
                 set1: "<text>hello</text>",
                 set2: "<textList>there hello bye</textList>",
-                isSubset: false,
-                isSubsetCaseInsensitive: false,
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
             },
             {
                 set1: "hello",
+                set2: "<textList>there hello bye</textList>",
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<text>hello there</text>",
                 set2: "<textList>there hello bye</textList>",
                 isSubset: false,
                 isSubsetCaseInsensitive: false,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
+            },
+            {
+                set1: "<extract prop='words'><text>hello there</text></extract>",
+                set2: "<textList>there hello bye</textList>",
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<textList>a c</textList>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<text>a, c</text>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: false,
+                isSubsetCaseInsensitive: false,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<extract prop='listItems'><text>a, c</text></extract>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<text>ace</text>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: false,
+                isSubsetCaseInsensitive: false,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<extract prop='characters'><text>ace</text></extract>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
+                isSuperset: true,
+                isSupersetCaseInsensitive: true,
+            },
+            {
+                set1: "<textList>A c</textList>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: false,
+                isSubsetCaseInsensitive: true,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<textList>a b</textList>",
+                set2: "<sequence type='letters' from='a' to='e' step='2' />",
+                isSubset: false,
+                isSubsetCaseInsensitive: false,
+                isSuperset: false,
+                isSupersetCaseInsensitive: false,
+            },
+            {
+                set1: "<textList>a b c</textList>",
+                set2: "<sequence type='letters' from='a' to='d' step='2' />",
+                isSubset: false,
+                isSubsetCaseInsensitive: false,
+                isSuperset: true,
+                isSupersetCaseInsensitive: true,
             },
             {
                 set1: "<booleanList>true true</booleanList>",
@@ -942,20 +1083,18 @@ describe("Boolean tag tests", async () => {
             {
                 set1: "<boolean>true</boolean>",
                 set2: "<booleanList>true false</booleanList>",
-                isSubset: false,
-                isSubsetCaseInsensitive: false,
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
             },
             {
                 set1: "true",
                 set2: "<booleanList>true false</booleanList>",
-                isSubset: false,
-                isSubsetCaseInsensitive: false,
+                isSubset: true,
+                isSubsetCaseInsensitive: true,
                 isSuperset: false,
                 isSupersetCaseInsensitive: false,
-                isInvalid: true,
             },
         ];
 
