@@ -15,6 +15,8 @@ export default class MathList extends CompositeComponent {
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
+    static assignNamesToReplacements = true;
+
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
@@ -26,6 +28,8 @@ export default class MathList extends CompositeComponent {
     // even if inside a component that turned on descendantCompositesMustHaveAReplacement
     // don't required composite replacements
     static descendantCompositesMustHaveAReplacement = false;
+
+    static doNotExpandAsShadowed = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -66,6 +70,7 @@ export default class MathList extends CompositeComponent {
             defaultValue: ["f", "g"],
             public: true,
             fallBackToParentStateVariable: "functionSymbols",
+            fallBackToSourceCompositeStateVariable: "functionSymbols",
         };
 
         attributes.sourcesAreFunctionSymbols = {
@@ -73,6 +78,7 @@ export default class MathList extends CompositeComponent {
             createStateVariable: "sourcesAreFunctionSymbols",
             defaultValue: [],
             fallBackToParentStateVariable: "sourcesAreFunctionSymbols",
+            fallBackToSourceCompositeStateVariable: "sourcesAreFunctionSymbols",
         };
 
         attributes.splitSymbols = {
@@ -81,6 +87,7 @@ export default class MathList extends CompositeComponent {
             defaultValue: true,
             public: true,
             fallBackToParentStateVariable: "splitSymbols",
+            fallBackToSourceCompositeStateVariable: "splitSymbols",
         };
 
         attributes.parseScientificNotation = {
@@ -569,63 +576,35 @@ export default class MathList extends CompositeComponent {
         let childInfoByComponent =
             await component.stateValues.childInfoByComponent;
 
-        if (childInfoByComponent.length > 0) {
-            for (let childInfo of childInfoByComponent) {
-                let replacementSource = components[childInfo.childName];
+        let numComponents = await component.stateValues.numComponents;
+        for (let i = 0; i < numComponents; i++) {
+            let childInfo = childInfoByComponent[i];
+            let replacementSource = components[childInfo.childName];
 
-                if (replacementSource) {
+            if (replacementSource) {
+                if (childInfo.nComponents !== undefined) {
+                    componentsCopied.push(
+                        replacementSource.componentName +
+                            ":" +
+                            childInfo.component,
+                    );
+                } else {
                     componentsCopied.push(replacementSource.componentName);
-
-                    if (childInfo.nComponents !== undefined) {
-                        replacements.push({
-                            componentType: "math",
-                            attributes: JSON.parse(
-                                JSON.stringify(attributesFromComposite),
-                            ),
-                            downstreamDependencies: {
-                                [childInfo.childName]: [
-                                    {
-                                        dependencyType: "referenceShadow",
-                                        compositeName: component.componentName,
-                                        propVariable: `x${childInfo.component + 1}`,
-                                    },
-                                ],
-                            },
-                        });
-                    } else {
-                        let repl = await replacementSource.serialize({
-                            primitiveSourceAttributesToIgnore: ["isResponse"],
-                        });
-                        if (!repl.attributes) {
-                            repl.attributes = {};
-                        }
-                        Object.assign(
-                            repl.attributes,
-                            JSON.parse(JSON.stringify(attributesFromComposite)),
-                        );
-                        replacements.push(repl);
-                    }
                 }
             }
-        } else {
-            let numComponents = await component.stateValues.numComponents;
-            for (let i = 0; i < numComponents; i++) {
-                replacements.push({
-                    componentType: "math",
-                    attributes: JSON.parse(
-                        JSON.stringify(attributesFromComposite),
-                    ),
-                    downstreamDependencies: {
-                        [component.componentName]: [
-                            {
-                                dependencyType: "referenceShadow",
-                                compositeName: component.componentName,
-                                propVariable: `math${i + 1}`,
-                            },
-                        ],
-                    },
-                });
-            }
+            replacements.push({
+                componentType: "math",
+                attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                downstreamDependencies: {
+                    [component.componentName]: [
+                        {
+                            dependencyType: "referenceShadow",
+                            compositeName: component.componentName,
+                            propVariable: `math${i + 1}`,
+                        },
+                    ],
+                },
+            });
         }
 
         workspace.uniqueIdentifiersUsed = [];
@@ -675,7 +654,15 @@ export default class MathList extends CompositeComponent {
             let replacementSource = components[childInfo.childName];
 
             if (replacementSource) {
-                componentsToCopy.push(replacementSource.componentName);
+                if (childInfo.nComponents !== undefined) {
+                    componentsToCopy.push(
+                        replacementSource.componentName +
+                            ":" +
+                            childInfo.component,
+                    );
+                } else {
+                    componentsToCopy.push(replacementSource.componentName);
+                }
             }
         }
 

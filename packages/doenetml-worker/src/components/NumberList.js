@@ -13,6 +13,8 @@ export default class NumberList extends CompositeComponent {
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
+    static assignNamesToReplacements = true;
+
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
@@ -20,6 +22,12 @@ export default class NumberList extends CompositeComponent {
     // use the numbers state variable to populate that attribute
     static stateVariableToBeShadowed = "numbers";
     static primaryStateVariableForDefinition = "numbersShadow";
+
+    // even if inside a component that turned on descendantCompositesMustHaveAReplacement
+    // don't required composite replacements
+    static descendantCompositesMustHaveAReplacement = false;
+
+    static doNotExpandAsShadowed = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -342,45 +350,27 @@ export default class NumberList extends CompositeComponent {
         let childNameByComponent =
             await component.stateValues.childNameByComponent;
 
-        if (childNameByComponent.length > 0) {
-            for (let childName of childNameByComponent) {
-                let replacementSource = components[childName];
+        let numComponents = await component.stateValues.numComponents;
+        for (let i = 0; i < numComponents; i++) {
+            let childName = childNameByComponent[i];
+            let replacementSource = components[childName];
 
-                if (replacementSource) {
-                    componentsCopied.push(replacementSource.componentName);
-
-                    let repl = await replacementSource.serialize({
-                        primitiveSourceAttributesToIgnore: ["isResponse"],
-                    });
-                    if (!repl.attributes) {
-                        repl.attributes = {};
-                    }
-                    Object.assign(
-                        repl.attributes,
-                        JSON.parse(JSON.stringify(attributesFromComposite)),
-                    );
-                    replacements.push(repl);
-                }
+            if (replacementSource) {
+                componentsCopied.push(replacementSource.componentName);
             }
-        } else {
-            let numComponents = await component.stateValues.numComponents;
-            for (let i = 0; i < numComponents; i++) {
-                replacements.push({
-                    componentType: "number",
-                    attributes: JSON.parse(
-                        JSON.stringify(attributesFromComposite),
-                    ),
-                    downstreamDependencies: {
-                        [component.componentName]: [
-                            {
-                                dependencyType: "referenceShadow",
-                                compositeName: component.componentName,
-                                propVariable: `number${i + 1}`,
-                            },
-                        ],
-                    },
-                });
-            }
+            replacements.push({
+                componentType: "number",
+                attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                downstreamDependencies: {
+                    [component.componentName]: [
+                        {
+                            dependencyType: "referenceShadow",
+                            compositeName: component.componentName,
+                            propVariable: `number${i + 1}`,
+                        },
+                    ],
+                },
+            });
         }
 
         workspace.uniqueIdentifiersUsed = [];

@@ -115,6 +115,7 @@ export default class MathComponent extends InlineComponent {
             defaultValue: ["f", "g"],
             public: true,
             fallBackToParentStateVariable: "functionSymbols",
+            fallBackToSourceCompositeStateVariable: "functionSymbols",
         };
 
         attributes.sourcesAreFunctionSymbols = {
@@ -122,6 +123,7 @@ export default class MathComponent extends InlineComponent {
             createStateVariable: "sourcesAreFunctionSymbols",
             defaultValue: [],
             fallBackToParentStateVariable: "sourcesAreFunctionSymbols",
+            fallBackToSourceCompositeStateVariable: "sourcesAreFunctionSymbols",
         };
 
         attributes.splitSymbols = {
@@ -130,6 +132,7 @@ export default class MathComponent extends InlineComponent {
             defaultValue: true,
             public: true,
             fallBackToParentStateVariable: "splitSymbols",
+            fallBackToSourceCompositeStateVariable: "splitSymbols",
         };
 
         attributes.parseScientificNotation = {
@@ -1555,7 +1558,7 @@ function checkForLinearExpression(
             return { foundLinear: false };
         }
 
-        // if at least one componen is a linear functions, view as linear
+        // if at least one component is a linear functions, view as linear
         result.foundLinear = true;
         return result;
     } else {
