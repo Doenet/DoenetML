@@ -1042,7 +1042,6 @@ describe("MathList tag tests", async () => {
         expect(stateVariables["/p1"].stateValues.text).eq("x, y, z");
         expect(stateVariables["/p2"].stateValues.text).eq("x, y, z");
         expect(stateVariables["/a"].stateValues.value.tree).eq("x");
-        expect(stateVariables["/a"].stateValues.value.tree).eq("x");
         expect(stateVariables["/b"].stateValues.value.tree).eq("y");
         expect(stateVariables["/c"].stateValues.value.tree).eq("z");
     });
