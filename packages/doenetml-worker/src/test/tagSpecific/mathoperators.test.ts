@@ -7569,19 +7569,39 @@ describe("Math operator tests", async () => {
     it("gcd", async () => {
         let core = await createTestCore({
             doenetML: `
-      <gcd><number>135</number><number>81</number></gcd>
-      <gcd>135 81 63</gcd>
-      <gcd>x y z</gcd>
+      <gcd name="gcd1"><number>135</number><number>81</number></gcd>
+      <gcd name="gcd2">135 81 63</gcd>
+      <gcd name="gcd3">x y z</gcd>
       `,
         });
 
         let stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/_gcd1"].stateValues.value.tree).eq(27);
-        expect(stateVariables["/_gcd2"].stateValues.value.tree).eq(9);
-        expect(stateVariables["/_gcd3"].stateValues.value.tree).eqls([
+        expect(stateVariables["/gcd1"].stateValues.value.tree).eq(27);
+        expect(stateVariables["/gcd2"].stateValues.value.tree).eq(9);
+        expect(stateVariables["/gcd3"].stateValues.value.tree).eqls([
             "apply",
             "gcd",
+            ["tuple", "x", "y", "z"],
+        ]);
+    });
+
+    it("lcm", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <lcm name="lcm1"><number>135</number><number>81</number></lcm>
+      <lcm name="lcm2">135 81 63</lcm>
+      <lcm name="lcm3">x y z</lcm>
+      `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/lcm1"].stateValues.value.tree).eq(405);
+        expect(stateVariables["/lcm2"].stateValues.value.tree).eq(2835);
+        expect(stateVariables["/lcm3"].stateValues.value.tree).eqls([
+            "apply",
+            "lcm",
             ["tuple", "x", "y", "z"],
         ]);
     });
