@@ -976,7 +976,7 @@ describe("NumberList tag tests", async () => {
         expect(stateVariables["/t"].stateValues.value).eq("1, 2, 3");
     });
 
-    it("numberList adapts to numberList", async () => {
+    it("numberList adapts to mathList", async () => {
         let core = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl"><number>9</number> <number>8</number><number>7</number></numberList></p>
