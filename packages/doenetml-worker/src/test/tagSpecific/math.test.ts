@@ -9130,4 +9130,43 @@ describe("Math tag tests", async () => {
             ]);
         }
     });
+
+    it("numListItems and list", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p><math name="m">2x, 3y, 4z</math>!</p>
+
+    <p name="p2">Number of list items is $m.numListItems.</p>
+    <p name="p3">list items: $m.list.</p>
+    <p name="p4">math list from items: <mathList name="ml">$m.list</mathList>.</p>
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/p2"].stateValues.text).eq(
+            "Number of list items is 3.",
+        );
+        expect(stateVariables["/p3"].stateValues.text).eq(
+            "list items: 2 x, 3 y, 4 z.",
+        );
+        expect(stateVariables["/p4"].stateValues.text).eq(
+            "math list from items: 2 x, 3 y, 4 z.",
+        );
+
+        expect(stateVariables["/m"].stateValues.numDimensions).eq(3);
+        expect(stateVariables["/m"].stateValues.list.map((v) => v.tree)).eqls([
+            ["*", 2, "x"],
+            ["*", 3, "y"],
+            ["*", 4, "z"],
+        ]);
+
+        expect(stateVariables["/ml"].stateValues.maths.map((v) => v.tree)).eqls(
+            [
+                ["*", 2, "x"],
+                ["*", 3, "y"],
+                ["*", 4, "z"],
+            ],
+        );
+    });
 });

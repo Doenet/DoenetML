@@ -1586,6 +1586,7 @@ describe("TextInput tag tests", async () => {
     <p name="p5">Words: $ti.words.</p>
     <p name="p6">Number of list items is $ti.numListItems.</p>
     <p name="p7">List: $ti.list.</p>
+    <p name="p8">Text list from list: <textList name="tl">$ti.list</textList>.</p>
      `,
         });
 
@@ -1627,6 +1628,9 @@ describe("TextInput tag tests", async () => {
             expect(stateVariables["/p7"].stateValues.text).eq(
                 `List: ${list.join(", ")}.`,
             );
+            expect(stateVariables["/p8"].stateValues.text).eq(
+                `Text list from list: ${list.join(", ")}.`,
+            );
 
             expect(stateVariables["/ti"].stateValues.numCharacters).eq(
                 numCharacters,
@@ -1640,6 +1644,7 @@ describe("TextInput tag tests", async () => {
                 numListItems,
             );
             expect(stateVariables["/ti"].stateValues.list).eqls(list);
+            expect(stateVariables["/tl"].stateValues.texts).eqls(list);
         }
 
         let string = "";

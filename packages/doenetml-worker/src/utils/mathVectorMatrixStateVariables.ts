@@ -262,6 +262,11 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         targetVariableName: "x3",
     };
 
+    stateVariableDefinitions.numListItems = {
+        isAlias: true,
+        targetVariableName: "numDimensions",
+    };
+
     stateVariableDefinitions.list = {
         public: true,
         shadowingInstructions: {

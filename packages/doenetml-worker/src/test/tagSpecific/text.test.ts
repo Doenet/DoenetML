@@ -988,6 +988,7 @@ describe("Text tag tests", async () => {
 
     <p name="p2">Number of list items is $t.numListItems.</p>
     <p name="p3">list items: $t.list.</p>
+    <p name="p4">text list from items: <textList name="tl">$t.list</textList>.</p>
     `,
         });
 
@@ -999,9 +1000,17 @@ describe("Text tag tests", async () => {
         expect(stateVariables["/p3"].stateValues.text).eq(
             "list items: Hello there, friend!.",
         );
+        expect(stateVariables["/p4"].stateValues.text).eq(
+            "text list from items: Hello there, friend!.",
+        );
 
         expect(stateVariables["/t"].stateValues.numListItems).eq(2);
         expect(stateVariables["/t"].stateValues.list).eqls([
+            "Hello there",
+            "friend!",
+        ]);
+
+        expect(stateVariables["/tl"].stateValues.texts).eqls([
             "Hello there",
             "friend!",
         ]);

@@ -9396,6 +9396,10 @@ describe("MathInput tag tests", async () => {
     <p name="p14">Matrix: $mi.matrix</p>
     <p name="p15">Matrix[$i]: $mi.matrix[$i]</p>
     <p name="p16">Matrix[$i][1]: $mi.matrix[$i][1]</p>
+    <p name="p17">Number of list items: $mi.numListItems</p>
+    <p name="p18">List: $mi.list</p>
+    <p name="p19">Math list from list: <mathList name="ml">$mi.list</mathList></p>
+    <p name="p20">Number list from list: <numberList name="nl">$mi.list</numberList></p>
 
     `,
         });
@@ -9432,6 +9436,11 @@ describe("MathInput tag tests", async () => {
             let asVec = math;
             if (mathTree[0] === "list") {
                 asVec = me.fromAst(["vector", ...mathTree.slice(1)]);
+            }
+
+            let asList = math;
+            if (mathTree[0] === "vector") {
+                asList = me.fromAst(["list", ...mathTree.slice(1)]);
             }
 
             expect(stateVariables["/p1"].stateValues.text).eq(
@@ -9558,6 +9567,55 @@ describe("MathInput tag tests", async () => {
                     `Matrix[${i}][1]: `,
                 );
             }
+
+            expect(stateVariables["/p17"].stateValues.text).eq(
+                `Number of list items: ${numDimensions}`,
+            );
+
+            expect(stateVariables["/p18"].stateValues.text).eq(
+                `List: ${asList}`,
+            );
+            if (numDimensions === 1) {
+                expect(
+                    stateVariables["/mi"].stateValues.list.map((v) => v.tree),
+                ).eqls([math.tree]);
+            } else {
+                expect(
+                    stateVariables["/mi"].stateValues.list.map((v) => v.tree),
+                ).eqls(math.tree.slice(1));
+            }
+
+            expect(stateVariables["/p19"].stateValues.text).eq(
+                `Math list from list: ${asList}`,
+            );
+            if (numDimensions === 1) {
+                expect(
+                    stateVariables["/ml"].stateValues.maths.map((v) => v.tree),
+                ).eqls([math.tree]);
+            } else {
+                expect(
+                    stateVariables["/ml"].stateValues.maths.map((v) => v.tree),
+                ).eqls(math.tree.slice(1));
+            }
+
+            if (numDimensions === 1) {
+                let num = math.evaluate_to_constant();
+
+                expect(stateVariables["/p20"].stateValues.text).eq(
+                    `Number list from list: ${num}`,
+                );
+                expect(stateVariables["/nl"].stateValues.numbers).eqls([num]);
+            } else {
+                let nums = math.tree
+                    .slice(1)
+                    .map((v) => me.fromAst(v).evaluate_to_constant());
+
+                expect(stateVariables["/p20"].stateValues.text).eq(
+                    `Number list from list: ${nums.join(", ")}`,
+                );
+
+                expect(stateVariables["/nl"].stateValues.numbers).eqls(nums);
+            }
         }
 
         let math = me.fromAst("\uff3f");
@@ -9634,6 +9692,14 @@ describe("MathInput tag tests", async () => {
             core,
         });
         math = me.fromAst(["list", "p", "q"]);
+        await check_items(math, i);
+
+        await updateMathInputValue({
+            latex: "5,4,3",
+            componentName: "/mi",
+            core,
+        });
+        math = me.fromAst(["list", 5, 4, 3]);
         await check_items(math, i);
     });
 });
