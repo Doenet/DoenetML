@@ -120,10 +120,6 @@ export default class NumberList extends CompositeComponent {
         };
 
         stateVariableDefinitions.mergeMathLists = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
             returnDependencies: () => ({
                 mergeMathListsAttr: {
                     dependencyType: "attributeComponent",
@@ -253,9 +249,6 @@ export default class NumberList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numbers = {
-            shadowingInstructions: {
-                createComponentOfType: "number",
-            },
             isArray: true,
             entryPrefixes: ["number"],
             stateVariablesDeterminingDependencies: [

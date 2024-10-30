@@ -42,6 +42,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -268,6 +269,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -654,6 +656,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -697,6 +712,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ],
@@ -745,6 +765,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -991,6 +1012,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -1322,6 +1344,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -1637,6 +1660,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -1955,6 +1979,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -2273,6 +2298,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -2591,6 +2617,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -2898,6 +2925,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -3172,7 +3200,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -3230,6 +3258,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -3532,6 +3561,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -3834,6 +3864,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -4475,6 +4506,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -4769,6 +4801,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -5766,6 +5799,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -6052,6 +6086,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -6338,6 +6373,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -6641,6 +6677,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -7041,6 +7078,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -7085,6 +7135,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -7115,6 +7170,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -7515,6 +7571,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -7559,6 +7628,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -7589,6 +7663,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -7991,6 +8066,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -8035,6 +8123,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -8065,6 +8158,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -8467,6 +8561,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -8511,6 +8618,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -8541,6 +8653,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -8943,6 +9056,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -8987,6 +9113,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -9017,6 +9148,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -9411,6 +9543,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -9455,6 +9600,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -9485,6 +9635,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -9862,6 +10013,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -9906,6 +10070,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -9936,6 +10105,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -10322,6 +10492,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -10366,6 +10549,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -10396,6 +10584,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -10782,6 +10971,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -10826,6 +11028,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -10856,6 +11063,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -11242,6 +11450,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -11286,6 +11507,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -11316,6 +11542,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -11702,6 +11929,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -11746,6 +11986,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -11776,6 +12021,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -12176,6 +12422,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -12220,6 +12479,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -12250,6 +12514,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -12650,6 +12915,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -12694,6 +12972,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -12724,6 +13007,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -13133,6 +13417,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -13177,6 +13474,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -13207,6 +13509,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -13616,6 +13919,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -13660,6 +13976,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -13690,6 +14011,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -14090,6 +14412,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -14134,6 +14469,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -14164,6 +14504,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -14564,6 +14905,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -14608,6 +14962,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -14638,6 +14997,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -15038,6 +15398,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -15082,6 +15455,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -15112,6 +15490,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -15512,6 +15891,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -15556,6 +15948,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -15586,6 +15983,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -15986,6 +16384,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -16030,6 +16441,504 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "lcm",
+            "children": [
+                "rightHandSide",
+                "topic",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "h",
+                "matrixInput",
+                "text",
+                "math",
+                "point",
+                "coords",
+                "line",
+                "vector",
+                "angle",
+                "mathInput",
+                "choice",
+                "number",
+                "integer",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "cell",
+                "selectFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intcomma",
+                "pluralize",
+                "lorem",
+                "endpoint",
+                "subsetOfReals",
+                "bestFitLine",
+                "matrix",
+                "latex"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "format",
+                    "values": ["text", "latex"]
+                },
+                {
+                    "name": "simplify",
+                    "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numberspreserveorder"
+                    ]
+                },
+                {
+                    "name": "expand",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "displayDigits"
+                },
+                {
+                    "name": "displayDecimals"
+                },
+                {
+                    "name": "displaySmallAsZero"
+                },
+                {
+                    "name": "padZeros",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "renderMode"
+                },
+                {
+                    "name": "unordered",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "createVectors",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "createIntervals",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "functionSymbols"
+                },
+                {
+                    "name": "sourcesAreFunctionSymbols"
+                },
+                {
+                    "name": "splitSymbols",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "displayBlanks",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "draggable",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "layer"
+                },
+                {
+                    "name": "anchor"
+                },
+                {
+                    "name": "positionFromAnchor",
+                    "values": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right",
+                        "center"
+                    ]
+                },
+                {
+                    "name": "forceSymbolic",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "forceNumeric",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "format",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "simplify",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "expand",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "renderMode",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "createVectors",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "createIntervals",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "functionSymbols",
+                    "type": "textList",
+                    "isArray": false
+                },
+                {
+                    "name": "splitSymbols",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "displayBlanks",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "draggable",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "layer",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "positionFromAnchor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "forceSymbolic",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "forceNumeric",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "textColor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "backgroundColor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "textStyleDescription",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "anchor",
+                    "type": "point",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "value",
+                    "type": "lcm",
+                    "isArray": false
+                },
+                {
+                    "name": "number",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "isNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "isNumeric",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "latex",
+                    "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "numDimensions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "vector",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "vector"
+                        }
+                    ]
+                },
+                {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "matrixSize",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "numRows",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numColumns",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "x",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "y",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "z",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -16060,6 +16969,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -16471,6 +17381,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -16515,6 +17438,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -16545,6 +17473,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -17058,21 +17987,6 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
                     "isArray": false
                 }
             ],
@@ -17104,6 +18018,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -17618,21 +18533,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -17663,6 +18563,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -18185,21 +19086,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -18230,6 +19116,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -18497,7 +19384,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -18555,6 +19442,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -18793,6 +19681,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -19031,6 +19920,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -19269,6 +20159,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -19507,6 +20398,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -19745,6 +20637,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -19983,6 +20876,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -20221,6 +21115,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -20459,6 +21354,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -20697,6 +21593,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -21764,6 +22661,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -22223,6 +23121,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -22682,6 +23581,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -23141,6 +24041,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -23600,6 +24501,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -24072,6 +24974,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -24531,6 +25434,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -24990,6 +25894,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -25449,6 +26354,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -25908,6 +26814,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -26367,6 +27274,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -26826,6 +27734,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -27285,6 +28194,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -27744,6 +28654,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -28203,6 +29114,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -28669,6 +29581,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -29122,6 +30035,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -29803,6 +30717,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -30829,6 +31744,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "equilibriumPoint",
                 "electronConfiguration",
@@ -31225,6 +32141,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -31623,6 +32540,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "equilibriumPoint",
@@ -32741,6 +33659,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -33127,6 +34046,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -33171,6 +34103,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -33203,6 +34140,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -34395,6 +35333,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -34702,6 +35641,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -34979,7 +35919,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -35030,6 +35970,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -35204,6 +36145,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -35522,6 +36464,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -35840,6 +36783,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -36158,6 +37102,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -36496,6 +37441,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -37212,6 +38158,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -37509,6 +38456,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -37834,6 +38782,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -38108,7 +39057,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -38158,6 +39107,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -38306,11 +39256,6 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -38358,6 +39303,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -38581,6 +39527,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -38986,11 +39933,6 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -39021,6 +39963,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -39407,6 +40350,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -39451,6 +40407,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -39481,6 +40442,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -39687,35 +40649,9 @@
                     "isArray": false
                 },
                 {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ],
             "top": true,
@@ -39746,6 +40682,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -39952,35 +40889,9 @@
                     "isArray": false
                 },
                 {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ],
             "top": true,
@@ -40011,6 +40922,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "electronConfiguration",
@@ -40036,7 +40948,26 @@
                 "lorem",
                 "subsetOfReals",
                 "matrix",
-                "latex"
+                "latex",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "matrixInput",
+                "point",
+                "line",
+                "vector",
+                "angle",
+                "mathInput",
+                "choice",
+                "function",
+                "piecewiseFunction",
+                "endpoint",
+                "bestFitLine"
             ],
             "attributes": [
                 {
@@ -40162,11 +41093,6 @@
                 {
                     "name": "numValues",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "unknown",
                     "isArray": false
                 }
             ],
@@ -40328,6 +41254,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -40664,6 +41591,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "equilibriumPoint",
                 "electronConfiguration",
@@ -41039,6 +41967,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -41416,6 +42345,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -41465,6 +42407,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -41498,6 +42445,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -44036,6 +44984,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -44476,6 +45425,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -44852,11 +45802,6 @@
                     "name": "equation",
                     "type": "math",
                     "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -44896,6 +45841,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "equilibriumPoint",
@@ -45441,6 +46387,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -45615,6 +46562,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "electronConfiguration",
                 "math",
@@ -45801,6 +46749,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "equilibriumPoint",
                 "electronConfiguration",
@@ -46192,6 +47141,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "electronConfiguration",
@@ -46496,6 +47446,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -47031,6 +47982,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -47424,6 +48376,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -47748,6 +48701,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -48068,6 +49022,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -48112,6 +49079,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -48152,6 +49124,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -48435,7 +49408,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -48490,6 +49463,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -48976,11 +49950,6 @@
                     ]
                 },
                 {
-                    "name": "numValues",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
                     "name": "selectedIndex",
                     "type": "number",
                     "isArray": false
@@ -49012,11 +49981,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "valueRecordedAtSubmit",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -49067,6 +50031,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -49418,6 +50383,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "electronConfiguration",
@@ -49727,6 +50693,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "electronConfiguration",
@@ -50042,6 +51009,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -50522,6 +51490,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -51020,21 +51989,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -51470,21 +52424,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ],
             "top": true,
@@ -51515,6 +52454,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -51892,6 +52832,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -51940,6 +52893,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ],
@@ -51991,6 +52949,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -52325,6 +53284,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -52790,6 +53750,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "electronConfiguration",
@@ -53332,6 +54293,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -54306,6 +55268,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -54612,6 +55575,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -54908,6 +55872,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -55209,6 +56174,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -56221,6 +57187,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -56404,6 +57371,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -56817,6 +57785,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -57138,6 +58107,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -57463,6 +58433,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -58125,6 +59096,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -58972,6 +59944,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -59020,6 +60005,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ],
@@ -59766,6 +60756,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -60516,6 +61507,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -60574,6 +61578,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ],
@@ -61032,6 +62041,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -61349,6 +62359,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -61618,7 +62629,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -61678,6 +62689,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -61963,7 +62975,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -62034,6 +63046,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -62350,6 +63363,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -62668,6 +63682,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -63899,6 +64914,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -64337,6 +65353,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -64653,6 +65670,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -64896,6 +65914,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -65168,6 +66187,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "equilibriumPoint",
                 "electronConfiguration",
@@ -65581,6 +66601,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -65932,6 +66953,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -66243,6 +67265,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -66693,6 +67716,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -67091,6 +68115,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -67187,6 +68224,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -67237,6 +68279,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -68349,6 +69392,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -68869,6 +69913,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -69708,6 +70753,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -70006,6 +71052,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -70689,6 +71736,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -70733,6 +71793,11 @@
                     "name": "z",
                     "type": "math",
                     "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -70763,6 +71828,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -71001,6 +72067,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "extractMathOperator",
                 "atom",
@@ -71297,7 +72364,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -71363,6 +72430,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -71681,6 +72749,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -71996,6 +73065,7 @@
                 "max",
                 "mod",
                 "gcd",
+                "lcm",
                 "extractMath",
                 "clampFunction",
                 "wrapFunctionPeriodic",

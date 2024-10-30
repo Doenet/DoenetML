@@ -158,9 +158,6 @@ export default class TextList extends CompositeComponent {
         };
 
         stateVariableDefinitions.texts = {
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
             isArray: true,
             entryPrefixes: ["text"],
             stateVariablesDeterminingDependencies: ["childNameByComponent"],

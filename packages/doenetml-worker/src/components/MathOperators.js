@@ -1118,6 +1118,45 @@ export class Gcd extends MathBaseOperator {
     }
 }
 
+export class Lcm extends MathBaseOperator {
+    static componentType = "lcm";
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.numericOperator = {
+            returnDependencies: () => ({}),
+            definition: () => ({
+                setValue: {
+                    numericOperator: function (inputs) {
+                        if (inputs.every(Number.isInteger)) {
+                            return lcm(...inputs);
+                        }
+                        return NaN;
+                    },
+                },
+            }),
+        };
+
+        stateVariableDefinitions.mathOperator = {
+            returnDependencies: () => ({}),
+            definition: () => ({
+                setValue: {
+                    mathOperator: function (inputs) {
+                        return me.fromAst([
+                            "apply",
+                            "lcm",
+                            ["tuple", ...inputs.map((x) => x.tree)],
+                        ]);
+                    },
+                },
+            }),
+        };
+
+        return stateVariableDefinitions;
+    }
+}
+
 export class ExtractMath extends MathBaseOperatorOneInput {
     static componentType = "extractMath";
 
@@ -1334,4 +1373,14 @@ function gcd(x, y, ...z) {
         return x;
     }
     return gcd(y, x % y, ...z);
+}
+
+function lcm(...z) {
+    let prod = z.reduce((a, c) => a * c, 1);
+
+    let gcdArgs = z.map((v) => prod / v);
+
+    let g = gcd(...gcdArgs);
+
+    return prod / g;
 }

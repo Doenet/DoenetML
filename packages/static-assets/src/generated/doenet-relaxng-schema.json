@@ -42,6 +42,7 @@
         "max",
         "mod",
         "gcd",
+        "lcm",
         "extractMath",
         "clampFunction",
         "wrapFunctionPeriodic",
@@ -378,6 +379,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -933,6 +937,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -1295,6 +1302,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -1338,6 +1358,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -1500,6 +1525,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -2043,6 +2071,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -2825,6 +2856,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -3414,6 +3448,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -3980,6 +4017,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -4741,6 +4781,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -5500,6 +5543,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -6256,6 +6302,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -6571,7 +6620,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -6769,6 +6818,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -7346,6 +7398,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -7919,6 +7974,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -8857,6 +8915,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -9406,6 +9467,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -10641,6 +10705,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -11060,6 +11127,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -11489,6 +11559,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -11972,6 +12045,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -12332,6 +12408,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -12375,6 +12464,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -12584,6 +12678,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -12946,6 +13043,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -12989,6 +13099,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -13198,6 +13313,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -13572,6 +13690,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -13615,6 +13746,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -13824,6 +13960,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -14198,6 +14337,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -14241,6 +14393,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -14450,6 +14607,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -14824,6 +14984,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -14867,6 +15040,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -15072,6 +15250,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -15441,6 +15622,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -15484,6 +15678,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -15681,6 +15880,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -16040,6 +16242,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -16083,6 +16298,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -16284,6 +16504,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -16648,6 +16871,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -16691,6 +16927,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -16892,6 +17133,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -17256,6 +17500,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -17299,6 +17556,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -17500,6 +17762,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -17864,6 +18129,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -17907,6 +18185,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -18108,6 +18391,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -18472,6 +18758,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -18515,6 +18814,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -18724,6 +19028,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -19086,6 +19393,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -19129,6 +19449,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -19338,6 +19663,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -19700,6 +20028,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -19743,6 +20084,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -19956,6 +20302,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -20323,6 +20672,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -20366,6 +20728,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -20579,6 +20946,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -20946,6 +21316,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -20989,6 +21372,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -21198,6 +21586,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -21560,6 +21951,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -21603,6 +22007,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -21812,6 +22221,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -22174,6 +22586,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -22217,6 +22642,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -22426,6 +22856,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -22788,6 +23221,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -22831,6 +23277,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -23040,6 +23491,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -23402,6 +23856,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -23445,6 +23912,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -23654,6 +24126,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -24016,6 +24491,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -24059,6 +24547,646 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                }
+            ]
+        },
+        "lcm": {
+            "type": "element",
+            "name": "lcm",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "copySource": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "newNamespace": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "format": {
+                    "optional": true,
+                    "type": ["text", "latex"]
+                },
+                "simplify": {
+                    "optional": true,
+                    "type": ["none", "full", "numbers", "numberspreserveorder"]
+                },
+                "expand": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "renderMode": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "unordered": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "createVectors": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "createIntervals": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "functionSymbols": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "sourcesAreFunctionSymbols": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "splitSymbols": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "parseScientificNotation": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "displayBlanks": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "draggable": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "layer": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "anchor": {
+                    "optional": true,
+                    "type": ["string"]
+                },
+                "positionFromAnchor": {
+                    "optional": true,
+                    "type": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right",
+                        "center"
+                    ]
+                },
+                "forceSymbolic": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                },
+                "forceNumeric": {
+                    "optional": true,
+                    "type": ["true", "false"]
+                }
+            },
+            "children": [
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "topic"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "h"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intcomma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "format",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "simplify",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "expand",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "renderMode",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "createVectors",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "createIntervals",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "functionSymbols",
+                    "type": "textList",
+                    "isArray": false
+                },
+                {
+                    "name": "splitSymbols",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "displayBlanks",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "draggable",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "layer",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "positionFromAnchor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "forceSymbolic",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "forceNumeric",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "textColor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "backgroundColor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "textStyleDescription",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "anchor",
+                    "type": "point",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "value",
+                    "type": "lcm",
+                    "isArray": false
+                },
+                {
+                    "name": "number",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "isNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "isNumeric",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "latex",
+                    "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "numDimensions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "vector",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "vector"
+                        }
+                    ]
+                },
+                {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "matrixSize",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "numRows",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numColumns",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "x",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "y",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "z",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -24277,6 +25405,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -24651,6 +25782,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -24694,6 +25838,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -24920,6 +26069,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -25394,21 +26546,6 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
                     "isArray": false
                 }
             ]
@@ -25635,6 +26772,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -26110,21 +27250,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -26348,6 +27473,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -26833,21 +27961,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -26988,6 +28101,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -27284,7 +28400,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -27456,6 +28572,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -27967,6 +29086,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -28474,6 +29596,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -28985,6 +30110,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -29492,6 +30620,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -30003,6 +31134,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -30510,6 +31644,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -31021,6 +32158,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -31530,6 +32670,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -32037,6 +33180,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -33467,6 +34613,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -34370,6 +35519,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -35277,6 +36429,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -36180,6 +37335,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -37095,6 +38253,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -38005,6 +39166,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -38908,6 +40072,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -39815,6 +40982,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -40718,6 +41888,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -41625,6 +42798,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -42528,6 +43704,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -43435,6 +44614,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -44340,6 +45522,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -45243,6 +46428,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -46158,6 +47346,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -47063,6 +48254,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -47961,6 +49155,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -49051,6 +50248,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -50612,6 +51812,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -51154,6 +52357,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -51749,6 +52955,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -53022,6 +54231,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -53384,6 +54596,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -53427,6 +54652,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -53548,6 +54778,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -55115,6 +56348,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -55875,6 +57111,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -56190,7 +57429,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -56341,6 +57580,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -56668,6 +57910,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -57429,6 +58674,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -58188,6 +59436,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -58945,6 +60196,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -59728,6 +60982,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -60902,6 +62159,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -61580,6 +62840,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -62352,6 +63615,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -62667,7 +63933,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -62827,6 +64093,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -63002,11 +64271,6 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -63168,6 +64432,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -63682,6 +64949,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -64153,11 +65423,6 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -64358,6 +65623,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -64722,6 +65990,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -64765,6 +66046,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -64926,6 +66212,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -65149,35 +66438,9 @@
                     "isArray": false
                 },
                 {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -65338,6 +66601,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -65561,35 +66827,9 @@
                     "isArray": false
                 },
                 {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -65730,6 +66970,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -65806,6 +67049,63 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "bestFitLine"
                 }
             ],
             "textChildrenAllowed": true,
@@ -65878,11 +67178,6 @@
                 {
                     "name": "numValues",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "values",
-                    "type": "unknown",
                     "isArray": false
                 }
             ]
@@ -66195,6 +67490,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -66995,6 +68293,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -67533,6 +68834,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -67890,6 +69194,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -67938,6 +69255,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -68123,6 +69445,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -71013,6 +72338,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -71593,6 +72921,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -71943,11 +73274,6 @@
                     "name": "equation",
                     "type": "math",
                     "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -72182,6 +73508,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -72775,6 +74104,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -73086,6 +74418,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -73484,6 +74819,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -74017,6 +75355,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -74543,6 +75884,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -75211,6 +76555,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -75749,6 +77096,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -76258,6 +77608,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -76578,6 +77931,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -76621,6 +77987,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -76808,6 +78179,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -77083,7 +78457,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -77284,6 +78658,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -77811,11 +79188,6 @@
                     ]
                 },
                 {
-                    "name": "numValues",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
                     "name": "selectedIndex",
                     "type": "number",
                     "isArray": false
@@ -77847,11 +79219,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "valueRecordedAtSubmit",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -78038,6 +79405,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -78833,6 +80203,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -79313,6 +80686,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -79861,6 +81237,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -80595,6 +81974,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -81060,21 +82442,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -81534,21 +82901,6 @@
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false
-                },
-                {
-                    "name": "symbolicf",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "fDefinition",
-                    "type": "unknown",
-                    "isArray": false
-                },
-                {
-                    "name": "f",
-                    "type": "unknown",
-                    "isArray": false
                 }
             ]
         },
@@ -81745,6 +83097,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -82104,6 +83459,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -82152,6 +83520,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -82343,6 +83716,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -83130,6 +84506,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -84054,6 +85433,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -84730,6 +86112,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -86219,6 +87604,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -86896,6 +88284,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -87535,6 +88926,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -88011,6 +89405,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -89484,6 +90881,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -89822,6 +91222,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -90426,6 +91829,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -90979,6 +92385,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -91729,6 +93138,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -92724,6 +94136,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -93894,6 +95309,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -93942,6 +95370,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -94913,6 +96346,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -95946,6 +97382,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -96004,6 +97453,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -96601,6 +98055,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -97369,6 +98826,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -97679,7 +99139,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -97875,6 +99335,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -98197,7 +99660,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -98392,6 +99855,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -99146,6 +100612,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -99929,6 +101398,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -101671,6 +103143,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -102548,6 +104023,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -103301,6 +104779,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -103813,6 +105294,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -104507,6 +105991,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -105055,6 +106542,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -105842,6 +107332,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -106557,6 +108050,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -107242,6 +108738,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -107609,6 +109108,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -107704,6 +109216,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -107891,6 +109408,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -109545,6 +111065,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -110502,6 +112025,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -111508,6 +113034,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -112090,6 +113619,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -112770,6 +114302,19 @@
                     ]
                 },
                 {
+                    "name": "list",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "math",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "matrixSize",
                     "type": "numberList",
                     "isArray": false
@@ -112813,6 +114358,11 @@
                 {
                     "name": "z",
                     "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
                     "isArray": false
                 }
             ]
@@ -112940,6 +114490,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -113352,6 +114905,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -113733,7 +115289,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "listItems",
+                    "name": "list",
                     "type": "text",
                     "isArray": true,
                     "numDimensions": 1,
@@ -113919,6 +115475,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"
@@ -114692,6 +116251,9 @@
                     "ref": "gcd"
                 },
                 {
+                    "ref": "lcm"
+                },
+                {
                     "ref": "extractMath"
                 },
                 {
@@ -115424,6 +116986,9 @@
                 },
                 {
                     "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
                 },
                 {
                     "ref": "extractMath"

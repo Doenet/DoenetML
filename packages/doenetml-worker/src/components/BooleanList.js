@@ -155,9 +155,6 @@ export default class BooleanList extends CompositeComponent {
         };
 
         stateVariableDefinitions.booleans = {
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
             isArray: true,
             entryPrefixes: ["boolean"],
             stateVariablesDeterminingDependencies: ["childNameByComponent"],

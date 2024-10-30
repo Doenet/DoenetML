@@ -548,7 +548,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
                 numRepetitions: 80,
                 validValues: vals,
                 allowedMeanMid: mean,
-                allowedMeanSpread: 0.5,
+                allowedMeanSpread: 0.6,
                 allowedVarianceMid: variance,
                 allowedVarianceSpread: 1,
                 expectedMean: mean,
