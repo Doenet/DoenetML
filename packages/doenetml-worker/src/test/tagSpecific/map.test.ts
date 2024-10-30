@@ -1856,4 +1856,59 @@ describe("Map tag tests", async () => {
         expect(stateVariables["/p1"].stateValues.isResponse).eq(true);
         expect(stateVariables["/p2"].stateValues.isResponse).eq(true);
     });
+
+    it("map iterates over lists", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <mathList name="ml">x y</mathList>
+    <textList name="tl">dog cat</textList>
+    <numberList name="nl">1 2</numberList>
+    <booleanList name="bl">true false</booleanList>
+
+    <map assignNames="(m1) (m2)">
+      <template>
+        <math>2$v</math>
+      </template>
+      <sources alias="v">$ml</sources>
+    </map>
+    <map assignNames="(n1) (n2)">
+      <template>
+        <number>2$v</number>
+      </template>
+      <sources alias="v">$nl</sources>
+    </map>
+    <map assignNames="(t1) (t2)">
+      <template>
+        <text>Hello $v!</text>
+      </template>
+      <sources alias="v">$tl</sources>
+    </map>
+    <map assignNames="(b1) (b2)">
+      <template>
+        <boolean>not$v</boolean>
+      </template>
+      <sources alias="v">$bl</sources>
+    </map>
+    `,
+        });
+
+        const stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/m1"].stateValues.value.tree).eqls([
+            "*",
+            2,
+            "x",
+        ]);
+        expect(stateVariables["/m2"].stateValues.value.tree).eqls([
+            "*",
+            2,
+            "y",
+        ]);
+        expect(stateVariables["/n1"].stateValues.value).eq(2);
+        expect(stateVariables["/n2"].stateValues.value).eq(4);
+        expect(stateVariables["/t1"].stateValues.value).eq("Hello dog!");
+        expect(stateVariables["/t2"].stateValues.value).eq("Hello cat!");
+        expect(stateVariables["/b1"].stateValues.value).eq(false);
+        expect(stateVariables["/b2"].stateValues.value).eq(true);
+    });
 });
