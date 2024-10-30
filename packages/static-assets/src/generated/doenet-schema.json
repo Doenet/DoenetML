@@ -78,13 +78,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -288,9 +283,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -789,13 +781,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -1371,13 +1358,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -1691,13 +1673,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -2928,12 +2905,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -3143,11 +3116,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -3161,6 +3129,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -3244,13 +3266,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -3551,13 +3568,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -3858,13 +3870,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -4504,13 +4511,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -4782,9 +4784,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -4824,14 +4823,12 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "when",
                 "hasSameFactoring",
                 "label",
                 "matchesPattern",
                 "booleanInput",
-                "booleanList",
                 "orbitalDiagram"
             ],
             "attributes": [
@@ -5784,9 +5781,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -6073,9 +6067,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -6362,9 +6353,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -6668,9 +6656,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -7145,9 +7130,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -7622,9 +7604,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -8101,9 +8080,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -8580,9 +8556,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -9059,9 +9032,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -9530,9 +9500,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -9984,9 +9951,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -10447,9 +10411,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -10910,9 +10871,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -11373,9 +11331,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -11836,9 +11791,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -12313,9 +12265,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -12790,9 +12739,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -13276,9 +13222,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -13762,9 +13705,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -14239,9 +14179,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -14716,9 +14653,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -15193,9 +15127,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -15670,9 +15601,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -16147,9 +16075,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -16635,9 +16560,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -17197,9 +17119,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -17759,9 +17678,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -18329,9 +18245,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -18528,11 +18441,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -18546,6 +18454,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -18629,13 +18591,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -18872,13 +18829,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -19115,13 +19067,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -19358,13 +19305,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -19601,13 +19543,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -19844,13 +19781,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -20087,13 +20019,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -20330,13 +20257,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -20573,13 +20495,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -20816,13 +20733,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -30159,6 +30071,11 @@
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
                 }
             ],
             "top": false,
@@ -30952,9 +30869,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "line",
                 "angle",
                 "mathInput",
@@ -31326,9 +31240,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -31724,9 +31635,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -32848,9 +32756,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -33313,8 +33218,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -34806,12 +34709,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -35024,11 +34923,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -35042,6 +34936,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -35088,12 +35036,8 @@
                 "ion",
                 "electronConfiguration",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -37304,13 +37248,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -37902,12 +37841,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -38117,11 +38052,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -38135,6 +38065,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -38181,12 +38165,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -38221,6 +38201,9 @@
                     "name": "copySource"
                 },
                 {
+                    "name": "assignNames"
+                },
+                {
                     "name": "hide",
                     "values": ["true", "false"]
                 },
@@ -38229,8 +38212,7 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "fixed",
-                    "values": ["true", "false"]
+                    "name": "fixed"
                 },
                 {
                     "name": "fixLocation",
@@ -38240,8 +38222,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse",
-                    "values": ["true", "false"]
+                    "name": "isResponse"
                 },
                 {
                     "name": "newNamespace",
@@ -38269,11 +38250,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -38327,40 +38303,14 @@
                     "isArray": false
                 },
                 {
-                    "name": "texts",
-                    "type": "text",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "text",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
                 },
                 {
                     "name": "values",
-                    "type": "text",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "text",
-                            "numDimensions": 1
-                        }
-                    ]
+                    "type": "unknown",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -38444,13 +38394,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -38651,9 +38596,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -38693,14 +38635,12 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "when",
                 "hasSameFactoring",
                 "label",
                 "matchesPattern",
                 "booleanInput",
-                "booleanList",
                 "orbitalDiagram"
             ],
             "attributes": [
@@ -38931,78 +38871,7 @@
                 "boolean",
                 "booleanInput",
                 "hasSameFactoring",
-                "matchesPattern",
-                "booleanList",
-                "rightHandSide",
-                "topic",
-                "sum",
-                "product",
-                "clampNumber",
-                "wrapNumberPeriodic",
-                "round",
-                "setSmallToZero",
-                "convertSetToList",
-                "ceil",
-                "floor",
-                "abs",
-                "sign",
-                "mean",
-                "median",
-                "variance",
-                "standardDeviation",
-                "count",
-                "min",
-                "max",
-                "mod",
-                "gcd",
-                "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
-                "extractMathOperator",
-                "equilibriumPoint",
-                "equilibriumLine",
-                "atom",
-                "ion",
-                "ionicCompound",
-                "electronConfiguration",
-                "h",
-                "matrixInput",
-                "text",
-                "math",
-                "mathList",
-                "tupleList",
-                "numberList",
-                "point",
-                "coords",
-                "line",
-                "vector",
-                "angle",
-                "mathInput",
-                "choice",
-                "number",
-                "integer",
-                "function",
-                "piecewiseFunction",
-                "interval",
-                "sequence",
-                "cell",
-                "selectFromSequence",
-                "evaluate",
-                "selectRandomNumbers",
-                "sampleRandomNumbers",
-                "selectPrimeNumbers",
-                "samplePrimeNumbers",
-                "substitute",
-                "periodicSet",
-                "intcomma",
-                "pluralize",
-                "lorem",
-                "endpoint",
-                "subsetOfReals",
-                "bestFitLine",
-                "matrix",
-                "latex"
+                "matchesPattern"
             ],
             "attributes": [
                 {
@@ -39010,6 +38879,9 @@
                 },
                 {
                     "name": "copySource"
+                },
+                {
+                    "name": "assignNames"
                 },
                 {
                     "name": "hide",
@@ -39020,8 +38892,7 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "fixed",
-                    "values": ["true", "false"]
+                    "name": "fixed"
                 },
                 {
                     "name": "fixLocation",
@@ -39031,8 +38902,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse",
-                    "values": ["true", "false"]
+                    "name": "isResponse"
                 },
                 {
                     "name": "newNamespace",
@@ -39060,11 +38930,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -39118,35 +38983,14 @@
                     "isArray": false
                 },
                 {
-                    "name": "booleans",
-                    "type": "boolean",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "boolean",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
                 },
                 {
                     "name": "values",
-                    "type": "boolean",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "boolean",
-                            "numDimensions": 1
-                        }
-                    ]
+                    "type": "unknown",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -39192,9 +39036,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -39655,9 +39496,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -39697,6 +39535,9 @@
                     "name": "copySource"
                 },
                 {
+                    "name": "assignNames"
+                },
+                {
                     "name": "hide",
                     "values": ["true", "false"]
                 },
@@ -39705,8 +39546,7 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "fixed",
-                    "values": ["true", "false"]
+                    "name": "fixed"
                 },
                 {
                     "name": "fixLocation",
@@ -39716,8 +39556,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse",
-                    "values": ["true", "false"]
+                    "name": "isResponse"
                 },
                 {
                     "name": "newNamespace",
@@ -39744,8 +39583,7 @@
                     "name": "displaySmallAsZero"
                 },
                 {
-                    "name": "padZeros",
-                    "values": ["true", "false"]
+                    "name": "padZeros"
                 },
                 {
                     "name": "functionSymbols"
@@ -39776,11 +39614,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -39844,26 +39677,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "mergeMathLists",
                     "type": "boolean",
                     "isArray": false
@@ -39885,34 +39698,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "math",
-                    "type": "math",
-                    "isArray": false
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
                 },
                 {
                     "name": "numValues",
@@ -39976,9 +39761,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -40018,6 +39800,9 @@
                     "name": "copySource"
                 },
                 {
+                    "name": "assignNames"
+                },
+                {
                     "name": "hide",
                     "values": ["true", "false"]
                 },
@@ -40026,8 +39811,7 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "fixed",
-                    "values": ["true", "false"]
+                    "name": "fixed"
                 },
                 {
                     "name": "fixLocation",
@@ -40037,8 +39821,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse",
-                    "values": ["true", "false"]
+                    "name": "isResponse"
                 },
                 {
                     "name": "newNamespace",
@@ -40065,8 +39848,7 @@
                     "name": "displaySmallAsZero"
                 },
                 {
-                    "name": "padZeros",
-                    "values": ["true", "false"]
+                    "name": "padZeros"
                 },
                 {
                     "name": "functionSymbols"
@@ -40097,11 +39879,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -40165,26 +39942,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "mergeMathLists",
                     "type": "boolean",
                     "isArray": false
@@ -40206,34 +39963,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "math",
-                    "type": "math",
-                    "isArray": false
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
                 },
                 {
                     "name": "numValues",
@@ -40307,10 +40036,7 @@
                 "lorem",
                 "subsetOfReals",
                 "matrix",
-                "latex",
-                "mathList",
-                "tupleList",
-                "numberList"
+                "latex"
             ],
             "attributes": [
                 {
@@ -40318,6 +40044,9 @@
                 },
                 {
                     "name": "copySource"
+                },
+                {
+                    "name": "assignNames"
                 },
                 {
                     "name": "hide",
@@ -40328,8 +40057,7 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "fixed",
-                    "values": ["true", "false"]
+                    "name": "fixed"
                 },
                 {
                     "name": "fixLocation",
@@ -40339,8 +40067,7 @@
                     "name": "styleNumber"
                 },
                 {
-                    "name": "isResponse",
-                    "values": ["true", "false"]
+                    "name": "isResponse"
                 },
                 {
                     "name": "newNamespace",
@@ -40363,8 +40090,7 @@
                     "name": "displaySmallAsZero"
                 },
                 {
-                    "name": "padZeros",
-                    "values": ["true", "false"]
+                    "name": "padZeros"
                 }
             ],
             "properties": [
@@ -40381,11 +40107,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -40434,64 +40155,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "numComponents",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "math",
-                    "type": "math",
-                    "isArray": false
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "text",
-                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -40501,16 +40166,8 @@
                 },
                 {
                     "name": "values",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
+                    "type": "unknown",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -41047,9 +40704,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "line",
                 "angle",
                 "mathInput",
@@ -41400,9 +41054,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -41862,9 +41513,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -44403,9 +44051,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -44846,9 +44491,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -45266,9 +44908,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -45817,9 +45456,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -46005,9 +45641,6 @@
                 "h",
                 "matrixInput",
                 "text",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "line",
                 "angle",
@@ -46207,9 +45840,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "line",
                 "angle",
                 "mathInput",
@@ -46597,9 +46227,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "line",
                 "vector",
@@ -46883,9 +46510,6 @@
                 "h",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -46915,6 +46539,9 @@
                 "bestFitLine",
                 "matrix",
                 "latex",
+                "mathList",
+                "tupleList",
+                "numberList",
                 "xlabel",
                 "ylabel",
                 "not",
@@ -46924,12 +46551,12 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "when",
                 "hasSameFactoring",
                 "label",
                 "matchesPattern",
+                "textList",
                 "booleanList"
             ],
             "attributes": [
@@ -47419,9 +47046,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -47461,13 +47085,11 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "hasSameFactoring",
                 "label",
                 "matchesPattern",
                 "booleanInput",
-                "booleanList",
                 "orbitalDiagram"
             ],
             "attributes": [
@@ -47817,9 +47439,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -47859,14 +47478,12 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "when",
                 "hasSameFactoring",
                 "label",
                 "matchesPattern",
                 "booleanInput",
-                "booleanList",
                 "orbitalDiagram"
             ],
             "attributes": [
@@ -48146,9 +47763,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -48435,6 +48049,69 @@
                     "name": "rawRendererValue",
                     "type": "latex",
                     "isArray": false
+                },
+                {
+                    "name": "numDimensions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "vector",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "vector"
+                        }
+                    ]
+                },
+                {
+                    "name": "matrixSize",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "numRows",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numColumns",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "x",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "y",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "z",
+                    "type": "math",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -48482,12 +48159,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -48719,6 +48392,60 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -48778,9 +48505,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -49729,9 +49453,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "line",
                 "vector",
@@ -49751,7 +49472,6 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "when",
                 "hasSameFactoring",
@@ -50042,9 +49762,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "line",
                 "vector",
@@ -50064,7 +49781,6 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
-                "textList",
                 "boolean",
                 "when",
                 "hasSameFactoring",
@@ -50394,11 +50110,7 @@
                 "ion",
                 "h",
                 "text",
-                "textList",
                 "boolean",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "when",
                 "choice",
                 "number",
@@ -50825,9 +50537,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -51821,9 +51530,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -53121,11 +52827,7 @@
                 "isBetween",
                 "atom",
                 "ion",
-                "textList",
                 "boolean",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "when",
                 "choice",
                 "hasSameFactoring",
@@ -53645,9 +53347,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -53756,6 +53455,9 @@
                 "p",
                 "boolean",
                 "booleanList",
+                "mathList",
+                "tupleList",
+                "numberList",
                 "collect",
                 "ref",
                 "lineSegment",
@@ -54640,13 +54342,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -54951,13 +54648,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -55223,12 +54915,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -57811,13 +57499,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -59424,10 +59107,6 @@
                     "name": "padZeros"
                 },
                 {
-                    "name": "variantDeterminesSeed",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "asList",
                     "values": ["true", "false"]
                 },
@@ -59469,11 +59148,6 @@
                 {
                     "name": "type",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -61682,12 +61356,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -61892,11 +61562,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -61910,6 +61575,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "originalValue",
@@ -61966,12 +61685,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -62192,11 +61907,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -62210,6 +61920,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "valuePrePluralize",
@@ -64925,13 +64689,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -65173,13 +64932,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -65454,9 +65208,6 @@
                 "ion",
                 "ionicCompound",
                 "matrixInput",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "line",
                 "angle",
                 "mathInput",
@@ -66507,9 +66258,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -66960,9 +66708,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -69139,9 +68884,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -70002,13 +69744,8 @@
                 "displayDoenetML",
                 "matrixInput",
                 "text",
-                "textList",
                 "boolean",
-                "booleanList",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "collect",
                 "ref",
                 "point",
@@ -70284,9 +70021,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -71044,9 +70778,6 @@
                 "matrixInput",
                 "text",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "point",
                 "coords",
                 "line",
@@ -71277,12 +71008,8 @@
                 "electronConfiguration",
                 "h",
                 "text",
-                "textList",
                 "boolean",
                 "math",
-                "mathList",
-                "tupleList",
-                "numberList",
                 "coords",
                 "when",
                 "choice",
@@ -71514,11 +71241,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -71532,6 +71254,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "latex",

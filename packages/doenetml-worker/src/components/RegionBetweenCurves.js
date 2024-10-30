@@ -120,8 +120,8 @@ export default class RegionBetweenCurves extends GraphicalComponent {
                     dependencyValues.functions[1].stateValues.numOutputs !== 1
                 ) {
                     return {
-                        setValues: {
-                            function: [() => NaN, () => NaN],
+                        setValue: {
+                            functions: [() => NaN, () => NaN],
                             haveFunctions: false,
                             fDefinitions: [{}, {}],
                         },

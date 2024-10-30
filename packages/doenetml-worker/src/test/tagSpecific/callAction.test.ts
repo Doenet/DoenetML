@@ -5,7 +5,6 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -18,7 +17,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let [ind, num] of numbers.entries()) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -42,7 +41,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -54,7 +53,7 @@ describe("callAction tag tests", async () => {
     it("resample random numbers", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" >
       <label>roll dice</label>
     </callAction></p>
@@ -373,7 +372,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -424,7 +423,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -436,7 +435,7 @@ describe("callAction tag tests", async () => {
     it("chained actions", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" >
       <label>roll dice and add point</label>
     </callAction></p>
@@ -461,7 +460,7 @@ describe("callAction tag tests", async () => {
     it("chained actions, unnecessary $", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" >
       <label>roll dice and add point</label>
     </callAction></p>
@@ -488,7 +487,7 @@ describe("callAction tag tests", async () => {
             doenetML: `
     <map assignNames="set1 set2">
     <template newNamespace>
-      <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+      <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
       <p><callAction target="s" actionName="resample" name="rs" >
         <label>roll dice and add point</label>
       </callAction></p>
@@ -525,7 +524,7 @@ describe("callAction tag tests", async () => {
             let numbers = stateVariables[`/set${ind}/nums`].stateValues.text
                 .split(",")
                 .map(Number);
-            expect(numbers.length).eq(5);
+            expect(numbers.length).eq(7);
             for (let num of numbers) {
                 expect(Number.isInteger(num)).be.true;
                 expect(num).gte(1);
@@ -579,7 +578,7 @@ describe("callAction tag tests", async () => {
                 .split(",")
                 .map(Number);
 
-            expect(numbers2.length).eq(5);
+            expect(numbers2.length).eq(7);
             for (let num of numbers2) {
                 expect(Number.isInteger(num)).be.true;
                 expect(num).gte(1);
@@ -592,7 +591,7 @@ describe("callAction tag tests", async () => {
     it("chained actions on multiple sources", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" >
       <label>roll dice and add point</label>
     </callAction></p>
@@ -626,7 +625,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -679,7 +678,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -744,7 +743,7 @@ describe("callAction tag tests", async () => {
     </graph>
     $P.coords{assignNames="P2"}
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" triggerWhen="$(P.x)>0 and $(P.y)>0" >
       <label>roll dice</label>
     </callAction></p>
@@ -758,7 +757,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -822,7 +821,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -901,7 +900,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -936,7 +935,7 @@ describe("callAction tag tests", async () => {
     </graph>
     $P.coords{assignNames="P2"}
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" triggerWhenObjectsClicked="P" >
       <label>roll dice</label>
     </callAction></p>
@@ -950,7 +949,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -993,7 +992,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1032,7 +1031,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1068,7 +1067,7 @@ describe("callAction tag tests", async () => {
         <point name="P">(-1,2)</point>
       </graph>
       $P.coords{assignNames="P2"}
-      <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+      <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
       <p><callAction target="s" actionName="resample" name="rs" triggerWhenObjectsClicked="P" >
         <label>roll dice</label>
       </callAction></p>
@@ -1097,7 +1096,7 @@ describe("callAction tag tests", async () => {
             let numbers = stateVariables[numsName].stateValues.text
                 .split(",")
                 .map(Number);
-            expect(numbers.length).eq(5);
+            expect(numbers.length).eq(7);
             for (let num of numbers) {
                 expect(Number.isInteger(num)).be.true;
                 expect(num).gte(1);
@@ -1140,7 +1139,7 @@ describe("callAction tag tests", async () => {
                 .split(",")
                 .map(Number);
 
-            expect(numbers2.length).eq(5);
+            expect(numbers2.length).eq(7);
             for (let num of numbers2) {
                 expect(Number.isInteger(num)).be.true;
                 expect(num).gte(1);
@@ -1181,7 +1180,7 @@ describe("callAction tag tests", async () => {
                 .split(",")
                 .map(Number);
 
-            expect(numbers2.length).eq(5);
+            expect(numbers2.length).eq(7);
             for (let num of numbers2) {
                 expect(Number.isInteger(num)).be.true;
                 expect(num).gte(1);
@@ -1219,7 +1218,7 @@ describe("callAction tag tests", async () => {
     </graph>
     $P.coords{assignNames="P2"}
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" triggerWhenObjectsFocused="P" >
       <label>roll dice</label>
     </callAction></p>
@@ -1233,7 +1232,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1276,7 +1275,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1315,7 +1314,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1350,7 +1349,7 @@ describe("callAction tag tests", async () => {
     </graph>
     $P.coords{assignNames="P2"}
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs"  triggerWith="addPoint" >
       <label>roll dice and add point</label>
     </callAction></p>
@@ -1377,7 +1376,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1447,7 +1446,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1537,7 +1536,7 @@ describe("callAction tag tests", async () => {
             .split(",")
             .map(Number);
 
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1575,7 +1574,7 @@ describe("callAction tag tests", async () => {
 
     $P.coords{assignNames="P2"}
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs"  triggerWith="addPoint" triggerWhen="$(P.x)<0 and $(P.y)<0" >
       <label>roll dice and add point</label>
     </callAction></p>
@@ -1601,7 +1600,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1628,7 +1627,7 @@ describe("callAction tag tests", async () => {
         let numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1719,7 +1718,7 @@ describe("callAction tag tests", async () => {
         numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1800,7 +1799,7 @@ describe("callAction tag tests", async () => {
 
     <p>points from graph: <collect componentTypes="point" target="g" prop="coords" assignNames="p1 p2 p3" /></p>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <triggerSet name="tset" >
       <label>perform actions</label>
@@ -1827,7 +1826,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1879,7 +1878,7 @@ describe("callAction tag tests", async () => {
         let numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1897,7 +1896,7 @@ describe("callAction tag tests", async () => {
 
     <p>points from graph: <collect componentTypes="point" target="g" prop="coords" assignNames="p1 p2 p3" /></p>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <p>Enter x: <answer name="ans">x</answer></p>
 
@@ -1942,7 +1941,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -1994,7 +1993,7 @@ describe("callAction tag tests", async () => {
         let numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -2009,7 +2008,7 @@ describe("callAction tag tests", async () => {
     it("chaining with updateValue", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" >
       <label>roll dice and more</label>
     </callAction></p>
@@ -2043,7 +2042,7 @@ describe("callAction tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -2096,7 +2095,7 @@ describe("callAction tag tests", async () => {
         let numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers2.length).eq(5);
+        expect(numbers2.length).eq(7);
         for (let num of numbers2) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -2110,7 +2109,7 @@ describe("callAction tag tests", async () => {
     it("math in label", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="rs" ><label>Hi <m>\\sum_{i=1}^5x_i</m></label></callAction></p>
     `,
         });
@@ -2124,7 +2123,7 @@ describe("callAction tag tests", async () => {
     it("label is name", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="resample" name="resample_numbers" labelIsName /></p>
     `,
         });
@@ -2138,7 +2137,7 @@ describe("callAction tag tests", async () => {
     it("case insensitive action name", async () => {
         let core = await createTestCore({
             doenetML: `
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="s" actionName="reSamplE" name="rs"><label>roll dice</label></callAction></p>
     <p>Sum: <number name="sum"><sum>
       <map>

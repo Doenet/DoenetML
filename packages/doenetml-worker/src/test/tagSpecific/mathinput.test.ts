@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
 } from "../utils/actions";
+import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -9371,5 +9372,334 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(5);
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(6);
+    });
+
+    it("vector and matrix components", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p>Value: <mathInput name="mi" /></p>
+    <p>Index: <mathInput name="i" prefill="1" /></p>
+
+    <p name="p1">Number of dimensions: $mi.numDimensions</p>
+    <p name="p2">x: $mi.x</p>
+    <p name="p3">y: $mi.y</p>
+    <p name="p4">z: $mi.z</p>
+    <p name="p5">x1: $mi.x1</p>
+    <p name="p6">x2: $mi.x2</p>
+    <p name="p7">x3: $mi.x3</p>
+    <p name="p8">x4: $mi.x4</p>
+    <p name="p9">v: $mi.vector</p>
+    <p name="p10">v[$i]: $mi.vector[$i]</p>
+    <p name="p11">Matrix size: $mi.matrixSize</p>
+    <p name="p12">Number of rows: $mi.numRows</p>
+    <p name="p13">Number of columns: $mi.numColumns</p>
+    <p name="p14">Matrix: $mi.matrix</p>
+    <p name="p15">Matrix[$i]: $mi.matrix[$i]</p>
+    <p name="p16">Matrix[$i][1]: $mi.matrix[$i][1]</p>
+    <p name="p17">Number of list items: $mi.numListItems</p>
+    <p name="p18">List: $mi.list</p>
+    <p name="p19">Math list from list: <mathList name="ml">$mi.list</mathList></p>
+    <p name="p20">Number list from list: <numberList name="nl">$mi.list</numberList></p>
+
+    `,
+        });
+
+        async function check_items(math: any, ind: number) {
+            const stateVariables = await returnAllStateVariables(core);
+            let mathTree = math.tree;
+
+            let numDimensions = ["vector", "list"].includes(mathTree[0])
+                ? mathTree.length - 1
+                : 1;
+            let x1, x2, x3, x4;
+            try {
+                x1 = math.get_component(0);
+            } catch (e) {
+                x1 = math;
+            }
+            try {
+                x2 = math.get_component(1);
+            } catch (e) {
+                x2 = null;
+            }
+            try {
+                x3 = math.get_component(2);
+            } catch (e) {
+                x3 = null;
+            }
+            try {
+                x4 = math.get_component(3);
+            } catch (e) {
+                x4 = null;
+            }
+
+            let asVec = math;
+            if (mathTree[0] === "list") {
+                asVec = me.fromAst(["vector", ...mathTree.slice(1)]);
+            }
+
+            let asList = math;
+            if (mathTree[0] === "vector") {
+                asList = me.fromAst(["list", ...mathTree.slice(1)]);
+            }
+
+            expect(stateVariables["/p1"].stateValues.text).eq(
+                `Number of dimensions: ${numDimensions}`,
+            );
+            expect(stateVariables["/mi"].stateValues.numDimensions).eq(
+                numDimensions,
+            );
+
+            expect(stateVariables["/p2"].stateValues.text).eq(`x: ${x1}`);
+            expect(stateVariables["/p5"].stateValues.text).eq(`x1: ${x1}`);
+            expect(stateVariables["/mi"].stateValues.x1.tree).eqls(x1.tree);
+
+            if (x2) {
+                expect(stateVariables["/p3"].stateValues.text).eq(`y: ${x2}`);
+                expect(stateVariables["/p6"].stateValues.text).eq(`x2: ${x2}`);
+                expect(stateVariables["/mi"].stateValues.x2.tree).eqls(x2.tree);
+            } else {
+                expect(stateVariables["/p3"].stateValues.text).eq(`y: `);
+                expect(stateVariables["/p6"].stateValues.text).eq(`x2: `);
+                expect(stateVariables["/mi"].stateValues.x2).eq(undefined);
+            }
+
+            if (x3) {
+                expect(stateVariables["/p4"].stateValues.text).eq(`z: ${x3}`);
+                expect(stateVariables["/p7"].stateValues.text).eq(`x3: ${x3}`);
+                expect(stateVariables["/mi"].stateValues.x3.tree).eqls(x3.tree);
+            } else {
+                expect(stateVariables["/p4"].stateValues.text).eq(`z: `);
+                expect(stateVariables["/p7"].stateValues.text).eq(`x3: `);
+                expect(stateVariables["/mi"].stateValues.x3).eq(undefined);
+            }
+
+            if (x4) {
+                expect(stateVariables["/p8"].stateValues.text).eq(`x4: ${x4}`);
+                expect(stateVariables["/mi"].stateValues.x4.tree).eqls(x4.tree);
+            } else {
+                expect(stateVariables["/p8"].stateValues.text).eq(`x4: `);
+                expect(stateVariables["/mi"].stateValues.x4).eq(undefined);
+            }
+
+            expect(stateVariables["/p9"].stateValues.text).eq(`v: ${asVec}`);
+            if (numDimensions === 1) {
+                expect(
+                    stateVariables["/mi"].stateValues.vector.map((v) => v.tree),
+                ).eqls([math.tree]);
+            } else {
+                expect(
+                    stateVariables["/mi"].stateValues.vector.map((v) => v.tree),
+                ).eqls(math.tree.slice(1));
+            }
+
+            if (i === 1) {
+                expect(stateVariables["/p10"].stateValues.text).eq(
+                    `v[${i}]: ${x1}`,
+                );
+            } else if (i <= numDimensions) {
+                expect(stateVariables["/p10"].stateValues.text).eq(
+                    `v[${i}]: ${math.get_component(i - 1)}`,
+                );
+            } else {
+                expect(stateVariables["/p10"].stateValues.text).eq(`v[${i}]: `);
+            }
+
+            expect(stateVariables["/p11"].stateValues.text).eq(
+                `Matrix size: ${numDimensions}, 1`,
+            );
+            expect(stateVariables["/mi"].stateValues.matrixSize).eqls([
+                numDimensions,
+                1,
+            ]);
+            expect(stateVariables["/p12"].stateValues.text).eq(
+                `Number of rows: ${numDimensions}`,
+            );
+            expect(stateVariables["/mi"].stateValues.numRows).eq(numDimensions);
+            expect(stateVariables["/p13"].stateValues.text).eq(
+                `Number of columns: 1`,
+            );
+            expect(stateVariables["/mi"].stateValues.numColumns).eq(1);
+            if (numDimensions === 1) {
+                expect(stateVariables["/p14"].stateValues.text).eq(
+                    `Matrix: [ [ ${math} ] ]`,
+                );
+                expect(
+                    stateVariables["/mi"].stateValues.matrix.map((v) =>
+                        v.map((x) => x.tree),
+                    ),
+                ).eqls([[math.tree]]);
+            } else {
+                expect(stateVariables["/p14"].stateValues.text).eq(
+                    `Matrix: [ ${[...Array(numDimensions).keys()].map((i) => `[ ${math.get_component(i)} ]`).join(", ")} ]`,
+                );
+                expect(
+                    stateVariables["/mi"].stateValues.matrix.map((v) =>
+                        v.map((x) => x.tree),
+                    ),
+                ).eqls(math.tree.slice(1).map((v) => [v]));
+            }
+
+            if (i === 1) {
+                expect(stateVariables["/p15"].stateValues.text).eq(
+                    `Matrix[${i}]: [ [ ${x1} ] ]`,
+                );
+            } else if (i <= numDimensions) {
+                expect(stateVariables["/p15"].stateValues.text).eq(
+                    `Matrix[${i}]: [ [ ${math.get_component(i - 1)} ] ]`,
+                );
+            } else {
+                expect(stateVariables["/p15"].stateValues.text).eq(
+                    `Matrix[${i}]: `,
+                );
+            }
+
+            if (i === 1) {
+                expect(stateVariables["/p16"].stateValues.text).eq(
+                    `Matrix[${i}][1]: ${x1}`,
+                );
+            } else if (i <= numDimensions) {
+                expect(stateVariables["/p16"].stateValues.text).eq(
+                    `Matrix[${i}][1]: ${math.get_component(i - 1)}`,
+                );
+            } else {
+                expect(stateVariables["/p16"].stateValues.text).eq(
+                    `Matrix[${i}][1]: `,
+                );
+            }
+
+            expect(stateVariables["/p17"].stateValues.text).eq(
+                `Number of list items: ${numDimensions}`,
+            );
+
+            expect(stateVariables["/p18"].stateValues.text).eq(
+                `List: ${asList}`,
+            );
+            if (numDimensions === 1) {
+                expect(
+                    stateVariables["/mi"].stateValues.list.map((v) => v.tree),
+                ).eqls([math.tree]);
+            } else {
+                expect(
+                    stateVariables["/mi"].stateValues.list.map((v) => v.tree),
+                ).eqls(math.tree.slice(1));
+            }
+
+            expect(stateVariables["/p19"].stateValues.text).eq(
+                `Math list from list: ${asList}`,
+            );
+            if (numDimensions === 1) {
+                expect(
+                    stateVariables["/ml"].stateValues.maths.map((v) => v.tree),
+                ).eqls([math.tree]);
+            } else {
+                expect(
+                    stateVariables["/ml"].stateValues.maths.map((v) => v.tree),
+                ).eqls(math.tree.slice(1));
+            }
+
+            if (numDimensions === 1) {
+                let num = math.evaluate_to_constant();
+
+                expect(stateVariables["/p20"].stateValues.text).eq(
+                    `Number list from list: ${num}`,
+                );
+                expect(stateVariables["/nl"].stateValues.numbers).eqls([num]);
+            } else {
+                let nums = math.tree
+                    .slice(1)
+                    .map((v) => me.fromAst(v).evaluate_to_constant());
+
+                expect(stateVariables["/p20"].stateValues.text).eq(
+                    `Number list from list: ${nums.join(", ")}`,
+                );
+
+                expect(stateVariables["/nl"].stateValues.numbers).eqls(nums);
+            }
+        }
+
+        let math = me.fromAst("\uff3f");
+        let i = 1;
+        await check_items(math, i);
+
+        await updateMathInputValue({
+            latex: "(1,2)",
+            componentName: "/mi",
+            core,
+        });
+        math = me.fromAst(["vector", 1, 2]);
+        await check_items(math, i);
+
+        i = 2;
+        await updateMathInputValue({
+            latex: i.toString(),
+            componentName: "/i",
+            core,
+        });
+        await check_items(math, i);
+
+        i = 3;
+        await updateMathInputValue({
+            latex: i.toString(),
+            componentName: "/i",
+            core,
+        });
+        await check_items(math, i);
+
+        await updateMathInputValue({
+            latex: "(a,b,c)",
+            componentName: "/mi",
+            core,
+        });
+        math = me.fromAst(["vector", "a", "b", "c"]);
+        await check_items(math, i);
+
+        i = 4;
+        await updateMathInputValue({
+            latex: i.toString(),
+            componentName: "/i",
+            core,
+        });
+        await check_items(math, i);
+
+        i = 2;
+        await updateMathInputValue({
+            latex: i.toString(),
+            componentName: "/i",
+            core,
+        });
+        await check_items(math, i);
+
+        await updateMathInputValue({
+            latex: "xyz",
+            componentName: "/mi",
+            core,
+        });
+        math = me.fromAst(["*", "x", "y", "z"]);
+        await check_items(math, i);
+
+        i = 1;
+        await updateMathInputValue({
+            latex: i.toString(),
+            componentName: "/i",
+            core,
+        });
+        await check_items(math, i);
+
+        await updateMathInputValue({
+            latex: "p,q",
+            componentName: "/mi",
+            core,
+        });
+        math = me.fromAst(["list", "p", "q"]);
+        await check_items(math, i);
+
+        await updateMathInputValue({
+            latex: "5,4,3",
+            componentName: "/mi",
+            core,
+        });
+        math = me.fromAst(["list", 5, 4, 3]);
+        await check_items(math, i);
     });
 });

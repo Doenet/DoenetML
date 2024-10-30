@@ -1391,7 +1391,7 @@ describe("Copy tag tests", async () => {
 
         // move A2
         A2 = [5, 4];
-        core.requestAction({
+        await core.requestAction({
             actionName: "movePoint",
             componentName: "/A2",
             args: { x: A2[0], y: A2[1] },

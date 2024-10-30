@@ -183,6 +183,7 @@ async function createCore(args) {
             }
             queuedRequestActions = [];
         } catch (e) {
+            // throw e;
             postMessage({
                 messageType: "inErrorState",
                 coreId: coreArgs.coreId,

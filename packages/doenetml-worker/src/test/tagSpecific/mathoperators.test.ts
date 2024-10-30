@@ -540,7 +540,7 @@ describe("Math operator tests", async () => {
             stateVariables["/numberComponentsCommas"].stateValues.value.tree,
         ).eqls(["apply", "sum", ["tuple", 3, 17, 1]]);
         expect(
-            await await stateVariables["/numberComponentsCommas"].stateValues
+            await stateVariables["/numberComponentsCommas"].stateValues
                 .isNumber,
         ).eq(false);
         expect(

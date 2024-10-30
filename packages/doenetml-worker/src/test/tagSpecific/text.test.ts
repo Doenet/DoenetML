@@ -919,12 +919,13 @@ describe("Text tag tests", async () => {
         );
     });
 
-    it("numCharacters", async () => {
+    it("numCharacters and characters", async () => {
         let core = await createTestCore({
             doenetML: `
     <p><text name="t">Hello there</text>!</p>
 
     <p name="p2">Number of characters is $t.numCharacters.</p>
+    <p name="p3">Characters: $t.characters.</p>
     `,
         });
 
@@ -933,5 +934,85 @@ describe("Text tag tests", async () => {
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Number of characters is 11.",
         );
+        expect(stateVariables["/p3"].stateValues.text).eq(
+            "Characters: H, e, l, l, o, , t, h, e, r, e.",
+        );
+
+        expect(stateVariables["/t"].stateValues.numCharacters).eq(11);
+        expect(stateVariables["/t"].stateValues.characters).eqls([
+            "H",
+            "e",
+            "l",
+            "l",
+            "o",
+            " ",
+            "t",
+            "h",
+            "e",
+            "r",
+            "e",
+        ]);
+    });
+
+    it("numWords and words", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p><text name="t">Hello there now</text>!</p>
+
+    <p name="p2">Number of words is $t.numWords.</p>
+    <p name="p3">words: $t.words.</p>
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/p2"].stateValues.text).eq(
+            "Number of words is 3.",
+        );
+        expect(stateVariables["/p3"].stateValues.text).eq(
+            "words: Hello, there, now.",
+        );
+
+        expect(stateVariables["/t"].stateValues.numWords).eq(3);
+        expect(stateVariables["/t"].stateValues.words).eqls([
+            "Hello",
+            "there",
+            "now",
+        ]);
+    });
+
+    it("numListItems and list", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p><text name="t">Hello there, friend!</text>!</p>
+
+    <p name="p2">Number of list items is $t.numListItems.</p>
+    <p name="p3">list items: $t.list.</p>
+    <p name="p4">text list from items: <textList name="tl">$t.list</textList>.</p>
+    `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/p2"].stateValues.text).eq(
+            "Number of list items is 2.",
+        );
+        expect(stateVariables["/p3"].stateValues.text).eq(
+            "list items: Hello there, friend!.",
+        );
+        expect(stateVariables["/p4"].stateValues.text).eq(
+            "text list from items: Hello there, friend!.",
+        );
+
+        expect(stateVariables["/t"].stateValues.numListItems).eq(2);
+        expect(stateVariables["/t"].stateValues.list).eqls([
+            "Hello there",
+            "friend!",
+        ]);
+
+        expect(stateVariables["/tl"].stateValues.texts).eqls([
+            "Hello there",
+            "friend!",
+        ]);
     });
 });

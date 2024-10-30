@@ -131,10 +131,10 @@ describe("Sort tag tests", async () => {
         let core = await createTestCore({
             doenetML: `
   <p name="pList"><sort>
-    <numberList>
+    <numberList displayDigits="5">
       <numberList>
         <numberList>
-          <number displayDigits="5">sqrt(2)</number><number>10</number>
+          <number>sqrt(2)</number><number>10</number>
         </numberList>
         <numberList>2</numberList>
         <number>3</number>

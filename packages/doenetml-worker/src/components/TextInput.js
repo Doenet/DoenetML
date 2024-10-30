@@ -7,6 +7,7 @@ import {
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
+import { returnTextPieceStateVariableDefinitions } from "../utils/text";
 import Input from "./abstract/Input";
 
 export default class Textinput extends Input {
@@ -100,6 +101,7 @@ export default class Textinput extends Input {
         sugarInstructions.push({
             replacementFunction: returnWrapNonLabelsSugarFunction({
                 wrappingComponentType: "text",
+                wrapSingleIfNotWrappingComponentType: true,
             }),
         });
 
@@ -451,6 +453,9 @@ export default class Textinput extends Input {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { componentType: "text" } }),
         };
+
+        let pieceDefs = returnTextPieceStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, pieceDefs);
 
         return stateVariableDefinitions;
     }

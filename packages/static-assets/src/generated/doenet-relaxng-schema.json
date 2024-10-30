@@ -488,25 +488,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -991,15 +976,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -1634,25 +1610,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -2972,25 +2933,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -3576,25 +3522,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -6346,22 +6277,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -6596,11 +6515,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -6614,6 +6528,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ]
         },
@@ -6911,25 +6879,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -7501,25 +7454,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -8091,25 +8029,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -9042,25 +8965,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -9545,15 +9453,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -9671,9 +9570,6 @@
                     "ref": "isBetween"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
@@ -9690,9 +9586,6 @@
                 },
                 {
                     "ref": "booleanInput"
-                },
-                {
-                    "ref": "booleanList"
                 },
                 {
                     "ref": "orbitalDiagram"
@@ -10793,15 +10686,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -11221,15 +11105,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -11659,15 +11534,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -12149,15 +12015,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -12774,15 +12631,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -13395,15 +13243,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -14032,15 +13871,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -14667,15 +14497,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -15298,15 +15119,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -15916,15 +15728,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -16526,15 +16329,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -17145,15 +16939,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -17762,15 +17547,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -18377,15 +18153,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -19004,15 +18771,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -19625,15 +19383,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -20252,15 +20001,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -20886,15 +20626,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -21514,15 +21245,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -22135,15 +21857,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -22760,15 +22473,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -23383,15 +23087,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -24004,15 +23699,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -24636,15 +24322,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -25286,15 +24963,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -26012,15 +25680,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -26736,15 +26395,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -27385,15 +27035,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -27587,11 +27228,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -27605,6 +27241,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ]
         },
@@ -27876,25 +27566,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -28400,25 +28075,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -28924,25 +28584,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -29448,25 +29093,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -29972,25 +29602,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -30496,25 +30111,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -31020,25 +30620,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -31544,25 +31129,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -32068,25 +31638,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -32592,25 +32147,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -50100,6 +49640,11 @@
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
                 }
             ]
         },
@@ -51187,15 +50732,6 @@
                     "ref": "matrixInput"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "line"
                 },
                 {
@@ -51663,15 +51199,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -52258,15 +51785,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -53549,15 +53067,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -54084,12 +53593,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -56393,22 +55896,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -56643,11 +56134,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -56661,6 +56147,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ]
         },
@@ -56821,22 +56361,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -61482,25 +61010,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -62860,22 +62373,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -63110,11 +62611,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -63128,6 +62624,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ]
         },
@@ -63143,6 +62693,10 @@
                     "optional": true,
                     "type": ["string"]
                 },
+                "assignNames": {
+                    "optional": true,
+                    "type": ["string"]
+                },
                 "hide": {
                     "optional": true,
                     "type": ["true", "false"]
@@ -63153,7 +62707,7 @@
                 },
                 "fixed": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "fixLocation": {
                     "optional": true,
@@ -63165,7 +62719,7 @@
                 },
                 "isResponse": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "newNamespace": {
                     "optional": true,
@@ -63296,22 +62850,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -63407,11 +62949,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "newNamespace",
                     "type": "boolean",
                     "isArray": false
@@ -63462,40 +62999,14 @@
                     "isArray": false
                 },
                 {
-                    "name": "texts",
-                    "type": "text",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "text",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
                 },
                 {
                     "name": "values",
-                    "type": "text",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "text",
-                            "numDimensions": 1
-                        }
-                    ]
+                    "type": "unknown",
+                    "isArray": false
                 }
             ]
         },
@@ -63767,25 +63278,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -64231,15 +63727,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -64357,9 +63844,6 @@
                     "ref": "isBetween"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
@@ -64376,9 +63860,6 @@
                 },
                 {
                     "ref": "booleanInput"
-                },
-                {
-                    "ref": "booleanList"
                 },
                 {
                     "ref": "orbitalDiagram"
@@ -64525,6 +64006,10 @@
                     "optional": true,
                     "type": ["string"]
                 },
+                "assignNames": {
+                    "optional": true,
+                    "type": ["string"]
+                },
                 "hide": {
                     "optional": true,
                     "type": ["true", "false"]
@@ -64535,7 +64020,7 @@
                 },
                 "fixed": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "fixLocation": {
                     "optional": true,
@@ -64547,7 +64032,7 @@
                 },
                 "isResponse": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "newNamespace": {
                     "optional": true,
@@ -64595,219 +64080,6 @@
                 },
                 {
                     "ref": "matchesPattern"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "rightHandSide"
-                },
-                {
-                    "ref": "topic"
-                },
-                {
-                    "ref": "sum"
-                },
-                {
-                    "ref": "product"
-                },
-                {
-                    "ref": "clampNumber"
-                },
-                {
-                    "ref": "wrapNumberPeriodic"
-                },
-                {
-                    "ref": "round"
-                },
-                {
-                    "ref": "setSmallToZero"
-                },
-                {
-                    "ref": "convertSetToList"
-                },
-                {
-                    "ref": "ceil"
-                },
-                {
-                    "ref": "floor"
-                },
-                {
-                    "ref": "abs"
-                },
-                {
-                    "ref": "sign"
-                },
-                {
-                    "ref": "mean"
-                },
-                {
-                    "ref": "median"
-                },
-                {
-                    "ref": "variance"
-                },
-                {
-                    "ref": "standardDeviation"
-                },
-                {
-                    "ref": "count"
-                },
-                {
-                    "ref": "min"
-                },
-                {
-                    "ref": "max"
-                },
-                {
-                    "ref": "mod"
-                },
-                {
-                    "ref": "gcd"
-                },
-                {
-                    "ref": "extractMath"
-                },
-                {
-                    "ref": "clampFunction"
-                },
-                {
-                    "ref": "wrapFunctionPeriodic"
-                },
-                {
-                    "ref": "derivative"
-                },
-                {
-                    "ref": "extractMathOperator"
-                },
-                {
-                    "ref": "equilibriumPoint"
-                },
-                {
-                    "ref": "equilibriumLine"
-                },
-                {
-                    "ref": "atom"
-                },
-                {
-                    "ref": "ion"
-                },
-                {
-                    "ref": "ionicCompound"
-                },
-                {
-                    "ref": "electronConfiguration"
-                },
-                {
-                    "ref": "h"
-                },
-                {
-                    "ref": "matrixInput"
-                },
-                {
-                    "ref": "text"
-                },
-                {
-                    "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
-                    "ref": "point"
-                },
-                {
-                    "ref": "coords"
-                },
-                {
-                    "ref": "line"
-                },
-                {
-                    "ref": "vector"
-                },
-                {
-                    "ref": "angle"
-                },
-                {
-                    "ref": "mathInput"
-                },
-                {
-                    "ref": "choice"
-                },
-                {
-                    "ref": "number"
-                },
-                {
-                    "ref": "integer"
-                },
-                {
-                    "ref": "function"
-                },
-                {
-                    "ref": "piecewiseFunction"
-                },
-                {
-                    "ref": "interval"
-                },
-                {
-                    "ref": "sequence"
-                },
-                {
-                    "ref": "cell"
-                },
-                {
-                    "ref": "selectFromSequence"
-                },
-                {
-                    "ref": "evaluate"
-                },
-                {
-                    "ref": "selectRandomNumbers"
-                },
-                {
-                    "ref": "sampleRandomNumbers"
-                },
-                {
-                    "ref": "selectPrimeNumbers"
-                },
-                {
-                    "ref": "samplePrimeNumbers"
-                },
-                {
-                    "ref": "substitute"
-                },
-                {
-                    "ref": "periodicSet"
-                },
-                {
-                    "ref": "intcomma"
-                },
-                {
-                    "ref": "pluralize"
-                },
-                {
-                    "ref": "lorem"
-                },
-                {
-                    "ref": "endpoint"
-                },
-                {
-                    "ref": "subsetOfReals"
-                },
-                {
-                    "ref": "bestFitLine"
-                },
-                {
-                    "ref": "matrix"
-                },
-                {
-                    "ref": "latex"
                 }
             ],
             "textChildrenAllowed": true,
@@ -64825,11 +64097,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -64883,35 +64150,14 @@
                     "isArray": false
                 },
                 {
-                    "name": "booleans",
-                    "type": "boolean",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "boolean",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false
                 },
                 {
                     "name": "values",
-                    "type": "boolean",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "boolean",
-                            "numDimensions": 1
-                        }
-                    ]
+                    "type": "unknown",
+                    "isArray": false
                 }
             ]
         },
@@ -65157,15 +64403,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -65544,6 +64781,10 @@
                     "optional": true,
                     "type": ["string"]
                 },
+                "assignNames": {
+                    "optional": true,
+                    "type": ["string"]
+                },
                 "hide": {
                     "optional": true,
                     "type": ["true", "false"]
@@ -65554,7 +64795,7 @@
                 },
                 "fixed": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "fixLocation": {
                     "optional": true,
@@ -65566,7 +64807,7 @@
                 },
                 "isResponse": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "newNamespace": {
                     "optional": true,
@@ -65598,7 +64839,7 @@
                 },
                 "padZeros": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "functionSymbols": {
                     "optional": true,
@@ -65730,15 +64971,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -65847,11 +65079,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "newNamespace",
                     "type": "boolean",
                     "isArray": false
@@ -65912,26 +65139,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "mergeMathLists",
                     "type": "boolean",
                     "isArray": false
@@ -65953,34 +65160,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "math",
-                    "type": "math",
-                    "isArray": false
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
                 },
                 {
                     "name": "numValues",
@@ -66014,6 +65193,10 @@
                     "optional": true,
                     "type": ["string"]
                 },
+                "assignNames": {
+                    "optional": true,
+                    "type": ["string"]
+                },
                 "hide": {
                     "optional": true,
                     "type": ["true", "false"]
@@ -66024,7 +65207,7 @@
                 },
                 "fixed": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "fixLocation": {
                     "optional": true,
@@ -66036,7 +65219,7 @@
                 },
                 "isResponse": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "newNamespace": {
                     "optional": true,
@@ -66068,7 +65251,7 @@
                 },
                 "padZeros": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "functionSymbols": {
                     "optional": true,
@@ -66200,15 +65383,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -66317,11 +65491,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "newNamespace",
                     "type": "boolean",
                     "isArray": false
@@ -66382,26 +65551,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "mergeMathLists",
                     "type": "boolean",
                     "isArray": false
@@ -66423,34 +65572,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "math",
-                    "type": "math",
-                    "isArray": false
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
                 },
                 {
                     "name": "numValues",
@@ -66484,6 +65605,10 @@
                     "optional": true,
                     "type": ["string"]
                 },
+                "assignNames": {
+                    "optional": true,
+                    "type": ["string"]
+                },
                 "hide": {
                     "optional": true,
                     "type": ["true", "false"]
@@ -66494,7 +65619,7 @@
                 },
                 "fixed": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "fixLocation": {
                     "optional": true,
@@ -66506,7 +65631,7 @@
                 },
                 "isResponse": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 },
                 "newNamespace": {
                     "optional": true,
@@ -66534,7 +65659,7 @@
                 },
                 "padZeros": {
                     "optional": true,
-                    "type": ["true", "false"]
+                    "type": ["string"]
                 }
             },
             "children": [
@@ -66681,15 +65806,6 @@
                 },
                 {
                     "ref": "latex"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -66707,11 +65823,6 @@
                 {
                     "name": "styleNumber",
                     "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -66760,64 +65871,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "numComponents",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "math",
-                    "type": "math",
-                    "isArray": false
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "text",
-                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -66827,16 +65882,8 @@
                 },
                 {
                     "name": "values",
-                    "type": "number",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
+                    "type": "unknown",
+                    "isArray": false
                 }
             ]
         },
@@ -68068,15 +67115,6 @@
                     "ref": "matrixInput"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "line"
                 },
                 {
@@ -68538,15 +67576,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -69139,15 +68168,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -72038,15 +71058,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -72625,15 +71636,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -73216,15 +72218,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -73827,15 +72820,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -74180,15 +73164,6 @@
                 },
                 {
                     "ref": "text"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -74626,15 +73601,6 @@
                 },
                 {
                     "ref": "matrixInput"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "line"
@@ -75156,15 +74122,6 @@
                     "ref": "matrixInput"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -75630,15 +74587,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -75726,6 +74674,15 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
                     "ref": "xlabel"
                 },
                 {
@@ -75753,9 +74710,6 @@
                     "ref": "isBetween"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
@@ -75769,6 +74723,9 @@
                 },
                 {
                     "ref": "matchesPattern"
+                },
+                {
+                    "ref": "textList"
                 },
                 {
                     "ref": "booleanList"
@@ -76299,15 +75256,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -76425,9 +75373,6 @@
                     "ref": "isBetween"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
@@ -76441,9 +75386,6 @@
                 },
                 {
                     "ref": "booleanInput"
-                },
-                {
-                    "ref": "booleanList"
                 },
                 {
                     "ref": "orbitalDiagram"
@@ -76852,15 +75794,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -76978,9 +75911,6 @@
                     "ref": "isBetween"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
@@ -76997,9 +75927,6 @@
                 },
                 {
                     "ref": "booleanInput"
-                },
-                {
-                    "ref": "booleanList"
                 },
                 {
                     "ref": "orbitalDiagram"
@@ -77376,15 +76303,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -77641,6 +76559,69 @@
                     "name": "rawRendererValue",
                     "type": "latex",
                     "isArray": false
+                },
+                {
+                    "name": "numDimensions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "vector",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "vector"
+                        }
+                    ]
+                },
+                {
+                    "name": "matrixSize",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "numRows",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numColumns",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "x",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "y",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "z",
+                    "type": "math",
+                    "isArray": false
                 }
             ]
         },
@@ -77850,22 +76831,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -78071,6 +77040,60 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ]
         },
@@ -78306,15 +77329,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -79924,15 +78938,6 @@
                     "ref": "matrixInput"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -79988,9 +78993,6 @@
                 },
                 {
                     "ref": "isBetween"
-                },
-                {
-                    "ref": "textList"
                 },
                 {
                     "ref": "boolean"
@@ -80418,15 +79420,6 @@
                     "ref": "matrixInput"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -80482,9 +79475,6 @@
                 },
                 {
                     "ref": "isBetween"
-                },
-                {
-                    "ref": "textList"
                 },
                 {
                     "ref": "boolean"
@@ -81077,19 +80067,7 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "when"
@@ -81660,15 +80638,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -82821,15 +81790,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -85205,19 +84165,7 @@
                     "ref": "ion"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "when"
@@ -85829,15 +84777,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -86160,6 +85099,15 @@
                 },
                 {
                     "ref": "booleanList"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -87379,25 +86327,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -88071,25 +87004,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -88638,22 +87556,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -92933,25 +91839,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -95151,10 +94042,6 @@
                     "optional": true,
                     "type": ["string"]
                 },
-                "variantDeterminesSeed": {
-                    "optional": true,
-                    "type": ["true", "false"]
-                },
                 "asList": {
                     "optional": true,
                     "type": ["true", "false"]
@@ -95200,11 +94087,6 @@
                 {
                     "name": "type",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -98508,22 +97390,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -98753,11 +97623,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -98771,6 +97636,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "originalValue",
@@ -98979,22 +97898,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -99234,11 +98141,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -99252,6 +98154,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "valuePrePluralize",
@@ -104453,25 +103409,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -104982,25 +103923,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -105699,15 +104625,6 @@
                 },
                 {
                     "ref": "matrixInput"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "line"
@@ -107685,15 +106602,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -108377,15 +107285,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -111650,15 +110549,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -112726,25 +111616,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -113260,15 +112135,6 @@
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -114121,15 +112987,6 @@
                     "ref": "math"
                 },
                 {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
-                },
-                {
                     "ref": "point"
                 },
                 {
@@ -114516,22 +113373,10 @@
                     "ref": "text"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "boolean"
                 },
                 {
                     "ref": "math"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -114832,11 +113677,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "numCharacters",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
                     "name": "text",
                     "type": "text",
                     "isArray": false
@@ -114850,6 +113690,60 @@
                     "name": "number",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "listItems",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "latex",

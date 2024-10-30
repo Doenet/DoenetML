@@ -3,6 +3,7 @@ export function returnWrapNonLabelsSugarFunction({
     createAttributeOfType,
     onlyStringOrMacros = false,
     customWrappingFunction,
+    wrapSingleIfNotWrappingComponentType = false,
 }) {
     return function ({ matchedChildren, componentInfoObjects }) {
         if (matchedChildren.length === 0) {
@@ -80,10 +81,15 @@ export function returnWrapNonLabelsSugarFunction({
                 ],
             };
         } else {
-            // apply only if have a single string or multiple children to wrap
+            // apply only if have a single string/composite or multiple children to wrap
             if (
                 (childrenToWrap.length === 1 &&
-                    typeof childrenToWrap[0] !== "string") ||
+                    typeof childrenToWrap[0] !== "string" &&
+                    (!wrapSingleIfNotWrappingComponentType ||
+                        componentInfoObjects.componentIsSpecifiedType(
+                            childrenToWrap[0],
+                            wrappingComponentType,
+                        ))) ||
                 childrenToWrap.length === 0
             ) {
                 return { success: false };

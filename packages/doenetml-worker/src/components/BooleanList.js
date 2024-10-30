@@ -1,10 +1,18 @@
-import InlineComponent from "./abstract/InlineComponent";
+import CompositeComponent from "./abstract/CompositeComponent";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import {
+    convertAttributesForComponentType,
+    postProcessCopy,
+} from "../utils/copy";
+import { processAssignNames } from "../utils/naming";
 
-export default class BooleanList extends InlineComponent {
+export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
-    static rendererType = "asList";
-    static renderChildren = true;
+
+    static stateVariableToEvaluateAfterReplacements =
+        "readyToExpandWhenResolved";
+
+    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -12,10 +20,13 @@ export default class BooleanList extends InlineComponent {
     // when another component has a attribute that is a booleanList,
     // use the booleans state variable to populate that attribute
     static stateVariableToBeShadowed = "booleans";
+    static primaryStateVariableForDefinition = "booleansShadow";
 
     // even if inside a component that turned on descendantCompositesMustHaveAReplacement
     // don't required composite replacements
     static descendantCompositesMustHaveAReplacement = false;
+
+    static doNotExpandAsShadowed = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -28,14 +39,23 @@ export default class BooleanList extends InlineComponent {
         attributes.maxNumber = {
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
-            defaultValue: null,
+            defaultValue: Infinity,
             public: true,
         };
+
+        attributes.fixed = {
+            leaveRaw: true,
+        };
+
+        attributes.isResponse = {
+            leaveRaw: true,
+        };
+
         return attributes;
     }
 
     // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["math", "number", "string"];
+    static additionalSchemaChildren = ["string"];
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
@@ -59,22 +79,28 @@ export default class BooleanList extends InlineComponent {
                 group: "booleans",
                 componentTypes: ["boolean"],
             },
-            {
-                group: "booleanLists",
-                componentTypes: ["booleanList"],
-            },
         ];
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // set overrideChildHide so that children are hidden
-        // only based on whether or not the list is hidden
-        // so that can't have a list with partially hidden components
-        stateVariableDefinitions.overrideChildHide = {
+        stateVariableDefinitions.booleansShadow = {
+            defaultValue: null,
+            hasEssential: true,
             returnDependencies: () => ({}),
-            definition: () => ({ setValue: { overrideChildHide: true } }),
+            definition: () => ({
+                useEssentialOrDefaultValue: {
+                    booleansShadow: true,
+                },
+            }),
+        };
+
+        stateVariableDefinitions.asList = {
+            returnDependencies: () => ({}),
+            definition() {
+                return { setValue: { asList: true } };
+            },
         };
 
         stateVariableDefinitions.numComponents = {
@@ -82,85 +108,59 @@ export default class BooleanList extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
-            additionalStateVariablesDefined: ["childIndexByArrayKey"],
+            additionalStateVariablesDefined: ["childNameByComponent"],
             returnDependencies() {
                 return {
                     maxNumber: {
                         dependencyType: "stateVariable",
                         variableName: "maxNumber",
                     },
-                    booleanListChildren: {
+                    booleanChildren: {
                         dependencyType: "child",
-                        childGroups: ["booleanLists"],
-                        variableNames: ["numComponents"],
+                        childGroups: ["booleans"],
                     },
-                    booleanAndBooleanListChildren: {
-                        dependencyType: "child",
-                        childGroups: ["booleans", "booleanLists"],
-                        skipComponentNames: true,
+                    booleansShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "booleansShadow",
                     },
                 };
             },
-            definition: function ({ dependencyValues, componentInfoObjects }) {
+            definition: function ({ dependencyValues }) {
                 let numComponents = 0;
-                let childIndexByArrayKey = [];
+                let childNameByComponent = [];
 
-                let nBooleanLists = 0;
-                for (let [
-                    childInd,
-                    child,
-                ] of dependencyValues.booleanAndBooleanListChildren.entries()) {
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "booleanList",
-                        })
-                    ) {
-                        let booleanListChild =
-                            dependencyValues.booleanListChildren[nBooleanLists];
-                        nBooleanLists++;
-                        for (
-                            let i = 0;
-                            i < booleanListChild.stateValues.numComponents;
-                            i++
-                        ) {
-                            childIndexByArrayKey[numComponents + i] = [
-                                childInd,
-                                i,
-                            ];
-                        }
-                        numComponents +=
-                            booleanListChild.stateValues.numComponents;
-                    } else {
-                        childIndexByArrayKey[numComponents] = [childInd, 0];
-                        numComponents += 1;
-                    }
+                if (dependencyValues.booleanChildren.length > 0) {
+                    childNameByComponent = dependencyValues.booleanChildren.map(
+                        (x) => x.componentName,
+                    );
+                    numComponents = dependencyValues.booleanChildren.length;
+                } else if (dependencyValues.booleansShadow !== null) {
+                    numComponents = dependencyValues.booleansShadow.length;
                 }
 
                 let maxNum = dependencyValues.maxNumber;
-                if (maxNum !== null && numComponents > maxNum) {
+                if (numComponents > maxNum) {
                     numComponents = maxNum;
-                    childIndexByArrayKey = childIndexByArrayKey.slice(
+                    childNameByComponent = childNameByComponent.slice(
                         0,
                         maxNum,
                     );
                 }
 
                 return {
-                    setValue: { numComponents, childIndexByArrayKey },
+                    setValue: { numComponents, childNameByComponent },
                     checkForActualChange: { numComponents: true },
                 };
             },
         };
 
         stateVariableDefinitions.booleans = {
-            public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
             isArray: true,
             entryPrefixes: ["boolean"],
-            stateVariablesDeterminingDependencies: ["childIndexByArrayKey"],
+            stateVariablesDeterminingDependencies: ["childNameByComponent"],
             returnArraySizeDependencies: () => ({
                 numComponents: {
                     dependencyType: "stateVariable",
@@ -174,28 +174,26 @@ export default class BooleanList extends InlineComponent {
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 let dependenciesByKey = {};
                 let globalDependencies = {
-                    childIndexByArrayKey: {
+                    childNameByComponent: {
                         dependencyType: "stateVariable",
-                        variableName: "childIndexByArrayKey",
+                        variableName: "childNameByComponent",
+                    },
+                    booleansShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "booleansShadow",
                     },
                 };
 
                 for (let arrayKey of arrayKeys) {
                     let childIndices = [];
-                    let booleanIndex = "1";
-                    if (stateValues.childIndexByArrayKey[arrayKey]) {
-                        childIndices = [
-                            stateValues.childIndexByArrayKey[arrayKey][0],
-                        ];
-                        booleanIndex =
-                            stateValues.childIndexByArrayKey[arrayKey][1] + 1;
+                    if (stateValues.childNameByComponent[arrayKey]) {
+                        childIndices = [arrayKey];
                     }
                     dependenciesByKey[arrayKey] = {
-                        booleanAndBooleanListChildren: {
+                        booleanChildren: {
                             dependencyType: "child",
-                            childGroups: ["booleans", "booleanLists"],
-                            variableNames: ["value", "boolean" + booleanIndex],
-                            variablesOptional: true,
+                            childGroups: ["booleans"],
+                            variableNames: ["value"],
                             childIndices,
                         },
                     };
@@ -212,20 +210,13 @@ export default class BooleanList extends InlineComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let child =
-                        dependencyValuesByKey[arrayKey]
-                            .booleanAndBooleanListChildren[0];
+                        dependencyValuesByKey[arrayKey].booleanChildren[0];
 
                     if (child) {
-                        if (child.stateValues.value !== undefined) {
-                            booleans[arrayKey] = child.stateValues.value;
-                        } else {
-                            let booleanIndex =
-                                globalDependencyValues.childIndexByArrayKey[
-                                    arrayKey
-                                ][1] + 1;
-                            booleans[arrayKey] =
-                                child.stateValues["boolean" + booleanIndex];
-                        }
+                        booleans[arrayKey] = child.stateValues.value;
+                    } else if (globalDependencyValues.booleansShadow !== null) {
+                        booleans[arrayKey] =
+                            globalDependencyValues.booleansShadow[arrayKey];
                     }
                 }
 
@@ -236,7 +227,7 @@ export default class BooleanList extends InlineComponent {
                 globalDependencyValues,
                 dependencyValuesByKey,
                 dependencyNamesByKey,
-                arraySize,
+                workspace,
             }) {
                 let instructions = [];
 
@@ -246,35 +237,29 @@ export default class BooleanList extends InlineComponent {
                     }
 
                     let child =
-                        dependencyValuesByKey[arrayKey]
-                            .booleanAndBooleanListChildren[0];
+                        dependencyValuesByKey[arrayKey].booleanChildren[0];
 
                     if (child) {
-                        if (child.stateValues.value !== undefined) {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey]
-                                        .booleanAndBooleanListChildren,
-                                desiredValue:
-                                    desiredStateVariableValues.booleans[
-                                        arrayKey
-                                    ],
-                                childIndex: 0,
-                                variableIndex: 0,
-                            });
-                        } else {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey]
-                                        .booleanAndBooleanListChildren,
-                                desiredValue:
-                                    desiredStateVariableValues.booleans[
-                                        arrayKey
-                                    ],
-                                childIndex: 0,
-                                variableIndex: 1,
-                            });
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey].booleanChildren,
+                            desiredValue:
+                                desiredStateVariableValues.booleans[arrayKey],
+                            childIndex: 0,
+                            variableIndex: 0,
+                        });
+                    } else if (globalDependencyValues.booleansShadow !== null) {
+                        if (!workspace.desiredBooleanShadow) {
+                            workspace.desiredBooleanShadow = [
+                                ...globalDependencyValues.booleansShadow,
+                            ];
                         }
+                        workspace.desiredBooleanShadow[arrayKey] =
+                            desiredStateVariableValues.booleans[arrayKey];
+                        instructions.push({
+                            setDependency: "booleansShadow",
+                            desiredValue: workspace.desiredBooleanShadow,
+                        });
                     }
                 }
 
@@ -295,139 +280,170 @@ export default class BooleanList extends InlineComponent {
             targetVariableName: "booleans",
         };
 
-        stateVariableDefinitions.componentNamesInList = {
+        stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
-                booleanAndBooleanListChildren: {
-                    dependencyType: "child",
-                    childGroups: ["booleans", "booleanLists"],
-                    variableNames: ["componentNamesInList"],
-                    variablesOptional: true,
-                },
-                maxNumber: {
+                childNameByComponent: {
                     dependencyType: "stateVariable",
-                    variableName: "maxNumber",
+                    variableName: "childNameByComponent",
                 },
             }),
-            definition: function ({ dependencyValues, componentInfoObjects }) {
-                let componentNamesInList = [];
-
-                for (let child of dependencyValues.booleanAndBooleanListChildren) {
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "booleanList",
-                        })
-                    ) {
-                        componentNamesInList.push(
-                            ...child.stateValues.componentNamesInList,
-                        );
-                    } else {
-                        componentNamesInList.push(child.componentName);
-                    }
-                }
-
-                let maxNum = dependencyValues.maxNumber;
-                if (maxNum !== null && componentNamesInList.length > maxNum) {
-                    maxNum = Math.max(0, Math.floor(maxNum));
-                    componentNamesInList = componentNamesInList.slice(
-                        0,
-                        maxNum,
-                    );
-                }
-
-                return { setValue: { componentNamesInList } };
+            // When this state variable is marked stale
+            // it indicates we should update replacements.
+            // For this to work, must set
+            // stateVariableToEvaluateAfterReplacements
+            // to this variable so that it is marked fresh
+            markStale: () => ({ updateReplacements: true }),
+            definition: function () {
+                return { setValue: { readyToExpandWhenResolved: true } };
             },
-        };
-
-        stateVariableDefinitions.numComponentsToDisplayByChild = {
-            additionalStateVariablesDefined: ["numChildrenToRender"],
-            returnDependencies: () => ({
-                numComponents: {
-                    dependencyType: "stateVariable",
-                    variableName: "numComponents",
-                },
-                booleanListChildren: {
-                    dependencyType: "child",
-                    childGroups: ["booleanLists"],
-                    variableNames: ["numComponents"],
-                },
-                booleanAndBooleanListChildren: {
-                    dependencyType: "child",
-                    childGroups: ["booleans", "booleanLists"],
-                    skipComponentNames: true,
-                },
-                parentNComponentsToDisplayByChild: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "booleanList",
-                    variableName: "numComponentsToDisplayByChild",
-                },
-            }),
-            definition: function ({
-                dependencyValues,
-                componentInfoObjects,
-                componentName,
-            }) {
-                let numComponentsToDisplay = dependencyValues.numComponents;
-
-                if (
-                    dependencyValues.parentNComponentsToDisplayByChild !== null
-                ) {
-                    // have a parent booleanList, which could have limited
-                    // boolean of components to display
-                    numComponentsToDisplay =
-                        dependencyValues.parentNComponentsToDisplayByChild[
-                            componentName
-                        ];
-                }
-
-                let numComponentsToDisplayByChild = {};
-
-                let numComponentsSoFar = 0;
-                let numChildrenToRender = 0;
-
-                let nBooleanLists = 0;
-                for (let child of dependencyValues.booleanAndBooleanListChildren) {
-                    let numComponentsLeft = Math.max(
-                        0,
-                        numComponentsToDisplay - numComponentsSoFar,
-                    );
-                    if (numComponentsLeft > 0) {
-                        numChildrenToRender++;
-                    }
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "booleanList",
-                        })
-                    ) {
-                        let booleanListChild =
-                            dependencyValues.booleanListChildren[nBooleanLists];
-                        nBooleanLists++;
-
-                        let numComponentsForBooleanListChild = Math.min(
-                            numComponentsLeft,
-                            booleanListChild.stateValues.numComponents,
-                        );
-
-                        numComponentsToDisplayByChild[
-                            booleanListChild.componentName
-                        ] = numComponentsForBooleanListChild;
-                        numComponentsSoFar += numComponentsForBooleanListChild;
-                    } else {
-                        numComponentsSoFar += 1;
-                    }
-                }
-
-                return {
-                    setValue: {
-                        numComponentsToDisplayByChild,
-                        numChildrenToRender,
-                    },
-                };
-            },
-            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         return stateVariableDefinitions;
+    }
+
+    static async createSerializedReplacements({
+        component,
+        components,
+        componentInfoObjects,
+        workspace,
+    }) {
+        let errors = [];
+        let warnings = [];
+
+        let replacements = [];
+        let componentsCopied = [];
+
+        let attributesToConvert = {};
+        for (let attr of ["fixed", "isResponse"]) {
+            if (attr in component.attributes) {
+                attributesToConvert[attr] = component.attributes[attr];
+            }
+        }
+
+        let newNamespace = component.attributes.newNamespace?.primitive;
+
+        // allow one to override the fixed and isResponse attributes
+        // as well as rounding settings
+        // by specifying it on the sequence
+        let attributesFromComposite = {};
+
+        if (Object.keys(attributesToConvert).length > 0) {
+            attributesFromComposite = convertAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: "boolean",
+                componentInfoObjects,
+                compositeCreatesNewNamespace: newNamespace,
+            });
+        }
+
+        let childNameByComponent =
+            await component.stateValues.childNameByComponent;
+
+        let numComponents = await component.stateValues.numComponents;
+        for (let i = 0; i < numComponents; i++) {
+            let childName = childNameByComponent[i];
+            let replacementSource = components[childName];
+
+            if (replacementSource) {
+                componentsCopied.push(replacementSource.componentName);
+            }
+            replacements.push({
+                componentType: "boolean",
+                attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                downstreamDependencies: {
+                    [component.componentName]: [
+                        {
+                            dependencyType: "referenceShadow",
+                            compositeName: component.componentName,
+                            propVariable: `boolean${i + 1}`,
+                        },
+                    ],
+                },
+            });
+        }
+
+        workspace.uniqueIdentifiersUsed = [];
+        replacements = postProcessCopy({
+            serializedComponents: replacements,
+            componentName: component.componentName,
+            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
+            addShadowDependencies: true,
+            markAsPrimaryShadow: true,
+        });
+
+        let processResult = processAssignNames({
+            assignNames: component.doenetAttributes.assignNames,
+            serializedComponents: replacements,
+            parentName: component.componentName,
+            parentCreatesNewNamespace: newNamespace,
+            componentInfoObjects,
+        });
+        errors.push(...processResult.errors);
+        warnings.push(...processResult.warnings);
+
+        workspace.componentsCopied = componentsCopied;
+
+        return {
+            replacements: processResult.serializedComponents,
+            errors,
+            warnings,
+        };
+    }
+
+    static async calculateReplacementChanges({
+        component,
+        components,
+        componentInfoObjects,
+        workspace,
+    }) {
+        // TODO: don't yet have a way to return errors and warnings!
+        let errors = [];
+        let warnings = [];
+
+        let componentsToCopy = [];
+
+        let childNameByComponent =
+            await component.stateValues.childNameByComponent;
+
+        for (let childName of childNameByComponent) {
+            let replacementSource = components[childName];
+
+            if (replacementSource) {
+                componentsToCopy.push(replacementSource.componentName);
+            }
+        }
+
+        if (
+            componentsToCopy.length == workspace.componentsCopied.length &&
+            workspace.componentsCopied.every(
+                (x, i) => x === componentsToCopy[i],
+            )
+        ) {
+            return [];
+        }
+
+        // for now, just recreate
+        let replacementResults = await this.createSerializedReplacements({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+        });
+
+        let replacements = replacementResults.replacements;
+        errors.push(...replacementResults.errors);
+        warnings.push(...replacementResults.warnings);
+
+        let replacementChanges = [
+            {
+                changeType: "add",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: 0,
+                numberReplacementsToReplace: component.replacements.length,
+                serializedReplacements: replacements,
+            },
+        ];
+
+        return replacementChanges;
     }
 }

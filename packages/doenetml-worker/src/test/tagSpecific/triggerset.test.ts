@@ -25,7 +25,7 @@ describe("TriggerSet tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);
@@ -113,7 +113,7 @@ describe("TriggerSet tag tests", async () => {
       <point name="P">(1,2)</point>
     </graph>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <triggerSet name="tset">
       <label>perform updates and actions</label>
@@ -145,7 +145,7 @@ describe("TriggerSet tag tests", async () => {
       <point name="P">(1,2)</point>
     </graph>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <triggerSet name="tset">
       <label>perform updates and actions</label>
@@ -178,7 +178,7 @@ describe("TriggerSet tag tests", async () => {
       <point name="P">(1,2)</point>
     </graph>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <triggerSet name="tset">
       <label>perform updates and actions</label>
@@ -216,7 +216,7 @@ describe("TriggerSet tag tests", async () => {
       <point name="P">(1,2)</point>
     </graph>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <triggerSet name="tset">
       <label>perform updates and actions</label>
@@ -705,7 +705,7 @@ describe("TriggerSet tag tests", async () => {
     <p>Say hello: <text name="hello"></text></p>
     <p>Count: <number name="n">1</number></p>
 
-    <p name="nums"><aslist><sampleRandomNumbers name="s" numSamples="5" type="discreteUniform" from="1" to="6" /></aslist></p>
+    <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
     <triggerSet triggerWhen="$(P.x)>0 and $(P.y)>0">
       <label>perform updates</label>
@@ -737,7 +737,7 @@ describe("TriggerSet tag tests", async () => {
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
             .map(Number);
-        expect(numbers.length).eq(5);
+        expect(numbers.length).eq(7);
         for (let num of numbers) {
             expect(Number.isInteger(num)).be.true;
             expect(num).gte(1);

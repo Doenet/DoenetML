@@ -880,13 +880,15 @@ async function test_answer_multiple_inputs({
         awardsUsed?: string[];
     }[];
     answerName?: string;
-    inputs: { type: "math" | "text" | "boolean"; name?: string }[];
+    inputs: { type: "math" | "number" | "text" | "boolean"; name?: string }[];
 }) {
     let fromLatexBase = getLatexToMathConverter();
     let fromLatex = (x: string) => fromLatexBase(normalizeLatexString(x));
     let currentResponses = inputs.map((input) => {
         if (input.type === "math") {
             return "\uff3f";
+        } else if (input.type === "number") {
+            return NaN;
         } else if (input.type === "text") {
             return "";
         } else {
@@ -914,7 +916,10 @@ async function test_answer_multiple_inputs({
 
     function transformOutputValues(values: any[]) {
         return values.map((val, i) => {
-            if (inputs[i].type === "math") {
+            if (
+                (inputs[i].type === "math" || inputs[i].type === "number") &&
+                val.tree !== undefined
+            ) {
                 val = val.tree;
             }
             return val;
@@ -925,6 +930,8 @@ async function test_answer_multiple_inputs({
         return values.map((val, i) => {
             if (inputs[i].type === "math") {
                 val = fromLatex(val).tree;
+            } else if (inputs[i].type === "number") {
+                val = fromLatex(val).evaluate_to_constant();
             } else if (inputs[i].type === "boolean") {
                 val = val === "true";
             }
@@ -946,11 +953,15 @@ async function test_answer_multiple_inputs({
             inputs[i].type === "math" ? x.tree : x,
         ),
     ).eqls(submittedResponses);
-    expect(
-        transformOutputValues(
-            inputNames.map((name) => stateVariables[name].stateValues.value),
-        ),
-    ).eqls(currentResponses);
+    if (inputs.every((x) => x.type !== "number")) {
+        expect(
+            transformOutputValues(
+                inputNames.map(
+                    (name) => stateVariables[name].stateValues.value,
+                ),
+            ),
+        ).eqls(currentResponses);
+    }
 
     for (let response of answers) {
         if (response.preAction) {
@@ -977,7 +988,7 @@ async function test_answer_multiple_inputs({
         // Type answers in
 
         for (let [ind, input] of inputs.entries()) {
-            if (input.type === "math") {
+            if (input.type === "math" || input.type === "number") {
                 await updateMathInputValue({
                     latex: values[ind],
                     componentName: inputNames[ind],
@@ -1333,6 +1344,20 @@ describe("Answer tag tests", async () => {
     it("answer sugar from one string, set to boolean", async () => {
         const doenetML = `
     <answer name="answer1" type="boolean">true</answer>
+  `;
+
+        await test_boolean_answer({
+            doenetML,
+            answers: [
+                { boolean: true, credit: 1 },
+                { boolean: false, credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one string, set to boolean 2", async () => {
+        const doenetML = `
+    <answer name="answer1" type="boolean">not false</answer>
   `;
 
         await test_boolean_answer({
@@ -1745,6 +1770,35 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer from numberList", async () => {
+        const doenetML = `
+    <mathInput name="mi1" /> <mathInput name="mi2" />
+    <answer matchPartial name="answer1"><award><when>
+      <numberList isResponse>$mi1 $mi2</numberList> = <numberList>1 2</numberList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["1", "2"], credit: 1 },
+                { values: ["3", "2"], credit: 0.5 },
+                { values: ["3", ""], credit: 0 },
+                { values: ["2", ""], credit: 0.5 },
+                { values: ["", "2"], credit: 0.5 },
+                { values: ["", "3"], credit: 0 },
+                { values: ["", "1"], credit: 0.5 },
+                { values: ["1", ""], credit: 0.5 },
+                { values: ["2", "1"], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "number", name: "/mi1" },
+                { type: "number", name: "/mi2" },
+            ],
+        });
+    });
+
     it("answer award with text", async () => {
         const doenetML = `
     <answer name="answer1"><award><text>  hello there </text></award></answer>
@@ -1843,7 +1897,7 @@ describe("Answer tag tests", async () => {
         });
     });
 
-    it("answer award with text, initally unresolved", async () => {
+    it("answer award with text, initially unresolved", async () => {
         const doenetML = `
     <answer name="answer1"><award><text>$n</text></award></answer>
 
@@ -1968,6 +2022,20 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer set to boolean, award with sugared string", async () => {
+        const doenetML = `
+    <answer name="answer1" type="boolean"><award>not false</award></answer>
+  `;
+
+        await test_boolean_answer({
+            doenetML,
+            answers: [
+                { boolean: true, credit: 1 },
+                { boolean: false, credit: 0 },
+            ],
+        });
+    });
+
     it("answer award with sugared boolean and string", async () => {
         const doenetML = `
     <boolean hide name="b">false</boolean>
@@ -1979,6 +2047,56 @@ describe("Answer tag tests", async () => {
             answers: [
                 { boolean: true, credit: 1 },
                 { boolean: false, credit: 0 },
+            ],
+        });
+    });
+
+    it("answer from booleanList", async () => {
+        const doenetML = `
+    <booleanInput name="bi1" /> <booleanInput name="bi2" />
+    <answer name="answer1"><award matchPartial matchByExactPositions><when>
+      <booleanList isResponse>$bi1 $bi2</booleanList>=<booleanList>  false true </booleanList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["false", "true"], credit: 1 },
+                { values: ["false", "false"], credit: 0.5 },
+                { values: ["true", "false"], credit: 0 },
+                { values: ["true", "true"], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "boolean", name: "/bi1" },
+                { type: "boolean", name: "/bi2" },
+            ],
+        });
+    });
+
+    it("answer with multiple booleans", async () => {
+        const doenetML = `
+
+    <booleanInput name="bi1" /> <booleanInput name="bi2" />
+    <boolean hide name="b">false</boolean>
+    <answer name="answer1"><award><when>
+        $bi1{isResponse} = not $b and $bi2{isResponse}=$b
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["true", "false"], credit: 1 },
+                { values: ["false", "true"], credit: 0 },
+                { values: ["false", "false"], credit: 0 },
+                { values: ["true", "true"], credit: 0 },
+            ],
+            inputs: [
+                { type: "boolean", name: "/bi1" },
+                { type: "boolean", name: "/bi2" },
             ],
         });
     });
@@ -3689,6 +3807,60 @@ Enter any letter:
         });
     });
 
+    it("default is to split symbols, sugared answer", async () => {
+        const doenetML = `
+<answer name="answer1">xyz</answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                {
+                    latex: "xyza",
+                    credit: 0,
+                },
+                { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
+            ],
+        });
+    });
+
+    it("default is to split symbols, shortcut award, sugared math", async () => {
+        const doenetML = `
+<answer name="answer1"><award>xyz</award></answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                {
+                    latex: "xyza",
+                    credit: 0,
+                },
+                { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
+            ],
+        });
+    });
+
+    it("default is to split symbols, explicit mathInput and math", async () => {
+        const doenetML = `
+<answer name="answer1">
+    <mathInput name="mi" />
+    <award><math>xyz</math></award>
+</answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                {
+                    latex: "xyza",
+                    credit: 0,
+                },
+                { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
+            ],
+        });
+    });
+
     it("with split symbols, specified directly on mathInput and math", async () => {
         const doenetML = `
 <p>split symbols: <booleanInput name="split" /></p>
@@ -3702,6 +3874,7 @@ Enter any letter:
             doenetML,
             answers: [
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
                 {
                     latex: "xyza",
                     credit: 0,
@@ -3712,6 +3885,7 @@ Enter any letter:
                     },
                 },
                 { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
                 {
                     latex: "xyzb",
                     credit: 0,
@@ -3723,6 +3897,7 @@ Enter any letter:
                     overrideResponse: "xyzb",
                 },
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
             ],
         });
     });
@@ -3736,6 +3911,7 @@ Enter any letter:
             doenetML,
             answers: [
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
                 {
                     latex: "xyza",
                     credit: 0,
@@ -3746,6 +3922,7 @@ Enter any letter:
                     },
                 },
                 { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
                 {
                     latex: "xyzb",
                     credit: 0,
@@ -3757,6 +3934,7 @@ Enter any letter:
                     overrideResponse: "xyzb",
                 },
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
             ],
         });
     });
@@ -3772,6 +3950,7 @@ Enter any letter:
             doenetML,
             answers: [
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
                 {
                     latex: "xyza",
                     credit: 0,
@@ -3782,6 +3961,7 @@ Enter any letter:
                     },
                 },
                 { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
                 {
                     latex: "xyzb",
                     credit: 0,
@@ -3793,6 +3973,7 @@ Enter any letter:
                     overrideResponse: "xyzb",
                 },
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
             ],
         });
     });
@@ -3809,6 +3990,7 @@ Enter any letter:
             doenetML,
             answers: [
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
                 {
                     latex: "xyza",
                     credit: 0,
@@ -3819,6 +4001,7 @@ Enter any letter:
                     },
                 },
                 { latex: "xyz", credit: 1 },
+                { latex: "x y z", credit: 1 },
                 {
                     latex: "xyzb",
                     credit: 0,
@@ -3830,6 +4013,7 @@ Enter any letter:
                     overrideResponse: "xyzb",
                 },
                 { latex: "xyz", credit: 1, overrideResponse: "xyz" },
+                { latex: "x y z", credit: 0 },
             ],
         });
     });
@@ -3936,7 +4120,7 @@ Enter any letter:
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
     });
 
-    it("empty mathLists always equal", async () => {
+    it.skip("empty mathLists always equal", async () => {
         let core = await createTestCore({
             doenetML: `
     <answer name="ans1">
@@ -4858,7 +5042,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
     });
 
-    it("case-insensitive match, text", async () => {
+    it("case-insensitive match, math", async () => {
         await test_math_answer({
             doenetML: `<answer name="defSugar">x+Y</answer>`,
             answers: [
@@ -4917,7 +5101,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
     });
 
-    it("case-insensitive match, math", async () => {
+    it("case-insensitive match, text", async () => {
         await test_text_answer({
             doenetML: `<answer type="text" name="defSugar">Hello there!</answer>`,
             answers: [

@@ -1574,4 +1574,97 @@ describe("TextInput tag tests", async () => {
             "Hello \\(\\frac{a}{b}\\)",
         );
     });
+
+    it("characters, words, and list items", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p><textInput name="ti" /></p>
+
+    <p name="p2">Number of characters is $ti.numCharacters.</p>
+    <p name="p3">Characters: $ti.characters.</p>
+    <p name="p4">Number of words is $ti.numWords.</p>
+    <p name="p5">Words: $ti.words.</p>
+    <p name="p6">Number of list items is $ti.numListItems.</p>
+    <p name="p7">List: $ti.list.</p>
+    <p name="p8">Text list from list: <textList name="tl">$ti.list</textList>.</p>
+     `,
+        });
+
+        async function check_items(string: string) {
+            //@ts-ignore
+            const itr = new Intl.Segmenter("en", {
+                granularity: "grapheme",
+            }).segment(string);
+
+            const characters = Array.from(itr, ({ segment }) => segment);
+            const numCharacters = characters.length;
+
+            const words = string.trim().split(/\s+/);
+            const numWords = words.length;
+
+            const list = string
+                .trim()
+                .split(",")
+                .map((s) => s.trim());
+            const numListItems = list.length;
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/p2"].stateValues.text).eq(
+                `Number of characters is ${numCharacters}.`,
+            );
+            expect(stateVariables["/p3"].stateValues.text).eq(
+                `Characters: ${characters.map((v) => v.trim()).join(", ")}.`,
+            );
+            expect(stateVariables["/p4"].stateValues.text).eq(
+                `Number of words is ${numWords}.`,
+            );
+            expect(stateVariables["/p5"].stateValues.text).eq(
+                `Words: ${words.join(", ")}.`,
+            );
+            expect(stateVariables["/p6"].stateValues.text).eq(
+                `Number of list items is ${numListItems}.`,
+            );
+            expect(stateVariables["/p7"].stateValues.text).eq(
+                `List: ${list.join(", ")}.`,
+            );
+            expect(stateVariables["/p8"].stateValues.text).eq(
+                `Text list from list: ${list.join(", ")}.`,
+            );
+
+            expect(stateVariables["/ti"].stateValues.numCharacters).eq(
+                numCharacters,
+            );
+            expect(stateVariables["/ti"].stateValues.characters).eqls(
+                characters,
+            );
+            expect(stateVariables["/ti"].stateValues.numWords).eq(numWords);
+            expect(stateVariables["/ti"].stateValues.words).eqls(words);
+            expect(stateVariables["/ti"].stateValues.numListItems).eq(
+                numListItems,
+            );
+            expect(stateVariables["/ti"].stateValues.list).eqls(list);
+            expect(stateVariables["/tl"].stateValues.texts).eqls(list);
+        }
+
+        let string = "";
+        await check_items(string);
+
+        string = "Rainbow room";
+
+        await updateTextInputValue({
+            text: string,
+            componentName: "/ti",
+            core,
+        });
+        await check_items(string);
+
+        string = "black cat,   green  goblin,great big   red dog";
+        await updateTextInputValue({
+            text: string,
+            componentName: "/ti",
+            core,
+        });
+        await check_items(string);
+    });
 });

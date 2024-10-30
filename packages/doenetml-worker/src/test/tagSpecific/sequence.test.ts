@@ -1,10 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
-    updateMatrixInputValue,
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";

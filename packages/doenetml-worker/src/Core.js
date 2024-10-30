@@ -1872,6 +1872,7 @@ export default class Core {
                     mediatingShadowComposite.mediatesShadows.push({
                         shadowing: newComponent.componentName,
                         shadowed: name,
+                        propVariable: dep.propVariable,
                     });
 
                     if (dep.isPrimaryShadow) {
@@ -2584,7 +2585,9 @@ export default class Core {
         }
 
         if (
-            component.shadows
+            component.shadows &&
+            !component.shadows.propVariable &&
+            !component.constructor.doNotExpandAsShadowed
             //&&
             // this.componentInfoObjects.isCompositeComponent({
             //   componentType: component.componentType,
@@ -2855,9 +2858,9 @@ export default class Core {
         // mediates the shadow of compositeMediatingTheShadow
 
         let foundCircular = false;
-        let shadowedByShadowed = shadowedComposite.mediatesShadows?.map(
-            (v) => v.shadowed,
-        );
+        let shadowedByShadowed = shadowedComposite.mediatesShadows
+            ?.filter((v) => v.propVariable === undefined)
+            .map((v) => v.shadowed);
 
         while (shadowedByShadowed?.length > 0) {
             if (
@@ -2892,7 +2895,9 @@ export default class Core {
                 if (comp.mediatesShadows) {
                     return [
                         ...acc,
-                        ...comp.mediatesShadows.map((v) => v.shadowed),
+                        ...comp.mediatesShadows
+                            .filter((v) => v.propVariable === undefined)
+                            .map((v) => v.shadowed),
                     ];
                 } else {
                     return acc;
@@ -3201,6 +3206,7 @@ export default class Core {
             });
             component.replacements = replacementResult.components;
         } catch (e) {
+            // throw e;
             component.replacements = await this.setErrorReplacements({
                 composite: component,
                 message: e.message,
@@ -3775,6 +3781,15 @@ export default class Core {
                             attributeSpecification.fallBackToParentStateVariable,
                     };
                 }
+                if (
+                    attributeSpecification.fallBackToSourceCompositeStateVariable
+                ) {
+                    dependencies.sourceCompositeValue = {
+                        dependencyType: "sourceCompositeStateVariable",
+                        variableName:
+                            attributeSpecification.fallBackToSourceCompositeStateVariable,
+                    };
+                }
                 if (attributeSpecification.createPrimitiveOfType) {
                     dependencies.attributePrimitive = {
                         dependencyType: "attributePrimitive",
@@ -3838,12 +3853,34 @@ export default class Core {
                             checkForActualChange: { [varName]: true },
                         };
                     } else {
-                        return {
-                            useEssentialOrDefaultValue: {
-                                [varName]: true,
-                            },
-                            checkForActualChange: { [varName]: true },
-                        };
+                        // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
+                        // sourceCompositeValue would be null if the sourceCompositeValue state variables
+                        // did not exist or its value was null
+
+                        let haveSourceCompositeValue =
+                            dependencyValues.sourceCompositeValue !==
+                                undefined &&
+                            dependencyValues.sourceCompositeValue !== null;
+                        if (
+                            haveSourceCompositeValue &&
+                            !usedDefault.sourceCompositeValue &&
+                            essentialValues[varName] === undefined
+                        ) {
+                            return {
+                                setValue: {
+                                    [varName]:
+                                        dependencyValues.sourceCompositeValue,
+                                },
+                                checkForActualChange: { [varName]: true },
+                            };
+                        } else {
+                            return {
+                                useEssentialOrDefaultValue: {
+                                    [varName]: true,
+                                },
+                                checkForActualChange: { [varName]: true },
+                            };
+                        }
                     }
                 }
 
@@ -3905,24 +3942,49 @@ export default class Core {
                                 ],
                             };
                         } else {
-                            // no component or primitive, so value is essential and give it the desired value, but validated
+                            let haveSourceCompositeValue =
+                                dependencyValues.sourceCompositeValue !==
+                                    undefined &&
+                                dependencyValues.sourceCompositeValue !== null;
+                            if (
+                                haveSourceCompositeValue &&
+                                !usedDefault.sourceCompositeValue &&
+                                essentialValues[varName] === undefined
+                            ) {
+                                // value from source composite was used, so propagate back to source composite
+                                return {
+                                    success: true,
+                                    instructions: [
+                                        {
+                                            setDependency:
+                                                "sourceCompositeValue",
+                                            desiredValue:
+                                                desiredStateVariableValues[
+                                                    varName
+                                                ],
+                                        },
+                                    ],
+                                };
+                            } else {
+                                // no component or primitive, so value is essential and give it the desired value, but validated
 
-                            let res = validateAttributeValue({
-                                value: desiredStateVariableValues[varName],
-                                attributeSpecification,
-                                attribute: attrName,
-                            });
+                                let res = validateAttributeValue({
+                                    value: desiredStateVariableValues[varName],
+                                    attributeSpecification,
+                                    attribute: attrName,
+                                });
 
-                            return {
-                                success: true,
-                                instructions: [
-                                    {
-                                        setEssentialValue: varName,
-                                        value: res.value,
-                                    },
-                                ],
-                                sendWarnings: res.warnings,
-                            };
+                                return {
+                                    success: true,
+                                    instructions: [
+                                        {
+                                            setEssentialValue: varName,
+                                            value: res.value,
+                                        },
+                                    ],
+                                    sendWarnings: res.warnings,
+                                };
+                            }
                         }
                     }
 
@@ -4118,6 +4180,7 @@ export default class Core {
         }
         let stateDef =
             stateVariableDefinitions[primaryStateVariableForDefinition];
+        stateDef.isShadow = true;
         stateDef.returnDependencies = () => ({
             adapterTargetVariable: {
                 dependencyType: "stateVariable",
@@ -4177,7 +4240,6 @@ export default class Core {
         componentClass,
     }) {
         let targetComponent = this._components[redefineDependencies.targetName];
-        let core = this;
 
         if (redefineDependencies.propVariable) {
             // if we have an array entry state variable that hasn't been created yet
@@ -4304,6 +4366,13 @@ export default class Core {
                         attributeSpecification.fallBackToParentStateVariable,
                 };
             }
+            if (attributeSpecification.fallBackToSourceCompositeStateVariable) {
+                thisDependencies.sourceCompositeValue = {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName:
+                        attributeSpecification.fallBackToSourceCompositeStateVariable,
+                };
+            }
 
             stateVarDef.returnDependencies = () => thisDependencies;
 
@@ -4349,12 +4418,34 @@ export default class Core {
                             checkForActualChange: { [varName]: true },
                         };
                     } else {
-                        return {
-                            useEssentialOrDefaultValue: {
-                                [varName]: true,
-                            },
-                            checkForActualChange: { [varName]: true },
-                        };
+                        // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
+                        // sourceCompositeValue would be null if the sourceCompositeValue state variables
+                        // did not exist or its value was null
+
+                        let haveSourceCompositeValue =
+                            dependencyValues.sourceCompositeValue !==
+                                undefined &&
+                            dependencyValues.sourceCompositeValue !== null;
+                        if (
+                            haveSourceCompositeValue &&
+                            !usedDefault.sourceCompositeValue &&
+                            essentialValues[varName] === undefined
+                        ) {
+                            return {
+                                setValue: {
+                                    [varName]:
+                                        dependencyValues.sourceCompositeValue,
+                                },
+                                checkForActualChange: { [varName]: true },
+                            };
+                        } else {
+                            return {
+                                useEssentialOrDefaultValue: {
+                                    [varName]: true,
+                                },
+                                checkForActualChange: { [varName]: true },
+                            };
+                        }
                     }
                 }
 
@@ -4418,23 +4509,48 @@ export default class Core {
                                 ],
                             };
                         } else {
-                            // no component or primitive, so value is essential and give it the desired value, but validated
-                            let res = validateAttributeValue({
-                                value: desiredStateVariableValues[varName],
-                                attributeSpecification,
-                                attribute: attrName,
-                            });
+                            let haveSourceCompositeValue =
+                                dependencyValues.sourceCompositeValue !==
+                                    undefined &&
+                                dependencyValues.sourceCompositeValue !== null;
+                            if (
+                                haveSourceCompositeValue &&
+                                !usedDefault.sourceCompositeValue &&
+                                essentialValues[varName] === undefined
+                            ) {
+                                // value from source composite was used, so propagate back to source composite
+                                return {
+                                    success: true,
+                                    instructions: [
+                                        {
+                                            setDependency:
+                                                "sourceCompositeValue",
+                                            desiredValue:
+                                                desiredStateVariableValues[
+                                                    varName
+                                                ],
+                                        },
+                                    ],
+                                };
+                            } else {
+                                // no component or primitive, so value is essential and give it the desired value, but validated
+                                let res = validateAttributeValue({
+                                    value: desiredStateVariableValues[varName],
+                                    attributeSpecification,
+                                    attribute: attrName,
+                                });
 
-                            return {
-                                success: true,
-                                instructions: [
-                                    {
-                                        setEssentialValue: varName,
-                                        value: res.value,
-                                    },
-                                ],
-                                sendWarnings: res.warnings,
-                            };
+                                return {
+                                    success: true,
+                                    instructions: [
+                                        {
+                                            setEssentialValue: varName,
+                                            value: res.value,
+                                        },
+                                    ],
+                                    sendWarnings: res.warnings,
+                                };
+                            }
                         }
                     }
                     // attribute based on child
@@ -8999,7 +9115,10 @@ export default class Core {
 
         if (parent.shadowedBy) {
             for (let shadowingParent of parent.shadowedBy) {
-                if (shadowingParent.shadows.propVariable) {
+                if (
+                    shadowingParent.shadows.propVariable ||
+                    shadowingParent.constructor.doNotExpandAsShadowed
+                ) {
                     continue;
                 }
 
@@ -9445,7 +9564,11 @@ export default class Core {
         let addedComponents = {};
         let parentsOfDeleted = new Set();
 
-        if (component.shadows) {
+        if (
+            component.shadows &&
+            !component.shadows.propVariable &&
+            !component.constructor.doNotExpandAsShadowed
+        ) {
             // if shadows, don't update replacements
             // instead, replacements will get updated when shadowed component
             // is updated
@@ -9598,6 +9721,7 @@ export default class Core {
 
                         newComponents = createResult.components;
                     } catch (e) {
+                        // throw e;
                         newComponents = await this.setErrorReplacements({
                             composite: component,
                             message: e.message,
@@ -9876,7 +10000,10 @@ export default class Core {
 
         if (composite.shadowedBy) {
             for (let shadowingComposite of composite.shadowedBy) {
-                if (shadowingComposite.shadows.propVariable) {
+                if (
+                    shadowingComposite.shadows.propVariable ||
+                    shadowingComposite.constructor.doNotExpandAsShadowed
+                ) {
                     continue;
                 }
 
@@ -9888,7 +10015,10 @@ export default class Core {
                         let shadowingCompToDelete;
                         if (compToDelete.shadowedBy) {
                             for (let cShadow of compToDelete.shadowedBy) {
-                                if (cShadow.shadows.propVariable) {
+                                if (
+                                    cShadow.shadows.propVariable ||
+                                    cShadow.constructor.doNotExpandAsShadowed
+                                ) {
                                     continue;
                                 }
                                 if (
@@ -10060,7 +10190,10 @@ export default class Core {
 
         if (component.shadowedBy) {
             for (let shadowingComponent of component.shadowedBy) {
-                if (shadowingComponent.shadows.propVariable) {
+                if (
+                    shadowingComponent.shadows.propVariable ||
+                    shadowingComponent.constructor.doNotExpandAsShadowed
+                ) {
                     continue;
                 }
                 await this.processChildChangesAndRecurseToShadows(
@@ -10106,7 +10239,10 @@ export default class Core {
         let newComponentsForShadows = {};
 
         for (let shadowingComponent of componentToShadow.shadowedBy) {
-            if (shadowingComponent.shadows.propVariable) {
+            if (
+                shadowingComponent.shadows.propVariable ||
+                shadowingComponent.constructor.doNotExpandAsShadowed
+            ) {
                 continue;
             }
 
@@ -10320,6 +10456,7 @@ export default class Core {
                     });
                     newComponents = createResult.components;
                 } catch (e) {
+                    // throw e;
                     newComponents = await this.setErrorReplacements({
                         composite: shadowingComponent,
                         message: e.message,
@@ -10333,7 +10470,10 @@ export default class Core {
                 if (parentToShadow) {
                     if (parentToShadow.shadowedBy) {
                         for (let pShadow of parentToShadow.shadowedBy) {
-                            if (pShadow.shadows.propVariable) {
+                            if (
+                                pShadow.shadows.propVariable ||
+                                pShadow.constructor.doNotExpandAsShadowed
+                            ) {
                                 continue;
                             }
                             if (
@@ -10466,7 +10606,10 @@ export default class Core {
 
         if (component.shadowedBy) {
             for (let shadowingComponent of component.shadowedBy) {
-                if (shadowingComponent.shadows.propVariable) {
+                if (
+                    shadowingComponent.shadows.propVariable ||
+                    shadowingComponent.constructor.doNotExpandAsShadowed
+                ) {
                     continue;
                 }
                 let additionalcompositesWithAdjustedReplacements =
@@ -13627,7 +13770,10 @@ function calculateAllComponentsShadowing(component) {
     let allShadowing = [];
     if (component.shadowedBy) {
         for (let comp2 of component.shadowedBy) {
-            if (!comp2.shadows.propVariable) {
+            if (
+                !comp2.shadows.propVariable &
+                !comp2.constructor.doNotExpandAsShadowed
+            ) {
                 allShadowing.push(comp2.componentName);
                 let additionalShadowing =
                     calculateAllComponentsShadowing(comp2);
