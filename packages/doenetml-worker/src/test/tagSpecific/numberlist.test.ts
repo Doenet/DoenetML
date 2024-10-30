@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -17,7 +20,7 @@ describe("NumberList tag tests", async () => {
         name?: string;
         pName?: string;
         text?: string;
-        numbers?: any[];
+        numbers?: number[];
     }) {
         const stateVariables = await returnAllStateVariables(core);
 
@@ -515,6 +518,94 @@ describe("NumberList tag tests", async () => {
             core,
         });
         await check_items(max1, max2);
+    });
+
+    it("always merge math lists when have one math child", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p name="p1"><numberList name="nl1">
+      <math>1,2,3,4,5</math>
+    </numberList></p>
+
+    <p name="p2">Third number: $nl1[3]</p>
+    <p name="p3">Fifth number: $nl1[5]</p>
+
+    <p>Change values:
+      <mathInput name="mi1">$nl1[1]</mathInput>
+      <mathInput name="mi2">$nl1[2]</mathInput>
+      <mathInput name="mi3">$nl1[3]</mathInput>
+      <mathInput name="mi4">$nl1[4]</mathInput>
+      <mathInput name="mi5">$nl1[5]</mathInput>
+    </p>
+    `,
+        });
+
+        async function check_items(vals: number[]) {
+            await test_numberList({
+                core,
+                name: `/nl1`,
+                numbers: vals,
+                pName: `/p1`,
+                text: vals.join(", "),
+            });
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/p2"].stateValues.text).eq(
+                `Third number: ${vals[2]}`,
+            );
+            expect(stateVariables["/p3"].stateValues.text).eq(
+                `Fifth number: ${vals[4]}`,
+            );
+        }
+
+        let vals = [1, 2, 3, 4, 5];
+
+        await check_items(vals);
+
+        vals = [6, 7, 8, 9, 10];
+        for (let [i, v] of vals.entries()) {
+            await updateMathInputValue({
+                latex: v.toString(),
+                componentName: `/mi${i + 1}`,
+                core,
+            });
+        }
+        await check_items(vals);
+    });
+
+    it("maxNumber with when have one math child", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <p name="p1"><numberList maxNumber="3" name="nl">
+      <math name="m">1,2,3,4,5</math>
+    </numberList></p>
+
+    <p name="p2">Copied math: $m</p>
+
+    <p name="p3">Copied numberList: $nl</p>
+
+    `,
+        });
+
+        let vals = [1, 2, 3, 4, 5];
+
+        await test_numberList({
+            core,
+            name: `/nl`,
+            numbers: vals.slice(0, 3),
+            pName: `/p1`,
+            text: vals.slice(0, 3).join(", "),
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/p2"].stateValues.text).eq(
+            `Copied math: ${vals.join(", ")}`,
+        );
+        expect(stateVariables["/p3"].stateValues.text).eq(
+            `Copied numberList: ${vals.slice(0, 3).join(", ")}`,
+        );
     });
 
     it("maxNumber with mathList or numberList child", async () => {
@@ -1041,5 +1132,45 @@ describe("NumberList tag tests", async () => {
         const stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/pText"].stateValues.text).eq("Text: 7, -8");
         expect(stateVariables["/pLatex"].stateValues.text).eq("Latex: 7, -8");
+    });
+
+    it("definition and inverse based on shadowed value from a numberList prop", async () => {
+        let core = await createTestCore({
+            doenetML: `
+
+    <regionBetweenCurves boundaryValues="-5 8" name="rbc" />
+
+    <p name="p">$rbc.boundaryValues{assignNames="nl"}</p>
+    <mathInput name="mi">$rbc.boundaryValues</mathInput>
+
+    `,
+        });
+
+        const stateVariables = await returnAllStateVariables(core);
+
+        let n1 = -5,
+            n2 = 8;
+        await test_numberList({
+            core,
+            name: "/nl",
+            numbers: [n1, n2],
+            pName: "/p",
+            text: `${n1}, ${n2}`,
+        });
+
+        n1 = 3;
+        n2 = 6;
+        await updateMathInputValue({
+            latex: `${n1}, ${n2}`,
+            componentName: "/mi",
+            core,
+        });
+        await test_numberList({
+            core,
+            name: "/nl",
+            numbers: [n1, n2],
+            pName: "/p",
+            text: `${n1}, ${n2}`,
+        });
     });
 });

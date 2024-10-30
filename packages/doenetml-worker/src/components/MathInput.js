@@ -147,6 +147,7 @@ export default class MathInput extends Input {
         sugarInstructions.push({
             replacementFunction: returnWrapNonLabelsSugarFunction({
                 wrappingComponentType: "math",
+                wrapSingleIfNotWrappingComponentType: true,
             }),
         });
 

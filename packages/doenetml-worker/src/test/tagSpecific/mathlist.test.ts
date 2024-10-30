@@ -1589,4 +1589,45 @@ describe("MathList tag tests", async () => {
             "Latex: \\frac{x}{y}, a^{b}",
         );
     });
+
+    it("definition and inverse based on shadowed value from a mathList prop", async () => {
+        let core = await createTestCore({
+            doenetML: `
+
+    <matchesPattern excludeMatches="a b" name="mp" />
+
+    <p name="p">$mp.excludeMatches{assignNames="ml"}</p>
+
+    <mathInput name="mi">$mp.excludeMatches</mathInput>
+
+    `,
+        });
+
+        const stateVariables = await returnAllStateVariables(core);
+
+        let x1 = "a",
+            x2 = "b";
+        await test_mathList({
+            core,
+            name: "/ml",
+            maths: [x1, x2],
+            pName: "/p",
+            text: `${x1}, ${x2}`,
+        });
+
+        x1 = "c";
+        x2 = "d";
+        await updateMathInputValue({
+            latex: `${x1}, ${x2}`,
+            componentName: "/mi",
+            core,
+        });
+        await test_mathList({
+            core,
+            name: "/ml",
+            maths: [x1, x2],
+            pName: "/p",
+            text: `${x1}, ${x2}`,
+        });
+    });
 });

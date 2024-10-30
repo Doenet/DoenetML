@@ -642,4 +642,44 @@ describe("TextList tag tests", async () => {
             "Text: apple, banana",
         );
     });
+
+    it("definition and inverse based on shadowed value from a textList prop", async () => {
+        let core = await createTestCore({
+            doenetML: `
+
+    <math functionSymbols="a b" name="m" />
+
+    <p name="p">$m.functionSymbols{assignNames="tl"}</p>
+
+
+    <textInput name="ti">$m.functionSymbols</textInput>
+
+    `,
+        });
+
+        let x1 = "a",
+            x2 = "b";
+        await test_textList({
+            core,
+            name: "/tl",
+            texts: [x1, x2],
+            pName: "/p",
+            text: `${x1}, ${x2}`,
+        });
+
+        x1 = "c";
+        x2 = "d";
+        await updateTextInputValue({
+            text: `${x1}, ${x2}`,
+            componentName: "/ti",
+            core,
+        });
+        await test_textList({
+            core,
+            name: "/tl",
+            texts: [x1, x2],
+            pName: "/p",
+            text: `${x1}, ${x2}`,
+        });
+    });
 });

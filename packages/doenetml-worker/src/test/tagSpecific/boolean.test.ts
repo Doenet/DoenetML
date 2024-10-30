@@ -1009,7 +1009,7 @@ describe("Boolean tag tests", async () => {
                 isSupersetCaseInsensitive: false,
             },
             {
-                set1: "<extract prop='listItems'><text>a, c</text></extract>",
+                set1: "<extract prop='list'><text>a, c</text></extract>",
                 set2: "<sequence type='letters' from='a' to='e' step='2' />",
                 isSubset: true,
                 isSubsetCaseInsensitive: true,

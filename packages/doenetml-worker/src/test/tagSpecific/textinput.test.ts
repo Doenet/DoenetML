@@ -1585,7 +1585,7 @@ describe("TextInput tag tests", async () => {
     <p name="p4">Number of words is $ti.numWords.</p>
     <p name="p5">Words: $ti.words.</p>
     <p name="p6">Number of list items is $ti.numListItems.</p>
-    <p name="p7">List items: $ti.listItems.</p>
+    <p name="p7">List: $ti.list.</p>
      `,
         });
 
@@ -1601,11 +1601,11 @@ describe("TextInput tag tests", async () => {
             const words = string.trim().split(/\s+/);
             const numWords = words.length;
 
-            const listItems = string
+            const list = string
                 .trim()
                 .split(",")
                 .map((s) => s.trim());
-            const numListItems = listItems.length;
+            const numListItems = list.length;
 
             const stateVariables = await returnAllStateVariables(core);
 
@@ -1625,7 +1625,7 @@ describe("TextInput tag tests", async () => {
                 `Number of list items is ${numListItems}.`,
             );
             expect(stateVariables["/p7"].stateValues.text).eq(
-                `List items: ${listItems.join(", ")}.`,
+                `List: ${list.join(", ")}.`,
             );
 
             expect(stateVariables["/ti"].stateValues.numCharacters).eq(
@@ -1639,7 +1639,7 @@ describe("TextInput tag tests", async () => {
             expect(stateVariables["/ti"].stateValues.numListItems).eq(
                 numListItems,
             );
-            expect(stateVariables["/ti"].stateValues.listItems).eqls(listItems);
+            expect(stateVariables["/ti"].stateValues.list).eqls(list);
         }
 
         let string = "";

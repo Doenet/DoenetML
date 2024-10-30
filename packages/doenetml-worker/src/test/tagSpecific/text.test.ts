@@ -981,13 +981,13 @@ describe("Text tag tests", async () => {
         ]);
     });
 
-    it("numListItems and listItems", async () => {
+    it("numListItems and list", async () => {
         let core = await createTestCore({
             doenetML: `
     <p><text name="t">Hello there, friend!</text>!</p>
 
     <p name="p2">Number of list items is $t.numListItems.</p>
-    <p name="p3">list items: $t.listItems.</p>
+    <p name="p3">list items: $t.list.</p>
     `,
         });
 
@@ -1001,7 +1001,7 @@ describe("Text tag tests", async () => {
         );
 
         expect(stateVariables["/t"].stateValues.numListItems).eq(2);
-        expect(stateVariables["/t"].stateValues.listItems).eqls([
+        expect(stateVariables["/t"].stateValues.list).eqls([
             "Hello there",
             "friend!",
         ]);

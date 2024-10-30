@@ -277,7 +277,6 @@ export default class MathList extends CompositeComponent {
         };
 
         stateVariableDefinitions.maths = {
-            public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
             },

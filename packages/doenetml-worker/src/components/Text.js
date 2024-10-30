@@ -169,9 +169,48 @@ export default class Text extends InlineComponent {
                 dependencyValues,
             }) {
                 let numChildren = dependencyValues.textLikeChildren.length;
+
                 if (numChildren > 1) {
+                    // if have multiple children, then we could still update them if
+                    // 1. all children come from a single composite with asList set to true, and
+                    // 2. the desired value is a comma-separated list with the number of entries
+                    //    matching the number of children.
+                    // In that case, we will attempt to update each child to the corresponding entry
+                    // from the desired value.
+
+                    // Check if all text children are from a composite with asList set to true
+                    let foundAllFromListComposite = false;
+                    for (let range of dependencyValues.textLikeChildren
+                        .compositeReplacementRange) {
+                        if (
+                            range.asList &&
+                            range.firstInd === 0 &&
+                            range.lastInd === numChildren - 1
+                        ) {
+                            foundAllFromListComposite = true;
+                        }
+                    }
+
+                    if (foundAllFromListComposite) {
+                        // Check if desired value is a comma-separated list with the same number of entries as children
+                        let splitValues = desiredStateVariableValues.value
+                            .split(",")
+                            .map((v) => v.trim());
+
+                        if (splitValues.length === numChildren) {
+                            // All conditions are met, so we attempt to update the children
+                            let instructions = splitValues.map((v, i) => ({
+                                setDependency: "textLikeChildren",
+                                desiredValue: v,
+                                childIndex: i,
+                                variableIndex: 0,
+                            }));
+                            return { success: true, instructions };
+                        }
+                    }
                     return { success: false };
                 }
+
                 if (numChildren === 1) {
                     return {
                         success: true,

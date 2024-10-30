@@ -101,6 +101,7 @@ export default class Textinput extends Input {
         sugarInstructions.push({
             replacementFunction: returnWrapNonLabelsSugarFunction({
                 wrappingComponentType: "text",
+                wrapSingleIfNotWrappingComponentType: true,
             }),
         });
 
