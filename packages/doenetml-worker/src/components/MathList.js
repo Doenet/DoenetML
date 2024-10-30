@@ -227,7 +227,6 @@ export default class MathList extends CompositeComponent {
                             let childValue = child.stateValues.value;
 
                             if (
-                                childValue &&
                                 Array.isArray(childValue.tree) &&
                                 childValue.tree[0] === "list"
                             ) {
@@ -454,7 +453,24 @@ export default class MathList extends CompositeComponent {
                                 childIndex: 0,
                                 variableIndex: 0,
                             });
+                        } else if (
+                            globalDependencyValues.mathsShadow !== null
+                        ) {
+                            if (!workspace.desiredMathShadow) {
+                                workspace.desiredMathShadow = [
+                                    ...globalDependencyValues.mathsShadow,
+                                ];
+                            }
+                            workspace.desiredMathShadow[arrayKey] =
+                                desiredValue;
                         }
+                    }
+
+                    if (workspace.desiredMathShadow) {
+                        instructions.push({
+                            setDependency: "mathsShadow",
+                            desiredValue: workspace.desiredMathShadow,
+                        });
                     }
 
                     return {
@@ -489,11 +505,14 @@ export default class MathList extends CompositeComponent {
                         }
                         workspace.desiredMathShadow[arrayKey] =
                             desiredStateVariableValues.maths[arrayKey];
-                        instructions.push({
-                            setDependency: "mathsShadow",
-                            desiredValue: workspace.desiredMathShadow,
-                        });
                     }
+                }
+
+                if (workspace.desiredMathShadow) {
+                    instructions.push({
+                        setDependency: "mathsShadow",
+                        desiredValue: workspace.desiredMathShadow,
+                    });
                 }
 
                 return {
@@ -579,9 +598,9 @@ export default class MathList extends CompositeComponent {
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
             let childInfo = childInfoByComponent[i];
-            let replacementSource = components[childInfo.childName];
+            if (childInfo) {
+                let replacementSource = components[childInfo.childName];
 
-            if (replacementSource) {
                 if (childInfo.nComponents !== undefined) {
                     componentsCopied.push(
                         replacementSource.componentName +
@@ -653,16 +672,12 @@ export default class MathList extends CompositeComponent {
         for (let childInfo of childInfoByComponent) {
             let replacementSource = components[childInfo.childName];
 
-            if (replacementSource) {
-                if (childInfo.nComponents !== undefined) {
-                    componentsToCopy.push(
-                        replacementSource.componentName +
-                            ":" +
-                            childInfo.component,
-                    );
-                } else {
-                    componentsToCopy.push(replacementSource.componentName);
-                }
+            if (childInfo.nComponents !== undefined) {
+                componentsToCopy.push(
+                    replacementSource.componentName + ":" + childInfo.component,
+                );
+            } else {
+                componentsToCopy.push(replacementSource.componentName);
             }
         }
 

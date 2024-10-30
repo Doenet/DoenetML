@@ -262,6 +262,64 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         targetVariableName: "x3",
     };
 
+    stateVariableDefinitions.list = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "math",
+            addAttributeComponentsShadowingStateVariables:
+                returnRoundingAttributeComponentShadowing(),
+        },
+        isArray: true,
+        entryPrefixes: ["listItem"],
+        returnArraySizeDependencies: () => ({
+            numDimensions: {
+                dependencyType: "stateVariable",
+                variableName: "numDimensions",
+            },
+        }),
+        returnArraySize({
+            dependencyValues,
+        }: {
+            dependencyValues: { numDimensions: number };
+        }) {
+            return [dependencyValues.numDimensions];
+        },
+        returnArrayDependenciesByKey() {
+            let globalDependencies = {
+                vector: {
+                    dependencyType: "stateVariable",
+                    variableName: "vector",
+                },
+            };
+            return { globalDependencies };
+        },
+        arrayDefinitionByKey({
+            globalDependencyValues,
+        }: {
+            globalDependencyValues: { vector: any };
+        }) {
+            return { setValue: { list: globalDependencyValues.vector } };
+        },
+
+        async inverseArrayDefinitionByKey({
+            desiredStateVariableValues,
+        }: {
+            desiredStateVariableValues: { list: any[] };
+        }) {
+            let instructions = [
+                {
+                    setDependency: "vector",
+                    desiredValue: desiredStateVariableValues.list,
+                },
+            ];
+
+            return {
+                success: true,
+                instructions,
+            };
+        },
+    };
+
     stateVariableDefinitions.matrixSize = {
         public: true,
         shadowingInstructions: {

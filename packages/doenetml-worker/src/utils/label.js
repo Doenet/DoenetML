@@ -80,10 +80,13 @@ export function returnWrapNonLabelsSugarFunction({
                 ],
             };
         } else {
-            // apply only if have a single string or multiple children to wrap
+            // apply only if have a single string/composite or multiple children to wrap
             if (
                 (childrenToWrap.length === 1 &&
-                    typeof childrenToWrap[0] !== "string") ||
+                    typeof childrenToWrap[0] !== "string" &&
+                    !componentInfoObjects.isCompositeComponent({
+                        componentType: childrenToWrap[0].componentType,
+                    })) ||
                 childrenToWrap.length === 0
             ) {
                 return { success: false };

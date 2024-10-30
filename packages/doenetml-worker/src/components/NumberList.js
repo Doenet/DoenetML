@@ -1,6 +1,8 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { returnRoundingAttributes } from "../utils/rounding";
+import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import { convertValueToMathExpression } from "@doenet/utils";
+import { returnRoundingAttributes } from "../utils/rounding";
 import {
     convertAttributesForComponentType,
     postProcessCopy,
@@ -89,6 +91,10 @@ export default class NumberList extends CompositeComponent {
                 group: "numbers",
                 componentTypes: ["number"],
             },
+            {
+                group: "maths",
+                componentTypes: ["math"],
+            },
         ];
     }
 
@@ -113,35 +119,119 @@ export default class NumberList extends CompositeComponent {
             },
         };
 
+        stateVariableDefinitions.mergeMathLists = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                mergeMathListsAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "mergeMathLists",
+                    variableNames: ["value"],
+                },
+                mathChildren: {
+                    dependencyType: "child",
+                    childGroups: ["maths"],
+                    skipComponentNames: true,
+                },
+                numberChildren: {
+                    dependencyType: "child",
+                    childGroups: ["numbers"],
+                    skipComponentNames: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                let mergeMathLists =
+                    dependencyValues.mathChildren.length === 1 &&
+                    dependencyValues.numberChildren.length === 0;
+                return { setValue: { mergeMathLists } };
+            },
+        };
+
         stateVariableDefinitions.numComponents = {
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
-            additionalStateVariablesDefined: ["childNameByComponent"],
-            returnDependencies: () => ({
-                maxNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumber",
-                },
-                numberChildren: {
-                    dependencyType: "child",
-                    childGroups: ["numbers"],
-                },
-                numbersShadow: {
-                    dependencyType: "stateVariable",
-                    variableName: "numbersShadow",
-                },
-            }),
+            stateVariablesDeterminingDependencies: ["mergeMathLists"],
+            additionalStateVariablesDefined: ["childInfoByComponent"],
+            returnDependencies({ stateValues }) {
+                let dependencies = {
+                    maxNumber: {
+                        dependencyType: "stateVariable",
+                        variableName: "maxNumber",
+                    },
+                    mergeMathLists: {
+                        dependencyType: "stateVariable",
+                        variableName: "mergeMathLists",
+                    },
+                    numbersShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "numbersShadow",
+                    },
+                };
+
+                if (stateValues.mergeMathLists) {
+                    dependencies.numberMathChildren = {
+                        dependencyType: "child",
+                        childGroups: ["numbers", "maths"],
+                        variableNames: ["value"],
+                    };
+                } else {
+                    dependencies.numberMathChildren = {
+                        dependencyType: "child",
+                        childGroups: ["numbers", "maths"],
+                    };
+                }
+
+                return dependencies;
+            },
             definition: function ({ dependencyValues }) {
                 let numComponents = 0;
-                let childNameByComponent = [];
+                let childInfoByComponent = [];
 
-                if (dependencyValues.numberChildren.length > 0) {
-                    childNameByComponent = dependencyValues.numberChildren.map(
-                        (x) => x.componentName,
-                    );
-                    numComponents = dependencyValues.numberChildren.length;
+                if (dependencyValues.numberMathChildren.length > 0) {
+                    if (dependencyValues.mergeMathLists) {
+                        for (let [
+                            childInd,
+                            child,
+                        ] of dependencyValues.numberMathChildren.entries()) {
+                            let childValue = child.stateValues.value;
+
+                            if (
+                                Array.isArray(childValue.tree) &&
+                                childValue.tree[0] === "list"
+                            ) {
+                                let nComponents = childValue.tree.length - 1;
+                                for (let i = 0; i < nComponents; i++) {
+                                    childInfoByComponent[i + numComponents] = {
+                                        childInd,
+                                        component: i,
+                                        nComponents,
+                                        childName: child.componentName,
+                                    };
+                                }
+                                numComponents += nComponents;
+                            } else {
+                                childInfoByComponent[numComponents] = {
+                                    childInd,
+                                    childName: child.componentName,
+                                };
+                                numComponents += 1;
+                            }
+                        }
+                    } else {
+                        numComponents =
+                            dependencyValues.numberMathChildren.length;
+                        childInfoByComponent =
+                            dependencyValues.numberMathChildren.map(
+                                (child, i) => ({
+                                    childInd: i,
+                                    childName: child.componentName,
+                                }),
+                            );
+                    }
                 } else if (dependencyValues.numbersShadow !== null) {
                     numComponents = dependencyValues.numbersShadow.length;
                 }
@@ -149,14 +239,14 @@ export default class NumberList extends CompositeComponent {
                 let maxNum = dependencyValues.maxNumber;
                 if (numComponents > maxNum) {
                     numComponents = maxNum;
-                    childNameByComponent = childNameByComponent.slice(
+                    childInfoByComponent = childInfoByComponent.slice(
                         0,
                         maxNum,
                     );
                 }
 
                 return {
-                    setValue: { numComponents, childNameByComponent },
+                    setValue: { numComponents, childInfoByComponent },
                     checkForActualChange: { numComponents: true },
                 };
             },
@@ -168,7 +258,10 @@ export default class NumberList extends CompositeComponent {
             },
             isArray: true,
             entryPrefixes: ["number"],
-            stateVariablesDeterminingDependencies: ["childNameByComponent"],
+            stateVariablesDeterminingDependencies: [
+                "mergeMathLists",
+                "childInfoByComponent",
+            ],
             returnArraySizeDependencies: () => ({
                 numComponents: {
                     dependencyType: "stateVariable",
@@ -182,9 +275,13 @@ export default class NumberList extends CompositeComponent {
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 let dependenciesByKey = {};
                 let globalDependencies = {
-                    childNameByComponent: {
+                    mergeMathLists: {
                         dependencyType: "stateVariable",
-                        variableName: "childNameByComponent",
+                        variableName: "mergeMathLists",
+                    },
+                    childInfoByComponent: {
+                        dependencyType: "stateVariable",
+                        variableName: "childInfoByComponent",
                     },
                     numbersShadow: {
                         dependencyType: "stateVariable",
@@ -194,13 +291,15 @@ export default class NumberList extends CompositeComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let childIndices = [];
-                    if (stateValues.childNameByComponent[arrayKey]) {
-                        childIndices = [arrayKey];
+                    if (stateValues.childInfoByComponent[arrayKey]) {
+                        childIndices = [
+                            stateValues.childInfoByComponent[arrayKey].childInd,
+                        ];
                     }
                     dependenciesByKey[arrayKey] = {
-                        numberChildren: {
+                        numberMathChildren: {
                             dependencyType: "child",
-                            childGroups: ["numbers"],
+                            childGroups: ["numbers", "maths"],
                             variableNames: ["value"],
                             childIndices,
                         },
@@ -217,10 +316,30 @@ export default class NumberList extends CompositeComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let child =
-                        dependencyValuesByKey[arrayKey].numberChildren[0];
+                        dependencyValuesByKey[arrayKey].numberMathChildren[0];
 
                     if (child) {
-                        numbers[arrayKey] = child.stateValues.value;
+                        let childValue = child.stateValues.value;
+                        if (
+                            globalDependencyValues.mergeMathLists &&
+                            Array.isArray(childValue.tree) &&
+                            childValue.tree[0] === "list"
+                        ) {
+                            let ind2 =
+                                globalDependencyValues.childInfoByComponent[
+                                    arrayKey
+                                ].component;
+                            numbers[arrayKey] = childValue
+                                .get_component(ind2)
+                                .evaluate_to_constant();
+                        } else if (
+                            childValue.evaluate_to_constant !== undefined
+                        ) {
+                            numbers[arrayKey] =
+                                childValue.evaluate_to_constant();
+                        } else {
+                            numbers[arrayKey] = childValue;
+                        }
                     } else if (globalDependencyValues.numbersShadow !== null) {
                         numbers[arrayKey] =
                             globalDependencyValues.numbersShadow[arrayKey];
@@ -229,13 +348,135 @@ export default class NumberList extends CompositeComponent {
 
                 return { setValue: { numbers } };
             },
-            inverseArrayDefinitionByKey({
+            async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
                 dependencyValuesByKey,
                 globalDependencyValues,
                 dependencyNamesByKey,
+                componentInfoObjects,
+                stateValues,
                 workspace,
             }) {
+                if (globalDependencyValues.mergeMathLists) {
+                    let instructions = [];
+
+                    let childInfoByComponent =
+                        await stateValues.childInfoByComponent;
+
+                    let arrayKeysAddressed = [];
+
+                    for (let arrayKey in desiredStateVariableValues.numbers) {
+                        if (!dependencyValuesByKey[arrayKey]) {
+                            continue;
+                        }
+
+                        if (arrayKeysAddressed.includes(arrayKey)) {
+                            continue;
+                        }
+
+                        let child =
+                            dependencyValuesByKey[arrayKey]
+                                .numberMathChildren[0];
+
+                        let desiredValue;
+                        if (
+                            childInfoByComponent[arrayKey].nComponents !==
+                            undefined
+                        ) {
+                            // found a math that has been split due to merging
+
+                            // array keys that are associated with this math child
+                            let firstInd =
+                                Number(arrayKey) -
+                                childInfoByComponent[arrayKey].component;
+                            let lastInd =
+                                firstInd +
+                                childInfoByComponent[arrayKey].nComponents -
+                                1;
+
+                            // in case just one ind specified, merge with previous values
+                            if (!workspace.desiredMaths) {
+                                workspace.desiredMaths = [];
+                            }
+
+                            let desiredTree = ["list"];
+
+                            for (let i = firstInd; i <= lastInd; i++) {
+                                if (
+                                    desiredStateVariableValues.numbers[i] !==
+                                    undefined
+                                ) {
+                                    workspace.desiredMaths[i] =
+                                        convertValueToMathExpression(
+                                            desiredStateVariableValues.numbers[
+                                                i
+                                            ],
+                                        );
+                                } else if (
+                                    workspace.desiredMaths[i] === undefined
+                                ) {
+                                    workspace.desiredMaths[i] = me.fromAst(
+                                        (await stateValues.numbers)[i],
+                                    );
+                                }
+
+                                desiredTree.push(
+                                    workspace.desiredMaths[i].tree,
+                                );
+                                arrayKeysAddressed.push(i.toString());
+                            }
+
+                            desiredValue = me.fromAst(desiredTree);
+                        } else {
+                            desiredValue =
+                                desiredStateVariableValues.numbers[arrayKey];
+                            if (
+                                componentInfoObjects.isInheritedComponentType({
+                                    inheritedComponentType:
+                                        child?.componentType,
+                                    baseComponentType: "math",
+                                })
+                            ) {
+                                desiredValue =
+                                    convertValueToMathExpression(desiredValue);
+                            }
+                        }
+
+                        if (child) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey]
+                                        .numberMathChildren,
+                                desiredValue,
+                                childIndex: 0,
+                                variableIndex: 0,
+                            });
+                        } else if (
+                            globalDependencyValues.numbersShadow !== null
+                        ) {
+                            if (!workspace.desiredNumberShadow) {
+                                workspace.desiredNumberShadow = [
+                                    ...globalDependencyValues.numbersShadow,
+                                ];
+                            }
+                            workspace.desiredNumberShadow[arrayKey] =
+                                desiredValue;
+                        }
+                    }
+
+                    if (workspace.desiredNumberShadow) {
+                        instructions.push({
+                            setDependency: "numbersShadow",
+                            desiredValue: workspace.desiredNumberShadow,
+                        });
+                    }
+
+                    return {
+                        success: true,
+                        instructions,
+                    };
+                }
+
                 let instructions = [];
 
                 for (let arrayKey in desiredStateVariableValues.numbers) {
@@ -244,14 +485,25 @@ export default class NumberList extends CompositeComponent {
                     }
 
                     let child =
-                        dependencyValuesByKey[arrayKey].numberChildren[0];
+                        dependencyValuesByKey[arrayKey].numberMathChildren[0];
 
                     if (child) {
+                        let desiredValue =
+                            desiredStateVariableValues.numbers[arrayKey];
+                        if (
+                            componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType: child.componentType,
+                                baseComponentType: "math",
+                            })
+                        ) {
+                            desiredValue =
+                                convertValueToMathExpression(desiredValue);
+                        }
                         instructions.push({
                             setDependency:
-                                dependencyNamesByKey[arrayKey].numberChildren,
-                            desiredValue:
-                                desiredStateVariableValues.numbers[arrayKey],
+                                dependencyNamesByKey[arrayKey]
+                                    .numberMathChildren,
+                            desiredValue,
                             childIndex: 0,
                             variableIndex: 0,
                         });
@@ -263,11 +515,14 @@ export default class NumberList extends CompositeComponent {
                         }
                         workspace.desiredNumberShadow[arrayKey] =
                             desiredStateVariableValues.numbers[arrayKey];
-                        instructions.push({
-                            setDependency: "numbersShadow",
-                            desiredValue: workspace.desiredNumberShadow,
-                        });
                     }
+                }
+
+                if (workspace.desiredNumberShadow) {
+                    instructions.push({
+                        setDependency: "numbersShadow",
+                        desiredValue: workspace.desiredNumberShadow,
+                    });
                 }
 
                 return {
@@ -289,9 +544,9 @@ export default class NumberList extends CompositeComponent {
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
-                childNameByComponent: {
+                childInfoByComponent: {
                     dependencyType: "stateVariable",
-                    variableName: "childNameByComponent",
+                    variableName: "childInfoByComponent",
                 },
             }),
             // When this state variable is marked stale
@@ -347,16 +602,24 @@ export default class NumberList extends CompositeComponent {
             });
         }
 
-        let childNameByComponent =
-            await component.stateValues.childNameByComponent;
+        let childInfoByComponent =
+            await component.stateValues.childInfoByComponent;
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
-            let childName = childNameByComponent[i];
-            let replacementSource = components[childName];
+            let childInfo = childInfoByComponent[i];
+            if (childInfo) {
+                let replacementSource = components[childInfo.childName];
 
-            if (replacementSource) {
-                componentsCopied.push(replacementSource.componentName);
+                if (childInfo.nComponents !== undefined) {
+                    componentsCopied.push(
+                        replacementSource.componentName +
+                            ":" +
+                            childInfo.component,
+                    );
+                } else {
+                    componentsCopied.push(replacementSource.componentName);
+                }
             }
             replacements.push({
                 componentType: "number",
@@ -413,13 +676,17 @@ export default class NumberList extends CompositeComponent {
 
         let componentsToCopy = [];
 
-        let childNameByComponent =
-            await component.stateValues.childNameByComponent;
+        let childInfoByComponent =
+            await component.stateValues.childInfoByComponent;
 
-        for (let childName of childNameByComponent) {
-            let replacementSource = components[childName];
+        for (let childInfo of childInfoByComponent) {
+            let replacementSource = components[childInfo.childName];
 
-            if (replacementSource) {
+            if (childInfo.nComponents !== undefined) {
+                componentsToCopy.push(
+                    replacementSource.componentName + ":" + childInfo.component,
+                );
+            } else {
                 componentsToCopy.push(replacementSource.componentName);
             }
         }

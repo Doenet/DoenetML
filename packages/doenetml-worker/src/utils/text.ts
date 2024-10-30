@@ -338,7 +338,7 @@ export function returnTextPieceStateVariableDefinitions() {
         },
     };
 
-    stateVariableDefinitions.listItems = {
+    stateVariableDefinitions.list = {
         public: true,
         shadowingInstructions: {
             createComponentOfType: "text",
@@ -375,7 +375,7 @@ export function returnTextPieceStateVariableDefinitions() {
         }) {
             return {
                 setValue: {
-                    listItems: globalDependencyValues.value
+                    list: globalDependencyValues.value
                         .trim()
                         .split(",")
                         .map((s) => s.trim()),
