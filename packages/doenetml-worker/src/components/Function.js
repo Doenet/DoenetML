@@ -25,6 +25,7 @@ import {
     returnNVariables,
     roundForDisplay,
     mergeListsWithOtherContainers,
+    superSubscriptsToUnicode,
 } from "../utils/math";
 
 export default class Function extends InlineComponent {
@@ -2769,6 +2770,70 @@ export default class Function extends InlineComponent {
                         latexWithInputChildren: [dependencyValues.latex],
                     },
                 };
+            },
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                functionChild: {
+                    dependencyType: "child",
+                    childGroups: ["functions"],
+                    variableNames: ["text"],
+                },
+                formula: {
+                    dependencyType: "stateVariable",
+                    variableName: "formula",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                displaySmallAsZero: {
+                    dependencyType: "stateVariable",
+                    variableName: "displaySmallAsZero",
+                },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                if (
+                    dependencyValues.functionChild?.[0]?.componentType ===
+                    "piecewiseFunction"
+                ) {
+                    // Note: A temporary solution until we can capture a piecewise function in formula (a math-expression).
+                    // This solution is not perfect as it ignores any display attributes
+                    // from the outer function.
+                    return {
+                        setValue: {
+                            text: dependencyValues.functionChild[0].stateValues
+                                .text,
+                        },
+                    };
+                }
+                let params = {};
+                if (dependencyValues.padZeros) {
+                    if (Number.isFinite(dependencyValues.displayDecimals)) {
+                        params.padToDecimals = dependencyValues.displayDecimals;
+                    }
+                    if (dependencyValues.displayDigits >= 1) {
+                        params.padToDigits = dependencyValues.displayDigits;
+                    }
+                }
+                let text = roundForDisplay({
+                    value: dependencyValues.formula,
+                    dependencyValues,
+                }).toString(params);
+                return { setValue: { text: superSubscriptsToUnicode(text) } };
             },
         };
 
