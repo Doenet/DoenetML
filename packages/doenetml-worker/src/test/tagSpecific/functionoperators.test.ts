@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { cleanLatex } from "../utils/math";
-import {
-    updateBooleanInputValue,
-    updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
-} from "../utils/actions";
+import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 
 const Mock = vi.fn();
@@ -208,7 +202,9 @@ describe("Function Operator tag tests", async () => {
             x1: number;
             x2: number;
         }) {
+            // @ts-ignore
             let f = me.fromText(`${a} sin(${b} ${x} + ${c})`).simplify();
+            // @ts-ignore
             let fp = me.fromText(`${a} ${b} cos(${b} ${x} + ${c})`).simplify();
             let fString = f.toString();
             let fpString = fp.toString();
