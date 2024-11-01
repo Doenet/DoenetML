@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateMatrixInputValue,
@@ -44,15 +45,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
@@ -81,15 +77,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
@@ -133,15 +124,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInputXName,
+            name: mathInputXName,
             core,
         });
-        await core.requestAction({
-            componentName: "/x",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/x", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.creditAchieved).eq(1);
@@ -152,15 +138,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a",
-            componentName: mathInputAName,
+            name: mathInputAName,
             core,
         });
-        await core.requestAction({
-            componentName: "/a",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/a", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
@@ -171,15 +152,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "y",
-            componentName: mathInputYName,
+            name: mathInputYName,
             core,
         });
-        await core.requestAction({
-            componentName: "/y",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/y", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/y"].stateValues.creditAchieved).eq(1);
@@ -190,15 +166,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "b",
-            componentName: mathInputBName,
+            name: mathInputBName,
             core,
         });
-        await core.requestAction({
-            componentName: "/b",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/b", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/b"].stateValues.creditAchieved).eq(1);
@@ -209,15 +180,10 @@ describe("Document tag tests", async () => {
 
         await updateMathInputValue({
             latex: "z",
-            componentName: mathInputZName,
+            name: mathInputZName,
             core,
         });
-        await core.requestAction({
-            componentName: "/z",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/z", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/z"].stateValues.creditAchieved).eq(1);

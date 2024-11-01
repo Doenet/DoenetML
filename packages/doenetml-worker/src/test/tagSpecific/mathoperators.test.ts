@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import me from "math-expressions";
-import { updateMathInputValue } from "../utils/actions";
+import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2019,12 +2019,7 @@ describe("Math operator tests", async () => {
         // move point 1
         x = -5;
         y = 0;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x, y, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y);
@@ -2046,12 +2041,7 @@ describe("Math operator tests", async () => {
         // move point 2
         x = 9;
         y = -3;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/P2", x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(clamp(x));
@@ -2074,12 +2064,7 @@ describe("Math operator tests", async () => {
         // move point 3
         x = -4;
         y = 8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P3",
-            args: { x: y, y: x },
-            event: null,
-        });
+        await movePoint({ name: "/P3", x: y, y: x, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(clamp(x));
@@ -2103,12 +2088,11 @@ describe("Math operator tests", async () => {
         x = 10;
         y = -10;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName:
-                stateVariables["/g2"].activeChildren[0].componentName,
-            args: { x, y },
-            event: null,
+        await movePoint({
+            name: stateVariables["/g2"].activeChildren[0].componentName,
+            x,
+            y,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -2133,12 +2117,11 @@ describe("Math operator tests", async () => {
         x = 11;
         y = -13;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName:
-                stateVariables["/g2"].activeChildren[1].componentName,
-            args: { x, y },
-            event: null,
+        await movePoint({
+            name: stateVariables["/g2"].activeChildren[1].componentName,
+            x,
+            y,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -2164,12 +2147,11 @@ describe("Math operator tests", async () => {
         x = -3;
         y = 12;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName:
-                stateVariables["/g2"].activeChildren[2].componentName,
-            args: { x: y, y: x },
-            event: null,
+        await movePoint({
+            name: stateVariables["/g2"].activeChildren[2].componentName,
+            x: y,
+            y: x,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -2586,21 +2568,21 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
         expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
 
-        await updateMathInputValue({ componentName: "/a2", latex: "-3", core });
+        await updateMathInputValue({ name: "/a2", latex: "-3", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a1"].stateValues.value.tree).eq(0);
         expect(stateVariables["/a2"].stateValues.value.tree).eq(0);
         expect(stateVariables["/a3"].stateValues.value.tree).eq(0);
 
-        await updateMathInputValue({ componentName: "/a2", latex: "7", core });
+        await updateMathInputValue({ name: "/a2", latex: "7", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a1"].stateValues.value.tree).eq(7);
         expect(stateVariables["/a2"].stateValues.value.tree).eq(7);
         expect(stateVariables["/a3"].stateValues.value.tree).eq(7);
 
-        await updateMathInputValue({ componentName: "/a2", latex: "x", core });
+        await updateMathInputValue({ name: "/a2", latex: "x", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a1"].stateValues.value.tree).eqls([
@@ -2619,7 +2601,7 @@ describe("Math operator tests", async () => {
             "x",
         ]);
 
-        await updateMathInputValue({ componentName: "/a2", latex: "y", core });
+        await updateMathInputValue({ name: "/a2", latex: "y", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a1"].stateValues.value.tree).eqls([
@@ -2708,36 +2690,21 @@ describe("Math operator tests", async () => {
         let x = -5.1;
         let y = 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point1",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/_point1", x, y, core });
         await checkPoints(x, y);
 
         // move point 1, negative y
 
         x = -7.9;
         y = -5.8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point1",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/_point1", x, y, core });
         await checkPoints(x, y);
 
         // move point 2, positive y
 
         x = 3.4;
         y = 8.6;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point2",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/_point2", x, y, core });
         await checkPoints(x, y);
 
         // move point 2, negative y
@@ -2745,36 +2712,21 @@ describe("Math operator tests", async () => {
         x = 7.7;
         y = -4.4;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point2",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/_point2", x, y, core });
         await checkPoints(x, y);
 
         // move point 3, positive x
 
         x = 9.4;
         y = -1.3;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point3",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/_point3", x, y, core });
         await checkPoints(y, x);
 
         // move point 3, negative x
 
         x = -8.9;
         y = -4.6;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point3",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/_point3", x, y, core });
         await checkPoints(y, 0);
 
         // move point 4, positive y
@@ -2782,72 +2734,42 @@ describe("Math operator tests", async () => {
         x = 6.8;
         y = 3.7;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2ChildrenNames[0],
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: g2ChildrenNames[0], x, y, core });
         await checkPoints(x, y);
 
         // move point 4, negative y
 
         x = 1.2;
         y = -1.4;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2ChildrenNames[0],
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: g2ChildrenNames[0], x, y, core });
         await checkPoints(x, y);
 
         // move point 5, positive y
 
         x = -6.6;
         y = 3.2;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2ChildrenNames[1],
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: g2ChildrenNames[1], x, y, core });
         await checkPoints(x, y);
 
         // move point 5, negative y
 
         x = -4.3;
         y = -8.9;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2ChildrenNames[1],
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: g2ChildrenNames[1], x, y, core });
         await checkPoints(x, y);
 
         // move point 6, positive x
 
         x = 6.4;
         y = 2.3;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2ChildrenNames[2],
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: g2ChildrenNames[2], x, y, core });
         await checkPoints(y, x);
 
         // move point 6, negative x
 
         x = -5.6;
         y = 7.8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2ChildrenNames[2],
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: g2ChildrenNames[2], x, y, core });
         await checkPoints(y, 0);
     });
 
@@ -6816,43 +6738,43 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/maths11"].stateValues.value.tree).eq(6);
 
         await updateMathInputValue({
-            componentName: "/minumbers00",
+            name: "/minumbers00",
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers01",
+            name: "/minumbers01",
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers10",
+            name: "/minumbers10",
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers11",
+            name: "/minumbers11",
             latex: "9",
             core,
         });
 
         await updateMathInputValue({
-            componentName: "/mimaths00",
+            name: "/mimaths00",
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths01",
+            name: "/mimaths01",
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths10",
+            name: "/mimaths10",
             latex: "9",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths11",
+            name: "/mimaths11",
             latex: "9",
             core,
         });
@@ -6869,43 +6791,43 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/maths11"].stateValues.value.tree).eq(6);
 
         await updateMathInputValue({
-            componentName: "/minumbers00",
+            name: "/minumbers00",
             latex: "5",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers01",
+            name: "/minumbers01",
             latex: "5",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers10",
+            name: "/minumbers10",
             latex: "5",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers11",
+            name: "/minumbers11",
             latex: "5",
             core,
         });
 
         await updateMathInputValue({
-            componentName: "/mimaths00",
+            name: "/mimaths00",
             latex: "5",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths01",
+            name: "/mimaths01",
             latex: "5",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths10",
+            name: "/mimaths10",
             latex: "5",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths11",
+            name: "/mimaths11",
             latex: "5",
             core,
         });
@@ -6922,43 +6844,43 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/maths11"].stateValues.value.tree).eq(6);
 
         await updateMathInputValue({
-            componentName: "/minumbers00",
+            name: "/minumbers00",
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers01",
+            name: "/minumbers01",
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers10",
+            name: "/minumbers10",
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers11",
+            name: "/minumbers11",
             latex: "2",
             core,
         });
 
         await updateMathInputValue({
-            componentName: "/mimaths00",
+            name: "/mimaths00",
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths01",
+            name: "/mimaths01",
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths10",
+            name: "/mimaths10",
             latex: "2",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths11",
+            name: "/mimaths11",
             latex: "2",
             core,
         });
@@ -6975,43 +6897,43 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/maths11"].stateValues.value.tree).eq(6);
 
         await updateMathInputValue({
-            componentName: "/minumbers00",
+            name: "/minumbers00",
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers01",
+            name: "/minumbers01",
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers10",
+            name: "/minumbers10",
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers11",
+            name: "/minumbers11",
             latex: "x",
             core,
         });
 
         await updateMathInputValue({
-            componentName: "/mimaths00",
+            name: "/mimaths00",
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths01",
+            name: "/mimaths01",
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths10",
+            name: "/mimaths10",
             latex: "x",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths11",
+            name: "/mimaths11",
             latex: "x",
             core,
         });
@@ -7036,43 +6958,43 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/maths11"].stateValues.value.tree).eq(6);
 
         await updateMathInputValue({
-            componentName: "/minumbers00",
+            name: "/minumbers00",
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers01",
+            name: "/minumbers01",
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers10",
+            name: "/minumbers10",
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers11",
+            name: "/minumbers11",
             latex: "y",
             core,
         });
 
         await updateMathInputValue({
-            componentName: "/mimaths00",
+            name: "/mimaths00",
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths01",
+            name: "/mimaths01",
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths10",
+            name: "/mimaths10",
             latex: "y",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths11",
+            name: "/mimaths11",
             latex: "y",
             core,
         });
@@ -7097,43 +7019,43 @@ describe("Math operator tests", async () => {
         expect(stateVariables["/maths11"].stateValues.value.tree).eq(6);
 
         await updateMathInputValue({
-            componentName: "/minumbers00",
+            name: "/minumbers00",
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers01",
+            name: "/minumbers01",
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers10",
+            name: "/minumbers10",
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentName: "/minumbers11",
+            name: "/minumbers11",
             latex: "7",
             core,
         });
 
         await updateMathInputValue({
-            componentName: "/mimaths00",
+            name: "/mimaths00",
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths01",
+            name: "/mimaths01",
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths10",
+            name: "/mimaths10",
             latex: "7",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mimaths11",
+            name: "/mimaths11",
             latex: "7",
             core,
         });
@@ -7692,7 +7614,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentName: "/nArgument",
+            name: "/nArgument",
             core,
         });
 
@@ -7701,7 +7623,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentName: "/nOperand",
+            name: "/nOperand",
             core,
         });
 
@@ -7716,7 +7638,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/nArgument",
+            name: "/nArgument",
             core,
         });
 
@@ -7725,7 +7647,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentName: "/nArgument",
+            name: "/nArgument",
             core,
         });
 
@@ -7734,7 +7656,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/nOperand",
+            name: "/nOperand",
             core,
         });
 
@@ -7749,7 +7671,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentName: "/nOperand",
+            name: "/nOperand",
             core,
         });
 

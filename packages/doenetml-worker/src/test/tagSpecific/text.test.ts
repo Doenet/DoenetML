@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveText,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
 
@@ -250,18 +252,8 @@ describe("Text tag tests", async () => {
         );
 
         // move texts by dragging
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
+        await moveText({ name: "/text1", x: -2, y: 3, core });
+        await moveText({ name: "/text2", x: 4, y: -5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -275,12 +267,12 @@ describe("Text tag tests", async () => {
         // move texts by entering coordinates
         await updateMathInputValue({
             latex: "(6,7)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
         await updateMathInputValue({
             latex: "(8,9)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
 
@@ -294,17 +286,15 @@ describe("Text tag tests", async () => {
         );
 
         // change position from anchor
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [4] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [4],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [3] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [3],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -319,12 +309,12 @@ describe("Text tag tests", async () => {
         // make not draggable
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/draggable1",
+            name: "/draggable1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/draggable2",
+            name: "/draggable2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -337,18 +327,8 @@ describe("Text tag tests", async () => {
         );
 
         // cannot move texts by dragging
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
+        await moveText({ name: "/text1", x: -10, y: -9, core });
+        await moveText({ name: "/text2", x: -8, y: -7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -362,12 +342,12 @@ describe("Text tag tests", async () => {
         // change content of text
         await updateTextInputValue({
             text: "hello there",
-            componentName: "/content1",
+            name: "/content1",
             core,
         });
         await updateTextInputValue({
             text: "bye now",
-            componentName: "/content2",
+            name: "/content2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -382,12 +362,12 @@ describe("Text tag tests", async () => {
         // make draggable again
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/draggable1",
+            name: "/draggable1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/draggable2",
+            name: "/draggable2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -398,18 +378,8 @@ describe("Text tag tests", async () => {
         expect(stateVariables["/pDraggable2"].stateValues.text).eq(
             "Draggable 2: true",
         );
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
+        await moveText({ name: "/text1", x: -10, y: -9, core });
+        await moveText({ name: "/text2", x: -8, y: -7, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/text1anchor"].stateValues.latex)).eq(
@@ -422,12 +392,12 @@ describe("Text tag tests", async () => {
         // fix location
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixLocation1",
+            name: "/fixLocation1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixLocation2",
+            name: "/fixLocation2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -442,12 +412,12 @@ describe("Text tag tests", async () => {
         // can change coordinates entering coordinates only for text 1
         await updateMathInputValue({
             latex: "(3,4)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
         await updateMathInputValue({
             latex: "(1,2)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -461,18 +431,8 @@ describe("Text tag tests", async () => {
         );
 
         // cannot move texts by dragging
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text1",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/text2",
-            args: { x: 7, y: 8 },
-            event: null,
-        });
+        await moveText({ name: "/text1", x: 4, y: 6, core });
+        await moveText({ name: "/text2", x: 7, y: 8, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/text1anchor"].stateValues.latex)).eq(
@@ -483,17 +443,15 @@ describe("Text tag tests", async () => {
         );
 
         // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [8] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [8],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [7] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [7],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -508,12 +466,12 @@ describe("Text tag tests", async () => {
         // make completely fixed
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixed1",
+            name: "/fixed1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixed2",
+            name: "/fixed2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -524,12 +482,12 @@ describe("Text tag tests", async () => {
         // can change coordinates entering coordinates only for text 1
         await updateMathInputValue({
             latex: "(7,8)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
         await updateMathInputValue({
             latex: "(5,6)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -543,17 +501,15 @@ describe("Text tag tests", async () => {
         );
 
         // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [5] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [5],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [6] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [6],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -568,12 +524,12 @@ describe("Text tag tests", async () => {
         // can change content only for text 1
         await updateTextInputValue({
             text: "hello there again",
-            componentName: "/content1",
+            name: "/content1",
             core,
         });
         await updateTextInputValue({
             text: "bye now too",
-            componentName: "/content2",
+            name: "/content2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -610,7 +566,7 @@ describe("Text tag tests", async () => {
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -623,7 +579,7 @@ describe("Text tag tests", async () => {
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -636,7 +592,7 @@ describe("Text tag tests", async () => {
         // give bad anchor coords again
         await updateMathInputValue({
             latex: "q",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -692,7 +648,7 @@ describe("Text tag tests", async () => {
             "none",
         );
 
-        await updateMathInputValue({ latex: "2", componentName: "/sn", core });
+        await updateMathInputValue({ latex: "2", name: "/sn", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
@@ -713,7 +669,7 @@ describe("Text tag tests", async () => {
         expect(stateVariables["/tc_fixed_style"].stateValues.text).eq("green");
         expect(stateVariables["/bc_fixed_style"].stateValues.text).eq("none");
 
-        await updateMathInputValue({ latex: "3", componentName: "/sn", core });
+        await updateMathInputValue({ latex: "3", name: "/sn", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
@@ -817,18 +773,8 @@ describe("Text tag tests", async () => {
         );
 
         // move first texts
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/t1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/t2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
+        await moveText({ name: "/t1", x: -2, y: 3, core });
+        await moveText({ name: "/t2", x: 4, y: -5, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/t1coords"].stateValues.latex)).eq(
@@ -851,18 +797,8 @@ describe("Text tag tests", async () => {
         );
 
         // move second texts
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/t1a",
-            args: { x: 7, y: 1 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/t2a",
-            args: { x: -8, y: 2 },
-            event: null,
-        });
+        await moveText({ name: "/t1a", x: 7, y: 1, core });
+        await moveText({ name: "/t2a", x: -8, y: 2, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/t1coords"].stateValues.latex)).eq(
@@ -885,18 +821,8 @@ describe("Text tag tests", async () => {
         );
 
         // move third texts
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/t1b",
-            args: { x: -6, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveText",
-            componentName: "/t2b",
-            args: { x: -5, y: -4 },
-            event: null,
-        });
+        await moveText({ name: "/t1b", x: -6, y: 3, core });
+        await moveText({ name: "/t2b", x: -5, y: -4, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/t1coords"].stateValues.latex)).eq(

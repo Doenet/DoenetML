@@ -46,7 +46,7 @@ describe("Shuffle tag tests", async () => {
         n = 8;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -69,7 +69,7 @@ describe("Shuffle tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentName: "/m",
+            name: "/m",
             core,
         });
 
@@ -90,7 +90,7 @@ describe("Shuffle tag tests", async () => {
         n = 10;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -138,7 +138,7 @@ describe("Shuffle tag tests", async () => {
         n = 8;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -163,7 +163,7 @@ describe("Shuffle tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentName: "/m",
+            name: "/m",
             core,
         });
 
@@ -184,7 +184,7 @@ describe("Shuffle tag tests", async () => {
         n = 10;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 

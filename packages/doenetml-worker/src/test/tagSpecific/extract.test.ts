@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
+    movePoint,
+    movePolygon,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
@@ -87,12 +89,7 @@ describe("Extract tag tests", async () => {
         expect(stateVariables["/transformed"].stateValues.xs[1].tree).eq(1);
 
         // move original point
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/original",
-            args: { x: -3, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: "/original", x: -3, y: 5, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/original"].stateValues.xs[0].tree).eq(-3);
         expect(stateVariables["/original"].stateValues.xs[1].tree).eq(5);
@@ -102,12 +99,7 @@ describe("Extract tag tests", async () => {
         expect(stateVariables["/transformed"].stateValues.xs[1].tree).eq(-3);
 
         // move copy point
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/copy",
-            args: { x: 6, y: -9 },
-            event: null,
-        });
+        await movePoint({ name: "/copy", x: 6, y: -9, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/original"].stateValues.xs[0].tree).eq(6);
         expect(stateVariables["/original"].stateValues.xs[1].tree).eq(-9);
@@ -117,12 +109,7 @@ describe("Extract tag tests", async () => {
         expect(stateVariables["/transformed"].stateValues.xs[1].tree).eq(6);
 
         // move transformed point
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/transformed",
-            args: { x: -1, y: -7 },
-            event: null,
-        });
+        await movePoint({ name: "/transformed", x: -1, y: -7, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/original"].stateValues.xs[0].tree).eq(-7);
         expect(stateVariables["/original"].stateValues.xs[1].tree).eq(-1);
@@ -161,12 +148,7 @@ describe("Extract tag tests", async () => {
 
         // move extracted center
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/copiedextract",
-            args: { x: -2, y: -5 },
-            event: null,
-        });
+        await movePoint({ name: "/copiedextract", x: -2, y: -5, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x1"].stateValues.value.tree).closeTo(-2, 1e-12);
         expect(stateVariables["/y1"].stateValues.value.tree).closeTo(-5, 1e-12);
@@ -191,18 +173,8 @@ describe("Extract tag tests", async () => {
 
         // move points 1 and 2
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point1",
-            args: { x: 8, y: -1 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/_point2",
-            args: { x: -6, y: -7 },
-            event: null,
-        });
+        await movePoint({ name: "/_point1", x: 8, y: -1, core });
+        await movePoint({ name: "/_point2", x: -6, y: -7, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x1"].stateValues.value.tree).closeTo(1, 1e-12);
         expect(stateVariables["/y1"].stateValues.value.tree).closeTo(-4, 1e-12);
@@ -253,19 +225,19 @@ describe("Extract tag tests", async () => {
         await check_items([]);
 
         // set to 3
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items(["1", "2", "3"]);
 
         // increase to 4
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
         await check_items(["1", "2", "3", "4"]);
 
         // decrease to 2
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items(["1", "2"]);
 
         // increase to 5
-        await updateMathInputValue({ latex: "5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5", name: "/n", core });
         await check_items(["1", "2", "3", "4", "5"]);
     });
 
@@ -320,7 +292,7 @@ describe("Extract tag tests", async () => {
         await check_items([]);
 
         // set n to 3
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items([
             ["+", 1, "＿"],
             ["+", 2, "＿"],
@@ -328,15 +300,15 @@ describe("Extract tag tests", async () => {
         ]);
 
         // set m to 7
-        await updateMathInputValue({ latex: "7", componentName: "/m", core });
+        await updateMathInputValue({ latex: "7", name: "/m", core });
         await check_items([8, 9, 10]);
 
         // increase n to 4
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
         await check_items([8, 9, 10, 11]);
 
         // change m to q
-        await updateMathInputValue({ latex: "q", componentName: "/m", core });
+        await updateMathInputValue({ latex: "q", name: "/m", core });
         await check_items([
             ["+", "q", 1],
             ["+", "q", 2],
@@ -345,18 +317,18 @@ describe("Extract tag tests", async () => {
         ]);
 
         // decrease n to 2
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items([
             ["+", "q", 1],
             ["+", "q", 2],
         ]);
 
         // set m to -1
-        await updateMathInputValue({ latex: "-1", componentName: "/m", core });
+        await updateMathInputValue({ latex: "-1", name: "/m", core });
         await check_items([0, 1]);
 
         // increase n to 5
-        await updateMathInputValue({ latex: "5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5", name: "/n", core });
         await check_items([0, 1, 2, 3, 4]);
     });
 
@@ -396,12 +368,12 @@ describe("Extract tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
 
@@ -411,12 +383,12 @@ describe("Extract tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
 
@@ -483,33 +455,23 @@ describe("Extract tag tests", async () => {
         await check_items({ x1, x2, y1, y2 });
 
         // restrict collection to first component
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items({ x1, x2, y1, y2, Ax: x1 });
 
         // move point
         x1 = 9;
         y1 = -5;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: x1, y: y1 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: x1, y: y1, core });
         await check_items({ x1, x2, y1, y2, Ax: x1 });
 
         // restrict collection to second component
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items({ x1, x2, y1, y2, Ax: x2 });
 
         x2 = 0;
         y2 = 8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: x2, y: y2 },
-            event: null,
-        });
+        await movePoint({ name: "/B", x: x2, y: y2, core });
         await check_items({ x1, x2, y1, y2, Ax: x2 });
     });
 
@@ -578,61 +540,51 @@ describe("Extract tag tests", async () => {
 
         // set propIndex to 1
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items({ x1, x2, y1, y2 });
 
         // move point 1
         x1 = 9;
         y1 = -5;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: x1, y: y1 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: x1, y: y1, core });
         await check_items({ x1, x2, y1, y2 });
 
         // set componentIndex to 2
-        await updateMathInputValue({ latex: "2", componentName: "/m", core });
+        await updateMathInputValue({ latex: "2", name: "/m", core });
         await check_items({ x1, x2, y1, y2, n1: x2 });
 
         // move point2
         x2 = 0;
         y2 = 8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: x2, y: y2 },
-            event: null,
-        });
+        await movePoint({ name: "/B", x: x2, y: y2, core });
         await check_items({ x1, x2, y1, y2, n1: x2 });
 
         // set propIndex to 2
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items({ x1, x2, y1, y2, n1: y2 });
 
         // set componentIndex to 1
-        await updateMathInputValue({ latex: "1", componentName: "/m", core });
+        await updateMathInputValue({ latex: "1", name: "/m", core });
         await check_items({ x1, x2, y1, y2, n1: y1 });
 
         // set propIndex to 3
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items({ x1, x2, y1, y2 });
 
         // set propIndex to 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items({ x1, x2, y1, y2, n1: x1 });
 
         // set componentIndex to 3
-        await updateMathInputValue({ latex: "3", componentName: "/m", core });
+        await updateMathInputValue({ latex: "3", name: "/m", core });
         await check_items({ x1, x2, y1, y2 });
 
         // set componentIndex to 2
-        await updateMathInputValue({ latex: "2", componentName: "/m", core });
+        await updateMathInputValue({ latex: "2", name: "/m", core });
         await check_items({ x1, x2, y1, y2, n1: x2 });
 
         // clear propIndex
-        await updateMathInputValue({ latex: "", componentName: "/n", core });
+        await updateMathInputValue({ latex: "", name: "/n", core });
         await check_items({ x1, x2, y1, y2 });
     });
 
@@ -704,65 +656,51 @@ describe("Extract tag tests", async () => {
         await check_items({ x1, y1, x2, y2, x3, y3 });
 
         // set second propIndex to 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items({ x1, y1, x2, y2, x3, y3 });
 
         // move first point
         x1 = 9;
         y1 = -5;
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/pg",
-            args: {
-                pointCoords: { 0: [x1, y1] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/pg", pointCoords: { 0: [x1, y1] }, core });
         await check_items({ x1, y1, x2, y2, x3, y3 });
 
         // set first propIndex to 2
-        await updateMathInputValue({ latex: "2", componentName: "/m", core });
+        await updateMathInputValue({ latex: "2", name: "/m", core });
         await check_items({ x1, y1, x2, y2, x3, y3, n1: x2 });
 
         // move second point
         x2 = 0;
         y2 = 8;
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/pg",
-            args: {
-                pointCoords: { 1: [x2, y2] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/pg", pointCoords: { 1: [x2, y2] }, core });
         await check_items({ x1, y1, x2, y2, x3, y3, n1: x2 });
 
         // set second propIndex to 2
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items({ x1, y1, x2, y2, x3, y3, n1: y2 });
 
         // set first propIndex to 1
-        await updateMathInputValue({ latex: "1", componentName: "/m", core });
+        await updateMathInputValue({ latex: "1", name: "/m", core });
         await check_items({ x1, y1, x2, y2, x3, y3, n1: y1 });
 
         // set second propIndex to 3
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items({ x1, y1, x2, y2, x3, y3 });
 
         // set second propIndex to 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items({ x1, y1, x2, y2, x3, y3, n1: x1 });
 
         // set first propindex to 4
-        await updateMathInputValue({ latex: "4", componentName: "/m", core });
+        await updateMathInputValue({ latex: "4", name: "/m", core });
         await check_items({ x1, y1, x2, y2, x3, y3 });
 
         // set first propIndex to 3
-        await updateMathInputValue({ latex: "3", componentName: "/m", core });
+        await updateMathInputValue({ latex: "3", name: "/m", core });
         await check_items({ x1, y1, x2, y2, x3, y3, n1: x3 });
 
         // clear second propIndex
-        await updateMathInputValue({ latex: "", componentName: "/n", core });
+        await updateMathInputValue({ latex: "", name: "/n", core });
         await check_items({ x1, y1, x2, y2, x3, y3 });
     });
 

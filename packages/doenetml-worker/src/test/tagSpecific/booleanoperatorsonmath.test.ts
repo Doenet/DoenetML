@@ -65,13 +65,13 @@ describe("Boolean Operator tag tests", async () => {
 
         await check_items(isNumber, isInteger, isEven);
 
-        await updateMathInputValue({ latex: "36", componentName: "/n", core });
+        await updateMathInputValue({ latex: "36", name: "/n", core });
         isNumber = true;
         isInteger = true;
         isEven = true;
         await check_items(isNumber, isInteger, isEven);
 
-        await updateMathInputValue({ latex: "37", componentName: "/n", core });
+        await updateMathInputValue({ latex: "37", name: "/n", core });
         isNumber = true;
         isInteger = true;
         isEven = false;
@@ -79,7 +79,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "37.1",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = true;
@@ -89,7 +89,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "42/3",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = true;
@@ -99,7 +99,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-39.6/3.3",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = true;
@@ -107,7 +107,7 @@ describe("Boolean Operator tag tests", async () => {
         isEven = true;
         await check_items(isNumber, isInteger, isEven);
 
-        await updateMathInputValue({ latex: "x", componentName: "/n", core });
+        await updateMathInputValue({ latex: "x", name: "/n", core });
         isNumber = false;
         isInteger = false;
         isEven = false;
@@ -115,7 +115,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\sqrt{4}",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = true;
@@ -125,7 +125,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2\\sin(\\pi/4)^2",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = true;
@@ -135,7 +135,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1E-300",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = true;
@@ -143,13 +143,13 @@ describe("Boolean Operator tag tests", async () => {
         isEven = false;
         await check_items(isNumber, isInteger, isEven);
 
-        await updateMathInputValue({ latex: "-0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-0", name: "/n", core });
         isNumber = true;
         isInteger = true;
         isEven = true;
         await check_items(isNumber, isInteger, isEven);
 
-        await updateMathInputValue({ latex: "0/0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0/0", name: "/n", core });
         isNumber = false;
         isInteger = false;
         isEven = false;
@@ -157,7 +157,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10/0",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = false;
@@ -167,7 +167,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10/-0",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         isNumber = false;
@@ -216,17 +216,17 @@ describe("Boolean Operator tag tests", async () => {
         x2 = 3;
         await updateMathInputValue({
             latex: x.toString(),
-            componentName: "/x",
+            name: "/x",
             core,
         });
         await updateMathInputValue({
             latex: x1.toString(),
-            componentName: "/x1",
+            name: "/x1",
             core,
         });
         await updateMathInputValue({
             latex: x2.toString(),
-            componentName: "/x2",
+            name: "/x2",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -235,7 +235,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = true;
         await updateBooleanInputValue({
             boolean: strict,
-            componentName: "/strict",
+            name: "/strict",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -244,7 +244,7 @@ describe("Boolean Operator tag tests", async () => {
         x2 = 5;
         await updateMathInputValue({
             latex: x2.toString(),
-            componentName: "/x2",
+            name: "/x2",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -253,7 +253,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = false;
         await updateBooleanInputValue({
             boolean: strict,
-            componentName: "/strict",
+            name: "/strict",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -262,7 +262,7 @@ describe("Boolean Operator tag tests", async () => {
         x = 4;
         await updateMathInputValue({
             latex: x.toString(),
-            componentName: "/x",
+            name: "/x",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -271,7 +271,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = true;
         await updateBooleanInputValue({
             boolean: strict,
-            componentName: "/strict",
+            name: "/strict",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -280,7 +280,7 @@ describe("Boolean Operator tag tests", async () => {
         x1 = 8;
         await updateMathInputValue({
             latex: x1.toString(),
-            componentName: "/x1",
+            name: "/x1",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -289,7 +289,7 @@ describe("Boolean Operator tag tests", async () => {
         x = 7;
         await updateMathInputValue({
             latex: x.toString(),
-            componentName: "/x",
+            name: "/x",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -298,7 +298,7 @@ describe("Boolean Operator tag tests", async () => {
         x2 = 8;
         await updateMathInputValue({
             latex: x2.toString(),
-            componentName: "/x2",
+            name: "/x2",
             core,
         });
         await check_items(x, x1, x2, strict);
@@ -307,7 +307,7 @@ describe("Boolean Operator tag tests", async () => {
         strict = false;
         await updateBooleanInputValue({
             boolean: strict,
-            componentName: "/strict",
+            name: "/strict",
             core,
         });
         await check_items(x, x1, x2, strict);

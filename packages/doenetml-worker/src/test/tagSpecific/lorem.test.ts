@@ -96,17 +96,17 @@ describe("lorem tag tests", async () => {
 
         await updateMathInputValue({
             latex: `${nParagraphs}`,
-            componentName: "/paragraphs/numPars",
+            name: "/paragraphs/numPars",
             core,
         });
         await updateMathInputValue({
             latex: `${nSentences}`,
-            componentName: "/sentences/numSens",
+            name: "/sentences/numSens",
             core,
         });
         await updateMathInputValue({
             latex: `${nWords}`,
-            componentName: "/words/numWords",
+            name: "/words/numWords",
             core,
         });
         stateVariables = await returnAllStateVariables(core);

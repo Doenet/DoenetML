@@ -177,7 +177,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentName: "/expr",
+                name: "/expr",
                 core,
             });
             let stateVariables = await returnAllStateVariables(core);
@@ -334,7 +334,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentName: "/expr",
+                name: "/expr",
                 core,
             });
             let stateVariables = await returnAllStateVariables(core);
@@ -485,7 +485,7 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentName: "/expr",
+                name: "/expr",
                 core,
             });
             let stateVariables = await returnAllStateVariables(core);
@@ -644,12 +644,12 @@ describe("MatchesPattern tag tests", async () => {
         for (let expr in desiredResults) {
             await updateMathInputValue({
                 latex: expr,
-                componentName: "/expr",
+                name: "/expr",
                 core,
             });
             await updateBooleanInputValue({
                 boolean: true,
-                componentName: "/matchBlanks",
+                name: "/matchBlanks",
                 core,
             });
 
@@ -674,7 +674,7 @@ describe("MatchesPattern tag tests", async () => {
 
             await updateBooleanInputValue({
                 boolean: false,
-                componentName: "/matchBlanks",
+                name: "/matchBlanks",
                 core,
             });
 

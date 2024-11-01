@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { callAction, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -220,12 +220,12 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // Get new samples when change number of samples
         await updateMathInputValue({
             latex: "70",
-            componentName: "/numSamples",
+            name: "/numSamples",
             core,
         });
         await updateMathInputValue({
             latex: "160",
-            componentName: "/numSamples2",
+            name: "/numSamples2",
             core,
         });
 
@@ -263,12 +263,12 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // Get new samples when change parameters
         await updateMathInputValue({
             latex: "20",
-            componentName: "/maxNum",
+            name: "/maxNum",
             core,
         });
         await updateMathInputValue({
             latex: "7, 19, 29, 37, 47, 2, 11, 23, 31, 41",
-            componentName: "/exclude",
+            name: "/exclude",
             core,
         });
 
@@ -375,22 +375,22 @@ describe("SamplePrimeNumbers tag tests", async () => {
         await check_sampled_numbers([]);
 
         // sample one variable
-        await updateMathInputValue({ latex: "1", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
         let stateVariables = await returnAllStateVariables(core);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "0", name: "/mi1", core });
         await check_sampled_numbers([]);
 
         // get same number back
-        await updateMathInputValue({ latex: "1", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "1", name: "/mi1", core });
         await check_sampled_numbers(sampledNumbers);
 
         // get two more samples
-        await updateMathInputValue({ latex: "3", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
         stateVariables = await returnAllStateVariables(core);
         let n1 = stateVariables["/a/n"].stateValues.value;
@@ -402,15 +402,15 @@ describe("SamplePrimeNumbers tag tests", async () => {
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "0", name: "/mi1", core });
         await check_sampled_numbers([]);
 
         // get first two numbers back
-        await updateMathInputValue({ latex: "2", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "2", name: "/mi1", core });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
 
         // get six total samples
-        await updateMathInputValue({ latex: "6", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
         stateVariables = await returnAllStateVariables(core);
         n1 = stateVariables["/a/n"].stateValues.value;
@@ -428,11 +428,11 @@ describe("SamplePrimeNumbers tag tests", async () => {
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "0", name: "/mi1", core });
         await check_sampled_numbers([]);
 
         // get all six back
-        await updateMathInputValue({ latex: "6", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "6", name: "/mi1", core });
         await check_sampled_numbers(sampledNumbers);
     });
 
@@ -560,12 +560,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         expect(stateVariables["/pn1"].stateValues.text).eq(pn1.toString());
 
-        await core.requestAction({
-            componentName: "/resamp1",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/resamp1", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -583,12 +578,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         expect(stateVariables["/pn3"].stateValues.text).eq(pn3.toString());
 
-        await core.requestAction({
-            componentName: "/resamp2",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/resamp2", core });
 
         stateVariables = await returnAllStateVariables(core);
 

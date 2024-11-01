@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveNumber,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -47,12 +49,12 @@ describe("Number tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/n"].stateValues.value).eq(5);
 
-        await updateMathInputValue({ latex: "x", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "x", name: "/mi", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/n"].stateValues.value).eqls(NaN);
 
-        await updateMathInputValue({ latex: "9", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "9", name: "/mi", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/n"].stateValues.value).eq(9);
@@ -722,7 +724,7 @@ describe("Number tag tests", async () => {
         // only digits
         await updateMathInputValue({
             latex: "-\\infty",
-            componentName: "/ndecimals",
+            name: "/ndecimals",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -731,7 +733,7 @@ describe("Number tag tests", async () => {
         // more digits
         await updateMathInputValue({
             latex: "12",
-            componentName: "/ndigits",
+            name: "/ndigits",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -740,7 +742,7 @@ describe("Number tag tests", async () => {
         // remove digits
         await updateMathInputValue({
             latex: "0",
-            componentName: "/ndigits",
+            name: "/ndigits",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -749,7 +751,7 @@ describe("Number tag tests", async () => {
         // Fewer digits than have
         await updateMathInputValue({
             latex: "-10",
-            componentName: "/ndecimals",
+            name: "/ndecimals",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -758,7 +760,7 @@ describe("Number tag tests", async () => {
         // add one digit
         await updateMathInputValue({
             latex: "1",
-            componentName: "/ndigits",
+            name: "/ndigits",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -767,12 +769,12 @@ describe("Number tag tests", async () => {
         // invalid precision means no rounding
         await updateMathInputValue({
             latex: "x",
-            componentName: "/ndigits",
+            name: "/ndigits",
             core,
         });
         await updateMathInputValue({
             latex: "y",
-            componentName: "/ndecimals",
+            name: "/ndecimals",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -781,7 +783,7 @@ describe("Number tag tests", async () => {
         // add a decimal
         await updateMathInputValue({
             latex: "1",
-            componentName: "/ndecimals",
+            name: "/ndecimals",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -790,12 +792,12 @@ describe("Number tag tests", async () => {
         // negative precision, ignores display digits
         await updateMathInputValue({
             latex: "-3",
-            componentName: "/ndigits",
+            name: "/ndigits",
             core,
         });
         await updateMathInputValue({
             latex: "-3",
-            componentName: "/ndecimals",
+            name: "/ndecimals",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1195,52 +1197,52 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi4",
+            name: "/mi4",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi2a",
+            name: "/mi2a",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi3a",
+            name: "/mi3a",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi4a",
+            name: "/mi4a",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi2b",
+            name: "/mi2b",
             core,
         });
         await updateMathInputValue({
             latex: "3/4",
-            componentName: "/mi4b",
+            name: "/mi4b",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1277,52 +1279,52 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi4",
+            name: "/mi4",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi2a",
+            name: "/mi2a",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi3a",
+            name: "/mi3a",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi4a",
+            name: "/mi4a",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi2b",
+            name: "/mi2b",
             core,
         });
         await updateMathInputValue({
             latex: "x",
-            componentName: "/mi4b",
+            name: "/mi4b",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1559,9 +1561,9 @@ describe("Number tag tests", async () => {
         expect(stateVariables["/mi2"].stateValues.value.tree).eqls(1);
         expect(stateVariables["/mi3"].stateValues.value.tree).eqls(NaN);
 
-        await updateMathInputValue({ latex: "i", componentName: "/mi1", core });
-        await updateMathInputValue({ latex: "i", componentName: "/mi2", core });
-        await updateMathInputValue({ latex: "i", componentName: "/mi3", core });
+        await updateMathInputValue({ latex: "i", name: "/mi1", core });
+        await updateMathInputValue({ latex: "i", name: "/mi2", core });
+        await updateMathInputValue({ latex: "i", name: "/mi3", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/n1"].stateValues.value).eqls({
@@ -1582,17 +1584,17 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "i+2",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "i+2",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "i+2",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
 
@@ -1621,17 +1623,17 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3+0i",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "3+0i",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "3+0i",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
 
@@ -1645,17 +1647,17 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1i",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "1i",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "1i",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
 
@@ -1678,17 +1680,17 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1i+0",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "-1i+0",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "-1i+0",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
 
@@ -1826,18 +1828,8 @@ describe("Number tag tests", async () => {
         );
 
         // move numbers by dragging
-        await core.requestAction({
-            actionName: "moveNumber",
-            componentName: "/number1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveNumber",
-            componentName: "/number2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
+        await moveNumber({ name: "/number1", x: -2, y: 3, core });
+        await moveNumber({ name: "/number2", x: 4, y: -5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1852,12 +1844,12 @@ describe("Number tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(6,7)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
         await updateMathInputValue({
             latex: "(8,9)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
 
@@ -1871,17 +1863,15 @@ describe("Number tag tests", async () => {
         ).eq("(8,9)");
 
         // change position from anchor
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [4] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [4],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [3] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [3],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1896,12 +1886,12 @@ describe("Number tag tests", async () => {
         // make not draggable
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/draggable1",
+            name: "/draggable1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/draggable2",
+            name: "/draggable2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1914,18 +1904,8 @@ describe("Number tag tests", async () => {
         );
 
         // cannot move numbers by dragging
-        await core.requestAction({
-            actionName: "moveNumber",
-            componentName: "/number1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveNumber",
-            componentName: "/number2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
+        await moveNumber({ name: "/number1", x: -10, y: -9, core });
+        await moveNumber({ name: "/number2", x: -8, y: -7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1939,12 +1919,12 @@ describe("Number tag tests", async () => {
         // change content of number
         await updateMathInputValue({
             latex: "11+5",
-            componentName: "/content1",
+            name: "/content1",
             core,
         });
         await updateMathInputValue({
             latex: "-17-1",
-            componentName: "/content2",
+            name: "/content2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);

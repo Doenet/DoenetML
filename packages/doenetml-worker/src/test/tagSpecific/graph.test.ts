@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
 
@@ -86,32 +89,29 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "hello",
-            componentName: "/xlabel",
+            name: "/xlabel",
             core,
         });
         await updateTextInputValue({
             text: "bye",
-            componentName: "/ylabel",
+            name: "/ylabel",
             core,
         });
 
-        await core.requestAction({
-            componentName: "/xlabelpos",
-            actionName: "updateSelectedIndices",
-            args: { selectedIndices: [1] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/xlabelpos",
+            selectedIndices: [1],
+            core,
         });
-        await core.requestAction({
-            componentName: "/ylabelpos",
-            actionName: "updateSelectedIndices",
-            args: { selectedIndices: [2] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/ylabelpos",
+            selectedIndices: [2],
+            core,
         });
-        await core.requestAction({
-            componentName: "/ylabelalign",
-            actionName: "updateSelectedIndices",
-            args: { selectedIndices: [2] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/ylabelalign",
+            selectedIndices: [2],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -136,18 +136,8 @@ describe("Graph tag tests", async () => {
         expect(stateVariables["/g"].stateValues.xlabel).eq("");
         expect(stateVariables["/g"].stateValues.ylabel).eq("");
 
-        await core.requestAction({
-            componentName: "/uvx",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/uvy",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/uvx", core });
+        await updateValue({ name: "/uvy", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/g"].stateValues.xlabel).eq("s");
@@ -195,14 +185,14 @@ describe("Graph tag tests", async () => {
 
             await updateMathInputValue({
                 latex: "2",
-                componentName: "/aspectRatio",
+                name: "/aspectRatio",
                 core,
             });
             await checkLimits(core, ratio2);
 
             await updateMathInputValue({
                 latex: "1/2",
-                componentName: "/aspectRatio",
+                name: "/aspectRatio",
                 core,
             });
             await checkLimits(core, ratio05);
@@ -328,7 +318,7 @@ describe("Graph tag tests", async () => {
         // set xmin to -5
         await updateMathInputValue({
             latex: "-5",
-            componentName: "/xminInput",
+            name: "/xminInput",
             core,
         });
         await checkLimits(-5, 10, -10, 10);
@@ -336,7 +326,7 @@ describe("Graph tag tests", async () => {
         // set ymax to 0
         await updateMathInputValue({
             latex: "0",
-            componentName: "/ymaxInput",
+            name: "/ymaxInput",
             core,
         });
         await checkLimits(-5, 10, -10, 0);
@@ -387,7 +377,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -395,7 +385,7 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "true",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -403,7 +393,7 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "false",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -411,7 +401,7 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "dense",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -419,7 +409,7 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "hello",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -427,7 +417,7 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "medium",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -435,7 +425,7 @@ describe("Graph tag tests", async () => {
 
         await updateTextInputValue({
             text: "none",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -482,28 +472,28 @@ describe("Graph tag tests", async () => {
         expect(stateVariables["/sg4"].stateValues.numbers).eqls([2, 3]);
         expect(stateVariables["/sg5"].stateValues.numbers).eqls([2, 3]);
 
-        await updateMathInputValue({ latex: "3", componentName: "/g2x", core });
+        await updateMathInputValue({ latex: "3", name: "/g2x", core });
         await updateMathInputValue({
             latex: "1.5",
-            componentName: "/g2y",
+            name: "/g2y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/sg2"].stateValues.numbers).eqls([3, 1.5]);
 
-        await updateMathInputValue({ latex: "3", componentName: "/g3x", core });
+        await updateMathInputValue({ latex: "3", name: "/g3x", core });
         await updateMathInputValue({
             latex: "1.5",
-            componentName: "/g3y",
+            name: "/g3y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/sg3"].stateValues.numbers).eqls([3, 1.5]);
 
-        await updateMathInputValue({ latex: "3", componentName: "/g4x", core });
+        await updateMathInputValue({ latex: "3", name: "/g4x", core });
         await updateMathInputValue({
             latex: "1.5",
-            componentName: "/g4y",
+            name: "/g4y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -512,10 +502,10 @@ describe("Graph tag tests", async () => {
             1.5 * 3,
         ]);
 
-        await updateMathInputValue({ latex: "3", componentName: "/g5x", core });
+        await updateMathInputValue({ latex: "3", name: "/g5x", core });
         await updateMathInputValue({
             latex: "1.5",
-            componentName: "/g5y",
+            name: "/g5y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -526,12 +516,12 @@ describe("Graph tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3e/2",
-            componentName: "/g2x",
+            name: "/g2x",
             core,
         });
         await updateMathInputValue({
             latex: "1.5\\pi",
-            componentName: "/g2y",
+            name: "/g2y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -542,12 +532,12 @@ describe("Graph tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3e/2",
-            componentName: "/g3x",
+            name: "/g3x",
             core,
         });
         await updateMathInputValue({
             latex: "1.5\\pi",
-            componentName: "/g3y",
+            name: "/g3y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -558,12 +548,12 @@ describe("Graph tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3\\pi/5",
-            componentName: "/g4x",
+            name: "/g4x",
             core,
         });
         await updateMathInputValue({
             latex: "1.5e/6",
-            componentName: "/g4y",
+            name: "/g4y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -574,12 +564,12 @@ describe("Graph tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3\\pi/5",
-            componentName: "/g5x",
+            name: "/g5x",
             core,
         });
         await updateMathInputValue({
             latex: "1.5e/6",
-            componentName: "/g5y",
+            name: "/g5y",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -639,15 +629,10 @@ describe("Graph tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: mathinputName,
+            name: mathinputName,
             core,
         });
-        await core.requestAction({
-            componentName: "/x",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/x", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/graph1"].stateValues.xlabel).eq("\\(x\\)");
@@ -675,7 +660,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b1",
+            name: "/b1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -688,7 +673,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -701,7 +686,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b1",
+            name: "/b1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -714,7 +699,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -875,7 +860,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b1",
+            name: "/b1",
             core,
         });
 
@@ -885,7 +870,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
 
@@ -895,7 +880,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b1",
+            name: "/b1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -904,7 +889,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
 
@@ -928,7 +913,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b",
+            name: "/b",
             core,
         });
 
@@ -937,7 +922,7 @@ describe("Graph tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b",
+            name: "/b",
             core,
         });
 

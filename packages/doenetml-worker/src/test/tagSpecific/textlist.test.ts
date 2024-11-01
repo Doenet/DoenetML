@@ -137,47 +137,47 @@ describe("TextList tag tests", async () => {
         // change values
 
         await updateTextInputValue({
-            componentName: "/ti1",
+            name: "/ti1",
             text: "a",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti2",
+            name: "/ti2",
             text: "b",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti3",
+            name: "/ti3",
             text: "c",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti4",
+            name: "/ti4",
             text: "d",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti5",
+            name: "/ti5",
             text: "e",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti6",
+            name: "/ti6",
             text: "f",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti7",
+            name: "/ti7",
             text: "g",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti8",
+            name: "/ti8",
             text: "h",
             core,
         });
         await updateTextInputValue({
-            componentName: "/ti9",
+            name: "/ti9",
             text: "i",
             core,
         });
@@ -442,13 +442,13 @@ describe("TextList tag tests", async () => {
         await check_items(max1, max2);
 
         max1 = Infinity;
-        await updateMathInputValue({ latex: "", componentName: "/mn1", core });
+        await updateMathInputValue({ latex: "", name: "/mn1", core });
         await check_items(max1, max2);
 
         max2 = 3;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentName: "/mn2",
+            name: "/mn2",
             core,
         });
         await check_items(max1, max2);
@@ -456,7 +456,7 @@ describe("TextList tag tests", async () => {
         max1 = 4;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentName: "/mn1",
+            name: "/mn1",
             core,
         });
         await check_items(max1, max2);
@@ -464,7 +464,7 @@ describe("TextList tag tests", async () => {
         max1 = 1;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentName: "/mn1",
+            name: "/mn1",
             core,
         });
         await check_items(max1, max2);
@@ -472,7 +472,7 @@ describe("TextList tag tests", async () => {
         max2 = 10;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentName: "/mn2",
+            name: "/mn2",
             core,
         });
         await check_items(max1, max2);
@@ -527,7 +527,7 @@ describe("TextList tag tests", async () => {
         maxN = 4;
         await updateMathInputValue({
             latex: maxN.toString(),
-            componentName: "/maxN",
+            name: "/maxN",
             core,
         });
         await check_items(maxN);
@@ -535,7 +535,7 @@ describe("TextList tag tests", async () => {
         maxN = 1;
         await updateMathInputValue({
             latex: maxN.toString(),
-            componentName: "/maxN",
+            name: "/maxN",
             core,
         });
         await check_items(maxN);
@@ -671,7 +671,7 @@ describe("TextList tag tests", async () => {
         x2 = "d";
         await updateTextInputValue({
             text: `${x1}, ${x2}`,
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         await test_textList({

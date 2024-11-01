@@ -2,8 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveInput,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
+    updateValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -30,7 +33,7 @@ describe("BooleanInput tag tests", async () => {
         // check the box
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -41,7 +44,7 @@ describe("BooleanInput tag tests", async () => {
         // uncheck the box
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -65,7 +68,7 @@ describe("BooleanInput tag tests", async () => {
         // uncheck the box
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -75,7 +78,7 @@ describe("BooleanInput tag tests", async () => {
         // recheck the box
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -134,7 +137,7 @@ describe("BooleanInput tag tests", async () => {
         bi1 = false;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await check_items(bi1, bi2);
@@ -143,7 +146,7 @@ describe("BooleanInput tag tests", async () => {
         bi1 = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1a",
+            name: "/bi1a",
             core,
         });
         await check_items(bi1, bi2);
@@ -152,7 +155,7 @@ describe("BooleanInput tag tests", async () => {
         bi2 = true;
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(bi1, bi2);
@@ -177,7 +180,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -205,7 +208,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -229,7 +232,7 @@ describe("BooleanInput tag tests", async () => {
         // attempt to change value, but it reverts
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -257,7 +260,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -285,7 +288,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -309,7 +312,7 @@ describe("BooleanInput tag tests", async () => {
         // attempt to change value, but it reverts
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -339,7 +342,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -365,7 +368,7 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -373,7 +376,7 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -395,22 +398,12 @@ describe("BooleanInput tag tests", async () => {
         );
 
         // hide label
-        await core.requestAction({
-            componentName: "/toggleLabel",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/toggleLabel", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/bi"].stateValues.label).eq("");
 
         // show label again
-        await core.requestAction({
-            componentName: "/toggleLabel",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/toggleLabel", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/bi"].stateValues.label).eq(
             "It is \\(\\int_a^b f(x)\\,dx\\)",
@@ -543,18 +536,8 @@ describe("BooleanInput tag tests", async () => {
         );
 
         // move booleanInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
+        await moveInput({ name: "/booleanInput1", x: -2, y: 3, core });
+        await moveInput({ name: "/booleanInput2", x: 4, y: -5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -573,12 +556,12 @@ describe("BooleanInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(6,7)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
         await updateMathInputValue({
             latex: "(8,9)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
 
@@ -596,17 +579,15 @@ describe("BooleanInput tag tests", async () => {
         ).eq("(8,9)");
 
         // change position from anchor
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [4] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [4],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [3] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [3],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -621,12 +602,12 @@ describe("BooleanInput tag tests", async () => {
         // make not draggable
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/draggable1",
+            name: "/draggable1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/draggable2",
+            name: "/draggable2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -639,18 +620,8 @@ describe("BooleanInput tag tests", async () => {
         );
 
         // cannot move booleanInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
+        await moveInput({ name: "/booleanInput1", x: -10, y: -9, core });
+        await moveInput({ name: "/booleanInput2", x: -8, y: -7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -668,12 +639,12 @@ describe("BooleanInput tag tests", async () => {
         // make draggable again
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/draggable1",
+            name: "/draggable1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/draggable2",
+            name: "/draggable2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -685,18 +656,8 @@ describe("BooleanInput tag tests", async () => {
             "Draggable 2: true",
         );
 
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
+        await moveInput({ name: "/booleanInput1", x: -10, y: -9, core });
+        await moveInput({ name: "/booleanInput2", x: -8, y: -7, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(
@@ -713,12 +674,12 @@ describe("BooleanInput tag tests", async () => {
         // fix location
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixLocation1",
+            name: "/fixLocation1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixLocation2",
+            name: "/fixLocation2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -733,12 +694,12 @@ describe("BooleanInput tag tests", async () => {
         // can change coordinates entering coordinates only for input 1
         await updateMathInputValue({
             latex: "(3,4)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
         await updateMathInputValue({
             latex: "(1,2)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -756,18 +717,8 @@ describe("BooleanInput tag tests", async () => {
         ).eq("(-8,-7)");
 
         // cannot move booleanInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: 7, y: 8 },
-            event: null,
-        });
+        await moveInput({ name: "/booleanInput1", x: 4, y: 6, core });
+        await moveInput({ name: "/booleanInput2", x: 7, y: 8, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(
@@ -782,17 +733,15 @@ describe("BooleanInput tag tests", async () => {
         ).eq("(-8,-7)");
 
         // can change position from anchor only for input 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [8] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [8],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [7] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [7],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -807,12 +756,12 @@ describe("BooleanInput tag tests", async () => {
         // can change disabled attribute
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/disabled1",
+            name: "/disabled1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/disabled2",
+            name: "/disabled2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -827,12 +776,12 @@ describe("BooleanInput tag tests", async () => {
         // make completely fixed
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixed1",
+            name: "/fixed1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fixed2",
+            name: "/fixed2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -843,12 +792,12 @@ describe("BooleanInput tag tests", async () => {
         // can change coordinates entering coordinates only for input 1
         await updateMathInputValue({
             latex: "(7,8)",
-            componentName: "/anchorCoords2",
+            name: "/anchorCoords2",
             core,
         });
         await updateMathInputValue({
             latex: "(5,6)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -866,17 +815,15 @@ describe("BooleanInput tag tests", async () => {
         ).eq("(-8,-7)");
 
         // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [5] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor2",
+            selectedIndices: [5],
+            core,
         });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [6] },
-            event: null,
+        await updateSelectedIndices({
+            name: "/positionFromAnchor1",
+            selectedIndices: [6],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -892,12 +839,12 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/disabled1",
+            name: "/disabled1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/disabled2",
+            name: "/disabled2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -976,7 +923,7 @@ describe("BooleanInput tag tests", async () => {
         bi1changed = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await check_items(
@@ -990,7 +937,7 @@ describe("BooleanInput tag tests", async () => {
         bi2changed = true;
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(
@@ -1006,12 +953,12 @@ describe("BooleanInput tag tests", async () => {
         bi4changed = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi3",
+            name: "/bi3",
             core,
         });
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi4",
+            name: "/bi4",
             core,
         });
         await check_items(
@@ -1043,7 +990,7 @@ describe("BooleanInput tag tests", async () => {
         bi3changed = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi3",
+            name: "/bi3",
             core,
         });
         await check_items(
@@ -1058,7 +1005,7 @@ describe("BooleanInput tag tests", async () => {
         bi4changed = true;
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi4",
+            name: "/bi4",
             core,
         });
         await check_items(
@@ -1072,12 +1019,12 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(

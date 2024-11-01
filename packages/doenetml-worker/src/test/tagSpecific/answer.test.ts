@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateMatrixInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
 import {
@@ -27,7 +29,7 @@ async function test_math_answer({
         latex: string;
         credit: number;
         preAction?: {
-            componentName: string;
+            name: string;
             value: string;
             type: "math" | "text" | "boolean" | "choice";
         };
@@ -78,29 +80,26 @@ async function test_math_answer({
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else if (response.preAction.type === "text") {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else if (response.preAction.type === "boolean") {
                 await updateBooleanInputValue({
                     boolean: response.preAction.value === "true",
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else {
-                await core.requestAction({
-                    componentName: response.preAction.componentName,
-                    actionName: "updateSelectedIndices",
-                    args: {
-                        selectedIndices: [parseInt(response.preAction.value)],
-                    },
-                    event: null,
+                await updateSelectedIndices({
+                    name: response.preAction.name,
+                    selectedIndices: [parseInt(response.preAction.value)],
+                    core,
                 });
             }
         }
@@ -116,7 +115,7 @@ async function test_math_answer({
 
         await updateMathInputValue({
             latex,
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -147,12 +146,7 @@ async function test_math_answer({
         }
 
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         if (!response.submissionPrevented) {
             submittedResponses = [currentResponse];
             numSubmissions++;
@@ -231,7 +225,7 @@ async function test_text_answer({
 
         await updateTextInputValue({
             text: currentResponse,
-            componentName: textInputName,
+            name: textInputName,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -253,12 +247,7 @@ async function test_text_answer({
         );
 
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         submittedResponses = [currentResponse];
         submittedCredit = credit;
         numSubmissions++;
@@ -331,7 +320,7 @@ async function test_boolean_answer({
 
         await updateBooleanInputValue({
             boolean: currentResponse,
-            componentName: booleanInputName,
+            name: booleanInputName,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -353,12 +342,7 @@ async function test_boolean_answer({
         );
 
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         submittedResponses = [currentResponse];
         submittedCredit = credit;
         numSubmissions++;
@@ -397,7 +381,7 @@ async function test_choice_answer({
         choices: string[];
         credit: number;
         preAction?: {
-            componentName: string;
+            name: string;
             value: string;
             recomputeIndices: boolean;
             type: "math" | "text";
@@ -457,12 +441,7 @@ async function test_choice_answer({
 
     if (submitFirst) {
         // submit no answer
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         submittedResponses = selectedValues;
         submittedCredit = 0;
         numSubmissions++;
@@ -494,13 +473,13 @@ async function test_choice_answer({
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             }
@@ -522,11 +501,10 @@ async function test_choice_answer({
 
         // select responses
 
-        await core.requestAction({
-            componentName: choiceInputName,
-            actionName: "updateSelectedIndices",
-            args: { selectedIndices },
-            event: null,
+        await updateSelectedIndices({
+            name: choiceInputName,
+            selectedIndices,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -551,12 +529,7 @@ async function test_choice_answer({
         ).eqls(selectedIndices);
 
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         submittedResponses = selectedValues;
         submittedCredit = credit;
         numSubmissions++;
@@ -596,7 +569,7 @@ async function test_matrix_answer({
         entries: { latex: string; rowInd: number; colInd: number }[];
         credit: number;
         preAction?: {
-            componentName: string;
+            name: string;
             value: string;
             type: "math" | "text" | "boolean";
         };
@@ -646,19 +619,19 @@ async function test_matrix_answer({
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else if (response.preAction.type === "text") {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else {
                 await updateBooleanInputValue({
                     boolean: response.preAction.value === "true",
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             }
@@ -676,7 +649,7 @@ async function test_matrix_answer({
                 latex: entry.latex,
                 rowInd: entry.rowInd,
                 colInd: entry.colInd,
-                componentName: matrixInputName,
+                name: matrixInputName,
                 stateVariables,
                 core,
             });
@@ -710,12 +683,7 @@ async function test_matrix_answer({
         }
 
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         if (!response.submissionPrevented) {
             submittedResponses = [currentResponse];
             numSubmissions++;
@@ -760,7 +728,7 @@ async function test_action_answer({
         effectiveResponses: any[];
         credit: number;
         preAction?: {
-            componentName: string;
+            name: string;
             value: string;
             type: "math" | "text";
         };
@@ -795,13 +763,13 @@ async function test_action_answer({
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             }
@@ -835,12 +803,7 @@ async function test_action_answer({
             ),
         ).eqls(submittedResponses);
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         submittedResponses = currentResponses;
         submittedCredit = credit;
 
@@ -873,7 +836,7 @@ async function test_answer_multiple_inputs({
         values: string[];
         credit: number;
         preAction?: {
-            componentName: string;
+            name: string;
             value: string;
             type: "math" | "text";
         };
@@ -968,13 +931,13 @@ async function test_answer_multiple_inputs({
             if (response.preAction.type === "math") {
                 await updateMathInputValue({
                     latex: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             } else {
                 await updateTextInputValue({
                     text: response.preAction.value,
-                    componentName: response.preAction.componentName,
+                    name: response.preAction.name,
                     core,
                 });
             }
@@ -991,19 +954,19 @@ async function test_answer_multiple_inputs({
             if (input.type === "math" || input.type === "number") {
                 await updateMathInputValue({
                     latex: values[ind],
-                    componentName: inputNames[ind],
+                    name: inputNames[ind],
                     core,
                 });
             } else if (input.type === "text") {
                 await updateTextInputValue({
                     text: values[ind],
-                    componentName: inputNames[ind],
+                    name: inputNames[ind],
                     core,
                 });
             } else {
                 await updateBooleanInputValue({
                     boolean: values[ind] === "true",
-                    componentName: inputNames[ind],
+                    name: inputNames[ind],
                     core,
                 });
             }
@@ -1033,12 +996,7 @@ async function test_answer_multiple_inputs({
         }
 
         // submit
-        await core.requestAction({
-            componentName: answerName,
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: answerName, core });
         submittedResponses = currentResponses;
         submittedCredit = credit;
 
@@ -1316,17 +1274,12 @@ describe("Answer tag tests", async () => {
 
         await updateTextInputValue({
             text: " hello there ",
-            componentName: textInputName,
+            name: textInputName,
             core,
         });
 
         // submit
-        await core.requestAction({
-            componentName: "/answer1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/answer1", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/sr1"].stateValues.value).eq(" hello there ");
@@ -1440,15 +1393,10 @@ describe("Answer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
-        await core.requestAction({
-            componentName: "/answer1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/answer1", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
     });
@@ -1503,15 +1451,10 @@ describe("Answer tag tests", async () => {
             // have to submit the correct answer twice before it is marked correct
             await updateMathInputValue({
                 latex: "5",
-                componentName: mathInputName,
+                name: mathInputName,
                 core,
             });
-            await core.requestAction({
-                componentName: "/ans",
-                actionName: "submitAnswer",
-                args: {},
-                event: null,
-            });
+            await submitAnswer({ name: "/ans", core });
             stateVariables = await returnAllStateVariables(core);
 
             // answer is not correct because the submitted response was initially blank
@@ -1520,12 +1463,7 @@ describe("Answer tag tests", async () => {
             // change when the answer is submitted
             expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
 
-            await core.requestAction({
-                componentName: "/ans",
-                actionName: "submitAnswer",
-                args: {},
-                event: null,
-            });
+            await submitAnswer({ name: "/ans", core });
             stateVariables = await returnAllStateVariables(core);
 
             // if `eventually correct` is set to `true`, then
@@ -2705,7 +2643,7 @@ The animal is a <answer name="answer1">
                     choices: ["Get 1"],
                     credit: 1,
                     preAction: {
-                        componentName: "/num",
+                        name: "/num",
                         value: "4",
                         recomputeIndices: true,
                         type: "math",
@@ -2718,7 +2656,7 @@ The animal is a <answer name="answer1">
                     choices: ["Get 1"],
                     credit: 1,
                     preAction: {
-                        componentName: "/num",
+                        name: "/num",
                         value: "3",
                         recomputeIndices: true,
                         type: "math",
@@ -2730,7 +2668,7 @@ The animal is a <answer name="answer1">
                     choices: ["Get 1"],
                     credit: 1,
                     preAction: {
-                        componentName: "/num",
+                        name: "/num",
                         value: "6",
                         recomputeIndices: true,
                         type: "math",
@@ -2768,7 +2706,7 @@ The animal is a <answer name="answer1">
                     choices: ["dog"],
                     credit: 1,
                     preAction: {
-                        componentName: "/catCredit",
+                        name: "/catCredit",
                         value: "0.4",
                         recomputeIndices: true,
                         type: "math",
@@ -2779,7 +2717,7 @@ The animal is a <answer name="answer1">
                     choices: ["cat"],
                     credit: 0.4,
                     preAction: {
-                        componentName: "/last",
+                        name: "/last",
                         value: "mouse",
                         recomputeIndices: true,
                         type: "text",
@@ -2790,7 +2728,7 @@ The animal is a <answer name="answer1">
                     choices: ["cat"],
                     credit: 0.2,
                     preAction: {
-                        componentName: "/catCredit",
+                        name: "/catCredit",
                         value: "0.2",
                         recomputeIndices: true,
                         type: "math",
@@ -2801,7 +2739,7 @@ The animal is a <answer name="answer1">
                     choices: ["rabbit"],
                     credit: 0,
                     preAction: {
-                        componentName: "/last",
+                        name: "/last",
                         value: "rabbit",
                         recomputeIndices: true,
                         type: "text",
@@ -2858,7 +2796,7 @@ Enter any letter:
                     latex: "c",
                     credit: 1,
                     preAction: {
-                        componentName: "/set",
+                        name: "/set",
                         value: "\\{a,b,c,d,e,f,g\\}",
                         type: "math",
                     },
@@ -2869,7 +2807,7 @@ Enter any letter:
                     latex: "2",
                     credit: 0,
                     preAction: {
-                        componentName: "/set",
+                        name: "/set",
                         value: "\\{(x+y)/2, e^{x^2+y}, (1,2,3) \\}",
                         type: "math",
                     },
@@ -2976,7 +2914,7 @@ Enter any letter:
                 {
                     preAction: {
                         type: "math",
-                        componentName: "/mi",
+                        name: "/mi",
                         value: "4",
                     },
                     actionArgs: { x: 3, y: -3 },
@@ -3027,7 +2965,7 @@ Enter any letter:
                     latex: "",
                     credit: 0,
                     preAction: {
-                        componentName: "/min",
+                        name: "/min",
                         value: "2",
                         type: "math",
                     },
@@ -3038,7 +2976,7 @@ Enter any letter:
                     latex: "2",
                     credit: 1,
                     preAction: {
-                        componentName: "/min",
+                        name: "/min",
                         value: "1.9",
                         type: "math",
                     },
@@ -3227,19 +3165,13 @@ Enter any letter:
 
             for (let ind2 = 1; ind2 <= 4; ind2++) {
                 let selectedIndices = [indexByName[options[ind2 - 1]]];
-                await core.requestAction({
-                    componentName: "/ci",
-                    actionName: "updateSelectedIndices",
-                    args: { selectedIndices },
-                    event: null,
+                await updateSelectedIndices({
+                    name: "/ci",
+                    selectedIndices,
+                    core,
                 });
 
-                await core.requestAction({
-                    componentName: "/ans",
-                    actionName: "submitAnswer",
-                    args: {},
-                    event: null,
-                });
+                await submitAnswer({ name: "/ans", core });
 
                 stateVariables = await returnAllStateVariables(core);
 
@@ -3299,16 +3231,11 @@ Enter any letter:
             for (let ind2 = 1; ind2 <= 4; ind2++) {
                 await updateTextInputValue({
                     text: options[ind2 - 1],
-                    componentName: textInputName,
+                    name: textInputName,
                     core,
                 });
 
-                await core.requestAction({
-                    componentName: "/ans",
-                    actionName: "submitAnswer",
-                    args: {},
-                    event: null,
-                });
+                await submitAnswer({ name: "/ans", core });
 
                 stateVariables = await returnAllStateVariables(core);
 
@@ -3354,7 +3281,7 @@ Enter any letter:
                     credit: 0,
                     preAction: {
                         type: "math",
-                        componentName: "/nAwards",
+                        name: "/nAwards",
                         value: "3",
                     },
                     awardsUsed: ["/FirstNumber", "/SecondNumber"],
@@ -3373,7 +3300,7 @@ Enter any letter:
                     credit: 0.4,
                     preAction: {
                         type: "math",
-                        componentName: "/nAwards",
+                        name: "/nAwards",
                         value: "1",
                     },
                     awardsUsed: ["/FirstGreater3"],
@@ -3388,7 +3315,7 @@ Enter any letter:
                     credit: 0.8,
                     preAction: {
                         type: "math",
-                        componentName: "/nAwards",
+                        name: "/nAwards",
                         value: "3",
                     },
                     awardsUsed: [
@@ -3411,7 +3338,7 @@ Enter any letter:
                     credit: 1,
                     preAction: {
                         type: "math",
-                        componentName: "/nAwards",
+                        name: "/nAwards",
                         value: "1",
                     },
                     awardsUsed: ["/DistinctGreater3"],
@@ -3421,7 +3348,7 @@ Enter any letter:
                     credit: 0.4,
                     preAction: {
                         type: "math",
-                        componentName: "/creditForCombined",
+                        name: "/creditForCombined",
                         value: "0.2",
                     },
                     awardsUsed: ["/FirstGreater3"],
@@ -3431,7 +3358,7 @@ Enter any letter:
                     credit: 0.8,
                     preAction: {
                         type: "math",
-                        componentName: "/nAwards",
+                        name: "/nAwards",
                         value: "2",
                     },
                     awardsUsed: ["/FirstGreater3", "/SecondGreater3"],
@@ -3441,7 +3368,7 @@ Enter any letter:
                     credit: 1,
                     preAction: {
                         type: "math",
-                        componentName: "/nAwards",
+                        name: "/nAwards",
                         value: "3",
                     },
                     awardsUsed: [
@@ -3881,7 +3808,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        componentName: "/split",
+                        name: "/split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3892,7 +3819,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        componentName: "/split",
+                        name: "/split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3918,7 +3845,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        componentName: "/split",
+                        name: "/split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3929,7 +3856,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        componentName: "/split",
+                        name: "/split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3957,7 +3884,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        componentName: "/split",
+                        name: "/split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -3968,7 +3895,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        componentName: "/split",
+                        name: "/split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -3997,7 +3924,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "true",
-                        componentName: "/split",
+                        name: "/split",
                     },
                 },
                 { latex: "xyz", credit: 1 },
@@ -4008,7 +3935,7 @@ Enter any letter:
                     preAction: {
                         type: "boolean",
                         value: "false",
-                        componentName: "/split",
+                        name: "/split",
                     },
                     overrideResponse: "xyzb",
                 },
@@ -4025,15 +3952,10 @@ Enter any letter:
    `,
         });
 
-        await updateMathInputValue({ latex: "x", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "x", name: "/mi", core });
 
         // submit
-        await core.requestAction({
-            componentName: "/a",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/a", core });
 
         let stateVariables = await returnAllStateVariables(core);
 
@@ -4058,12 +3980,7 @@ Enter any letter:
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // submit
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4078,19 +3995,14 @@ Enter any letter:
         expect(stateVariables["/ans"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
-        await updateMathInputValue({ latex: "1", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "1", name: "/mi", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/cond"].replacementsToWithhold).eq(1);
         expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // submit
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4106,12 +4018,12 @@ Enter any letter:
 
         await updateMathInputImmediateValue({
             latex: "0",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "1",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4153,30 +4065,10 @@ Enter any letter:
     </answer>`,
         });
 
-        await core.requestAction({
-            componentName: "/ans1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/ans2",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/ans3",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/ans4",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans1", core });
+        await submitAnswer({ name: "/ans2", core });
+        await submitAnswer({ name: "/ans3", core });
+        await submitAnswer({ name: "/ans4", core });
 
         let stateVariables = await returnAllStateVariables(core);
 
@@ -4206,12 +4098,12 @@ Enter any letter:
 
         await updateMathInputValue({
             latex: "y",
-            componentName: "/micr",
+            name: "/micr",
             core,
         });
         await updateMathInputValue({
             latex: "z",
-            componentName: "/misr",
+            name: "/misr",
             core,
         });
 
@@ -4220,13 +4112,8 @@ Enter any letter:
         expect(stateVariables["/sr"]).eq(undefined);
 
         // submit response
-        await updateMathInputValue({ latex: "x", componentName: "/mia", core });
-        await core.requestAction({
-            componentName: "/a",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await updateMathInputValue({ latex: "x", name: "/mia", core });
+        await submitAnswer({ name: "/a", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/cr"].stateValues.value.tree).eq("x");
@@ -4236,12 +4123,12 @@ Enter any letter:
 
         await updateMathInputValue({
             latex: "y",
-            componentName: "/micr",
+            name: "/micr",
             core,
         });
         await updateMathInputValue({
             latex: "z",
-            componentName: "/misr",
+            name: "/misr",
             core,
         });
 
@@ -4349,7 +4236,7 @@ Enter any letter:
         // Type correct answer in first blank
         await updateMathInputValue({
             latex: "x+y",
-            componentName: mathInput1Name,
+            name: mathInput1Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4372,12 +4259,7 @@ Enter any letter:
         expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
 
         // submit second answer
-        await core.requestAction({
-            componentName: "/ans2",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
@@ -4408,7 +4290,7 @@ Enter any letter:
         // type incorrect answer into second blank
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInput2Name,
+            name: mathInput2Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4439,12 +4321,7 @@ Enter any letter:
         ).eqls([["+", "x", "y"]]);
 
         // submit first answer
-        await core.requestAction({
-            componentName: "/ans1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans1", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
@@ -4509,7 +4386,7 @@ Enter any letter:
         // Type correct answer in first blank
         await updateMathInputValue({
             latex: "x+y",
-            componentName: mathInput1Name,
+            name: mathInput1Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4532,12 +4409,7 @@ Enter any letter:
         expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
 
         // submit first answer
-        await core.requestAction({
-            componentName: "/ans1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans1", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
@@ -4564,7 +4436,7 @@ Enter any letter:
         // type correct answer into second blank
         await updateMathInputValue({
             latex: "x+y",
-            componentName: mathInput2Name,
+            name: mathInput2Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4591,12 +4463,7 @@ Enter any letter:
         expect(stateVariables["/ans2"].stateValues.submittedResponses).eqls([]);
 
         // submit second answer
-        await core.requestAction({
-            componentName: "/ans2",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
@@ -4627,7 +4494,7 @@ Enter any letter:
         // type incorrect answer into second blank
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInput2Name,
+            name: mathInput2Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4658,12 +4525,7 @@ Enter any letter:
         ).eqls([["+", "x", "y"]]);
 
         // submit second answer
-        await core.requestAction({
-            componentName: "/ans2",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
@@ -4694,7 +4556,7 @@ Enter any letter:
         // type incorrect answer into first blank
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInput1Name,
+            name: mathInput1Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4725,12 +4587,7 @@ Enter any letter:
         ).eqls(["x"]);
 
         // submit first answer
-        await core.requestAction({
-            componentName: "/ans1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans1", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
@@ -4812,7 +4669,7 @@ Enter any letter:
         // type correct answer
         await updateMathInputValue({
             latex: "x^2-2x+3",
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
 
@@ -4841,12 +4698,7 @@ Enter any letter:
 
         //  submit
 
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
 
         expect(components["/ans"].stateValues.justSubmitted).eq(true);
         expect(components["/ans"].stateValues.creditAchieved).eq(1);
@@ -4893,7 +4745,7 @@ Enter any letter:
         // type partially correct answer
         await updateMathInputValue({
             latex: "x^2-2x-3",
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
 
@@ -4924,12 +4776,7 @@ Enter any letter:
 
         // submit
 
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
 
         expect(components["/ans"].stateValues.justSubmitted).eq(true);
         expect(components["/ans"].stateValues.creditAchieved).eq(0.5);
@@ -4996,7 +4843,7 @@ Enter any letter:
                 {
                     preAction: {
                         type: "math",
-                        componentName: "/mi",
+                        name: "/mi",
                         value: "x^2",
                     },
                     actionArgs: { x: 0, y: 0 },
@@ -5015,7 +4862,7 @@ Enter any letter:
                 {
                     preAction: {
                         type: "math",
-                        componentName: "/mi",
+                        name: "/mi",
                         value: "y^2",
                     },
                     actionArgs: { x: 2, y: -7 },
@@ -5249,18 +5096,13 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables["/xsr"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/xcr"].stateValues.value.tree).eq("\uff3f");
 
-        await updateMathInputValue({ latex: "x", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "x", name: "/mi", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/xsr"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/xcr"].stateValues.value.tree).eq("x");
 
-        await core.requestAction({
-            componentName: "/x",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/x", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/xsr"].stateValues.value.tree).eq("x");
         expect(stateVariables["/xcr"].stateValues.value.tree).eq("x");
@@ -5270,7 +5112,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateTextInputValue({
             text: "hello",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5278,12 +5120,7 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables["/hellosr"].stateValues.value).eq("");
         expect(stateVariables["/hellocr"].stateValues.value).eq("hello");
 
-        await core.requestAction({
-            componentName: "/hello",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/hello", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/hellosr"].stateValues.value).eq("hello");
@@ -5294,7 +5131,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5302,12 +5139,7 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables["/bsr"].stateValues.value).eq(false);
         expect(stateVariables["/bcr"].stateValues.value).eq(true);
 
-        await core.requestAction({
-            componentName: "/b",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/b", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/bsr"].stateValues.value).eq(true);
@@ -5646,28 +5478,18 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateMathInputValue({
             latex: "y",
-            componentName: "/miDefault",
+            name: "/miDefault",
             core,
         });
         await updateMathInputValue({
             latex: "y",
-            componentName: "/miLong",
+            name: "/miLong",
             core,
         });
 
-        await core.requestAction({
-            componentName: "/default",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/default", core });
 
-        await core.requestAction({
-            componentName: "/long",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/long", core });
 
         let stateVariables = await returnAllStateVariables(core);
 
@@ -5703,12 +5525,12 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateMathInputValue({
             latex: "1.23456789",
-            componentName: "/miDefault",
+            name: "/miDefault",
             core,
         });
         await updateMathInputValue({
             latex: "1.23456789",
-            componentName: "/miShort",
+            name: "/miShort",
             core,
         });
 
@@ -5727,19 +5549,9 @@ What is the derivative of <function name="f">x^2</function>?
             "\uff3f",
         );
 
-        await core.requestAction({
-            componentName: "/default",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/default", core });
 
-        await core.requestAction({
-            componentName: "/short",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/short", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -5781,12 +5593,12 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateMathInputValue({
             latex: "1.23456789",
-            componentName: "/miDefault",
+            name: "/miDefault",
             core,
         });
         await updateMathInputValue({
             latex: "1.23456789",
-            componentName: "/miShort",
+            name: "/miShort",
             core,
         });
 
@@ -5805,19 +5617,9 @@ What is the derivative of <function name="f">x^2</function>?
             NaN,
         );
 
-        await core.requestAction({
-            componentName: "/default",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/default", core });
 
-        await core.requestAction({
-            componentName: "/short",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/short", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -5870,18 +5672,12 @@ What is the derivative of <function name="f">x^2</function>?
         }
 
         async function submit_selection(name: string) {
-            await core.requestAction({
-                componentName: "/ci",
-                actionName: "updateSelectedIndices",
-                args: { selectedIndices: [indexByName[name]] },
-                event: null,
+            await updateSelectedIndices({
+                name: "/ci",
+                selectedIndices: [indexByName[name]],
+                core,
             });
-            await core.requestAction({
-                componentName: "/a",
-                actionName: "submitAnswer",
-                args: {},
-                event: null,
-            });
+            await submitAnswer({ name: "/a", core });
         }
 
         await submit_selection("stable");
@@ -5891,7 +5687,7 @@ What is the derivative of <function name="f">x^2</function>?
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
 
-        await updateMathInputValue({ latex: "3", componentName: "/m", core });
+        await updateMathInputValue({ latex: "3", name: "/m", core });
         await submit_selection("stable");
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
@@ -5901,7 +5697,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateMathInputValue({
             latex: "-0.8",
-            componentName: "/m",
+            name: "/m",
             core,
         });
         await submit_selection("stable");
@@ -5911,7 +5707,7 @@ What is the derivative of <function name="f">x^2</function>?
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
 
-        await updateMathInputValue({ latex: "1/3", componentName: "/m", core });
+        await updateMathInputValue({ latex: "1/3", name: "/m", core });
         await submit_selection("stable");
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
@@ -5921,7 +5717,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await updateMathInputValue({
             latex: "-7/5",
-            componentName: "/m",
+            name: "/m",
             core,
         });
         await submit_selection("stable");
@@ -5931,7 +5727,7 @@ What is the derivative of <function name="f">x^2</function>?
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
 
-        await updateMathInputValue({ latex: "1", componentName: "/m", core });
+        await updateMathInputValue({ latex: "1", name: "/m", core });
         await submit_selection("stable");
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
@@ -5973,7 +5769,7 @@ What is the derivative of <function name="f">x^2</function>?
                     latex: "x < 0",
                     credit: 1,
                     preAction: {
-                        componentName: "/c",
+                        name: "/c",
                         type: "choice",
                         value: "2",
                     },
@@ -5983,7 +5779,7 @@ What is the derivative of <function name="f">x^2</function>?
                     latex: "x > 0",
                     credit: 1,
                     preAction: {
-                        componentName: "/c",
+                        name: "/c",
                         type: "choice",
                         value: "1",
                     },
