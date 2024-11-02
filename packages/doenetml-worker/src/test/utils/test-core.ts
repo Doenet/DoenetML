@@ -5,7 +5,45 @@ import {
 } from "../../utils/expandDoenetML";
 import Core from "../../Core";
 
-export async function createTestCore({ doenetML, requestedVariantIndex = 1 }) {
+type DoenetMLFlags = {
+    showCorrectness: boolean;
+    readOnly: boolean;
+    solutionDisplayMode: string;
+    showFeedback: boolean;
+    showHints: boolean;
+    allowLoadState: boolean;
+    allowSaveState: boolean;
+    allowLocalState: boolean;
+    allowSaveSubmissions: boolean;
+    allowSaveEvents: boolean;
+    autoSubmit: boolean;
+};
+
+type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
+
+const defaultFlags: DoenetMLFlags = {
+    showCorrectness: true,
+    readOnly: false,
+    solutionDisplayMode: "button",
+    showFeedback: true,
+    showHints: true,
+    allowLoadState: false,
+    allowSaveState: false,
+    allowLocalState: false,
+    allowSaveSubmissions: false,
+    allowSaveEvents: false,
+    autoSubmit: false,
+};
+
+export async function createTestCore({
+    doenetML,
+    requestedVariantIndex = 1,
+    flags: specifiedFlags = {},
+}: {
+    doenetML: string;
+    requestedVariantIndex?: number;
+    flags?: DoenetMLFlagsSubset;
+}) {
     let componentInfoObjects = createComponentInfoObjects();
 
     let expandResult = await expandDoenetMLsToFullSerializedComponents({
@@ -13,12 +51,14 @@ export async function createTestCore({ doenetML, requestedVariantIndex = 1 }) {
         componentInfoObjects,
     });
 
+    const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
+
     let coreBaseArgs = {
         doenetML,
         serializedDocument: addDocumentIfItsMissing(
             expandResult.fullSerializedComponents[0],
         )[0],
-        flags: {},
+        flags,
         allDoenetMLs: expandResult.allDoenetMLs,
         preliminaryErrors: expandResult.errors,
         preliminaryWarnings: expandResult.warnings,

@@ -223,7 +223,7 @@ export default class Choiceinput extends Input {
                         (x) => x + 1,
                     );
                 } else {
-                    // if desiredIndices is specfied, use those
+                    // if desiredIndices is specified, use those
                     let desiredChoiceOrder =
                         dependencyValues.variants?.desiredVariant?.indices;
                     if (desiredChoiceOrder !== undefined) {
