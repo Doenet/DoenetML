@@ -14,6 +14,7 @@ import {
     getLatexToMathConverter,
     normalizeLatexString,
 } from "../../utils/math";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1426,7 +1427,7 @@ describe("Answer tag tests", async () => {
         ];
 
         async function check_award_based_on_submitted_response(
-            core: any,
+            core: Core,
             eventually_correct = true,
         ) {
             let errorWarnings = core.errorWarnings;

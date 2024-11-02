@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -19,7 +20,7 @@ async function testPolylineCopiedTwice({
     graph2Name = "/g2",
     graph3Name = "/g3",
 }: {
-    core: any;
+    core: Core;
     vertices: (number | string)[][];
     polylineName?: string;
     graph1Name?: string;

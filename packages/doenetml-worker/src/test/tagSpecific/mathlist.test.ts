@@ -4,6 +4,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -16,7 +17,7 @@ describe("MathList tag tests", async () => {
         text,
         maths,
     }: {
-        core: any;
+        core: Core;
         name?: string;
         pName?: string;
         text?: string;
@@ -184,7 +185,7 @@ describe("MathList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: any) {
+    async function test_nested_and_inverse(core: Core) {
         await test_mathList({
             core,
             name: "/ml1",

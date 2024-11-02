@@ -5,6 +5,7 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -578,7 +579,7 @@ describe("Conditional content tag tests", async () => {
         skipSingletons = false,
         calcNegativeFromContainers,
     }: {
-        core: any;
+        core: Core;
         namePrefixes: string[];
         skipSingletons?: boolean;
         calcNegativeFromContainers?: string[];
@@ -975,7 +976,7 @@ describe("Conditional content tag tests", async () => {
         namePrefixes,
         inputName,
     }: {
-        core: any;
+        core: Core;
         namePrefixes: string[];
         inputName: string;
     }) {

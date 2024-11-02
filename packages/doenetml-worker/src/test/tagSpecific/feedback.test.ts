@@ -6,12 +6,13 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 
 describe("Feedback tag tests", async () => {
-    async function test_three_feedbacks(core: any, showFeedback: boolean) {
+    async function test_three_feedbacks(core: Core, showFeedback: boolean) {
         async function check_items(
             show1: boolean,
             show2: boolean,
@@ -452,7 +453,7 @@ describe("Feedback tag tests", async () => {
         await check_items(ans1Response, ans2Response);
     });
 
-    async function test_feedback_from_multiple_choice(core: any) {
+    async function test_feedback_from_multiple_choice(core: Core) {
         async function check_items(submittedChoice?: string) {
             let credit = 0;
             if (submittedChoice === "dog") {
@@ -827,7 +828,7 @@ describe("Feedback tag tests", async () => {
     });
 
     async function test_feedback_defined_in_awards(
-        core: any,
+        core: Core,
         wrongCosCode?: boolean,
     ) {
         async function check_items(submittedLatex?: string) {
@@ -1073,7 +1074,7 @@ describe("Feedback tag tests", async () => {
     });
 
     async function test_feedback_defined_in_choices(
-        core: any,
+        core: Core,
         feedbacks: Record<string, string[]>,
     ) {
         async function check_items(response?: string) {

@@ -4,6 +4,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -65,7 +66,7 @@ describe("Boolean Operator tag tests", async () => {
     });
 
     async function test_three_operators(
-        core: any,
+        core: Core,
         operator: (args: boolean[]) => boolean,
     ) {
         async function check_items(booleans: boolean[]) {

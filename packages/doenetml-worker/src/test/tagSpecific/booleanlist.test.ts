@@ -4,6 +4,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -16,11 +17,11 @@ describe("BooleanList tag tests", async () => {
         text,
         booleans,
     }: {
-        core: any;
+        core: Core;
         name?: string;
         pName?: string;
         text?: string;
-        booleans?: any[];
+        booleans?: boolean[];
     }) {
         const stateVariables = await returnAllStateVariables(core);
 
@@ -102,7 +103,7 @@ describe("BooleanList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: any) {
+    async function test_nested_and_inverse(core: Core) {
         await test_booleanList({
             core,
             name: "/bl1",

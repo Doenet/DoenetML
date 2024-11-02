@@ -9,6 +9,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -153,7 +154,7 @@ describe("Graph tag tests", async () => {
         };
 
         async function checkLimits(
-            core: any,
+            core: Core,
             { xmin, xmax, ymin, ymax }: AxisLimits,
         ) {
             const stateVariables = await returnAllStateVariables(core);

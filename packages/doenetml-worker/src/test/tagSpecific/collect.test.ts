@@ -49,12 +49,7 @@ describe("Collect tag tests", async () => {
         let x3 = 4,
             y3 = 2;
 
-        let coords1Text = ("(" + x1 + "," + y1 + ")").replace(/-/g, "−");
-        let coords2Text = ("(" + x2 + "," + y2 + ")").replace(/-/g, "−");
-        let coords3Text = ("(" + x3 + "," + y3 + ")").replace(/-/g, "−");
-        let coords2tText = ("(" + y2 + "," + x2 + ")").replace(/-/g, "−");
-
-        let meany = (y1 + y2 + y1 + y3 + x2) / 5;
+        let mean_y = (y1 + y2 + y1 + y3 + x2) / 5;
 
         let xs = [x1, x2, x1, x3, y2];
         let ys = [y1, y2, y1, y3, x2];
@@ -90,14 +85,14 @@ describe("Collect tag tests", async () => {
                 ys[i],
             );
         }
-        expect(stateVariables["/mean"].stateValues.value.tree).eq(meany);
+        expect(stateVariables["/mean"].stateValues.value.tree).eq(mean_y);
 
         // move point 1
         x1 = -8;
         y1 = 6;
         xs = [x1, x2, x1, x3, y2];
         ys = [y1, y2, y1, y3, x2];
-        meany = (y1 + y2 + y1 + y3 + x2) / 5;
+        mean_y = (y1 + y2 + y1 + y3 + x2) / 5;
 
         await movePoint({ name: "/_point1", x: x1, y: y1, core });
 
@@ -134,14 +129,14 @@ describe("Collect tag tests", async () => {
                 ys[i],
             );
         }
-        expect(stateVariables["/mean"].stateValues.value.tree).eq(meany);
+        expect(stateVariables["/mean"].stateValues.value.tree).eq(mean_y);
 
         // move point 1 via copy
         x1 = 2;
         y1 = 0;
         xs = [x1, x2, x1, x3, y2];
         ys = [y1, y2, y1, y3, x2];
-        meany = (y1 + y2 + y1 + y3 + x2) / 5;
+        mean_y = (y1 + y2 + y1 + y3 + x2) / 5;
 
         await movePoint({ name: "/p1a", x: x1, y: y1, core });
 
@@ -177,14 +172,14 @@ describe("Collect tag tests", async () => {
                 ys[i],
             );
         }
-        expect(stateVariables["/mean"].stateValues.value.tree).eq(meany);
+        expect(stateVariables["/mean"].stateValues.value.tree).eq(mean_y);
 
         // move point 2
         x2 = 4;
         y2 = 8;
         xs = [x1, x2, x1, x3, y2];
         ys = [y1, y2, y1, y3, x2];
-        meany = (y1 + y2 + y1 + y3 + x2) / 5;
+        mean_y = (y1 + y2 + y1 + y3 + x2) / 5;
 
         await movePoint({ name: "/_point2", x: x2, y: y2, core });
 
@@ -221,14 +216,14 @@ describe("Collect tag tests", async () => {
                 ys[i],
             );
         }
-        expect(stateVariables["/mean"].stateValues.value.tree).eq(meany);
+        expect(stateVariables["/mean"].stateValues.value.tree).eq(mean_y);
 
         // move flipped point 2
         x2 = -1;
         y2 = -3;
         xs = [x1, x2, x1, x3, y2];
         ys = [y1, y2, y1, y3, x2];
-        meany = (y1 + y2 + y1 + y3 + x2) / 5;
+        mean_y = (y1 + y2 + y1 + y3 + x2) / 5;
 
         await movePoint({ name: "/_point4", x: y2, y: x2, core });
 
@@ -265,14 +260,14 @@ describe("Collect tag tests", async () => {
                 ys[i],
             );
         }
-        expect(stateVariables["/mean"].stateValues.value.tree).eq(meany);
+        expect(stateVariables["/mean"].stateValues.value.tree).eq(mean_y);
 
         // move point 3
         x3 = -5;
         y3 = 9;
         xs = [x1, x2, x1, x3, y2];
         ys = [y1, y2, y1, y3, x2];
-        meany = (y1 + y2 + y1 + y3 + x2) / 5;
+        mean_y = (y1 + y2 + y1 + y3 + x2) / 5;
 
         await movePoint({ name: "/_point3", x: x3, y: y3, core });
 
@@ -309,7 +304,7 @@ describe("Collect tag tests", async () => {
                 ys[i],
             );
         }
-        expect(stateVariables["/mean"].stateValues.value.tree).eq(meany);
+        expect(stateVariables["/mean"].stateValues.value.tree).eq(mean_y);
     });
 
     it("collect dynamic points from graphs", async () => {

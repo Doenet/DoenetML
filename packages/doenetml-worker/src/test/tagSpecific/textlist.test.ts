@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -13,11 +14,11 @@ describe("TextList tag tests", async () => {
         text,
         texts,
     }: {
-        core: any;
+        core: Core;
         name?: string;
         pName?: string;
         text?: string;
-        texts?: any[];
+        texts?: string[];
     }) {
         const stateVariables = await returnAllStateVariables(core);
 
@@ -99,7 +100,7 @@ describe("TextList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: any) {
+    async function test_nested_and_inverse(core: Core) {
         await test_textList({
             core,
             name: "/tl1",

@@ -83,8 +83,8 @@ export async function createTestCore({
     return core;
 }
 
-export async function returnAllStateVariables(core) {
-    if (!core?.components) {
+export async function returnAllStateVariables(core: Core) {
+    if (!core.components) {
         throw Error("No core or components");
     }
 

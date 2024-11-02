@@ -4,6 +4,7 @@ import { cleanLatex } from "../utils/math";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1834,7 +1835,7 @@ describe("Function tag tests", async () => {
         globalinfLocation,
         fName = "/f",
     }: {
-        core: any;
+        core: Core;
         maxima: number[][];
         minima: number[][];
         haveGlobalMax?: boolean;

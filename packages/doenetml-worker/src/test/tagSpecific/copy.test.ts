@@ -15,6 +15,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3064,7 +3065,10 @@ describe("Copy tag tests", async () => {
         );
     });
 
-    async function test_copy_component_index(core: any, force_values: boolean) {
+    async function test_copy_component_index(
+        core: Core,
+        force_values: boolean,
+    ) {
         async function check_items({
             x1,
             y1,
@@ -3209,7 +3213,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_prop_component_index(
-        core: any,
+        core: Core,
         force_values: boolean,
     ) {
         async function check_items({
@@ -6221,7 +6225,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         c0 = [6, 0];
-        await moveCircle({ name: "/g5/c", center: c0, core });
+        await moveCircle({ name: "/g5/c", cx: c0[0], cy: c0[1], core });
 
         await check_items({ P, v, vH, c0 });
     });

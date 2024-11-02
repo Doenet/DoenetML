@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -301,7 +302,7 @@ describe("Function Operator tag tests", async () => {
         await check_items({ a, b, c, x, x1, x2 });
     });
 
-    async function checkd_list(core: any) {
+    async function checkd_list(core: Core) {
         const stateVariables = await returnAllStateVariables(core);
         expect(
             stateVariables["/d1"].stateValues.formula.equals(me.fromText("2x")),

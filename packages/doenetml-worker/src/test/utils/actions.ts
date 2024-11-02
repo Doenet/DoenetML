@@ -330,17 +330,19 @@ export async function movePolygon({
 
 export async function moveCircle({
     name,
-    center,
+    cx,
+    cy,
     core,
 }: {
     name: string;
-    center: number[];
+    cx: number;
+    cy: number;
     core: Core;
 }) {
     await core.requestAction({
         componentName: name,
         actionName: "moveCircle",
-        args: { center },
+        args: { center: [cx, cy] },
         event: null,
     });
 }
