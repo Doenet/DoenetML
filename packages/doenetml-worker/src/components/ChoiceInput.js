@@ -1048,6 +1048,14 @@ export default class Choiceinput extends Input {
                 globalDependencyValues,
                 stateValues,
             }) {
+                let desiredSelectedValues =
+                    desiredStateVariableValues.selectedValues;
+
+                // if attempt to set to a string, set it as the first desired value
+                if (typeof desiredSelectedValues === "string") {
+                    desiredSelectedValues = [desiredSelectedValues];
+                }
+
                 let selectMultiple = await stateValues.selectMultiple;
 
                 let componentType = globalDependencyValues.componentType;
@@ -1058,9 +1066,8 @@ export default class Choiceinput extends Input {
                     ];
 
                     let foundValue = false;
-                    for (let key in desiredStateVariableValues.selectedValues) {
-                        let desiredVal =
-                            desiredStateVariableValues.selectedValues[key];
+                    for (let key in desiredSelectedValues) {
+                        let desiredVal = desiredSelectedValues[key];
                         let ind = getIndOfDesiredValue(desiredVal);
                         if (ind !== -1) {
                             newSelectedIndices[key] = ind + 1; // 1-indexed
@@ -1095,8 +1102,7 @@ export default class Choiceinput extends Input {
                         };
                     }
                 } else {
-                    let desiredVal =
-                        desiredStateVariableValues.selectedValues[0];
+                    let desiredVal = desiredSelectedValues[0];
                     let ind = getIndOfDesiredValue(desiredVal);
 
                     if (ind !== -1) {
@@ -1130,9 +1136,9 @@ export default class Choiceinput extends Input {
                             }
                         }
                     } else {
-                        ind = globalDependencyValues.choiceTexts.indexOf(
-                            desiredVal?.toLowerCase().trim(),
-                        );
+                        ind = globalDependencyValues.choiceTexts
+                            .map((v) => v.toLowerCase().trim())
+                            .indexOf(desiredVal?.toLowerCase().trim());
                     }
                     return ind;
                 }
@@ -1439,12 +1445,18 @@ export default class Choiceinput extends Input {
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.disabled)) {
+            let choicesDisabled = await this.stateValues.choicesDisabled;
+
+            let effectiveSelectedIndices = selectedIndices.filter(
+                (v) => !choicesDisabled[v - 1],
+            );
+
             let updateInstructions = [
                 {
                     updateType: "updateValue",
                     componentName: this.componentName,
                     stateVariable: "allSelectedIndices",
-                    value: selectedIndices,
+                    value: effectiveSelectedIndices,
                 },
             ];
 
@@ -1456,8 +1468,8 @@ export default class Choiceinput extends Input {
                     componentType: this.componentType,
                 },
                 result: {
-                    response: selectedIndices,
-                    responseText: selectedIndices.map(
+                    response: effectiveSelectedIndices,
+                    responseText: effectiveSelectedIndices.map(
                         (i) => choiceTexts[i - 1],
                     ),
                 },

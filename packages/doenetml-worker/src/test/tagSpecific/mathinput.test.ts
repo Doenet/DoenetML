@@ -8731,8 +8731,6 @@ describe("MathInput tag tests", async () => {
             [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
         );
 
-        let stateVariables = await returnAllStateVariables(core);
-
         // type in first marks only first immediate value as changed
         mi1iv = "y";
         mi1ivchanged = true;
