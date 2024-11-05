@@ -4,7 +4,6 @@ import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
-    updateMatrixInputValue,
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";

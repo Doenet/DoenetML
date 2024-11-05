@@ -126,6 +126,7 @@ export default class MathInput extends Input {
             createComponentOfType: "integer",
             createStateVariable: "minWidth",
             defaultValue: 50,
+            clamp: [0, Infinity],
             public: true,
             forRenderer: true,
         };

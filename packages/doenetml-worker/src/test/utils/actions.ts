@@ -1,4 +1,5 @@
 import Core from "../../Core";
+import { returnAllStateVariables } from "./test-core";
 
 export async function submitAnswer({
     name,
@@ -194,8 +195,12 @@ export async function updateMatrixInputValue({
     rowInd: number;
     colInd: number;
     core: Core;
-    stateVariables: any;
+    stateVariables?: any;
 }) {
+    if (stateVariables === undefined) {
+        stateVariables = await returnAllStateVariables(core);
+    }
+
     let matrixInput = stateVariables[name];
     let numColumns = matrixInput.stateValues.numColumns;
     let childInd = colInd + numColumns * rowInd;
@@ -210,6 +215,81 @@ export async function updateMatrixInputValue({
             args: { rawRendererValue: latex },
             event: null,
         });
+
+        stateVariables = await returnAllStateVariables(core);
+
+        await core.requestAction({
+            componentName: matrixInputCellName,
+            actionName: "updateValue",
+            args: {},
+            event: null,
+        });
+
+        stateVariables = await returnAllStateVariables(core);
+    }
+}
+
+export async function updateMatrixInputImmediateValue({
+    latex,
+    name,
+    rowInd,
+    colInd,
+    core,
+    stateVariables,
+}: {
+    latex: string;
+    name: string;
+    rowInd: number;
+    colInd: number;
+    core: Core;
+    stateVariables?: any;
+}) {
+    if (stateVariables === undefined) {
+        stateVariables = await returnAllStateVariables(core);
+    }
+
+    let matrixInput = stateVariables[name];
+    let numColumns = matrixInput.stateValues.numColumns;
+    let childInd = colInd + numColumns * rowInd;
+
+    let matrixInputCellName =
+        matrixInput.activeChildren[childInd]?.componentName;
+
+    if (matrixInputCellName) {
+        await core.requestAction({
+            componentName: matrixInputCellName,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: latex },
+            event: null,
+        });
+    }
+}
+
+export async function updateMatrixInputValueToImmediateValue({
+    name,
+    rowInd,
+    colInd,
+    core,
+    stateVariables,
+}: {
+    name: string;
+    rowInd: number;
+    colInd: number;
+    core: Core;
+    stateVariables?: any;
+}) {
+    if (stateVariables === undefined) {
+        stateVariables = await returnAllStateVariables(core);
+    }
+
+    let matrixInput = stateVariables[name];
+    let numColumns = matrixInput.stateValues.numColumns;
+    let childInd = colInd + numColumns * rowInd;
+
+    let matrixInputCellName =
+        matrixInput.activeChildren[childInd]?.componentName;
+
+    if (matrixInputCellName) {
         await core.requestAction({
             componentName: matrixInputCellName,
             actionName: "updateValue",
@@ -217,6 +297,40 @@ export async function updateMatrixInputValue({
             event: null,
         });
     }
+}
+
+export async function updateMatrixInputNumRows({
+    numRows,
+    name,
+    core,
+}: {
+    numRows: number;
+    name: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "updateNumRows",
+        args: { numRows },
+        event: null,
+    });
+}
+
+export async function updateMatrixInputNumColumns({
+    numColumns,
+    name,
+    core,
+}: {
+    numColumns: number;
+    name: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "updateNumColumns",
+        args: { numColumns },
+        event: null,
+    });
 }
 
 export async function focusPoint({ name, core }: { name: string; core: Core }) {
