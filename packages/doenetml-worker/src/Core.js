@@ -12068,7 +12068,7 @@ export default class Core {
         }
 
         if (stateVarObj.additionalStateVariablesDefined) {
-            // combine workspaces of additional state varibles into one
+            // combine workspaces of additional state variables into one
             for (let varName2 of stateVarObj.additionalStateVariablesDefined) {
                 let stateVariableForWorkspace2 = varName2;
                 let stateVarObj2 = component.state[varName2];
