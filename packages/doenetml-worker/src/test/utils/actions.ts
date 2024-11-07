@@ -556,6 +556,25 @@ export async function moveNumber({
     });
 }
 
+export async function moveLabel({
+    name,
+    x,
+    y,
+    core,
+}: {
+    name: string;
+    x: number;
+    y: number;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "moveLabel",
+        args: { x, y },
+        event: null,
+    });
+}
+
 export async function updateSelectedIndices({
     name,
     selectedIndices,

@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
     updateSelectedIndices,
 } from "../utils/actions";
+import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1741,199 +1742,13 @@ describe("Number tag tests", async () => {
     });
 
     it("number in graph", async () => {
-        let core = await createTestCore({
-            doenetML: `
+        const doenetMLsnippet = `
     <graph >
-      <number anchor="$anchorCoords1" name="number1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1">$content1</number>
-      <number name="number2">-17</number>
+      <number anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">$content1</number>
+      <number name="item2">-17</number>
     </graph>
+        `;
 
-    <p name="pAnchor1">Anchor 1 coordinates: <point copySource="number1.anchor" name="number1anchor" /></p>
-    <p name="pAnchor2">Anchor 2 coordinates: <point copySource="number2.anchor" name="number2anchor" /></p>
-    <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathinput name="anchorCoords1" prefill="(1,3)" /></p>
-    <p name="pChangeAnchor2">Change anchor 2 coordinates: <mathinput name="anchorCoords2" bindValueTo="$number2.anchor" /></p>
-    <p name="pPositionFromAnchor1">Position from anchor 1: $number1.positionFromAnchor</p>
-    <p name="pPositionFromAnchor2">Position from anchor 2: $number2.positionFromAnchor</p>
-    <p>Change position from anchor 1
-    <choiceinput inline preselectChoice="1" name="positionFromAnchor1">
-      <choice>upperRight</choice>
-      <choice>upperLeft</choice>
-      <choice>lowerRight</choice>
-      <choice>lowerLeft</choice>
-      <choice>left</choice>
-      <choice>right</choice>
-      <choice>top</choice>
-      <choice>bottom</choice>
-      <choice>center</choice>
-    </choiceinput>
-    </p>
-    <p>Change position from anchor 2
-    <choiceinput inline name="positionFromAnchor2" bindValueTo="$number2.positionFromAnchor">
-      <choice>upperRight</choice>
-      <choice>upperLeft</choice>
-      <choice>lowerRight</choice>
-      <choice>lowerLeft</choice>
-      <choice>left</choice>
-      <choice>right</choice>
-      <choice>top</choice>
-      <choice>bottom</choice>
-      <choice>center</choice>
-    </choiceinput>
-    </p>
-    <p name="pDraggable1">Draggable 1: $draggable1</p>
-    <p name="pDraggable2">Draggable 2: $draggable2</p>
-    <p>Change draggable 1 <booleanInput name="draggable1" prefill="true" /></p>
-    <p>Change draggable 2 <booleanInput name="draggable2" bindValueTo="$number2.draggable" /></p>
-    <p name="pContent1">Content 1: $number1</p>
-    <p name="pContent2">Content 2: $number2</p>
-    <p>Content 1 <mathinput name="content1" prefill="11" /></p>
-    <p>Content 2 <mathinput name="content2" bindValueTo="$number2" /></p>
-
-    `,
-        });
-
-        let stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/number1anchor"].stateValues.latex),
-        ).eq("(1,3)");
-        expect(
-            cleanLatex(stateVariables["/number2anchor"].stateValues.latex),
-        ).eq("(0,0)");
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: upperright",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: center",
-        );
-        expect(
-            stateVariables["/positionFromAnchor1"].stateValues.selectedIndices,
-        ).eqls([1]);
-        expect(
-            stateVariables["/positionFromAnchor2"].stateValues.selectedIndices,
-        ).eqls([9]);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-        expect(stateVariables["/pContent1"].stateValues.text).eq(
-            "Content 1: 11",
-        );
-        expect(stateVariables["/pContent2"].stateValues.text).eq(
-            "Content 2: -17",
-        );
-
-        // move numbers by dragging
-        await moveNumber({ name: "/number1", x: -2, y: 3, core });
-        await moveNumber({ name: "/number2", x: 4, y: -5, core });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/number1anchor"].stateValues.latex),
-        ).eq("(-2,3)");
-        expect(
-            cleanLatex(stateVariables["/number2anchor"].stateValues.latex),
-        ).eq("(4,-5)");
-
-        // move numbers by entering coordinates
-
-        await updateMathInputValue({
-            latex: "(6,7)",
-            name: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(8,9)",
-            name: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/number1anchor"].stateValues.latex),
-        ).eq("(6,7)");
-        expect(
-            cleanLatex(stateVariables["/number2anchor"].stateValues.latex),
-        ).eq("(8,9)");
-
-        // change position from anchor
-        await updateSelectedIndices({
-            name: "/positionFromAnchor1",
-            selectedIndices: [4],
-            core,
-        });
-        await updateSelectedIndices({
-            name: "/positionFromAnchor2",
-            selectedIndices: [3],
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: lowerleft",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // make not draggable
-        await updateBooleanInputValue({
-            boolean: false,
-            name: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            name: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: false",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: false",
-        );
-
-        // cannot move numbers by dragging
-        await moveNumber({ name: "/number1", x: -10, y: -9, core });
-        await moveNumber({ name: "/number2", x: -8, y: -7, core });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/number1anchor"].stateValues.latex),
-        ).eq("(6,7)");
-        expect(
-            cleanLatex(stateVariables["/number2anchor"].stateValues.latex),
-        ).eq("(8,9)");
-
-        // change content of number
-        await updateMathInputValue({
-            latex: "11+5",
-            name: "/content1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "-17-1",
-            name: "/content2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pContent1"].stateValues.text).eq(
-            "Content 1: 16",
-        );
-        expect(stateVariables["/pContent2"].stateValues.text).eq(
-            "Content 2: -18",
-        );
+        await test_in_graph(doenetMLsnippet, moveNumber);
     });
 });
