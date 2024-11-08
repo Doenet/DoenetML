@@ -8,7 +8,6 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
     updateMatrixInputValue,
-    updateSelectedIndices,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
@@ -7703,7 +7702,7 @@ describe("Math tag tests", async () => {
     it("math in graph", async () => {
         const doenetMLsnippet = `
         <graph >
-            <math anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">$content1</math>
+            <math anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">"x^2/3</math>
             <math name="item2">e^(-x^2)</math>
         </graph>
         `;

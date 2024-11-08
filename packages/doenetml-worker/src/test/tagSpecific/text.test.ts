@@ -159,7 +159,7 @@ describe("Text tag tests", async () => {
     it("text in graph", async () => {
         const doenetMLsnippet = `
     <graph >
-      <text anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">$content1</text>
+      <text anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">hello</text>
       <text name="item2">bye</text>
     </graph>
             `;
