@@ -2694,6 +2694,7 @@ export default class Function extends InlineComponent {
 
         stateVariableDefinitions.latex = {
             public: true,
+            forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
@@ -2753,23 +2754,6 @@ export default class Function extends InlineComponent {
                     dependencyValues,
                 }).toLatex(params);
                 return { setValue: { latex } };
-            },
-        };
-
-        stateVariableDefinitions.latexWithInputChildren = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                latex: {
-                    dependencyType: "stateVariable",
-                    variableName: "latex",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                return {
-                    setValue: {
-                        latexWithInputChildren: [dependencyValues.latex],
-                    },
-                };
             },
         };
 

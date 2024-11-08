@@ -17,12 +17,14 @@ export function createInputStringFromChildren({
     format,
     createInternalLists = false,
     parser,
+    createDisplayedMathString = false,
 }: {
     children: any;
     codePre: string;
     format: "latex" | "text";
     createInternalLists?: boolean;
-    parser: (arg0: string) => any;
+    parser?: (arg0: string) => any;
+    createDisplayedMathString?: boolean;
 }) {
     let nonStringInd = 0;
     let nonStringIndByChild: (null | number)[] = [];
@@ -46,10 +48,12 @@ export function createInputStringFromChildren({
         createInternalLists,
         nextInternalListInd: nonStringInd,
         parser,
+        createDisplayedMathString,
     });
 
+    let joinString = createDisplayedMathString ? " " : "";
     return {
-        string: result.newChildren.join(""),
+        string: result.newChildren.join(joinString),
         internalLists: result.internalLists,
     };
 }
@@ -66,6 +70,7 @@ function createInputStringFromChildrenSub({
     createInternalLists,
     nextInternalListInd,
     parser,
+    createDisplayedMathString,
 }: {
     compositeReplacementRange: CompositeReplacementRange[] | undefined;
     children: any;
@@ -77,7 +82,8 @@ function createInputStringFromChildrenSub({
     potentialListComponents?: boolean[];
     createInternalLists: boolean;
     nextInternalListInd: number;
-    parser: (arg0: string) => any;
+    parser?: (arg0: string) => any;
+    createDisplayedMathString: boolean;
 }): {
     newChildren: string[];
     newPotentialListComponents: boolean[];
@@ -120,6 +126,7 @@ function createInputStringFromChildrenSub({
                                 nonStringIndByChild,
                                 format,
                                 codePre,
+                                createDisplayedMathString,
                             }),
                         );
                     }
@@ -162,6 +169,7 @@ function createInputStringFromChildrenSub({
                     createInternalLists,
                     nextInternalListInd,
                     parser,
+                    createDisplayedMathString,
                 });
 
                 Object.assign(internalLists, newInternalLists);
@@ -263,10 +271,10 @@ function createInputStringFromChildrenSub({
                             // we will put a list into the ast at this point
                             // (even though one wouldn't be able to get that by parsing a string into math)
                             let code = codePre + nextInternalListInd;
-                            internalLists[code] = parser(listString);
+                            internalLists[code] = parser?.(listString) ?? "";
                             nextInternalListInd++;
                             listString = returnStringForCode(format, code);
-                        } else {
+                        } else if (!createDisplayedMathString) {
                             listString = "(" + listString + ")";
                         }
                     }
@@ -275,7 +283,8 @@ function createInputStringFromChildrenSub({
                 } else {
                     // We are not turning the children in a list,
                     // so just concatenate the strings
-                    newChildren.push(childrenInRange.join(""));
+                    let joinString = createDisplayedMathString ? " " : "";
+                    newChildren.push(childrenInRange.join(joinString));
                 }
 
                 if (potentialListComponents) {
@@ -301,6 +310,7 @@ function createInputStringFromChildrenSub({
                     nonStringIndByChild,
                     format,
                     codePre,
+                    createDisplayedMathString,
                 }),
             );
         }
@@ -333,6 +343,7 @@ function baseStringFromChildren({
     nonStringIndByChild,
     format,
     codePre,
+    createDisplayedMathString,
 }: {
     children: any[];
     startInd: number;
@@ -340,7 +351,11 @@ function baseStringFromChildren({
     nonStringIndByChild: (null | number)[];
     format: "latex" | "text";
     codePre: string;
+    createDisplayedMathString: boolean;
 }) {
+    if (createDisplayedMathString) {
+        return displayedMathStringFromChildren({ children, startInd, endInd });
+    }
     let str = "";
 
     for (let ind = startInd; ind <= endInd; ind++) {
@@ -359,6 +374,7 @@ function baseStringFromChildren({
 
     return str;
 }
+
 function returnStringForCode(format: string, code: string) {
     let nextString;
     if (format === "latex") {
@@ -372,4 +388,37 @@ function returnStringForCode(format: string, code: string) {
         nextString = " " + code + " ";
     }
     return nextString;
+}
+
+function displayedMathStringFromChildren({
+    children,
+    startInd,
+    endInd,
+}: {
+    children: any[];
+    startInd: number;
+    endInd: number;
+}) {
+    let pieces = [];
+    for (let ind = startInd; ind <= endInd; ind++) {
+        let child = children[ind];
+
+        if (typeof child !== "object") {
+            let childTrim = String(child).trim();
+            if (childTrim) {
+                pieces.push(childTrim);
+            }
+        } else if (typeof child.stateValues.latex === "string") {
+            let latex = child.stateValues.latex.trim();
+            if (latex) {
+                pieces.push(latex);
+            }
+        } else if (typeof child.stateValues.text === "string") {
+            let text = child.stateValues.text.trim();
+            if (text) {
+                pieces.push(text);
+            }
+        }
+    }
+    return pieces.join(" ");
 }
