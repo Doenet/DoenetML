@@ -408,6 +408,25 @@ export async function moveLine({
     });
 }
 
+export async function moveLineSegment({
+    name,
+    point1coords,
+    point2coords,
+    core,
+}: {
+    name: string;
+    point1coords?: number[];
+    point2coords?: number[];
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "moveLineSegment",
+        args: { point1coords, point2coords },
+        event: null,
+    });
+}
+
 export async function movePolyline({
     name,
     pointCoords,
