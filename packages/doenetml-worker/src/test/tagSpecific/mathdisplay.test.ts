@@ -3,13 +3,8 @@ import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveMath,
-    movePoint,
     moveText,
-    moveVector,
-    updateBooleanInputValue,
     updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
@@ -17,6 +12,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Displayed math tag tests", async () => {
     it("inline and display", async () => {
