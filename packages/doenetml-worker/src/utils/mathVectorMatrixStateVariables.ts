@@ -36,7 +36,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         numDimensions = size[0];
                     }
                 } else if (
-                    vectorOperators.includes(tree[1][0]) &&
+                    vectorOperators.includes(tree[1]?.[0]) &&
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
@@ -128,7 +128,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         createdVector = true;
                     }
                 } else if (
-                    vectorOperators.includes(tree[1][0]) &&
+                    vectorOperators.includes(tree[1]?.[0]) &&
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
@@ -211,7 +211,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         ]);
                     }
                 } else if (
-                    vectorOperators.includes(tree[1][0]) &&
+                    vectorOperators.includes(tree[1]?.[0]) &&
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
@@ -347,7 +347,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 } else if (tree[0] === "matrix") {
                     matrixSize = tree[1].slice(1);
                 } else if (
-                    vectorOperators.includes(tree[1][0]) &&
+                    vectorOperators.includes(tree[1]?.[0]) &&
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
@@ -618,7 +618,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     }
                     createdMatrix = true;
                 } else if (
-                    vectorOperators.includes(tree[1][0]) &&
+                    vectorOperators.includes(tree[1]?.[0]) &&
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
@@ -698,7 +698,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         desiredMatrixVals,
                     ]);
                 } else if (
-                    vectorOperators.includes(tree[1][0]) &&
+                    vectorOperators.includes(tree[1]?.[0]) &&
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
