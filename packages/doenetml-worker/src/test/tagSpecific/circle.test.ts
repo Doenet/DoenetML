@@ -1626,9 +1626,7 @@ describe("Circle tag tests", async () => {
         });
     });
 
-    // Will un-skip this once all other circle tests are passing and we change dependencies of center
-    // to not depend on radius when there are no through points
-    it.todo("circle where radius depends on unspecified center", async () => {
+    it("circle where radius depends on unspecified center", async () => {
         let core = await createTestCore({
             doenetML: `
     <graph>
