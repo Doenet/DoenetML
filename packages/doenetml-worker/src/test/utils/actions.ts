@@ -164,3 +164,41 @@ export async function updateMatrixInputValue({
         });
     }
 }
+
+export async function movePoint({
+    x,
+    y,
+    name,
+    core,
+}: {
+    x: number;
+    y: number;
+    name: string;
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "movePoint",
+        args: { x, y },
+        event: null,
+    });
+}
+
+export async function movePolygon({
+    name,
+    pointCoords,
+    core,
+}: {
+    name: string;
+    pointCoords: number[][];
+    core: Core;
+}) {
+    await core.requestAction({
+        event: null,
+        actionName: "movePolygon",
+        componentName: name,
+        args: {
+            pointCoords,
+        },
+    });
+}

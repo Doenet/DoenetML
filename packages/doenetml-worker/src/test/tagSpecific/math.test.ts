@@ -2458,15 +2458,13 @@ describe("Math tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
-
         let indToComp = ["x", "y", "z"];
 
         async function check_values(
             xs: string[],
             operator: "tuple" | "vector" | "list" | "altvector",
         ) {
-            let stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await returnAllStateVariables(core);
 
             expect(stateVariables["/numDim1"].stateValues.value).eq(xs.length);
             expect(stateVariables["/numDim2"].stateValues.value).eq(xs.length);
