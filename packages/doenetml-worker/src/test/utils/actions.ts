@@ -179,7 +179,26 @@ export async function movePoint({
     await core.requestAction({
         componentName: name,
         actionName: "movePoint",
-        args: { x,y },
+        args: { x, y },
         event: null,
+    });
+}
+
+export async function movePolygon({
+    name,
+    pointCoords,
+    core,
+}: {
+    name: string;
+    pointCoords: number[][];
+    core: Core;
+}) {
+    await core.requestAction({
+        event: null,
+        actionName: "movePolygon",
+        componentName: name,
+        args: {
+            pointCoords,
+        },
     });
 }
