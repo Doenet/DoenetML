@@ -1897,17 +1897,20 @@ describe("Circle tag tests", async () => {
     });
 
     // Will un-skip this once all other circle tests are passing and we change dependencies of center
-    it.todo("circle where through point depends on unspecified center", async () => {
-        let core = await createTestCore({
-            doenetML: `
+    it.todo(
+        "circle where through point depends on unspecified center",
+        async () => {
+            let core = await createTestCore({
+                doenetML: `
     <graph>
         <circle name="circle1" through="($circle1.centerX1,$(circle1.centerX2)2)" />
         $circle1.center{assignNames="centerCopy"}
     </graph>
 
   `,
-        });
-    });
+            });
+        },
+    );
 
     it("circle where through point 2 depends on through point 1", async () => {
         let core = await createTestCore({
@@ -4562,17 +4565,25 @@ $c7.radius
         let stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/st1"].stateValues.value).toContain("blue");
-        expect(stateVariables["/stn1"].stateValues.value).toContain("blue circle");
+        expect(stateVariables["/stn1"].stateValues.value).toContain(
+            "blue circle",
+        );
         expect(stateVariables["/bst1"].stateValues.value).toContain("blue");
         expect(stateVariables["/fst1"].stateValues.value).toContain("unfilled");
 
-        expect(stateVariables["/st2"].stateValues.value).toContain("filled blue");
-        expect(stateVariables["/stn2"].stateValues.value).toContain("filled blue circle");
+        expect(stateVariables["/st2"].stateValues.value).toContain(
+            "filled blue",
+        );
+        expect(stateVariables["/stn2"].stateValues.value).toContain(
+            "filled blue circle",
+        );
         expect(stateVariables["/bst2"].stateValues.value).toContain("blue");
         expect(stateVariables["/fst2"].stateValues.value).toContain("blue");
 
         expect(stateVariables["/st3"].stateValues.value).toContain("red");
-        expect(stateVariables["/stn3"].stateValues.value).toContain("red circle");
+        expect(stateVariables["/stn3"].stateValues.value).toContain(
+            "red circle",
+        );
         expect(stateVariables["/bst3"].stateValues.value).toContain("red");
         expect(stateVariables["/fst3"].stateValues.value).toContain("unfilled");
 
@@ -4585,9 +4596,15 @@ $c7.radius
         expect(stateVariables["/bst4"].stateValues.value).toContain("red");
         expect(stateVariables["/fst4"].stateValues.value).toContain("green");
 
-        expect(stateVariables["/st5"].stateValues.value).toContain("thick blue");
-        expect(stateVariables["/stn5"].stateValues.value).toContain("thick blue circle");
-        expect(stateVariables["/bst5"].stateValues.value).toContain("thick blue");
+        expect(stateVariables["/st5"].stateValues.value).toContain(
+            "thick blue",
+        );
+        expect(stateVariables["/stn5"].stateValues.value).toContain(
+            "thick blue circle",
+        );
+        expect(stateVariables["/bst5"].stateValues.value).toContain(
+            "thick blue",
+        );
         expect(stateVariables["/fst5"].stateValues.value).toContain("unfilled");
 
         expect(stateVariables["/st6"].stateValues.value).toContain(
@@ -4596,12 +4613,20 @@ $c7.radius
         expect(stateVariables["/stn6"].stateValues.value).toContain(
             "filled blue circle with a thick border",
         );
-        expect(stateVariables["/bst6"].stateValues.value).toContain("thick blue");
+        expect(stateVariables["/bst6"].stateValues.value).toContain(
+            "thick blue",
+        );
         expect(stateVariables["/fst6"].stateValues.value).toContain("blue");
 
-        expect(stateVariables["/st7"].stateValues.value).toContain("thin dotted red");
-        expect(stateVariables["/stn7"].stateValues.value).toContain("thin dotted red circle");
-        expect(stateVariables["/bst7"].stateValues.value).toContain("thin dotted red");
+        expect(stateVariables["/st7"].stateValues.value).toContain(
+            "thin dotted red",
+        );
+        expect(stateVariables["/stn7"].stateValues.value).toContain(
+            "thin dotted red circle",
+        );
+        expect(stateVariables["/bst7"].stateValues.value).toContain(
+            "thin dotted red",
+        );
         expect(stateVariables["/fst7"].stateValues.value).toContain("unfilled");
 
         expect(stateVariables["/st8"].stateValues.value).toContain(
@@ -4610,7 +4635,9 @@ $c7.radius
         expect(stateVariables["/stn8"].stateValues.value).toContain(
             "filled green circle with a thin dotted red border",
         );
-        expect(stateVariables["/bst8"].stateValues.value).toContain("thin dotted red");
+        expect(stateVariables["/bst8"].stateValues.value).toContain(
+            "thin dotted red",
+        );
         expect(stateVariables["/fst8"].stateValues.value).toContain("green");
     });
 
@@ -4646,7 +4673,8 @@ $c7.radius
     <boolean copySource="P3.hideOffGraphIndicator" name="P3h" />
     <boolean copySource="Q3.hideOffGraphIndicator" name="Q3h" />
     <boolean copySource="R3.hideOffGraphIndicator" name="R3h" />
-    `, });
+    `,
+        });
 
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1h"].stateValues.value).eqls(false);
@@ -4659,5 +4687,4 @@ $c7.radius
         expect(stateVariables["/Q3h"].stateValues.value).eqls(true);
         expect(stateVariables["/R3h"].stateValues.value).eqls(false);
     });
-
 });

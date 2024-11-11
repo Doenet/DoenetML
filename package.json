@@ -97,9 +97,6 @@
             "vscode-jsonrpc": "$vscode-jsonrpc"
         }
     },
-    "prettier": {
-        "tabWidth": 4
-    },
     "dependencies": {
         "math-expressions": "^2.0.0-alpha70",
         "react-router-dom": "^6.26.2"

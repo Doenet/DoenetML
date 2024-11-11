@@ -236,5 +236,4 @@ describe("Circle Tag Tests", function () {
             "C has a white fill.",
         );
     });
-
 });

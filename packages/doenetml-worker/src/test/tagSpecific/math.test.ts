@@ -2458,7 +2458,6 @@ describe("Math tag tests", async () => {
   `,
         });
 
-
         let indToComp = ["x", "y", "z"];
 
         async function check_values(
