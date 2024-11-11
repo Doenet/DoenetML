@@ -1896,22 +1896,6 @@ describe("Circle tag tests", async () => {
         await test_circle_center_and_through_point_interdependent({ core });
     });
 
-    // Will un-skip this once all other circle tests are passing and we change dependencies of center
-    it.todo(
-        "circle where through point depends on unspecified center",
-        async () => {
-            let core = await createTestCore({
-                doenetML: `
-    <graph>
-        <circle name="circle1" through="($circle1.centerX1,$(circle1.centerX2)2)" />
-        $circle1.center{assignNames="centerCopy"}
-    </graph>
-
-  `,
-            });
-        },
-    );
-
     it("circle where through point 2 depends on through point 1", async () => {
         let core = await createTestCore({
             doenetML: `
