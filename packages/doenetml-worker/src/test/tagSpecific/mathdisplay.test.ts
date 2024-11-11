@@ -1138,7 +1138,7 @@ describe("Displayed math tag tests", async () => {
         await test_color_via_style(core);
     });
 
-    it.only("math copied by plain macro, but not value, reflects style and anchor position", async () => {
+    it("math copied by plain macro, but not value, reflects style and anchor position", async () => {
         let core = await createTestCore({
             doenetML: `
             <setup>
