@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("lorem tag tests", async () => {
     it("paragraphs, sentences, and words", async () => {
@@ -96,17 +97,17 @@ describe("lorem tag tests", async () => {
 
         await updateMathInputValue({
             latex: `${nParagraphs}`,
-            componentName: "/paragraphs/numPars",
+            name: "/paragraphs/numPars",
             core,
         });
         await updateMathInputValue({
             latex: `${nSentences}`,
-            componentName: "/sentences/numSens",
+            name: "/sentences/numSens",
             core,
         });
         await updateMathInputValue({
             latex: `${nWords}`,
-            componentName: "/words/numWords",
+            name: "/words/numWords",
             core,
         });
         stateVariables = await returnAllStateVariables(core);

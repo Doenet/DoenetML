@@ -2,12 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveInput,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
+    updateValue,
 } from "../utils/actions";
+import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("BooleanInput tag tests", async () => {
     it("single boolean input", async () => {
@@ -30,7 +35,7 @@ describe("BooleanInput tag tests", async () => {
         // check the box
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -41,7 +46,7 @@ describe("BooleanInput tag tests", async () => {
         // uncheck the box
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -65,7 +70,7 @@ describe("BooleanInput tag tests", async () => {
         // uncheck the box
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -75,7 +80,7 @@ describe("BooleanInput tag tests", async () => {
         // recheck the box
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -134,7 +139,7 @@ describe("BooleanInput tag tests", async () => {
         bi1 = false;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await check_items(bi1, bi2);
@@ -143,7 +148,7 @@ describe("BooleanInput tag tests", async () => {
         bi1 = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1a",
+            name: "/bi1a",
             core,
         });
         await check_items(bi1, bi2);
@@ -152,7 +157,7 @@ describe("BooleanInput tag tests", async () => {
         bi2 = true;
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(bi1, bi2);
@@ -177,7 +182,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -205,7 +210,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -229,7 +234,7 @@ describe("BooleanInput tag tests", async () => {
         // attempt to change value, but it reverts
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -257,7 +262,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -285,7 +290,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -309,7 +314,7 @@ describe("BooleanInput tag tests", async () => {
         // attempt to change value, but it reverts
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -339,7 +344,7 @@ describe("BooleanInput tag tests", async () => {
         // change value
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
 
@@ -365,7 +370,7 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -373,7 +378,7 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -395,22 +400,12 @@ describe("BooleanInput tag tests", async () => {
         );
 
         // hide label
-        await core.requestAction({
-            componentName: "/toggleLabel",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/toggleLabel", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/bi"].stateValues.label).eq("");
 
         // show label again
-        await core.requestAction({
-            componentName: "/toggleLabel",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/toggleLabel", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/bi"].stateValues.label).eq(
             "It is \\(\\int_a^b f(x)\\,dx\\)",
@@ -430,484 +425,15 @@ describe("BooleanInput tag tests", async () => {
     });
 
     it("boolean input in graph", async () => {
-        let core = await createTestCore({
-            doenetML: `
+        const doenetMLsnippet = `
     <graph >
-        <booleanInput anchor="$anchorCoords1" name="booleanInput1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" disabled="$disabled1" fixed="$fixed1" fixLocation="$fixLocation1"><label>input 1</label></booleanInput>
-        <booleanInput name="booleanInput2"><label>input 2</label></booleanInput>
+        <booleanInput anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" disabled="$disabled1" fixed="$fixed1" fixLocation="$fixLocation1"><label>input 1</label></booleanInput>
+        <booleanInput name="item2"><label>input 2</label></booleanInput>
     </graph>
-        
-    <p name="pAnchor1">Anchor 1 coordinates: <point copySource="booleanInput1.anchor" name="booleanInput1anchor" /></p>
-    <p name="pAnchor2">Anchor 2 coordinates: <point copySource="booleanInput2.anchor" name="booleanInput2anchor" /></p>
-    <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathinput name="anchorCoords1" prefill="(1,3)" /></p>
-    <p name="pChangeAnchor2">Change anchor 2 coordinates: <mathinput name="anchorCoords2" bindValueTo="$booleanInput2.anchor" /></p>
-    <p name="pPositionFromAnchor1">Position from anchor 1: $booleanInput1.positionFromAnchor</p>
-    <p name="pPositionFromAnchor2">Position from anchor 2: $booleanInput2.positionFromAnchor</p>
-    <p>Change position from anchor 1
-    <choiceinput inline preselectChoice="1" name="positionFromAnchor1">
-        <choice>upperRight</choice>
-        <choice>upperLeft</choice>
-        <choice>lowerRight</choice>
-        <choice>lowerLeft</choice>
-        <choice>left</choice>
-        <choice>right</choice>
-        <choice>top</choice>
-        <choice>bottom</choice>
-        <choice>center</choice>
-    </choiceinput>
-    </p>
-    <p>Change position from anchor 2
-    <choiceinput inline name="positionFromAnchor2" bindValueTo="$booleanInput2.positionFromAnchor">
-        <choice>upperRight</choice>
-        <choice>upperLeft</choice>
-        <choice>lowerRight</choice>
-        <choice>lowerLeft</choice>
-        <choice>left</choice>
-        <choice>right</choice>
-        <choice>top</choice>
-        <choice>bottom</choice>
-        <choice>center</choice>
-    </choiceinput>
-    </p>
-    <p name="pDraggable1">Draggable 1: $draggable1</p>
-    <p name="pDraggable2">Draggable 2: $draggable2</p>
-    <p>Change draggable 1 <booleanInput name="draggable1" prefill="true" /></p>
-    <p>Change draggable 2 <booleanInput name="draggable2" bindValueTo="$booleanInput2.draggable" /></p>
-    <p name="pDisabled1">Disabled 1: $disabled1</p>
-    <p name="pDisabled2">Disabled 2: $disabled2</p>
-    <p>Change disabled 1 <booleanInput name="disabled1" prefill="true" /></p>
-    <p>Change disabled 2 <booleanInput name="disabled2" bindValueTo="$booleanInput2.disabled" /></p>
-    <p name="pFixed1">Fixed 1: $fixed1</p>
-    <p name="pFixed2">Fixed 2: $fixed2</p>
-    <p>Change fixed 1 <booleanInput name="fixed1" prefill="false" /></p>
-    <p>Change fixed 2 <booleanInput name="fixed2" bindValueTo="$booleanInput2.fixed" /></p>
-    <p name="pFixLocation1">FixLocation 1: $fixLocation1</p>
-    <p name="pFixLocation2">FixLocation 2: $fixLocation2</p>
-    <p>Change fixLocation 1 <booleanInput name="fixLocation1" prefill="false" /></p>
-    <p>Change fixLocation 2 <booleanInput name="fixLocation2" bindValueTo="$booleanInput2.fixLocation" /></p>
-        
-            `,
-        });
+        `;
+        // TODO: how to click on the buttons and test if they are disabled?
 
-        // TODO: how to click on the checkboxes and test if they are disabled?
-
-        let stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(1,3)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(0,0)");
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: upperright",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: center",
-        );
-        expect(
-            stateVariables["/positionFromAnchor1"].stateValues.selectedIndices,
-        ).eqls([1]);
-        expect(
-            stateVariables["/positionFromAnchor2"].stateValues.selectedIndices,
-        ).eqls([9]);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: true",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: false",
-        );
-        expect(stateVariables["/pFixed1"].stateValues.text).eq(
-            "Fixed 1: false",
-        );
-        expect(stateVariables["/pFixed2"].stateValues.text).eq(
-            "Fixed 2: false",
-        );
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: false",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: false",
-        );
-
-        // move booleanInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(-2,3)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(4,-5)");
-
-        // move booleanInputs by entering coordinates
-
-        await updateMathInputValue({
-            latex: "(6,7)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(8,9)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(6,7)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(8,9)");
-
-        // change position from anchor
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [4] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [3] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: lowerleft",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // make not draggable
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: false",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: false",
-        );
-
-        // cannot move booleanInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(6,7)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(8,9)");
-
-        // make draggable again
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(-10,-9)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(-8,-7)");
-
-        // fix location
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: true",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: true",
-        );
-
-        // can change coordinates entering coordinates only for input 1
-        await updateMathInputValue({
-            latex: "(3,4)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(1,2)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(-8,-7)");
-
-        // cannot move booleanInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput1",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/booleanInput2",
-            args: { x: 7, y: 8 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(-8,-7)");
-
-        // can change position from anchor only for input 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [8] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [7] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: top",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change disabled attribute
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/disabled1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/disabled2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: false",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: true",
-        );
-
-        // make completely fixed
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: true");
-        expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: true");
-
-        // can change coordinates entering coordinates only for input 1
-        await updateMathInputValue({
-            latex: "(7,8)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(5,6)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput1anchor"].stateValues.latex,
-            ),
-        ).eq("(5,6)");
-        expect(
-            cleanLatex(
-                stateVariables["/booleanInput2anchor"].stateValues.latex,
-            ),
-        ).eq("(-8,-7)");
-
-        // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [5] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [6] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: right",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change disabled attribute only for input 1
-
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/disabled1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/disabled2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: true",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: true",
-        );
+        await test_in_graph(doenetMLsnippet, moveInput);
     });
 
     it("valueChanged", async () => {
@@ -976,7 +502,7 @@ describe("BooleanInput tag tests", async () => {
         bi1changed = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await check_items(
@@ -990,7 +516,7 @@ describe("BooleanInput tag tests", async () => {
         bi2changed = true;
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(
@@ -1006,12 +532,12 @@ describe("BooleanInput tag tests", async () => {
         bi4changed = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi3",
+            name: "/bi3",
             core,
         });
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi4",
+            name: "/bi4",
             core,
         });
         await check_items(
@@ -1043,7 +569,7 @@ describe("BooleanInput tag tests", async () => {
         bi3changed = true;
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi3",
+            name: "/bi3",
             core,
         });
         await check_items(
@@ -1058,7 +584,7 @@ describe("BooleanInput tag tests", async () => {
         bi4changed = true;
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi4",
+            name: "/bi4",
             core,
         });
         await check_items(
@@ -1072,12 +598,12 @@ describe("BooleanInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: bi1,
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await updateBooleanInputValue({
             boolean: bi2,
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(

@@ -1,39 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { cleanLatex } from "../utils/math";
 import {
+    moveCircle,
     movePoint,
     movePolygon,
-    updateBooleanInputValue,
     updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
 } from "../utils/actions";
 import Core from "../../Core";
-import { an, X } from "vitest/dist/chunks/reporters.WnPwkmgA.js";
-import { cdataContent } from "../../../../parser/dist/generated-assets/lezer-doenet.terms";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
-
-async function moveCircle({
-    name,
-    cx,
-    cy,
-    core,
-}: {
-    name: string;
-    cx: number;
-    cy: number;
-    core: Core;
-}) {
-    await core.requestAction({
-        event: null,
-        actionName: "moveCircle",
-        componentName: name,
-        args: { center: [cx, cy] },
-    });
-}
+vi.mock("hyperformula");
 
 function check_circle1_and_copies_approx({
     cx,
@@ -215,7 +192,7 @@ describe("Circle tag tests", async () => {
         // attempt to set radius negative, but becomes zero
         radius = 0;
         await updateMathInputValue({
-            componentName: "/radiusControl",
+            name: "/radiusControl",
             latex: "-4",
             core,
         });
@@ -224,7 +201,7 @@ describe("Circle tag tests", async () => {
         // change radius
         radius = 5;
         await updateMathInputValue({
-            componentName: "/radiusControl",
+            name: "/radiusControl",
             latex: radius.toString(),
             core,
         });
@@ -242,7 +219,7 @@ describe("Circle tag tests", async () => {
             // set defining radius to negative, actual radius becomes zero
             radius = -3;
             await updateMathInputValue({
-                componentName: definingRadius,
+                name: definingRadius,
                 latex: radius.toString(),
                 core,
             });
@@ -251,7 +228,7 @@ describe("Circle tag tests", async () => {
             // change radius with defining point
             radius = 7;
             await updateMathInputValue({
-                componentName: definingRadius,
+                name: definingRadius,
                 latex: radius.toString(),
                 core,
             });
@@ -450,7 +427,7 @@ describe("Circle tag tests", async () => {
         cy += radius;
         radius = 0;
         await updateMathInputValue({
-            componentName: "/radiusControl",
+            name: "/radiusControl",
             latex: "-4",
             core,
         });
@@ -460,7 +437,7 @@ describe("Circle tag tests", async () => {
         radius = 5;
         cy -= 5;
         await updateMathInputValue({
-            componentName: "/radiusControl",
+            name: "/radiusControl",
             latex: radius.toString(),
             core,
         });
@@ -482,7 +459,7 @@ describe("Circle tag tests", async () => {
             cy += radius;
             radius = -3;
             await updateMathInputValue({
-                componentName: definingRadius,
+                name: definingRadius,
                 latex: radius.toString(),
                 core,
             });
@@ -492,7 +469,7 @@ describe("Circle tag tests", async () => {
             radius = 7;
             cy -= 7;
             await updateMathInputValue({
-                componentName: definingRadius,
+                name: definingRadius,
                 latex: radius.toString(),
                 core,
             });
@@ -3645,7 +3622,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/P3"]).is.undefined;
         expect(stateVariables["/x"]).is.undefined;
 
-        await updateMathInputValue({ componentName: "/n", latex: "1", core });
+        await updateMathInputValue({ name: "/n", latex: "1", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t1x,
@@ -3655,7 +3632,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/P3"]).is.undefined;
         expect(stateVariables["/x"].stateValues.value.tree).eqls(t2x);
 
-        await updateMathInputValue({ componentName: "/n", latex: "2", core });
+        await updateMathInputValue({ name: "/n", latex: "2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t2x,
@@ -3665,7 +3642,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/P3"]).is.undefined;
         expect(stateVariables["/x"].stateValues.value.tree).eqls(t2y);
 
-        await updateMathInputValue({ componentName: "/n", latex: "3", core });
+        await updateMathInputValue({ name: "/n", latex: "3", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t3x,
@@ -3675,7 +3652,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/P3"]).is.undefined;
         expect(stateVariables["/x"]).is.undefined;
 
-        await updateMathInputValue({ componentName: "/n", latex: "4", core });
+        await updateMathInputValue({ name: "/n", latex: "4", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"]).is.undefined;
         expect(stateVariables["/P2"]).is.undefined;
@@ -3926,7 +3903,7 @@ describe("Circle tag tests", async () => {
         cx = 2;
         cy = 1;
         await updateMathInputValue({
-            componentName: "/c",
+            name: "/c",
             latex: `(${cx},${cy})`,
             core,
         });
@@ -3942,7 +3919,7 @@ describe("Circle tag tests", async () => {
         cx = -7;
         cy = -4;
         await updateMathInputValue({
-            componentName: "/c",
+            name: "/c",
             latex: `(${cx}, ${cy})`,
             core,
         });
@@ -3958,7 +3935,7 @@ describe("Circle tag tests", async () => {
         cx = NaN;
         cy = NaN;
         await updateMathInputValue({
-            componentName: "/c",
+            name: "/c",
             latex: "",
             core,
         });
@@ -3968,7 +3945,7 @@ describe("Circle tag tests", async () => {
         cx = 5;
         cy = 4;
         await updateMathInputValue({
-            componentName: "/c",
+            name: "/c",
             latex: `(${cx}, ${cy})`,
             core,
         });
@@ -4096,12 +4073,12 @@ describe("Circle tag tests", async () => {
 
         // enter non-numeric radius and center for origin circle
         await updateMathInputValue({
-            componentName: "/rc",
+            name: "/rc",
             latex: `1+x`,
             core,
         });
         await updateMathInputValue({
-            componentName: "/cc",
+            name: "/cc",
             latex: `(-1,y)`,
             core,
         });
@@ -4117,12 +4094,12 @@ describe("Circle tag tests", async () => {
 
         // set radius and center for origin circle back to number using other components
         await updateMathInputValue({
-            componentName: "/rc1",
+            name: "/rc1",
             latex: `2`,
             core,
         });
         await updateMathInputValue({
-            componentName: "/cc3",
+            name: "/cc3",
             latex: `(4,5)`,
             core,
         });
@@ -4139,7 +4116,7 @@ describe("Circle tag tests", async () => {
         // move point P and set radius of second circle
         await movePoint({ name: "/P", x: -5, y: 2, core });
         await updateMathInputValue({
-            componentName: "/rc1",
+            name: "/rc1",
             latex: `4`,
             core,
         });
@@ -4167,7 +4144,7 @@ describe("Circle tag tests", async () => {
 
         // set radius of third circle
         await updateMathInputValue({
-            componentName: "/rc2",
+            name: "/rc2",
             latex: `5`,
             core,
         });
@@ -4183,7 +4160,7 @@ describe("Circle tag tests", async () => {
 
         // set center of third circle
         await updateMathInputValue({
-            componentName: "/cc2",
+            name: "/cc2",
             latex: `(5,-3)`,
             core,
         });
@@ -4199,7 +4176,7 @@ describe("Circle tag tests", async () => {
 
         // set radius of fourth circle
         await updateMathInputValue({
-            componentName: "/src3",
+            name: "/src3",
             latex: `9`,
             core,
         });
@@ -4216,7 +4193,7 @@ describe("Circle tag tests", async () => {
         // move and change radius of fourth circle
         await moveCircle({ name: "/c3", cx: 3, cy: 8, core });
         await updateMathInputValue({
-            componentName: "/rc3",
+            name: "/rc3",
             latex: `9`,
             core,
         });
@@ -4383,7 +4360,7 @@ $c7.radius
 
         // change radius
         await updateMathInputValue({
-            componentName: "/r",
+            name: "/r",
             latex: `3`,
             core,
         });
@@ -4396,7 +4373,7 @@ $c7.radius
 
         // change to symbolic radius
         await updateMathInputValue({
-            componentName: "/r",
+            name: "/r",
             latex: `a`,
             core,
         });
@@ -4409,7 +4386,7 @@ $c7.radius
 
         // back to numeric radius
         await updateMathInputValue({
-            componentName: "/r",
+            name: "/r",
             latex: `5`,
             core,
         });

@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Shuffle tag tests", async () => {
     it("consistent order for n elements for given variant", async () => {
@@ -46,7 +47,7 @@ describe("Shuffle tag tests", async () => {
         n = 8;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -69,7 +70,7 @@ describe("Shuffle tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentName: "/m",
+            name: "/m",
             core,
         });
 
@@ -90,7 +91,7 @@ describe("Shuffle tag tests", async () => {
         n = 10;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -138,7 +139,7 @@ describe("Shuffle tag tests", async () => {
         n = 8;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -163,7 +164,7 @@ describe("Shuffle tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentName: "/m",
+            name: "/m",
             core,
         });
 
@@ -184,7 +185,7 @@ describe("Shuffle tag tests", async () => {
         n = 10;
         await updateMathInputValue({
             latex: n.toString(),
-            componentName: "/n",
+            name: "/n",
             core,
         });
 

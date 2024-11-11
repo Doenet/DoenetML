@@ -4,13 +4,13 @@ import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
-    updateMatrixInputValue,
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Substitute tag tests", async () => {
     async function test_sub_alpha_x2(core) {
@@ -113,7 +113,7 @@ describe("Substitute tag tests", async () => {
         // set simplify to full
         await updateTextInputValue({
             text: "full",
-            componentName: "/simplify",
+            name: "/simplify",
             core,
         });
 
@@ -132,7 +132,7 @@ describe("Substitute tag tests", async () => {
         // set simplify back to none
         await updateTextInputValue({
             text: "none",
-            componentName: "/simplify",
+            name: "/simplify",
             core,
         });
 
@@ -204,7 +204,7 @@ describe("Substitute tag tests", async () => {
         // change original
         await updateMathInputValue({
             latex: "q/x",
-            componentName: "/original",
+            name: "/original",
             core,
         });
 
@@ -223,7 +223,7 @@ describe("Substitute tag tests", async () => {
         // change match so does not match
         await updateMathInputValue({
             latex: "c",
-            componentName: "/match",
+            name: "/match",
             core,
         });
 
@@ -242,7 +242,7 @@ describe("Substitute tag tests", async () => {
         // change match so matches again
         await updateMathInputValue({
             latex: "q",
-            componentName: "/match",
+            name: "/match",
             core,
         });
 
@@ -261,7 +261,7 @@ describe("Substitute tag tests", async () => {
         // change replacement
         await updateMathInputValue({
             latex: "m^2",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
 
@@ -496,7 +496,7 @@ describe("Substitute tag tests", async () => {
         // change original
         await updateTextInputValue({
             text: "The bicycle belongs to me.",
-            componentName: "/original",
+            name: "/original",
             core,
         });
         let s2 = "The bicycle cHelongs to me.";
@@ -508,7 +508,7 @@ describe("Substitute tag tests", async () => {
         // change match so does not match
         await updateTextInputValue({
             text: "bike",
-            componentName: "/match",
+            name: "/match",
             core,
         });
         let s3 = "The bicycle belongs to me.";
@@ -520,7 +520,7 @@ describe("Substitute tag tests", async () => {
         // change match so matches again
         await updateTextInputValue({
             text: "e b",
-            componentName: "/match",
+            name: "/match",
             core,
         });
         let s4 = "ThcHeicyclcHeelongs to me.";
@@ -532,12 +532,12 @@ describe("Substitute tag tests", async () => {
         // change match and replacement
         await updateTextInputValue({
             text: "bicycle",
-            componentName: "/match",
+            name: "/match",
             core,
         });
         await updateTextInputValue({
             text: "scooter",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
         let s5 = "The scooter belongs to me.";
@@ -579,7 +579,7 @@ describe("Substitute tag tests", async () => {
         // change original
         await updateMathInputValue({
             latex: "x^2+2x+3x",
-            componentName: "/orig",
+            name: "/orig",
             core,
         });
 
@@ -598,7 +598,7 @@ describe("Substitute tag tests", async () => {
         // change subbed
         await updateMathInputValue({
             latex: "b^2+2b+3v/b",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -617,7 +617,7 @@ describe("Substitute tag tests", async () => {
         // change replacement so that it is in original
         await updateMathInputValue({
             latex: "v",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
 
@@ -636,7 +636,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed
         await updateMathInputValue({
             latex: "v^2+2v+3v/(v+1)",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -655,7 +655,7 @@ describe("Substitute tag tests", async () => {
         // change original to not contain replacement
         await updateMathInputValue({
             latex: "x^2+2x+3u/x",
-            componentName: "/orig",
+            name: "/orig",
             core,
         });
 
@@ -674,7 +674,7 @@ describe("Substitute tag tests", async () => {
         // Can modify subbed again
         await updateMathInputValue({
             latex: "v^5+2v+3u/v",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -693,7 +693,7 @@ describe("Substitute tag tests", async () => {
         // change replacement to be more than a variable
         await updateMathInputValue({
             latex: "v+1",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
 
@@ -712,7 +712,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed
         await updateMathInputValue({
             latex: "+7(v+1)^5+2(v+1)+3u/(v+1)",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -731,7 +731,7 @@ describe("Substitute tag tests", async () => {
         // change replacement to involve a subscript
         await updateMathInputValue({
             latex: "v_3",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
 
@@ -750,7 +750,7 @@ describe("Substitute tag tests", async () => {
         // Can modify subbed once more
         await updateMathInputValue({
             latex: "v_9^5+2v_3+3u/v_3",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -769,7 +769,7 @@ describe("Substitute tag tests", async () => {
         // change match to involve a subscript
         await updateMathInputValue({
             latex: "v_9",
-            componentName: "/match",
+            name: "/match",
             core,
         });
 
@@ -788,7 +788,7 @@ describe("Substitute tag tests", async () => {
         // Can still modify subbed
         await updateMathInputValue({
             latex: "v_3^5+2x+3u/v_3",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -807,7 +807,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed to include match
         await updateMathInputValue({
             latex: "v_3^5+2x+3u/v_3+v_9",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -853,7 +853,7 @@ describe("Substitute tag tests", async () => {
         // change original
         await updateTextInputValue({
             text: "hello thereHello",
-            componentName: "/orig",
+            name: "/orig",
             core,
         });
 
@@ -870,7 +870,7 @@ describe("Substitute tag tests", async () => {
         // change subbed
         await updateTextInputValue({
             text: "bye therebyeBye",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -891,7 +891,7 @@ describe("Substitute tag tests", async () => {
         // change replacement so that it is in original
         await updateTextInputValue({
             text: "There",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
 
@@ -912,7 +912,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed
         await updateTextInputValue({
             text: "There thereThereThere extra",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -933,7 +933,7 @@ describe("Substitute tag tests", async () => {
         // change original to not contain replacement
         await updateTextInputValue({
             text: "hello thenhellohello",
-            componentName: "/orig",
+            name: "/orig",
             core,
         });
 
@@ -954,7 +954,7 @@ describe("Substitute tag tests", async () => {
         // Can modify subbed again
         await updateTextInputValue({
             text: "There thenThereThe",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -975,7 +975,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed to include match
         await updateTextInputValue({
             text: "There thenThereTheHELLO",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -995,7 +995,7 @@ describe("Substitute tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/wholeWord",
+            name: "/wholeWord",
             core,
         });
 
@@ -1016,7 +1016,7 @@ describe("Substitute tag tests", async () => {
         //change replacement so matches original, but not as a whole word
         await updateTextInputValue({
             text: "Then",
-            componentName: "/replacement",
+            name: "/replacement",
             core,
         });
 
@@ -1037,7 +1037,7 @@ describe("Substitute tag tests", async () => {
         // Can still modify subbed
         await updateTextInputValue({
             text: "Then thenhelloThere",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1058,7 +1058,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed by adding spaces to separate match
         await updateTextInputValue({
             text: "Then then hello There",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1079,7 +1079,7 @@ describe("Substitute tag tests", async () => {
         // change original so that replacement matches original as a whole word
         await updateTextInputValue({
             text: "hello then helloThere",
-            componentName: "/orig",
+            name: "/orig",
             core,
         });
 
@@ -1100,7 +1100,7 @@ describe("Substitute tag tests", async () => {
         // Cannot modify subbed due to replacement match
         await updateTextInputValue({
             text: "Then then helloTherenothing",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1121,7 +1121,7 @@ describe("Substitute tag tests", async () => {
         // match case
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/matchCase",
+            name: "/matchCase",
             core,
         });
 
@@ -1142,7 +1142,7 @@ describe("Substitute tag tests", async () => {
         // Now can modify subbed due to replacement not matching original case
         await updateTextInputValue({
             text: "Then then helloThere Hello",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1163,7 +1163,7 @@ describe("Substitute tag tests", async () => {
         // Cannot add match to subbed
         await updateTextInputValue({
             text: "Then then helloThere Hello hello",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1184,7 +1184,7 @@ describe("Substitute tag tests", async () => {
         // Change subbed to switch cases
         await updateTextInputValue({
             text: "then Then helloThere Hello",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1205,7 +1205,7 @@ describe("Substitute tag tests", async () => {
         // preserve case
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/preserveCase",
+            name: "/preserveCase",
             core,
         });
 
@@ -1226,7 +1226,7 @@ describe("Substitute tag tests", async () => {
         // Cannot change subbed since original contains effective replacement
         await updateTextInputValue({
             text: "then Then helloThere Hello more",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1247,7 +1247,7 @@ describe("Substitute tag tests", async () => {
         // change case of match so that effective replacement is not in original
         await updateTextInputValue({
             text: "Hello",
-            componentName: "/match",
+            name: "/match",
             core,
         });
 
@@ -1268,7 +1268,7 @@ describe("Substitute tag tests", async () => {
         // Can now change subbed
         await updateTextInputValue({
             text: "Then HELLO THEN helloThere Then",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1289,7 +1289,7 @@ describe("Substitute tag tests", async () => {
         // change case of match so that effective replacement is again in original
         await updateTextInputValue({
             text: "HELLO",
-            componentName: "/match",
+            name: "/match",
             core,
         });
 
@@ -1310,7 +1310,7 @@ describe("Substitute tag tests", async () => {
         // Cannot change subbed
         await updateTextInputValue({
             text: "Hello THEN THEN helloThere Hello ineffective",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1331,7 +1331,7 @@ describe("Substitute tag tests", async () => {
         // change original so no longer has effective replacement
         await updateTextInputValue({
             text: "Hello HELLO Then helloThere Hello",
-            componentName: "/orig",
+            name: "/orig",
             core,
         });
 
@@ -1352,7 +1352,7 @@ describe("Substitute tag tests", async () => {
         // Can change subbed once more
         await updateTextInputValue({
             text: "Hello THEN Then helloThere THEN",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 
@@ -1373,7 +1373,7 @@ describe("Substitute tag tests", async () => {
         // Cannot add match to subbed
         await updateTextInputValue({
             text: "Hello THEN Then helloThere THEN HELLO",
-            componentName: "/subbed2",
+            name: "/subbed2",
             core,
         });
 

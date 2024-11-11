@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Sort tag tests", async () => {
     async function test_sort({
@@ -91,7 +92,7 @@ describe("Sort tag tests", async () => {
         await test_sort({ core, sorted_result });
 
         // change first value
-        await updateMathInputValue({ latex: "-5", componentName: "/m1", core });
+        await updateMathInputValue({ latex: "-5", name: "/m1", core });
 
         sorted_result = ["-∞", "-5", "-π", "5/6", "70", "∞"];
         await test_sort({ core, sorted_result });
@@ -99,7 +100,7 @@ describe("Sort tag tests", async () => {
         // change second value
         await updateMathInputValue({
             latex: "e^5",
-            componentName: "/m2",
+            name: "/m2",
             core,
         });
 
@@ -109,7 +110,7 @@ describe("Sort tag tests", async () => {
         // change third value
         await updateMathInputValue({
             latex: "-100",
-            componentName: "/m3",
+            name: "/m3",
             core,
         });
 
@@ -119,7 +120,7 @@ describe("Sort tag tests", async () => {
         // change fourth value
         await updateMathInputValue({
             latex: "0",
-            componentName: "/m4",
+            name: "/m4",
             core,
         });
 
@@ -199,12 +200,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({ core, sorted_result });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: -8, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: -8, y: 9, core });
 
         sorted_result = [
             "( -8, 9 )",
@@ -216,12 +212,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({ core, sorted_result });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: 8, y: -3 },
-            event: null,
-        });
+        await movePoint({ name: "/B", x: 8, y: -3, core });
 
         sorted_result = [
             "( -8, 9 )",
@@ -233,12 +224,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({ core, sorted_result });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/C",
-            args: { x: 4, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: "/C", x: 4, y: 5, core });
 
         sorted_result = [
             "( -8, 9 )",
@@ -250,12 +236,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({ core, sorted_result });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/D",
-            args: { x: -9, y: 0 },
-            event: null,
-        });
+        await movePoint({ name: "/D", x: -9, y: 0, core });
 
         sorted_result = [
             "( -9, 0 )",
@@ -267,12 +248,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({ core, sorted_result });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/E",
-            args: { x: -2, y: -1 },
-            event: null,
-        });
+        await movePoint({ name: "/E", x: -2, y: -1, core });
 
         sorted_result = [
             "( -9, 0 )",
@@ -509,7 +485,7 @@ describe("Sort tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(a,b,c,d)",
-            componentName: "/cs",
+            name: "/cs",
             core,
         });
 
@@ -524,7 +500,7 @@ describe("Sort tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(3,4,5)",
-            componentName: "/cs",
+            name: "/cs",
             core,
         });
 

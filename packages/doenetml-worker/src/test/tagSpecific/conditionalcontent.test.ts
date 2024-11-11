@@ -5,9 +5,11 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Conditional content tag tests", async () => {
     // tests without cases or else
@@ -25,20 +27,20 @@ describe("Conditional content tag tests", async () => {
 
         await check_text("something else");
 
-        await updateMathInputValue({ latex: "10", componentName: "/n", core });
+        await updateMathInputValue({ latex: "10", name: "/n", core });
         await check_text("a positive number");
 
         await updateMathInputValue({
             latex: "-5/9",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         await check_text("a negative number");
 
-        await updateMathInputValue({ latex: "5-5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5-5", name: "/n", core });
         await check_text("zero");
 
-        await updateMathInputValue({ latex: "x", componentName: "/n", core });
+        await updateMathInputValue({ latex: "x", name: "/n", core });
         await check_text("something else");
     }
 
@@ -138,20 +140,20 @@ describe("Conditional content tag tests", async () => {
 
         await check_text(4);
 
-        await updateMathInputValue({ latex: "10", componentName: "/n", core });
+        await updateMathInputValue({ latex: "10", name: "/n", core });
         await check_text(1);
 
         await updateMathInputValue({
             latex: "-5/9",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         await check_text(2);
 
-        await updateMathInputValue({ latex: "5-5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5-5", name: "/n", core });
         await check_text(3);
 
-        await updateMathInputValue({ latex: "x", componentName: "/n", core });
+        await updateMathInputValue({ latex: "x", name: "/n", core });
         await check_text(4);
     });
 
@@ -175,7 +177,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b",
+            name: "/b",
             core,
         });
 
@@ -229,11 +231,11 @@ describe("Conditional content tag tests", async () => {
         await check_text([]);
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_text(["dog", "mouse", "cat"]);
 
         // enter 0
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_text([]);
     });
 
@@ -266,7 +268,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/hide",
+            name: "/hide",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -279,7 +281,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/show_copy",
+            name: "/show_copy",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -290,7 +292,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/hide",
+            name: "/hide",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -339,22 +341,22 @@ describe("Conditional content tag tests", async () => {
 
         // enter 1
 
-        await updateMathInputValue({ componentName: "/n", latex: "1", core });
+        await updateMathInputValue({ name: "/n", latex: "1", core });
         await check_text("cat");
 
         // enter 10
 
-        await updateMathInputValue({ componentName: "/n", latex: "10", core });
+        await updateMathInputValue({ name: "/n", latex: "10", core });
         await check_text("mouse");
 
         // enter -1
 
-        await updateMathInputValue({ componentName: "/n", latex: "-1", core });
+        await updateMathInputValue({ name: "/n", latex: "-1", core });
         await check_text("dog");
 
         // enter x
 
-        await updateMathInputValue({ componentName: "/n", latex: "x", core });
+        await updateMathInputValue({ name: "/n", latex: "x", core });
         await check_text("mouse");
     });
 
@@ -392,22 +394,22 @@ describe("Conditional content tag tests", async () => {
 
         // enter 1
 
-        await updateMathInputValue({ componentName: "/n", latex: "1", core });
+        await updateMathInputValue({ name: "/n", latex: "1", core });
         await check_text("cat");
 
         // enter 10
 
-        await updateMathInputValue({ componentName: "/n", latex: "10", core });
+        await updateMathInputValue({ name: "/n", latex: "10", core });
         await check_text("mouse");
 
         // enter -1
 
-        await updateMathInputValue({ componentName: "/n", latex: "-1", core });
+        await updateMathInputValue({ name: "/n", latex: "-1", core });
         await check_text("dog");
 
         // enter x
 
-        await updateMathInputValue({ componentName: "/n", latex: "x", core });
+        await updateMathInputValue({ name: "/n", latex: "x", core });
         await check_text("mouse");
     });
 
@@ -480,19 +482,19 @@ describe("Conditional content tag tests", async () => {
         await check_items("mouse", "z");
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items("cat", "y");
 
         // enter 10
-        await updateMathInputValue({ latex: "10", componentName: "/n", core });
+        await updateMathInputValue({ latex: "10", name: "/n", core });
         await check_items("mouse", "z");
 
         // enter -1
-        await updateMathInputValue({ latex: "-1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-1", name: "/n", core });
         await check_items("dog", "x", "optional text!");
 
         // enter x
-        await updateMathInputValue({ latex: "x", componentName: "/n", core });
+        await updateMathInputValue({ latex: "x", name: "/n", core });
         await check_items("mouse", "z");
     }
 
@@ -578,7 +580,7 @@ describe("Conditional content tag tests", async () => {
         skipSingletons = false,
         calcNegativeFromContainers,
     }: {
-        core: any;
+        core: Core;
         namePrefixes: string[];
         skipSingletons?: boolean;
         calcNegativeFromContainers?: string[];
@@ -714,7 +716,7 @@ describe("Conditional content tag tests", async () => {
         });
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
 
         await check_items({
             animal: "cat",
@@ -725,7 +727,7 @@ describe("Conditional content tag tests", async () => {
         });
 
         // enter -1
-        await updateMathInputValue({ latex: "-1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-1", name: "/n", core });
 
         await check_items({
             animal: "dog",
@@ -737,7 +739,7 @@ describe("Conditional content tag tests", async () => {
         });
 
         // enter 10
-        await updateMathInputValue({ latex: "10", componentName: "/n", core });
+        await updateMathInputValue({ latex: "10", name: "/n", core });
 
         await check_items({
             animal: "mouse",
@@ -975,7 +977,7 @@ describe("Conditional content tag tests", async () => {
         namePrefixes,
         inputName,
     }: {
-        core: any;
+        core: Core;
         namePrefixes: string[];
         inputName: string;
     }) {
@@ -1019,7 +1021,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateTextInputValue({
             text: "Fred",
-            componentName: inputName,
+            name: inputName,
             core,
         });
         await check_items({
@@ -1028,7 +1030,7 @@ describe("Conditional content tag tests", async () => {
             response: "Fred",
         });
 
-        await updateMathInputValue({ latex: "-1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-1", name: "/n", core });
         await check_items({
             question: "What is your favorite animal? ",
             comeback: "I like , too.",
@@ -1037,7 +1039,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateTextInputValue({
             text: "dogs",
-            componentName: inputName,
+            name: inputName,
             core,
         });
         await check_items({
@@ -1046,7 +1048,7 @@ describe("Conditional content tag tests", async () => {
             response: "dogs",
         });
 
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items({
             question: "Anything else? ",
             comeback: "To repeat: .",
@@ -1055,7 +1057,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateTextInputValue({
             text: "Goodbye",
-            componentName: inputName,
+            name: inputName,
             core,
         });
         await check_items({
@@ -1169,15 +1171,15 @@ describe("Conditional content tag tests", async () => {
         await check_items("non-positive", "neither");
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items("positive", "positive");
 
         // enter -1
-        await updateMathInputValue({ latex: "-1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-1", name: "/n", core });
         await check_items("non-positive", "negative");
 
         // enter 0
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_items("non-positive", "neither");
     });
 
@@ -1216,15 +1218,15 @@ describe("Conditional content tag tests", async () => {
         await check_items("bye", "bye");
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items("hello", "oops");
 
         // enter -1
-        await updateMathInputValue({ latex: "-1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-1", name: "/n", core });
         await check_items("bye", "hello");
 
         // enter 0
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_items("bye", "bye");
     });
 
@@ -1269,33 +1271,33 @@ describe("Conditional content tag tests", async () => {
         await check_items("mouse", ["b"]);
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items("cat", ["b"]);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
         await check_items("cat", ["a"]);
 
         // enter -3
-        await updateMathInputValue({ latex: "-3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-3", name: "/n", core });
         await check_items("dog", ["a"]);
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
 
@@ -1360,11 +1362,11 @@ describe("Conditional content tag tests", async () => {
         await check_items("elephant", "trumpets");
 
         // enter 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items("fox", "jumps");
 
         // enter 0
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_items("elephant", "trumpets");
     });
 
@@ -1382,7 +1384,7 @@ describe("Conditional content tag tests", async () => {
   `,
         });
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
 
         const stateVariables = await returnAllStateVariables(core);
 
@@ -1495,16 +1497,16 @@ describe("Conditional content tag tests", async () => {
 
         await check_items(0);
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items(1);
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items(2);
 
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items(3);
 
-        await updateMathInputValue({ latex: "x", componentName: "/n", core });
+        await updateMathInputValue({ latex: "x", name: "/n", core });
         await check_items(0);
     });
 
@@ -1534,14 +1536,14 @@ describe("Conditional content tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h",
+            name: "/h",
             core,
         });
         await check_items(false);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h",
+            name: "/h",
             core,
         });
         await check_items(true);

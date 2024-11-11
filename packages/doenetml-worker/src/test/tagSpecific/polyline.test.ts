@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
+    movePoint,
+    movePolyline,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 async function testPolylineCopiedTwice({
     core,
@@ -17,7 +21,7 @@ async function testPolylineCopiedTwice({
     graph2Name = "/g2",
     graph3Name = "/g3",
 }: {
-    core: any;
+    core: Core;
     vertices: (number | string)[][];
     polylineName?: string;
     graph1Name?: string;
@@ -159,13 +163,10 @@ describe("Polyline tag tests", async () => {
         // move individual vertex
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -179,27 +180,17 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: vertices[2] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g3/pg",
+            pointCoords: { 2: vertices[2] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -231,13 +222,10 @@ describe("Polyline tag tests", async () => {
         // move individual vertex
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -251,27 +239,17 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: vertices[2] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g3/pg",
+            pointCoords: { 2: vertices[2] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -300,7 +278,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices[0] = [0, 5 * Math.sin(0)];
@@ -308,7 +286,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices[1] = [1, 5 * Math.sin(1)];
@@ -316,7 +294,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices[2] = [2, 5 * Math.sin(2)];
@@ -324,7 +302,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices.splice(2, 1);
@@ -332,7 +310,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "0",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices = [];
@@ -340,7 +318,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "5",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         for (let i = 0; i < 5; i++) {
@@ -372,7 +350,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         for (let i = 0; i < 10; i++) {
@@ -382,7 +360,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices = [[0, 5 * Math.sin(0)]];
@@ -415,7 +393,7 @@ describe("Polyline tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-2",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
 
@@ -447,18 +425,8 @@ describe("Polyline tag tests", async () => {
         await testPolylineCopiedTwice({ core, vertices });
 
         // can't move points
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp1",
-            args: { x: 9, y: -8 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp9",
-            args: { x: -8, y: 4 },
-            event: null,
-        });
+        await movePoint({ name: "/g1/mp1", x: 9, y: -8, core });
+        await movePoint({ name: "/g1/mp9", x: -8, y: 4, core });
 
         // can't move polyline1
         let moveX = 3;
@@ -466,14 +434,7 @@ describe("Polyline tag tests", async () => {
 
         let vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g1/pg", pointCoords: vertices2, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
@@ -483,14 +444,7 @@ describe("Polyline tag tests", async () => {
 
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices2, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
@@ -500,14 +454,7 @@ describe("Polyline tag tests", async () => {
 
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g3/pg", pointCoords: vertices2, core });
 
         await testPolylineCopiedTwice({ core, vertices });
     });
@@ -540,17 +487,17 @@ describe("Polyline tag tests", async () => {
         vertices[0] = [9, -8];
         vertices[8] = [-8, 4];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/mp1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp9",
-            args: { x: vertices[8][0], y: vertices[8][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/mp9",
+            x: vertices[8][0],
+            y: vertices[8][1],
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -564,14 +511,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g1/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
@@ -584,14 +524,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
@@ -603,14 +536,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
     });
@@ -665,11 +591,11 @@ describe("Polyline tag tests", async () => {
         ];
 
         for (let i = 0; i < 4; i++) {
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: `/v${i + 1}`,
-                args: { x: ps[i][0], y: ps[i][1] },
-                event: null,
+            await movePoint({
+                name: `/v${i + 1}`,
+                x: ps[i][0],
+                y: ps[i][1],
+                core,
             });
         }
 
@@ -698,11 +624,11 @@ describe("Polyline tag tests", async () => {
         ];
 
         for (let i = 0; i < 4; i++) {
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: `/v${i + 1}a`,
-                args: { x: ps[i][0], y: ps[i][1] },
-                event: null,
+            await movePoint({
+                name: `/v${i + 1}a`,
+                x: ps[i][0],
+                y: ps[i][1],
+                core,
             });
         }
 
@@ -754,14 +680,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g1/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
@@ -774,14 +693,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
@@ -794,14 +706,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g3/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
     });
@@ -920,13 +825,10 @@ describe("Polyline tag tests", async () => {
             [6, 3],
         ];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: vertices,
+            core,
         });
 
         await testPolylines({ vertices, transX, transY });
@@ -939,13 +841,10 @@ describe("Polyline tag tests", async () => {
             [2, -1],
         ];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline2",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline2",
+            pointCoords: vertices2,
+            core,
         });
 
         vertices = vertices2.map((v) => [v[0] - transX, v[1] - transY]);
@@ -955,12 +854,12 @@ describe("Polyline tag tests", async () => {
         // change translation
         await updateMathInputValue({
             latex: "2",
-            componentName: "/transx",
+            name: "/transx",
             core,
         });
         await updateMathInputValue({
             latex: "10",
-            componentName: "/transy",
+            name: "/transy",
             core,
         });
 
@@ -1010,13 +909,10 @@ describe("Polyline tag tests", async () => {
         A = [-4, -1];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/parallelogram",
+            pointCoords: { 0: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1044,13 +940,10 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
+        await movePolyline({
+            name: "/parallelogram",
+            pointCoords: { 1: B },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1079,13 +972,10 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
+        await movePolyline({
+            name: "/parallelogram",
+            pointCoords: { 2: C },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1114,13 +1004,10 @@ describe("Polyline tag tests", async () => {
         D = [7, 0];
         B = [A[0] + C[0] - D[0], A[1] + C[1] - D[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 3: D },
-            },
-            event: null,
+        await movePolyline({
+            name: "/parallelogram",
+            pointCoords: { 3: D },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1246,13 +1133,10 @@ describe("Polyline tag tests", async () => {
             [-4, -3],
         ];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: vertices,
+            core,
         });
 
         await testPolylines({ vertices });
@@ -1265,13 +1149,10 @@ describe("Polyline tag tests", async () => {
             [-7, 6],
         ];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline2",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline2",
+            pointCoords: vertices2,
+            core,
         });
 
         vertices = [...vertices2];
@@ -1322,13 +1203,10 @@ describe("Polyline tag tests", async () => {
         A = [-4, -1];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 0: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1357,13 +1235,10 @@ describe("Polyline tag tests", async () => {
         B = [8, 9];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 1: B },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1392,13 +1267,10 @@ describe("Polyline tag tests", async () => {
         C = [-3, 7];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 2: C },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1427,13 +1299,10 @@ describe("Polyline tag tests", async () => {
         D = [7, 0];
         A = [C[0] + B[0] - D[0], C[1] + B[1] - D[1]];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 3: D },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 3: D },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1498,13 +1367,10 @@ describe("Polyline tag tests", async () => {
         // move first vertex
         A = [-4, -1];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 0: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1532,13 +1398,10 @@ describe("Polyline tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 1: B },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1566,13 +1429,10 @@ describe("Polyline tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 2: C },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1599,13 +1459,10 @@ describe("Polyline tag tests", async () => {
 
         // move fourth vertex
         A = [7, 0];
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 3: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1671,13 +1528,10 @@ describe("Polyline tag tests", async () => {
         // move first vertex
         A = [-4, -1];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 0: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1705,13 +1559,10 @@ describe("Polyline tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 1: B },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1739,13 +1590,10 @@ describe("Polyline tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 2: C },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1773,13 +1621,10 @@ describe("Polyline tag tests", async () => {
         // move fourth vertex
         A = [7, 0];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 3: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1853,13 +1698,10 @@ describe("Polyline tag tests", async () => {
         A = [-4, -1];
         D[0] = A[0] + 1;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 0: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1892,13 +1734,10 @@ describe("Polyline tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 1: B },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1931,13 +1770,10 @@ describe("Polyline tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 2: C },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1971,13 +1807,10 @@ describe("Polyline tag tests", async () => {
         A = [7, 0];
         D[0] = A[0] + 1;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 3: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -2011,13 +1844,10 @@ describe("Polyline tag tests", async () => {
         D = [-5, 9];
         A[0] = D[0] - 1;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 4: D },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 4: D },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -2101,14 +1931,7 @@ describe("Polyline tag tests", async () => {
         // move first vertex
         A = [-4, -9];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 0: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2145,14 +1968,7 @@ describe("Polyline tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2189,14 +2005,7 @@ describe("Polyline tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2233,14 +2042,7 @@ describe("Polyline tag tests", async () => {
         // move fourth vertex
         A = [7, 0];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 3: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2277,14 +2079,7 @@ describe("Polyline tag tests", async () => {
         // move fifth vertex
         D = [-9, 1];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 4: D },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 4: D }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2321,14 +2116,7 @@ describe("Polyline tag tests", async () => {
         // move sixth vertex
         E = [-3, 6];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 5: E },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 5: E }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2365,14 +2153,7 @@ describe("Polyline tag tests", async () => {
         // move seventh vertex
         A = [2, -4];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 6: A },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 6: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2409,14 +2190,7 @@ describe("Polyline tag tests", async () => {
         // move eighth vertex
         F = [6, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 7: F },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 7: F }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2453,14 +2227,7 @@ describe("Polyline tag tests", async () => {
         // move ninth vertex
         G = [1, -8];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 8: G },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 8: G }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2497,14 +2264,7 @@ describe("Polyline tag tests", async () => {
         // move tenth vertex
         A = [-6, 10];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 9: A },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 9: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2600,14 +2360,7 @@ describe("Polyline tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 0: A3 },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 0: A3 }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2644,14 +2397,7 @@ describe("Polyline tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2688,14 +2434,7 @@ describe("Polyline tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2735,14 +2474,7 @@ describe("Polyline tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 3: A2 },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 3: A2 }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2779,14 +2511,7 @@ describe("Polyline tag tests", async () => {
         // move fifth vertex
         D = [-9, 1];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 4: D },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 4: D }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2823,14 +2548,7 @@ describe("Polyline tag tests", async () => {
         // move sixth vertex
         E = [-3, 6];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 5: E },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 5: E }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2870,14 +2588,7 @@ describe("Polyline tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 6: A1 },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 6: A1 }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2914,14 +2625,7 @@ describe("Polyline tag tests", async () => {
         // move eighth vertex
         F = [6, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 7: F },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 7: F }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2958,14 +2662,7 @@ describe("Polyline tag tests", async () => {
         // move ninth vertex
         G = [1, -8];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 8: G },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 8: G }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -3005,14 +2702,7 @@ describe("Polyline tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/P",
-            args: {
-                pointCoords: { 9: A },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/P", pointCoords: { 9: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -3082,12 +2772,7 @@ describe("Polyline tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3101,12 +2786,7 @@ describe("Polyline tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.4;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3119,12 +2799,7 @@ describe("Polyline tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3137,12 +2812,7 @@ describe("Polyline tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3156,12 +2826,7 @@ describe("Polyline tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3174,12 +2839,7 @@ describe("Polyline tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3192,12 +2852,7 @@ describe("Polyline tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3211,12 +2866,7 @@ describe("Polyline tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3229,12 +2879,7 @@ describe("Polyline tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3254,17 +2899,14 @@ describe("Polyline tag tests", async () => {
         y2 += moveY;
         y3 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: [
-                    [x1, y1],
-                    [x2, y2],
-                    [x3, y3],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: [
+                [x1, y1],
+                [x2, y2],
+                [x3, y3],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3282,13 +2924,10 @@ describe("Polyline tag tests", async () => {
         x2 += moveX;
         y2 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 1: [x2, y2] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 1: [x2, y2] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3336,12 +2975,7 @@ describe("Polyline tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3355,12 +2989,7 @@ describe("Polyline tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.4;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3374,12 +3003,7 @@ describe("Polyline tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3392,12 +3016,7 @@ describe("Polyline tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3412,12 +3031,7 @@ describe("Polyline tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3429,12 +3043,7 @@ describe("Polyline tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3448,12 +3057,7 @@ describe("Polyline tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3468,12 +3072,7 @@ describe("Polyline tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3486,12 +3085,7 @@ describe("Polyline tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3512,17 +3106,14 @@ describe("Polyline tag tests", async () => {
         y2 += moveY;
         y3 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: [
-                    [x1, y1],
-                    [x2, y2],
-                    [x3, y3],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: [
+                [x1, y1],
+                [x2, y2],
+                [x3, y3],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3541,13 +3132,10 @@ describe("Polyline tag tests", async () => {
         x2 += moveX;
         y2 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/_polyline1",
-            args: {
-                pointCoords: { 1: [x2, y2] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/_polyline1",
+            pointCoords: { 1: [x2, y2] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3598,12 +3186,7 @@ describe("Polyline tag tests", async () => {
 
         let mseg1 = (y2 - y1) / (x2 - x1);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/A`,
-            args: { x: -20, y: 0.02 },
-            event: null,
-        });
+        await movePoint({ name: `/A`, x: -20, y: 0.02, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/A"].stateValues.xs[0].tree;
@@ -3615,12 +3198,7 @@ describe("Polyline tag tests", async () => {
 
         let mseg2 = (y2 - y3) / (x2 - x3);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/A`,
-            args: { x: 0, y: 0.04 },
-            event: null,
-        });
+        await movePoint({ name: `/A`, x: 0, y: 0.04, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/A"].stateValues.xs[0].tree;
@@ -3632,12 +3210,7 @@ describe("Polyline tag tests", async () => {
 
         mseg3 = (y4 - y3) / (x4 - x3);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/A`,
-            args: { x: -10, y: 0.02 },
-            event: null,
-        });
+        await movePoint({ name: `/A`, x: -10, y: 0.02, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/A"].stateValues.xs[0].tree;
@@ -3669,17 +3242,14 @@ describe("Polyline tag tests", async () => {
 
         // cannot move vertices
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [4, 7],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/p",
+            pointCoords: [
+                [4, 7],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3727,7 +3297,7 @@ describe("Polyline tag tests", async () => {
         expect(stateVariables["/x"]).eq(undefined);
         expect(stateVariables["/xa"]).eq(undefined);
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -3739,7 +3309,7 @@ describe("Polyline tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eq(t2x);
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -3751,7 +3321,7 @@ describe("Polyline tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eq(t2y);
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
 
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -3763,7 +3333,7 @@ describe("Polyline tag tests", async () => {
         expect(stateVariables["/x"]).eq(undefined);
         expect(stateVariables["/xa"]).eq(undefined);
 
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"]).eq(undefined);
@@ -3797,13 +3367,10 @@ describe("Polyline tag tests", async () => {
             [-4, 5],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/polyline",
-            args: {
-                pointCoords: { 0: [3, 5] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/polyline",
+            pointCoords: { 0: [3, 5] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3817,13 +3384,10 @@ describe("Polyline tag tests", async () => {
             [-4, 5],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/polyline",
-            args: {
-                pointCoords: { 1: [-9, -6] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/polyline",
+            pointCoords: { 1: [-9, -6] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3837,13 +3401,10 @@ describe("Polyline tag tests", async () => {
             [-9, 2],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/polyline",
-            args: {
-                pointCoords: { 2: [-3, 1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/polyline",
+            pointCoords: { 2: [-3, 1] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3884,14 +3445,7 @@ describe("Polyline tag tests", async () => {
 
         // cannot move single vertex
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: { 0: [4, 7] },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/p", pointCoords: { 0: [4, 7] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -3908,17 +3462,14 @@ describe("Polyline tag tests", async () => {
 
         // cannot move all vertices
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [4, 7],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/p",
+            pointCoords: [
+                [4, 7],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3938,20 +3489,13 @@ describe("Polyline tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/verticesDraggable",
+            name: "/verticesDraggable",
             core,
         });
 
         // can move single vertex
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: { 0: [4, 7] },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/p", pointCoords: { 0: [4, 7] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -3968,17 +3512,14 @@ describe("Polyline tag tests", async () => {
 
         // cannot move all vertices
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [3, 8],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/p",
+            pointCoords: [
+                [3, 8],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3998,20 +3539,13 @@ describe("Polyline tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/draggable",
+            name: "/draggable",
             core,
         });
 
         // can move single vertex
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: { 1: [-3, 2] },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/p", pointCoords: { 1: [-3, 2] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -4028,17 +3562,14 @@ describe("Polyline tag tests", async () => {
 
         // can move all vertices
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [3, 8],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/p",
+            pointCoords: [
+                [3, 8],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4058,20 +3589,13 @@ describe("Polyline tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/verticesDraggable",
+            name: "/verticesDraggable",
             core,
         });
 
         // cannot move single vertex
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: { 2: [9, 3] },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/p", pointCoords: { 2: [9, 3] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -4088,17 +3612,14 @@ describe("Polyline tag tests", async () => {
 
         // can move all vertices
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [-4, 1],
-                    [9, -4],
-                    [0, 7],
-                ],
-            },
-            event: null,
+        await movePolyline({
+            name: "/p",
+            pointCoords: [
+                [-4, 1],
+                [9, -4],
+                [0, 7],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4149,13 +3670,10 @@ describe("Polyline tag tests", async () => {
 
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -4170,14 +3688,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4199,14 +3710,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g3/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4257,13 +3761,10 @@ describe("Polyline tag tests", async () => {
 
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -4278,14 +3779,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4307,14 +3801,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g3/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4369,13 +3856,10 @@ describe("Polyline tag tests", async () => {
 
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         // adjust for constraint
@@ -4393,14 +3877,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4422,14 +3899,7 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g3/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4471,22 +3941,8 @@ describe("Polyline tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/length"].stateValues.value).eq(length);
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: { 1: [-8, -4] },
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/p",
-            args: {
-                pointCoords: { 2: [-8, 2] },
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/p", pointCoords: { 1: [-8, -4] }, core });
+        await movePolyline({ name: "/p", pointCoords: { 2: [-8, 2] }, core });
 
         length = 13 + 6 + Math.sqrt(16 + 64) + Math.sqrt(25 + 64);
 
@@ -4524,13 +3980,10 @@ describe("Polyline tag tests", async () => {
         // move individual vertex
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -4544,27 +3997,17 @@ describe("Polyline tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolyline({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolylineCopiedTwice({ core, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
-        await core.requestAction({
-            actionName: "movePolyline",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: vertices[2] },
-            },
-            event: null,
+        await movePolyline({
+            name: "/g3/pg",
+            pointCoords: { 2: vertices[2] },
+            core,
         });
 
         await testPolylineCopiedTwice({ core, vertices });
@@ -4572,7 +4015,7 @@ describe("Polyline tag tests", async () => {
         // change last vertices via math input
         await updateMathInputValue({
             latex: "(3,2), (-6,5), (4,9), (-2,0)",
-            componentName: "/vertexInput",
+            name: "/vertexInput",
             core,
         });
 

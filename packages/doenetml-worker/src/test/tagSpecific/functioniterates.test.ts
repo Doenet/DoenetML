@@ -6,6 +6,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("FunctionIterates tag tests", async () => {
     // TODO: test forceNumeric and forceSymbolic?
@@ -38,11 +39,11 @@ describe("FunctionIterates tag tests", async () => {
         // change function, numIterates, and initial
         await updateMathInputValue({
             latex: "bx^2",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
-        await updateMathInputValue({ latex: "w", componentName: "/u", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({ latex: "w", name: "/u", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = b w²");
@@ -51,7 +52,7 @@ describe("FunctionIterates tag tests", async () => {
         expect(stateVariables["/l4"].stateValues.text).eq("f⁴(u) = b¹⁵ w¹⁶");
 
         // change variable
-        await updateMathInputValue({ latex: "y", componentName: "/x", core });
+        await updateMathInputValue({ latex: "y", name: "/x", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = b x²");
@@ -62,10 +63,10 @@ describe("FunctionIterates tag tests", async () => {
         // change function to match variable
         await updateMathInputValue({
             latex: "y+q",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
-        await updateMathInputValue({ latex: "5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5", name: "/n", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = q + w");
@@ -103,11 +104,11 @@ describe("FunctionIterates tag tests", async () => {
         // change function, numIterates, and initial
         await updateMathInputValue({
             latex: "2x^2",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
-        await updateMathInputValue({ latex: "1/4", componentName: "/u", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
+        await updateMathInputValue({ latex: "1/4", name: "/u", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = 0.125");
@@ -120,7 +121,7 @@ describe("FunctionIterates tag tests", async () => {
         );
 
         // change variable
-        await updateMathInputValue({ latex: "y", componentName: "/x", core });
+        await updateMathInputValue({ latex: "y", name: "/x", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -134,10 +135,10 @@ describe("FunctionIterates tag tests", async () => {
         // change function to match variable
         await updateMathInputValue({
             latex: "y+5",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
-        await updateMathInputValue({ latex: "5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5", name: "/n", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = 5.25");
@@ -174,18 +175,18 @@ describe("FunctionIterates tag tests", async () => {
         await checkIterates({ a: 3, b: -2, c: 1, d: 4, u1: 2, u2: 1, n: 3 });
 
         // change values
-        await updateMathInputValue({ latex: "q", componentName: "/x", core });
-        await updateMathInputValue({ latex: "r", componentName: "/y", core });
-        await updateMathInputValue({ latex: "-4", componentName: "/a", core });
-        await updateMathInputValue({ latex: "7", componentName: "/b", core });
-        await updateMathInputValue({ latex: "6", componentName: "/c", core });
-        await updateMathInputValue({ latex: "-1", componentName: "/d", core });
+        await updateMathInputValue({ latex: "q", name: "/x", core });
+        await updateMathInputValue({ latex: "r", name: "/y", core });
+        await updateMathInputValue({ latex: "-4", name: "/a", core });
+        await updateMathInputValue({ latex: "7", name: "/b", core });
+        await updateMathInputValue({ latex: "6", name: "/c", core });
+        await updateMathInputValue({ latex: "-1", name: "/d", core });
         await updateMathInputValue({
             latex: "(-8,9)",
-            componentName: "/u",
+            name: "/u",
             core,
         });
-        await updateMathInputValue({ latex: "5", componentName: "/n", core });
+        await updateMathInputValue({ latex: "5", name: "/n", core });
 
         await checkIterates({ a: -4, b: 7, c: 6, d: -1, u1: -8, u2: 9, n: 5 });
     }
@@ -282,7 +283,7 @@ describe("FunctionIterates tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(xy, x+yz, x-z)",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
 
@@ -306,7 +307,7 @@ describe("FunctionIterates tag tests", async () => {
         // add variable to function
         await updateMathInputValue({
             latex: "x, y, z",
-            componentName: "/vars",
+            name: "/vars",
             core,
         });
 
@@ -330,7 +331,7 @@ describe("FunctionIterates tag tests", async () => {
         // add component to initial condition
         await updateMathInputValue({
             latex: "(2,1,-4)",
-            componentName: "/u",
+            name: "/u",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -384,7 +385,7 @@ describe("FunctionIterates tag tests", async () => {
         // non-numeric initial condition
         await updateMathInputValue({
             latex: "(2,1a)",
-            componentName: "/u",
+            name: "/u",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -408,12 +409,12 @@ describe("FunctionIterates tag tests", async () => {
         // add component to function
         await updateMathInputValue({
             latex: "(2,1)",
-            componentName: "/u",
+            name: "/u",
             core,
         });
         await updateMathInputValue({
             latex: "(xy, x+yz, x-z)",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -436,7 +437,7 @@ describe("FunctionIterates tag tests", async () => {
         // add variable to function
         await updateMathInputValue({
             latex: "x, y, z",
-            componentName: "/vars",
+            name: "/vars",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -459,7 +460,7 @@ describe("FunctionIterates tag tests", async () => {
         // add component to initial condition
         await updateMathInputValue({
             latex: "(2,1,-4)",
-            componentName: "/u",
+            name: "/u",
             core,
         });
         stateVariables = await returnAllStateVariables(core);

@@ -8,6 +8,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Select tag tests", async () => {
     async function test_values_separately({
@@ -439,7 +440,7 @@ describe("Select tag tests", async () => {
         // Nothing changes when change number to select
         await updateMathInputValue({
             latex: "7",
-            componentName: "/numToSelect",
+            name: "/numToSelect",
             core,
         });
 
@@ -467,17 +468,17 @@ describe("Select tag tests", async () => {
         };
         await updateMathInputValue({
             latex: newValues.a,
-            componentName: "/x",
+            name: "/x",
             core,
         });
         await updateMathInputValue({
             latex: newValues.b,
-            componentName: "/y",
+            name: "/y",
             core,
         });
         await updateMathInputValue({
             latex: newValues.c,
-            componentName: "/z",
+            name: "/z",
             core,
         });
 
@@ -570,22 +571,22 @@ describe("Select tag tests", async () => {
         await check_sampled_numbers([]);
 
         // sample one variable
-        await updateMathInputValue({ latex: "1", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
         let stateVariables = await returnAllStateVariables(core);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "0", name: "/mi1", core });
         await check_sampled_numbers([]);
 
         // get same number back
-        await updateMathInputValue({ latex: "1", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "1", name: "/mi1", core });
         await check_sampled_numbers(sampledNumbers);
 
         // get two more samples
-        await updateMathInputValue({ latex: "3", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
         stateVariables = await returnAllStateVariables(core);
         let n1 = stateVariables["/a/n"].stateValues.value;
@@ -597,15 +598,15 @@ describe("Select tag tests", async () => {
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "0", name: "/mi1", core });
         await check_sampled_numbers([]);
 
         // get first two numbers back
-        await updateMathInputValue({ latex: "2", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "2", name: "/mi1", core });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
 
         // get six total samples
-        await updateMathInputValue({ latex: "6", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
         stateVariables = await returnAllStateVariables(core);
         n1 = stateVariables["/a/n"].stateValues.value;
@@ -623,11 +624,11 @@ describe("Select tag tests", async () => {
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
-        await updateMathInputValue({ latex: "0", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "0", name: "/mi1", core });
         await check_sampled_numbers([]);
 
         // get all six back
-        await updateMathInputValue({ latex: "6", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "6", name: "/mi1", core });
         await check_sampled_numbers(sampledNumbers);
     });
 
@@ -2875,12 +2876,12 @@ describe("Select tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
 
@@ -2890,12 +2891,12 @@ describe("Select tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
 

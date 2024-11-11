@@ -32,9 +32,8 @@ export default class Text extends InlineComponent {
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
 
-    // even if inside a component that turned on descendantCompositesMustHaveAReplacement
-    // don't required composite replacements
-    static descendantCompositesMustHaveAReplacement = false;
+    static descendantCompositesMustHaveAReplacement = true;
+    static descendantCompositesDefaultReplacementType = "text";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

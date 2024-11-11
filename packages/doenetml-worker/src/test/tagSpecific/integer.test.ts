@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Integer tag tests", async () => {
     it("1.2+1.1", async () => {
@@ -46,7 +47,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6.5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -55,7 +56,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6.5x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -64,7 +65,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "9.5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -86,7 +87,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6.5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -95,7 +96,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6.5x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -105,7 +106,7 @@ describe("Integer tag tests", async () => {
         // Note: change to 3 and then 31 to verify bug doesn't reappear
         await updateMathInputValue({
             latex: "3",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -114,7 +115,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "31",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -123,7 +124,7 @@ describe("Integer tag tests", async () => {
 
         await updateMathInputValue({
             latex: "31.5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);

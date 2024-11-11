@@ -379,6 +379,7 @@ export default class BooleanList extends CompositeComponent {
         warnings.push(...processResult.warnings);
 
         workspace.componentsCopied = componentsCopied;
+        workspace.numComponents = numComponents;
 
         return {
             replacements: processResult.serializedComponents,
@@ -397,26 +398,30 @@ export default class BooleanList extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let componentsToCopy = [];
+        let numComponents = await component.stateValues.numComponents;
 
-        let childNameByComponent =
-            await component.stateValues.childNameByComponent;
+        if (numComponents === workspace.numComponents) {
+            let componentsToCopy = [];
 
-        for (let childName of childNameByComponent) {
-            let replacementSource = components[childName];
+            let childNameByComponent =
+                await component.stateValues.childNameByComponent;
 
-            if (replacementSource) {
-                componentsToCopy.push(replacementSource.componentName);
+            for (let childName of childNameByComponent) {
+                let replacementSource = components[childName];
+
+                if (replacementSource) {
+                    componentsToCopy.push(replacementSource.componentName);
+                }
             }
-        }
 
-        if (
-            componentsToCopy.length == workspace.componentsCopied.length &&
-            workspace.componentsCopied.every(
-                (x, i) => x === componentsToCopy[i],
-            )
-        ) {
-            return [];
+            if (
+                componentsToCopy.length == workspace.componentsCopied.length &&
+                workspace.componentsCopied.every(
+                    (x, i) => x === componentsToCopy[i],
+                )
+            ) {
+                return [];
+            }
         }
 
         // for now, just recreate

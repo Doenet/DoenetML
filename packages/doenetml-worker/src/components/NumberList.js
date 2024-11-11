@@ -649,6 +649,7 @@ export default class NumberList extends CompositeComponent {
         warnings.push(...processResult.warnings);
 
         workspace.componentsCopied = componentsCopied;
+        workspace.numComponents = numComponents;
 
         return {
             replacements: processResult.serializedComponents,
@@ -667,30 +668,36 @@ export default class NumberList extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let componentsToCopy = [];
+        let numComponents = await component.stateValues.numComponents;
 
-        let childInfoByComponent =
-            await component.stateValues.childInfoByComponent;
+        if (numComponents === workspace.numComponents) {
+            let componentsToCopy = [];
 
-        for (let childInfo of childInfoByComponent) {
-            let replacementSource = components[childInfo.childName];
+            let childInfoByComponent =
+                await component.stateValues.childInfoByComponent;
 
-            if (childInfo.nComponents !== undefined) {
-                componentsToCopy.push(
-                    replacementSource.componentName + ":" + childInfo.component,
-                );
-            } else {
-                componentsToCopy.push(replacementSource.componentName);
+            for (let childInfo of childInfoByComponent) {
+                let replacementSource = components[childInfo.childName];
+
+                if (childInfo.nComponents !== undefined) {
+                    componentsToCopy.push(
+                        replacementSource.componentName +
+                            ":" +
+                            childInfo.component,
+                    );
+                } else {
+                    componentsToCopy.push(replacementSource.componentName);
+                }
             }
-        }
 
-        if (
-            componentsToCopy.length == workspace.componentsCopied.length &&
-            workspace.componentsCopied.every(
-                (x, i) => x === componentsToCopy[i],
-            )
-        ) {
-            return [];
+            if (
+                componentsToCopy.length == workspace.componentsCopied.length &&
+                workspace.componentsCopied.every(
+                    (x, i) => x === componentsToCopy[i],
+                )
+            ) {
+                return [];
+            }
         }
 
         // for now, just recreate

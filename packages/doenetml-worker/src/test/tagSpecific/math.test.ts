@@ -2,14 +2,20 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveMath,
+    movePoint,
+    moveVector,
     updateBooleanInputValue,
     updateMathInputValue,
     updateMatrixInputValue,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
+import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Math tag tests", async () => {
     it("1+1", async () => {
@@ -182,12 +188,7 @@ describe("Math tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(3);
 
         // move point to (7,9)
-        await core.requestAction({
-            componentName: "/P",
-            actionName: "movePoint",
-            args: { x: 7, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 7, y: 9, core });
 
         stateVariables = await returnAllStateVariables(core);
         // Since we mark the component to ignore changes to defining children,
@@ -267,7 +268,7 @@ describe("Math tag tests", async () => {
 
         // change format of second to latex
         await updateTextInputValue({
-            componentName: "/ti2",
+            name: "/ti2",
             text: "latex",
             core,
         });
@@ -286,7 +287,7 @@ describe("Math tag tests", async () => {
 
         // change format of first to text
         await updateTextInputValue({
-            componentName: "/ti1",
+            name: "/ti1",
             text: "text",
             core,
         });
@@ -301,7 +302,7 @@ describe("Math tag tests", async () => {
 
         // change format of second back to text
         await updateTextInputValue({
-            componentName: "/ti2",
+            name: "/ti2",
             text: "text",
             core,
         });
@@ -318,7 +319,7 @@ describe("Math tag tests", async () => {
 
         // change format of first back to latex
         await updateTextInputValue({
-            componentName: "/ti1",
+            name: "/ti1",
             text: "latex",
             core,
         });
@@ -1626,7 +1627,7 @@ describe("Math tag tests", async () => {
 
         // higher decimals
         await updateMathInputValue({
-            componentName: "/nDecimals",
+            name: "/nDecimals",
             latex: "5",
             core,
         });
@@ -1637,7 +1638,7 @@ describe("Math tag tests", async () => {
 
         // lower decimals
         await updateMathInputValue({
-            componentName: "/nDecimals",
+            name: "/nDecimals",
             latex: "-3",
             core,
         });
@@ -1648,7 +1649,7 @@ describe("Math tag tests", async () => {
 
         // increase digits
         await updateMathInputValue({
-            componentName: "/nDigits",
+            name: "/nDigits",
             latex: "12",
             core,
         });
@@ -1659,7 +1660,7 @@ describe("Math tag tests", async () => {
 
         // invalid nDigits, falls back to decimals
         await updateMathInputValue({
-            componentName: "/nDigits",
+            name: "/nDigits",
             latex: "x",
             core,
         });
@@ -1670,7 +1671,7 @@ describe("Math tag tests", async () => {
 
         // invalid both, no rounding
         await updateMathInputValue({
-            componentName: "/nDecimals",
+            name: "/nDecimals",
             latex: "y",
             core,
         });
@@ -1681,7 +1682,7 @@ describe("Math tag tests", async () => {
 
         // only invalid nDecimals, falls back to digits
         await updateMathInputValue({
-            componentName: "/nDigits",
+            name: "/nDigits",
             latex: "1",
             core,
         });
@@ -1692,7 +1693,7 @@ describe("Math tag tests", async () => {
 
         // negative decimals past number magnitude
         await updateMathInputValue({
-            componentName: "/nDecimals",
+            name: "/nDecimals",
             latex: "-8",
             core,
         });
@@ -1703,7 +1704,7 @@ describe("Math tag tests", async () => {
 
         // becomes zero with no digits
         await updateMathInputValue({
-            componentName: "/nDigits",
+            name: "/nDigits",
             latex: "0",
             core,
         });
@@ -1712,7 +1713,7 @@ describe("Math tag tests", async () => {
 
         // get number back with less rounding
         await updateMathInputValue({
-            componentName: "/nDecimals",
+            name: "/nDecimals",
             latex: "-6",
             core,
         });
@@ -2513,24 +2514,24 @@ describe("Math tag tests", async () => {
         await check_values(["a", "b", "c"], "tuple");
 
         // change xyz 1
-        await updateMathInputValue({ componentName: "/mx", latex: "d", core });
-        await updateMathInputValue({ componentName: "/my", latex: "e", core });
-        await updateMathInputValue({ componentName: "/mz", latex: "f", core });
+        await updateMathInputValue({ name: "/mx", latex: "d", core });
+        await updateMathInputValue({ name: "/my", latex: "e", core });
+        await updateMathInputValue({ name: "/mz", latex: "f", core });
         await check_values(["d", "e", "f"], "tuple");
 
         // change xyz 2
         await updateMathInputValue({
-            componentName: "/mx_2",
+            name: "/mx_2",
             latex: "g",
             core,
         });
         await updateMathInputValue({
-            componentName: "/my_2",
+            name: "/my_2",
             latex: "h",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mz_2",
+            name: "/mz_2",
             latex: "i",
             core,
         });
@@ -2538,41 +2539,41 @@ describe("Math tag tests", async () => {
 
         // change xyz 3
         await updateMathInputValue({
-            componentName: "/mx_3",
+            name: "/mx_3",
             latex: "j",
             core,
         });
         await updateMathInputValue({
-            componentName: "/my_3",
+            name: "/my_3",
             latex: "k",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mz_3",
+            name: "/mz_3",
             latex: "l",
             core,
         });
         await check_values(["j", "k", "l"], "vector");
 
         // change x1x2x3 1
-        await updateMathInputValue({ componentName: "/mx1", latex: "m", core });
-        await updateMathInputValue({ componentName: "/mx2", latex: "n", core });
-        await updateMathInputValue({ componentName: "/mx3", latex: "o", core });
+        await updateMathInputValue({ name: "/mx1", latex: "m", core });
+        await updateMathInputValue({ name: "/mx2", latex: "n", core });
+        await updateMathInputValue({ name: "/mx3", latex: "o", core });
         await check_values(["m", "n", "o"], "vector");
 
         // change x1x2x3 2
         await updateMathInputValue({
-            componentName: "/mx1_2",
+            name: "/mx1_2",
             latex: "p",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx2_2",
+            name: "/mx2_2",
             latex: "q",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx3_2",
+            name: "/mx3_2",
             latex: "r",
             core,
         });
@@ -2580,17 +2581,17 @@ describe("Math tag tests", async () => {
 
         // change x1x2x3 2
         await updateMathInputValue({
-            componentName: "/mx1_3",
+            name: "/mx1_3",
             latex: "s",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx2_3",
+            name: "/mx2_3",
             latex: "t",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx3_3",
+            name: "/mx3_3",
             latex: "u",
             core,
         });
@@ -2598,37 +2599,37 @@ describe("Math tag tests", async () => {
 
         // change to 4D list
         await updateMathInputValue({
-            componentName: "/m",
+            name: "/m",
             latex: "v,w,x,y",
             core,
         });
         await check_values(["v", "w", "x", "y"], "list");
 
         // change x1x2x3x4 1
-        await updateMathInputValue({ componentName: "/mx1", latex: "z", core });
-        await updateMathInputValue({ componentName: "/mx2", latex: "a", core });
-        await updateMathInputValue({ componentName: "/mx3", latex: "b", core });
-        await updateMathInputValue({ componentName: "/mx4", latex: "c", core });
+        await updateMathInputValue({ name: "/mx1", latex: "z", core });
+        await updateMathInputValue({ name: "/mx2", latex: "a", core });
+        await updateMathInputValue({ name: "/mx3", latex: "b", core });
+        await updateMathInputValue({ name: "/mx4", latex: "c", core });
         await check_values(["z", "a", "b", "c"], "list");
 
         // change x1x2x3x4 2
         await updateMathInputValue({
-            componentName: "/mx1_2",
+            name: "/mx1_2",
             latex: "d",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx2_2",
+            name: "/mx2_2",
             latex: "e",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx3_2",
+            name: "/mx3_2",
             latex: "f",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mx4_2",
+            name: "/mx4_2",
             latex: "g",
             core,
         });
@@ -2636,7 +2637,7 @@ describe("Math tag tests", async () => {
 
         // change to 3D alt vector
         await updateMathInputValue({
-            componentName: "/m",
+            name: "/m",
             latex: "\\langle a,b,c\\rangle",
             core,
         });
@@ -2644,17 +2645,17 @@ describe("Math tag tests", async () => {
 
         // change xyz 3
         await updateMathInputValue({
-            componentName: "/mx_3",
+            name: "/mx_3",
             latex: "j",
             core,
         });
         await updateMathInputValue({
-            componentName: "/my_3",
+            name: "/my_3",
             latex: "k",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mz_3",
+            name: "/mz_3",
             latex: "l",
             core,
         });
@@ -3006,7 +3007,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b1",
+            name: "/b1",
             core,
         });
 
@@ -3021,7 +3022,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
 
@@ -3036,7 +3037,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b3",
+            name: "/b3",
             core,
         });
 
@@ -3066,7 +3067,7 @@ describe("Math tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(x,y)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
 
@@ -3096,12 +3097,7 @@ describe("Math tag tests", async () => {
         ]);
 
         // move dependent point
-        await core.requestAction({
-            componentName: "/Q",
-            actionName: "movePoint",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
+        await movePoint({ name: "/Q", x: -2, y: 3, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3137,12 +3133,7 @@ describe("Math tag tests", async () => {
         ]);
 
         // move dependent point
-        await core.requestAction({
-            componentName: "/Q",
-            actionName: "movePoint",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
+        await movePoint({ name: "/Q", x: -2, y: 3, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3179,12 +3170,7 @@ describe("Math tag tests", async () => {
         ]);
 
         // move dependent point
-        await core.requestAction({
-            componentName: "/Q",
-            actionName: "movePoint",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
+        await movePoint({ name: "/Q", x: -2, y: 3, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3199,7 +3185,7 @@ describe("Math tag tests", async () => {
         // enter value in mathinput
         await updateMathInputValue({
             latex: "(6,9)",
-            componentName: "/coords2",
+            name: "/coords2",
             core,
         });
 
@@ -3298,7 +3284,7 @@ describe("Math tag tests", async () => {
 
         await updateMathInputValue({
             latex: "",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3310,7 +3296,7 @@ describe("Math tag tests", async () => {
 
         await updateMathInputValue({
             latex: "q",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3336,7 +3322,7 @@ describe("Math tag tests", async () => {
 
         await updateMathInputValue({
             latex: "",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3348,7 +3334,7 @@ describe("Math tag tests", async () => {
 
         await updateMathInputValue({
             latex: "q",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3878,7 +3864,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/displayBlanks",
+            name: "/displayBlanks",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6427,102 +6413,18 @@ describe("Math tag tests", async () => {
 
         // move vectors
 
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v1vb",
-            args: {
-                headcoords: [2, 1],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v2vb",
-            args: {
-                headcoords: [2, 2],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v3vb",
-            args: {
-                headcoords: [2, 3],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v4vb",
-            args: {
-                headcoords: [2, 4],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v5vb",
-            args: {
-                headcoords: [2, 5],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v6vb",
-            args: {
-                headcoords: [2, 6],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v7vb",
-            args: {
-                headcoords: [2, 7],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v8vb",
-            args: {
-                headcoords: [2, 8],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v9vb",
-            args: {
-                headcoords: [2, 9],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v10vb",
-            args: {
-                headcoords: [2, 10],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v11vb",
-            args: {
-                headcoords: [2, 11],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/v12vb",
-            args: {
-                headcoords: [2, 12],
-            },
-            event: null,
-        });
+        await moveVector({ name: "/v1vb", headcoords: [2, 1], core });
+        await moveVector({ name: "/v2vb", headcoords: [2, 2], core });
+        await moveVector({ name: "/v3vb", headcoords: [2, 3], core });
+        await moveVector({ name: "/v4vb", headcoords: [2, 4], core });
+        await moveVector({ name: "/v5vb", headcoords: [2, 5], core });
+        await moveVector({ name: "/v6vb", headcoords: [2, 6], core });
+        await moveVector({ name: "/v7vb", headcoords: [2, 7], core });
+        await moveVector({ name: "/v8vb", headcoords: [2, 8], core });
+        await moveVector({ name: "/v9vb", headcoords: [2, 9], core });
+        await moveVector({ name: "/v10vb", headcoords: [2, 10], core });
+        await moveVector({ name: "/v11vb", headcoords: [2, 11], core });
+        await moveVector({ name: "/v12vb", headcoords: [2, 12], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -6560,7 +6462,7 @@ describe("Math tag tests", async () => {
         // change from matrix inputs
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6568,7 +6470,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-1",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 1,
             colInd: 0,
             core,
@@ -6576,7 +6478,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6584,7 +6486,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-2",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 0,
             colInd: 1,
             core,
@@ -6592,7 +6494,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6600,7 +6502,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-3",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 1,
             colInd: 0,
             core,
@@ -6608,7 +6510,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi4",
+            name: "/mi4",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6616,7 +6518,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-4",
-            componentName: "/mi4",
+            name: "/mi4",
             rowInd: 0,
             colInd: 1,
             core,
@@ -6624,7 +6526,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi5",
+            name: "/mi5",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6632,7 +6534,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-5",
-            componentName: "/mi5",
+            name: "/mi5",
             rowInd: 0,
             colInd: 1,
             core,
@@ -6640,7 +6542,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi6",
+            name: "/mi6",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6648,7 +6550,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-6",
-            componentName: "/mi6",
+            name: "/mi6",
             rowInd: 1,
             colInd: 0,
             core,
@@ -6656,7 +6558,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi7",
+            name: "/mi7",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6664,7 +6566,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-7",
-            componentName: "/mi7",
+            name: "/mi7",
             rowInd: 1,
             colInd: 0,
             core,
@@ -6672,7 +6574,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi8",
+            name: "/mi8",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6680,7 +6582,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-8",
-            componentName: "/mi8",
+            name: "/mi8",
             rowInd: 0,
             colInd: 1,
             core,
@@ -6688,7 +6590,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi9",
+            name: "/mi9",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6696,7 +6598,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-9",
-            componentName: "/mi9",
+            name: "/mi9",
             rowInd: 0,
             colInd: 1,
             core,
@@ -6704,7 +6606,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi10",
+            name: "/mi10",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6712,7 +6614,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-10",
-            componentName: "/mi10",
+            name: "/mi10",
             rowInd: 1,
             colInd: 0,
             core,
@@ -6720,7 +6622,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi11",
+            name: "/mi11",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6728,7 +6630,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-11",
-            componentName: "/mi11",
+            name: "/mi11",
             rowInd: 0,
             colInd: 1,
             core,
@@ -6736,7 +6638,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "3",
-            componentName: "/mi12",
+            name: "/mi12",
             rowInd: 0,
             colInd: 0,
             core,
@@ -6744,7 +6646,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "-12",
-            componentName: "/mi12",
+            name: "/mi12",
             rowInd: 0,
             colInd: 1,
             core,
@@ -7420,7 +7322,7 @@ describe("Math tag tests", async () => {
         // change from matrix inputs
         await updateMatrixInputValue({
             latex: "a",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 0,
             colInd: 0,
             core,
@@ -7428,7 +7330,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "b",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 0,
             colInd: 1,
             core,
@@ -7436,7 +7338,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "c",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 1,
             colInd: 0,
             core,
@@ -7444,7 +7346,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "d",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 1,
             colInd: 1,
             core,
@@ -7452,7 +7354,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "e",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 2,
             colInd: 0,
             core,
@@ -7460,7 +7362,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "f",
-            componentName: "/mi1",
+            name: "/mi1",
             rowInd: 2,
             colInd: 1,
             core,
@@ -7469,7 +7371,7 @@ describe("Math tag tests", async () => {
 
         await updateMatrixInputValue({
             latex: "g",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 0,
             colInd: 0,
             core,
@@ -7477,7 +7379,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "h",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 0,
             colInd: 1,
             core,
@@ -7485,7 +7387,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "i",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 1,
             colInd: 0,
             core,
@@ -7493,7 +7395,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "j",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 1,
             colInd: 1,
             core,
@@ -7501,7 +7403,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "k",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 2,
             colInd: 0,
             core,
@@ -7509,7 +7411,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "l",
-            componentName: "/mi2",
+            name: "/mi2",
             rowInd: 2,
             colInd: 1,
             core,
@@ -7518,7 +7420,7 @@ describe("Math tag tests", async () => {
 
         await updateMatrixInputValue({
             latex: "m",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 0,
             colInd: 0,
             core,
@@ -7526,7 +7428,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "n",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 0,
             colInd: 1,
             core,
@@ -7534,7 +7436,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "o",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 1,
             colInd: 0,
             core,
@@ -7542,7 +7444,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "p",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 1,
             colInd: 1,
             core,
@@ -7550,7 +7452,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "q",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 2,
             colInd: 0,
             core,
@@ -7558,7 +7460,7 @@ describe("Math tag tests", async () => {
         });
         await updateMatrixInputValue({
             latex: "r",
-            componentName: "/mi3",
+            name: "/mi3",
             rowInd: 2,
             colInd: 1,
             core,
@@ -7695,7 +7597,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/p1",
+            name: "/p1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7715,7 +7617,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/p2",
+            name: "/p2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7729,7 +7631,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/p1",
+            name: "/p1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7749,7 +7651,7 @@ describe("Math tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/p2",
+            name: "/p2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7790,448 +7692,21 @@ describe("Math tag tests", async () => {
         );
         expect(stateVariables["/m3t"].stateValues.text).eq("a² - b₂");
 
-        await core.requestAction({
-            componentName: "/uv",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/uv", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/m3t"].stateValues.text).eq("a₂ - b²");
     });
 
     it("math in graph", async () => {
-        let core = await createTestCore({
-            doenetML: `
-            <graph >
-              <math anchor="$anchorCoords1" name="math1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">$content1</math>
-              <math name="math2">e^(-x^2)</math>
-            </graph>
-        
-            <p name="pAnchor1">Anchor 1 coordinates: <point copySource="math1.anchor" name="math1anchor" /></p>
-            <p name="pAnchor2">Anchor 2 coordinates: <point copySource="math2.anchor" name="math2anchor" /></p>
-            <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathinput name="anchorCoords1" prefill="(1,3)" /></p>
-            <p name="pChangeAnchor2">Change anchor 2 coordinates: <mathinput name="anchorCoords2" bindValueTo="$math2.anchor" /></p>
-            <p name="pPositionFromAnchor1">Position from anchor 1: $math1.positionFromAnchor</p>
-            <p name="pPositionFromAnchor2">Position from anchor 2: $math2.positionFromAnchor</p>
-            <p>Change position from anchor 1
-            <choiceinput inline preselectChoice="1" name="positionFromAnchor1">
-              <choice>upperRight</choice>
-              <choice>upperLeft</choice>
-              <choice>lowerRight</choice>
-              <choice>lowerLeft</choice>
-              <choice>left</choice>
-              <choice>right</choice>
-              <choice>top</choice>
-              <choice>bottom</choice>
-              <choice>center</choice>
-            </choiceinput>
-            </p>
-            <p>Change position from anchor 2
-            <choiceinput inline name="positionFromAnchor2" bindValueTo="$math2.positionFromAnchor">
-              <choice>upperRight</choice>
-              <choice>upperLeft</choice>
-              <choice>lowerRight</choice>
-              <choice>lowerLeft</choice>
-              <choice>left</choice>
-              <choice>right</choice>
-              <choice>top</choice>
-              <choice>bottom</choice>
-              <choice>center</choice>
-            </choiceinput>
-            </p>
-            <p name="pDraggable1">Draggable 1: $draggable1</p>
-            <p name="pDraggable2">Draggable 2: $draggable2</p>
-            <p>Change draggable 1 <booleanInput name="draggable1" prefill="true" /></p>
-            <p>Change draggable 2 <booleanInput name="draggable2" bindValueTo="$math2.draggable" /></p>
-            <p>Content 1 <mathinput name="content1" prefill="x^2/3" /></p>
-            <p>Content 2 <mathinput name="content2" bindValueTo="$math2" /></p>
-            <p name="pFixed1">Fixed 1: $fixed1</p>
-            <p name="pFixed2">Fixed 2: $fixed2</p>
-            <p>Change fixed 1 <booleanInput name="fixed1" prefill="false" /></p>
-            <p>Change fixed 2 <booleanInput name="fixed2" bindValueTo="$math2.fixed" /></p>
-            <p name="pFixLocation1">FixLocation 1: $fixLocation1</p>
-            <p name="pFixLocation2">FixLocation 2: $fixLocation2</p>
-            <p>Change fixLocation 1 <booleanInput name="fixLocation1" prefill="false" /></p>
-            <p>Change fixLocation 2 <booleanInput name="fixLocation2" bindValueTo="$math2.fixLocation" /></p>
-        
-            `,
-        });
+        const doenetMLsnippet = `
+        <graph >
+            <math anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" fixed="$fixed1" fixLocation="$fixLocation1">"x^2/3</math>
+            <math name="item2">e^(-x^2)</math>
+        </graph>
+        `;
 
-        let stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(1,3)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(0,0)",
-        );
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: upperright",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: center",
-        );
-        expect(
-            stateVariables["/positionFromAnchor1"].stateValues.selectedIndices,
-        ).eqls([1]);
-        expect(
-            stateVariables["/positionFromAnchor2"].stateValues.selectedIndices,
-        ).eqls([9]);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-
-        expect(cleanLatex(stateVariables["/math1"].stateValues.latex)).eq(
-            "\\frac{x^{2}}{3}",
-        );
-        expect(cleanLatex(stateVariables["/math2"].stateValues.latex)).eq(
-            "e^{-x^{2}}",
-        );
-
-        // move maths by dragging
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(-2,3)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(4,-5)",
-        );
-
-        // move maths by entering coordinates
-
-        await updateMathInputValue({
-            latex: "(6,7)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(8,9)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(6,7)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(8,9)",
-        );
-
-        // change position from anchor
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [4] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [3] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: lowerleft",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // make not draggable
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: false",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: false",
-        );
-
-        // cannot move maths by dragging
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(6,7)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(8,9)",
-        );
-
-        // change content of math
-        await updateMathInputValue({
-            latex: "\\frac{x^{2}}{3}+5",
-            componentName: "/content1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "e^{-x^{2}}-a",
-            componentName: "/content2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1"].stateValues.latex)).eq(
-            "\\frac{x^{2}}{3}+5",
-        );
-        expect(cleanLatex(stateVariables["/math2"].stateValues.latex)).eq(
-            "e^{-x^{2}}-a",
-        );
-
-        // make draggable again
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(-10,-9)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(-8,-7)",
-        );
-
-        // fix location
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: true",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: true",
-        );
-
-        // can change coordinates entering coordinates only for math 1
-        await updateMathInputValue({
-            latex: "(3,4)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(1,2)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(1,2)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(-8,-7)",
-        );
-
-        // cannot move maths by dragging
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math1",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/math2",
-            args: { x: 7, y: 8 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(1,2)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(-8,-7)",
-        );
-
-        // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [8] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [7] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: top",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // make completely fixed
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: true");
-        expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: true");
-
-        // can change coordinates entering coordinates only for math 1
-        await updateMathInputValue({
-            latex: "(7,8)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(5,6)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1anchor"].stateValues.latex)).eq(
-            "(5,6)",
-        );
-        expect(cleanLatex(stateVariables["/math2anchor"].stateValues.latex)).eq(
-            "(-8,-7)",
-        );
-
-        // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [5] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [6] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: right",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change content only for math 1
-        await updateMathInputValue({
-            latex: "e^{-x^{2}}-a+y",
-            componentName: "/content2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "\\frac{x^{2}}{3}+5+z",
-            componentName: "/content1",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(cleanLatex(stateVariables["/math1"].stateValues.latex)).eq(
-            "\\frac{x^{2}}{3}+5+z",
-        );
-        expect(cleanLatex(stateVariables["/math2"].stateValues.latex)).eq(
-            "e^{-x^{2}}-a",
-        );
+        await test_in_graph(doenetMLsnippet, moveMath);
     });
 
     it("math in graph, handle bad anchor coordinates", async () => {
@@ -8243,7 +7718,7 @@ describe("Math tag tests", async () => {
             
         
             <p name="pAnchor1">Anchor 1 coordinates:  <point copySource="math1.anchor" name="math1anchor" /></p>
-            <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathinput name="anchorCoords1" prefill="x" /></p>
+            <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathInput name="anchorCoords1" prefill="x" /></p>
             
         
             `,
@@ -8258,7 +7733,7 @@ describe("Math tag tests", async () => {
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -8271,7 +7746,7 @@ describe("Math tag tests", async () => {
         // give bad anchor coords again
         await updateMathInputValue({
             latex: "q",
-            componentName: "/anchorCoords1",
+            name: "/anchorCoords1",
             core,
         });
 
@@ -8327,7 +7802,7 @@ describe("Math tag tests", async () => {
             "none",
         );
 
-        await updateMathInputValue({ latex: "2", componentName: "/sn", core });
+        await updateMathInputValue({ latex: "2", name: "/sn", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
@@ -8348,7 +7823,7 @@ describe("Math tag tests", async () => {
         expect(stateVariables["/tc_fixed_style"].stateValues.text).eq("green");
         expect(stateVariables["/bc_fixed_style"].stateValues.text).eq("none");
 
-        await updateMathInputValue({ latex: "3", componentName: "/sn", core });
+        await updateMathInputValue({ latex: "3", name: "/sn", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
@@ -8491,18 +7966,8 @@ describe("Math tag tests", async () => {
         );
 
         // move first maths
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/m1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/m2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
+        await moveMath({ name: "/m1", x: -2, y: 3, core });
+        await moveMath({ name: "/m2", x: 4, y: -5, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/m1coords"].stateValues.latex)).eq(
@@ -8525,18 +7990,8 @@ describe("Math tag tests", async () => {
         );
 
         // move second maths
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/m1a",
-            args: { x: 7, y: 1 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/m2a",
-            args: { x: -8, y: 2 },
-            event: null,
-        });
+        await moveMath({ name: "/m1a", x: 7, y: 1, core });
+        await moveMath({ name: "/m2a", x: -8, y: 2, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/m1coords"].stateValues.latex)).eq(
@@ -8559,18 +8014,8 @@ describe("Math tag tests", async () => {
         );
 
         // move third maths
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/m1b",
-            args: { x: -6, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveMath",
-            componentName: "/m2b",
-            args: { x: -5, y: -4 },
-            event: null,
-        });
+        await moveMath({ name: "/m1b", x: -6, y: 3, core });
+        await moveMath({ name: "/m2b", x: -5, y: -4, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/m1coords"].stateValues.latex)).eq(
@@ -8953,10 +8398,10 @@ describe("Math tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(6,8)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
-        await updateMathInputValue({ latex: "8", componentName: "/mi2", core });
+        await updateMathInputValue({ latex: "8", name: "/mi2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/n"].stateValues.value).eq(3);

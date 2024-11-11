@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
+    movePoint,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Map tag tests", async () => {
     it("single map of maths", async () => {
@@ -555,12 +558,7 @@ describe("Map tag tests", async () => {
         expect(stateVariables["/p3"].stateValues.text).eq(pText);
 
         // Double the length then test again
-        await core.requestAction({
-            componentName: "/uv",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/uv", core });
 
         pText = textForLength(2);
         stateVariables = await returnAllStateVariables(core);
@@ -569,12 +567,7 @@ describe("Map tag tests", async () => {
         expect(stateVariables["/p3"].stateValues.text).eq(pText);
 
         // Double the length again then test one more time
-        await core.requestAction({
-            componentName: "/uv",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/uv", core });
 
         pText = textForLength(4);
         stateVariables = await returnAllStateVariables(core);
@@ -814,7 +807,7 @@ describe("Map tag tests", async () => {
         count = 1;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -823,7 +816,7 @@ describe("Map tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -832,7 +825,7 @@ describe("Map tag tests", async () => {
         count = 2;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -842,12 +835,12 @@ describe("Map tag tests", async () => {
         to = 5;
         await updateMathInputValue({
             latex: from.toString(),
-            componentName: "/sequenceFrom",
+            name: "/sequenceFrom",
             core,
         });
         await updateMathInputValue({
             latex: to.toString(),
-            componentName: "/sequenceTo",
+            name: "/sequenceTo",
             core,
         });
         await check_items(from, to, count);
@@ -856,7 +849,7 @@ describe("Map tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -865,7 +858,7 @@ describe("Map tag tests", async () => {
         count = 3;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -974,12 +967,7 @@ describe("Map tag tests", async () => {
 
         let P1s = points_from_pars(q, r).P1s;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/a/P1",
-            args: { x: P1s[0][0], y: P1s[0][1] },
-            event: null,
-        });
+        await movePoint({ name: "/a/P1", x: P1s[0][0], y: P1s[0][1], core });
         await check_items(q, r);
 
         // move point /a/P2
@@ -987,12 +975,7 @@ describe("Map tag tests", async () => {
         q = 1.8;
         let P2s = points_from_pars(q, r).P2s;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/a/P2",
-            args: { x: P2s[0][0], y: P2s[0][1] },
-            event: null,
-        });
+        await movePoint({ name: "/a/P2", x: P2s[0][0], y: P2s[0][1], core });
         await check_items(q, r);
 
         // move point /b/P1
@@ -1000,12 +983,7 @@ describe("Map tag tests", async () => {
         q = 0.3;
         P1s = points_from_pars(q, r).P1s;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/b/P1",
-            args: { x: P1s[1][0], y: P1s[1][1] },
-            event: null,
-        });
+        await movePoint({ name: "/b/P1", x: P1s[1][0], y: P1s[1][1], core });
         await check_items(q, r);
 
         // move point /b/P2
@@ -1013,12 +991,7 @@ describe("Map tag tests", async () => {
         q = 0.35;
         P2s = points_from_pars(q, r).P2s;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/b/P2",
-            args: { x: P2s[1][0], y: P2s[1][1] },
-            event: null,
-        });
+        await movePoint({ name: "/b/P2", x: P2s[1][0], y: P2s[1][1], core });
         await check_items(q, r);
 
         // move point /c/P1
@@ -1026,12 +999,7 @@ describe("Map tag tests", async () => {
         q = -0.46;
         P1s = points_from_pars(q, r).P1s;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/c/P1",
-            args: { x: P1s[2][0], y: P1s[2][1] },
-            event: null,
-        });
+        await movePoint({ name: "/c/P1", x: P1s[2][0], y: P1s[2][1], core });
         await check_items(q, r);
 
         // move point /c/P2
@@ -1039,12 +1007,7 @@ describe("Map tag tests", async () => {
         q = -0.73;
         P2s = points_from_pars(q, r).P2s;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/c/P2",
-            args: { x: P2s[2][0], y: P2s[2][1] },
-            event: null,
-        });
+        await movePoint({ name: "/c/P2", x: P2s[2][0], y: P2s[2][1], core });
         await check_items(q, r);
     });
 
@@ -1149,7 +1112,7 @@ describe("Map tag tests", async () => {
         count = 1;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -1158,7 +1121,7 @@ describe("Map tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -1167,7 +1130,7 @@ describe("Map tag tests", async () => {
         count = 2;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -1177,12 +1140,12 @@ describe("Map tag tests", async () => {
         to = 5;
         await updateMathInputValue({
             latex: from.toString(),
-            componentName: "/sequenceFrom",
+            name: "/sequenceFrom",
             core,
         });
         await updateMathInputValue({
             latex: to.toString(),
-            componentName: "/sequenceTo",
+            name: "/sequenceTo",
             core,
         });
         await check_items(from, to, count);
@@ -1191,7 +1154,7 @@ describe("Map tag tests", async () => {
         count = 0;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -1200,7 +1163,7 @@ describe("Map tag tests", async () => {
         count = 3;
         await updateMathInputValue({
             latex: count.toString(),
-            componentName: "/sequenceCount",
+            name: "/sequenceCount",
             core,
         });
         await check_items(from, to, count);
@@ -1273,7 +1236,7 @@ describe("Map tag tests", async () => {
         numPoints = 10;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1281,7 +1244,7 @@ describe("Map tag tests", async () => {
         step = 1;
         await updateMathInputValue({
             latex: step.toString(),
-            componentName: "/step",
+            name: "/step",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1289,7 +1252,7 @@ describe("Map tag tests", async () => {
         numPoints = 20;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1297,7 +1260,7 @@ describe("Map tag tests", async () => {
         step = 0.5;
         await updateMathInputValue({
             latex: step.toString(),
-            componentName: "/step",
+            name: "/step",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1305,7 +1268,7 @@ describe("Map tag tests", async () => {
         numPoints = 10;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1314,7 +1277,7 @@ describe("Map tag tests", async () => {
         step = 0;
         await updateMathInputValue({
             latex: "",
-            componentName: "/step",
+            name: "/step",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1322,7 +1285,7 @@ describe("Map tag tests", async () => {
         numPoints = 5;
         await updateMathInputValue({
             latex: numPoints.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1330,7 +1293,7 @@ describe("Map tag tests", async () => {
         step = -3;
         await updateMathInputValue({
             latex: step.toString(),
-            componentName: "/step",
+            name: "/step",
             core,
         });
         await check_math_children(numPoints, step);
@@ -1413,7 +1376,7 @@ describe("Map tag tests", async () => {
         num = 2;
         await updateMathInputValue({
             latex: num.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_items(num);
@@ -1422,7 +1385,7 @@ describe("Map tag tests", async () => {
         num = 1;
         await updateMathInputValue({
             latex: num.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_items(num);
@@ -1431,7 +1394,7 @@ describe("Map tag tests", async () => {
         num = 3;
         await updateMathInputValue({
             latex: num.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_items(num);
@@ -1440,7 +1403,7 @@ describe("Map tag tests", async () => {
         num = 0;
         await updateMathInputValue({
             latex: num.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_items(num);
@@ -1449,7 +1412,7 @@ describe("Map tag tests", async () => {
         num = 1;
         await updateMathInputValue({
             latex: num.toString(),
-            componentName: "/number",
+            name: "/number",
             core,
         });
         await check_items(num);
@@ -1488,22 +1451,22 @@ describe("Map tag tests", async () => {
         async function set_items(a: string, b: string, c: string, d: string) {
             await updateMathInputValue({
                 latex: a,
-                componentName: "/a/mi",
+                name: "/a/mi",
                 core,
             });
             await updateMathInputValue({
                 latex: b,
-                componentName: "/b/mi",
+                name: "/b/mi",
                 core,
             });
             await updateMathInputValue({
                 latex: c,
-                componentName: "/c/mi",
+                name: "/c/mi",
                 core,
             });
             await updateMathInputValue({
                 latex: d,
-                componentName: "/d/mi",
+                name: "/d/mi",
                 core,
             });
         }
@@ -1573,12 +1536,12 @@ describe("Map tag tests", async () => {
         async function set_ns(n1: number, n2: number) {
             await updateMathInputValue({
                 latex: n1.toString(),
-                componentName: "/n1",
+                name: "/n1",
                 core,
             });
             await updateMathInputValue({
                 latex: n2.toString(),
-                componentName: "/n2",
+                name: "/n2",
                 core,
             });
         }
@@ -1586,12 +1549,12 @@ describe("Map tag tests", async () => {
         async function set_hs(h1: boolean, h2: boolean) {
             await updateBooleanInputValue({
                 boolean: h1,
-                componentName: "/h1",
+                name: "/h1",
                 core,
             });
             await updateBooleanInputValue({
                 boolean: h2,
-                componentName: "/h2",
+                name: "/h2",
                 core,
             });
         }

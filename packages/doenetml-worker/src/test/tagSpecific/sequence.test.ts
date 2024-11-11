@@ -9,6 +9,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Sequence tag tests", async () => {
     it("number sequence, no parameters", async () => {
@@ -548,7 +549,7 @@ describe("Sequence tag tests", async () => {
         // also exclude 7
         await updateMathInputValue({
             latex: "7",
-            componentName: "/exclude2",
+            name: "/exclude2",
             core,
         });
 
@@ -569,7 +570,7 @@ describe("Sequence tag tests", async () => {
         // also exclude 6 twice
         await updateMathInputValue({
             latex: "6",
-            componentName: "/exclude2",
+            name: "/exclude2",
             core,
         });
 
@@ -590,7 +591,7 @@ describe("Sequence tag tests", async () => {
         // also exclude 12
         await updateMathInputValue({
             latex: "12",
-            componentName: "/exclude2",
+            name: "/exclude2",
             core,
         });
 
@@ -611,7 +612,7 @@ describe("Sequence tag tests", async () => {
         // also exclude 3
         await updateMathInputValue({
             latex: "3",
-            componentName: "/exclude2",
+            name: "/exclude2",
             core,
         });
 
@@ -632,7 +633,7 @@ describe("Sequence tag tests", async () => {
         // don't exclude anything else
         await updateMathInputValue({
             latex: "",
-            componentName: "/exclude2",
+            name: "/exclude2",
             core,
         });
 
@@ -697,7 +698,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude i
-        await updateTextInputValue({ text: "i", componentName: "/e", core });
+        await updateTextInputValue({ text: "i", name: "/e", core });
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
             (x) => stateVariables[x.componentName],
@@ -715,7 +716,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude f twice
-        await updateTextInputValue({ text: "f", componentName: "/e", core });
+        await updateTextInputValue({ text: "f", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -734,7 +735,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude l
-        await updateTextInputValue({ text: "l", componentName: "/e", core });
+        await updateTextInputValue({ text: "l", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -753,7 +754,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude C
-        await updateTextInputValue({ text: "C", componentName: "/e", core });
+        await updateTextInputValue({ text: "C", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -772,7 +773,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // don't exclude anything else
-        await updateTextInputValue({ text: "", componentName: "/e", core });
+        await updateTextInputValue({ text: "", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -818,7 +819,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 9x
-        await updateMathInputValue({ latex: "9x", componentName: "/e", core });
+        await updateMathInputValue({ latex: "9x", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -839,7 +840,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 6x twice
-        await updateMathInputValue({ latex: "6x", componentName: "/e", core });
+        await updateMathInputValue({ latex: "6x", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -860,7 +861,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 12x
-        await updateMathInputValue({ latex: "12x", componentName: "/e", core });
+        await updateMathInputValue({ latex: "12x", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -881,7 +882,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // also exclude 3x
-        await updateMathInputValue({ latex: "3x", componentName: "/e", core });
+        await updateMathInputValue({ latex: "3x", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -902,7 +903,7 @@ describe("Sequence tag tests", async () => {
         }
 
         // don't exclude anything else
-        await updateMathInputValue({ latex: "", componentName: "/e", core });
+        await updateMathInputValue({ latex: "", name: "/e", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -1009,7 +1010,7 @@ describe("Sequence tag tests", async () => {
         );
         expect(children.length).eq(0);
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
 
         stateVariables = await returnAllStateVariables(core);
         children = stateVariables["/p"].activeChildren.map(
@@ -1068,8 +1069,8 @@ describe("Sequence tag tests", async () => {
         );
         expect(stateVariables["/s2"].stateValues.text).eq("sequence 2: ");
 
-        await updateMathInputValue({ latex: "6", componentName: "/n1", core });
-        await updateMathInputValue({ latex: "6", componentName: "/n2", core });
+        await updateMathInputValue({ latex: "6", name: "/n1", core });
+        await updateMathInputValue({ latex: "6", name: "/n2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/s1"].stateValues.text).eq(
             "sequence 1: 1, 2, 3, 4, 5, 6",
@@ -1078,12 +1079,12 @@ describe("Sequence tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1092,8 +1093,8 @@ describe("Sequence tag tests", async () => {
             "sequence 2: 1, 2, 3, 4, 5, 6",
         );
 
-        await updateMathInputValue({ latex: "8", componentName: "/n1", core });
-        await updateMathInputValue({ latex: "8", componentName: "/n2", core });
+        await updateMathInputValue({ latex: "8", name: "/n1", core });
+        await updateMathInputValue({ latex: "8", name: "/n2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/s1"].stateValues.text).eq("sequence 1: ");
         expect(stateVariables["/s2"].stateValues.text).eq(
@@ -1102,12 +1103,12 @@ describe("Sequence tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1116,8 +1117,8 @@ describe("Sequence tag tests", async () => {
         );
         expect(stateVariables["/s2"].stateValues.text).eq("sequence 2: ");
 
-        await updateMathInputValue({ latex: "3", componentName: "/n1", core });
-        await updateMathInputValue({ latex: "3", componentName: "/n2", core });
+        await updateMathInputValue({ latex: "3", name: "/n1", core });
+        await updateMathInputValue({ latex: "3", name: "/n2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/s1"].stateValues.text).eq(
             "sequence 1: 1, 2, 3",
@@ -1126,12 +1127,12 @@ describe("Sequence tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1140,8 +1141,8 @@ describe("Sequence tag tests", async () => {
             "sequence 2: 1, 2, 3",
         );
 
-        await updateMathInputValue({ latex: "4", componentName: "/n1", core });
-        await updateMathInputValue({ latex: "4", componentName: "/n2", core });
+        await updateMathInputValue({ latex: "4", name: "/n1", core });
+        await updateMathInputValue({ latex: "4", name: "/n2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/s1"].stateValues.text).eq("sequence 1: ");
         expect(stateVariables["/s2"].stateValues.text).eq(
@@ -1166,43 +1167,43 @@ describe("Sequence tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
 
-        await updateMathInputValue({ latex: "21", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "21", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
 
-        await updateMathInputValue({ latex: "2", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "2", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
 
         await updateMathInputValue({
             latex: "4",
-            componentName: "/from",
+            name: "/from",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
 
-        await updateMathInputValue({ latex: "8", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "8", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
 
-        await updateMathInputValue({ latex: "2", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "2", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
 
         await updateMathInputValue({
             latex: "6",
-            componentName: "/step",
+            name: "/step",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4");
 
-        await updateMathInputValue({ latex: "9", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "9", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4");
 
-        await updateMathInputValue({ latex: "41", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "41", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4");
     });
@@ -1225,79 +1226,79 @@ describe("Sequence tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
 
-        await updateMathInputValue({ latex: "21", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "21", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("21, 3, 5, 7");
 
-        await updateMathInputValue({ latex: "0", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "0", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("21, 0, 5, 7");
 
         await updateMathInputValue({
             latex: "4",
-            componentName: "/from",
+            name: "/from",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
 
-        await updateMathInputValue({ latex: "8", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "8", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("8, 6");
 
-        await updateMathInputValue({ latex: "2", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "2", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("8, 2");
 
         await updateMathInputValue({
             latex: "6",
-            componentName: "/step",
+            name: "/step",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4");
 
-        await updateMathInputValue({ latex: "9", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "9", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("9");
 
-        await updateMathInputValue({ latex: "41", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "41", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("9");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/fx",
+            name: "/fx",
             core,
         });
 
         await updateMathInputValue({
             latex: "1",
-            componentName: "/step",
+            name: "/step",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 5, 6, 7");
 
-        await updateMathInputValue({ latex: "9", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "9", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 5, 6, 7");
 
-        await updateMathInputValue({ latex: "41", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "41", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 5, 6, 7");
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/fx",
+            name: "/fx",
             core,
         });
 
-        await updateMathInputValue({ latex: "9", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "9", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("9, 5, 6, 7");
 
-        await updateMathInputValue({ latex: "41", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "41", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("9, 41, 6, 7");
     });
@@ -1326,7 +1327,7 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(1);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(3);
 
-        await updateMathInputValue({ latex: "21", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "21", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(21);
@@ -1334,7 +1335,7 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(21);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(3);
 
-        await updateMathInputValue({ latex: "0", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "0", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("1, 3, 5, 7");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(21);
@@ -1344,7 +1345,7 @@ describe("Sequence tag tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentName: "/from",
+            name: "/from",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1354,7 +1355,7 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(21);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
 
-        await updateMathInputValue({ latex: "8", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "8", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4, 6");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(8);
@@ -1364,7 +1365,7 @@ describe("Sequence tag tests", async () => {
 
         await updateMathInputValue({
             latex: "6",
-            componentName: "/step",
+            name: "/step",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1374,7 +1375,7 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(8);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
 
-        await updateMathInputValue({ latex: "9", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "9", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
@@ -1382,7 +1383,7 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(0);
 
-        await updateMathInputValue({ latex: "2", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "2", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("4");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
@@ -1392,7 +1393,7 @@ describe("Sequence tag tests", async () => {
 
         await updateMathInputValue({
             latex: "8",
-            componentName: "/from",
+            name: "/from",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1402,7 +1403,7 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(2);
 
-        await updateMathInputValue({ latex: "3", componentName: "/a2", core });
+        await updateMathInputValue({ latex: "3", name: "/a2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(3);
@@ -1412,12 +1413,12 @@ describe("Sequence tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/step",
+            name: "/step",
             core,
         });
         await updateMathInputValue({
             latex: "0",
-            componentName: "/from",
+            name: "/from",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1427,8 +1428,8 @@ describe("Sequence tag tests", async () => {
         expect(stateVariables["/a3"].stateValues.value.tree).eq(3);
         expect(stateVariables["/b3"].stateValues.value.tree).eq(2);
 
-        await updateMathInputValue({ latex: "8", componentName: "/a2", core });
-        await updateMathInputValue({ latex: "7", componentName: "/b2", core });
+        await updateMathInputValue({ latex: "8", name: "/a2", core });
+        await updateMathInputValue({ latex: "7", name: "/b2", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/theList"].stateValues.text).eq("0, 3, 6");
         expect(stateVariables["/a2"].stateValues.value.tree).eq(8);

@@ -4,9 +4,11 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Boolean Operator tag tests", async () => {
     it("not", async () => {
@@ -28,7 +30,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -50,14 +52,14 @@ describe("Boolean Operator tag tests", async () => {
         expect(stateVariables["/mv"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/op"].stateValues.value).eq(true);
 
-        await updateMathInputValue({ latex: "2", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "2", name: "/mi", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/mi"].stateValues.value.tree).eq(2);
         expect(stateVariables["/mv"].stateValues.value.tree).eq(2);
         expect(stateVariables["/op"].stateValues.value).eq(false);
 
-        await updateMathInputValue({ latex: "1", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "1", name: "/mi", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/mi"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mv"].stateValues.value.tree).eq(1);
@@ -65,7 +67,7 @@ describe("Boolean Operator tag tests", async () => {
     });
 
     async function test_three_operators(
-        core: any,
+        core: Core,
         operator: (args: boolean[]) => boolean,
     ) {
         async function check_items(booleans: boolean[]) {
@@ -94,7 +96,7 @@ describe("Boolean Operator tag tests", async () => {
         booleans[0] = true;
         await updateBooleanInputValue({
             boolean: booleans[0],
-            componentName: "/bi1",
+            name: "/bi1",
             core,
         });
         await check_items(booleans);
@@ -102,7 +104,7 @@ describe("Boolean Operator tag tests", async () => {
         booleans[1] = true;
         await updateBooleanInputValue({
             boolean: booleans[1],
-            componentName: "/bi2",
+            name: "/bi2",
             core,
         });
         await check_items(booleans);
@@ -110,7 +112,7 @@ describe("Boolean Operator tag tests", async () => {
         booleans[2] = true;
         await updateBooleanInputValue({
             boolean: booleans[2],
-            componentName: "/bi3",
+            name: "/bi3",
             core,
         });
         await check_items(booleans);
@@ -254,7 +256,7 @@ describe("Boolean Operator tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);

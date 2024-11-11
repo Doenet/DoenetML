@@ -2,16 +2,24 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveCircle,
+    moveLine,
+    movePoint,
+    moveVector,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 function isUndefinedOrInactive(comp) {
     expect(
@@ -379,34 +387,19 @@ describe("Copy tag tests", async () => {
         // move point 1
         x = -3;
         y = 5;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/p1",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/p1", x, y, core });
         await check_items(x, y);
 
         // move point 2
         x = 6;
         y = -9;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/p2",
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: "/p2", x, y, core });
         await check_items(x, y);
 
         // move point 3
         x = -7;
         y = -2;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/p3",
-            args: { x: y, y: x },
-            event: null,
-        });
+        await movePoint({ name: "/p3", x: y, y: x, core });
         await check_items(x, y);
     }
 
@@ -501,14 +494,11 @@ describe("Copy tag tests", async () => {
         v_head = displacement.map((x, i) => x + v_tail[i]);
         d_head = displacement.map((x, i) => x + d_tail[i]);
 
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/vector1",
-            args: {
-                tailcoords: v_tail,
-                headcoords: v_head,
-            },
-            event: null,
+        await moveVector({
+            name: "/vector1",
+            tailcoords: v_tail,
+            headcoords: v_head,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -549,13 +539,11 @@ describe("Copy tag tests", async () => {
         v_head = displacement.map((x, i) => x + v_tail[i]);
         d_head = displacement.map((x, i) => x + d_tail[i]);
 
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/d1",
-            args: {
-                tailcoords: d_tail,
-                headcoords: d_head,
-            },
+        await moveVector({
+            name: "/d1",
+            tailcoords: d_tail,
+            headcoords: d_head,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -596,13 +584,11 @@ describe("Copy tag tests", async () => {
         v_head = displacement.map((x, i) => x + v_tail[i]);
         d_head = displacement.map((x, i) => x + d_tail[i]);
 
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/d2",
-            args: {
-                tailcoords: d_tail,
-                headcoords: d_head,
-            },
+        await moveVector({
+            name: "/d2",
+            tailcoords: d_tail,
+            headcoords: d_head,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -643,13 +629,11 @@ describe("Copy tag tests", async () => {
         v_head = displacement.map((x, i) => x + v_tail[i]);
         d_head = displacement.map((x, i) => x + d_tail[i]);
 
-        await core.requestAction({
-            actionName: "moveVector",
-            componentName: "/vector1",
-            args: {
-                tailcoords: v_tail,
-                headcoords: v_head,
-            },
+        await moveVector({
+            name: "/vector1",
+            tailcoords: v_tail,
+            headcoords: v_head,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -741,16 +725,16 @@ describe("Copy tag tests", async () => {
 
         await check_items("");
 
-        await updateMathInputValue({ latex: "2", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "2", name: "/mi", core });
         await check_items("a, b");
 
-        await updateMathInputValue({ latex: "5", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "5", name: "/mi", core });
         await check_items("a, b, c, d, e");
 
-        await updateMathInputValue({ latex: "1", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "1", name: "/mi", core });
         await check_items("a");
 
-        await updateMathInputValue({ latex: "6", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "6", name: "/mi", core });
         await check_items("a, b, c, d, e, f");
     }
 
@@ -846,9 +830,9 @@ describe("Copy tag tests", async () => {
         await check_items(5, 2, 3);
 
         // Enter new numbers
-        await updateMathInputValue({ latex: "9", componentName: "/a", core });
-        await updateMathInputValue({ latex: "6", componentName: "/b", core });
-        await updateMathInputValue({ latex: "7", componentName: "/c", core });
+        await updateMathInputValue({ latex: "9", name: "/a", core });
+        await updateMathInputValue({ latex: "6", name: "/b", core });
+        await updateMathInputValue({ latex: "7", name: "/c", core });
         await check_items(9, 6, 7);
     });
 
@@ -993,12 +977,12 @@ describe("Copy tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1008,12 +992,12 @@ describe("Copy tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/h1",
+            name: "/h1",
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/h2",
+            name: "/h2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1069,7 +1053,7 @@ describe("Copy tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b",
+            name: "/b",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1078,7 +1062,7 @@ describe("Copy tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/b",
+            name: "/b",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1087,7 +1071,7 @@ describe("Copy tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/b",
+            name: "/b",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1204,7 +1188,7 @@ describe("Copy tag tests", async () => {
         // simplify copies
         await updateTextInputValue({
             text: "full",
-            componentName: "/s2",
+            name: "/s2",
             core,
         });
         await check_maths(["*", 2, "x"], ["*", 2, "x"], ["*", 2, "x"]);
@@ -1212,18 +1196,13 @@ describe("Copy tag tests", async () => {
         // stop simplifying original
         await updateTextInputValue({
             text: "none",
-            componentName: "/s1",
+            name: "/s1",
             core,
         });
         await check_maths(["+", "x", "x"], ["*", 2, "x"], ["*", 2, "x"]);
 
         // double original
-        await core.requestAction({
-            componentName: "/doubleOriginal",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/doubleOriginal", core });
         await check_maths(
             ["*", 2, ["+", "x", "x"]],
             ["*", 2, "x"],
@@ -1231,12 +1210,7 @@ describe("Copy tag tests", async () => {
         );
 
         // double copy1
-        await core.requestAction({
-            componentName: "/doubleCopy1",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/doubleCopy1", core });
         await check_maths(
             ["*", 2, ["+", "x", "x"]],
             ["*", 4, "x"],
@@ -1244,18 +1218,13 @@ describe("Copy tag tests", async () => {
         );
 
         // double copy2
-        await core.requestAction({
-            componentName: "/doubleCopy2",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/doubleCopy2", core });
         await check_maths(["*", 2, 4, "x"], ["*", 4, "x"], ["*", 8, "x"]);
 
         // stop simplifying copies
         await updateTextInputValue({
             text: "none",
-            componentName: "/s2",
+            name: "/s2",
             core,
         });
         await check_maths(["*", 2, 4, "x"], ["*", 2, 2, "x"], ["*", 2, 4, "x"]);
@@ -1357,122 +1326,70 @@ describe("Copy tag tests", async () => {
 
         // move A
         A = [-9, -3];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: A[0], y: A[1] },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: A[0], y: A[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move B
         B = [-2, 6];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: B[0], y: B[1] },
-            event: null,
-        });
+        await movePoint({ name: "/B", x: B[0], y: B[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move l
         A = [-7, -6];
         B = [8, 0];
 
-        await core.requestAction({
-            actionName: "moveLine",
-            componentName: "/l",
-            args: {
-                point1coords: A,
-                point2coords: B,
-            },
-        });
+        await moveLine({ name: "/l", point1coords: A, point2coords: B, core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move A2
         A2 = [5, 4];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A2",
-            args: { x: A2[0], y: A2[1] },
-            event: null,
-        });
+        await movePoint({ name: "/A2", x: A2[0], y: A2[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move l2
         l2A = [-5, 9];
         l2B = [-4, -1];
-        await core.requestAction({
-            actionName: "moveLine",
-            componentName: "/l2",
-            args: {
-                point1coords: l2A,
-                point2coords: l2B,
-            },
+        await moveLine({
+            name: "/l2",
+            point1coords: l2A,
+            point2coords: l2B,
+            core,
         });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move A3
         A3 = [6, -3];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A3",
-            args: { x: A3[0], y: A3[1] },
-            event: null,
-        });
+        await movePoint({ name: "/A3", x: A3[0], y: A3[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move A4
         A4 = [-2, 7];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A4",
-            args: { x: A4[0], y: A4[1] },
-            event: null,
-        });
+        await movePoint({ name: "/A4", x: A4[0], y: A4[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move B4
         B4 = [-9, -8];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B4",
-            args: { x: B4[0], y: B4[1] },
-            event: null,
-        });
+        await movePoint({ name: "/B4", x: B4[0], y: B4[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move A5
         gA = [-10, -9];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/gnolink/A",
-            args: { x: gA[0], y: gA[1] },
-            event: null,
-        });
+        await movePoint({ name: "/gnolink/A", x: gA[0], y: gA[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move B5
         gB = [-8, -7];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/gnolink/B",
-            args: { x: gB[0], y: gB[1] },
-            event: null,
-        });
+        await movePoint({ name: "/gnolink/B", x: gB[0], y: gB[1], core });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
 
         // move l3
         gA = [6, 5];
         gB = [4, -3];
-        await core.requestAction({
-            actionName: "moveLine",
-            componentName: "/gnolink/l",
-            args: {
-                point1coords: gA,
-                point2coords: gB,
-            },
-            event: null,
+        await moveLine({
+            name: "/gnolink/l",
+            point1coords: gA,
+            point2coords: gB,
+            core,
         });
         await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
     }
@@ -1767,7 +1684,7 @@ describe("Copy tag tests", async () => {
         simplify1 = "none";
         await updateTextInputValue({
             text: simplify1,
-            componentName: "/sim",
+            name: "/sim",
             core,
         });
 
@@ -1777,7 +1694,7 @@ describe("Copy tag tests", async () => {
         simplify2 = "none";
         await updateTextInputValue({
             text: simplify1,
-            componentName: "/g2/sim",
+            name: "/g2/sim",
             core,
         });
         await check_items(simplify1, simplify2, simplify3);
@@ -1786,7 +1703,7 @@ describe("Copy tag tests", async () => {
         simplify3 = "none";
         await updateTextInputValue({
             text: simplify1,
-            componentName: "/g3/sim",
+            name: "/g3/sim",
             core,
         });
         await check_items(simplify1, simplify2, simplify3);
@@ -1868,7 +1785,7 @@ describe("Copy tag tests", async () => {
 
         await updateTextInputValue({
             text: "hi",
-            componentName: "/external",
+            name: "/external",
             core,
         });
 
@@ -1929,12 +1846,12 @@ describe("Copy tag tests", async () => {
 
         await updateTextInputValue({
             text: "one",
-            componentName: "/g/ti",
+            name: "/g/ti",
             core,
         });
         await updateTextInputValue({
             text: "two",
-            componentName: "/g2/ti",
+            name: "/g2/ti",
             core,
         });
 
@@ -2212,36 +2129,16 @@ describe("Copy tag tests", async () => {
 
         await check_items(2, 2, 2, 2);
 
-        await core.requestAction({
-            componentName: "/section1/addP",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/section1/addP", core });
         await check_items(3, 2, 2, 2);
 
-        await core.requestAction({
-            componentName: "/section7/removeP",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/section7/removeP", core });
         await check_items(2, 2, 2, 2);
 
-        await core.requestAction({
-            componentName: "/section4/addP",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/section4/addP", core });
         await check_items(2, 2, 2, 3);
 
-        await core.requestAction({
-            componentName: "/section4/removeP",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/section4/removeP", core });
         await check_items(2, 2, 2, 2);
     }
 
@@ -2423,59 +2320,29 @@ describe("Copy tag tests", async () => {
 
         await check_items();
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items([1, 2], [3, 4], [5, 6]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: 9, y: 0 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: 1, y: 8 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/C",
-            args: { x: 7, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: 9, y: 0, core });
+        await movePoint({ name: "/B", x: 1, y: 8, core });
+        await movePoint({ name: "/C", x: 7, y: 2, core });
 
         await check_items([9, 0], [1, 8], [7, 2]);
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
 
         await check_items([9, 0], [1, 8], [7, 2], [2, 3], [4, 5], [6, 7]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/D",
-            args: { x: 0, y: 10 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/E",
-            args: { x: 9, y: 1 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/F",
-            args: { x: 2, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/D", x: 0, y: 10, core });
+        await movePoint({ name: "/E", x: 9, y: 1, core });
+        await movePoint({ name: "/F", x: 2, y: 8, core });
 
         await check_items([9, 0], [1, 8], [7, 2], [0, 10], [9, 1], [2, 8]);
 
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_items();
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
 
         await check_items([9, 0], [1, 8], [7, 2], [0, 10], [9, 1], [2, 8]);
     });
@@ -2498,14 +2365,14 @@ describe("Copy tag tests", async () => {
         expect(stateVariables["/xval"].stateValues.value.tree).eq("x");
         expect(stateVariables["/xvalnl"].stateValues.value.tree).eq("x");
 
-        await updateMathInputValue({ latex: "y", componentName: "/mi1", core });
+        await updateMathInputValue({ latex: "y", name: "/mi1", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.value.tree).eq("y");
         expect(stateVariables["/xval"].stateValues.value.tree).eq("y");
         expect(stateVariables["/xvalnl"].stateValues.value.tree).eq("x");
 
-        await updateMathInputValue({ latex: "z", componentName: "/mi2", core });
+        await updateMathInputValue({ latex: "z", name: "/mi2", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.value.tree).eq("y");
@@ -2570,42 +2437,22 @@ describe("Copy tag tests", async () => {
 
         // Move v1
         v1 = [2, 3];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/v1",
-            args: { x: v1[0], y: v1[1] },
-            event: null,
-        });
+        await movePoint({ name: "/v1", x: v1[0], y: v1[1], core });
         await check_items({ v1, v1nl, v2nl, v3nl });
 
         // Move v1nl
         v1nl = [3, 4];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/v1nl",
-            args: { x: v1nl[0], y: v1nl[1] },
-            event: null,
-        });
+        await movePoint({ name: "/v1nl", x: v1nl[0], y: v1nl[1], core });
         await check_items({ v1, v1nl, v2nl, v3nl });
 
         // Move v2nl
         v2nl = [4, 5];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/v2nl",
-            args: { x: v2nl[0], y: v2nl[1] },
-            event: null,
-        });
+        await movePoint({ name: "/v2nl", x: v2nl[0], y: v2nl[1], core });
         await check_items({ v1, v1nl, v2nl, v3nl });
 
         // Move v3nl
         v3nl = [5, 6];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/v3nl",
-            args: { x: v3nl[0], y: v3nl[1] },
-            event: null,
-        });
+        await movePoint({ name: "/v3nl", x: v3nl[0], y: v3nl[1], core });
         await check_items({ v1, v1nl, v2nl, v3nl });
     });
 
@@ -2646,50 +2493,40 @@ describe("Copy tag tests", async () => {
 
         // Add point
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
 
         await check_items(`(${A1.join(",")})`, "");
 
         // Move point
         A1 = [-3, 7];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/t1/A",
-            args: { x: A1[0], y: A1[1] },
-            event: null,
-        });
+        await movePoint({ name: "/t1/A", x: A1[0], y: A1[1], core });
 
         await check_items(`(${A1.join(",")})`, "");
 
         // Remove point
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_items("", "");
 
         // Remember coordinates when restore point since copy was maintained
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
 
         await check_items(`(${A1.join(",")})`, "");
 
         // Add second point
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items(`(${A1.join(",")})`, `(${A2.join(",")})`);
 
         // Move second point
         A2 = [5, -4];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/t2/A",
-            args: { x: A2[0], y: A2[1] },
-            event: null,
-        });
+        await movePoint({ name: "/t2/A", x: A2[0], y: A2[1], core });
         await check_items(`(${A1.join(",")})`, `(${A2.join(",")})`);
 
         // Remove both points
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
         await check_items("", "");
 
         // Remember coordinates of both points
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items(`(${A1.join(",")})`, `(${A2.join(",")})`);
     });
 
@@ -3105,19 +2942,19 @@ describe("Copy tag tests", async () => {
         await test_group("/thegrp", 1, 2, 3);
 
         // Change index for thegrp
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
 
         await test_group("/thegrp", 4, 5, 6);
 
         // Change to invalid index for thegrp
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
 
         let stateVariable = await returnAllStateVariables(core);
 
         expect(stateVariable["/thegrp"]).eq(undefined);
 
         // Change back to index 1 for thegrp
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
 
         await test_group("/thegrp", 1, 2, 3);
     });
@@ -3229,7 +3066,10 @@ describe("Copy tag tests", async () => {
         );
     });
 
-    async function test_copy_component_index(core: any, force_values: boolean) {
+    async function test_copy_component_index(
+        core: Core,
+        force_values: boolean,
+    ) {
         async function check_items({
             x1,
             y1,
@@ -3288,37 +3128,27 @@ describe("Copy tag tests", async () => {
 
         // restrict collection to first component
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
 
         await check_items({ x1, y1, x2, y2, comp: 1 });
 
         // move copied point
         x1 = 9;
         y1 = -5;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A2",
-            args: { x: x1, y: y1 },
-            event: null,
-        });
+        await movePoint({ name: "/A2", x: x1, y: y1, core });
 
         await check_items({ x1, y1, x2, y2, comp: 1 });
 
         // restrict collection to second component
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
 
         await check_items({ x1, y1, x2, y2, comp: 2 });
 
         // move double copied point
         x2 = 0;
         y2 = 8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g3/A2",
-            args: { x: x2, y: y2 },
-            event: null,
-        });
+        await movePoint({ name: "/g3/A2", x: x2, y: y2, core });
 
         await check_items({ x1, y1, x2, y2, comp: 2 });
     }
@@ -3384,7 +3214,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_prop_component_index(
-        core: any,
+        core: Core,
         force_values: boolean,
     ) {
         async function check_items({
@@ -3458,7 +3288,7 @@ describe("Copy tag tests", async () => {
         propIndex = 1;
         await updateMathInputValue({
             latex: "1",
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -3467,12 +3297,7 @@ describe("Copy tag tests", async () => {
         // move point 1
         x1 = 9;
         y1 = -5;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: x1, y: y1 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: x1, y: y1, core });
 
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
 
@@ -3480,7 +3305,7 @@ describe("Copy tag tests", async () => {
         componentIndex = 2;
         await updateMathInputValue({
             latex: "2",
-            componentName: "/m",
+            name: "/m",
             core,
         });
 
@@ -3489,12 +3314,7 @@ describe("Copy tag tests", async () => {
         // move point2
         x2 = 0;
         y2 = 8;
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: x2, y: y2 },
-            event: null,
-        });
+        await movePoint({ name: "/B", x: x2, y: y2, core });
 
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
 
@@ -3502,7 +3322,7 @@ describe("Copy tag tests", async () => {
         propIndex = 2;
         await updateMathInputValue({
             latex: "2",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
@@ -3511,7 +3331,7 @@ describe("Copy tag tests", async () => {
         componentIndex = 1;
         await updateMathInputValue({
             latex: "1",
-            componentName: "/m",
+            name: "/m",
             core,
         });
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
@@ -3520,7 +3340,7 @@ describe("Copy tag tests", async () => {
         propIndex = 3;
         await updateMathInputValue({
             latex: "3",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
@@ -3529,7 +3349,7 @@ describe("Copy tag tests", async () => {
         propIndex = 1;
         await updateMathInputValue({
             latex: "1",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
@@ -3538,7 +3358,7 @@ describe("Copy tag tests", async () => {
         componentIndex = 3;
         await updateMathInputValue({
             latex: "3",
-            componentName: "/m",
+            name: "/m",
             core,
         });
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
@@ -3547,7 +3367,7 @@ describe("Copy tag tests", async () => {
         componentIndex = 2;
         await updateMathInputValue({
             latex: "2",
-            componentName: "/m",
+            name: "/m",
             core,
         });
 
@@ -3555,7 +3375,7 @@ describe("Copy tag tests", async () => {
         propIndex = undefined;
         await updateMathInputValue({
             latex: "",
-            componentName: "/n",
+            name: "/n",
             core,
         });
         await check_items({ x1, y1, x2, y2, propIndex, componentIndex });
@@ -3789,12 +3609,7 @@ describe("Copy tag tests", async () => {
 
         P1 = [4, 5];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: P1[0], y: P1[1] },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: P1[0], y: P1[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3886,12 +3701,7 @@ describe("Copy tag tests", async () => {
 
         // move P2 to (7,0)
         P2 = [7, 0];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/P",
-            args: { x: P2[0], y: P2[1] },
-            event: null,
-        });
+        await movePoint({ name: "/g2/P", x: P2[0], y: P2[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3984,12 +3794,7 @@ describe("Copy tag tests", async () => {
         // move P1 via Pa to (2,9)
         P1 = [2, 0];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/Pa",
-            args: { x: P1[0], y: P1[1] },
-            event: null,
-        });
+        await movePoint({ name: "/Pa", x: P1[0], y: P1[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4081,12 +3886,7 @@ describe("Copy tag tests", async () => {
 
         // move P2 via graph 4's Pa to (8, 6)
         P2 = [8, 6];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g4/Pa",
-            args: { x: P2[0], y: P2[1] },
-            event: null,
-        });
+        await movePoint({ name: "/g4/Pa", x: P2[0], y: P2[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4326,12 +4126,7 @@ describe("Copy tag tests", async () => {
 
         P1 = [4, 5];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: P1[0], y: P1[1] },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: P1[0], y: P1[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4424,12 +4219,7 @@ describe("Copy tag tests", async () => {
         // move P2 to (7,0)
 
         P2 = [7, 0];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/P",
-            args: { x: P2[0], y: P2[1] },
-            event: null,
-        });
+        await movePoint({ name: "/g2/P", x: P2[0], y: P2[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4523,12 +4313,7 @@ describe("Copy tag tests", async () => {
 
         P1 = [2, 0];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/Pa",
-            args: { x: P1[0], y: P1[1] },
-            event: null,
-        });
+        await movePoint({ name: "/Pa", x: P1[0], y: P1[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4621,12 +4406,7 @@ describe("Copy tag tests", async () => {
         // move P2 via graph 4's Pa to (8, 6)
 
         P2 = [8, 6];
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g4/Pa",
-            args: { x: P2[0], y: P2[1] },
-            event: null,
-        });
+        await movePoint({ name: "/g4/Pa", x: P2[0], y: P2[1], core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -4758,15 +4538,10 @@ describe("Copy tag tests", async () => {
         // answer outside answer
         await updateMathInputValue({
             latex: "x",
-            componentName: mathinputoutsideName,
+            name: mathinputoutsideName,
             core,
         });
-        await core.requestAction({
-            componentName: "/answer1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/answer1", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
@@ -4785,15 +4560,10 @@ describe("Copy tag tests", async () => {
         // correctly answer first problem
         await updateMathInputValue({
             latex: "y",
-            componentName: mathinputp1Name,
+            name: mathinputp1Name,
             core,
         });
-        await core.requestAction({
-            componentName: "/answer2",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/answer2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
@@ -4842,15 +4612,10 @@ describe("Copy tag tests", async () => {
         // correctly answer second problem
         await updateMathInputValue({
             latex: "z",
-            componentName: mathinputp2Name,
+            name: mathinputp2Name,
             core,
         });
-        await core.requestAction({
-            componentName: "/p2/answer1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/p2/answer1", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
@@ -4901,15 +4666,10 @@ describe("Copy tag tests", async () => {
         // incorrectly answer third problem
         await updateMathInputValue({
             latex: "a",
-            componentName: mathinputp3Name,
+            name: mathinputp3Name,
             core,
         });
-        await core.requestAction({
-            componentName: "/p3/answer2",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/p3/answer2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
@@ -4960,15 +4720,10 @@ describe("Copy tag tests", async () => {
         // incorrectly answer fourth problem
         await updateMathInputValue({
             latex: "b",
-            componentName: mathinputp4Name,
+            name: mathinputp4Name,
             core,
         });
-        await core.requestAction({
-            componentName: "/p4/answer1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/p4/answer1", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
@@ -5020,7 +4775,7 @@ describe("Copy tag tests", async () => {
 
         await updateMathInputValue({
             latex: "q",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5167,7 +4922,7 @@ describe("Copy tag tests", async () => {
         // type x in first mathinput
         await updateMathInputValue({
             latex: "x",
-            componentName: "/p1/x",
+            name: "/p1/x",
             core,
         });
 
@@ -5176,7 +4931,7 @@ describe("Copy tag tests", async () => {
         // type y in second mathinput
         await updateMathInputValue({
             latex: "y",
-            componentName: "/p2b/x",
+            name: "/p2b/x",
             core,
         });
 
@@ -5185,7 +4940,7 @@ describe("Copy tag tests", async () => {
         // increase n
         await updateMathInputValue({
             latex: "3",
-            componentName: "/n",
+            name: "/n",
             core,
         });
 
@@ -5194,7 +4949,7 @@ describe("Copy tag tests", async () => {
         // type z in third mathinput
         await updateMathInputValue({
             latex: "z",
-            componentName: "/p3a/x",
+            name: "/p3a/x",
             core,
         });
 
@@ -5327,7 +5082,7 @@ describe("Copy tag tests", async () => {
         ]);
 
         // enter a
-        await updateMathInputValue({ latex: "a", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "a", name: "/mi", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/m1"].stateValues.value.tree).eq("a");
@@ -5382,18 +5137,8 @@ describe("Copy tag tests", async () => {
 
         // move points
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 3, y: 5 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/P",
-            args: { x: 7, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 3, y: 5, core });
+        await movePoint({ name: "/g2/P", x: 7, y: 6, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -5611,62 +5356,14 @@ describe("Copy tag tests", async () => {
 
         // move points
 
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 3, y: 5 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "moveVector",
-            componentName: "/v1",
-            args: {
-                headcoords: [8, 7],
-            },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: 6, y: 0 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "moveVector",
-            componentName: "/g2a/v2",
-            args: {
-                headcoords: [9, 1],
-            },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g3/P3",
-            args: { x: 5, y: 8 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "moveVector",
-            componentName: "/g3a/v3",
-            args: {
-                headcoords: [8, 6],
-            },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g4/P4",
-            args: { x: 0, y: 3 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "moveVector",
-            componentName: "/v4",
-            args: {
-                headcoords: [7, 2],
-            },
-        });
+        await movePoint({ name: "/P1", x: 3, y: 5, core });
+        await moveVector({ name: "/v1", headcoords: [8, 7], core });
+        await movePoint({ name: "/P2", x: 6, y: 0, core });
+        await moveVector({ name: "/g2a/v2", headcoords: [9, 1], core });
+        await movePoint({ name: "/g3/P3", x: 5, y: 8, core });
+        await moveVector({ name: "/g3a/v3", headcoords: [8, 6], core });
+        await movePoint({ name: "/g4/P4", x: 0, y: 3, core });
+        await moveVector({ name: "/v4", headcoords: [7, 2], core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -5770,30 +5467,10 @@ describe("Copy tag tests", async () => {
 
         // move shadowed points
 
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: P1aName,
-            args: { x: 2, y: 1 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g2a/P2",
-            args: { x: 5, y: 4 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g3a/P3",
-            args: { x: 9, y: 7 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g4a/P4",
-            args: { x: 7, y: 6 },
-        });
+        await movePoint({ name: P1aName, x: 2, y: 1, core });
+        await movePoint({ name: "/g2a/P2", x: 5, y: 4, core });
+        await movePoint({ name: "/g3a/P3", x: 9, y: 7, core });
+        await movePoint({ name: "/g4a/P4", x: 7, y: 6, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -6539,30 +6216,17 @@ describe("Copy tag tests", async () => {
         // move objects
 
         P = [3, 5];
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g/P",
-            args: { x: P[0], y: P[1] },
-        });
+        await movePoint({ name: "/g/P", x: P[0], y: P[1], core });
         v = [8, 7];
         vH = [5, 1];
-        await core.requestAction({
-            event: null,
-            actionName: "moveVector",
-            componentName: "/v",
-            args: {
-                headcoords: vH,
-                tailcoords: [vH[0] - v[0], vH[1] - v[1]],
-            },
+        await moveVector({
+            name: "/v",
+            headcoords: vH,
+            tailcoords: [vH[0] - v[0], vH[1] - v[1]],
+            core,
         });
         c0 = [6, 0];
-        await core.requestAction({
-            event: null,
-            actionName: "moveCircle",
-            componentName: "/g5/c",
-            args: { center: c0 },
-        });
+        await moveCircle({ name: "/g5/c", cx: c0[0], cy: c0[1], core });
 
         await check_items({ P, v, vH, c0 });
     });
@@ -6624,48 +6288,28 @@ describe("Copy tag tests", async () => {
 
         P = [10, 9];
         Q = [8, 4];
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g1/P",
-            args: { x: P[0], y: P[1] },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g2/Q",
-            args: { x: Q[0], y: Q[1] },
-        });
+        await movePoint({ name: "/g1/P", x: P[0], y: P[1], core });
+        await movePoint({ name: "/g2/Q", x: Q[0], y: Q[1], core });
 
         await check_items(P, Q);
 
         // switch to second option from conditional content
         P = [3, 4];
         Q = [7, 8];
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         await check_items(P, Q);
 
         // move new points
         P = [6, 1];
         Q = [9, 3];
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g1/P",
-            args: { x: P[0], y: P[1] },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/g2/Q",
-            args: { x: Q[0], y: Q[1] },
-        });
+        await movePoint({ name: "/g1/P", x: P[0], y: P[1], core });
+        await movePoint({ name: "/g2/Q", x: Q[0], y: Q[1], core });
         await check_items(P, Q);
 
         // switch back to first option from conditional content
         P = [5, 6];
         Q = [7, 8];
-        await updateMathInputValue({ latex: "0", componentName: "/n", core });
+        await updateMathInputValue({ latex: "0", name: "/n", core });
     });
 
     async function test_assign_names_group_map(core) {
@@ -7012,15 +6656,15 @@ describe("Copy tag tests", async () => {
         await check_items(1);
 
         // change to vertex 2
-        await updateMathInputValue({ latex: "2", componentName: "/ind", core });
+        await updateMathInputValue({ latex: "2", name: "/ind", core });
         await check_items(2);
 
         // invalid vertex
-        await updateMathInputValue({ latex: "", componentName: "/ind", core });
+        await updateMathInputValue({ latex: "", name: "/ind", core });
         await check_items(0);
 
         // change to vertex 3
-        await updateMathInputValue({ latex: "3", componentName: "/ind", core });
+        await updateMathInputValue({ latex: "3", name: "/ind", core });
         await check_items(3);
     });
 
@@ -7280,14 +6924,11 @@ describe("Copy tag tests", async () => {
 
         // move points
 
-        await core.requestAction({
-            event: null,
-            actionName: "moveLine",
-            componentName: "/l",
-            args: {
-                point1coords: [7, 8],
-                point2coords: [9, 0],
-            },
+        await moveLine({
+            name: "/l",
+            point1coords: [7, 8],
+            point2coords: [9, 0],
+            core,
         });
 
         await check_items({
@@ -7495,14 +7136,11 @@ describe("Copy tag tests", async () => {
         expect(stateVariables["/p1"].stateValues.text).eq("2.93521");
         expect(stateVariables["/p2"].stateValues.text).eq("2.93521");
 
-        await core.requestAction({
-            event: null,
-            actionName: "moveLine",
-            componentName: "/l",
-            args: {
-                point1coords: [1.38527302734, 8.48273402357],
-                point2coords: [5.9060742037, 2.93520806203104],
-            },
+        await moveLine({
+            name: "/l",
+            point1coords: [1.38527302734, 8.48273402357],
+            point2coords: [5.9060742037, 2.93520806203104],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -7510,14 +7148,11 @@ describe("Copy tag tests", async () => {
         expect(stateVariables["/p1"].stateValues.text).eq("8.48273");
         expect(stateVariables["/p2"].stateValues.text).eq("8.48273");
 
-        await core.requestAction({
-            event: null,
-            actionName: "moveLine",
-            componentName: "/l",
-            args: {
-                point1coords: [1.38527302734, 8.48273402357],
-                point2coords: [4.482081034234, 7.34828203481],
-            },
+        await moveLine({
+            name: "/l",
+            point1coords: [1.38527302734, 8.48273402357],
+            point2coords: [4.482081034234, 7.34828203481],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -7722,14 +7357,11 @@ describe("Copy tag tests", async () => {
         });
 
         // move points
-        await core.requestAction({
-            event: null,
-            actionName: "moveLine",
-            componentName: "/l",
-            args: {
-                point1coords: [7, 8],
-                point2coords: [9, 0],
-            },
+        await moveLine({
+            name: "/l",
+            point1coords: [7, 8],
+            point2coords: [9, 0],
+            core,
         });
 
         await check_items({
@@ -7804,22 +7436,22 @@ describe("Copy tag tests", async () => {
 
         await check_items({ ln: 1, pn: 1, cn: 1 });
 
-        await updateMathInputValue({ latex: "", componentName: "/ln", core });
+        await updateMathInputValue({ latex: "", name: "/ln", core });
         await check_items({ ln: 0, pn: 1, cn: 1 });
 
-        await updateMathInputValue({ latex: "2", componentName: "/ln", core });
+        await updateMathInputValue({ latex: "2", name: "/ln", core });
         await check_items({ ln: 2, pn: 1, cn: 1 });
 
-        await updateMathInputValue({ latex: "0", componentName: "/pn", core });
+        await updateMathInputValue({ latex: "0", name: "/pn", core });
         await check_items({ ln: 2, pn: 0, cn: 1 });
 
-        await updateMathInputValue({ latex: "2", componentName: "/pn", core });
+        await updateMathInputValue({ latex: "2", name: "/pn", core });
         await check_items({ ln: 2, pn: 2, cn: 1 });
 
-        await updateMathInputValue({ latex: "", componentName: "/cn", core });
+        await updateMathInputValue({ latex: "", name: "/cn", core });
         await check_items({ ln: 2, pn: 2, cn: 0 });
 
-        await updateMathInputValue({ latex: "2", componentName: "/cn", core });
+        await updateMathInputValue({ latex: "2", name: "/cn", core });
         await check_items({ ln: 2, pn: 2, cn: 2 });
     });
 
@@ -7946,34 +7578,34 @@ describe("Copy tag tests", async () => {
 
         await check_items(2, 1, 1, 1);
 
-        await updateMathInputValue({ latex: "2", componentName: "/tn", core });
+        await updateMathInputValue({ latex: "2", name: "/tn", core });
         await check_items(2, 2, 1, 1);
 
-        await updateMathInputValue({ latex: "3", componentName: "/tn", core });
+        await updateMathInputValue({ latex: "3", name: "/tn", core });
         await check_items(2, 3, 1, 1);
 
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
         await check_items(4, 3, 1, 1);
 
-        await updateMathInputValue({ latex: "3", componentName: "/pn", core });
+        await updateMathInputValue({ latex: "3", name: "/pn", core });
         await check_items(4, 3, 3, 1);
 
-        await updateMathInputValue({ latex: "2", componentName: "/pn", core });
+        await updateMathInputValue({ latex: "2", name: "/pn", core });
         await check_items(4, 3, 2, 1);
 
-        await updateMathInputValue({ latex: "3", componentName: "/cn", core });
+        await updateMathInputValue({ latex: "3", name: "/cn", core });
         await check_items(4, 3, 2, 3);
 
-        await updateMathInputValue({ latex: "2", componentName: "/cn", core });
+        await updateMathInputValue({ latex: "2", name: "/cn", core });
         await check_items(4, 3, 2, 2);
 
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         await check_items(3, 3, 2, 2);
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         await check_items(1, 3, 2, 2);
 
-        await updateMathInputValue({ latex: "1", componentName: "/tn", core });
+        await updateMathInputValue({ latex: "1", name: "/tn", core });
         await check_items(1, 1, 2, 2);
     });
 
@@ -8404,7 +8036,7 @@ describe("Copy tag tests", async () => {
         // mathinputs change with immediate value
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8417,7 +8049,7 @@ describe("Copy tag tests", async () => {
 
         // maths change with value
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8429,7 +8061,7 @@ describe("Copy tag tests", async () => {
         // mathinputs change with immediate value
         await updateMathInputImmediateValue({
             latex: "y",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8442,7 +8074,7 @@ describe("Copy tag tests", async () => {
 
         // maths change with value
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8454,7 +8086,7 @@ describe("Copy tag tests", async () => {
         // mathinputs change with immediate value
         await updateMathInputImmediateValue({
             latex: "z",
-            componentName: mi3Name,
+            name: mi3Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8467,7 +8099,7 @@ describe("Copy tag tests", async () => {
 
         // maths change with value
         await updateMathInputValueToImmediateValue({
-            componentName: mi3Name,
+            name: mi3Name,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8587,27 +8219,17 @@ describe("Copy tag tests", async () => {
 
         expect(stateVariables["/num"].stateValues.value).eqls(NaN);
 
-        await updateMathInputValue({ latex: "4", componentName: tiName, core });
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await updateMathInputValue({ latex: "4", name: tiName, core });
+        await submitAnswer({ name: "/ans", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/num"].stateValues.value).eq(4);
 
         await updateMathInputValue({
             latex: "47",
-            componentName: tiName,
+            name: tiName,
             core,
         });
-        await core.requestAction({
-            componentName: "/ans",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/num"].stateValues.value).eq(47);
     });

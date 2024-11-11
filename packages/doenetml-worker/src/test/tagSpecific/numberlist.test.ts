@@ -4,9 +4,11 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("NumberList tag tests", async () => {
     async function test_numberList({
@@ -16,7 +18,7 @@ describe("NumberList tag tests", async () => {
         text,
         numbers,
     }: {
-        core: any;
+        core: Core;
         name?: string;
         pName?: string;
         text?: string;
@@ -141,7 +143,7 @@ describe("NumberList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: any) {
+    async function test_nested_and_inverse(core: Core) {
         await test_numberList({
             core,
             name: "/nl1",
@@ -179,47 +181,47 @@ describe("NumberList tag tests", async () => {
         // change values
 
         await updateMathInputValue({
-            componentName: "/mi1",
+            name: "/mi1",
             latex: "-11",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi2",
+            name: "/mi2",
             latex: "-12",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi3",
+            name: "/mi3",
             latex: "-13",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi4",
+            name: "/mi4",
             latex: "-14",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi5",
+            name: "/mi5",
             latex: "-15",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi6",
+            name: "/mi6",
             latex: "-16",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi7",
+            name: "/mi7",
             latex: "-17",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi8",
+            name: "/mi8",
             latex: "-18",
             core,
         });
         await updateMathInputValue({
-            componentName: "/mi9",
+            name: "/mi9",
             latex: "-19",
             core,
         });
@@ -484,13 +486,13 @@ describe("NumberList tag tests", async () => {
         await check_items(max1, max2);
 
         max1 = Infinity;
-        await updateMathInputValue({ latex: "", componentName: "/mn1", core });
+        await updateMathInputValue({ latex: "", name: "/mn1", core });
         await check_items(max1, max2);
 
         max2 = 3;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentName: "/mn2",
+            name: "/mn2",
             core,
         });
         await check_items(max1, max2);
@@ -498,7 +500,7 @@ describe("NumberList tag tests", async () => {
         max1 = 4;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentName: "/mn1",
+            name: "/mn1",
             core,
         });
         await check_items(max1, max2);
@@ -506,7 +508,7 @@ describe("NumberList tag tests", async () => {
         max1 = 1;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentName: "/mn1",
+            name: "/mn1",
             core,
         });
         await check_items(max1, max2);
@@ -514,7 +516,7 @@ describe("NumberList tag tests", async () => {
         max2 = 10;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentName: "/mn2",
+            name: "/mn2",
             core,
         });
         await check_items(max1, max2);
@@ -567,7 +569,7 @@ describe("NumberList tag tests", async () => {
         for (let [i, v] of vals.entries()) {
             await updateMathInputValue({
                 latex: v.toString(),
-                componentName: `/mi${i + 1}`,
+                name: `/mi${i + 1}`,
                 core,
             });
         }
@@ -653,7 +655,7 @@ describe("NumberList tag tests", async () => {
         maxN = 4;
         await updateMathInputValue({
             latex: maxN.toString(),
-            componentName: "/maxN",
+            name: "/maxN",
             core,
         });
         await check_items(maxN);
@@ -661,7 +663,7 @@ describe("NumberList tag tests", async () => {
         maxN = 1;
         await updateMathInputValue({
             latex: maxN.toString(),
-            componentName: "/maxN",
+            name: "/maxN",
             core,
         });
         await check_items(maxN);
@@ -1103,7 +1105,7 @@ describe("NumberList tag tests", async () => {
         n2 = 83;
         await updateMathInputValue({
             latex: n2.toString(),
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await test_items(n1, n2, n3);
@@ -1112,7 +1114,7 @@ describe("NumberList tag tests", async () => {
         n3 = 2;
         await updateMathInputValue({
             latex: `(${n1}, ${n3})`,
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await test_items(n1, n2, n3);
@@ -1162,7 +1164,7 @@ describe("NumberList tag tests", async () => {
         n2 = 6;
         await updateMathInputValue({
             latex: `${n1}, ${n2}`,
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         await test_numberList({

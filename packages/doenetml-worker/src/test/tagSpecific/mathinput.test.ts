@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    movePoint,
     updateBooleanInputValue,
     updateMathInputImmediateValue,
     updateMathInputValue,
@@ -11,6 +12,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("MathInput tag tests", async () => {
     it("mathInput references", async () => {
@@ -70,7 +72,7 @@ describe("MathInput tag tests", async () => {
         // Type 2 in first mathInput
         await updateMathInputImmediateValue({
             latex: "x+12",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -113,12 +115,12 @@ describe("MathInput tag tests", async () => {
         // Changing to 3 in first mathInput
         await updateMathInputImmediateValue({
             latex: "x+1",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x+13",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -159,7 +161,7 @@ describe("MathInput tag tests", async () => {
 
         // Update value (e.g., by pressing Enter) in first mathInput
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -202,17 +204,17 @@ describe("MathInput tag tests", async () => {
         // Erasing 13 and typing y second mathInput
         await updateMathInputImmediateValue({
             latex: "x+1",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x+",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x+y",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -254,7 +256,7 @@ describe("MathInput tag tests", async () => {
 
         // Update value (e.g., by changing focus) of second mathInput
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -297,12 +299,12 @@ describe("MathInput tag tests", async () => {
         // Typing pq in third mathInput
         await updateMathInputImmediateValue({
             latex: "p",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "pq",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -346,7 +348,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., update value) in mathInput 3
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -395,22 +397,22 @@ describe("MathInput tag tests", async () => {
         // type abc in mathInput 2
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "a",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "ab",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "abc",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -460,7 +462,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., blur) mathInput 2
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -514,7 +516,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -525,21 +527,21 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "a",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "ab",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "abc",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -593,22 +595,22 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "u",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "u/",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "u/v",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
 
@@ -661,13 +663,13 @@ describe("MathInput tag tests", async () => {
 
         // blue mathInput 2 and type d in mathInput 1
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
 
         await updateMathInputImmediateValue({
             latex: "abcd",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
 
@@ -722,7 +724,7 @@ describe("MathInput tag tests", async () => {
 
         // Update value (e.g., blur) first mathInput
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
 
@@ -781,7 +783,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
 
@@ -831,7 +833,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., by blurring) of second mathInput
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
 
@@ -896,12 +898,12 @@ describe("MathInput tag tests", async () => {
         // Type x~ in first mathinput
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "x~",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -924,17 +926,17 @@ describe("MathInput tag tests", async () => {
         // Delete ~ and add -y in copied mathinput
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -960,7 +962,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -995,7 +997,7 @@ describe("MathInput tag tests", async () => {
         // Add & in copied mathinput
         await updateMathInputImmediateValue({
             latex: "x-y@",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1025,23 +1027,23 @@ describe("MathInput tag tests", async () => {
 
         // Delete @ and add *z in first mathinput
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
 
         await updateMathInputImmediateValue({
             latex: "x-y",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y*",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y*z",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1067,7 +1069,7 @@ describe("MathInput tag tests", async () => {
 
         // Update value (e.g., update value)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1136,12 +1138,12 @@ describe("MathInput tag tests", async () => {
         // Type x- in first mathinput
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "x-",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1165,7 +1167,7 @@ describe("MathInput tag tests", async () => {
         // Add y in copied mathinput
         await updateMathInputImmediateValue({
             latex: "x-y",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1191,7 +1193,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1227,7 +1229,7 @@ describe("MathInput tag tests", async () => {
         // Add * in copied mathinput
         await updateMathInputImmediateValue({
             latex: "x-y*",
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1261,12 +1263,12 @@ describe("MathInput tag tests", async () => {
 
         // Add z in first mathinput
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1a",
+            name: "/mi1a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y*z",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1300,7 +1302,7 @@ describe("MathInput tag tests", async () => {
 
         // Update value (e.g., update value)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1379,17 +1381,17 @@ describe("MathInput tag tests", async () => {
         // type new values
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "xy",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1428,7 +1430,7 @@ describe("MathInput tag tests", async () => {
 
         // update value
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1468,7 +1470,7 @@ describe("MathInput tag tests", async () => {
         // enter new values in referenced
         await updateMathInputValue({
             latex: "qr",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1602,7 +1604,7 @@ describe("MathInput tag tests", async () => {
         // type new values
         await updateMathInputValue({
             latex: "xy",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1648,7 +1650,7 @@ describe("MathInput tag tests", async () => {
         // enter new values in reffed
         await updateMathInputValue({
             latex: "qr",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1737,17 +1739,17 @@ describe("MathInput tag tests", async () => {
         // type new values
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "xy",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1786,7 +1788,7 @@ describe("MathInput tag tests", async () => {
 
         // update value
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1826,7 +1828,7 @@ describe("MathInput tag tests", async () => {
         // enter new values in referenced
         await updateMathInputValue({
             latex: "qr",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1938,7 +1940,7 @@ describe("MathInput tag tests", async () => {
         // type in new values
         await updateMathInputValue({
             latex: "2y+1",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1982,7 +1984,7 @@ describe("MathInput tag tests", async () => {
         // type in new values
         await updateMathInputValue({
             latex: "2z",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2054,7 +2056,7 @@ describe("MathInput tag tests", async () => {
         // type new values
         await updateMathInputValue({
             latex: "xy",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2100,7 +2102,7 @@ describe("MathInput tag tests", async () => {
         // enter new values in reffed
         await updateMathInputValue({
             latex: "qr",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2191,7 +2193,7 @@ describe("MathInput tag tests", async () => {
         // type new values
         await updateMathInputImmediateValue({
             latex: "xy",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2231,7 +2233,7 @@ describe("MathInput tag tests", async () => {
 
         // value revert when updateValue (e.g., update value)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2273,7 +2275,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "qr",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2314,7 +2316,7 @@ describe("MathInput tag tests", async () => {
         // values revert when update value (e.g., blur)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2380,7 +2382,7 @@ describe("MathInput tag tests", async () => {
         // type new values
         await updateMathInputImmediateValue({
             latex: "y",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2399,7 +2401,7 @@ describe("MathInput tag tests", async () => {
 
         // value revert when update value (e.g., press enter)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2420,7 +2422,7 @@ describe("MathInput tag tests", async () => {
         // type new values in copy
         await updateMathInputImmediateValue({
             latex: "z",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2439,7 +2441,7 @@ describe("MathInput tag tests", async () => {
 
         // values revert when update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2497,7 +2499,7 @@ describe("MathInput tag tests", async () => {
         // type 2 in first mathinput
         await updateMathInputImmediateValue({
             latex: "x+12",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2531,7 +2533,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., press enter)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2566,7 +2568,7 @@ describe("MathInput tag tests", async () => {
         // type 3 in second mathinput
         await updateMathInputImmediateValue({
             latex: "x+123",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2601,7 +2603,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2675,7 +2677,7 @@ describe("MathInput tag tests", async () => {
         // type 2 in first mathinput
         await updateMathInputImmediateValue({
             latex: "x+12",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2709,7 +2711,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., press enter)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2744,7 +2746,7 @@ describe("MathInput tag tests", async () => {
         // type 3 in second mathinput
         await updateMathInputImmediateValue({
             latex: "x+123",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2779,7 +2781,7 @@ describe("MathInput tag tests", async () => {
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2831,7 +2833,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(1,2,3)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2842,7 +2844,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(2,3)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -2868,12 +2870,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "f(x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "f(x)",
-            componentName: "/b",
+            name: "/b",
             core,
         });
 
@@ -2902,12 +2904,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "g(f)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "g(f)",
-            componentName: "/b",
+            name: "/b",
             core,
         });
 
@@ -2936,12 +2938,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "h(q)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "h(q)",
-            componentName: "/b",
+            name: "/b",
             core,
         });
 
@@ -2970,12 +2972,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "q(z)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "q(z)",
-            componentName: "/b",
+            name: "/b",
             core,
         });
 
@@ -3165,7 +3167,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.15389319x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
 
@@ -3189,12 +3191,12 @@ describe("MathInput tag tests", async () => {
         );
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "2.047529344518e^{0.0000073013048309y}",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3235,7 +3237,7 @@ describe("MathInput tag tests", async () => {
         );
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3367,7 +3369,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.14x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
 
@@ -3441,7 +3443,7 @@ describe("MathInput tag tests", async () => {
         ]);
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/a",
+            name: "/a",
             core,
         });
 
@@ -3516,7 +3518,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "6.05e^{0.0000073y}",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3597,7 +3599,7 @@ describe("MathInput tag tests", async () => {
         ]);
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3784,7 +3786,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.15389319x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
 
@@ -3801,12 +3803,12 @@ describe("MathInput tag tests", async () => {
         );
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "2.047529344518e^{0.0000073013048309y}",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3835,7 +3837,7 @@ describe("MathInput tag tests", async () => {
         );
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -3921,7 +3923,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.14x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
 
@@ -3969,7 +3971,7 @@ describe("MathInput tag tests", async () => {
         ]);
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/a",
+            name: "/a",
             core,
         });
 
@@ -4018,7 +4020,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "6.04752934e^{0.0000073y}",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4073,7 +4075,7 @@ describe("MathInput tag tests", async () => {
         ]);
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4329,22 +4331,22 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\sin(0.000000000000000472946384739473x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "0.0000000000000934720357236e^{0.0000000000000073013048309y}",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         await updateMathInputValue({
             latex: "\\sin(0.000000000000000472946384739473x)",
-            componentName: "/c",
+            name: "/c",
             core,
         });
         await updateMathInputValue({
             latex: "0.0000000000000934720357236e^{0.0000000000000073013048309y}",
-            componentName: "/d2",
+            name: "/d2",
             core,
         });
 
@@ -4525,22 +4527,22 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\sin(5.7295\\cdot10^{-16}x)",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "8.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         await updateMathInputValue({
             latex: "\\sin(30x)",
-            componentName: "/c",
+            name: "/c",
             core,
         });
         await updateMathInputValue({
             latex: "6.35\\cdot10^{-14}e^{0y}",
-            componentName: "/d2",
+            name: "/d2",
             core,
         });
 
@@ -4766,7 +4768,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "98765.4321876",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4818,7 +4820,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "0.00000000000000004736286523434185",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4862,12 +4864,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2.4295639461593",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "9.3935596792746",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4887,11 +4889,11 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/b2"].stateValues.valueForDisplay.tree).eq(9.39);
         expect(stateVariables["/p"].stateValues.xs[1].tree).eq(9.3935596792746);
 
-        await core.requestAction({
-            componentName: "/p",
-            actionName: "movePoint",
-            args: { x: 7.936497798143, y: 2.142218345836 },
-            event: null,
+        await movePoint({
+            name: "/p",
+            x: 7.936497798143,
+            y: 2.142218345836,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4935,12 +4937,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2.4295639461593",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         await updateMathInputValue({
             latex: "9.3935596792746",
-            componentName: "/b2",
+            name: "/b2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -4960,11 +4962,11 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/b2"].stateValues.valueForDisplay.tree).eq(9.39);
         expect(stateVariables["/p"].stateValues.xs[1].tree).eq(9.3935596792746);
 
-        await core.requestAction({
-            componentName: "/p",
-            actionName: "movePoint",
-            args: { x: 7.936497798143, y: 2.142218345836 },
-            event: null,
+        await movePoint({
+            name: "/p",
+            x: 7.936497798143,
+            y: 2.142218345836,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4999,7 +5001,7 @@ describe("MathInput tag tests", async () => {
         // unicode α U+03B1
         await updateMathInputValue({
             latex: "α",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5021,7 +5023,7 @@ describe("MathInput tag tests", async () => {
         // latex \\alpha\\beta
         await updateMathInputValue({
             latex: "\\alpha\\beta",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5056,7 +5058,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "y\u2212z",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5086,7 +5088,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a-b",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5116,7 +5118,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "y\u22C5z",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5146,7 +5148,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a*b",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5176,7 +5178,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "y\u00B7z",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5206,7 +5208,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "u\u00D7v",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5236,7 +5238,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "A\u222AB",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5270,7 +5272,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "A\u2229B",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5304,7 +5306,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\u221E",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5326,7 +5328,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\u00B5",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5344,7 +5346,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\u03BC",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5362,7 +5364,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "f\u2032",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5403,7 +5405,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3^25",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5422,7 +5424,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3^{25}",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5433,7 +5435,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3^{2x}",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5456,7 +5458,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3^2x",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5479,7 +5481,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3^{x2}",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5502,7 +5504,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3^x2",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5525,7 +5527,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "f^32",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5548,7 +5550,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x^32",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5584,7 +5586,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3_25",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5607,7 +5609,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3_{25}",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5618,7 +5620,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3_{2x}",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5641,7 +5643,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3_2x",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5664,7 +5666,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3_{x2}",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5687,7 +5689,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3_x2",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5710,7 +5712,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "f_32",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5733,7 +5735,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x_32",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5790,7 +5792,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-7.4",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5807,12 +5809,7 @@ describe("MathInput tag tests", async () => {
 
         // move point A
 
-        await core.requestAction({
-            componentName: "/A",
-            actionName: "movePoint",
-            args: { x: 3.9, y: -8.4 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: 3.9, y: -8.4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -5828,12 +5825,7 @@ describe("MathInput tag tests", async () => {
 
         // move point B
 
-        await core.requestAction({
-            componentName: "/B",
-            actionName: "movePoint",
-            args: { x: 5.1, y: 1.3 },
-            event: null,
-        });
+        await movePoint({ name: "/B", x: 5.1, y: 1.3, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("5");
@@ -5863,7 +5855,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "y",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5873,12 +5865,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5887,7 +5879,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eq("x");
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5897,12 +5889,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         await updateMathInputImmediateValue({
             latex: "y",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5912,7 +5904,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "y+x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5925,7 +5917,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eqls(["*", 2, "x"]);
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5959,12 +5951,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "xy",
-            componentName: "/mins",
+            name: "/mins",
             core,
         });
         await updateMathInputValue({
             latex: "xy",
-            componentName: "/mis",
+            name: "/mis",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -5984,12 +5976,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "xy0",
-            componentName: "/mins",
+            name: "/mins",
             core,
         });
         await updateMathInputValue({
             latex: "xy0",
-            componentName: "/mis",
+            name: "/mis",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6001,12 +5993,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "xy_{uv}",
-            componentName: "/mins",
+            name: "/mins",
             core,
         });
         await updateMathInputValue({
             latex: "xy_{uv}",
-            componentName: "/mis",
+            name: "/mis",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6049,7 +6041,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "...x,y,z...",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6074,7 +6066,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .x,y,a..\\ .\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6100,7 +6092,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .,b,y,a..\\ .\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6126,7 +6118,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .,b,y,c,..\\ .\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6152,7 +6144,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .,b,y,d,\\ldots\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6178,7 +6170,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ \\ldots\\ ,e,y,d,\\ldots\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6204,7 +6196,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ \\ldots\\ f,y,d,\\ldots\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6230,7 +6222,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\ \\ldots\\ f,y,g\\ldots\\ ",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6275,12 +6267,12 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "xu9j",
-            componentName: "/varWithNum2",
+            name: "/varWithNum2",
             core,
         });
         await updateMathInputValue({
             latex: "xyuv",
-            componentName: "/noSplit2",
+            name: "/noSplit2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6481,42 +6473,42 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits1",
+            name: "/splits1",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits2",
+            name: "/splits2",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits3",
+            name: "/splits3",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits4",
+            name: "/splits4",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits5",
+            name: "/splits5",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits6",
+            name: "/splits6",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits7",
+            name: "/splits7",
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/splits8",
+            name: "/splits8",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -6760,42 +6752,42 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction1",
+            name: "/hFunction1",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction2",
+            name: "/hFunction2",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction3",
+            name: "/hFunction3",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction4",
+            name: "/hFunction4",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction5",
+            name: "/hFunction5",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction6",
+            name: "/hFunction6",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction7",
+            name: "/hFunction7",
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentName: "/hFunction8",
+            name: "/hFunction8",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7020,7 +7012,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\frac{a}{b} \\int_a^b f(x) dx",
-            componentName: "/input1",
+            name: "/input1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7040,7 +7032,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "hello(a)(b)",
-            componentName: "/input2",
+            name: "/input2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7078,7 +7070,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\text{h}(a)(b)",
-            componentName: "/input3",
+            name: "/input3",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7100,7 +7092,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(a)(b)",
-            componentName: "/input3",
+            name: "/input3",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7139,7 +7131,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x=1 or u=x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7158,7 +7150,7 @@ describe("MathInput tag tests", async () => {
         // inequalities with and
         await updateMathInputValue({
             latex: "x>3 and x \\le 5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7177,7 +7169,7 @@ describe("MathInput tag tests", async () => {
         // don't convert if not word
         await updateMathInputValue({
             latex: "AandBorC",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7208,7 +7200,7 @@ describe("MathInput tag tests", async () => {
         // add parens or spaces
         await updateMathInputValue({
             latex: "(A)and B or(C)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7242,7 +7234,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "A U C",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7264,12 +7256,12 @@ describe("MathInput tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/ufu",
+            name: "/ufu",
             core,
         });
         await updateMathInputValue({
             latex: "A U B",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7289,7 +7281,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "A UB",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7311,7 +7303,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "A U(B)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7347,7 +7339,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/x1",
+            name: "/x1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7358,7 +7350,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentName: "/x2",
+            name: "/x2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7387,7 +7379,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/x1",
+            name: "/x1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7398,7 +7390,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentName: "/x2",
+            name: "/x2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7449,7 +7441,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(1,5)",
-            componentName: "/mipf",
+            name: "/mipf",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7484,7 +7476,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(1,9)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7519,7 +7511,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(1,7)",
-            componentName: "/mipf",
+            name: "/mipf",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7571,7 +7563,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7585,7 +7577,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7600,7 +7592,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7616,7 +7608,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7640,7 +7632,7 @@ describe("MathInput tag tests", async () => {
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7657,7 +7649,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7672,7 +7664,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7690,7 +7682,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7732,7 +7724,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7746,7 +7738,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7761,7 +7753,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7777,7 +7769,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7801,7 +7793,7 @@ describe("MathInput tag tests", async () => {
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7818,7 +7810,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7833,7 +7825,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7851,7 +7843,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7893,7 +7885,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7907,7 +7899,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7922,7 +7914,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7938,7 +7930,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7962,7 +7954,7 @@ describe("MathInput tag tests", async () => {
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7979,7 +7971,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -7994,7 +7986,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8012,7 +8004,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8056,7 +8048,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8070,7 +8062,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8085,7 +8077,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8101,7 +8093,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8115,7 +8107,7 @@ describe("MathInput tag tests", async () => {
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8129,7 +8121,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8144,7 +8136,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8162,7 +8154,7 @@ describe("MathInput tag tests", async () => {
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8193,7 +8185,7 @@ describe("MathInput tag tests", async () => {
         // enter value that parses to math
         await updateMathInputValue({
             latex: "a",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8207,7 +8199,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a^{ }",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8231,7 +8223,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a^{bc+}",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8255,7 +8247,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a^{bc+d}",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8279,7 +8271,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a^{bc+d}-",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8303,7 +8295,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a^{bc+d}-e",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8343,7 +8335,7 @@ describe("MathInput tag tests", async () => {
         // enter value that parses to math
         await updateMathInputValue({
             latex: "a",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8357,7 +8349,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "a@",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8373,7 +8365,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "ab+@",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8389,7 +8381,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "ab+c",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8439,7 +8431,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2x-3E+2",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8462,7 +8454,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2x-3E+2",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8499,17 +8491,17 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "12,345",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "12,345",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "12,345",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8524,17 +8516,17 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\$45.23",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "\\$45.23",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "\\$45.23",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8549,17 +8541,17 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "78\\%",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "78\\%",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "78\\%",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8574,17 +8566,17 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\$34,000\\%dx",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         await updateMathInputValue({
             latex: "\\$34,000\\%dx",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         await updateMathInputValue({
             latex: "\\$34,000\\%dx",
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8617,7 +8609,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\sqrt{4}",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -8740,14 +8732,12 @@ describe("MathInput tag tests", async () => {
             [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
         );
 
-        let stateVariables = await returnAllStateVariables(core);
-
         // type in first marks only first immediate value as changed
         mi1iv = "y";
         mi1ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi1iv,
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
 
@@ -8762,7 +8752,7 @@ describe("MathInput tag tests", async () => {
         mi1 = mi3 = mi3iv = mi1iv;
         mi1changed = true;
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
 
@@ -8778,7 +8768,7 @@ describe("MathInput tag tests", async () => {
         mi2ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi2iv,
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
 
@@ -8793,7 +8783,7 @@ describe("MathInput tag tests", async () => {
         mi2 = mi2iv;
         mi2changed = true;
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
 
@@ -8809,7 +8799,7 @@ describe("MathInput tag tests", async () => {
         mi3ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi3iv,
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
 
@@ -8825,7 +8815,7 @@ describe("MathInput tag tests", async () => {
         mi3changed = true;
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
 
@@ -8841,7 +8831,7 @@ describe("MathInput tag tests", async () => {
         mi4ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi4iv,
-            componentName: "/mi4",
+            name: "/mi4",
             core,
         });
 
@@ -8856,7 +8846,7 @@ describe("MathInput tag tests", async () => {
         mi2 = mi2iv = mi4 = mi4iv;
         mi4changed = true;
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi4",
+            name: "/mi4",
             core,
         });
 
@@ -8902,7 +8892,7 @@ describe("MathInput tag tests", async () => {
         mi3ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi3iv,
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         await check_items(
@@ -8919,7 +8909,7 @@ describe("MathInput tag tests", async () => {
         mi3changed = true;
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi3",
+            name: "/mi3",
             core,
         });
         await check_items(
@@ -8935,7 +8925,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: mi4iv,
-            componentName: "/mi4",
+            name: "/mi4",
             core,
         });
         await check_items(
@@ -8951,7 +8941,7 @@ describe("MathInput tag tests", async () => {
         mi2ivchanged = true;
         mi4changed = true;
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi4",
+            name: "/mi4",
             core,
         });
         await check_items(
@@ -9011,7 +9001,7 @@ describe("MathInput tag tests", async () => {
         // Delete contents from mathinput 1
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9033,7 +9023,7 @@ describe("MathInput tag tests", async () => {
         // Contents of mathinput 1 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9054,7 +9044,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "12",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9074,7 +9064,7 @@ describe("MathInput tag tests", async () => {
         // Contents of mathinput 1 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9095,7 +9085,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9117,7 +9107,7 @@ describe("MathInput tag tests", async () => {
         // Contents of mathinput 2 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9138,7 +9128,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "12",
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9158,7 +9148,7 @@ describe("MathInput tag tests", async () => {
         // Contents of mathinput 2 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentName: "/mi2",
+            name: "/mi2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9197,7 +9187,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
 
         // Enter -3 for x
-        await updateMathInputValue({ latex: "-3", componentName: "/x", core });
+        await updateMathInputValue({ latex: "-3", name: "/x", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-3);
@@ -9206,7 +9196,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
 
         // Enter -4 for y
-        await updateMathInputValue({ latex: "-4", componentName: "/y", core });
+        await updateMathInputValue({ latex: "-4", name: "/y", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-3);
@@ -9215,12 +9205,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-4);
 
         // move point to (5,-6)
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: -6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: -6, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.value.tree).eq(5);
@@ -9253,7 +9238,7 @@ describe("MathInput tag tests", async () => {
         // Enter -1.2 for x
         await updateMathInputValue({
             latex: "-1.2",
-            componentName: "/x",
+            name: "/x",
             core,
         });
 
@@ -9264,12 +9249,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(2);
 
         // try to move point to (5,6), only y changes
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 6, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-1.2);
@@ -9303,7 +9283,7 @@ describe("MathInput tag tests", async () => {
         // Enter -1.5 for a
         await updateMathInputValue({
             latex: "-1.5",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9313,12 +9293,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-7);
 
         // try to move point to (5,6), only y changes
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 6, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
@@ -9351,7 +9326,7 @@ describe("MathInput tag tests", async () => {
         // Enter -1.5 for a
         await updateMathInputValue({
             latex: "-1.5",
-            componentName: "/a",
+            name: "/a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -9361,12 +9336,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(-7);
 
         // try to move point to (5,6)
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 6, core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/a"].stateValues.value.tree).eqls(["/", 5, 2]);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
@@ -9624,7 +9594,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(1,2)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         math = me.fromAst(["vector", 1, 2]);
@@ -9633,7 +9603,7 @@ describe("MathInput tag tests", async () => {
         i = 2;
         await updateMathInputValue({
             latex: i.toString(),
-            componentName: "/i",
+            name: "/i",
             core,
         });
         await check_items(math, i);
@@ -9641,14 +9611,14 @@ describe("MathInput tag tests", async () => {
         i = 3;
         await updateMathInputValue({
             latex: i.toString(),
-            componentName: "/i",
+            name: "/i",
             core,
         });
         await check_items(math, i);
 
         await updateMathInputValue({
             latex: "(a,b,c)",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         math = me.fromAst(["vector", "a", "b", "c"]);
@@ -9657,7 +9627,7 @@ describe("MathInput tag tests", async () => {
         i = 4;
         await updateMathInputValue({
             latex: i.toString(),
-            componentName: "/i",
+            name: "/i",
             core,
         });
         await check_items(math, i);
@@ -9665,14 +9635,14 @@ describe("MathInput tag tests", async () => {
         i = 2;
         await updateMathInputValue({
             latex: i.toString(),
-            componentName: "/i",
+            name: "/i",
             core,
         });
         await check_items(math, i);
 
         await updateMathInputValue({
             latex: "xyz",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         math = me.fromAst(["*", "x", "y", "z"]);
@@ -9681,14 +9651,14 @@ describe("MathInput tag tests", async () => {
         i = 1;
         await updateMathInputValue({
             latex: i.toString(),
-            componentName: "/i",
+            name: "/i",
             core,
         });
         await check_items(math, i);
 
         await updateMathInputValue({
             latex: "p,q",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         math = me.fromAst(["list", "p", "q"]);
@@ -9696,7 +9666,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "5,4,3",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         math = me.fromAst(["list", 5, 4, 3]);

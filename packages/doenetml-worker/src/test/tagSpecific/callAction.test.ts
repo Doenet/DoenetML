@@ -2,12 +2,22 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    callAction,
+    moveButton,
+    movePoint,
+    clickPoint,
+    focusPoint,
+    triggerActions,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
+    updateValue,
 } from "../utils/actions";
+import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("callAction tag tests", async () => {
     async function test_resample(core) {
@@ -27,12 +37,7 @@ describe("callAction tag tests", async () => {
 
         expect(stateVariables["/sum"].stateValues.value).eq(sum);
 
-        await core.requestAction({
-            componentName: "/rs",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/rs", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/sum"].stateValues.value).not.eq(sum);
@@ -108,12 +113,7 @@ describe("callAction tag tests", async () => {
             expect(g.stateValues.graphicalDescendants.length).eq(1);
         }
 
-        await core.requestAction({
-            componentName: "/addPoint",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/addPoint", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
@@ -137,11 +137,11 @@ describe("callAction tag tests", async () => {
             ).eqls([3, 4]);
         }
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g1.stateValues.graphicalDescendants[1].componentName,
-            args: { x: -2, y: 5 },
-            event: null,
+        await movePoint({
+            name: g1.stateValues.graphicalDescendants[1].componentName,
+            x: -2,
+            y: 5,
+            core,
         });
         stateVariables = await returnAllStateVariables(core);
 
@@ -164,12 +164,7 @@ describe("callAction tag tests", async () => {
             ).eqls([-2, 5]);
         }
 
-        await core.requestAction({
-            componentName: "/addPoint",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/addPoint", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(3,4)");
@@ -196,11 +191,11 @@ describe("callAction tag tests", async () => {
             ).eqls([3, 4]);
         }
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g2.stateValues.graphicalDescendants[2].componentName,
-            args: { x: 7, y: -9 },
-            event: null,
+        await movePoint({
+            name: g2.stateValues.graphicalDescendants[2].componentName,
+            x: 7,
+            y: -9,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -224,12 +219,7 @@ describe("callAction tag tests", async () => {
             ).eqls([7, -9]);
         }
 
-        await core.requestAction({
-            componentName: "/deletePoint",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/deletePoint", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/p3"]).eq(undefined);
@@ -253,11 +243,11 @@ describe("callAction tag tests", async () => {
             ).eqls([-2, 5]);
         }
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: g3.stateValues.graphicalDescendants[1].componentName,
-            args: { x: 1, y: 0 },
-            event: null,
+        await movePoint({
+            name: g3.stateValues.graphicalDescendants[1].componentName,
+            x: 1,
+            y: 0,
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -279,12 +269,7 @@ describe("callAction tag tests", async () => {
             ).eqls([1, 0]);
         }
 
-        await core.requestAction({
-            componentName: "/deletePoint",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/deletePoint", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/p2"]).eq(undefined);
@@ -305,12 +290,7 @@ describe("callAction tag tests", async () => {
             ).eqls([1, 2]);
         }
 
-        await core.requestAction({
-            componentName: "/deletePoint",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/deletePoint", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p1"].stateValues.latex)).eq("(1,2)");
@@ -331,12 +311,7 @@ describe("callAction tag tests", async () => {
             ).eqls([1, 2]);
         }
 
-        await core.requestAction({
-            componentName: "/addPoint",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/addPoint", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
@@ -379,12 +354,7 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        await core.requestAction({
-            componentName: "/rs",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/rs", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
@@ -400,12 +370,7 @@ describe("callAction tag tests", async () => {
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: pointNames[1],
-            args: { x: -2, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
@@ -531,12 +496,7 @@ describe("callAction tag tests", async () => {
                 expect(num).lte(6);
             }
 
-            await core.requestAction({
-                componentName: `/set${ind}/rs`,
-                actionName: "callAction",
-                args: {},
-                event: null,
-            });
+            await callAction({ name: `/set${ind}/rs`, core });
             stateVariables = await returnAllStateVariables(core);
 
             expect(
@@ -554,12 +514,7 @@ describe("callAction tag tests", async () => {
                 stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
             ).eqls([3, 4]);
 
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: pointNames[1],
-                args: { x: -2, y: 5 },
-                event: null,
-            });
+            await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
             stateVariables = await returnAllStateVariables(core);
 
@@ -634,12 +589,7 @@ describe("callAction tag tests", async () => {
 
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
-        await core.requestAction({
-            componentName: "/rs",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/rs", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
@@ -655,12 +605,7 @@ describe("callAction tag tests", async () => {
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: pointNames[1],
-            args: { x: -2, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: pointNames[1], x: -2, y: 5, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
@@ -688,12 +633,7 @@ describe("callAction tag tests", async () => {
 
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
-        await core.requestAction({
-            componentName: "/in",
-            actionName: "updateValue",
-            args: {},
-            event: null,
-        });
+        await updateValue({ name: "/in", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(3,4)");
@@ -712,12 +652,7 @@ describe("callAction tag tests", async () => {
             stateVariables[pointNames[2]].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: pointNames[2],
-            args: { x: 7, y: -9 },
-            event: null,
-        });
+        await movePoint({ name: pointNames[2], x: 7, y: -9, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -768,12 +703,7 @@ describe("callAction tag tests", async () => {
             "(-1,2)",
         );
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -1, y: -7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -1, y: -7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -787,12 +717,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 3, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 3, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -806,12 +731,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 1, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 1, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -830,12 +750,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 9, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -847,12 +762,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -3, y: 4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -3, y: 4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -866,12 +776,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -6, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -6, y: 5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -885,12 +790,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 4, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 4, y: 2, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -909,12 +809,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 9, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 9, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -960,12 +855,7 @@ describe("callAction tag tests", async () => {
             "(-1,2)",
         );
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 3, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 3, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -979,12 +869,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "pointClicked",
-            componentName: "/P",
-            args: { name: "/P" },
-            event: null,
-        });
+        await clickPoint({ name: "/P", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1001,12 +886,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 9, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1018,12 +898,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "pointClicked",
-            componentName: "/P",
-            args: { name: "/P" },
-            event: null,
-        });
+        await clickPoint({ name: "/P", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1040,12 +915,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 9, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 9, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1107,12 +977,7 @@ describe("callAction tag tests", async () => {
                 "(-1,2)",
             );
 
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: PName,
-                args: { x: 3, y: -4 },
-                event: null,
-            });
+            await movePoint({ name: PName, x: 3, y: -4, core });
 
             stateVariables = await returnAllStateVariables(core);
 
@@ -1126,12 +991,7 @@ describe("callAction tag tests", async () => {
 
             expect(numbers2).eqls(numbers);
 
-            await core.requestAction({
-                actionName: "pointClicked",
-                componentName: PName,
-                args: { name: PName },
-                event: null,
-            });
+            await clickPoint({ name: PName, core });
 
             stateVariables = await returnAllStateVariables(core);
 
@@ -1148,12 +1008,7 @@ describe("callAction tag tests", async () => {
             expect(numbers2).not.eqls(numbers);
             numbers = numbers2;
 
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: PName,
-                args: { x: 5, y: 9 },
-                event: null,
-            });
+            await movePoint({ name: PName, x: 5, y: 9, core });
 
             stateVariables = await returnAllStateVariables(core);
 
@@ -1167,12 +1022,7 @@ describe("callAction tag tests", async () => {
 
             expect(numbers2).eqls(numbers);
 
-            await core.requestAction({
-                actionName: "pointClicked",
-                componentName: PName,
-                args: { name: PName },
-                event: null,
-            });
+            await clickPoint({ name: PName, core });
 
             stateVariables = await returnAllStateVariables(core);
 
@@ -1189,12 +1039,7 @@ describe("callAction tag tests", async () => {
             expect(numbers2).not.eqls(numbers);
             numbers = numbers2;
 
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: PName,
-                args: { x: 9, y: 7 },
-                event: null,
-            });
+            await movePoint({ name: PName, x: 9, y: 7, core });
 
             stateVariables = await returnAllStateVariables(core);
 
@@ -1243,12 +1088,7 @@ describe("callAction tag tests", async () => {
             "(-1,2)",
         );
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 3, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 3, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1262,12 +1102,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "pointFocused",
-            componentName: "/P",
-            args: { name: "/P" },
-            event: null,
-        });
+        await focusPoint({ name: "/P", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1284,12 +1119,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 9, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1301,12 +1131,7 @@ describe("callAction tag tests", async () => {
 
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "pointFocused",
-            componentName: "/P",
-            args: { name: "/P" },
-            event: null,
-        });
+        await focusPoint({ name: "/P", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1323,12 +1148,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 9, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 9, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1383,12 +1203,7 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -1, y: -7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -1, y: -7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1405,12 +1220,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 3, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 3, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1427,12 +1237,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 1, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 1, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1455,12 +1260,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 9, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1475,12 +1275,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -3, y: 4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -3, y: 4, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
@@ -1496,12 +1291,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -6, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -6, y: 5, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
@@ -1517,12 +1307,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 4, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 4, y: 2, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1545,12 +1330,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 9, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 9, y: 7, core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(9,7)");
@@ -1607,12 +1387,7 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -1, y: -7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -1, y: -7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1636,12 +1411,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 3, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 3, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1658,12 +1428,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 1, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 1, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1678,12 +1443,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 5, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 5, y: 9, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1698,12 +1458,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -3, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -3, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1727,12 +1482,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).not.eqls(numbers);
         numbers = numbers2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -6, y: -5 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -6, y: -5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1749,12 +1499,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 4, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 4, y: 2, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1769,12 +1514,7 @@ describe("callAction tag tests", async () => {
             .map(Number);
         expect(numbers2).eqls(numbers);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 9, y: 7 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 9, y: 7, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1833,12 +1573,7 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        await core.requestAction({
-            actionName: "triggerActions",
-            componentName: "/tset",
-            args: {},
-            event: null,
-        });
+        await triggerActions({ name: "/tset", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1855,12 +1590,7 @@ describe("callAction tag tests", async () => {
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: pointNames[1],
-            args: { x: -2, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1927,7 +1657,7 @@ describe("callAction tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x",
-            componentName: mathInputName,
+            name: mathInputName,
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1948,12 +1678,7 @@ describe("callAction tag tests", async () => {
             expect(num).lte(6);
         }
 
-        await core.requestAction({
-            actionName: "triggerActions",
-            componentName: "/tset",
-            args: {},
-            event: null,
-        });
+        await triggerActions({ name: "/tset", core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1970,12 +1695,7 @@ describe("callAction tag tests", async () => {
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: pointNames[1],
-            args: { x: -2, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -2051,12 +1771,7 @@ describe("callAction tag tests", async () => {
 
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
-        await core.requestAction({
-            componentName: "/rs",
-            actionName: "callAction",
-            args: {},
-            event: null,
-        });
+        await callAction({ name: "/rs", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
@@ -2072,12 +1787,7 @@ describe("callAction tag tests", async () => {
             stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: pointNames[1],
-            args: { x: -2, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -2152,465 +1862,21 @@ describe("callAction tag tests", async () => {
     });
 
     it("callAction in graph", async () => {
-        let core = await createTestCore({
-            doenetML: `
+        const doenetMLsnippet = `
     <graph >
-      <callAction anchor="$anchorCoords1" name="callAction1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" disabled="$disabled1" fixed="$fixed1" fixLocation="$fixLocation1" target="_graph1" actionName="addChildren">
+      <callAction anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" disabled="$disabled1" fixed="$fixed1" fixLocation="$fixLocation1" target="_graph1" actionName="addChildren">
         <label>add point</label>
         <point>(3,4)</point>
       </callAction>
-      <callAction name="callAction2" target="_graph1" actionName="addChildren">
+      <callAction name="item2" target="_graph1" actionName="addChildren">
         <label>add point 2</label>
         <point>(-3,-4)</point>
       </callAction>
     </graph>
-
-    <p name="pAnchor1">Anchor 1 coordinates: $callAction1.anchor</p>
-    <p name="pAnchor2">Anchor 2 coordinates: $callAction2.anchor</p>
-    <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathInput name="anchorCoords1" prefill="(1,3)" /></p>
-    <p name="pChangeAnchor2">Change anchor 2 coordinates: <mathInput name="anchorCoords2" bindValueTo="$callAction2.anchor" /></p>
-    <p name="pPositionFromAnchor1">Position from anchor 1: $callAction1.positionFromAnchor</p>
-    <p name="pPositionFromAnchor2">Position from anchor 2: $callAction2.positionFromAnchor</p>
-    <p>Change position from anchor 1
-    <choiceInput inline preselectChoice="1" name="positionFromAnchor1">
-      <choice>upperRight</choice>
-      <choice>upperLeft</choice>
-      <choice>lowerRight</choice>
-      <choice>lowerLeft</choice>
-      <choice>left</choice>
-      <choice>right</choice>
-      <choice>top</choice>
-      <choice>bottom</choice>
-      <choice>center</choice>
-    </choiceInput>
-    </p>
-    <p>Change position from anchor 2
-    <choiceInput inline name="positionFromAnchor2" bindValueTo="$callAction2.positionFromAnchor">
-      <choice>upperRight</choice>
-      <choice>upperLeft</choice>
-      <choice>lowerRight</choice>
-      <choice>lowerLeft</choice>
-      <choice>left</choice>
-      <choice>right</choice>
-      <choice>top</choice>
-      <choice>bottom</choice>
-      <choice>center</choice>
-    </choiceInput>
-    </p>
-    <p name="pDraggable1">Draggable 1: $draggable1</p>
-    <p name="pDraggable2">Draggable 2: $draggable2</p>
-    <p>Change draggable 1 <booleanInput name="draggable1" prefill="true" /></p>
-    <p>Change draggable 2 <booleanInput name="draggable2" bindValueTo="$callAction2.draggable" /></p>
-    <p name="pDisabled1">Disabled 1: $disabled1</p>
-    <p name="pDisabled2">Disabled 2: $disabled2</p>
-    <p>Change disabled 1 <booleanInput name="disabled1" prefill="true" /></p>
-    <p>Change disabled 2 <booleanInput name="disabled2" bindValueTo="$callAction2.disabled" /></p>
-    <p name="pFixed1">Fixed 1: $fixed1</p>
-    <p name="pFixed2">Fixed 2: $fixed2</p>
-    <p>Change fixed 1 <booleanInput name="fixed1" prefill="false" /></p>
-    <p>Change fixed 2 <booleanInput name="fixed2" bindValueTo="$callAction2.fixed" /></p>
-    <p name="pFixLocation1">FixLocation 1: $fixLocation1</p>
-    <p name="pFixLocation2">FixLocation 2: $fixLocation2</p>
-    <p>Change fixLocation 1 <booleanInput name="fixLocation1" prefill="false" /></p>
-    <p>Change fixLocation 2 <booleanInput name="fixLocation2" bindValueTo="$callAction2.fixLocation" /></p>
-
-    `,
-        });
-
+        `;
         // TODO: how to click on the buttons and test if they are disabled?
 
-        let stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( 1, 3 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( 0, 0 )",
-        );
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: upperright",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: center",
-        );
-        expect(
-            stateVariables["/positionFromAnchor1"].stateValues.selectedIndices,
-        ).eqls([1]);
-        expect(
-            stateVariables["/positionFromAnchor2"].stateValues.selectedIndices,
-        ).eqls([9]);
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: true",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: false",
-        );
-        expect(stateVariables["/pFixed1"].stateValues.text).eq(
-            "Fixed 1: false",
-        );
-        expect(stateVariables["/pFixed2"].stateValues.text).eq(
-            "Fixed 2: false",
-        );
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: false",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: false",
-        );
-
-        // move callActions by dragging
-
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( -2, 3 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( 4, -5 )",
-        );
-
-        // move callActions by entering coordinates
-
-        await updateMathInputValue({
-            latex: "(6,7)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(8,9)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( 6, 7 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( 8, 9 )",
-        );
-
-        // change position from anchor
-        await core.requestAction({
-            componentName: "/positionFromAnchor1",
-            actionName: "updateSelectedIndices",
-            args: {
-                selectedIndices: [4],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/positionFromAnchor2",
-            actionName: "updateSelectedIndices",
-            args: {
-                selectedIndices: [3],
-            },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: lowerleft",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // make not draggable
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: false",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: false",
-        );
-
-        // cannot move callActions by dragging
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( 6, 7 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( 8, 9 )",
-        );
-
-        // make draggable again
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( -10, -9 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( -8, -7 )",
-        );
-
-        // fix location
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: true",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: true",
-        );
-
-        // can change coordinates entering coordinates only for button 1
-        await updateMathInputValue({
-            latex: "(1,2)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(3,4)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( 1, 2 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( -8, -7 )",
-        );
-
-        // cannot move callActions by dragging
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction1",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveButton",
-            componentName: "/callAction2",
-            args: { x: 7, y: 8 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( 1, 2 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( -8, -7 )",
-        );
-
-        // can change position from anchor only for button 1
-        await core.requestAction({
-            componentName: "/positionFromAnchor1",
-            actionName: "updateSelectedIndices",
-            args: {
-                selectedIndices: [7],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/positionFromAnchor2",
-            actionName: "updateSelectedIndices",
-            args: {
-                selectedIndices: [8],
-            },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: top",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change disabled attribute
-
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/disabled1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/disabled2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: false",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: true",
-        );
-
-        // make completely fixed
-
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: true");
-        expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: true");
-
-        // can change coordinates entering coordinates only for button 1
-        await updateMathInputValue({
-            latex: "(5,6)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(7,8)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pAnchor1"].stateValues.text).eq(
-            "Anchor 1 coordinates: ( 5, 6 )",
-        );
-        expect(stateVariables["/pAnchor2"].stateValues.text).eq(
-            "Anchor 2 coordinates: ( -8, -7 )",
-        );
-
-        // can change position from anchor only for button 1
-        await core.requestAction({
-            componentName: "/positionFromAnchor1",
-            actionName: "updateSelectedIndices",
-            args: {
-                selectedIndices: [6],
-            },
-            event: null,
-        });
-        await core.requestAction({
-            componentName: "/positionFromAnchor2",
-            actionName: "updateSelectedIndices",
-            args: {
-                selectedIndices: [5],
-            },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: right",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change disabled attribute only for button 1
-
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/disabled1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/disabled2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: true",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: true",
-        );
+        await test_in_graph(doenetMLsnippet, moveButton);
     });
 
     it("buttons can be styled", async () => {

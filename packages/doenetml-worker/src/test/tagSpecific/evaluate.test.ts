@@ -2,15 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
-    updateBooleanInputValue,
+    movePoint,
+    submitAnswer,
     updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Evaluate tag tests", async () => {
     it("evaluate numeric and symbolic", async () => {
@@ -102,7 +102,7 @@ describe("Evaluate tag tests", async () => {
         // evaluate at pi
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -145,7 +145,7 @@ describe("Evaluate tag tests", async () => {
         // change variable
         await updateMathInputValue({
             latex: "y",
-            componentName: "/variable",
+            name: "/variable",
             core,
         });
 
@@ -188,7 +188,7 @@ describe("Evaluate tag tests", async () => {
         // change formula to match variable
         await updateMathInputValue({
             latex: "\\sin(y)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -251,7 +251,7 @@ describe("Evaluate tag tests", async () => {
         // change function
         await updateMathInputValue({
             latex: "bx^2",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
 
@@ -263,7 +263,7 @@ describe("Evaluate tag tests", async () => {
         // change u
         await updateMathInputValue({
             latex: "cq^2",
-            componentName: "/u",
+            name: "/u",
             core,
         });
 
@@ -275,7 +275,7 @@ describe("Evaluate tag tests", async () => {
         // change variable
         await updateMathInputValue({
             latex: "y",
-            componentName: "/x",
+            name: "/x",
             core,
         });
 
@@ -287,7 +287,7 @@ describe("Evaluate tag tests", async () => {
         // change function to match variable
         await updateMathInputValue({
             latex: "ay+by^2",
-            componentName: "/fformula",
+            name: "/fformula",
             core,
         });
 
@@ -321,15 +321,10 @@ describe("Evaluate tag tests", async () => {
         // submit answer
         await updateMathInputValue({
             latex: "4",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
-        await core.requestAction({
-            componentName: "/ans1",
-            actionName: "submitAnswer",
-            args: {},
-            event: null,
-        });
+        await submitAnswer({ name: "/ans1", core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/eval"].stateValues.value.tree).eqls([
@@ -531,7 +526,7 @@ describe("Evaluate tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/input",
+            name: "/input",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -888,7 +883,7 @@ describe("Evaluate tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/input",
+            name: "/input",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1259,7 +1254,7 @@ describe("Evaluate tag tests", async () => {
 
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/input",
+            name: "/input",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1438,12 +1433,12 @@ describe("Evaluate tag tests", async () => {
         // evaluate at (pi, 2pi)
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/input1",
+            name: "/input1",
             core,
         });
         await updateMathInputValue({
             latex: "2\\pi",
-            componentName: "/input2",
+            name: "/input2",
             core,
         });
 
@@ -1480,12 +1475,12 @@ describe("Evaluate tag tests", async () => {
         // change variable
         await updateMathInputValue({
             latex: "u",
-            componentName: "/variable1",
+            name: "/variable1",
             core,
         });
         await updateMathInputValue({
             latex: "v",
-            componentName: "/variable2",
+            name: "/variable2",
             core,
         });
 
@@ -1522,7 +1517,7 @@ describe("Evaluate tag tests", async () => {
         // change formula to use new variables
         await updateMathInputValue({
             latex: "\\sin(u+v)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -1587,7 +1582,7 @@ describe("Evaluate tag tests", async () => {
         // evaluate at (pi, pi/2)
         await updateMathInputValue({
             latex: "(\\pi, \\pi/2)",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -1599,7 +1594,7 @@ describe("Evaluate tag tests", async () => {
         // change variables to 3D
         await updateMathInputValue({
             latex: "x,y,z",
-            componentName: "/variablesOrig",
+            name: "/variablesOrig",
             core,
         });
 
@@ -1611,7 +1606,7 @@ describe("Evaluate tag tests", async () => {
         // change input to 3D
         await updateMathInputValue({
             latex: "(\\pi, \\pi/2,3)",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -1623,7 +1618,7 @@ describe("Evaluate tag tests", async () => {
         // change formula to use all variables
         await updateMathInputValue({
             latex: "z\\sin(x+y)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -1635,7 +1630,7 @@ describe("Evaluate tag tests", async () => {
         // add fourth variable to formula
         await updateMathInputValue({
             latex: "z\\sin(x+y/w)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -1659,7 +1654,7 @@ describe("Evaluate tag tests", async () => {
         // add 4th input
         await updateMathInputValue({
             latex: "(\\pi, \\pi/2,3,3)",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -1671,7 +1666,7 @@ describe("Evaluate tag tests", async () => {
         // add 4th variable
         await updateMathInputValue({
             latex: "x,y,z,w",
-            componentName: "/variablesOrig",
+            name: "/variablesOrig",
             core,
         });
 
@@ -1866,37 +1861,27 @@ describe("Evaluate tag tests", async () => {
         // change inputs, use altvector
         await updateMathInputValue({
             latex: "\\langle -3,5\\rangle",
-            componentName: "/input1",
+            name: "/input1",
             core,
         });
         await updateMathInputValue({
             latex: "-3,5",
-            componentName: "/input2Orig",
+            name: "/input2Orig",
             core,
         });
         await updateMathInputValue({
             latex: "-3",
-            componentName: "/input4a",
+            name: "/input4a",
             core,
         });
         await updateMathInputValue({
             latex: "5",
-            componentName: "/input4b",
+            name: "/input4b",
             core,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/A",
-            args: { x: -3, y: 7 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/B",
-            args: { x: 5, y: -9 },
-            event: null,
-        });
+        await movePoint({ name: "/A", x: -3, y: 7, core });
+        await movePoint({ name: "/B", x: 5, y: -9, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/result1a"].stateValues.value.tree).eqls([
@@ -2050,12 +2035,12 @@ describe("Evaluate tag tests", async () => {
         // evaluate at (pi, 2pi)
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/input1",
+            name: "/input1",
             core,
         });
         await updateMathInputValue({
             latex: "2\\pi",
-            componentName: "/input2",
+            name: "/input2",
             core,
         });
 
@@ -2115,12 +2100,12 @@ describe("Evaluate tag tests", async () => {
         // change variable
         await updateMathInputValue({
             latex: "u",
-            componentName: "/variable1",
+            name: "/variable1",
             core,
         });
         await updateMathInputValue({
             latex: "v",
-            componentName: "/variable2",
+            name: "/variable2",
             core,
         });
 
@@ -2182,7 +2167,7 @@ describe("Evaluate tag tests", async () => {
         // change formula to use new variables
         await updateMathInputValue({
             latex: "(\\sin(u+v), \\cos(u-v))",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -2285,7 +2270,7 @@ describe("Evaluate tag tests", async () => {
         // evaluate at (7,3)
         await updateMathInputValue({
             latex: "(7,3)",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -2311,7 +2296,7 @@ describe("Evaluate tag tests", async () => {
         // change variables to 3D
         await updateMathInputValue({
             latex: "x,y,z",
-            componentName: "/variablesOrig",
+            name: "/variablesOrig",
             core,
         });
 
@@ -2325,7 +2310,7 @@ describe("Evaluate tag tests", async () => {
         // change input to 3D
         await updateMathInputValue({
             latex: "(7,3,2)",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -2351,7 +2336,7 @@ describe("Evaluate tag tests", async () => {
         // change formula to use all variables
         await updateMathInputValue({
             latex: "(zx+y, x-yz)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -2377,7 +2362,7 @@ describe("Evaluate tag tests", async () => {
         // add third dimension
         await updateMathInputValue({
             latex: "(zx+y, x-yz,xyz)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -2406,7 +2391,7 @@ describe("Evaluate tag tests", async () => {
         // add fourth variable and 4th dimension to formula
         await updateMathInputValue({
             latex: "(zx+y, x-yz,xyzw,w)",
-            componentName: "/formula",
+            name: "/formula",
             core,
         });
 
@@ -2438,7 +2423,7 @@ describe("Evaluate tag tests", async () => {
         // add 4th input
         await updateMathInputValue({
             latex: "(7,3,2,5)",
-            componentName: "/input",
+            name: "/input",
             core,
         });
 
@@ -2450,7 +2435,7 @@ describe("Evaluate tag tests", async () => {
         // add 4th variable
         await updateMathInputValue({
             latex: "x,y,z,w",
-            componentName: "/variablesOrig",
+            name: "/variablesOrig",
             core,
         });
 

@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("When tag tests", async () => {
     it("value, fractionSatisfied, conditionSatisfied are public", async () => {
@@ -28,21 +29,21 @@ describe("When tag tests", async () => {
         expect(stateVariables["/cs"].stateValues.value).eq(false);
         expect(stateVariables["/fs"].stateValues.value).eq(0);
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/v"].stateValues.value).eq(false);
         expect(stateVariables["/cs"].stateValues.value).eq(false);
         expect(stateVariables["/fs"].stateValues.value).eq(0.5);
 
-        await updateMathInputValue({ latex: "11", componentName: "/n", core });
+        await updateMathInputValue({ latex: "11", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/v"].stateValues.value).eq(true);
         expect(stateVariables["/cs"].stateValues.value).eq(true);
         expect(stateVariables["/fs"].stateValues.value).eq(1);
 
-        await updateMathInputValue({ latex: "-11", componentName: "/n", core });
+        await updateMathInputValue({ latex: "-11", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/v"].stateValues.value).eq(false);

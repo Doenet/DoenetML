@@ -2,15 +2,19 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    moveInput,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputImmediateValue,
     updateTextInputValue,
     updateTextInputValueToImmediateValue,
 } from "../utils/actions";
+import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("TextInput tag tests", async () => {
     it("textInput references", async () => {
@@ -44,7 +48,7 @@ describe("TextInput tag tests", async () => {
         // Type 2 in first textInput
         await updateTextInputImmediateValue({
             text: "hello2",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -58,7 +62,7 @@ describe("TextInput tag tests", async () => {
 
         // Update value (e.g., by pressing Enter) in first textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -74,12 +78,12 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: "hello",
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
         await updateTextInputImmediateValue({
             text: "hello you",
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
 
@@ -97,7 +101,7 @@ describe("TextInput tag tests", async () => {
 
         // Update value (e.g., by changing focus) of second textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
 
@@ -116,7 +120,7 @@ describe("TextInput tag tests", async () => {
         // bye in third input
         await updateTextInputImmediateValue({
             text: "bye",
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -133,7 +137,7 @@ describe("TextInput tag tests", async () => {
 
         // update value (e.g., press enter) in third textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -151,7 +155,7 @@ describe("TextInput tag tests", async () => {
         // Type abc in second textInput
         await updateTextInputImmediateValue({
             text: "abc",
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -164,7 +168,7 @@ describe("TextInput tag tests", async () => {
 
         // update value (e.g., blur) textInput 2
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -179,7 +183,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: "",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -187,21 +191,21 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: "a",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         await updateTextInputImmediateValue({
             text: "ab",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         await updateTextInputImmediateValue({
             text: "abc",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -216,7 +220,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: "saludos",
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -229,12 +233,12 @@ describe("TextInput tag tests", async () => {
 
         // blur textInput 2 and type d in textInput 1
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         await updateTextInputImmediateValue({
             text: "abcd",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -248,7 +252,7 @@ describe("TextInput tag tests", async () => {
 
         // Update value (e.g., blur) of first textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -262,7 +266,7 @@ describe("TextInput tag tests", async () => {
         // Clearing second textInput
         await updateTextInputImmediateValue({
             text: "",
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -275,7 +279,7 @@ describe("TextInput tag tests", async () => {
 
         // update value (e.g., by blurring) of second textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1a",
+            name: "/ti1a",
             core,
         });
 
@@ -311,7 +315,7 @@ describe("TextInput tag tests", async () => {
         // enter new values
         await updateTextInputValue({
             text: "bye now",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -358,7 +362,7 @@ describe("TextInput tag tests", async () => {
         // enter new values
         await updateTextInputImmediateValue({
             text: "disappear",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -370,7 +374,7 @@ describe("TextInput tag tests", async () => {
 
         // values revert when press update value
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -404,7 +408,7 @@ describe("TextInput tag tests", async () => {
         // enter new values
         await updateTextInputValue({
             text: "bye now",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -451,7 +455,7 @@ describe("TextInput tag tests", async () => {
         // enter new values
         await updateTextInputImmediateValue({
             text: "disappear",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -463,7 +467,7 @@ describe("TextInput tag tests", async () => {
 
         // values revert when press update value
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -499,7 +503,7 @@ describe("TextInput tag tests", async () => {
         // enter new values
         await updateTextInputValue({
             text: "bye now",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -533,7 +537,7 @@ describe("TextInput tag tests", async () => {
         // type new values in first textInput
         await updateTextInputImmediateValue({
             text: "bye now",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -546,7 +550,7 @@ describe("TextInput tag tests", async () => {
 
         // update value
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -558,7 +562,7 @@ describe("TextInput tag tests", async () => {
         // type values input second textInput
         await updateTextInputImmediateValue({
             text: "Hello again",
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -571,7 +575,7 @@ describe("TextInput tag tests", async () => {
 
         // update value of second textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -606,7 +610,7 @@ describe("TextInput tag tests", async () => {
         // type new values in first textInput
         await updateTextInputImmediateValue({
             text: "bye now",
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -617,7 +621,7 @@ describe("TextInput tag tests", async () => {
 
         // update value
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -629,7 +633,7 @@ describe("TextInput tag tests", async () => {
         // type values input second textInput
         await updateTextInputImmediateValue({
             text: "Hello again",
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -642,7 +646,7 @@ describe("TextInput tag tests", async () => {
 
         // update value of second textInput
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -672,7 +676,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: " bye",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -681,7 +685,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: " there",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -689,7 +693,7 @@ describe("TextInput tag tests", async () => {
         expect(stateVariables["/h"].stateValues.value).eq("hello");
 
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -698,7 +702,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: "?",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -707,7 +711,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputImmediateValue({
             text: "!",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -715,7 +719,7 @@ describe("TextInput tag tests", async () => {
         expect(stateVariables["/h"].stateValues.value).eq("hello there");
 
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -724,450 +728,14 @@ describe("TextInput tag tests", async () => {
     });
 
     it("text input in graph", async () => {
-        let core = await createTestCore({
-            doenetML: `
+        const doenetMLsnippet = `
     <graph >
-        <textInput anchor="$anchorCoords1" name="textInput1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" disabled="$disabled1" fixed="$fixed1" fixLocation="$fixLocation1"><label>input 1</label></textInput>
-        <textInput name="textInput2"><label>input 2</label></textInput>
+        <textInput anchor="$anchorCoords1" name="item1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1" disabled="$disabled1" fixed="$fixed1" fixLocation="$fixLocation1"><label>input 1</label></textInput>
+        <textInput name="item2"><label>input 2</label></textInput>
     </graph>
-        
-    <p name="pAnchor1">Anchor 1 coordinates: <point copySource="textInput1.anchor" name="textInput1anchor" /></p>
-    <p name="pAnchor2">Anchor 2 coordinates: <point copySource="textInput2.anchor" name="textInput2anchor" /></p>
-    <p name="pChangeAnchor1">Change anchor 1 coordinates: <mathInput name="anchorCoords1" prefill="(1,3)" /></p>
-    <p name="pChangeAnchor2">Change anchor 2 coordinates: <mathInput name="anchorCoords2" bindValueTo="$textInput2.anchor" /></p>
-    <p name="pPositionFromAnchor1">Position from anchor 1: $textInput1.positionFromAnchor</p>
-    <p name="pPositionFromAnchor2">Position from anchor 2: $textInput2.positionFromAnchor</p>
-    <p>Change position from anchor 1
-    <choiceInput inline preselectChoice="1" name="positionFromAnchor1">
-        <choice>upperRight</choice>
-        <choice>upperLeft</choice>
-        <choice>lowerRight</choice>
-        <choice>lowerLeft</choice>
-        <choice>left</choice>
-        <choice>right</choice>
-        <choice>top</choice>
-        <choice>bottom</choice>
-        <choice>center</choice>
-    </choiceInput>
-    </p>
-    <p>Change position from anchor 2
-    <choiceInput inline name="positionFromAnchor2" bindValueTo="$textInput2.positionFromAnchor">
-        <choice>upperRight</choice>
-        <choice>upperLeft</choice>
-        <choice>lowerRight</choice>
-        <choice>lowerLeft</choice>
-        <choice>left</choice>
-        <choice>right</choice>
-        <choice>top</choice>
-        <choice>bottom</choice>
-        <choice>center</choice>
-    </choiceInput>
-    </p>
-    <p name="pDraggable1">Draggable 1: $draggable1</p>
-    <p name="pDraggable2">Draggable 2: $draggable2</p>
-    <p>Change draggable 1 <booleanInput name="draggable1" prefill="true" /></p>
-    <p>Change draggable 2 <booleanInput name="draggable2" bindValueTo="$textInput2.draggable" /></p>
-    <p name="pDisabled1">Disabled 1: $disabled1</p>
-    <p name="pDisabled2">Disabled 2: $disabled2</p>
-    <p>Change disabled 1 <booleanInput name="disabled1" prefill="true" /></p>
-    <p>Change disabled 2 <booleanInput name="disabled2" bindValueTo="$textInput2.disabled" /></p>
-    <p name="pFixed1">Fixed 1: $fixed1</p>
-    <p name="pFixed2">Fixed 2: $fixed2</p>
-    <p>Change fixed 1 <booleanInput name="fixed1" prefill="false" /></p>
-    <p>Change fixed 2 <booleanInput name="fixed2" bindValueTo="$textInput2.fixed" /></p>
-    <p name="pFixLocation1">FixLocation 1: $fixLocation1</p>
-    <p name="pFixLocation2">FixLocation 2: $fixLocation2</p>
-    <p>Change fixLocation 1 <booleanInput name="fixLocation1" prefill="false" /></p>
-    <p>Change fixLocation 2 <booleanInput name="fixLocation2" bindValueTo="$textInput2.fixLocation" /></p>
-        
-            `,
-        });
+                `;
 
-        let stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(1,3)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(0,0)");
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: upperright",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: center",
-        );
-        expect(
-            stateVariables["/positionFromAnchor1"].stateValues.selectedIndices,
-        ).eqls([1]);
-        expect(
-            stateVariables["/positionFromAnchor2"].stateValues.selectedIndices,
-        ).eqls([9]);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: true",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: false",
-        );
-        expect(stateVariables["/pFixed1"].stateValues.text).eq(
-            "Fixed 1: false",
-        );
-        expect(stateVariables["/pFixed2"].stateValues.text).eq(
-            "Fixed 2: false",
-        );
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: false",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: false",
-        );
-
-        // move textInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput1",
-            args: { x: -2, y: 3 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput2",
-            args: { x: 4, y: -5 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(-2,3)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(4,-5)");
-
-        // move textInputs by entering coordinates
-
-        await updateMathInputValue({
-            latex: "(6,7)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(8,9)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(6,7)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(8,9)");
-
-        // change position from anchor
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [4] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [3] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: lowerleft",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // make not draggable
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: false",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: false",
-        );
-
-        // cannot move textInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(6,7)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(8,9)");
-
-        // make draggable again
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/draggable2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDraggable1"].stateValues.text).eq(
-            "Draggable 1: true",
-        );
-        expect(stateVariables["/pDraggable2"].stateValues.text).eq(
-            "Draggable 2: true",
-        );
-
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput1",
-            args: { x: -10, y: -9 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput2",
-            args: { x: -8, y: -7 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(-10,-9)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(-8,-7)");
-
-        // fix location
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixLocation2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
-            "FixLocation 1: true",
-        );
-        expect(stateVariables["/pFixLocation2"].stateValues.text).eq(
-            "FixLocation 2: true",
-        );
-
-        // can change coordinates entering coordinates only for input 1
-        await updateMathInputValue({
-            latex: "(3,4)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(1,2)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(-8,-7)");
-
-        // cannot move textInputs by dragging
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput1",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "moveInput",
-            componentName: "/textInput2",
-            args: { x: 7, y: 8 },
-            event: null,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(1,2)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(-8,-7)");
-
-        // can change position from anchor only for input 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [8] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [7] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: top",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change disabled attribute
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/disabled1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/disabled2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: false",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: true",
-        );
-
-        // make completely fixed
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/fixed2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: true");
-        expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: true");
-
-        // can change coordinates entering coordinates only for input 1
-        await updateMathInputValue({
-            latex: "(7,8)",
-            componentName: "/anchorCoords2",
-            core,
-        });
-        await updateMathInputValue({
-            latex: "(5,6)",
-            componentName: "/anchorCoords1",
-            core,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(
-            cleanLatex(stateVariables["/textInput1anchor"].stateValues.latex),
-        ).eq("(5,6)");
-        expect(
-            cleanLatex(stateVariables["/textInput2anchor"].stateValues.latex),
-        ).eq("(-8,-7)");
-
-        // can change position from anchor only for math 1
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor2",
-            args: { selectedIndices: [5] },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/positionFromAnchor1",
-            args: { selectedIndices: [6] },
-            event: null,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
-            "Position from anchor 1: right",
-        );
-        expect(stateVariables["/pPositionFromAnchor2"].stateValues.text).eq(
-            "Position from anchor 2: lowerright",
-        );
-
-        // can change disabled attribute only for input 1
-
-        await updateBooleanInputValue({
-            boolean: true,
-            componentName: "/disabled1",
-            core,
-        });
-        await updateBooleanInputValue({
-            boolean: false,
-            componentName: "/disabled2",
-            core,
-        });
-        stateVariables = await returnAllStateVariables(core);
-
-        expect(stateVariables["/pDisabled1"].stateValues.text).eq(
-            "Disabled 1: true",
-        );
-        expect(stateVariables["/pDisabled2"].stateValues.text).eq(
-            "Disabled 2: true",
-        );
+        await test_in_graph(doenetMLsnippet, moveInput);
     });
 
     it("use textInput as basic math input", async () => {
@@ -1189,14 +757,14 @@ describe("TextInput tag tests", async () => {
         expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
         expect(stateVariables["/n2"].stateValues.value).eqls(NaN);
 
-        await updateTextInputValue({ text: "4/2", componentName: "/ti", core });
+        await updateTextInputValue({ text: "4/2", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/m1"].stateValues.value.tree).eqls(["/", 4, 2]);
         expect(stateVariables["/m2"].stateValues.value.tree).eqls(["/", 4, 2]);
         expect(stateVariables["/n1"].stateValues.value).eq(2);
         expect(stateVariables["/n2"].stateValues.value).eq(2);
 
-        await updateTextInputValue({ text: "xy", componentName: "/ti", core });
+        await updateTextInputValue({ text: "xy", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/m1"].stateValues.value.tree).eqls([
             "*",
@@ -1213,7 +781,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputValue({
             text: "\\frac{a}{b}",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1228,7 +796,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputValue({
             text: "\\frac{6}{2}",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1349,7 +917,7 @@ describe("TextInput tag tests", async () => {
         ti1ivchanged = true;
         await updateTextInputImmediateValue({
             text: ti1iv,
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
         await check_items(
@@ -1363,7 +931,7 @@ describe("TextInput tag tests", async () => {
         ti1 = ti3 = ti3iv = ti1iv;
         ti1changed = true;
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti1",
+            name: "/ti1",
             core,
         });
 
@@ -1380,7 +948,7 @@ describe("TextInput tag tests", async () => {
         ti2ivchanged = true;
         await updateTextInputImmediateValue({
             text: ti2iv,
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
         await check_items(
@@ -1394,7 +962,7 @@ describe("TextInput tag tests", async () => {
         ti2 = ti2iv;
         ti2changed = true;
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti2",
+            name: "/ti2",
             core,
         });
 
@@ -1410,7 +978,7 @@ describe("TextInput tag tests", async () => {
         ti3ivchanged = true;
         await updateTextInputImmediateValue({
             text: ti3iv,
-            componentName: "/ti3",
+            name: "/ti3",
             core,
         });
         await check_items(
@@ -1424,7 +992,7 @@ describe("TextInput tag tests", async () => {
         ti1 = ti1iv = ti3 = ti3iv;
         ti3changed = true;
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti3",
+            name: "/ti3",
             core,
         });
 
@@ -1440,7 +1008,7 @@ describe("TextInput tag tests", async () => {
         ti4ivchanged = true;
         await updateTextInputImmediateValue({
             text: ti4iv,
-            componentName: "/ti4",
+            name: "/ti4",
             core,
         });
         await check_items(
@@ -1454,7 +1022,7 @@ describe("TextInput tag tests", async () => {
         ti2 = ti2iv = ti4 = ti4iv;
         ti4changed = true;
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti4",
+            name: "/ti4",
             core,
         });
 
@@ -1499,7 +1067,7 @@ describe("TextInput tag tests", async () => {
         ti3ivchanged = true;
         await updateTextInputImmediateValue({
             text: ti3iv,
-            componentName: "/ti3",
+            name: "/ti3",
             core,
         });
         await check_items(
@@ -1515,7 +1083,7 @@ describe("TextInput tag tests", async () => {
         ti1ivchanged = true;
         ti3changed = true;
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti3",
+            name: "/ti3",
             core,
         });
 
@@ -1531,7 +1099,7 @@ describe("TextInput tag tests", async () => {
         ti4ivchanged = true;
         await updateTextInputImmediateValue({
             text: ti4iv,
-            componentName: "/ti4",
+            name: "/ti4",
             core,
         });
         await check_items(
@@ -1547,7 +1115,7 @@ describe("TextInput tag tests", async () => {
         ti2ivchanged = true;
         ti4changed = true;
         await updateTextInputValueToImmediateValue({
-            componentName: "/ti4",
+            name: "/ti4",
             core,
         });
 
@@ -1654,7 +1222,7 @@ describe("TextInput tag tests", async () => {
 
         await updateTextInputValue({
             text: string,
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         await check_items(string);
@@ -1662,7 +1230,7 @@ describe("TextInput tag tests", async () => {
         string = "black cat,   green  goblin,great big   red dog";
         await updateTextInputValue({
             text: string,
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         await check_items(string);

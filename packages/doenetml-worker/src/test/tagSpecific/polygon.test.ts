@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
+    movePoint,
+    movePolygon,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 async function testPolygonCopiedTwice({
     core,
@@ -17,7 +21,7 @@ async function testPolygonCopiedTwice({
     graph2Name = "/g2",
     graph3Name = "/g3",
 }: {
-    core: any;
+    core: Core;
     vertices: (number | string)[][];
     polygonName?: string;
     graph1Name?: string;
@@ -159,13 +163,10 @@ describe("Polygon tag tests", async () => {
         // move individual vertex
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -179,27 +180,17 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: vertices[2] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: vertices[2] },
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -231,13 +222,10 @@ describe("Polygon tag tests", async () => {
         // move individual vertex
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -251,27 +239,17 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
         // move double copied individual vertex
         vertices[2] = [-9, -8];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: vertices[2] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: vertices[2] },
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -300,7 +278,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices[0] = [0, 5 * Math.sin(0)];
@@ -308,7 +286,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices[1] = [1, 5 * Math.sin(1)];
@@ -316,7 +294,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices[2] = [2, 5 * Math.sin(2)];
@@ -324,7 +302,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices.splice(2, 1);
@@ -332,7 +310,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "0",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices = [];
@@ -340,7 +318,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "5",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         for (let i = 0; i < 5; i++) {
@@ -372,7 +350,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         for (let i = 0; i < 10; i++) {
@@ -382,7 +360,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentName: "/length",
+            name: "/length",
             core,
         });
         vertices = [[0, 5 * Math.sin(0)]];
@@ -415,7 +393,7 @@ describe("Polygon tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-2",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
 
@@ -447,18 +425,8 @@ describe("Polygon tag tests", async () => {
         await testPolygonCopiedTwice({ core, vertices });
 
         // can't move points
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp1",
-            args: { x: 9, y: -8 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp9",
-            args: { x: -8, y: 4 },
-            event: null,
-        });
+        await movePoint({ name: "/g1/mp1", x: 9, y: -8, core });
+        await movePoint({ name: "/g1/mp9", x: -8, y: 4, core });
 
         // can't move polygon1
         let moveX = 3;
@@ -466,14 +434,7 @@ describe("Polygon tag tests", async () => {
 
         let vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g1/pg", pointCoords: vertices2, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
@@ -483,14 +444,7 @@ describe("Polygon tag tests", async () => {
 
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices2, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
@@ -500,14 +454,7 @@ describe("Polygon tag tests", async () => {
 
         vertices2 = vertices.map((v) => [v[0] + moveX, v[1] + moveY]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g3/pg", pointCoords: vertices2, core });
 
         await testPolygonCopiedTwice({ core, vertices });
     });
@@ -540,17 +487,17 @@ describe("Polygon tag tests", async () => {
         vertices[0] = [9, -8];
         vertices[8] = [-8, 4];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/mp1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/mp9",
-            args: { x: vertices[8][0], y: vertices[8][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/mp9",
+            x: vertices[8][0],
+            y: vertices[8][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -564,14 +511,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g1/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
@@ -584,14 +524,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
@@ -603,14 +536,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
     });
@@ -665,11 +591,11 @@ describe("Polygon tag tests", async () => {
         ];
 
         for (let i = 0; i < 4; i++) {
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: `/v${i + 1}`,
-                args: { x: ps[i][0], y: ps[i][1] },
-                event: null,
+            await movePoint({
+                name: `/v${i + 1}`,
+                x: ps[i][0],
+                y: ps[i][1],
+                core,
             });
         }
 
@@ -698,11 +624,11 @@ describe("Polygon tag tests", async () => {
         ];
 
         for (let i = 0; i < 4; i++) {
-            await core.requestAction({
-                actionName: "movePoint",
-                componentName: `/v${i + 1}a`,
-                args: { x: ps[i][0], y: ps[i][1] },
-                event: null,
+            await movePoint({
+                name: `/v${i + 1}a`,
+                x: ps[i][0],
+                y: ps[i][1],
+                core,
             });
         }
 
@@ -754,14 +680,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g1/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
@@ -774,14 +693,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
 
@@ -794,14 +706,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] += moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
 
         await testPolygonCopiedTwice({ core, vertices });
     });
@@ -920,14 +825,7 @@ describe("Polygon tag tests", async () => {
             [6, 3],
         ];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: vertices, core });
 
         await testPolygons({ vertices, transX, transY });
 
@@ -939,14 +837,7 @@ describe("Polygon tag tests", async () => {
             [2, -1],
         ];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon2",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon2", pointCoords: vertices2, core });
 
         vertices = vertices2.map((v) => [v[0] - transX, v[1] - transY]);
 
@@ -955,12 +846,12 @@ describe("Polygon tag tests", async () => {
         // change translation
         await updateMathInputValue({
             latex: "2",
-            componentName: "/transx",
+            name: "/transx",
             core,
         });
         await updateMathInputValue({
             latex: "10",
-            componentName: "/transy",
+            name: "/transy",
             core,
         });
 
@@ -1010,13 +901,10 @@ describe("Polygon tag tests", async () => {
         A = [-4, -1];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
+        await movePolygon({
+            name: "/parallelogram",
+            pointCoords: { 0: A },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1044,13 +932,10 @@ describe("Polygon tag tests", async () => {
         B = [8, 9];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
+        await movePolygon({
+            name: "/parallelogram",
+            pointCoords: { 1: B },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1079,13 +964,10 @@ describe("Polygon tag tests", async () => {
         C = [-3, 7];
         D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
+        await movePolygon({
+            name: "/parallelogram",
+            pointCoords: { 2: C },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1114,13 +996,10 @@ describe("Polygon tag tests", async () => {
         D = [7, 0];
         B = [A[0] + C[0] - D[0], A[1] + C[1] - D[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/parallelogram",
-            args: {
-                pointCoords: { 3: D },
-            },
-            event: null,
+        await movePolygon({
+            name: "/parallelogram",
+            pointCoords: { 3: D },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -1246,14 +1125,7 @@ describe("Polygon tag tests", async () => {
             [-4, -3],
         ];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: vertices, core });
 
         await testPolygons({ vertices });
 
@@ -1265,14 +1137,7 @@ describe("Polygon tag tests", async () => {
             [-7, 6],
         ];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon2",
-            args: {
-                pointCoords: vertices2,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon2", pointCoords: vertices2, core });
 
         vertices = [...vertices2];
         vertices[1] = [vertices[1][1], vertices[1][0]];
@@ -1322,14 +1187,7 @@ describe("Polygon tag tests", async () => {
         A = [-4, -1];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1357,14 +1215,7 @@ describe("Polygon tag tests", async () => {
         B = [8, 9];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1392,14 +1243,7 @@ describe("Polygon tag tests", async () => {
         C = [-3, 7];
         D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1427,14 +1271,7 @@ describe("Polygon tag tests", async () => {
         D = [7, 0];
         A = [C[0] + B[0] - D[0], C[1] + B[1] - D[1]];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 3: D },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 3: D }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1498,14 +1335,7 @@ describe("Polygon tag tests", async () => {
         // move first vertex
         A = [-4, -1];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1532,14 +1362,7 @@ describe("Polygon tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1566,14 +1389,7 @@ describe("Polygon tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1599,14 +1415,7 @@ describe("Polygon tag tests", async () => {
 
         // move fourth vertex
         A = [7, 0];
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1671,14 +1480,7 @@ describe("Polygon tag tests", async () => {
         // move first vertex
         A = [-4, -1];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1705,14 +1507,7 @@ describe("Polygon tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1739,14 +1534,7 @@ describe("Polygon tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1773,14 +1561,7 @@ describe("Polygon tag tests", async () => {
         // move fourth vertex
         A = [7, 0];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1853,14 +1634,7 @@ describe("Polygon tag tests", async () => {
         A = [-4, -1];
         D[0] = A[0] + 1;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1892,14 +1666,7 @@ describe("Polygon tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1931,14 +1698,7 @@ describe("Polygon tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -1971,14 +1731,7 @@ describe("Polygon tag tests", async () => {
         A = [7, 0];
         D[0] = A[0] + 1;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2011,14 +1764,7 @@ describe("Polygon tag tests", async () => {
         D = [-5, 9];
         A[0] = D[0] - 1;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 4: D },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/_polygon1", pointCoords: { 4: D }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2101,14 +1847,7 @@ describe("Polygon tag tests", async () => {
         // move first vertex
         A = [-4, -9];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 0: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 0: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2145,14 +1884,7 @@ describe("Polygon tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2189,14 +1921,7 @@ describe("Polygon tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2233,14 +1958,7 @@ describe("Polygon tag tests", async () => {
         // move fourth vertex
         A = [7, 0];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 3: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 3: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2277,14 +1995,7 @@ describe("Polygon tag tests", async () => {
         // move fifth vertex
         D = [-9, 1];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 4: D },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 4: D }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2321,14 +2032,7 @@ describe("Polygon tag tests", async () => {
         // move sixth vertex
         E = [-3, 6];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 5: E },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 5: E }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2365,14 +2069,7 @@ describe("Polygon tag tests", async () => {
         // move seventh vertex
         A = [2, -4];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 6: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 6: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2409,14 +2106,7 @@ describe("Polygon tag tests", async () => {
         // move eighth vertex
         F = [6, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 7: F },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 7: F }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2453,14 +2143,7 @@ describe("Polygon tag tests", async () => {
         // move ninth vertex
         G = [1, -8];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 8: G },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 8: G }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2497,14 +2180,7 @@ describe("Polygon tag tests", async () => {
         // move tenth vertex
         A = [-6, 10];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 9: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 9: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2600,14 +2276,7 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 0: A3 },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 0: A3 }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2644,14 +2313,7 @@ describe("Polygon tag tests", async () => {
         // move second vertex
         B = [8, 9];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 1: B },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 1: B }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2688,14 +2350,7 @@ describe("Polygon tag tests", async () => {
         // move third vertex
         C = [-3, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 2: C },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 2: C }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2735,14 +2390,7 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 3: A2 },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 3: A2 }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2779,14 +2427,7 @@ describe("Polygon tag tests", async () => {
         // move fifth vertex
         D = [-9, 1];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 4: D },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 4: D }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2823,14 +2464,7 @@ describe("Polygon tag tests", async () => {
         // move sixth vertex
         E = [-3, 6];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 5: E },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 5: E }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2870,14 +2504,7 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 6: A1 },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 6: A1 }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2914,14 +2541,7 @@ describe("Polygon tag tests", async () => {
         // move eighth vertex
         F = [6, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 7: F },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 7: F }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -2958,14 +2578,7 @@ describe("Polygon tag tests", async () => {
         // move ninth vertex
         G = [1, -8];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 8: G },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 8: G }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -3005,14 +2618,7 @@ describe("Polygon tag tests", async () => {
         A2 = [A[0] + 2, A[1] + 2];
         A3 = [A[0] + 3, A[1] + 3];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/P",
-            args: {
-                pointCoords: { 9: A },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/P", pointCoords: { 9: A }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -3082,12 +2688,7 @@ describe("Polygon tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3101,12 +2702,7 @@ describe("Polygon tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.4;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3119,12 +2715,7 @@ describe("Polygon tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3136,12 +2727,7 @@ describe("Polygon tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3155,12 +2741,7 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3173,12 +2754,7 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3191,12 +2767,7 @@ describe("Polygon tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3210,12 +2781,7 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3228,12 +2794,7 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3253,17 +2814,14 @@ describe("Polygon tag tests", async () => {
         y2 += moveY;
         y3 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: [
-                    [x1, y1],
-                    [x2, y2],
-                    [x3, y3],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: [
+                [x1, y1],
+                [x2, y2],
+                [x3, y3],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3281,13 +2839,10 @@ describe("Polygon tag tests", async () => {
         x2 += moveX;
         y2 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: [x2, y2] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: { 1: [x2, y2] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3335,12 +2890,7 @@ describe("Polygon tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3354,12 +2904,7 @@ describe("Polygon tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.4;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3373,12 +2918,7 @@ describe("Polygon tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3390,12 +2930,7 @@ describe("Polygon tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3410,12 +2945,7 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3427,12 +2957,7 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3446,12 +2971,7 @@ describe("Polygon tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3466,12 +2986,7 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3484,12 +2999,7 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3510,17 +3020,14 @@ describe("Polygon tag tests", async () => {
         y2 += moveY;
         y3 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: [
-                    [x1, y1],
-                    [x2, y2],
-                    [x3, y3],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: [
+                [x1, y1],
+                [x2, y2],
+                [x3, y3],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3539,13 +3046,10 @@ describe("Polygon tag tests", async () => {
         x2 += moveX;
         y2 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: [x2, y2] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: { 1: [x2, y2] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3596,12 +3100,7 @@ describe("Polygon tag tests", async () => {
 
         let mseg1 = (y2 - y1) / (x2 - x1);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/A`,
-            args: { x: -20, y: 0.02 },
-            event: null,
-        });
+        await movePoint({ name: `/A`, x: -20, y: 0.02, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/A"].stateValues.xs[0].tree;
@@ -3613,12 +3112,7 @@ describe("Polygon tag tests", async () => {
 
         let mseg2 = (y2 - y3) / (x2 - x3);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/A`,
-            args: { x: 0, y: 0.04 },
-            event: null,
-        });
+        await movePoint({ name: `/A`, x: 0, y: 0.04, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/A"].stateValues.xs[0].tree;
@@ -3630,12 +3124,7 @@ describe("Polygon tag tests", async () => {
 
         let mseg4 = (y4 - y1) / (x4 - x1);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/A`,
-            args: { x: -10, y: 0.02 },
-            event: null,
-        });
+        await movePoint({ name: `/A`, x: -10, y: 0.02, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/A"].stateValues.xs[0].tree;
@@ -3678,12 +3167,7 @@ describe("Polygon tag tests", async () => {
         let mseg1 = (y2 - y1) / (x2 - x1);
         let y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3697,12 +3181,7 @@ describe("Polygon tag tests", async () => {
         x = 3;
         y = 1.5;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3717,12 +3196,7 @@ describe("Polygon tag tests", async () => {
         let mseg3 = (y1 - y3) / (x1 - x3);
         y = mseg3 * (x - x3) + y3 + 0.2;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3735,12 +3209,7 @@ describe("Polygon tag tests", async () => {
         x = x1 + 0.2;
         y = y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3755,12 +3224,7 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3773,12 +3237,7 @@ describe("Polygon tag tests", async () => {
         mseg1 = (y2 - y1) / (x2 - x1);
         y = mseg1 * (x - x1) + y1 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3792,12 +3251,7 @@ describe("Polygon tag tests", async () => {
         x = x2 - 0.2;
         y = y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3812,12 +3266,7 @@ describe("Polygon tag tests", async () => {
         let mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 + 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3833,12 +3282,7 @@ describe("Polygon tag tests", async () => {
         mseg2 = (y2 - y3) / (x2 - x3);
         y = mseg2 * (x - x2) + y2 - 0.3;
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/_point1`,
-            args: { x, y },
-            event: null,
-        });
+        await movePoint({ name: `/_point1`, x, y, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
@@ -3863,17 +3307,14 @@ describe("Polygon tag tests", async () => {
         y2 += moveY;
         y3 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: [
-                    [x1, y1],
-                    [x2, y2],
-                    [x3, y3],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: [
+                [x1, y1],
+                [x2, y2],
+                [x3, y3],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3892,13 +3333,10 @@ describe("Polygon tag tests", async () => {
         x2 += moveX;
         y2 += moveY;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 1: [x2, y2] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: { 1: [x2, y2] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3915,13 +3353,10 @@ describe("Polygon tag tests", async () => {
         x3 = -4;
         y3 = -6;
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/_polygon1",
-            args: {
-                pointCoords: { 2: [x3, y3] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/_polygon1",
+            pointCoords: { 2: [x3, y3] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -3958,12 +3393,7 @@ describe("Polygon tag tests", async () => {
 
         // move point above polygon
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/P`,
-            args: { x: 3, y: 10 },
-            event: null,
-        });
+        await movePoint({ name: `/P`, x: 3, y: 10, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -3974,12 +3404,7 @@ describe("Polygon tag tests", async () => {
 
         // move point inside doubly wound region
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/P`,
-            args: { x: 3, y: 5 },
-            event: null,
-        });
+        await movePoint({ name: `/P`, x: 3, y: 5, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/P"].stateValues.xs[0].tree;
@@ -3989,12 +3414,7 @@ describe("Polygon tag tests", async () => {
 
         // attempt to move point inside zero wound region
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: `/P`,
-            args: { x: 4.9, y: 3 },
-            event: null,
-        });
+        await movePoint({ name: `/P`, x: 4.9, y: 3, core });
 
         stateVariables = await returnAllStateVariables(core);
         px = stateVariables["/P"].stateValues.xs[0].tree;
@@ -4026,17 +3446,14 @@ describe("Polygon tag tests", async () => {
 
         // cannot move vertices
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [4, 7],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/p",
+            pointCoords: [
+                [4, 7],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4084,7 +3501,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/x"]).eq(undefined);
         expect(stateVariables["/xa"]).eq(undefined);
 
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -4096,7 +3513,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eq(t2x);
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
 
-        await updateMathInputValue({ latex: "2", componentName: "/n", core });
+        await updateMathInputValue({ latex: "2", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -4108,7 +3525,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eq(t2y);
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
 
-        await updateMathInputValue({ latex: "3", componentName: "/n", core });
+        await updateMathInputValue({ latex: "3", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -4120,7 +3537,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/x"]).eq(undefined);
         expect(stateVariables["/xa"]).eq(undefined);
 
-        await updateMathInputValue({ latex: "4", componentName: "/n", core });
+        await updateMathInputValue({ latex: "4", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/P1"]).eq(undefined);
@@ -4154,13 +3571,10 @@ describe("Polygon tag tests", async () => {
             [-4, 5],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/polygon",
-            args: {
-                pointCoords: { 0: [3, 5] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/polygon",
+            pointCoords: { 0: [3, 5] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4174,13 +3588,10 @@ describe("Polygon tag tests", async () => {
             [-4, 5],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/polygon",
-            args: {
-                pointCoords: { 1: [-9, -6] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/polygon",
+            pointCoords: { 1: [-9, -6] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4194,13 +3605,10 @@ describe("Polygon tag tests", async () => {
             [-9, 2],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/polygon",
-            args: {
-                pointCoords: { 2: [-3, 1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/polygon",
+            pointCoords: { 2: [-3, 1] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4242,13 +3650,10 @@ describe("Polygon tag tests", async () => {
             [-4, 5],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/polygon",
-            args: {
-                pointCoords: { 0: [3, 5] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/polygon",
+            pointCoords: { 0: [3, 5] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4262,13 +3667,10 @@ describe("Polygon tag tests", async () => {
             [-4, 5],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/polygon",
-            args: {
-                pointCoords: { 1: [-9, -6] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/polygon",
+            pointCoords: { 1: [-9, -6] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4282,13 +3684,10 @@ describe("Polygon tag tests", async () => {
             [-9, 2],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/polygon",
-            args: {
-                pointCoords: { 2: [-3, 1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/polygon",
+            pointCoords: { 2: [-3, 1] },
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4447,14 +3846,7 @@ describe("Polygon tag tests", async () => {
 
         // cannot move single vertex
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 0: [4, 7] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 0: [4, 7] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -4471,17 +3863,14 @@ describe("Polygon tag tests", async () => {
 
         // cannot move all vertices
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [4, 7],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/p",
+            pointCoords: [
+                [4, 7],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4501,20 +3890,13 @@ describe("Polygon tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/verticesDraggable",
+            name: "/verticesDraggable",
             core,
         });
 
         // can move single vertex
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 0: [4, 7] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 0: [4, 7] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -4531,17 +3913,14 @@ describe("Polygon tag tests", async () => {
 
         // cannot move all vertices
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [3, 8],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/p",
+            pointCoords: [
+                [3, 8],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4561,20 +3940,13 @@ describe("Polygon tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/draggable",
+            name: "/draggable",
             core,
         });
 
         // can move single vertex
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 1: [-3, 2] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 1: [-3, 2] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -4591,17 +3963,14 @@ describe("Polygon tag tests", async () => {
 
         // can move all vertices
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [3, 8],
-                    [8, 10],
-                    [1, 9],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/p",
+            pointCoords: [
+                [3, 8],
+                [8, 10],
+                [1, 9],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4621,20 +3990,13 @@ describe("Polygon tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/verticesDraggable",
+            name: "/verticesDraggable",
             core,
         });
 
         // cannot move single vertex
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 2: [9, 3] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 2: [9, 3] }, core });
 
         stateVariables = await returnAllStateVariables(core);
         expect(
@@ -4651,17 +4013,14 @@ describe("Polygon tag tests", async () => {
 
         // can move all vertices
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: [
-                    [-4, 1],
-                    [9, -4],
-                    [0, 7],
-                ],
-            },
-            event: null,
+        await movePolygon({
+            name: "/p",
+            pointCoords: [
+                [-4, 1],
+                [9, -4],
+                [0, 7],
+            ],
+            core,
         });
 
         stateVariables = await returnAllStateVariables(core);
@@ -4712,13 +4071,10 @@ describe("Polygon tag tests", async () => {
 
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -4733,14 +4089,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4762,14 +4111,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4820,13 +4162,10 @@ describe("Polygon tag tests", async () => {
 
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         await testPolygonCopiedTwice({ core, vertices });
@@ -4841,14 +4180,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4870,14 +4202,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4932,13 +4257,10 @@ describe("Polygon tag tests", async () => {
 
         vertices[1] = [4, 7];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: vertices[1] },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: vertices[1] },
+            core,
         });
 
         // adjust for constraint
@@ -4956,14 +4278,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g2/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -4985,14 +4300,7 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: vertices,
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/g3/pg", pointCoords: vertices, core });
 
         // adjustment due to constraint
         moveX = -1;
@@ -5052,13 +4360,10 @@ describe("Polygon tag tests", async () => {
             }
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: desiredVertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: desiredVertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5096,22 +4401,8 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 1: [-8, -4] },
-            },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 2: [-8, 2] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 1: [-8, -4] }, core });
+        await movePolygon({ name: "/p", pointCoords: { 2: [-8, 2] }, core });
 
         area = 2 * 8 + (4 * 8) / 2 - (5 * 8) / 2;
         perimeter = 13 + 6 + Math.sqrt(16 + 64) + 10 + Math.sqrt(25 + 64);
@@ -5120,14 +4411,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 3: [8, 2] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 3: [8, 2] }, core });
 
         area = 0;
         perimeter = 16 + 6 + Math.sqrt(16 + 64) + 10 + Math.sqrt(64 + 64);
@@ -5136,14 +4420,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/p",
-            args: {
-                pointCoords: { 0: [0, 2] },
-            },
-            event: null,
-        });
+        await movePolygon({ name: "/p", pointCoords: { 0: [0, 2] }, core });
 
         area = (8 * 8) / 2 - (8 * 6) / 2;
         perimeter = 16 + 6 + Math.sqrt(36 + 64) + 8 + Math.sqrt(64 + 64);
@@ -5198,13 +4475,10 @@ describe("Polygon tag tests", async () => {
             v[0] - centroid[0] + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5224,13 +4498,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5254,13 +4525,10 @@ describe("Polygon tag tests", async () => {
             -(v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5284,11 +4552,11 @@ describe("Polygon tag tests", async () => {
             -(v[0] - centroid[0]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5296,11 +4564,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5352,13 +4620,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (v[0] - centroid[0]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5378,13 +4643,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5409,13 +4671,10 @@ describe("Polygon tag tests", async () => {
             -2 * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5439,11 +4698,11 @@ describe("Polygon tag tests", async () => {
             -0.25 * (v[0] - centroid[0]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5451,11 +4710,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5507,13 +4766,10 @@ describe("Polygon tag tests", async () => {
             v[0] - centroid[0] + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5533,13 +4789,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5591,13 +4844,10 @@ describe("Polygon tag tests", async () => {
             v[0] - centroid[0] + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5617,13 +4867,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5685,13 +4932,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5711,13 +4955,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5750,13 +4991,10 @@ describe("Polygon tag tests", async () => {
             shrink_factor * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5790,11 +5028,11 @@ describe("Polygon tag tests", async () => {
             10 * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5802,11 +5040,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5868,13 +5106,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5894,13 +5129,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5933,13 +5165,10 @@ describe("Polygon tag tests", async () => {
             shrink_factor * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5973,11 +5202,11 @@ describe("Polygon tag tests", async () => {
             10 * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -5985,11 +5214,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6041,13 +5270,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (v[0] - centroid[0]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6065,13 +5291,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6096,13 +5319,10 @@ describe("Polygon tag tests", async () => {
             -2 * (v[1] - centroid[1]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6126,11 +5346,11 @@ describe("Polygon tag tests", async () => {
             -0.25 * (v[0] - centroid[0]) + centroid[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6138,11 +5358,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6188,13 +5408,10 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6214,13 +5431,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6238,13 +5452,10 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6262,11 +5473,11 @@ describe("Polygon tag tests", async () => {
             vertices[i][1] = vertices[i][1] + moveY;
         }
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6274,11 +5485,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6327,13 +5538,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (vertices[1][0] - centroid[0]) + centroid[1],
         ];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 1: requested_vertex_1 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 1: requested_vertex_1 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6351,13 +5559,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6378,13 +5583,10 @@ describe("Polygon tag tests", async () => {
             -2 * (vertices[2][1] - centroid[1]) + centroid[1],
         ];
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6405,11 +5607,11 @@ describe("Polygon tag tests", async () => {
             -0.25 * (vertices[3][0] - centroid[0]) + centroid[1],
         ];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6417,11 +5619,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6468,13 +5670,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (v[0] - rotationPoint[0]) + rotationPoint[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 0: requested_vertex_0 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 0: requested_vertex_0 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6494,13 +5693,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6520,13 +5716,10 @@ describe("Polygon tag tests", async () => {
             -2 * (v[1] - rotationPoint[1]) + rotationPoint[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6545,11 +5738,11 @@ describe("Polygon tag tests", async () => {
             -0.25 * (v[0] - rotationPoint[0]) + rotationPoint[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6557,11 +5750,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6610,13 +5803,10 @@ describe("Polygon tag tests", async () => {
             0.5 * (v[0] - rotationPoint[0]) + rotationPoint[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g1/pg",
-            args: {
-                pointCoords: { 0: requested_vertex_0 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g1/pg",
+            pointCoords: { 0: requested_vertex_0 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6636,13 +5826,10 @@ describe("Polygon tag tests", async () => {
             ]);
         }
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g2/pg",
-            args: {
-                pointCoords: requested_vertices,
-            },
-            event: null,
+        await movePolygon({
+            name: "/g2/pg",
+            pointCoords: requested_vertices,
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6662,25 +5849,17 @@ describe("Polygon tag tests", async () => {
             -2 * (v[1] - rotationPoint[1]) + rotationPoint[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePolygon",
-            componentName: "/g3/pg",
-            args: {
-                pointCoords: { 2: requested_vertex_2 },
-            },
-            event: null,
+        await movePolygon({
+            name: "/g3/pg",
+            pointCoords: { 2: requested_vertex_2 },
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
 
         // change rotation point, then moving single copied vertex gets rotation and dilation
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/rotationPoint",
-            args: { x: 6, y: -2 },
-            event: null,
-        });
+        await movePoint({ name: "/g1/rotationPoint", x: 6, y: -2, core });
 
         rotationPoint = [6, -2];
 
@@ -6695,11 +5874,11 @@ describe("Polygon tag tests", async () => {
             -0.25 * (v[0] - rotationPoint[0]) + rotationPoint[1],
         ]);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g2/v4",
-            args: { x: requested_vertex_3[0], y: requested_vertex_3[1] },
-            event: null,
+        await movePoint({
+            name: "/g2/v4",
+            x: requested_vertex_3[0],
+            y: requested_vertex_3[1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });
@@ -6707,11 +5886,11 @@ describe("Polygon tag tests", async () => {
         // moving defining vertex deforms polygon
         vertices[0] = [4, 6];
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/g1/_point1",
-            args: { x: vertices[0][0], y: vertices[0][1] },
-            event: null,
+        await movePoint({
+            name: "/g1/_point1",
+            x: vertices[0][0],
+            y: vertices[0][1],
+            core,
         });
 
         await testPolygonCopiedTwice({ vertices, core });

@@ -4,9 +4,11 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("BooleanList tag tests", async () => {
     async function test_booleanList({
@@ -16,11 +18,11 @@ describe("BooleanList tag tests", async () => {
         text,
         booleans,
     }: {
-        core: any;
+        core: Core;
         name?: string;
         pName?: string;
         text?: string;
-        booleans?: any[];
+        booleans?: boolean[];
     }) {
         const stateVariables = await returnAllStateVariables(core);
 
@@ -102,7 +104,7 @@ describe("BooleanList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: any) {
+    async function test_nested_and_inverse(core: Core) {
         await test_booleanList({
             core,
             name: "/bl1",
@@ -150,47 +152,47 @@ describe("BooleanList tag tests", async () => {
         // change values
 
         await updateBooleanInputValue({
-            componentName: "/mi1",
+            name: "/mi1",
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi2",
+            name: "/mi2",
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi3",
+            name: "/mi3",
             boolean: true,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi4",
+            name: "/mi4",
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi5",
+            name: "/mi5",
             boolean: true,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi6",
+            name: "/mi6",
             boolean: true,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi7",
+            name: "/mi7",
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi8",
+            name: "/mi8",
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentName: "/mi9",
+            name: "/mi9",
             boolean: true,
             core,
         });
@@ -465,13 +467,13 @@ describe("BooleanList tag tests", async () => {
         await check_items(max1, max2);
 
         max1 = Infinity;
-        await updateMathInputValue({ latex: "", componentName: "/mn1", core });
+        await updateMathInputValue({ latex: "", name: "/mn1", core });
         await check_items(max1, max2);
 
         max2 = 3;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentName: "/mn2",
+            name: "/mn2",
             core,
         });
         await check_items(max1, max2);
@@ -479,7 +481,7 @@ describe("BooleanList tag tests", async () => {
         max1 = 4;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentName: "/mn1",
+            name: "/mn1",
             core,
         });
         await check_items(max1, max2);
@@ -487,7 +489,7 @@ describe("BooleanList tag tests", async () => {
         max1 = 1;
         await updateMathInputValue({
             latex: max1.toString(),
-            componentName: "/mn1",
+            name: "/mn1",
             core,
         });
         await check_items(max1, max2);
@@ -495,7 +497,7 @@ describe("BooleanList tag tests", async () => {
         max2 = 10;
         await updateMathInputValue({
             latex: max2.toString(),
-            componentName: "/mn2",
+            name: "/mn2",
             core,
         });
         await check_items(max1, max2);

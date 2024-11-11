@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
-import { updateMathInputValue } from "../utils/actions";
+import { movePoint, updateMathInputValue } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 function constantFromAst(tree) {
     //@ts-ignore
@@ -668,7 +670,7 @@ describe("Function tag tests", async () => {
         expect(f(-12)).closeTo(-1 + 0 * (-12 + 6), 1e-12);
         expect(f(12)).closeTo(-1 + 0 * (12 + 6), 1e-12);
 
-        await updateMathInputValue({ latex: "2", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "2", name: "/mi", core });
         f = await core.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -676,7 +678,7 @@ describe("Function tag tests", async () => {
         expect(f(-12)).closeTo(-1 + 2 * (-12 + 6), 1e-12);
         expect(f(12)).closeTo(-1 + 2 * (12 + 6), 1e-12);
 
-        await updateMathInputValue({ latex: "-3", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "-3", name: "/mi", core });
         f = await core.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -684,7 +686,7 @@ describe("Function tag tests", async () => {
         expect(f(-12)).closeTo(-1 - 3 * (-12 + 6), 1e-12);
         expect(f(12)).closeTo(-1 - 3 * (12 + 6), 1e-12);
 
-        await updateMathInputValue({ latex: "", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "", name: "/mi", core });
         f = await core.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -710,7 +712,7 @@ describe("Function tag tests", async () => {
         expect(f(-12)).closeTo(-1 + 1 * (-12 + 6), 1e-12);
         expect(f(12)).closeTo(-1 + 1 * (12 + 6), 1e-12);
 
-        await updateMathInputValue({ latex: "2", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "2", name: "/mi", core });
         f = await core.components!["/f"].state.numericalf.value;
 
         expect(f(-6 - 0.01)).closeTo(-1 - 0.01 * 2, 1e-3);
@@ -725,7 +727,7 @@ describe("Function tag tests", async () => {
         expect(f(-6 - 3)).closeTo(-1 - 3 * 2, 1e-12);
         expect(f(3 + 3)).closeTo(8 + 3 * 2, 1e-12);
 
-        await updateMathInputValue({ latex: "-3", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "-3", name: "/mi", core });
         f = await core.components!["/f"].state.numericalf.value;
 
         expect(f(-6 - 0.01)).closeTo(-1 - 0.01 * -3, 1e-3);
@@ -740,7 +742,7 @@ describe("Function tag tests", async () => {
         expect(f(-6 - 3)).closeTo(-1 - 3 * -3, 1e-12);
         expect(f(3 + 3)).closeTo(8 + 3 * -3, 1e-12);
 
-        await updateMathInputValue({ latex: "", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "", name: "/mi", core });
         f = await core.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -1075,12 +1077,7 @@ describe("Function tag tests", async () => {
 
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1093,12 +1090,7 @@ describe("Function tag tests", async () => {
 
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1137,12 +1129,7 @@ describe("Function tag tests", async () => {
         );
         expect(constantFromAst(p.stateValues.xs[1])).closeTo(2, 1e-6);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -2, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -2, y: 2, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1176,12 +1163,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(1, 1e-12);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1193,12 +1175,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(-4, 1e-12);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 6, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 6, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1210,12 +1187,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(6, 1e-12);
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1252,12 +1224,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(1, 1e-12);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1270,12 +1237,7 @@ describe("Function tag tests", async () => {
         expect(x).lessThan(-4 + 1e-3);
         expect(6 - ((x - 5) * (x - 5)) / 25).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 6, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 6, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1287,12 +1249,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(6, 1e-12);
         expect(6 - (x - 5) * (x - 5) * (2 / 9)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1315,12 +1272,7 @@ describe("Function tag tests", async () => {
         expect(constantFromAst(p.stateValues.xs[0])).closeTo(1, 1e-6);
         expect(constantFromAst(p.stateValues.xs[1])).closeTo(f(1), 1e-6);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -1, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -1, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1331,12 +1283,7 @@ describe("Function tag tests", async () => {
 
         expect(y).closeTo(f(x), 1e-6);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 6, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 6, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1347,12 +1294,7 @@ describe("Function tag tests", async () => {
 
         expect(y).closeTo(f(x), 1e-6);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: -4 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: -4, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1363,12 +1305,7 @@ describe("Function tag tests", async () => {
 
         expect(y).closeTo(f(x), 1e-6);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -1, y: -6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -1, y: -6, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1733,12 +1670,7 @@ describe("Function tag tests", async () => {
 
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1749,12 +1681,7 @@ describe("Function tag tests", async () => {
 
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -8, y: -8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -8, y: -8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1793,12 +1720,7 @@ describe("Function tag tests", async () => {
         expect(x).lessThan(0.1 + 1e-3);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 4, y: 6, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1810,12 +1732,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(4, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1827,12 +1744,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(6, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -8, y: -8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -8, y: -8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1872,12 +1784,7 @@ describe("Function tag tests", async () => {
         expect(x).eq(0.1);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 4, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 4, y: 6, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1889,12 +1796,7 @@ describe("Function tag tests", async () => {
         expect(x).closeTo(4, 1e-12);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: 8, y: 8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: 8, y: 8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1907,12 +1809,7 @@ describe("Function tag tests", async () => {
         expect(x).greaterThan(6 - 1e-3);
         expect(Math.log(2 * x)).closeTo(y, 1e-5);
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P",
-            args: { x: -8, y: -8 },
-            event: null,
-        });
+        await movePoint({ name: "/P", x: -8, y: -8, core });
 
         stateVariables = await returnAllStateVariables(core);
 
@@ -1939,7 +1836,7 @@ describe("Function tag tests", async () => {
         globalinfLocation,
         fName = "/f",
     }: {
-        core: any;
+        core: Core;
         maxima: number[][];
         minima: number[][];
         haveGlobalMax?: boolean;
@@ -2075,12 +1972,7 @@ describe("Function tag tests", async () => {
             globalinf: -Infinity,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 2, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 2, y: 2, core });
 
         await check_extrema({
             core,
@@ -2096,12 +1988,7 @@ describe("Function tag tests", async () => {
             globalinf: -Infinity,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 3.6, y: 5.1 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 3.6, y: 5.1, core });
 
         await check_extrema({
             core,
@@ -2119,12 +2006,7 @@ describe("Function tag tests", async () => {
             globalinf: -Infinity,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 8, y: 9 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 8, y: 9, core });
 
         await check_extrema({
             core,
@@ -2142,21 +2024,11 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 5, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 5, y: 2, core });
 
         await check_extrema({ core, maxima: [], minima: [] });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: -9, y: 0 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: -9, y: 0, core });
 
         await check_extrema({
             core,
@@ -2174,12 +2046,7 @@ describe("Function tag tests", async () => {
             globalinf: -Infinity,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P4",
-            args: { x: 8, y: 3 },
-            event: null,
-        });
+        await movePoint({ name: "/P4", x: 8, y: 3, core });
 
         await check_extrema({
             core,
@@ -2190,12 +2057,7 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P4",
-            args: { x: 8, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P4", x: 8, y: 6, core });
 
         await check_extrema({
             core,
@@ -2240,12 +2102,12 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-2",
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2259,12 +2121,7 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 2, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 2, y: 2, core });
 
         await check_extrema({
             core,
@@ -2278,12 +2135,12 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6",
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: "8",
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2302,12 +2159,7 @@ describe("Function tag tests", async () => {
             globalinf: -3,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 3.6, y: 5.1 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 3.6, y: 5.1, core });
 
         await check_extrema({
             core,
@@ -2328,12 +2180,12 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2379,12 +2231,12 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-2",
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2397,12 +2249,7 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 2, y: 2 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 2, y: 2, core });
 
         await check_extrema({
             core,
@@ -2416,12 +2263,12 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-6",
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: "8",
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2441,12 +2288,7 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 3.6, y: 5.1 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 3.6, y: 5.1, core });
 
         await check_extrema({
             core,
@@ -2468,12 +2310,12 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: "4",
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2515,24 +2357,9 @@ describe("Function tag tests", async () => {
         // the first two points is past maximum of the domain
         // check for bug where this stopped looking for minima
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 0, y: -0.35 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: 1.8, y: -1.36 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P5",
-            args: { x: 1, y: -0.866 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 0, y: -0.35, core });
+        await movePoint({ name: "/P2", x: 1.8, y: -1.36, core });
+        await movePoint({ name: "/P5", x: 1, y: -0.866, core });
 
         await check_extrema({
             core,
@@ -2547,30 +2374,10 @@ describe("Function tag tests", async () => {
         // is past maximum of domain
         // check for bug where this stopped looking for maxima
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 0, y: 0 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: 2, y: 1.8 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P3",
-            args: { x: 5, y: 4 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P5",
-            args: { x: 8, y: -1 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 0, y: 0, core });
+        await movePoint({ name: "/P2", x: 2, y: 1.8, core });
+        await movePoint({ name: "/P3", x: 5, y: 4, core });
+        await movePoint({ name: "/P5", x: 8, y: -1, core });
 
         await check_extrema({
             core,
@@ -2585,24 +2392,9 @@ describe("Function tag tests", async () => {
         // the first two points is past maximum of the domain
         // check for bug where this stopped looking for maximum
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 0, y: 0.35 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: 1.8, y: 1.36 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P5",
-            args: { x: 1, y: 0.866 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 0, y: 0.35, core });
+        await movePoint({ name: "/P2", x: 1.8, y: 1.36, core });
+        await movePoint({ name: "/P5", x: 1, y: 0.866, core });
 
         await check_extrema({
             core,
@@ -2636,12 +2428,7 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: 3, y: -1 },
-            event: null,
-        });
+        await movePoint({ name: "/P2", x: 3, y: -1, core });
 
         await check_extrema({
             core,
@@ -2653,12 +2440,7 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
         });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 0, y: -1 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 0, y: -1, core });
 
         await check_extrema({
             core,
@@ -2703,7 +2485,7 @@ describe("Function tag tests", async () => {
         let period = 10;
         await updateMathInputValue({
             latex: `${period}`,
-            componentName: "/period",
+            name: "/period",
             core,
         });
 
@@ -2722,7 +2504,7 @@ describe("Function tag tests", async () => {
         period = 5;
         await updateMathInputValue({
             latex: `${period}`,
-            componentName: "/period",
+            name: "/period",
             core,
         });
 
@@ -2777,7 +2559,7 @@ describe("Function tag tests", async () => {
         let period = 10;
         await updateMathInputValue({
             latex: `${period}`,
-            componentName: "/period",
+            name: "/period",
             core,
         });
 
@@ -2797,12 +2579,12 @@ describe("Function tag tests", async () => {
         xmax = 25;
         await updateMathInputValue({
             latex: `${xmin}`,
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: `${xmax}`,
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -2820,7 +2602,7 @@ describe("Function tag tests", async () => {
         period = 5;
         await updateMathInputValue({
             latex: `${period}`,
-            componentName: "/period",
+            name: "/period",
             core,
         });
 
@@ -2839,12 +2621,12 @@ describe("Function tag tests", async () => {
         xmax = 9;
         await updateMathInputValue({
             latex: `${xmin}`,
-            componentName: "/xmin",
+            name: "/xmin",
             core,
         });
         await updateMathInputValue({
             latex: `${xmax}`,
-            componentName: "/xmax",
+            name: "/xmax",
             core,
         });
 
@@ -3578,27 +3360,12 @@ describe("Function tag tests", async () => {
 
         await check_items({ numMaxf2: 2, numMinf2: 1, maxf1: [2, 1] });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: 2, y: 6 },
-            event: null,
-        });
+        await movePoint({ name: "/P1", x: 2, y: 6, core });
 
         await check_items({ numMaxf2: 1, numMinf2: 0, maxf1: [1, 0] });
 
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: 3, y: 7 },
-            event: null,
-        });
-        await core.requestAction({
-            actionName: "movePoint",
-            componentName: "/P3",
-            args: { x: 9, y: 0 },
-            event: null,
-        });
+        await movePoint({ name: "/P2", x: 3, y: 7, core });
+        await movePoint({ name: "/P3", x: 9, y: 0, core });
 
         await check_items({ numMaxf2: 2, numMinf2: 2, maxf1: [2, 2] });
     });
@@ -3628,8 +3395,8 @@ describe("Function tag tests", async () => {
             "＿x^{3}+1",
         );
 
-        await updateMathInputValue({ latex: "1", componentName: "/mi1", core });
-        await updateMathInputValue({ latex: "2", componentName: "/mi2", core });
+        await updateMathInputValue({ latex: "1", name: "/mi1", core });
+        await updateMathInputValue({ latex: "2", name: "/mi2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/p1"].stateValues.text).eq("1");
@@ -3644,8 +3411,8 @@ describe("Function tag tests", async () => {
         let fa = stateVariables["/f1a"].stateValues.numericalf;
         expect(fa(-2)).eq(2 * (-2) ** 3 + 1);
 
-        await updateMathInputValue({ latex: "3", componentName: "/mi1", core });
-        await updateMathInputValue({ latex: "4", componentName: "/mi2", core });
+        await updateMathInputValue({ latex: "3", name: "/mi1", core });
+        await updateMathInputValue({ latex: "4", name: "/mi2", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables["/p1"].stateValues.text).eq("3");
@@ -3712,7 +3479,7 @@ describe("Function tag tests", async () => {
             fName: "/f1b",
         });
 
-        await updateMathInputValue({ latex: "2", componentName: "/mi2", core });
+        await updateMathInputValue({ latex: "2", name: "/mi2", core });
 
         maxima = [[0, 1]];
         minima = [
@@ -3752,7 +3519,7 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentName: "/mi1",
+            name: "/mi1",
             core,
         });
 
@@ -4855,7 +4622,7 @@ describe("Function tag tests", async () => {
         expect(cleanLatex(stateVariables["/ex11"].stateValues.latex)).eq("-5");
 
         // set propIndex to 1
-        await updateMathInputValue({ latex: "1", componentName: "/n", core });
+        await updateMathInputValue({ latex: "1", name: "/n", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/mn1"].stateValues.latex)).eq(

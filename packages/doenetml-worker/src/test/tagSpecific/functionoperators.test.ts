@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { movePoint, updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
+import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Function Operator tag tests", async () => {
     async function test_function_operator({
@@ -271,18 +273,8 @@ describe("Function Operator tag tests", async () => {
         x1 = -3;
         x2 = 5;
 
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: x1, y: 11 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: x2, y: -9 },
-        });
+        await movePoint({ name: "/P1", x: x1, y: 11, core });
+        await movePoint({ name: "/P2", x: x2, y: -9, core });
 
         await check_items({ a, b, c, x, x1, x2 });
 
@@ -291,37 +283,27 @@ describe("Function Operator tag tests", async () => {
         c = "e";
         x = "q";
 
-        await updateMathInputValue({ latex: a, componentName: "/a", core });
+        await updateMathInputValue({ latex: a, name: "/a", core });
         await updateMathInputValue({
             latex: "\\pi",
-            componentName: "/b",
+            name: "/b",
             core,
         });
-        await updateMathInputValue({ latex: c, componentName: "/c", core });
-        await updateMathInputValue({ latex: x, componentName: "/x", core });
+        await updateMathInputValue({ latex: c, name: "/c", core });
+        await updateMathInputValue({ latex: x, name: "/x", core });
 
         await check_items({ a, b, c, x, x1, x2 });
 
         x1 = 9;
         x2 = -7;
 
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/P1",
-            args: { x: x1, y: -6 },
-        });
-        await core.requestAction({
-            event: null,
-            actionName: "movePoint",
-            componentName: "/P2",
-            args: { x: x2, y: 0 },
-        });
+        await movePoint({ name: "/P1", x: x1, y: -6, core });
+        await movePoint({ name: "/P2", x: x2, y: 0, core });
 
         await check_items({ a, b, c, x, x1, x2 });
     });
 
-    async function checkd_list(core: any) {
+    async function checkd_list(core: Core) {
         const stateVariables = await returnAllStateVariables(core);
         expect(
             stateVariables["/d1"].stateValues.formula.equals(me.fromText("2x")),
@@ -2894,7 +2876,7 @@ describe("Function Operator tag tests", async () => {
         c1 = 3;
         await updateMathInputValue({
             latex: c1.toString(),
-            componentName: "/c_1",
+            name: "/c_1",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2902,7 +2884,7 @@ describe("Function Operator tag tests", async () => {
         c2 = -5;
         await updateMathInputValue({
             latex: c2.toString(),
-            componentName: "/c_2",
+            name: "/c_2",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2910,7 +2892,7 @@ describe("Function Operator tag tests", async () => {
         c3 = 1;
         await updateMathInputValue({
             latex: c3.toString(),
-            componentName: "/c_3",
+            name: "/c_3",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2918,7 +2900,7 @@ describe("Function Operator tag tests", async () => {
         c4 = -6;
         await updateMathInputValue({
             latex: c4.toString(),
-            componentName: "/c_4",
+            name: "/c_4",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2926,7 +2908,7 @@ describe("Function Operator tag tests", async () => {
         c5 = 3;
         await updateMathInputValue({
             latex: c5.toString(),
-            componentName: "/c_5",
+            name: "/c_5",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2934,7 +2916,7 @@ describe("Function Operator tag tests", async () => {
         c6 = 2;
         await updateMathInputValue({
             latex: c6.toString(),
-            componentName: "/c_6",
+            name: "/c_6",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2942,7 +2924,7 @@ describe("Function Operator tag tests", async () => {
         v = "y";
         await updateMathInputValue({
             latex: v,
-            componentName: "/x",
+            name: "/x",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2950,7 +2932,7 @@ describe("Function Operator tag tests", async () => {
         c1 = 2;
         await updateMathInputValue({
             latex: c1.toString(),
-            componentName: "/c_1",
+            name: "/c_1",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2958,7 +2940,7 @@ describe("Function Operator tag tests", async () => {
         c2 = 4;
         await updateMathInputValue({
             latex: c2.toString(),
-            componentName: "/c_2",
+            name: "/c_2",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2966,7 +2948,7 @@ describe("Function Operator tag tests", async () => {
         c3 = -8;
         await updateMathInputValue({
             latex: c3.toString(),
-            componentName: "/c_3",
+            name: "/c_3",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2974,7 +2956,7 @@ describe("Function Operator tag tests", async () => {
         c4 = 9;
         await updateMathInputValue({
             latex: c4.toString(),
-            componentName: "/c_4",
+            name: "/c_4",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2982,7 +2964,7 @@ describe("Function Operator tag tests", async () => {
         c5 = -2;
         await updateMathInputValue({
             latex: c5.toString(),
-            componentName: "/c_5",
+            name: "/c_5",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2990,7 +2972,7 @@ describe("Function Operator tag tests", async () => {
         c6 = 6;
         await updateMathInputValue({
             latex: c6.toString(),
-            componentName: "/c_6",
+            name: "/c_6",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);
@@ -2998,7 +2980,7 @@ describe("Function Operator tag tests", async () => {
         v = "q";
         await updateMathInputValue({
             latex: v,
-            componentName: "/x",
+            name: "/x",
             core,
         });
         await verifyExtrema(c1, c2, c3, c4, c5);

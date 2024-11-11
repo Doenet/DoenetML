@@ -3,11 +3,13 @@ import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Boolean tag tests", async () => {
     it("basic boolean evaluation", async () => {
@@ -123,17 +125,17 @@ describe("Boolean tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables[`/b`].stateValues.value).to.be.false;
 
-        await updateMathInputValue({ latex: "3", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "3", name: "/mi", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables[`/b`].stateValues.value).to.be.true;
 
-        await updateMathInputValue({ latex: "2x", componentName: "/mi", core });
+        await updateMathInputValue({ latex: "2x", name: "/mi", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables[`/b`].stateValues.value).to.be.false;
 
         await updateMathInputValue({
             latex: "2x-x-x",
-            componentName: "/mi",
+            name: "/mi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -204,21 +206,21 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/b3`].stateValues.value).to.be.false;
         expect(stateVariables[`/b4`].stateValues.value).to.be.false;
 
-        await updateMathInputValue({ latex: "4", componentName: "/i", core });
+        await updateMathInputValue({ latex: "4", name: "/i", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.false;
         expect(stateVariables[`/b3`].stateValues.value).to.be.true;
         expect(stateVariables[`/b4`].stateValues.value).to.be.true;
 
-        await updateMathInputValue({ latex: "-7", componentName: "/i", core });
+        await updateMathInputValue({ latex: "-7", name: "/i", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables[`/b1`].stateValues.value).to.be.true;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
         expect(stateVariables[`/b3`].stateValues.value).to.be.false;
         expect(stateVariables[`/b4`].stateValues.value).to.be.false;
 
-        await updateMathInputValue({ latex: "0", componentName: "/i", core });
+        await updateMathInputValue({ latex: "0", name: "/i", core });
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.false;
@@ -1252,12 +1254,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/three`].stateValues.value).to.be.false;
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/c",
-            args: { selectedIndices: [1] },
-            event: null,
-        });
+        await updateSelectedIndices({ name: "/c", selectedIndices: [1], core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.true;
@@ -1265,12 +1262,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/three`].stateValues.value).to.be.false;
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/c",
-            args: { selectedIndices: [2] },
-            event: null,
-        });
+        await updateSelectedIndices({ name: "/c", selectedIndices: [2], core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
@@ -1278,12 +1270,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/three`].stateValues.value).to.be.false;
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/c",
-            args: { selectedIndices: [3] },
-            event: null,
-        });
+        await updateSelectedIndices({ name: "/c", selectedIndices: [3], core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
@@ -1291,12 +1278,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/three`].stateValues.value).to.be.true;
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
-        await core.requestAction({
-            actionName: "updateSelectedIndices",
-            componentName: "/c",
-            args: { selectedIndices: [4] },
-            event: null,
-        });
+        await updateSelectedIndices({ name: "/c", selectedIndices: [4], core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
@@ -1323,7 +1305,7 @@ describe("Boolean tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1335,7 +1317,7 @@ describe("Boolean tag tests", async () => {
 
         await updateTextInputValue({
             text: "false",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1347,7 +1329,7 @@ describe("Boolean tag tests", async () => {
 
         await updateTextInputValue({
             text: "tRuE",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1357,7 +1339,7 @@ describe("Boolean tag tests", async () => {
         );
         expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        await updateTextInputValue({ text: "0", componentName: "/ti", core });
+        await updateTextInputValue({ text: "0", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
@@ -1365,7 +1347,7 @@ describe("Boolean tag tests", async () => {
         );
         expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        await updateTextInputValue({ text: "1=0", componentName: "/ti", core });
+        await updateTextInputValue({ text: "1=0", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
@@ -1373,7 +1355,7 @@ describe("Boolean tag tests", async () => {
         );
         expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
-        await updateTextInputValue({ text: "f", componentName: "/ti", core });
+        await updateTextInputValue({ text: "f", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
@@ -1383,7 +1365,7 @@ describe("Boolean tag tests", async () => {
 
         await updateTextInputValue({
             text: "FALSE",
-            componentName: "/ti",
+            name: "/ti",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1393,7 +1375,7 @@ describe("Boolean tag tests", async () => {
         );
         expect(stateVariables[`/ti`].stateValues.value).eq("false");
 
-        await updateTextInputValue({ text: "1", componentName: "/ti", core });
+        await updateTextInputValue({ text: "1", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
@@ -1401,7 +1383,7 @@ describe("Boolean tag tests", async () => {
         );
         expect(stateVariables[`/ti`].stateValues.value).eq("false");
 
-        await updateTextInputValue({ text: "t", componentName: "/ti", core });
+        await updateTextInputValue({ text: "t", name: "/ti", core });
         stateVariables = await returnAllStateVariables(core);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
@@ -1411,7 +1393,7 @@ describe("Boolean tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
@@ -1423,7 +1405,7 @@ describe("Boolean tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentName: "/bi",
+            name: "/bi",
             core,
         });
         stateVariables = await returnAllStateVariables(core);
