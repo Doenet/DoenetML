@@ -5,6 +5,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("TextList tag tests", async () => {
     async function test_textList({

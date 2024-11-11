@@ -5,6 +5,7 @@ import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Math operator tests", async () => {
     it("sum", async () => {

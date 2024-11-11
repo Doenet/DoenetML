@@ -9,6 +9,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Collect tag tests", async () => {
     it("collect points from graphs", async () => {

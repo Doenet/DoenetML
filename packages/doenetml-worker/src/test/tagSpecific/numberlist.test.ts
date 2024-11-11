@@ -8,6 +8,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("NumberList tag tests", async () => {
     async function test_numberList({

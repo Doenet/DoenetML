@@ -14,6 +14,7 @@ import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("TextInput tag tests", async () => {
     it("textInput references", async () => {

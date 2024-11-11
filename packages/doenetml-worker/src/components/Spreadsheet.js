@@ -1,10 +1,3 @@
-//@ts-nocheck
-
-// Note: changed this .js file to a .ts file in order to prevent an error
-// from HyperFormula when loading Core directly from vitest.
-// No idea why this stops the error, but found this workaround via trial-and-error.
-// This file has not been converted to typescript, hence the ts-nocheck line at the beginning.
-
 import { normalizeIndex } from "../utils/table";
 import { textToAst } from "../utils/math";
 import BlockComponent from "./abstract/BlockComponent";
@@ -1033,23 +1026,23 @@ export default class Spreadsheet extends BlockComponent {
                 // console.log(`array definition of evaluatedCells`)
                 // console.log(globalDependencyValues)
 
-                // let hf = HyperFormula.buildFromArray(
-                //     globalDependencyValues.cells,
-                //     {
-                //         licenseKey: "gpl-v3",
-                //     },
-                // );
+                let hf = HyperFormula.buildFromArray(
+                    globalDependencyValues.cells,
+                    {
+                        licenseKey: "gpl-v3",
+                    },
+                );
 
                 let allEvaluated = hf.getSheetValues(0);
 
                 let evaluatedCells = {};
 
-                // for (let ind1 in allEvaluated) {
-                //     let row = allEvaluated[ind1];
-                //     for (let ind2 in row) {
-                //         evaluatedCells[[ind1, ind2]] = row[ind2];
-                //     }
-                // }
+                for (let ind1 in allEvaluated) {
+                    let row = allEvaluated[ind1];
+                    for (let ind2 in row) {
+                        evaluatedCells[[ind1, ind2]] = row[ind2];
+                    }
+                }
 
                 return { setValue: { evaluatedCells } };
             },

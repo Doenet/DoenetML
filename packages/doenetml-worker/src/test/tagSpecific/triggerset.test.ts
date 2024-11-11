@@ -17,6 +17,7 @@ import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("TriggerSet tag tests", async () => {
     async function test_5_triggered_actions(core) {

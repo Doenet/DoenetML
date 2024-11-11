@@ -9,6 +9,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Boolean tag tests", async () => {
     it("basic boolean evaluation", async () => {

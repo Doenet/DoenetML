@@ -7,6 +7,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 function createInterval(string: string) {
     return me.fromText(string).to_intervals().tree;

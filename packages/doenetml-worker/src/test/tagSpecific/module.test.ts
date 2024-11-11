@@ -11,6 +11,7 @@ import { widthsBySize } from "@doenet/utils";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Module tag tests", async () => {
     it("module with sentence", async () => {

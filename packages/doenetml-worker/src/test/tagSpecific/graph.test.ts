@@ -13,6 +13,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Graph tag tests", async () => {
     it("functions adapted to curves in graph", async () => {

@@ -3,6 +3,7 @@ import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Tabular tag tests", async () => {
     it("inHeader attribute", async () => {

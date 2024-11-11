@@ -9,6 +9,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     async function test_combined_statistics({

@@ -4,6 +4,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 async function revealSolution({ name, core }: { name: string; core: Core }) {
     await core.requestAction({

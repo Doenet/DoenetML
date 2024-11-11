@@ -4,6 +4,7 @@ import { widthsBySize } from "@doenet/utils";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Video tag tests", async () => {
     it("video sizes", async () => {

@@ -6,6 +6,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Function Operator tag tests", async () => {
     async function test_function_operator({

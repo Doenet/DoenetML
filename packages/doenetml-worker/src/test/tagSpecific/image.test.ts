@@ -8,6 +8,7 @@ import { cleanLatex } from "../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 export async function moveImage({
     name,

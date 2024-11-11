@@ -11,6 +11,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Angle tag tests", async () => {
     it("angle determined by three points, 45-45-90 triangle", async () => {

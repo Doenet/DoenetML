@@ -4,6 +4,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Piecewise Function Tag Tests", async () => {
     async function check_heaviside(core: Core) {

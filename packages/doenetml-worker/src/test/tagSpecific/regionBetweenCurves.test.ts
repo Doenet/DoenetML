@@ -4,6 +4,7 @@ import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("RegionBetweenCurves tag tests", async () => {
     it("region between two curves", async () => {

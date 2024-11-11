@@ -17,6 +17,7 @@ import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("callAction tag tests", async () => {
     async function test_resample(core) {

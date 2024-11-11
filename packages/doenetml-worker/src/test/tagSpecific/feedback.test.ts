@@ -10,6 +10,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Feedback tag tests", async () => {
     async function test_three_feedbacks(core: Core, showFeedback: boolean) {

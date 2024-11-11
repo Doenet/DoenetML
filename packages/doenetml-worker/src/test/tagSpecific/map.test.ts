@@ -9,6 +9,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Map tag tests", async () => {
     it("single map of maths", async () => {

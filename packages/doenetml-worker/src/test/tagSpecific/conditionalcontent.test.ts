@@ -9,6 +9,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Conditional content tag tests", async () => {
     // tests without cases or else

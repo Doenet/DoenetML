@@ -7,6 +7,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("selectPrimeNumbers tag tests", async () => {
     async function test_values_separately({

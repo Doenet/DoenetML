@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("When tag tests", async () => {
     it("value, fractionSatisfied, conditionSatisfied are public", async () => {

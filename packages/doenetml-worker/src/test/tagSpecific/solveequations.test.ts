@@ -6,6 +6,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 async function check_solutions(core: Core, solutions: number[]) {
     const numSolutions = solutions.length;

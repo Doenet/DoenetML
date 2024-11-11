@@ -4,6 +4,7 @@ import { callAction, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("SamplePrimeNumbers tag tests", async () => {
     async function test_values_separately({

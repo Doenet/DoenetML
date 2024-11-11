@@ -9,6 +9,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Paginator tag tests", async () => {
     it("Multiple sections in paginator", async () => {

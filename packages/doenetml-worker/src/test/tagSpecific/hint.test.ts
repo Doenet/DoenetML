@@ -3,6 +3,7 @@ import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Hint tag tests", async () => {
     it("hints with and without title", async () => {

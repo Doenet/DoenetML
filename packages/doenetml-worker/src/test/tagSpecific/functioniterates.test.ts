@@ -6,6 +6,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("FunctionIterates tag tests", async () => {
     // TODO: test forceNumeric and forceSymbolic?

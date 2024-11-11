@@ -9,6 +9,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("SelectFromSequence tag tests", async () => {
     async function test_values_separately({

@@ -12,6 +12,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("MathInput tag tests", async () => {
     it("mathInput references", async () => {

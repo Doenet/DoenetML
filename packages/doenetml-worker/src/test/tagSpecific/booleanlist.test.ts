@@ -8,6 +8,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("BooleanList tag tests", async () => {
     async function test_booleanList({

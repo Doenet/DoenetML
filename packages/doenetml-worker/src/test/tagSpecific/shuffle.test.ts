@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Shuffle tag tests", async () => {
     it("consistent order for n elements for given variant", async () => {

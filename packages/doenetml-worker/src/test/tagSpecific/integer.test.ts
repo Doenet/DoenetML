@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Integer tag tests", async () => {
     it("1.2+1.1", async () => {

@@ -12,6 +12,7 @@ import Core from "../../Core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("MathInput tag tests", async () => {
     it("no arguments, copy matrixInput", async () => {

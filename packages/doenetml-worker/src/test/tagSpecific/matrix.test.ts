@@ -18,6 +18,7 @@ import { numberToLetters } from "@doenet/utils";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Matrix tag tests", async () => {
     async function test_matrix({

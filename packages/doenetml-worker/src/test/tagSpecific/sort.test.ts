@@ -4,6 +4,7 @@ import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Sort tag tests", async () => {
     async function test_sort({

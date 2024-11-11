@@ -9,6 +9,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Extract tag tests", async () => {
     it("extract copies properties", async () => {

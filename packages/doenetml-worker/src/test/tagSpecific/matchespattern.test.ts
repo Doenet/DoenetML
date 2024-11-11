@@ -8,6 +8,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("MatchesPattern tag tests", async () => {
     it("match linear pattern", async () => {

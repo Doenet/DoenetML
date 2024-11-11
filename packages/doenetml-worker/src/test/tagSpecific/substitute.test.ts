@@ -10,6 +10,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Substitute tag tests", async () => {
     async function test_sub_alpha_x2(core) {

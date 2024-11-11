@@ -7,6 +7,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Code Editor tag tests", async () => {
     it("code editor with no arguments", async () => {

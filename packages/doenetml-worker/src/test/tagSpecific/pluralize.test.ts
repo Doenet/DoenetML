@@ -4,6 +4,7 @@ import { updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Pluralize tag tests", async () => {
     it("number followed by noun", async () => {

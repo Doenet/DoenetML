@@ -11,6 +11,7 @@ import { V } from "vitest/dist/chunks/reporters.WnPwkmgA.js";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("ChoiceInput tag tests", async () => {
     async function test_animal_choice_input(

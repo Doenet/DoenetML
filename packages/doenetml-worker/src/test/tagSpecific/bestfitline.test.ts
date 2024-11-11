@@ -5,6 +5,7 @@ import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("BestFitLine tag tests", async () => {
     it("fit line to 4 points", async () => {

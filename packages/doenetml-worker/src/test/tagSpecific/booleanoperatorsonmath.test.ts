@@ -7,6 +7,7 @@ import {
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Boolean Operator tag tests", async () => {
     it("isinteger, is number", async () => {

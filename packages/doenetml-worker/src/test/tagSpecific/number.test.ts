@@ -11,6 +11,7 @@ import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Number tag tests", async () => {
     it("1+1", async () => {
