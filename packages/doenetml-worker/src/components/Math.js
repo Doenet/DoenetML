@@ -836,23 +836,6 @@ export default class MathComponent extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.latexWithInputChildren = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                latex: {
-                    dependencyType: "stateVariable",
-                    variableName: "latex",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                return {
-                    setValue: {
-                        latexWithInputChildren: [dependencyValues.latex],
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.text = {
             public: true,
             shadowingInstructions: {
