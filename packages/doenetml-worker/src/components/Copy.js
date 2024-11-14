@@ -1830,6 +1830,7 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = [
                 await replacementSourceComponent.serialize({
                     copyAll: !link,
+                    componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                     copyPrimaryEssential,

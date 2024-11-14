@@ -214,6 +214,10 @@ export function returnLabelStateVariableDefinitions() {
                 dependencyType: "shadowSource",
                 variableNames: ["label", "labelHasLatex"],
             },
+            unlinkedCopySource: {
+                dependencyType: "unlinkedCopySource",
+                variableNames: ["label", "labelHasLatex"],
+            },
         }),
         definition({ dependencyValues, essentialValues }) {
             let labelChild =
@@ -311,6 +315,20 @@ export function returnLabelStateVariableDefinitions() {
                         label: dependencyValues.shadowSource.stateValues.label,
                         labelHasLatex: Boolean(
                             dependencyValues.shadowSource.stateValues
+                                .labelHasLatex,
+                        ),
+                    },
+                };
+            } else if (
+                typeof dependencyValues.unlinkedCopySource?.stateValues
+                    .label === "string"
+            ) {
+                return {
+                    setValue: {
+                        label: dependencyValues.unlinkedCopySource.stateValues
+                            .label,
+                        labelHasLatex: Boolean(
+                            dependencyValues.unlinkedCopySource.stateValues
                                 .labelHasLatex,
                         ),
                     },
