@@ -1,3 +1,14 @@
+export function returnLabelAttributes() {
+    return {
+        labelIsName: {
+            createComponentOfType: "boolean",
+            createStateVariable: "labelIsName",
+            defaultValue: false,
+            public: true,
+        },
+    };
+}
+
 export function returnWrapNonLabelsSugarFunction({
     wrappingComponentType,
     createAttributeOfType,

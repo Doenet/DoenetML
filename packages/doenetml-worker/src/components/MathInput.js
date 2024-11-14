@@ -7,6 +7,7 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import {
+    returnLabelAttributes,
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
@@ -130,12 +131,9 @@ export default class MathInput extends Input {
             public: true,
             forRenderer: true,
         };
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
+
+        Object.assign(attributes, returnLabelAttributes());
+
         return attributes;
     }
 

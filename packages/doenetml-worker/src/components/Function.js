@@ -16,7 +16,10 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnWrapNonLabelsSugarFunction,
+} from "../utils/label";
 import {
     find_local_global_maxima,
     find_local_global_minima,
@@ -79,12 +82,8 @@ export default class Function extends InlineComponent {
         // include attributes of graphical components
         // for case when function is adapted into a curve
 
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
+        Object.assign(attributes, returnLabelAttributes());
+
         attributes.applyStyleToLabel = {
             createComponentOfType: "boolean",
             createStateVariable: "applyStyleToLabel",
