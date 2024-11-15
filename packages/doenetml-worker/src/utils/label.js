@@ -255,20 +255,22 @@ export function returnLabelStateVariableDefinitions() {
                 // find a valid name for a label from the component name
                 // or the name of one of its shadow targets,
 
-                let label = "__";
+                let label = "_";
                 let cNames = dependencyValues.componentNameAndShadowSourceNames;
 
                 for (let cN of cNames) {
-                    let lastSlash = cN.lastIndexOf("/");
-                    label = cN.substring(lastSlash + 1);
-                    if (label.slice(0, 2) !== "__") {
+                    let lastSlashInd = cN.lastIndexOf("/");
+                    label = cN.substring(lastSlashInd + 1);
+                    if (label[0] !== "_") {
                         break;
                     }
                 }
-                if (label.slice(0, 2) === "__") {
+                if (label[0] === "_") {
                     // if label from componentName starts with two underscores,
                     // it is an automatically generated component name that has random characters in it
                     // Don't display name, as they are for internal use only (and the user cannot refer to them)
+                    // (Nov 2024) Also now that are phasing out automatically generated names with single _,
+                    // don't display those either.
                     return {
                         setValue: {
                             label: "",
@@ -277,26 +279,22 @@ export function returnLabelStateVariableDefinitions() {
                     };
                 }
 
-                if (label[0] !== "_") {
-                    // we have a user supplied name
+                // we have a user supplied name
 
-                    if (label.includes("_") || label.includes("-")) {
-                        label = label.replace(/[_\-]/g, " ");
-                    } else if (label.match(/^[a-z]/)) {
-                        if (label.match(/[A-Z]/)) {
-                            // label starts with a lower case letter and has an upper case letter
-                            // treat as camel case and add spaces and lowercase letters
-                            label = label
-                                .replace(/([A-Z])/g, " $1")
-                                .toLowerCase();
-                        }
-                    } else if (label.match(/^[A-Z]/)) {
-                        if (label.match(/[a-z]/)) {
-                            // label starts with a upper case letter and has an lower case letter
-                            // treat as pascal case and add spaces
-                            label = label.replace(/([A-Z])/g, " $1");
-                            label = label.slice(1); // delete extra space at beginning
-                        }
+                if (label.includes("_") || label.includes("-")) {
+                    label = label.replace(/[_\-]/g, " ");
+                } else if (label.match(/^[a-z]/)) {
+                    if (label.match(/[A-Z]/)) {
+                        // label starts with a lower case letter and has an upper case letter
+                        // treat as camel case and add spaces and lowercase letters
+                        label = label.replace(/([A-Z])/g, " $1").toLowerCase();
+                    }
+                } else if (label.match(/^[A-Z]/)) {
+                    if (label.match(/[a-z]/)) {
+                        // label starts with a upper case letter and has an lower case letter
+                        // treat as pascal case and add spaces
+                        label = label.replace(/([A-Z])/g, " $1");
+                        label = label.slice(1); // delete extra space at beginning
                     }
                 }
 
