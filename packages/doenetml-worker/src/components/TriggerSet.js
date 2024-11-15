@@ -3,7 +3,10 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { returnLabelStateVariableDefinitions } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../utils/label";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
@@ -30,13 +33,6 @@ export default class triggerSet extends InlineComponent {
         // attributes.width = {default: 300};
         // attributes.height = {default: 50};
 
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
-
         attributes.draggable = {
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
@@ -46,6 +42,8 @@ export default class triggerSet extends InlineComponent {
         };
 
         Object.assign(attributes, returnAnchorAttributes());
+
+        Object.assign(attributes, returnLabelAttributes());
 
         let triggerAttributes = returnStandardTriggeringAttributes(
             "triggerActionsIfTriggerNewlyTrue",

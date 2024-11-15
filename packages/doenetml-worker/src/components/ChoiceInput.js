@@ -2,7 +2,10 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import { returnLabelStateVariableDefinitions } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../utils/label";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -102,12 +105,7 @@ export default class Choiceinput extends Input {
             fallBackToParentStateVariable: "submitLabelNoCorrectness",
         };
 
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
+        Object.assign(attributes, returnLabelAttributes());
 
         return attributes;
     }

@@ -4,6 +4,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
+    returnLabelAttributes,
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
@@ -73,12 +74,6 @@ export default class Textinput extends Input {
             forRenderer: true,
             public: true,
         };
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
         attributes.draggable = {
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
@@ -88,6 +83,8 @@ export default class Textinput extends Input {
         };
 
         Object.assign(attributes, returnAnchorAttributes());
+
+        Object.assign(attributes, returnLabelAttributes());
 
         return attributes;
     }

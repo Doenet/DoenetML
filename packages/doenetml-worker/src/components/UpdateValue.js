@@ -3,7 +3,10 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { returnLabelStateVariableDefinitions } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../utils/label";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
     addStandardTriggeringStateVariableDefinitions,
@@ -32,13 +35,6 @@ export default class UpdateValue extends InlineComponent {
         let attributes = super.createAttributesObject();
         // attributes.width = {default: 300};
         // attributes.height = {default: 50};
-
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
 
         attributes.type = {
             createPrimitiveOfType: "string",
@@ -97,6 +93,8 @@ export default class UpdateValue extends InlineComponent {
         };
 
         Object.assign(attributes, returnAnchorAttributes());
+
+        Object.assign(attributes, returnLabelAttributes());
 
         let triggerAttributes = returnStandardTriggeringAttributes(
             "updateValueIfTriggerNewlyTrue",
