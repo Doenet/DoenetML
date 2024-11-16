@@ -850,9 +850,9 @@ export function superSubscriptsToUnicode(text: string) {
         return newVal;
     }
 
-    text = text.replace(/_(\d+)/g, replaceSubscripts);
+    text = text.replace(/_(\d+)(?!\.)/g, replaceSubscripts);
     text = text.replace(/_\(([\d +-]+)\)/g, replaceSubscripts);
-    text = text.replace(/\^(\d+)/g, replaceSuperscripts);
+    text = text.replace(/\^(\d+)(?!\.)/g, replaceSuperscripts);
     text = text.replace(/\^\(([\d +-]+)\)/g, replaceSuperscripts);
 
     return text;

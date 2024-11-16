@@ -18,8 +18,8 @@ describe("Label tag tests", async () => {
             doenetML: `
 <label name="l1">Hello</label>
 <label name="l2"><text name="text">Hello</text></label>
-<label name="l3"><m name="m">\\left(x^2,\\frac{y^2}{z^2}\\right)</m></label>
-<label name="l4"><math name="math">(a^2,b^2/c^2)</math></label>
+<label name="l3"><m name="m">\\left(x_2 y_{2.1},\\frac{y^2}{z^{2.1}}\\right)</m></label>
+<label name="l4"><math name="math">(a_2 b_2.1,b^2/c^2.1)</math></label>
 <label name="l5"><number name="number1">1</number></label>
 <label name="l6"><number name="number2" renderAsMath>2</number></label>
 <label name="l7">$text and $m and $math and $number1 and $number2</label>
@@ -31,12 +31,12 @@ describe("Label tag tests", async () => {
         const stateVariables = await returnAllStateVariables(core);
         let l1 = "Hello";
         let l2 = "Hello";
-        let l3Latex = "\\left(x^2,\\frac{y^2}{z^2}\\right)";
+        let l3Latex = "\\left(x_2 y_{2.1},\\frac{y^2}{z^{2.1}}\\right)";
         let l3Value = `\\(${l3Latex}\\)`;
-        let l3Text = "( x², (y²)/(z²) )";
-        let l4Latex = "\\left( a^{2}, \\frac{b^{2}}{c^{2}} \\right)";
+        let l3Text = "( x₂ y_2.1, (y²)/(z^2.1) )";
+        let l4Latex = "\\left( a_{2} b_{2.1}, \\frac{b^{2}}{c^{2.1}} \\right)";
         let l4Value = `\\(${l4Latex}\\)`;
-        let l4Text = "( a², (b²)/(c²) )";
+        let l4Text = "( a₂ b_2.1, (b²)/(c^2.1) )";
         let l5 = "1";
         let l6Latex = "2";
         let l6Value = `\\(${l6Latex}\\)`;
