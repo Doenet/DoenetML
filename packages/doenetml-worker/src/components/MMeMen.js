@@ -9,7 +9,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
+import { latexToText } from "../utils/math";
 import { createInputStringFromChildren } from "../utils/parseMath";
 
 export class M extends InlineComponent {
@@ -197,20 +197,8 @@ export class M extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let expression;
-                try {
-                    expression = me.fromAst(
-                        latexToAst.convert(dependencyValues.latex),
-                    );
-                } catch (e) {
-                    // just return latex if can't parse with math-expressions
-                    return { setValue: { text: dependencyValues.latex } };
-                }
-
                 return {
-                    setValue: {
-                        text: superSubscriptsToUnicode(expression.toString()),
-                    },
+                    setValue: { text: latexToText(dependencyValues.latex) },
                 };
             },
         };

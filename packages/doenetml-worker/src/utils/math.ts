@@ -850,9 +850,9 @@ export function superSubscriptsToUnicode(text: string) {
         return newVal;
     }
 
-    text = text.replace(/_(\d+)/g, replaceSubscripts);
+    text = text.replace(/_(\d+)(?!\.)/g, replaceSubscripts);
     text = text.replace(/_\(([\d +-]+)\)/g, replaceSubscripts);
-    text = text.replace(/\^(\d+)/g, replaceSuperscripts);
+    text = text.replace(/\^(\d+)(?!\.)/g, replaceSuperscripts);
     text = text.replace(/\^\(([\d +-]+)\)/g, replaceSuperscripts);
 
     return text;
@@ -1078,4 +1078,38 @@ export async function preprocessMathInverseDefinition({
 
         return { desiredValue };
     }
+}
+
+/**
+ * Attempt to create a text representation of a latex expression by creating a math expression from that latex
+ * and converting the math expression to a string.
+ * If unsuccessful, just return the original latex.
+ */
+export function latexToText(latex: string) {
+    let expression;
+    try {
+        expression = me.fromAst(latexToAst.convert(latex));
+    } catch (e) {
+        // just return latex if can't parse with math-expressions
+        return latex;
+    }
+
+    return superSubscriptsToUnicode(expression.toString());
+}
+
+/**
+ * Attempt to create a latex representation of a text expression by creating a math expression from that text
+ * and converting the math expression to a latex.
+ * If unsuccessful, just return the original text.
+ */
+export function textToLatex(text: string) {
+    let expression;
+    try {
+        expression = me.fromAst(textToAst.convert(text));
+    } catch (e) {
+        // just return text if can't parse with math-expressions
+        return text;
+    }
+
+    return expression.toLatex();
 }
