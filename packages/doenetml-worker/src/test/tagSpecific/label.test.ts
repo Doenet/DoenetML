@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
-import { moveLabel, updateMathInputValue } from "../utils/actions";
+import {
+    moveLabel,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
 
 const Mock = vi.fn();
@@ -9,6 +13,381 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Label tag tests", async () => {
+    it("label value, text, and latex", async () => {
+        let core = await createTestCore({
+            doenetML: `
+<label name="l1">Hello</label>
+<label name="l2"><text name="text">Hello</text></label>
+<label name="l3"><m name="m">\\left(x^2,\\frac{y^2}{z^2}\\right)</m></label>
+<label name="l4"><math name="math">(a^2,b^2/c^2)</math></label>
+<label name="l5"><number name="number1">1</number></label>
+<label name="l6"><number name="number2" renderAsMath>2</number></label>
+<label name="l7">$text and $m and $math and $number1 and $number2</label>
+<label name="l8">$l1 and $l2 and $l3 and $l4 and $l5 and $l6 and $l7</label>
+
+            `,
+        });
+
+        const stateVariables = await returnAllStateVariables(core);
+        let l1 = "Hello";
+        let l2 = "Hello";
+        let l3Latex = "\\left(x^2,\\frac{y^2}{z^2}\\right)";
+        let l3Value = `\\(${l3Latex}\\)`;
+        let l3Text = "( x², (y²)/(z²) )";
+        let l4Latex = "\\left( a^{2}, \\frac{b^{2}}{c^{2}} \\right)";
+        let l4Value = `\\(${l4Latex}\\)`;
+        let l4Text = "( a², (b²)/(c²) )";
+        let l5 = "1";
+        let l6Latex = "2";
+        let l6Value = `\\(${l6Latex}\\)`;
+        let l6Text = "2";
+        let l7Value = `${l2} and ${l3Value} and ${l4Value} and ${l5} and ${l6Value}`;
+        let l7Text = `${l2} and ${l3Text} and ${l4Text} and ${l5} and ${l6Text}`;
+        let l7Latex = `${l2} and ${l3Latex} and ${l4Latex} and ${l5} and ${l6Latex}`;
+        let l8Value = `${l1} and ${l2} and ${l3Value} and ${l4Value} and ${l5} and ${l6Value} and ${l7Value}`;
+        let l8Text = `${l1} and ${l2} and ${l3Text} and ${l4Text} and ${l5} and ${l6Text} and ${l7Text}`;
+        let l8Latex = `${l1} and ${l2} and ${l3Latex} and ${l4Latex} and ${l5} and ${l6Latex} and ${l7Latex}`;
+
+        expect(stateVariables["/l1"].stateValues.value).eq(l1);
+        expect(stateVariables["/l1"].stateValues.text).eq(l1);
+        expect(stateVariables["/l1"].stateValues.latex).eq(l1);
+        expect(stateVariables["/l1"].stateValues.hasLatex).eq(false);
+
+        expect(stateVariables["/l2"].stateValues.value).eq(l2);
+        expect(stateVariables["/l2"].stateValues.text).eq(l2);
+        expect(stateVariables["/l2"].stateValues.latex).eq(l2);
+        expect(stateVariables["/l2"].stateValues.hasLatex).eq(false);
+
+        expect(stateVariables["/l3"].stateValues.value).eq(l3Value);
+        expect(stateVariables["/l3"].stateValues.text).eq(l3Text);
+        expect(stateVariables["/l3"].stateValues.latex).eq(l3Latex);
+        expect(stateVariables["/l3"].stateValues.hasLatex).eq(true);
+
+        expect(stateVariables["/l4"].stateValues.value).eq(l4Value);
+        expect(stateVariables["/l4"].stateValues.text).eq(l4Text);
+        expect(stateVariables["/l4"].stateValues.latex).eq(l4Latex);
+        expect(stateVariables["/l4"].stateValues.hasLatex).eq(true);
+
+        expect(stateVariables["/l5"].stateValues.value).eq(l5);
+        expect(stateVariables["/l5"].stateValues.text).eq(l5);
+        expect(stateVariables["/l5"].stateValues.latex).eq(l5);
+        expect(stateVariables["/l5"].stateValues.hasLatex).eq(false);
+
+        expect(stateVariables["/l6"].stateValues.value).eq(l6Value);
+        expect(stateVariables["/l6"].stateValues.text).eq(l6Text);
+        expect(stateVariables["/l6"].stateValues.latex).eq(l6Latex);
+        expect(stateVariables["/l6"].stateValues.hasLatex).eq(true);
+
+        expect(stateVariables["/l7"].stateValues.value).eq(l7Value);
+        expect(stateVariables["/l7"].stateValues.text).eq(l7Text);
+        expect(stateVariables["/l7"].stateValues.latex).eq(l7Latex);
+        expect(stateVariables["/l7"].stateValues.hasLatex).eq(true);
+
+        expect(stateVariables["/l8"].stateValues.value).eq(l8Value);
+        expect(stateVariables["/l8"].stateValues.text).eq(l8Text);
+        expect(stateVariables["/l8"].stateValues.latex).eq(l8Latex);
+        expect(stateVariables["/l8"].stateValues.hasLatex).eq(true);
+    });
+
+    it("change text label from its value, text, or latex", async () => {
+        let core = await createTestCore({
+            doenetML: `
+<label name="l1">Hello</label>
+<label name="l2" copySource="l1" />
+
+<textInput name="value1">$l1.value</textInput>
+<textInput name="text1">$l1.text</textInput>
+<textInput name="latex1">$l1.latex</textInput>
+
+<textInput name="value2">$l2.value</textInput>
+<textInput name="text2">$l2.text</textInput>
+<textInput name="latex2">$l2.latex</textInput>
+            `,
+        });
+
+        async function check_items(text: string) {
+            const stateVariables = await returnAllStateVariables(core);
+            expect(stateVariables["/l1"].stateValues.value).eq(text);
+            expect(stateVariables["/l1"].stateValues.text).eq(text);
+            expect(stateVariables["/l1"].stateValues.latex).eq(text);
+            expect(stateVariables["/l2"].stateValues.value).eq(text);
+            expect(stateVariables["/l2"].stateValues.text).eq(text);
+            expect(stateVariables["/l2"].stateValues.latex).eq(text);
+
+            expect(stateVariables["/value1"].stateValues.value).eq(text);
+            expect(stateVariables["/text1"].stateValues.value).eq(text);
+            expect(stateVariables["/latex1"].stateValues.value).eq(text);
+
+            expect(stateVariables["/value2"].stateValues.value).eq(text);
+            expect(stateVariables["/text2"].stateValues.value).eq(text);
+            expect(stateVariables["/latex2"].stateValues.value).eq(text);
+        }
+
+        await check_items("Hello");
+
+        // cannot change value to expression involving latex
+        // (textInput end up converting value to text beforehand )
+        await updateTextInputValue({
+            text: "\\(\\frac{1}{2}\\)",
+            name: "/value1",
+            core,
+        });
+        await check_items("\\(\\frac{1}{2}\\)");
+
+        await updateTextInputValue({ text: "Bye", name: "/text1", core });
+        await check_items("Bye");
+
+        await updateTextInputValue({ text: "The", name: "/latex1", core });
+        await check_items("The");
+
+        await updateTextInputValue({ text: "quick", name: "/value2", core });
+        await check_items("quick");
+
+        await updateTextInputValue({ text: "brown", name: "/text2", core });
+        await check_items("brown");
+
+        await updateTextInputValue({ text: "fox", name: "/latex2", core });
+        await check_items("fox");
+    });
+
+    it("change math label from its value, text, or latex", async () => {
+        let core = await createTestCore({
+            doenetML: `
+<label name="l1"><math>x^2/2</math></label>
+<label name="l2" copySource="l1" />
+
+<textInput name="value1">$l1.value</textInput>
+<textInput name="text1">$l1.text</textInput>
+<textInput name="latex1">$l1.latex</textInput>
+
+<textInput name="value2">$l2.value</textInput>
+<textInput name="text2">$l2.text</textInput>
+<textInput name="latex2">$l2.latex</textInput>
+            `,
+        });
+
+        async function check_items(value: string, text: string, latex: string) {
+            const stateVariables = await returnAllStateVariables(core);
+            expect(stateVariables["/l1"].stateValues.value).eq(value);
+            expect(stateVariables["/l1"].stateValues.text).eq(text);
+            expect(stateVariables["/l1"].stateValues.latex).eq(latex);
+            expect(stateVariables["/l2"].stateValues.value).eq(value);
+            expect(stateVariables["/l2"].stateValues.text).eq(text);
+            expect(stateVariables["/l2"].stateValues.latex).eq(latex);
+
+            expect(stateVariables["/value1"].stateValues.value).eq(text);
+            expect(stateVariables["/text1"].stateValues.value).eq(text);
+            expect(stateVariables["/latex1"].stateValues.value).eq(latex);
+
+            expect(stateVariables["/value2"].stateValues.value).eq(text);
+            expect(stateVariables["/text2"].stateValues.value).eq(text);
+            expect(stateVariables["/latex2"].stateValues.value).eq(latex);
+        }
+
+        await check_items(
+            "\\(\\frac{x^{2}}{2}\\)",
+            "(x²)/2",
+            "\\frac{x^{2}}{2}",
+        );
+
+        // update value
+        // (textInput ends up converting value to text beforehand )
+        await updateTextInputValue({
+            text: "a/b",
+            name: "/value1",
+            core,
+        });
+        await check_items("\\(\\frac{a}{b}\\)", "a/b", "\\frac{a}{b}");
+
+        await updateTextInputValue({ text: "(x,y)", name: "/text1", core });
+        await check_items(
+            "\\(\\left( x, y \\right)\\)",
+            "( x, y )",
+            "\\left( x, y \\right)",
+        );
+
+        await updateTextInputValue({ text: "z^2", name: "/latex1", core });
+        await check_items("\\(z^{2}\\)", "z²", "z^{2}");
+
+        // update value 2
+        // (textInput ends up converting value to text beforehand )
+        await updateTextInputValue({
+            text: "x_4!",
+            name: "/value2",
+            core,
+        });
+        await check_items("\\(x_{4}!\\)", "x₄!", "x_{4}!");
+
+        await updateTextInputValue({ text: "A or B", name: "/text2", core });
+        await check_items("\\(A \\lor B\\)", "A or B", "A \\lor B");
+
+        await updateTextInputValue({
+            text: "\\int_a^b f(x) dx",
+            name: "/latex2",
+            core,
+        });
+        await check_items(
+            "\\(\\int_{a}^{b} f\\left(x\\right)dx\\)",
+            "∫_a^b f(x) dx",
+            "\\int_{a}^{b} f\\left(x\\right)dx",
+        );
+    });
+
+    it("change m label from its value, text, or latex", async () => {
+        let core = await createTestCore({
+            doenetML: `
+<label name="l1"><m>x^2/2</m></label>
+<label name="l2" copySource="l1" />
+
+<textInput name="value1">$l1.value</textInput>
+<textInput name="text1">$l1.text</textInput>
+<textInput name="latex1">$l1.latex</textInput>
+
+<textInput name="value2">$l2.value</textInput>
+<textInput name="text2">$l2.text</textInput>
+<textInput name="latex2">$l2.latex</textInput>
+            `,
+        });
+
+        async function check_items(value: string, text: string, latex: string) {
+            const stateVariables = await returnAllStateVariables(core);
+            expect(stateVariables["/l1"].stateValues.value).eq(value);
+            expect(stateVariables["/l1"].stateValues.text).eq(text);
+            expect(stateVariables["/l1"].stateValues.latex).eq(latex);
+            expect(stateVariables["/l2"].stateValues.value).eq(value);
+            expect(stateVariables["/l2"].stateValues.text).eq(text);
+            expect(stateVariables["/l2"].stateValues.latex).eq(latex);
+
+            expect(stateVariables["/value1"].stateValues.value).eq(text);
+            expect(stateVariables["/text1"].stateValues.value).eq(text);
+            expect(stateVariables["/latex1"].stateValues.value).eq(latex);
+
+            expect(stateVariables["/value2"].stateValues.value).eq(text);
+            expect(stateVariables["/text2"].stateValues.value).eq(text);
+            expect(stateVariables["/latex2"].stateValues.value).eq(latex);
+        }
+
+        // Note: doesn't normalize latex
+        await check_items("\\(x^2/2\\)", "(x²)/2", "x^2/2");
+
+        // update value
+        // (textInput ends up converting value to text beforehand )
+        await updateTextInputValue({
+            text: "a/b",
+            name: "/value1",
+            core,
+        });
+        await check_items("\\(\\frac{a}{b}\\)", "a/b", "\\frac{a}{b}");
+
+        await updateTextInputValue({ text: "(x,y)", name: "/text1", core });
+        await check_items(
+            "\\(\\left( x, y \\right)\\)",
+            "( x, y )",
+            "\\left( x, y \\right)",
+        );
+
+        // Note: doesn't normalize latex when set from latex variable
+        await updateTextInputValue({ text: "z^2", name: "/latex1", core });
+        await check_items("\\(z^2\\)", "z²", "z^2");
+
+        // update value 2
+        // (textInput ends up converting value to text beforehand )
+        await updateTextInputValue({
+            text: "x_4!",
+            name: "/value2",
+            core,
+        });
+        await check_items("\\(x_{4}!\\)", "x₄!", "x_{4}!");
+
+        await updateTextInputValue({ text: "A or B", name: "/text2", core });
+        await check_items("\\(A \\lor B\\)", "A or B", "A \\lor B");
+
+        // Note: doesn't normalize latex when set from latex variable
+        await updateTextInputValue({
+            text: "\\int_a^b f(x) dx",
+            name: "/latex2",
+            core,
+        });
+        await check_items(
+            "\\(\\int_a^b f(x) dx\\)",
+            "∫_a^b f(x) dx",
+            "\\int_a^b f(x) dx",
+        );
+    });
+
+    it("cannot change multi-child label from its value, text, or latex", async () => {
+        let core = await createTestCore({
+            doenetML: `
+<label name="l1">Hello <m>x^2/2</m></label>
+<label name="l2" copySource="l1" />
+
+<textInput name="value1">$l1.value</textInput>
+<textInput name="text1">$l1.text</textInput>
+<textInput name="latex1">$l1.latex</textInput>
+
+<textInput name="value2">$l2.value</textInput>
+<textInput name="text2">$l2.text</textInput>
+<textInput name="latex2">$l2.latex</textInput>
+            `,
+        });
+
+        async function check_items(value: string, text: string, latex: string) {
+            const stateVariables = await returnAllStateVariables(core);
+            expect(stateVariables["/l1"].stateValues.value).eq(value);
+            expect(stateVariables["/l1"].stateValues.text).eq(text);
+            expect(stateVariables["/l1"].stateValues.latex).eq(latex);
+            expect(stateVariables["/l2"].stateValues.value).eq(value);
+            expect(stateVariables["/l2"].stateValues.text).eq(text);
+            expect(stateVariables["/l2"].stateValues.latex).eq(latex);
+
+            expect(stateVariables["/value1"].stateValues.value).eq(text);
+            expect(stateVariables["/text1"].stateValues.value).eq(text);
+            expect(stateVariables["/latex1"].stateValues.value).eq(latex);
+
+            expect(stateVariables["/value2"].stateValues.value).eq(text);
+            expect(stateVariables["/text2"].stateValues.value).eq(text);
+            expect(stateVariables["/latex2"].stateValues.value).eq(latex);
+        }
+
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+
+        // cannot update value
+        await updateTextInputValue({
+            text: "a/b",
+            name: "/value1",
+            core,
+        });
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+
+        // cannot update text
+        await updateTextInputValue({ text: "(x,y)", name: "/text1", core });
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+
+        // cannot update latex
+        await updateTextInputValue({ text: "z^2", name: "/latex1", core });
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+
+        // cannot update value 2
+        await updateTextInputValue({
+            text: "x_4!",
+            name: "/value2",
+            core,
+        });
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+
+        // cannot update text 2
+        await updateTextInputValue({ text: "A or B", name: "/text2", core });
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+
+        // cannot update latex 2
+        await updateTextInputValue({
+            text: "\\int_a^b f(x) dx",
+            name: "/latex2",
+            core,
+        });
+        await check_items("Hello \\(x^2/2\\)", "Hello (x²)/2", "Hello x^2/2");
+    });
+
     it("label in graph", async () => {
         const doenetMLsnippet = `
     <graph >
