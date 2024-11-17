@@ -355,17 +355,19 @@ export async function movePoint({
     name,
     x,
     y,
+    z,
     core,
 }: {
     name: string;
     x: number;
     y: number;
+    z?: number;
     core: Core;
 }) {
     await core.requestAction({
         componentName: name,
         actionName: "movePoint",
-        args: { x, y },
+        args: { x, y, z },
         event: null,
     });
 }
