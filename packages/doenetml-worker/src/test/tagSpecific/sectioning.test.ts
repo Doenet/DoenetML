@@ -1,17 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import { cleanLatex } from "../utils/math";
-import {
-    moveMath,
-    movePoint,
-    moveVector,
-    submitAnswer,
-    updateBooleanInputValue,
-    updateMathInputValue,
-    updateMatrixInputValue,
-    updateTextInputValue,
-    updateValue,
-} from "../utils/actions";
+import { submitAnswer, updateMathInputValue } from "../utils/actions";
 import Core from "../../Core";
 
 const Mock = vi.fn();
