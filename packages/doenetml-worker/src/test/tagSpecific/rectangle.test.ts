@@ -12,7 +12,13 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-async function setupScene({ rectangleProperties, rectangleChildren }) {
+async function setupScene({
+    rectangleProperties,
+    rectangleChildren,
+}: {
+    rectangleProperties: string;
+    rectangleChildren: string;
+}) {
     let core = await createTestCore({
         doenetML:
             `
