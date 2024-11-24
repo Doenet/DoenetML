@@ -890,4 +890,33 @@ describe("Label tests", async () => {
             "x&UnderBar;a&Hat;b or \\(x_c^d\\)",
         );
     });
+
+    it("props do not shadow label", async () => {
+        const core = await createTestCore({
+            doenetML: `
+    <graph>
+        <line name="line" slope="1"><label>L</label></line>
+        <line name="l" labelIsName slope="-2" />
+        <point name="P1" copySource="line.point1" />
+        <point name="P2" copySource="line.point2" />
+        $l.points{assignNames="P3 P4"}
+        <point name="P5" copySource="line.point1" link="false" />
+        <point name="P6" copySource="line.point2" link="false" />
+        $l.points{assignNames="P7 P8" link="false"}
+    </graph>`,
+        });
+
+        const stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/line"].stateValues.label).eq("L");
+        expect(stateVariables["/l"].stateValues.label).eq("l");
+        expect(stateVariables["/P1"].stateValues.label).eq("");
+        expect(stateVariables["/P2"].stateValues.label).eq("");
+        expect(stateVariables["/P3"].stateValues.label).eq("");
+        expect(stateVariables["/P4"].stateValues.label).eq("");
+        expect(stateVariables["/P5"].stateValues.label).eq("");
+        expect(stateVariables["/P6"].stateValues.label).eq("");
+        expect(stateVariables["/P7"].stateValues.label).eq("");
+        expect(stateVariables["/P8"].stateValues.label).eq("");
+    });
 });

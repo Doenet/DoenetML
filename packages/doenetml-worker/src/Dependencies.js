@@ -7045,6 +7045,19 @@ class ShadowSourceDependency extends Dependency {
             };
         }
 
+        // only get sources that are shadowed without propVariable
+        // unless from implicit prop
+        if (
+            component.shadows.propVariable &&
+            !component.shadows.fromImplicitProp
+        ) {
+            return {
+                success: true,
+                downstreamComponentNames: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         let shadowSourceComponentName = component.shadows.componentName;
         let shadowSource =
             this.dependencyHandler._components[shadowSourceComponentName];
