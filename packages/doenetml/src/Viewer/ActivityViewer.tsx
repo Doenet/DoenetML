@@ -65,7 +65,7 @@ export function ActivityViewer({
     linkSettings,
     addBottomPadding = true,
     scrollableContainer = window,
-    darkMode,
+    darkMode = "light",
     showAnswerTitles,
 }: {
     doenetML: string;
@@ -99,7 +99,7 @@ export function ActivityViewer({
     linkSettings?: { viewURL: string; editURL: string };
     addBottomPadding?: boolean;
     scrollableContainer?: HTMLDivElement | Window;
-    darkMode?: string;
+    darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
 }) {
     const [errMsg, setErrMsg] = useState("");

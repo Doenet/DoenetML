@@ -2084,4 +2084,46 @@ describe("LineSegment tag tests", async () => {
         });
         await check_items({ point1, point2, draggable, endpointsDraggable });
     });
+
+    it("style description changes with theme", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinitions>
+        <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
+        <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
+      </styleDefinitions>
+    </setup>
+    <graph>
+      <lineSegment name="A" styleNumber="1" labelIsName endpoints="(0,0) (1,2)" />
+      <lineSegment name="B" styleNumber="2" labelIsName endpoints="(2,2) (3,4)" />
+      <lineSegment name="C" styleNumber="5" labelIsName endpoints="(4,4) (5,6)" />
+    </graph>
+    <p name="ADescription">Line segment A is $A.styleDescription.</p>
+    <p name="BDescription">B is a $B.styleDescriptionWithNoun.</p>
+    <p name="CDescription">C is a $C.styleDescriptionWithNoun.</p>
+    `;
+
+        async function test_items(theme: "dark" | "light") {
+            const core = await createTestCore({ doenetML, theme });
+
+            const AColor = theme === "dark" ? "yellow" : "brown";
+            const BShade = theme === "dark" ? "light" : "dark";
+            const CColor = theme === "dark" ? "white" : "black";
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/ADescription"].stateValues.text).eq(
+                `Line segment A is thick ${AColor}.`,
+            );
+            expect(stateVariables["/BDescription"].stateValues.text).eq(
+                `B is a ${BShade} red line segment.`,
+            );
+            expect(stateVariables["/CDescription"].stateValues.text).eq(
+                `C is a thin ${CColor} line segment.`,
+            );
+        }
+
+        await test_items("light");
+        await test_items("dark");
+    });
 });

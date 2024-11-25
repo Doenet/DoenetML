@@ -4690,4 +4690,46 @@ $g1{name="g2"}
         y2 = -1;
         await check_items(x1, y1, x2, y2);
     });
+
+    it("style description changes with theme", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinitions>
+        <styleDefinition styleNumber="1" markerColor="brown" markerColorDarkMode="yellow" />
+        <styleDefinition styleNumber="2" markerColor="#540907" markerColorWord="dark red" markerColorDarkMode="#f0c6c5" markerColorWordDarkMode="light red" />
+      </styleDefinitions>
+    </setup>
+    <graph>
+      <point name="A" styleNumber="1" labelIsName>(1,2)</point>
+      <point name="B" styleNumber="2" labelIsName>(3,4)</point>
+      <point name="C" styleNumber="5" labelIsName>(5,6)</point>
+    </graph>
+    <p name="ADescription">Point A is $A.styleDescription.</p>
+    <p name="BDescription">B is a $B.styleDescriptionWithNoun.</p>
+    <p name="CDescription">C is a $C.styleDescriptionWithNoun.</p>
+    `;
+
+        async function test_items(theme: "dark" | "light") {
+            const core = await createTestCore({ doenetML, theme });
+
+            const AColor = theme === "dark" ? "yellow" : "brown";
+            const BShade = theme === "dark" ? "light" : "dark";
+            const CColor = theme === "dark" ? "white" : "black";
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/ADescription"].stateValues.text).eq(
+                `Point A is ${AColor}.`,
+            );
+            expect(stateVariables["/BDescription"].stateValues.text).eq(
+                `B is a ${BShade} red square.`,
+            );
+            expect(stateVariables["/CDescription"].stateValues.text).eq(
+                `C is a ${CColor} point.`,
+            );
+        }
+
+        await test_items("light");
+        await test_items("dark");
+    });
 });

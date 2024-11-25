@@ -7,52 +7,6 @@ describe("Point Tag Tests 2", function () {
         cy.visit("/");
     });
 
-    it("style description changes with theme", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <setup>
-      <styleDefinitions>
-        <styleDefinition styleNumber="1" markerColor="brown" markerColorDarkMode="yellow" />
-        <styleDefinition styleNumber="2" markerColor="#540907" markerColorWord="dark red" markerColorDarkMode="#f0c6c5" markerColorWordDarkMode="light red" />
-      </styleDefinitions>
-    </setup>
-    <graph>
-      <point name="A" styleNumber="1" labelIsName>(1,2)</point>
-      <point name="B" styleNumber="2" labelIsName>(3,4)</point>
-      <point name="C" styleNumber="5" labelIsName>(5,6)</point>
-    </graph>
-    <p name="Adescrip">Point A is $A.styleDescription.</p>
-    <p name="Bdescrip">B is a $B.styleDescriptionWithNoun.</p>
-    <p name="Cdescrip">C is a $C.styleDescriptionWithNoun.</p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(cesc("#\\/Adescrip")).should("have.text", "Point A is brown.");
-        cy.get(cesc("#\\/Bdescrip")).should(
-            "have.text",
-            "B is a dark red square.",
-        );
-        cy.get(cesc("#\\/Cdescrip")).should("have.text", "C is a black point.");
-
-        cy.log("set dark mode");
-        cy.get("#testRunner_toggleControls").click();
-        cy.get("#testRunner_darkMode").click();
-        cy.wait(100);
-        cy.get("#testRunner_toggleControls").click();
-
-        cy.get(cesc("#\\/Adescrip")).should("have.text", "Point A is yellow.");
-        cy.get(cesc("#\\/Bdescrip")).should(
-            "have.text",
-            "B is a light red square.",
-        );
-        cy.get(cesc("#\\/Cdescrip")).should("have.text", "C is a white point.");
-    });
-
     it("skip actions when drag slow point", () => {
         cy.window().then(async (win) => {
             win.postMessage(

@@ -33,7 +33,7 @@ export function EditorViewer({
     idsIncludeActivityId = true,
     linkSettings,
     addBottomPadding = false,
-    darkMode,
+    darkMode = "light",
     showAnswerTitles,
     width = "100%",
     height = "500px",
@@ -58,7 +58,7 @@ export function EditorViewer({
     idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     addBottomPadding?: boolean;
-    darkMode?: string;
+    darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
     width?: string;
     height?: string;

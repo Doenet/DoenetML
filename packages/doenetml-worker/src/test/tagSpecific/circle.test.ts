@@ -4646,4 +4646,70 @@ $c7.radius
         expect(stateVariables["/Q3h"].stateValues.value).eqls(true);
         expect(stateVariables["/R3h"].stateValues.value).eqls(false);
     });
+
+    it("style description changes with theme", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinitions>
+        <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" fillColor="brown" fillColorDarkMode="yellow" />
+        <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" fillColor="#540907" fillColorWord="dark red" fillColorDarkMode="#f0c6c5" fillColorWordDarkMode="light red" />
+      </styleDefinitions>
+    </setup>
+    <graph>
+      <circle name="A" styleNumber="1" labelIsName center="(0,0)" filled />
+      <circle name="B" styleNumber="2" labelIsName center="(2,2)" filled />
+      <circle name="C" styleNumber="5" labelIsName center="(4,4)" filled />
+    </graph>
+    <p name="ADescription">Circle A is $A.styleDescription.</p>
+    <p name="BDescription">B is a $B.styleDescriptionWithNoun.</p>
+    <p name="CDescription">C is a $C.styleDescriptionWithNoun.</p>
+    <p name="ABorderDescription">A has a $A.borderStyleDescription border.</p>
+    <p name="BBorderDescription">B has a $B.borderStyleDescription border.</p>
+    <p name="CBorderDescription">C has a $C.borderStyleDescription border.</p>
+    <p name="AFillDescription">A has a $A.fillStyleDescription fill.</p>
+    <p name="BFillDescription">B has a $B.fillStyleDescription fill.</p>
+    <p name="CFillDescription">C has a $C.fillStyleDescription fill.</p>
+    `;
+
+        async function test_items(theme: "dark" | "light") {
+            const core = await createTestCore({ doenetML, theme });
+
+            const AColor = theme === "dark" ? "yellow" : "brown";
+            const BShade = theme === "dark" ? "light" : "dark";
+            const CColor = theme === "dark" ? "white" : "black";
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/ADescription"].stateValues.text).eq(
+                `Circle A is filled ${AColor} with thick border.`,
+            );
+            expect(stateVariables["/BDescription"].stateValues.text).eq(
+                `B is a filled ${BShade} red circle.`,
+            );
+            expect(stateVariables["/CDescription"].stateValues.text).eq(
+                `C is a filled ${CColor} circle with a thin border.`,
+            );
+            expect(stateVariables["/ABorderDescription"].stateValues.text).eq(
+                `A has a thick ${AColor} border.`,
+            );
+            expect(stateVariables["/BBorderDescription"].stateValues.text).eq(
+                `B has a ${BShade} red border.`,
+            );
+            expect(stateVariables["/CBorderDescription"].stateValues.text).eq(
+                `C has a thin ${CColor} border.`,
+            );
+            expect(stateVariables["/AFillDescription"].stateValues.text).eq(
+                `A has a ${AColor} fill.`,
+            );
+            expect(stateVariables["/BFillDescription"].stateValues.text).eq(
+                `B has a ${BShade} red fill.`,
+            );
+            expect(stateVariables["/CFillDescription"].stateValues.text).eq(
+                `C has a ${CColor} fill.`,
+            );
+        }
+
+        await test_items("light");
+        await test_items("dark");
+    });
 });
