@@ -1,12 +1,12 @@
-import { cesc } from "@doenet/utils";
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 
-describe("Math expressions equality tests", function () {
-    beforeEach(() => {
-        cy.clearIndexedDB();
-        cy.visit("/");
-    });
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
-    it("equivalences", () => {
+describe("Math expressions equality tests", async () => {
+    it("equivalences", async () => {
         let equivalences = [
             {
                 expr1: "sin^(-1)(x)",
@@ -206,34 +206,34 @@ describe("Math expressions equality tests", function () {
             {
                 expr1: "log^2(x)",
                 expr2: "log(x)^2",
-                equal: false,
-                symbolicEqual: false,
-                symbolicSimplifyEqual: false,
-                symbolicSimplifyExpandEqual: false,
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
             },
             {
                 expr1: "log^n(x)",
                 expr2: "log(x)^n",
-                equal: false,
-                symbolicEqual: false,
-                symbolicSimplifyEqual: false,
-                symbolicSimplifyExpandEqual: false,
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
             },
             {
                 expr1: "ln^2(x)",
                 expr2: "ln(x)^2",
-                equal: false,
-                symbolicEqual: false,
-                symbolicSimplifyEqual: false,
-                symbolicSimplifyExpandEqual: false,
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
             },
             {
                 expr1: "ln^n(x)",
                 expr2: "ln(x)^n",
-                equal: false,
-                symbolicEqual: false,
-                symbolicSimplifyEqual: false,
-                symbolicSimplifyExpandEqual: false,
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
             },
             {
                 expr1: "f^2(x)",
@@ -304,8 +304,8 @@ describe("Math expressions equality tests", function () {
                 expr2: "log(a)/log(b)",
                 equal: true,
                 symbolicEqual: false,
-                symbolicSimplifyEqual: false, // with improved simplication, these should compare as true
-                symbolicSimplifyExpandEqual: false, // with improved simplication, these should compare as true
+                symbolicSimplifyEqual: false, // with improved simplification, these should compare as true
+                symbolicSimplifyExpandEqual: false, // with improved simplification, these should compare as true
             },
             {
                 expr1: "nCr(5,3)",
@@ -831,8 +831,8 @@ describe("Math expressions equality tests", function () {
                 expr2: "vec(y)",
                 equal: true,
                 symbolicEqual: false,
-                symbolicSimplifyEqual: false, // with improved simplication, these should compare as true
-                symbolicSimplifyExpandEqual: false, // with improved simplication, these should compare as true
+                symbolicSimplifyEqual: false, // with improved simplification, these should compare as true
+                symbolicSimplifyExpandEqual: false, // with improved simplification, these should compare as true
             },
 
             {
@@ -949,7 +949,7 @@ describe("Math expressions equality tests", function () {
             },
         ];
 
-        let doenetML = "<text>a</text>";
+        let doenetML = "";
 
         for (let [ind, info] of equivalences.entries()) {
             doenetML += `\n<boolean name="n${ind}">${info.expr1} = ${info.expr2}</boolean>`;
@@ -958,38 +958,27 @@ describe("Math expressions equality tests", function () {
             doenetML += `\n<boolean name="sse${ind}" symbolicEquality simplifyOnCompare expandOnCompare>${info.expr1} = ${info.expr2}</boolean>`;
         }
 
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                },
-                "*",
-            );
-        });
+        let core = await createTestCore({ doenetML });
 
-        cy.get(cesc("#\\/_text1")).should("contain.text", "a");
+        let stateVariables = await returnAllStateVariables(core);
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-
-            for (let [ind, info] of equivalences.entries()) {
-                expect(
-                    stateVariables[`/n${ind}`].stateValues.value,
-                    `Comparing ${info.expr1} and ${info.expr2}`,
-                ).eq(info.equal);
-                expect(
-                    stateVariables[`/s${ind}`].stateValues.value,
-                    `Comparing symbolic ${info.expr1} and ${info.expr2}`,
-                ).eq(info.symbolicEqual);
-                expect(
-                    stateVariables[`/ss${ind}`].stateValues.value,
-                    `Comparing symbolic simplify ${info.expr1} and ${info.expr2}`,
-                ).eq(info.symbolicSimplifyEqual);
-                expect(
-                    stateVariables[`/sse${ind}`].stateValues.value,
-                    `Comparing symbolic simplify expand ${info.expr1} and ${info.expr2}`,
-                ).eq(info.symbolicSimplifyExpandEqual);
-            }
-        });
+        for (let [ind, info] of equivalences.entries()) {
+            expect(
+                stateVariables[`/n${ind}`].stateValues.value,
+                `Comparing ${info.expr1} and ${info.expr2}`,
+            ).eq(info.equal);
+            expect(
+                stateVariables[`/s${ind}`].stateValues.value,
+                `Comparing symbolic ${info.expr1} and ${info.expr2}`,
+            ).eq(info.symbolicEqual);
+            expect(
+                stateVariables[`/ss${ind}`].stateValues.value,
+                `Comparing symbolic simplify ${info.expr1} and ${info.expr2}`,
+            ).eq(info.symbolicSimplifyEqual);
+            expect(
+                stateVariables[`/sse${ind}`].stateValues.value,
+                `Comparing symbolic simplify expand ${info.expr1} and ${info.expr2}`,
+            ).eq(info.symbolicSimplifyExpandEqual);
+        }
     });
 });
