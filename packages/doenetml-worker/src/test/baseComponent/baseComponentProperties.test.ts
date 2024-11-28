@@ -3,7 +3,6 @@ import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
-    updateMathInputValue,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
