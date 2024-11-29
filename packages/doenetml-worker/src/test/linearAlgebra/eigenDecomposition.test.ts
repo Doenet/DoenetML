@@ -580,16 +580,22 @@ describe("EigenDecomposition Tag Tests", async () => {
 
         // Unstable spiral
         evals = [
-            me.math.complex({re: 0.048306535292557, im: 14.873845525216694 }),
-            me.math.complex({re: 0.048306535292557, im: -14.873845525216694 }),
-            me.math.complex({re: -22.096613070585100, im: 0}),
-        ]
+            me.math.complex({ re: 0.048306535292557, im: 14.873845525216694 }),
+            me.math.complex({ re: 0.048306535292557, im: -14.873845525216694 }),
+            me.math.complex({ re: -22.0966130705851, im: 0 }),
+        ];
         evecs = [
             [
-                me.math.complex({re: -0.425927192657446, im: -0.272156678632516 }),
-                me.math.complex({re: 0.626965239909586, im: 0 }),
-                me.math.complex({re: -0.174042517907594, im: 0.566692649269571 }),
-            ]
+                me.math.complex({
+                    re: -0.425927192657446,
+                    im: -0.272156678632516,
+                }),
+                me.math.complex({ re: 0.626965239909586, im: 0 }),
+                me.math.complex({
+                    re: -0.174042517907594,
+                    im: 0.566692649269571,
+                }),
+            ],
         ];
         evecs.push(evecs[0].map((v) => me.math.conj(v)));
         evecs.push(
@@ -604,6 +610,5 @@ describe("EigenDecomposition Tag Tests", async () => {
             core,
             decompositionName: "/Ad_unstable",
         });
-
     });
 });
