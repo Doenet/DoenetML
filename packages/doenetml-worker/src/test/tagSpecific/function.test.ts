@@ -5585,4 +5585,46 @@ describe("Function tag tests", async () => {
         expect(f8.stateValues.globalMaximum).eqls([10, 4]);
         expect(f8.stateValues.globalSupremum).eqls([10, 4]);
     });
+
+    it("style description changes with theme", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinitions>
+        <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
+        <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
+      </styleDefinitions>
+    </setup>
+    <graph>
+      <function name="A" styleNumber="1" labelIsName>x^2</function>
+      <function name="B" styleNumber="2" labelIsName>x^2+2</function>
+      <function name="C" styleNumber="5" labelIsName>x^2+4</function>
+    </graph>
+    <p name="ADescription">Function A is $A.styleDescription.</p>
+    <p name="BDescription">B is a $B.styleDescriptionWithNoun.</p>
+    <p name="CDescription">C is a $C.styleDescriptionWithNoun.</p>
+    `;
+
+        async function test_items(theme: "dark" | "light") {
+            const core = await createTestCore({ doenetML, theme });
+
+            const AColor = theme === "dark" ? "yellow" : "brown";
+            const BShade = theme === "dark" ? "light" : "dark";
+            const CColor = theme === "dark" ? "white" : "black";
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/ADescription"].stateValues.text).eq(
+                `Function A is thick ${AColor}.`,
+            );
+            expect(stateVariables["/BDescription"].stateValues.text).eq(
+                `B is a ${BShade} red function.`,
+            );
+            expect(stateVariables["/CDescription"].stateValues.text).eq(
+                `C is a thin ${CColor} function.`,
+            );
+        }
+
+        await test_items("light");
+        await test_items("dark");
+    });
 });

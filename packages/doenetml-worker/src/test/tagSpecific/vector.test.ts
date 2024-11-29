@@ -5424,4 +5424,46 @@ $vector1.displacement{assignNames="displacement2"}
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/vector1"]).not.eq(undefined);
     });
+
+    it("style description changes with theme", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinitions>
+        <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
+        <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
+      </styleDefinitions>
+    </setup>
+    <graph>
+      <vector name="A" styleNumber="1" labelIsName tail="(0,0)" head="(1,2)" />
+      <vector name="B" styleNumber="2" labelIsName tail="(2,2)" head="(3,4)" />
+      <vector name="C" styleNumber="5" labelIsName tail="(4,4)" head="(5,6)" />
+    </graph>
+    <p name="ADescription">Vector A is $A.styleDescription.</p>
+    <p name="BDescription">B is a $B.styleDescriptionWithNoun.</p>
+    <p name="CDescription">C is a $C.styleDescriptionWithNoun.</p>
+    `;
+
+        async function test_items(theme: "dark" | "light") {
+            const core = await createTestCore({ doenetML, theme });
+
+            const AColor = theme === "dark" ? "yellow" : "brown";
+            const BShade = theme === "dark" ? "light" : "dark";
+            const CColor = theme === "dark" ? "white" : "black";
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/ADescription"].stateValues.text).eq(
+                `Vector A is thick ${AColor}.`,
+            );
+            expect(stateVariables["/BDescription"].stateValues.text).eq(
+                `B is a ${BShade} red vector.`,
+            );
+            expect(stateVariables["/CDescription"].stateValues.text).eq(
+                `C is a thin ${CColor} vector.`,
+            );
+        }
+
+        await test_items("light");
+        await test_items("dark");
+    });
 });

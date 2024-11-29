@@ -355,17 +355,19 @@ export async function movePoint({
     name,
     x,
     y,
+    z,
     core,
 }: {
     name: string;
-    x: number;
-    y: number;
+    x?: number;
+    y?: number;
+    z?: number;
     core: Core;
 }) {
     await core.requestAction({
         componentName: name,
         actionName: "movePoint",
-        args: { x, y },
+        args: { x, y, z },
         event: null,
     });
 }
@@ -495,6 +497,44 @@ export async function moveCircle({
         componentName: name,
         actionName: "moveCircle",
         args: { center: [cx, cy] },
+        event: null,
+    });
+}
+
+export async function moveControlVector({
+    name,
+    controlVectorInds,
+    controlVector,
+    core,
+}: {
+    name: string;
+    controlVectorInds: number[];
+    controlVector: number[];
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "moveControlVector",
+        args: { controlVectorInds, controlVector },
+        event: null,
+    });
+}
+
+export async function moveThroughPoint({
+    name,
+    throughPointInd,
+    throughPoint,
+    core,
+}: {
+    name: string;
+    throughPointInd: number;
+    throughPoint: number[];
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "moveThroughPoint",
+        args: { throughPointInd, throughPoint },
         event: null,
     });
 }

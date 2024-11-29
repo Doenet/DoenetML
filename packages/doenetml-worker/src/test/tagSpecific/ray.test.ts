@@ -3380,4 +3380,46 @@ $ray1{name="v1a"}
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/ray1"]).not.eq(undefined);
     });
+
+    it("style description changes with theme", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinitions>
+        <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
+        <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
+      </styleDefinitions>
+    </setup>
+    <graph>
+      <ray name="A" styleNumber="1" labelIsName endpoint="(0,0)" through="(1,2)" />
+      <ray name="B" styleNumber="2" labelIsName endpoint="(2,2)" through="(3,4)" />
+      <ray name="C" styleNumber="5" labelIsName endpoint="(4,4)" through="(5,6)" />
+    </graph>
+    <p name="ADescription">Ray A is $A.styleDescription.</p>
+    <p name="BDescription">B is a $B.styleDescriptionWithNoun.</p>
+    <p name="CDescription">C is a $C.styleDescriptionWithNoun.</p>
+    `;
+
+        async function test_items(theme: "dark" | "light") {
+            const core = await createTestCore({ doenetML, theme });
+
+            const AColor = theme === "dark" ? "yellow" : "brown";
+            const BShade = theme === "dark" ? "light" : "dark";
+            const CColor = theme === "dark" ? "white" : "black";
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/ADescription"].stateValues.text).eq(
+                `Ray A is thick ${AColor}.`,
+            );
+            expect(stateVariables["/BDescription"].stateValues.text).eq(
+                `B is a ${BShade} red ray.`,
+            );
+            expect(stateVariables["/CDescription"].stateValues.text).eq(
+                `C is a thin ${CColor} ray.`,
+            );
+        }
+
+        await test_items("light");
+        await test_items("dark");
+    });
 });

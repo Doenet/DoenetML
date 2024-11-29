@@ -888,6 +888,11 @@ export default class Line extends GraphicalComponent {
                                                 .slopeAttr.stateValues.value;
 
                                         if (
+                                            dependencyValuesByKey[arrayKey]
+                                                .distForSecondPt === 0
+                                        ) {
+                                            points[arrayKey] = point1;
+                                        } else if (
                                             slope === Infinity ||
                                             slope === -Infinity
                                         ) {
@@ -947,6 +952,11 @@ export default class Line extends GraphicalComponent {
                                         );
 
                                         if (
+                                            dependencyValuesByKey[arrayKey]
+                                                .distForSecondPt === 0
+                                        ) {
+                                            points[arrayKey] = point1;
+                                        } else if (
                                             !parallelTo.every(Number.isFinite)
                                         ) {
                                             points[arrayKey] =
@@ -964,7 +974,7 @@ export default class Line extends GraphicalComponent {
                                                 .simplify();
                                         }
                                     } else {
-                                        // 0 or 1 points prescribed, perpendicularto prescribed, and on second poitn, in 2D
+                                        // 0 or 1 points prescribed, perpendicularto prescribed, and on second point, in 2D
                                         let perpendicularTo =
                                             dependencyValuesByKey[
                                                 arrayKey
@@ -973,6 +983,11 @@ export default class Line extends GraphicalComponent {
                                             );
 
                                         if (
+                                            dependencyValuesByKey[arrayKey]
+                                                .distForSecondPt === 0
+                                        ) {
+                                            points[arrayKey] = point1;
+                                        } else if (
                                             !perpendicularTo.every(
                                                 Number.isFinite,
                                             )
@@ -1957,6 +1972,52 @@ export default class Line extends GraphicalComponent {
                 }).toLatex(params);
 
                 return { setValue: { latex } };
+            },
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                equation: {
+                    dependencyType: "stateVariable",
+                    variableName: "equation",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                displaySmallAsZero: {
+                    dependencyType: "stateVariable",
+                    variableName: "displaySmallAsZero",
+                },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let params = {};
+                if (dependencyValues.padZeros) {
+                    if (Number.isFinite(dependencyValues.displayDecimals)) {
+                        params.padToDecimals = dependencyValues.displayDecimals;
+                    }
+                    if (dependencyValues.displayDigits >= 1) {
+                        params.padToDigits = dependencyValues.displayDigits;
+                    }
+                }
+                let text = roundForDisplay({
+                    value: dependencyValues.equation,
+                    dependencyValues,
+                }).toString(params);
+
+                return { setValue: { text } };
             },
         };
 

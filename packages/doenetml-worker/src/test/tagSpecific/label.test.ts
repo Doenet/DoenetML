@@ -3,10 +3,14 @@ import { createTestCore, returnAllStateVariables } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveLabel,
+    movePoint,
     updateMathInputValue,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
+import { latexToText } from "../../utils/math";
+import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -686,6 +690,362 @@ describe("Label tag tests", async () => {
         );
         expect(cleanLatex(stateVariables["/m2bcoords"].stateValues.latex)).eq(
             "(-5,-4)",
+        );
+    });
+
+    it("label point with child, part math", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P" displayDecimals="1" padZeros>
+        (1,2)
+        <label>We have <m>x^{$P.x} + y^{$P.y}</m></label>
+      </point>
+      <point name="Q" displayDigits="3" padZeros>
+        <label>No latex: x^<text>$Q.x</text> + y^<text>$Q.y</text></label>
+        (3,4)
+      </point>
+      <point name="R" displayDecimals="2">
+        <label>$P.label and $R.coords</label>
+        (5,6)
+      </point>
+      <point name="S" displayDigits="2">
+        <label>$Q.label and $S.coords</label>
+        (7,8)
+      </point>
+    </graph>
+
+    <p name="labelPPar">Label for P: $P.label</p>
+    <p name="labelQPar">Label for Q: $Q.label</p>
+    <p name="labelRPar">Label for R: $R.label</p>
+    <p name="labelSPar">Label for S: $S.label</p>
+    `,
+        });
+
+        async function check_items({
+            Px,
+            Py,
+            Qx,
+            Qy,
+            Rx,
+            Ry,
+            Sx,
+            Sy,
+        }: {
+            Px: number;
+            Py: number;
+            Qx: number;
+            Qy: number;
+            Rx: number;
+            Ry: number;
+            Sx: number;
+            Sy: number;
+        }) {
+            let PxLatex = me
+                .round_numbers_to_precision_plus_decimals(Px, -Infinity, 1)
+                .toLatex({ padToDecimals: 1 });
+            let PyLatex = me
+                .round_numbers_to_precision_plus_decimals(Py, -Infinity, 1)
+                .toLatex({ padToDecimals: 1 });
+
+            let QxLatex = me
+                .round_numbers_to_precision_plus_decimals(Qx, 3, 0)
+                .toLatex({ padToDigits: 3 });
+            let QyLatex = me
+                .round_numbers_to_precision_plus_decimals(Qy, 3, 0)
+                .toLatex({ padToDigits: 3 });
+
+            let RxLatex = me
+                .round_numbers_to_precision_plus_decimals(Rx, -Infinity, 2)
+                .toLatex();
+            let RyLatex = me
+                .round_numbers_to_precision_plus_decimals(Ry, -Infinity, 2)
+                .toLatex();
+            let SxLatex = me
+                .round_numbers_to_precision_plus_decimals(Sx, 2, 0)
+                .toLatex();
+            let SyLatex = me
+                .round_numbers_to_precision_plus_decimals(Sy, 2, 0)
+                .toLatex();
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            let PLabel = `We have \\(x^{ ${PxLatex} } + y^{ ${PyLatex} }\\)`;
+            let PLabelText = `We have ${latexToText(`x^{ ${PxLatex} } + y^{ ${PyLatex} }`)}`;
+            expect(stateVariables["/P"].stateValues.label).eq(PLabel);
+            expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
+            expect(stateVariables["/labelPPar"].stateValues.text).eq(
+                `Label for P: ${PLabelText}`,
+            );
+
+            let QLabel = `No latex: x^${QxLatex} + y^${QyLatex}`;
+            expect(stateVariables["/Q"].stateValues.label).eq(QLabel);
+            expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
+            expect(stateVariables["/labelQPar"].stateValues.text).eq(
+                `Label for Q: ${QLabel}`,
+            );
+
+            let RLabel = `${PLabel} and \\(\\left( ${RxLatex}, ${RyLatex} \\right)\\)`;
+            let RLabelText = `${PLabelText} and ${latexToText(`( ${RxLatex}, ${RyLatex} )`)}`;
+            expect(stateVariables["/R"].stateValues.label).eq(RLabel);
+            expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
+            expect(stateVariables["/labelRPar"].stateValues.text).eq(
+                `Label for R: ${RLabelText}`,
+            );
+
+            let SLabel = `${QLabel} and \\(\\left( ${SxLatex}, ${SyLatex} \\right)\\)`;
+            let SLabelText = `${QLabel} and ${latexToText(`( ${SxLatex}, ${SyLatex} )`)}`;
+            expect(stateVariables["/S"].stateValues.label).eq(SLabel);
+            expect(stateVariables["/S"].stateValues.labelHasLatex).eq(true);
+            expect(stateVariables["/labelSPar"].stateValues.text).eq(
+                `Label for S: ${SLabelText}`,
+            );
+        }
+
+        let Px = 1;
+        let Py = 2;
+        let Qx = 3;
+        let Qy = 4;
+        let Rx = 5;
+        let Ry = 6;
+        let Sx = 7;
+        let Sy = 8;
+        await check_items({ Px, Py, Qx, Qy, Rx, Ry, Sx, Sy });
+
+        // move points
+        Px = Math.PI;
+        Py = Math.E;
+        Qx = Math.sqrt(2);
+        Qy = 1 / 3;
+        Rx = 1 / 6;
+        Ry = 2 / 3;
+        Sx = 1 / 8;
+        Sy = 9 / 8;
+        await movePoint({ name: "/P", x: Px, y: Py, core });
+        await movePoint({
+            name: "/Q",
+            x: Qx,
+            y: Qy,
+            core,
+        });
+        await movePoint({ name: "/R", x: Rx, y: Ry, core });
+        await movePoint({ name: "/S", x: Sx, y: Sy, core });
+        await check_items({ Px, Py, Qx, Qy, Rx, Ry, Sx, Sy });
+    });
+
+    it("copy point and override label", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P" displayDecimals="1" padZeros>
+        (1,2)
+        <label>We have <m>x^{$P.x} + y^{$P.y}</m></label>
+      </point>
+    </graph>
+    <graph>
+      <point name="Q" displayDigits="3" padZeros copySource="P">
+        <label>No latex: x^<text>$Q.x</text> + y^<text>$Q.y</text></label>
+      </point>
+    </graph>
+
+    <p name="labelPPar">Label for P: $P.label</p>
+    <p name="labelQPar">Label for Q: $Q.label</p>
+    `,
+        });
+
+        async function check_items(x: number, y: number) {
+            let PxLatex = me
+                .round_numbers_to_precision_plus_decimals(x, -Infinity, 1)
+                .toLatex({ padToDecimals: 1 });
+            let PyLatex = me
+                .round_numbers_to_precision_plus_decimals(y, -Infinity, 1)
+                .toLatex({ padToDecimals: 1 });
+
+            let QxLatex = me
+                .round_numbers_to_precision_plus_decimals(x, 3, 0)
+                .toLatex({ padToDigits: 3 });
+            let QyLatex = me
+                .round_numbers_to_precision_plus_decimals(y, 3, 0)
+                .toLatex({ padToDigits: 3 });
+
+            const stateVariables = await returnAllStateVariables(core);
+
+            let PLabel = `We have \\(x^{ ${PxLatex} } + y^{ ${PyLatex} }\\)`;
+            let PLabelText = `We have ${latexToText(`x^{ ${PxLatex} } + y^{ ${PyLatex} }`)}`;
+            expect(stateVariables["/P"].stateValues.label).eq(PLabel);
+            expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
+            expect(stateVariables["/labelPPar"].stateValues.text).eq(
+                `Label for P: ${PLabelText}`,
+            );
+
+            let QLabel = `No latex: x^${QxLatex} + y^${QyLatex}`;
+            expect(stateVariables["/Q"].stateValues.label).eq(QLabel);
+            expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
+            expect(stateVariables["/labelQPar"].stateValues.text).eq(
+                `Label for Q: ${QLabel}`,
+            );
+        }
+
+        let x = 1,
+            y = 2;
+        await check_items(x, y);
+
+        // move point
+
+        x = Math.PI;
+        y = Math.E;
+        await movePoint({ name: "/P", x, y, core });
+        await check_items(x, y);
+    });
+
+    it("update labels", async () => {
+        let core = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P1">
+        (1,2)
+        <label>P1</label>
+      </point>
+      <point name="P2">
+        (3,4)
+        <label><text>P2</text></label>
+      </point>
+      <point name="P3">
+        (5,6)
+        <label><math>P/3</math></label>
+      </point>
+      <point name="P4">
+        (7,8)
+        <label><m>\\frac{P}{4}</m></label>
+      </point>
+    </graph>
+
+    <p>Change label 1: <textInput bindValueTo="$(P1.label)" name="ti1" /></p>
+    <p><updateValue target="P1" prop="label" newValue="P1" type="text" name="revert1" >
+      <label>Revert value 1</label>
+    </updateValue></p>
+    <p>The label 1: <label copySource="P1.label" name="theLabel1" /></p>
+
+    <p>Change label 2: <textInput bindValueTo="$(P2.label)" name="ti2" /></p>
+    <p><updateValue target="P2" prop="label" newValue="P2" type="text" name="revert2" >
+      <label>Revert value 2</label>
+    </updateValue></p>
+    <p>The label 2: <label copySource="P2.label" name="theLabel2" /></p>
+
+    <p>Change label 3: <textInput bindValueTo="$(P3.label)" name="ti3" /></p>
+    <p><updateValue target="P3" prop="label" newValue="\\frac{P}{3}" type="text" name="revert3" >
+      <label>Revert value 3</label>
+    </updateValue></p>
+    <p>The label 3: <label copySource="P3.label" name="theLabel3" /></p>
+    
+
+    <p>Change label 4: <textInput bindValueTo="$(P4.label)" name="ti4" /></p>
+    <p><updateValue target="P4" prop="label" newValue="\\frac{P}{4}" type="text" name="revert4" >
+      <label>Revert value 4</label>
+    </updateValue></p>
+    <p>The label 4: <label copySource="P4.label" name="theLabel4" /></p>
+    
+    `,
+        });
+
+        async function check_items(
+            P1: string,
+            P2: string,
+            P3: string,
+            P4: string,
+        ) {
+            const stateVariables = await returnAllStateVariables(core);
+
+            expect(stateVariables["/P1"].stateValues.label).eq(P1);
+            expect(stateVariables["/P1"].stateValues.labelHasLatex).eq(false);
+            expect(stateVariables["/theLabel1"].stateValues.value).eq(P1);
+            expect(stateVariables["/theLabel1"].stateValues.text).eq(P1);
+            expect(stateVariables["/theLabel1"].stateValues.latex).eq(P1);
+            expect(stateVariables["/theLabel1"].stateValues.hasLatex).eq(false);
+            expect(stateVariables["/ti1"].stateValues.value).eq(P1);
+
+            expect(stateVariables["/P2"].stateValues.label).eq(P2);
+            expect(stateVariables["/P2"].stateValues.labelHasLatex).eq(false);
+            expect(stateVariables["/theLabel2"].stateValues.value).eq(P2);
+            expect(stateVariables["/theLabel2"].stateValues.text).eq(P2);
+            expect(stateVariables["/theLabel2"].stateValues.latex).eq(P2);
+            expect(stateVariables["/theLabel2"].stateValues.hasLatex).eq(false);
+            expect(stateVariables["/ti2"].stateValues.value).eq(P2);
+
+            const P3Text = latexToText(P3);
+            expect(stateVariables["/P3"].stateValues.label).eq(`\\(${P3}\\)`);
+            expect(stateVariables["/P3"].stateValues.labelHasLatex).eq(true);
+            expect(stateVariables["/theLabel3"].stateValues.value).eq(
+                `\\(${P3}\\)`,
+            );
+            expect(stateVariables["/theLabel3"].stateValues.text).eq(P3Text);
+            expect(stateVariables["/theLabel3"].stateValues.latex).eq(P3);
+            expect(stateVariables["/theLabel3"].stateValues.hasLatex).eq(true);
+            expect(stateVariables["/ti3"].stateValues.value).eq(P3Text);
+
+            const P4Text = latexToText(P4);
+            expect(stateVariables["/P4"].stateValues.label).eq(`\\(${P4}\\)`);
+            expect(stateVariables["/P4"].stateValues.labelHasLatex).eq(true);
+            expect(stateVariables["/theLabel4"].stateValues.value).eq(
+                `\\(${P4}\\)`,
+            );
+            expect(stateVariables["/theLabel4"].stateValues.text).eq(P4Text);
+            expect(stateVariables["/theLabel4"].stateValues.latex).eq(P4);
+            expect(stateVariables["/theLabel4"].stateValues.hasLatex).eq(true);
+            expect(stateVariables["/ti4"].stateValues.value).eq(P4Text);
+        }
+
+        await check_items("P1", "P2", "\\frac{P}{3}", "\\frac{P}{4}");
+
+        // Change label via text inputs
+        await updateTextInputValue({ text: "Q1", name: "/ti1", core });
+        await updateTextInputValue({ text: "Q2", name: "/ti2", core });
+        await updateTextInputValue({
+            text: "\\frac{Q}{3}",
+            name: "/ti3",
+            core,
+        });
+        await updateTextInputValue({
+            text: "\\frac{Q}{4}",
+            name: "/ti4",
+            core,
+        });
+        await check_items("Q1", "Q2", "\\frac{Q}{3}", "\\frac{Q}{4}");
+
+        // Revert label
+        await updateValue({ name: "/revert1", core });
+        await updateValue({ name: "/revert2", core });
+        await updateValue({ name: "/revert3", core });
+        await updateValue({ name: "/revert4", core });
+        await check_items("P1", "P2", "\\frac{P}{3}", "\\frac{P}{4}");
+
+        // Cannot switch to latex, unneeded delimiters ignored
+        await updateTextInputValue({
+            text: "\\(\\frac{Q}{1}\\)",
+            name: "/ti1",
+            core,
+        });
+        await updateTextInputValue({
+            text: "\\(\\frac{Q}{2}\\)",
+            name: "/ti2",
+            core,
+        });
+        await updateTextInputValue({
+            text: "\\(\\frac{Q}{3}\\)",
+            name: "/ti3",
+            core,
+        });
+        await updateTextInputValue({
+            text: "\\(\\frac{Q}{4}\\)",
+            name: "/ti4",
+            core,
+        });
+
+        await check_items(
+            "\\(\\frac{Q}{1}\\)",
+            "\\(\\frac{Q}{2}\\)",
+            "\\frac{Q}{3}",
+            "\\frac{Q}{4}",
         );
     });
 });

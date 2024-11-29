@@ -3977,7 +3977,7 @@ export default class Curve extends GraphicalComponent {
                 {
                     updateType: "updateValue",
                     componentName: this.componentName,
-                    stateVariable: "vectorControlDirection",
+                    stateVariable: "vectorControlDirections",
                     value: { [throughPointInd]: direction },
                 },
             ],

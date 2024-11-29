@@ -79,7 +79,6 @@ describe("SubsetOfReals tag tests", async () => {
                     if (lim[1] === Infinity) {
                         closed[1] = false;
                     }
-                    console.log({ pre, closed });
                     expect(
                         stateVariables[`${pre}${ind}`].stateValues.value.tree,
                     ).eqls([

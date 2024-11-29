@@ -39,10 +39,12 @@ export async function createTestCore({
     doenetML,
     requestedVariantIndex = 1,
     flags: specifiedFlags = {},
+    theme,
 }: {
     doenetML: string;
     requestedVariantIndex?: number;
     flags?: DoenetMLFlagsSubset;
+    theme?: "dark" | "light";
 }) {
     let componentInfoObjects = createComponentInfoObjects();
 
@@ -74,7 +76,7 @@ export async function createTestCore({
         stateVariableChanges: "",
         coreId: "",
         updateDataOnContentChange: null,
-        theme: null,
+        theme,
     };
 
     let core = new Core(coreBaseArgs);
