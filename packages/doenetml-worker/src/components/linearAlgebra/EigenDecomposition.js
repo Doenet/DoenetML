@@ -307,7 +307,7 @@ export default class EigenDecomposition extends BaseComponent {
                     let vectorMag = 0;
                     for (let j = 0; j < arraySize[0]; j++) {
                         let val =
-                            globalDependencyValues.decomposition.vectors[j][i];
+                            globalDependencyValues.decomposition.eigenvectors[i].vector[j];
                         vector.push(val);
                         vectorMag += me.math.square(me.math.abs(val));
                     }
