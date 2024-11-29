@@ -389,6 +389,25 @@ export async function moveVector({
     });
 }
 
+export async function moveRay({
+    name,
+    endpointcoords,
+    throughcoords,
+    core,
+}: {
+    name: string;
+    endpointcoords?: number[];
+    throughcoords?: number[];
+    core: Core;
+}) {
+    await core.requestAction({
+        componentName: name,
+        actionName: "moveRay",
+        args: { endpointcoords, throughcoords },
+        event: null,
+    });
+}
+
 export async function moveLine({
     name,
     point1coords,
