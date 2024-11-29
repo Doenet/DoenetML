@@ -7,7 +7,10 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import Core from "../../Core";
-import { check } from "prettier";
+
+/**
+ * Note: Many of these tests are closely mirrored in the <ray> tests.
+ */
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -91,7 +94,6 @@ describe("Vector Tag Tests", function () {
         initialHeadX = -4,
         initialHeadY = 2,
         checkLabel = false,
-        // tailMovesEntireVector = true,
         pointMovesEntireVector = "tail",
     }: {
         core: Core;
@@ -100,7 +102,6 @@ describe("Vector Tag Tests", function () {
         initialHeadX?: number;
         initialHeadY?: number;
         checkLabel?: boolean;
-        // tailMovesEntireVector?: boolean;
         pointMovesEntireVector?: "head" | "tail" | "none";
     }) {
         let tailx = initialTailX;
@@ -237,6 +238,30 @@ describe("Vector Tag Tests", function () {
         });
     }
 
+    it("vector with no arguments, head/tail/displacement copied", async () => {
+        let core = await createTestCore({
+            doenetML: `
+  <graph>
+    <vector name="vector1" />
+  </graph>
+  <graph>
+      $vector1.tail{assignNames="tail"}
+      $vector1.head{assignNames="head"}
+      $vector1.displacement{assignNames="displacement"}
+  </graph>
+  `,
+        });
+
+        await common_test_process({
+            core,
+            initialHeadX: 1,
+            initialHeadY: 0,
+            initialTailX: 0,
+            initialTailY: 0,
+            checkLabel: false,
+        });
+    });
+
     it("vector with just label, head/tail/displacement copied", async () => {
         let core = await createTestCore({
             doenetML: `
@@ -248,9 +273,6 @@ describe("Vector Tag Tests", function () {
       $vector1.head{assignNames="head"}
       $vector1.displacement{assignNames="displacement"}
   </graph>
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -277,9 +299,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -303,9 +322,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -326,9 +342,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -349,9 +362,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -372,9 +382,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -394,9 +401,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -416,9 +420,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -440,9 +441,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -462,9 +460,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -484,9 +479,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -506,9 +498,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -532,9 +521,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -558,9 +544,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -585,9 +568,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -608,9 +588,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -630,9 +607,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -652,9 +626,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -674,9 +645,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -696,9 +664,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -718,9 +683,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -740,9 +702,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -762,9 +721,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -784,9 +740,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -806,9 +759,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -834,9 +784,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -861,9 +808,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -888,9 +832,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -915,9 +856,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -942,9 +880,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -969,9 +904,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -996,9 +928,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -1023,9 +952,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -1045,9 +971,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -1072,9 +995,6 @@ describe("Vector Tag Tests", function () {
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
  `,
         });
 
@@ -1171,12 +1091,6 @@ describe("Vector Tag Tests", function () {
                     stateVariables[name].stateValues.head.map((v) => v.tree),
                 ).eqls([v3hx, v3hy]);
             }
-
-            // TODO: test text state var instead?
-            // cy.get(cesc("#\\/vector1") + " .mjx-mrow").should(
-            //     "contain.text",
-            //     `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`,
-            // );
         }
         await check_items();
 
@@ -1335,12 +1249,6 @@ describe("Vector Tag Tests", function () {
             let dhead_ys = dtail_ys.map((y) => y + displacement_y);
 
             let stateVariables = await returnAllStateVariables(core);
-
-            //TODO: state var for this?
-            // cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
-            //     "contain.text",
-            //     `(${nInDOM(displacement_x)},${nInDOM(displacement_y)})`,
-            // );
 
             for (let name of vectors) {
                 expect(
@@ -1792,9 +1700,6 @@ describe("Vector Tag Tests", function () {
         <vector name="v" tail="$(u.head)" displacement="(1,3)" />
         <vector name="w" head="$(v.head)" tail="$(u.tail)" />
     </graph>
-    $u{name="u2"}
-    $v{name="v2"}
-    $w{name="w2"}
   `,
         });
 
@@ -2036,6 +1941,7 @@ $v1{name="v1a"}
                 ),
             ).eqls([y, x]);
         }
+        await check_items();
 
         // move head of vector 1
         let hx = 3;
@@ -2453,21 +2359,6 @@ $v1{name="v1a"}
     $vhd2.head{assignNames="hfvhd2"}
     $vhd2.displacement{assignNames="dfvhd2"}
 </graph>
-
-$dfvhd2.head{assignNames="dfvhd2_hdom"}
-$hfvhd2{name="hfvhd2_dom"}
-$tfvhd2{name="tfvhd2_dom"}
-$vhd2.head{assignNames="vhd2_hdom"}
-$vhd2.tail{assignNames="vhd2_tdom"}
-$dfvhd.head{assignNames="dfvhd_hdom"}
-$hfvhd{name="hfvhd_dom"}
-$tfvhd{name="tfvhd_dom"}
-$dvhd{name="dvhd_dom"}
-$hvhd{name="hvhd_dom"}
-$tvtd{name="tvtd_dom"}
-$vhd.head{assignNames="vhd_hdom"}
-$vhd.tail{assignNames="vhd_tdom"}
-
   `,
         });
 
@@ -3535,9 +3426,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
 
   `,
         });
@@ -3558,9 +3446,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -3580,9 +3465,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -3602,9 +3484,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -3624,9 +3503,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -3646,9 +3522,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -3668,9 +3541,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -5141,9 +5011,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -5299,9 +5166,6 @@ $vector1.displacement{assignNames="displacement2"}
   $vector1.displacement{assignNames="displacement"}
   </graph>
   
-  $vector1.tail{assignNames="tail2"}
-  $vector1.head{assignNames="head2"}
-  $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
@@ -5466,7 +5330,6 @@ $vector1.displacement{assignNames="displacement2"}
         });
 
         let stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/p1v"].stateValues.text).eqls("( 2.64, 113 )");
         expect(stateVariables["/p1v"].stateValues.text).eqls("( 2.64, 113 )");
         expect(stateVariables["/p1d"].stateValues.text).eqls("( 2.64, 113 )");
         expect(stateVariables["/p1t"].stateValues.text).eqls(
