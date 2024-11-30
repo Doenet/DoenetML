@@ -116,6 +116,20 @@ export async function returnAllStateVariables(core: Core) {
         };
 
         for (let vName in component.state) {
+            if (
+                [
+                    "replacements",
+                    "recursiveReplacements",
+                    "fullRecursiveReplacements",
+                ].includes(vName) &&
+                core.componentInfoObjects.isCompositeComponent({
+                    componentType: component.componentType,
+                }) &&
+                !component.isExpanded
+            ) {
+                // don't expand a composite to get these replacement state variables
+                continue;
+            }
             compObj.stateValues[vName] = await component.state[vName].value;
         }
         compObj.activeChildren = component.activeChildren.map((x) =>
