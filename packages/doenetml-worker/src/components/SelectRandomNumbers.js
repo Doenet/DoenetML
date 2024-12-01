@@ -238,6 +238,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             warnings,
         };
     }
+
+    static determineNumberOfUniqueVariants() {
+        return { success: false };
+    }
 }
 
 delete SelectRandomNumbers.stateVariableToEvaluateAfterReplacements;
