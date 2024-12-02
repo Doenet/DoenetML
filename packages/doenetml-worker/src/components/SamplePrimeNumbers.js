@@ -59,9 +59,9 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         };
 
         attributes.variantDeterminesSeed = {
-            createComponentOfType: "boolean",
+            createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
-            defaultValue: false,
+            defaultPrimitiveValue: false,
             public: true,
         };
 
@@ -358,8 +358,21 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         );
     }
 
-    static determineNumberOfUniqueVariants() {
-        return { success: false };
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        componentInfoObjects,
+    }) {
+        let variantDeterminesSeed =
+            serializedComponent.attributes.variantDeterminesSeed.primitive;
+
+        if (variantDeterminesSeed) {
+            return { success: false };
+        } else {
+            return super.determineNumberOfUniqueVariants({
+                serializedComponent,
+                componentInfoObjects,
+            });
+        }
     }
 
     async resample({

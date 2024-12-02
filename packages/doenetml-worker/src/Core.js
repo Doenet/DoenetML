@@ -400,7 +400,7 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateRenderers.clear();
 
-        // evalute itemCreditAchieved so that will be fresh
+        // evaluate itemCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
         await this.document.stateValues.itemCreditAchieved;
 
