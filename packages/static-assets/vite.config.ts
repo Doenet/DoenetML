@@ -2,6 +2,7 @@ import { defineConfig, Plugin } from "vite";
 import { dataToEsm } from "@rollup/pluginutils";
 import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import dsv from "@rollup/plugin-dsv";
 import * as compressJson from "compress-json";
 import * as path from "node:path";
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -11,11 +12,16 @@ export default defineConfig({
     base: "./",
     plugins: [
         dts(),
+        dsv(),
         viteStaticCopy({
             targets: [
                 {
                     src: "./src/generated/*",
                     dest: "./generated/",
+                },
+                {
+                    src: "./src/data/*",
+                    dest: "./data/",
                 },
             ],
         }),

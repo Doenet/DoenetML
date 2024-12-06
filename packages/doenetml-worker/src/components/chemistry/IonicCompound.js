@@ -177,18 +177,54 @@ export default class IonicCompound extends InlineComponent {
                 let latex;
 
                 if (dependencyValues.ionicCompound) {
-                    latex = "";
+                    let parts = [];
                     for (let piece of dependencyValues.ionicCompound) {
-                        latex += `\\text{${piece.symbol}}`;
+                        let part = `\\text{${piece.symbol}}`;
                         if (piece.count > 1) {
-                            latex += `_{${piece.count}}`;
+                            part += `_{${piece.count}}`;
                         }
+                        parts.push(part);
                     }
+                    latex = parts.join(" ");
                 } else {
                     latex = "[\\text{Invalid Ionic Compound}]";
                 }
                 return {
                     setValue: { latex },
+                };
+            },
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                ionicCompound: {
+                    dependencyType: "stateVariable",
+                    variableName: "ionicCompound",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let text;
+
+                if (dependencyValues.ionicCompound) {
+                    let parts = [];
+                    for (let piece of dependencyValues.ionicCompound) {
+                        let part = piece.symbol;
+                        if (piece.count > 1) {
+                            part += `_${piece.count}`;
+                        }
+                        parts.push(part);
+                    }
+                    text = parts.join(" ");
+                } else {
+                    text = "[Invalid Ionic Compound]";
+                }
+                return {
+                    setValue: { text },
                 };
             },
         };
