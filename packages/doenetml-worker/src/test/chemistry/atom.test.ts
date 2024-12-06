@@ -4,6 +4,7 @@ import { updateMathInputValue } from "../utils/actions";
 import { atomDatabase } from "@doenet/static-assets";
 //@ts-ignore
 import me from "math-expressions";
+import { superSubscriptsToUnicode } from "../../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -102,9 +103,18 @@ describe("Atom tests", async () => {
             expect(stateVariables["/electronegativity"].stateValues.value).eqls(
                 to_number(data["Electronegativity"]),
             );
+            let eConfig = data["Electron Configuration"];
             expect(
                 stateVariables["/electronConfiguration"].stateValues.value.tree,
-            ).eqls(me.fromText(data["Electron Configuration"]).tree);
+            ).eqls(me.fromText(eConfig).tree);
+            expect(
+                stateVariables["/electronConfiguration"].stateValues.latex
+                    .replaceAll(" ", "")
+                    .replaceAll("~", " "),
+            ).eq(eConfig.replaceAll(/\^(\d+)/g, "^{$1}"));
+            expect(
+                stateVariables["/electronConfiguration"].stateValues.text,
+            ).eq(superSubscriptsToUnicode(eConfig));
         }
 
         let aNum = 1;
