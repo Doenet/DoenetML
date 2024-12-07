@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import {
-    updateBooleanInputValue,
-} from "../utils/actions";
+import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -102,12 +100,12 @@ describe("Equilibriumcurve Tag Tests", async () => {
 
         // switch C via boolean input
         Cs = !Cs;
-        await updateBooleanInputValue({name: "/b1", boolean: Cs, core});
+        await updateBooleanInputValue({ name: "/b1", boolean: Cs, core });
         await check_stable();
 
         // switch D via boolean input
         Ds = !Ds;
-        await updateBooleanInputValue({name: "/b2", boolean: Ds, core});
+        await updateBooleanInputValue({ name: "/b2", boolean: Ds, core });
         await check_stable();
 
         // switch A via first action
