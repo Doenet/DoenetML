@@ -947,6 +947,22 @@ describe("Math expressions equality tests", async () => {
                 symbolicSimplifyEqual: false,
                 symbolicSimplifyExpandEqual: false,
             },
+            {
+                expr1: "<math createIntervals>(1,2) union (3,4)</math>",
+                expr2: "<math>(1,2) union (3,4)</math>",
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
+            },
+            {
+                expr1: "<math createIntervals>(1,2) union [3,4]</math>",
+                expr2: "<math>(1,2) union [3,4]</math>",
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
+            },
         ];
 
         let doenetML = "";

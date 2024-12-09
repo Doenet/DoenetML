@@ -4142,19 +4142,19 @@ describe("Math tag tests", async () => {
             "(a,b)+(e,f)",
         );
         expect(cleanLatex(stateVariables["/t2isumSimp"].stateValues.latex)).eq(
-            "(e,f)+(a,b)",
+            "(a,b)+(e,f)",
         );
         expect(cleanLatex(stateVariables["/v2isum"].stateValues.latex)).eq(
             "(c,d)+(e,f)",
         );
         expect(cleanLatex(stateVariables["/v2isumSimp"].stateValues.latex)).eq(
-            "(e,f)+(c,d)",
+            "(c,d)+(e,f)",
         );
         expect(cleanLatex(stateVariables["/a2isum"].stateValues.latex)).eq(
             "\\langlep,q\\rangle+(e,f)",
         );
         expect(cleanLatex(stateVariables["/a2isumSimp"].stateValues.latex)).eq(
-            "\\langlep,q\\rangle+(e,f)",
+            "(e,f)+\\langlep,q\\rangle",
         );
         expect(cleanLatex(stateVariables["/st2mul"].stateValues.latex)).eq(
             "m(a,b)",
@@ -4517,25 +4517,25 @@ describe("Math tag tests", async () => {
         );
         expect(
             cleanLatex(stateVariables["/m21t2sumSimp"].stateValues.latex),
-        ).eq("\\begin{bmatrix}e\\\\f\\end{bmatrix}+(i,j)");
+        ).eq("(i,j)+\\begin{bmatrix}e\\\\f\\end{bmatrix}");
         expect(cleanLatex(stateVariables["/m21v2sum"].stateValues.latex)).eq(
             "\\begin{bmatrix}e\\\\f\\end{bmatrix}+(k,l)",
         );
         expect(
             cleanLatex(stateVariables["/m21v2sumSimp"].stateValues.latex),
-        ).eq("\\begin{bmatrix}e\\\\f\\end{bmatrix}+(k,l)");
+        ).eq("(k,l)+\\begin{bmatrix}e\\\\f\\end{bmatrix}");
         expect(cleanLatex(stateVariables["/m12t2sum"].stateValues.latex)).eq(
             "\\begin{bmatrix}g&h\\end{bmatrix}+(i,j)",
         );
         expect(
             cleanLatex(stateVariables["/m12t2sumSimp"].stateValues.latex),
-        ).eq("\\begin{bmatrix}g&h\\end{bmatrix}+(i,j)");
+        ).eq("(i,j)+\\begin{bmatrix}g&h\\end{bmatrix}");
         expect(cleanLatex(stateVariables["/m12v2sum"].stateValues.latex)).eq(
             "\\begin{bmatrix}g&h\\end{bmatrix}+(k,l)",
         );
         expect(
             cleanLatex(stateVariables["/m12v2sumSimp"].stateValues.latex),
-        ).eq("\\begin{bmatrix}g&h\\end{bmatrix}+(k,l)");
+        ).eq("(k,l)+\\begin{bmatrix}g&h\\end{bmatrix}");
         expect(cleanLatex(stateVariables["/m22m21sum"].stateValues.latex)).eq(
             "\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}+\\begin{bmatrix}e\\\\f\\end{bmatrix}",
         );
