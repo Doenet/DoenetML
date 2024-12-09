@@ -98,7 +98,7 @@
         }
     },
     "dependencies": {
-        "math-expressions": "^2.0.0-alpha71",
+        "math-expressions": "^2.0.0-alpha73",
         "react-router-dom": "^6.26.2"
     }
 }
