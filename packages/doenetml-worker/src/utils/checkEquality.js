@@ -358,7 +358,8 @@ export default function checkEquality({
                 return { fraction_equal: 0 };
             } else if (vectorOperators.includes(object2_operator)) {
                 // since we can convert tuple to vector
-                // change object2 to array of selements
+                // change object2 to array of elements
+                // (we also allow vectors and altVectors to be equal to each other. Is that OK?)
                 object2 = object2.tree.slice(1);
             } else {
                 // since can convert singleton to a vector of length 1
@@ -378,7 +379,7 @@ export default function checkEquality({
                 return { fraction_equal: 0 };
             } else if (object1_operator === "tuple") {
                 // since can convert tuple to vector
-                // change object2 to array of elements
+                // change object1 to array of elements
                 object1 = object1.tree.slice(1);
             } else {
                 // since can convert singleton to a vector of length 1
@@ -412,16 +413,16 @@ export default function checkEquality({
                     return { fraction_equal: 0 };
                 }
             } else if (object2_operator === "array") {
-                let operands = object2.tree.slice(1);
+                let operands2 = object2.tree.slice(1);
                 if (
-                    operands.length === 2 &&
+                    operands2.length === 2 &&
                     leftClosed === true &&
                     rightClosed === true
                 ) {
                     // since can convert array to closed interval
                     // and object1 is closed interval
                     // make object2 be array of endpoints
-                    object2 = operands;
+                    object2 = operands2;
                 } else {
                     return { fraction_equal: 0 };
                 }
