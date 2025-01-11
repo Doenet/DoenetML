@@ -24,6 +24,9 @@ import * as Paginator from "./components/Paginator";
 import * as MatrixInput from "./components/MatrixInput";
 import * as Solution from "./components/Solution";
 import * as ContentBrowser from "./components/ContentBrowser";
+import * as Rubrics from "./components/answerRubrics/Rubrics";
+import * as Samples from "./components/answerRubrics/Samples";
+import * as Evaluations from "./components/answerRubrics/Evaluations";
 
 import Document from "./components/Document";
 import Text from "./components/Text";
@@ -172,6 +175,8 @@ import ContentPicker from "./components/ContentPicker";
 // import VertexConstraints from "./components/VertexConstraints";
 // import EdgeConstraints from "./components/EdgeConstraints";
 import StickyGroup from "./components/StickyGroup";
+import Criteria from "./components/answerRubrics/Criteria";
+import Response from "./components/answerRubrics/Response";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -226,6 +231,9 @@ const componentTypeArray = [
     ...Object.values(MatrixInput),
     ...Object.values(Solution),
     ...Object.values(ContentBrowser),
+    ...Object.values(Rubrics),
+    ...Object.values(Samples),
+    ...Object.values(Evaluations),
     Document,
     Text,
     TextList,
@@ -368,6 +376,8 @@ const componentTypeArray = [
     // VertexConstraints,
     // EdgeConstraints,
     StickyGroup,
+    Criteria,
+    Response,
 
     BaseComponent,
     InlineComponent,

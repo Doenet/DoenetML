@@ -242,6 +242,10 @@ export default class Answer extends InlineComponent {
             public: true,
         };
 
+        attributes.forStatement = {
+            createTargetComponentNames: true,
+        };
+
         return attributes;
     }
 
@@ -437,6 +441,11 @@ export default class Answer extends InlineComponent {
                 ) {
                     childIsWrappable.push(false);
                     definitelyDoNotAddInput = true;
+                } else if (
+                    componentIsSpecifiedType(child, "rubrics") ||
+                    componentIsSpecifiedType(child, "samples")
+                ) {
+                    childIsWrappable.push(false);
                 } else if (
                     componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType: child.componentType,
@@ -643,6 +652,8 @@ export default class Answer extends InlineComponent {
                 group: "responses",
                 componentTypes: ["considerAsResponses"],
             },
+            { group: "rubrics", componentTypes: ["rubrics"] },
+            { group: "samples", componentTypes: ["samples"] },
         ];
     }
 
@@ -2070,6 +2081,112 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.forStatement = {
+            returnDependencies: () => ({
+                forStatement: {
+                    dependencyType: "attributeTargetComponentNames",
+                    attributeName: "forStatement",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let forStatement = null;
+                if (dependencyValues.forStatement?.length === 1) {
+                    forStatement =
+                        dependencyValues.forStatement[0].absoluteName;
+                }
+                return { setValue: { forStatement } };
+            },
+        };
+
+        stateVariableDefinitions.statementText = {
+            stateVariablesDeterminingDependencies: ["forStatement"],
+            returnDependencies({ stateValues }) {
+                let dependencies = {};
+                if (stateValues.forStatement) {
+                    dependencies.statementText = {
+                        dependencyType: "stateVariable",
+                        componentName: stateValues.forStatement,
+                        variableName: "text",
+                        variableOptional: true,
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let statementText = "";
+
+                if (dependencyValues.statementText) {
+                    statementText = dependencyValues.statementText;
+                }
+
+                return { setValue: { statementText } };
+            },
+        };
+
+        stateVariableDefinitions.rubricData = {
+            returnDependencies: () => ({
+                rubricsChildren: {
+                    dependencyType: "child",
+                    childGroups: ["rubrics"],
+                    variableNames: ["data"],
+                },
+                samplesChildren: {
+                    dependencyType: "child",
+                    childGroups: ["samples"],
+                    variableNames: ["data"],
+                },
+                statementText: {
+                    dependencyType: "stateVariable",
+                    variableName: "statementText",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let rubricData = {};
+
+                if (dependencyValues.rubricsChildren.length > 0) {
+                    rubricData.rubrics =
+                        dependencyValues.rubricsChildren[
+                            dependencyValues.rubricsChildren.length - 1
+                        ].stateValues.data;
+                } else {
+                    rubricData.rubrics = [];
+                }
+
+                if (dependencyValues.samplesChildren.length > 0) {
+                    const samplesOrig =
+                        dependencyValues.samplesChildren[
+                            dependencyValues.samplesChildren.length - 1
+                        ].stateValues.data;
+
+                    rubricData.samples = samplesOrig.map((samp) => {
+                        const evaluations = samp.evaluations.map(
+                            (evaluation) => {
+                                const forRubric = evaluation.forRubric;
+                                const rubric = rubricData.rubrics.find(
+                                    (r) => r.rubricName === forRubric,
+                                );
+                                return {
+                                    rubric,
+                                    ...evaluation,
+                                };
+                            },
+                        );
+                        return {
+                            ...samp,
+                            evaluations,
+                        };
+                    });
+                } else {
+                    rubricData.samples = [];
+                }
+
+                rubricData.statement = dependencyValues.statementText;
+
+                return { setValue: { rubricData } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -2209,6 +2326,10 @@ export default class Answer extends InlineComponent {
             }
         }
 
+        const rubricData = (await this.stateValues.handGraded)
+            ? await this.stateValues.rubricData
+            : undefined;
+
         instructions.push({
             updateType: "recordItemSubmission",
             itemNumber: await this.stateValues.inItemNumber,
@@ -2240,6 +2361,7 @@ export default class Answer extends InlineComponent {
                         this.state.currentResponses.shadowingInstructions
                             .createComponentOfType,
                     creditAchieved,
+                    rubricData,
                 },
             },
         });
