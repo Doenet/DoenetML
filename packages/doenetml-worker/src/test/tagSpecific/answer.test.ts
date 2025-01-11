@@ -5790,4 +5790,30 @@ What is the derivative of <function name="f">x^2</function>?
             ],
         });
     });
+
+    it("bugfix: answer with select in award", async () => {
+        const doenetML = `
+    <select name="c">30</select>
+
+    <mathInput name="userAns" />
+
+    <answer name="ans">
+        <award name="correct">
+        <when>$userAns = $c</when> </award>
+    </answer>
+  `;
+
+        let core = await createTestCore({ doenetML });
+
+        await updateMathInputValue({
+            latex: "30",
+            name: "/userAns",
+            core,
+        });
+
+        await submitAnswer({ name: "/ans", core });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
+    });
 });

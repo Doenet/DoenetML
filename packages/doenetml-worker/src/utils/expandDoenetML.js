@@ -1679,7 +1679,9 @@ export function componentFromAttribute({
         };
     } else {
         if (!value.childrenForComponent) {
-            value.childrenForComponent = [value.rawString];
+            if (value.rawString !== undefined) {
+                value.childrenForComponent = [value.rawString];
+            }
         }
         return { attribute: value, errors, warnings };
     }
