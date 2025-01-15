@@ -7509,6 +7509,32 @@ describe("Math operator tests", async () => {
         ]);
     });
 
+    it("gcd not negative", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <gcd name="gcd1a"><number>-135</number><number>81</number></gcd>
+      <gcd name="gcd1b"><number>135</number><number>-81</number></gcd>
+      <gcd name="gcd1c"><number>-135</number><number>-81</number></gcd>
+      <gcd name="gcd2a">-135 81 63</gcd>
+      <gcd name="gcd2b">135 -81 63</gcd>
+      <gcd name="gcd2c">135 81 -63</gcd>
+      <gcd name="gcd2d">-135 81 -63</gcd>
+      <gcd name="gcd2e">-135 -81 -63</gcd>
+      `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/gcd1a"].stateValues.value.tree).eq(27);
+        expect(stateVariables["/gcd1b"].stateValues.value.tree).eq(27);
+        expect(stateVariables["/gcd1c"].stateValues.value.tree).eq(27);
+        expect(stateVariables["/gcd2a"].stateValues.value.tree).eq(9);
+        expect(stateVariables["/gcd2b"].stateValues.value.tree).eq(9);
+        expect(stateVariables["/gcd2c"].stateValues.value.tree).eq(9);
+        expect(stateVariables["/gcd2d"].stateValues.value.tree).eq(9);
+        expect(stateVariables["/gcd2e"].stateValues.value.tree).eq(9);
+    });
+
     it("lcm", async () => {
         let core = await createTestCore({
             doenetML: `
@@ -7527,6 +7553,32 @@ describe("Math operator tests", async () => {
             "lcm",
             ["tuple", "x", "y", "z"],
         ]);
+    });
+
+    it("lcm not negative", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <lcm name="lcm1a"><number>-135</number><number>81</number></lcm>
+      <lcm name="lcm1b"><number>135</number><number>-81</number></lcm>
+      <lcm name="lcm1c"><number>-135</number><number>-81</number></lcm>
+      <lcm name="lcm2a">-135 81 63</lcm>
+      <lcm name="lcm2b">135 -81 63</lcm>
+      <lcm name="lcm2c">135 81 -63</lcm>
+      <lcm name="lcm2d">-135 81 -63</lcm>
+      <lcm name="lcm2e">-135 -81 -63</lcm>
+      `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(stateVariables["/lcm1a"].stateValues.value.tree).eq(405);
+        expect(stateVariables["/lcm1b"].stateValues.value.tree).eq(405);
+        expect(stateVariables["/lcm1c"].stateValues.value.tree).eq(405);
+        expect(stateVariables["/lcm2a"].stateValues.value.tree).eq(2835);
+        expect(stateVariables["/lcm2b"].stateValues.value.tree).eq(2835);
+        expect(stateVariables["/lcm2c"].stateValues.value.tree).eq(2835);
+        expect(stateVariables["/lcm2d"].stateValues.value.tree).eq(2835);
+        expect(stateVariables["/lcm2e"].stateValues.value.tree).eq(2835);
     });
 
     it("extract parts of math expression", async () => {
