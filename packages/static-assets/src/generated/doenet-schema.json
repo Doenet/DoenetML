@@ -1079,6 +1079,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -1189,7 +1195,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -2046,6 +2054,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -2156,7 +2170,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -2365,6 +2381,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -2475,7 +2497,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -2684,6 +2708,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -2794,7 +2824,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -17871,6 +17903,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "numMinima",
                     "type": "number",
                     "isArray": false
@@ -18416,6 +18453,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "numMinima",
                     "type": "number",
                     "isArray": false
@@ -18948,6 +18990,11 @@
                 {
                     "name": "latex",
                     "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -22728,6 +22775,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -22836,7 +22889,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -23188,6 +23243,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -23296,7 +23357,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -23648,6 +23711,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -23756,7 +23825,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -24108,6 +24179,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -24216,7 +24293,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -24568,6 +24647,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -24676,7 +24761,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -25041,6 +25128,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -25149,7 +25242,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -25501,6 +25596,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -25609,7 +25710,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -25961,6 +26064,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -26069,7 +26178,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -26421,6 +26532,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -26529,7 +26646,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -26881,6 +27000,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -26989,7 +27114,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -27341,6 +27468,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -27449,7 +27582,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -27801,6 +27936,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -27909,7 +28050,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -28261,6 +28404,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -28369,7 +28518,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -28721,6 +28872,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -28829,7 +28986,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -29181,6 +29340,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -29289,7 +29454,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -29648,6 +29815,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -29756,7 +29929,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -30102,6 +30277,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -30210,7 +30391,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -30784,6 +30967,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -30894,7 +31083,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -32500,6 +32691,11 @@
                 {
                     "name": "latex",
                     "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
                     "isArray": false
                 }
             ],
@@ -35400,6 +35596,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -35510,7 +35712,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -36212,6 +36416,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -36322,7 +36532,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -36531,6 +36743,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -36641,7 +36859,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -36850,6 +37070,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -36960,7 +37186,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -37169,6 +37397,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -37279,7 +37513,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -37508,6 +37744,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -37618,7 +37860,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -38097,6 +38341,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "matrix",
                     "type": "math",
                     "isArray": true,
@@ -38410,6 +38659,837 @@
             "acceptsStringChildren": true
         },
         {
+            "name": "rubric",
+            "children": ["title", "criteria"],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "credit"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "rubrics",
+            "children": ["rubric"],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "sample",
+            "children": ["response", "evaluations"],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "samples",
+            "children": ["sample"],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "evaluation",
+            "children": [
+                "title",
+                "rightHandSide",
+                "description",
+                "xlabel",
+                "ylabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odesystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "map",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "variantControl",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intcomma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "setup",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "regionHalfPlane",
+                "codeEditor",
+                "codeViewer",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "contentPicker",
+                "stickyGroup",
+                "criteria",
+                "response"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "forRubric"
+                },
+                {
+                    "name": "credit"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "evaluation",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "evaluations",
+            "children": ["evaluation"],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
             "name": "document",
             "children": [
                 "variantControl",
@@ -38523,6 +39603,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -38631,7 +39717,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -41321,6 +42409,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -41431,7 +42525,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -41557,6 +42653,11 @@
                 },
                 {
                     "name": "linkText",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
                     "type": "text",
                     "isArray": false
                 }
@@ -42786,6 +43887,11 @@
                 {
                     "name": "latex",
                     "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
                     "isArray": false
                 }
             ],
@@ -47424,6 +48530,8 @@
                 "booleanInput",
                 "choiceInput",
                 "considerAsResponses",
+                "rubrics",
+                "samples",
                 "rightHandSide",
                 "topic",
                 "sum",
@@ -47661,6 +48769,9 @@
                 },
                 {
                     "name": "displayDigitsForCreditAchieved"
+                },
+                {
+                    "name": "forStatement"
                 }
             ],
             "properties": [
@@ -49210,10 +50321,6 @@
                     "name": "height"
                 },
                 {
-                    "name": "labelIsName",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "draggable",
                     "values": ["true", "false"]
                 },
@@ -49233,6 +50340,10 @@
                         "right",
                         "center"
                     ]
+                },
+                {
+                    "name": "labelIsName",
+                    "values": ["true", "false"]
                 }
             ],
             "properties": [
@@ -49287,11 +50398,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "draggable",
                     "type": "boolean",
                     "isArray": false
@@ -49299,6 +50405,11 @@
                 {
                     "name": "positionFromAnchor",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -49549,10 +50660,6 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "labelIsName",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "asToggleButton",
                     "values": ["true", "false"]
                 },
@@ -49562,6 +50669,10 @@
                 },
                 {
                     "name": "draggable",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "labelIsName",
                     "values": ["true", "false"]
                 },
                 {
@@ -49624,17 +50735,17 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "asToggleButton",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
                     "name": "draggable",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -50098,6 +51209,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -50208,7 +51325,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -51872,6 +52991,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "numMinima",
                     "type": "number",
                     "isArray": false
@@ -52304,6 +53428,11 @@
                 {
                     "name": "latex",
                     "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -53016,6 +54145,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -53126,7 +54261,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -53351,6 +54488,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -53461,7 +54604,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -53844,10 +54989,6 @@
                     "name": "initialValue"
                 },
                 {
-                    "name": "labelIsName",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "showControls",
                     "values": ["true", "false"]
                 },
@@ -53867,6 +55008,10 @@
                 },
                 {
                     "name": "step"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": ["true", "false"]
                 },
                 {
                     "name": "displayDigits"
@@ -53927,11 +55072,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "showControls",
                     "type": "boolean",
                     "isArray": false
@@ -53959,6 +55099,11 @@
                 {
                     "name": "step",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -54412,6 +55557,12 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "textList",
                 "p",
@@ -54490,7 +55641,9 @@
                 "eigenDecomposition",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -56241,6 +57394,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -56351,7 +57510,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -58174,6 +59335,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -58284,7 +59451,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -59163,6 +60332,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -59273,7 +60448,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -60823,6 +62000,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -60933,7 +62116,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -62108,6 +63293,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -62218,7 +63409,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -63113,6 +64306,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -63223,7 +64422,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -63430,6 +64631,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -63540,7 +64747,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -63749,6 +64958,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -63859,7 +65074,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -64164,10 +65381,6 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "labelIsName",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "type",
                     "values": ["math", "number", "boolean", "text"]
                 },
@@ -64194,6 +65407,10 @@
                         "right",
                         "center"
                     ]
+                },
+                {
+                    "name": "labelIsName",
+                    "values": ["true", "false"]
                 },
                 {
                     "name": "triggerWhen",
@@ -64250,11 +65467,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "componentIndex",
                     "type": "integer",
                     "isArray": false
@@ -64282,6 +65494,11 @@
                 {
                     "name": "positionFromAnchor",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -64369,14 +65586,14 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "labelIsName",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "actionName"
                 },
                 {
                     "name": "draggable",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "labelIsName",
                     "values": ["true", "false"]
                 },
                 {
@@ -64448,17 +65665,17 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "actionName",
                     "type": "text",
                     "isArray": false
                 },
                 {
                     "name": "draggable",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -64550,10 +65767,6 @@
                     "values": ["true", "false"]
                 },
                 {
-                    "name": "labelIsName",
-                    "values": ["true", "false"]
-                },
-                {
                     "name": "draggable",
                     "values": ["true", "false"]
                 },
@@ -64573,6 +65786,10 @@
                         "right",
                         "center"
                     ]
+                },
+                {
+                    "name": "labelIsName",
+                    "values": ["true", "false"]
                 },
                 {
                     "name": "triggerWhen",
@@ -64620,11 +65837,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "draggable",
                     "type": "boolean",
                     "isArray": false
@@ -64632,6 +65844,11 @@
                 {
                     "name": "positionFromAnchor",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -64981,6 +66198,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -65091,7 +66314,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -65420,6 +66645,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -65531,6 +66762,8 @@
                 "blockQuote",
                 "contentPicker",
                 "stickyGroup",
+                "criteria",
+                "response",
                 "customAttribute"
             ],
             "attributes": [
@@ -66668,6 +67901,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -66778,7 +68017,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -67020,6 +68261,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -67130,7 +68377,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -68346,6 +69595,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -68456,7 +69711,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -68849,6 +70106,11 @@
                 {
                     "name": "latex",
                     "type": "latex",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -69459,6 +70721,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -69569,7 +70837,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -72497,6 +73767,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -72607,7 +73883,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -72816,6 +74094,12 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
                 "document",
                 "text",
                 "textList",
@@ -72926,7 +74210,9 @@
                 "latex",
                 "blockQuote",
                 "contentPicker",
-                "stickyGroup"
+                "stickyGroup",
+                "criteria",
+                "response"
             ],
             "attributes": [
                 {
@@ -73276,6 +74562,670 @@
             ],
             "top": true,
             "acceptsStringChildren": false
+        },
+        {
+            "name": "criteria",
+            "children": [
+                "title",
+                "rightHandSide",
+                "description",
+                "xlabel",
+                "ylabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odesystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "map",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "variantControl",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intcomma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "setup",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "regionHalfPlane",
+                "codeEditor",
+                "codeViewer",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "contentPicker",
+                "stickyGroup",
+                "criteria",
+                "response"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "response",
+            "children": [
+                "title",
+                "rightHandSide",
+                "description",
+                "xlabel",
+                "ylabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odesystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "rubric",
+                "rubrics",
+                "sample",
+                "samples",
+                "evaluation",
+                "evaluations",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "map",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "variantControl",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intcomma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "setup",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "regionHalfPlane",
+                "codeEditor",
+                "codeViewer",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "contentPicker",
+                "stickyGroup",
+                "criteria",
+                "response"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "disabled",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixed",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": ["true", "false"]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": ["true", "false"]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
         }
     ]
 }
