@@ -67,7 +67,6 @@ export async function createTestCore({
         componentInfoObjects,
         activityId: "",
         cid: "",
-        cidForActivity: "",
         pageNumber: 1,
         serverSaveId: "",
         activityVariantIndex: 1,

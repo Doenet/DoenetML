@@ -2,7 +2,7 @@ import "./DoenetML.css";
 // @ts-ignore
 import { prng_alea } from "esm-seedrandom";
 import React, { useCallback, useRef, useState } from "react";
-import { ActivityViewer } from "./Viewer/ActivityViewer";
+import { PageViewer } from "./Viewer/PageViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
@@ -99,16 +99,10 @@ export function DoenetViewer({
     activityId,
     userId,
     attemptNumber = 1,
+    itemNumber = 1,
     requestedVariantIndex,
     updateCreditAchievedCallback,
-    updateActivityStatusCallback,
     updateAttemptNumber,
-    pageChangedCallback,
-    paginate = false,
-    showFinishButton,
-    cidChangedCallback,
-    checkIfCidChanged,
-    setActivityAsCompleted,
     setIsInErrorState,
     apiURLs,
     generatedVariantCallback: specifiedGeneratedVariantCallback,
@@ -119,11 +113,9 @@ export function DoenetViewer({
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    addBottomPadding = false,
     location,
     navigate,
     updateDataOnContentChange = false,
-    idsIncludeActivityId = true,
     linkSettings,
     scrollableContainer,
     darkMode = "light",
@@ -136,16 +128,10 @@ export function DoenetViewer({
     activityId?: string;
     userId?: string;
     attemptNumber?: number;
+    itemNumber?: number;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
-    updateActivityStatusCallback?: Function;
     updateAttemptNumber?: Function;
-    pageChangedCallback?: Function;
-    paginate?: boolean;
-    showFinishButton?: boolean;
-    cidChangedCallback?: Function;
-    checkIfCidChanged?: Function;
-    setActivityAsCompleted?: Function;
     setIsInErrorState?: Function;
     apiURLs?: any;
     generatedVariantCallback?: Function;
@@ -156,11 +142,9 @@ export function DoenetViewer({
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
     updateDataOnContentChange?: boolean;
-    idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -258,7 +242,7 @@ export function DoenetViewer({
     ) : null;
 
     const viewer = (
-        <ActivityViewer
+        <PageViewer
             doenetML={doenetML}
             updateDataOnContentChange={updateDataOnContentChange}
             flags={flags}
@@ -266,16 +250,10 @@ export function DoenetViewer({
             activityId={activityId}
             userId={userId}
             attemptNumber={attemptNumber}
+            itemNumber={itemNumber}
             requestedVariantIndex={variantIndex.current}
             updateCreditAchievedCallback={updateCreditAchievedCallback}
-            updateActivityStatusCallback={updateActivityStatusCallback}
             updateAttemptNumber={updateAttemptNumber}
-            pageChangedCallback={pageChangedCallback}
-            paginate={paginate}
-            showFinishButton={showFinishButton}
-            cidChangedCallback={cidChangedCallback}
-            checkIfCidChanged={checkIfCidChanged}
-            setActivityAsCompleted={setActivityAsCompleted}
             setIsInErrorState={setIsInErrorState}
             apiURLs={apiURLs}
             generatedVariantCallback={generatedVariantCallback}
@@ -286,9 +264,7 @@ export function DoenetViewer({
             forceUnsuppressCheckwork={forceUnsuppressCheckwork}
             location={location}
             navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
             linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerTitles={showAnswerTitles}

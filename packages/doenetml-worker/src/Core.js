@@ -55,15 +55,12 @@ export default class Core {
         preliminaryWarnings,
         activityId,
         cid,
-        cidForActivity: activityCid,
         pageNumber,
         attemptNumber = 1,
         itemNumber = 1,
         serverSaveId,
-        activityVariantIndex,
         requestedVariant,
         requestedVariantIndex,
-        previousComponentTypeCounts = {},
         theme,
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
@@ -75,11 +72,9 @@ export default class Core {
 
         this.coreId = coreId;
         this.activityId = activityId;
-        this.activityCid = activityCid;
         this.pageNumber = pageNumber;
         this.attemptNumber = attemptNumber;
         this.itemNumber = itemNumber;
-        this.activityVariantIndex = activityVariantIndex;
         this.doenetML = doenetML;
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
@@ -104,8 +99,6 @@ export default class Core {
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
-
-        this.previousComponentTypeCounts = previousComponentTypeCounts;
 
         const stateVariableChanges = stateVariableChangesString
             ? JSON.parse(
@@ -11382,11 +11375,9 @@ export default class Core {
 
         const payload = {
             activityId: this.activityId,
-            activityCid: this.activityCid,
             pageCid: this.cid,
             pageNumber: this.pageNumber,
             attemptNumber: this.attemptNumber,
-            activityVariantIndex: this.activityVariantIndex,
             pageVariantIndex: this.requestedVariant.index,
             verb: event.verb,
             object: JSON.stringify(event.object, serializedComponentsReplacer),

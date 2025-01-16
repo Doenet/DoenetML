@@ -18,7 +18,7 @@ import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
-import { createCoreWorker, initializeCoreWorker } from "../utils/activityUtils";
+import { createCoreWorker, initializeCoreWorker } from "../utils/pageUtils";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -32,33 +32,26 @@ export const PageContext = createContext();
 export function PageViewer({
     userId,
     activityId,
-    cidForActivity,
     cid,
     doenetML,
-    coreWorkerInfo,
     pageNumber = "1",
-    previousComponentTypeCounts,
-    pageIsActive,
-    pageIsCurrent,
-    itemNumber,
+    render: pageIsActive = true,
+    isCurrent: pageIsCurrent = true,
+    hideWhenNotCurrent = false,
+    itemNumber = 1,
     attemptNumber = 1,
-    forceDisable,
-    forceShowCorrectness,
-    forceShowSolution,
-    forceUnsuppressCheckwork,
-    generatedVariantCallback, // currently not passed in
+    forceDisable = false,
+    forceShowCorrectness = false,
+    forceShowSolution = false,
+    forceUnsuppressCheckwork = false,
+    generatedVariantCallback,
     flags,
-    activityVariantIndex,
     requestedVariantIndex,
     setErrorsAndWarningsCallback,
     updateCreditAchievedCallback,
     setIsInErrorState,
     updateAttemptNumber,
-    saveStateCallback,
     updateDataOnContentChange,
-    coreCreatedCallback,
-    renderersInitializedCallback,
-    hideWhenNotCurrent,
     prefixForIds = "",
     apiURLs = {},
     location = {},
@@ -196,6 +189,8 @@ export function PageViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
+    const [coreWorkerInfo, setCoreWorkerInfo] = useState(null);
+
     let hash = location.hash;
 
     const contextForRenderers = {
@@ -215,6 +210,40 @@ export function PageViewer({
             .replaceAll("-", "_") || "1";
 
     useEffect(() => {
+        async function initialize() {
+            let theInfo;
+            if (!coreWorkerInfo) {
+                let coreWorker = createCoreWorker();
+
+                theInfo = {
+                    coreWorker,
+                    doenetML,
+                    flags,
+                };
+            } else {
+                theInfo = {
+                    coreWorker: coreWorkerInfo.coreWorker,
+                    doenetML,
+                    flags,
+                };
+            }
+
+            setCoreWorkerInfo(theInfo);
+
+            try {
+                await initializeCoreWorker(theInfo);
+            } catch (e) {
+                setErrMsg(`Error initializing activity: ${e.message}`);
+            }
+        }
+
+        initialize();
+    }, [doenetML]);
+
+    useEffect(() => {
+        if (!coreWorkerInfo) {
+            return;
+        }
         coreWorkerInfo.coreWorker.onmessage = function (e) {
             // console.log("message from core", e.data);
             if (e.data.messageType === "updateRenderers") {
@@ -255,7 +284,7 @@ export function PageViewer({
                     });
                 }
                 setStage("coreCreated");
-                coreCreatedCallback?.();
+                // coreCreatedCallback?.();
             } else if (e.data.messageType === "initializeRenderers") {
                 if (
                     coreInfo.current &&
@@ -276,7 +305,7 @@ export function PageViewer({
             } else if (e.data.messageType === "updateCreditAchieved") {
                 updateCreditAchievedCallback?.(e.data.args);
             } else if (e.data.messageType === "savedState") {
-                saveStateCallback?.();
+                // saveStateCallback?.();
             } else if (e.data.messageType === "sendAlert") {
                 console.log(`Sending alert message: ${e.data.args.message}`);
                 sendAlert(e.data.args.message, e.data.args.alertType);
@@ -331,11 +360,11 @@ export function PageViewer({
                 reinitializeCoreAndTerminateAnimations();
             }
         };
-    }, [coreWorkerInfo.coreWorker, location]);
+    }, [coreWorkerInfo?.coreWorker, location]);
 
     useEffect(() => {
         return () => {
-            coreWorkerInfo.coreWorker.postMessage({
+            coreWorkerInfo?.coreWorker.postMessage({
                 messageType: "terminate",
             });
         };
@@ -363,6 +392,9 @@ export function PageViewer({
     });
 
     useEffect(() => {
+        if (!coreWorkerInfo) {
+            return;
+        }
         if (pageNumber !== null) {
             window["returnAllStateVariables" + postfixForWindowFunctions] =
                 function () {
@@ -397,7 +429,7 @@ export function PageViewer({
                 });
             };
         }
-    }, [pageNumber]);
+    }, [pageNumber, coreWorkerInfo]);
 
     useEffect(() => {
         return () => {
@@ -410,6 +442,9 @@ export function PageViewer({
     }, []);
 
     useEffect(() => {
+        if (!coreWorkerInfo) {
+            return;
+        }
         document.addEventListener("visibilitychange", () => {
             coreWorkerInfo.coreWorker.postMessage({
                 messageType: "visibilityChange",
@@ -418,10 +453,10 @@ export function PageViewer({
                 },
             });
         });
-    }, []);
+    }, [coreWorkerInfo]);
 
     useEffect(() => {
-        if (hash && coreCreated.current && coreWorkerInfo.coreWorker) {
+        if (hash && coreCreated.current && coreWorkerInfo?.coreWorker) {
             let anchor = hash.slice(1);
             if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
                 coreWorkerInfo.coreWorker.postMessage({
@@ -435,7 +470,13 @@ export function PageViewer({
                 });
             }
         }
-    }, [location, hash, coreCreated.current, coreWorkerInfo.coreWorker]);
+    }, [
+        location,
+        hash,
+        coreCreated.current,
+        coreWorkerInfo,
+        coreWorkerInfo?.coreWorker,
+    ]);
 
     useEffect(() => {
         if (hash && documentRenderer && pageIsActive) {
@@ -639,7 +680,7 @@ export function PageViewer({
 
         if (coreCreated.current) {
             // Note: it is possible that core has been terminated, so we need the question mark
-            coreWorkerInfo.coreWorker.postMessage({
+            coreWorkerInfo.coreWorker?.postMessage({
                 messageType: "requestAction",
                 args: actionArgs,
             });
@@ -1196,9 +1237,7 @@ export function PageViewer({
 
     async function startCore() {
         //Kill the current core if it exists
-        if (coreCreated.current) {
-            await reinitializeCoreAndTerminateAnimations();
-        }
+        await reinitializeCoreAndTerminateAnimations();
 
         resolveActionPromises.current = {};
 
@@ -1210,8 +1249,6 @@ export function PageViewer({
                 userId,
                 cid,
                 activityId,
-                previousComponentTypeCounts,
-                cidForActivity,
                 theme: darkMode,
                 requestedVariantIndex,
                 pageNumber,
@@ -1219,7 +1256,6 @@ export function PageViewer({
                 itemNumber,
                 updateDataOnContentChange,
                 serverSaveId: initialCoreData.current.serverSaveId,
-                activityVariantIndex,
                 requestedVariant: initialCoreData.current.requestedVariant,
                 stateVariableChanges: initialCoreData.current.coreState
                     ? JSON.stringify(
@@ -1297,6 +1333,10 @@ export function PageViewer({
         if (ignoreRendererError) {
             setIgnoreRendererError(false);
         }
+    }
+
+    if (!coreWorkerInfo) {
+        return null;
     }
 
     // first, if lastCid or lastDoenetML don't match props

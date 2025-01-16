@@ -12,7 +12,6 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
-        paginate: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -21,7 +20,6 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
-        paginate: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -36,7 +34,6 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
-        paginate,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -140,24 +137,6 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={paginate}
-                            onChange={() => {
-                                setTestSettings((was) => {
-                                    let newObj = { ...was };
-                                    newObj.paginate = !was.paginate;
-                                    return newObj;
-                                });
-                                setUpdateNumber((was) => was + 1);
-                            }}
-                        />
-                        Paginate
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        {" "}
-                        <input
-                            type="checkbox"
                             checked={showEditor}
                             onChange={() => {
                                 setTestSettings((was) => {
@@ -199,7 +178,6 @@ export default function TestViewer() {
         <DoenetEditor
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
-            paginate={paginate}
             addVirtualKeyboard={true}
             height="calc(100vh - 94px)"
             width="100%"
@@ -227,7 +205,6 @@ export default function TestViewer() {
             }}
             activityId=""
             apiURLs={{ postMessages: true }}
-            paginate={paginate}
             addVirtualKeyboard={true}
         />
     );
