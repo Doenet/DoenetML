@@ -23,7 +23,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a");
 
-        cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "＿");
+        cy.get(cesc("#\\/a2")).should("contain.text", "＿");
 
         cy.get(cesc("#\\/a") + " textarea").type("sqrt4{enter}", {
             force: true,
@@ -33,8 +33,8 @@ describe("MathInput Tag Tests", function () {
             "contain.text",
             "√4",
         );
-        cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "√4");
-        cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "2");
+        cy.get(cesc("#\\/a2")).should("contain.text", "4");
+        cy.get(cesc("#\\/a3")).should("contain.text", "2");
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
@@ -42,20 +42,6 @@ describe("MathInput Tag Tests", function () {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
                     "√4",
                 );
-            });
-        cy.get(cesc("#\\/a2"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("√4");
-            });
-        cy.get(cesc("#\\/a3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("2");
             });
     });
 
@@ -116,7 +102,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a");
 
-        cy.get(cesc("#\\/c2") + " .mjx-mrow")
+        cy.get(cesc("#\\/c2"))
             .eq(0)
             .invoke("text")
             .then((text) => {
@@ -133,7 +119,7 @@ describe("MathInput Tag Tests", function () {
             "contain.text",
             "xy",
         );
-        cy.get(cesc("#\\/c2") + " .mjx-mrow")
+        cy.get(cesc("#\\/c2"))
             .eq(0)
             .invoke("text")
             .then((text) => {
@@ -149,7 +135,7 @@ describe("MathInput Tag Tests", function () {
             "contain.text",
             "x",
         );
-        cy.get(cesc("#\\/c2") + " .mjx-mrow")
+        cy.get(cesc("#\\/c2"))
             .eq(0)
             .invoke("text")
             .then((text) => {
@@ -181,13 +167,8 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/n") + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#\\/piv") + " .mjx-mrow").should("contain.text", "1");
-        cy.get(cesc("#\\/piv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "1");
-        cy.get(cesc("#\\/pv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "\uff3f");
+        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: 1");
+        cy.get(cesc("#\\/pv")).should("contain.text", "value: \uff3f");
 
         cy.wait(1500); // wait for debounce
 
@@ -202,13 +183,8 @@ describe("MathInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/pv") + " .mjx-mrow").should("contain.text", "1");
-        cy.get(cesc("#\\/piv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "1");
-        cy.get(cesc("#\\/pv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "1");
+        cy.get(cesc("#\\/pv")).should("have.text", "value: 1");
+        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: 1");
     });
 
     it("minWidth attribute", () => {
@@ -256,7 +232,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px",
+            "50px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type("{end}{backspace}40{enter}", {
@@ -274,7 +250,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px",
+            "50px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type(

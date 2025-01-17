@@ -12,7 +12,7 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
-        paginate: boolean;
+        render: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -21,7 +21,7 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
-        paginate: true,
+        render: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -36,7 +36,7 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
-        paginate,
+        render,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -140,17 +140,17 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={paginate}
+                            checked={render}
                             onChange={() => {
                                 setTestSettings((was) => {
                                     let newObj = { ...was };
-                                    newObj.paginate = !was.paginate;
+                                    newObj.render = !was.render;
                                     return newObj;
                                 });
                                 setUpdateNumber((was) => was + 1);
                             }}
                         />
-                        Paginate
+                        Render
                     </label>
                 </div>
                 <div>
@@ -199,7 +199,6 @@ export default function TestViewer() {
         <DoenetEditor
             key={"doenetml" + updateNumber}
             doenetML={doenetMLstring}
-            paginate={paginate}
             addVirtualKeyboard={true}
             height="calc(100vh - 94px)"
             width="100%"
@@ -226,8 +225,7 @@ export default function TestViewer() {
                 autoSubmit: false,
             }}
             activityId=""
-            apiURLs={{ postMessages: true }}
-            paginate={paginate}
+            render={render}
             addVirtualKeyboard={true}
         />
     );

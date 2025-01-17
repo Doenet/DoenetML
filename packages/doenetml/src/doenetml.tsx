@@ -2,7 +2,7 @@ import "./DoenetML.css";
 // @ts-ignore
 import { prng_alea } from "esm-seedrandom";
 import React, { useCallback, useRef, useState } from "react";
-import { ActivityViewer } from "./Viewer/ActivityViewer";
+import { PageViewer } from "./Viewer/PageViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
@@ -95,22 +95,18 @@ const theme = extendTheme({
 export function DoenetViewer({
     doenetML,
     flags: specifiedFlags = {},
-    cid,
     activityId,
+    prefixForIds = "",
     userId,
     attemptNumber = 1,
+    itemNumber = 1,
+    render = true,
+    isCurrent = true,
+    hideWhenNotCurrent = false,
     requestedVariantIndex,
     updateCreditAchievedCallback,
-    updateActivityStatusCallback,
     updateAttemptNumber,
-    pageChangedCallback,
-    paginate = false,
-    showFinishButton,
-    cidChangedCallback,
-    checkIfCidChanged,
-    setActivityAsCompleted,
     setIsInErrorState,
-    apiURLs,
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
@@ -119,11 +115,9 @@ export function DoenetViewer({
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    addBottomPadding = false,
     location,
     navigate,
     updateDataOnContentChange = false,
-    idsIncludeActivityId = true,
     linkSettings,
     scrollableContainer,
     darkMode = "light",
@@ -132,22 +126,18 @@ export function DoenetViewer({
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
-    cid?: string;
     activityId?: string;
+    prefixForIds?: string;
     userId?: string;
     attemptNumber?: number;
+    itemNumber?: number;
+    render?: boolean;
+    isCurrent?: boolean;
+    hideWhenNotCurrent?: boolean;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
-    updateActivityStatusCallback?: Function;
     updateAttemptNumber?: Function;
-    pageChangedCallback?: Function;
-    paginate?: boolean;
-    showFinishButton?: boolean;
-    cidChangedCallback?: Function;
-    checkIfCidChanged?: Function;
-    setActivityAsCompleted?: Function;
     setIsInErrorState?: Function;
-    apiURLs?: any;
     generatedVariantCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
     forceDisable?: boolean;
@@ -156,11 +146,9 @@ export function DoenetViewer({
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
     updateDataOnContentChange?: boolean;
-    idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -173,13 +161,7 @@ export function DoenetViewer({
         allPossibleVariants: ["a"],
     });
 
-    const thisPropSet = [
-        doenetML,
-        cid,
-        activityId,
-        userId,
-        requestedVariantIndex,
-    ];
+    const thisPropSet = [doenetML, activityId, userId, requestedVariantIndex];
     const lastPropSet = useRef<any[]>([]);
 
     const variantIndex = useRef(1);
@@ -258,26 +240,23 @@ export function DoenetViewer({
     ) : null;
 
     const viewer = (
-        <ActivityViewer
+        <PageViewer
             doenetML={doenetML}
             updateDataOnContentChange={updateDataOnContentChange}
             flags={flags}
-            cid={cid}
             activityId={activityId}
+            prefixForIds={prefixForIds}
             userId={userId}
             attemptNumber={attemptNumber}
+            pageNumber={itemNumber.toString()}
+            itemNumber={itemNumber}
+            render={render}
+            isCurrent={isCurrent}
+            hideWhenNotCurrent={hideWhenNotCurrent}
             requestedVariantIndex={variantIndex.current}
             updateCreditAchievedCallback={updateCreditAchievedCallback}
-            updateActivityStatusCallback={updateActivityStatusCallback}
             updateAttemptNumber={updateAttemptNumber}
-            pageChangedCallback={pageChangedCallback}
-            paginate={paginate}
-            showFinishButton={showFinishButton}
-            cidChangedCallback={cidChangedCallback}
-            checkIfCidChanged={checkIfCidChanged}
-            setActivityAsCompleted={setActivityAsCompleted}
             setIsInErrorState={setIsInErrorState}
-            apiURLs={apiURLs}
             generatedVariantCallback={generatedVariantCallback}
             setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
             forceDisable={forceDisable}
@@ -286,9 +265,7 @@ export function DoenetViewer({
             forceUnsuppressCheckwork={forceUnsuppressCheckwork}
             location={location}
             navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
             linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerTitles={showAnswerTitles}
@@ -316,13 +293,11 @@ export function DoenetViewer({
 export function DoenetEditor({
     doenetML,
     activityId,
-    paginate = false,
+    prefixForIds = "",
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    addBottomPadding = false,
     location,
     navigate,
-    idsIncludeActivityId = true,
     linkSettings,
     darkMode = "light",
     showAnswerTitles = false,
@@ -343,13 +318,11 @@ export function DoenetEditor({
 }: {
     doenetML: string;
     activityId?: string;
-    paginate?: boolean;
+    prefixForIds?: string;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
@@ -378,12 +351,10 @@ export function DoenetEditor({
         <EditorViewer
             doenetML={doenetML}
             activityId={activityId}
-            paginate={paginate}
             location={location}
             navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
+            prefixForIds={prefixForIds}
             linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
             darkMode={darkMode}
             showAnswerTitles={showAnswerTitles}
             width={width}

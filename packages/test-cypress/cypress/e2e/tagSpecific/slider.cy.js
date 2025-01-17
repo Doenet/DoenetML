@@ -367,8 +367,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/sv")).should("have.text", "0");
 
-        cy.get(cesc("#\\/s-label")).should("contain.text", "Hello x2");
-        cy.get(cesc("#\\/s-label")).should("contain.text", "x^2 = 0");
+        cy.get(cesc("#\\/s-label")).should("contain.text", "Hello x2 = 0");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -387,8 +386,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/sv")).should("have.text", "1");
 
-        cy.get(cesc("#\\/s-label")).should("contain.text", "Hello x2");
-        cy.get(cesc("#\\/s-label")).should("contain.text", "x^2 = 1");
+        cy.get(cesc("#\\/s-label")).should("contain.text", "Hello x2 = 1");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

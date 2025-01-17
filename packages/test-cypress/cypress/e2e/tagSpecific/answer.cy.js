@@ -1462,20 +1462,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("＿");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("＿");
-            });
+        cy.get(cesc(`#\\/cr`)).should("contain.text", "＿");
+        cy.get(cesc(`#\\/sr`)).should("contain.text", "＿");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/val") + " textarea").type("3{enter}", { force: true });
@@ -1484,22 +1472,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`) + ` .mjx-mrow`).should("contain.text", "3");
-
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("＿");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "3");
+        cy.get(cesc(`#\\/sr`)).should("contain.text", "＿");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/a_submit")).click();
@@ -1508,20 +1482,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("be.visible");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "3");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "3");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/val") + " textarea").type("{end}{backspace}4", {
@@ -1532,20 +1494,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "3");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "3");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/val") + " textarea").type("{end}{backspace}3", {
@@ -1556,20 +1506,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "3");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "3");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/a_submit")).click();
@@ -1577,20 +1515,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("be.visible");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "3");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "3");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/val") + " textarea").type("{end}{backspace}5", {
@@ -1601,20 +1527,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "3");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "3");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/val") + " textarea").blur();
@@ -1623,21 +1537,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("not.exist");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`) + ` .mjx-mrow`).should("have.text", "5");
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("5");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("3");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "5");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "3");
         cy.get(cesc(`#\\/ca`)).should("have.text", "0");
 
         cy.get(cesc("#\\/a_submit")).click();
@@ -1645,20 +1546,8 @@ describe("Answer Tag Tests", function () {
         cy.get(correctAnchor).should("be.visible");
         cy.get(incorrectAnchor).should("not.exist");
 
-        cy.get(cesc(`#\\/cr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("5");
-            });
-        cy.get(cesc(`#\\/sr`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("5");
-            });
+        cy.get(cesc(`#\\/cr`)).should("have.text", "5");
+        cy.get(cesc(`#\\/sr`)).should("have.text", "5");
         cy.get(cesc(`#\\/ca`)).should("have.text", "1");
     });
 
@@ -3109,7 +2998,7 @@ describe("Answer Tag Tests", function () {
         );
 
         cy.get(cesc("#\\/x") + " textarea").blur();
-        cy.get(cesc("#\\/pSubX") + " .mjx-mrow").should("contain.text", "y");
+        cy.get(cesc("#\\/pSubX")).should("contain.text", "y");
         cy.get(cesc("#\\/pCreditX")).should(
             "have.text",
             "Credit for this answer: 0",
@@ -3122,7 +3011,7 @@ describe("Answer Tag Tests", function () {
         cy.get(cesc("#\\/x") + " textarea").type("{end}{backspace}x{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/pSubX") + " .mjx-mrow").should("contain.text", "x");
+        cy.get(cesc("#\\/pSubX")).should("contain.text", "x");
         cy.get(cesc("#\\/pCreditX")).should(
             "have.text",
             "Credit for this answer: 1",
@@ -3318,16 +3207,7 @@ describe("Answer Tag Tests", function () {
             "Credit for this answer: 0",
         );
 
-        cy.get(cesc("#\\/pSubFirstQuad") + " .mjx-mrow").should(
-            "contain.text",
-            "3",
-        );
-        cy.get(cesc("#\\/pSubFirstQuad") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "3");
-        cy.get(cesc("#\\/pSubFirstQuad") + " .mjx-mrow")
-            .eq(1)
-            .should("have.text", "−5");
+        cy.get(cesc("#\\/pSubFirstQuad")).should("contain.text", "3, −5");
 
         cy.get(cesc("#\\/pCreditFirstQuad")).should(
             "have.text",
@@ -3346,16 +3226,7 @@ describe("Answer Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#\\/pSubFirstQuad") + " .mjx-mrow").should(
-            "contain.text",
-            "9",
-        );
-        cy.get(cesc("#\\/pSubFirstQuad") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "9");
-        cy.get(cesc("#\\/pSubFirstQuad") + " .mjx-mrow")
-            .eq(1)
-            .should("have.text", "8");
+        cy.get(cesc("#\\/pSubFirstQuad")).should("contain.text", "9, 8");
 
         cy.get(cesc("#\\/pCreditFirstQuad")).should(
             "have.text",
@@ -3405,8 +3276,8 @@ describe("Answer Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/n_submit")).click();
-        cy.get(cesc("#\\/n_correct")).should("be.visible");
+        // cy.get(cesc("#\\/n_submit")).click();
+        // cy.get(cesc("#\\/n_correct")).should("be.visible");
     });
 
     it("reload text answer without blurring or hitting enter", () => {

@@ -11,14 +11,14 @@ import {
     serializedComponentsReviver,
     cesc,
     data_format_version,
+    cidFromText,
 } from "@doenet/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
-import { get as idb_get, set as idb_set } from "idb-keyval";
-import axios from "axios";
-import { createCoreWorker, initializeCoreWorker } from "../utils/activityUtils";
+import { get as idb_get } from "idb-keyval";
+import { createCoreWorker, initializeCoreWorker } from "../utils/pageUtils";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -32,39 +32,29 @@ export const PageContext = createContext();
 export function PageViewer({
     userId,
     activityId,
-    cidForActivity,
-    cid,
     doenetML,
-    coreWorkerInfo,
     pageNumber = "1",
-    previousComponentTypeCounts,
-    pageIsActive,
-    pageIsCurrent,
-    itemNumber,
+    render: pageIsActive = true,
+    isCurrent: pageIsCurrent = true,
+    hideWhenNotCurrent = false,
+    itemNumber = 1,
     attemptNumber = 1,
-    forceDisable,
-    forceShowCorrectness,
-    forceShowSolution,
-    forceUnsuppressCheckwork,
-    generatedVariantCallback, // currently not passed in
+    forceDisable = false,
+    forceShowCorrectness = false,
+    forceShowSolution = false,
+    forceUnsuppressCheckwork = false,
+    generatedVariantCallback,
     flags,
-    activityVariantIndex,
     requestedVariantIndex,
     setErrorsAndWarningsCallback,
     updateCreditAchievedCallback,
     setIsInErrorState,
     updateAttemptNumber,
-    saveStateCallback,
     updateDataOnContentChange,
-    coreCreatedCallback,
-    renderersInitializedCallback,
-    hideWhenNotCurrent,
     prefixForIds = "",
-    apiURLs = {},
     location = {},
     navigate,
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
-    errorsActivitySpecific = {},
     scrollableContainer,
     darkMode,
     showAnswerTitles,
@@ -158,7 +148,7 @@ export function PageViewer({
 
     const [errMsg, setErrMsg] = useState(null);
 
-    const lastCid = useRef(null);
+    const cid = useRef(null);
     const lastDoenetML = useRef(null);
     const lastPageNumber = useRef(null);
     const lastAttemptNumber = useRef(null);
@@ -196,6 +186,8 @@ export function PageViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
+    const [coreWorkerInfo, setCoreWorkerInfo] = useState(null);
+
     let hash = location.hash;
 
     const contextForRenderers = {
@@ -215,6 +207,31 @@ export function PageViewer({
             .replaceAll("-", "_") || "1";
 
     useEffect(() => {
+        async function initialize() {
+            let coreWorker = createCoreWorker();
+
+            let theInfo = {
+                coreWorker,
+                doenetML,
+                flags,
+            };
+
+            setCoreWorkerInfo(theInfo);
+
+            try {
+                await initializeCoreWorker(theInfo);
+            } catch (e) {
+                setErrMsg(`Error initializing activity: ${e.message}`);
+            }
+        }
+
+        initialize();
+    }, []);
+
+    useEffect(() => {
+        if (!coreWorkerInfo) {
+            return;
+        }
         coreWorkerInfo.coreWorker.onmessage = function (e) {
             // console.log("message from core", e.data);
             if (e.data.messageType === "updateRenderers") {
@@ -255,7 +272,7 @@ export function PageViewer({
                     });
                 }
                 setStage("coreCreated");
-                coreCreatedCallback?.();
+                // coreCreatedCallback?.();
             } else if (e.data.messageType === "initializeRenderers") {
                 if (
                     coreInfo.current &&
@@ -276,7 +293,7 @@ export function PageViewer({
             } else if (e.data.messageType === "updateCreditAchieved") {
                 updateCreditAchievedCallback?.(e.data.args);
             } else if (e.data.messageType === "savedState") {
-                saveStateCallback?.();
+                // saveStateCallback?.();
             } else if (e.data.messageType === "sendAlert") {
                 console.log(`Sending alert message: ${e.data.args.message}`);
                 sendAlert(e.data.args.message, e.data.args.alertType);
@@ -287,10 +304,6 @@ export function PageViewer({
                 resolveAllStateVariables.current(e.data.args);
             } else if (e.data.messageType === "returnErrorWarnings") {
                 let errorWarnings = e.data.args;
-                errorWarnings.errors = [
-                    ...errorsActivitySpecific,
-                    ...errorWarnings.errors,
-                ];
                 console.log(errorWarnings);
                 resolveErrorWarnings.current(errorWarnings);
             } else if (e.data.messageType === "componentRangePieces") {
@@ -327,15 +340,20 @@ export function PageViewer({
                     ...e.data,
                     subject: "SPLICE.sendEvent",
                 });
+            } else if (e.data.messageType === "allPossibleVariants") {
+                window.postMessage({
+                    ...e.data,
+                    subject: "SPLICE.allPossibleVariants",
+                });
             } else if (e.data.messageType === "terminated") {
-                reinitializeCoreAndTerminateAnimations();
+                reinitializeCoreAndTerminateAnimations(coreWorkerInfo);
             }
         };
-    }, [coreWorkerInfo.coreWorker, location]);
+    }, [coreWorkerInfo?.coreWorker, location]);
 
     useEffect(() => {
         return () => {
-            coreWorkerInfo.coreWorker.postMessage({
+            coreWorkerInfo?.coreWorker.postMessage({
                 messageType: "terminate",
             });
         };
@@ -363,6 +381,9 @@ export function PageViewer({
     });
 
     useEffect(() => {
+        if (!coreWorkerInfo) {
+            return;
+        }
         if (pageNumber !== null) {
             window["returnAllStateVariables" + postfixForWindowFunctions] =
                 function () {
@@ -397,7 +418,7 @@ export function PageViewer({
                 });
             };
         }
-    }, [pageNumber]);
+    }, [pageNumber, coreWorkerInfo]);
 
     useEffect(() => {
         return () => {
@@ -410,6 +431,9 @@ export function PageViewer({
     }, []);
 
     useEffect(() => {
+        if (!coreWorkerInfo) {
+            return;
+        }
         document.addEventListener("visibilitychange", () => {
             coreWorkerInfo.coreWorker.postMessage({
                 messageType: "visibilityChange",
@@ -418,10 +442,10 @@ export function PageViewer({
                 },
             });
         });
-    }, []);
+    }, [coreWorkerInfo]);
 
     useEffect(() => {
-        if (hash && coreCreated.current && coreWorkerInfo.coreWorker) {
+        if (hash && coreCreated.current && coreWorkerInfo?.coreWorker) {
             let anchor = hash.slice(1);
             if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
                 coreWorkerInfo.coreWorker.postMessage({
@@ -435,7 +459,13 @@ export function PageViewer({
                 });
             }
         }
-    }, [location, hash, coreCreated.current, coreWorkerInfo.coreWorker]);
+    }, [
+        location,
+        hash,
+        coreCreated.current,
+        coreWorkerInfo,
+        coreWorkerInfo?.coreWorker,
+    ]);
 
     useEffect(() => {
         if (hash && documentRenderer && pageIsActive) {
@@ -510,7 +540,7 @@ export function PageViewer({
         [location],
     );
 
-    async function reinitializeCoreAndTerminateAnimations() {
+    async function reinitializeCoreAndTerminateAnimations(newCoreWorkerInfo) {
         preventMoreAnimations.current = true;
         coreWorkerInfo.coreWorker.terminate();
         coreWorkerInfo.coreWorker = createCoreWorker();
@@ -523,7 +553,7 @@ export function PageViewer({
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
 
-        await initializeCoreWorker(coreWorkerInfo);
+        await initializeCoreWorker(newCoreWorkerInfo);
     }
 
     async function callAction({
@@ -639,7 +669,7 @@ export function PageViewer({
 
         if (coreCreated.current) {
             // Note: it is possible that core has been terminated, so we need the question mark
-            coreWorkerInfo.coreWorker.postMessage({
+            coreWorkerInfo.coreWorker?.postMessage({
                 messageType: "requestAction",
                 args: actionArgs,
             });
@@ -874,12 +904,14 @@ export function PageViewer({
         const coreIdWhenCalled = coreId.current;
         let loadedState = false;
 
+        cid.current = await cidFromText(doenetML);
+
         if (flags.allowLocalState) {
             let localInfo;
 
             try {
                 localInfo = await idb_get(
-                    `${activityId}|${pageNumber}|${attemptNumber}|${cid}`,
+                    `${activityId}|${pageNumber}|${attemptNumber}|${cid.current}`,
                 );
                 if (localInfo.data_format_version !== data_format_version) {
                     // the data saved does not match the current version, so we ignore it
@@ -890,41 +922,6 @@ export function PageViewer({
             }
 
             if (localInfo) {
-                if (flags.allowSaveState) {
-                    // attempt to save local info to database,
-                    // resetting data to that from database if it has changed since last save
-
-                    let result =
-                        await saveLoadedLocalStateToDatabase(localInfo);
-
-                    if (result.changedOnDevice) {
-                        if (Number(result.newAttemptNumber) !== attemptNumber) {
-                            resetPage({
-                                changedOnDevice: result.changedOnDevice,
-                                newCid: result.newCid,
-                                newAttemptNumber: Number(
-                                    result.newAttemptNumber,
-                                ),
-                            });
-                            return;
-                        } else if (result.newCid !== cid) {
-                            // if cid changes for the same attempt number, then something went wrong
-                            setIsInErrorState?.(true);
-                            setErrMsg(`content changed unexpectedly!`);
-                        }
-
-                        // if just the localInfo changed, use that instead
-                        localInfo = result.newLocalInfo;
-                        console.log(
-                            `sending alert: Reverted page to state saved on device ${result.changedOnDevice}`,
-                        );
-                        sendAlert(
-                            `Reverted page to state saved on device ${result.changedOnDevice}`,
-                            "info",
-                        );
-                    }
-                }
-
                 const coreState = JSON.parse(
                     localInfo.coreState,
                     serializedComponentsReviver,
@@ -967,11 +964,11 @@ export function PageViewer({
             }
         }
 
-        if (!loadedState && apiURLs.postMessages) {
+        if (!loadedState) {
             if (flags.allowLoadState) {
                 try {
                     let resp = await getStateViaSplice({
-                        cid,
+                        cid: cid.current,
                         pageNumber,
                         attemptNumber,
                         activityId,
@@ -984,55 +981,6 @@ export function PageViewer({
                     setIsInErrorState?.(true);
                     setErrMsg(`Error loading page state: ${e.message}`);
                     return;
-                }
-            }
-        } else if (!loadedState && apiURLs.loadPageState) {
-            // if didn't load state from local storage, try to load from database
-
-            // even if allowLoadState is false,
-            // still call loadPageState, in which case it will only retrieve the initial page state
-
-            const payload = {
-                params: {
-                    cid,
-                    pageNumber,
-                    attemptNumber,
-                    activityId,
-                    userId,
-                    requestedVariantIndex,
-                    allowLoadState: flags.allowLoadState,
-                    showCorrectness: flags.showCorrectness,
-                    solutionDisplayMode: flags.solutionDisplayMode,
-                    showFeedback: flags.showFeedback,
-                    showHints: flags.showHints,
-                    autoSubmit: flags.autoSubmit,
-                },
-            };
-
-            try {
-                let resp = await axios.get(apiURLs.loadPageState, payload);
-                if (!resp.data.success) {
-                    if (flags.allowLoadState) {
-                        setIsInErrorState?.(true);
-                        setErrMsg(
-                            `Error loading page state: ${resp.data.message}`,
-                        );
-                        return;
-                    } else {
-                        // ignore this error if didn't allow loading of page state
-                    }
-                }
-
-                if (resp.data.loadedState) {
-                    processLoadedPageState(resp);
-                }
-            } catch (e) {
-                if (flags.allowLoadState) {
-                    setIsInErrorState?.(true);
-                    setErrMsg(`Error loading page state: ${e.message}`);
-                    return;
-                } else {
-                    // ignore this error if didn't allow loading of page state
                 }
             }
         }
@@ -1122,82 +1070,20 @@ export function PageViewer({
         };
     }
 
-    async function saveLoadedLocalStateToDatabase(localInfo) {
-        // TODO: handle postMessages case
-        if (!flags.allowSaveState || !apiURLs.savePageState) {
-            return {};
-        }
-
-        let serverSaveId = await idb_get(
-            `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
-        );
-
-        let pageStateToBeSavedToDatabase = {
-            cid,
-            coreInfo: localInfo.coreInfo,
-            coreState: localInfo.coreState,
-            rendererState: localInfo.rendererState,
-            pageNumber,
-            attemptNumber,
-            activityId,
-            saveId: localInfo.saveId,
-            serverSaveId,
-            updateDataOnContentChange,
-        };
-
-        let resp;
-
-        try {
-            resp = await axios.post(
-                apiURLs.savePageState,
-                pageStateToBeSavedToDatabase,
-            );
-        } catch (e) {
-            // since this is initial load, don't show error message
-            return { localInfo, cid, attemptNumber };
-        }
-
-        let data = resp.data;
-
-        if (!data.success) {
-            // since this is initial load, don't show error message
-            return { localInfo, cid, attemptNumber };
-        }
-
-        await idb_set(
-            `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
-            data.saveId,
-        );
-
-        if (data.stateOverwritten) {
-            let newLocalInfo = {
-                data_format_version,
-                coreState: data.coreState,
-                rendererState: data.rendererState,
-                coreInfo: data.coreInfo,
-                saveId: data.saveId,
-            };
-
-            await idb_set(
-                `${activityId}|${pageNumber}|${data.attemptNumber}|${data.cid}`,
-                newLocalInfo,
-            );
-
-            return {
-                changedOnDevice: data.device,
-                newLocalInfo,
-                newCid: data.cid,
-                newAttemptNumber: data.attemptNumber,
-            };
-        }
-
-        return { localInfo, cid, attemptNumber };
-    }
-
     async function startCore() {
+        let theInfo = {
+            coreWorker: coreWorkerInfo.coreWorker,
+            doenetML,
+            flags,
+        };
+        setCoreWorkerInfo(theInfo);
+
         //Kill the current core if it exists
         if (coreCreated.current) {
-            await reinitializeCoreAndTerminateAnimations();
+            await reinitializeCoreAndTerminateAnimations(theInfo);
+        } else {
+            // otherwise, just initialize to give it the current DoenetML
+            await initializeCoreWorker(theInfo);
         }
 
         resolveActionPromises.current = {};
@@ -1208,10 +1094,8 @@ export function PageViewer({
             args: {
                 coreId: coreId.current,
                 userId,
-                cid,
+                cid: cid.current,
                 activityId,
-                previousComponentTypeCounts,
-                cidForActivity,
                 theme: darkMode,
                 requestedVariantIndex,
                 pageNumber,
@@ -1219,7 +1103,6 @@ export function PageViewer({
                 itemNumber,
                 updateDataOnContentChange,
                 serverSaveId: initialCoreData.current.serverSaveId,
-                activityVariantIndex,
                 requestedVariant: initialCoreData.current.requestedVariant,
                 stateVariableChanges: initialCoreData.current.coreState
                     ? JSON.stringify(
@@ -1227,7 +1110,6 @@ export function PageViewer({
                           serializedComponentsReplacer,
                       )
                     : undefined,
-                apiURLs: apiURLs,
             },
         });
 
@@ -1299,16 +1181,16 @@ export function PageViewer({
         }
     }
 
-    // first, if lastCid or lastDoenetML don't match props
+    if (!coreWorkerInfo) {
+        return null;
+    }
+
+    // first, if last parameters don't match props
     // set state to props and record that that need a new core
 
     let changedState = false;
     if (lastDoenetML.current !== doenetML) {
         lastDoenetML.current = doenetML;
-        changedState = true;
-    }
-    if (lastCid.current !== cid) {
-        lastCid.current = cid;
         changedState = true;
     }
 
@@ -1382,12 +1264,12 @@ export function PageViewer({
     ) {
         // we've moved off this page, but core is still being created
         // so reinitialize core
-        reinitializeCoreAndTerminateAnimations();
+        reinitializeCoreAndTerminateAnimations(coreWorkerInfo);
 
         setStage("readyToCreateCore");
     }
 
-    if (hideWhenNotCurrent && !pageIsCurrent) {
+    if ((hideWhenNotCurrent && !pageIsCurrent) || !pageIsActive) {
         return null;
     }
 

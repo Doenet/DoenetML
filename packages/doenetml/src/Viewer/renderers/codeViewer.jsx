@@ -145,6 +145,7 @@ export default React.memo(function CodeViewer(props) {
                         allowSaveEvents: false,
                     }}
                     activityId={id}
+                    prefixForIds={id}
                     generatedVariantCallback={setVariants}
                     requestedVariantIndex={variants.index}
                     setErrorsAndWarningsCallback={(errorsAndWarnings) => {

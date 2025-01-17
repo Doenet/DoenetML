@@ -2,7 +2,6 @@ export * from "./ast/logging";
 export * from "./ast/ast";
 export * from "./errors/errorWarning";
 export * from "./media/cid";
-export * from "./media/retrieveMedia";
 export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";
 export * from "./copy/parseStringify";

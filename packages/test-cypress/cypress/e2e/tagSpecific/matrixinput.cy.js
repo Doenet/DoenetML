@@ -30,13 +30,8 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/n") + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#\\/piv") + " .mjx-mrow").should("contain.text", "[1]");
-        cy.get(cesc("#\\/piv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "[1]");
-        cy.get(cesc("#\\/pv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "[\uff3f]");
+        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: [1]");
+        cy.get(cesc("#\\/pv")).should("contain.text", "[\uff3f]");
 
         cy.wait(1500); // wait for debounce
 
@@ -51,12 +46,7 @@ describe("MatrixInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/pv") + " .mjx-mrow").should("contain.text", "[1]");
-        cy.get(cesc("#\\/piv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "[1]");
-        cy.get(cesc("#\\/pv") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "[1]");
+        cy.get(cesc("#\\/pv")).should("have.text", "value: [1]");
+        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: [1]");
     });
 });

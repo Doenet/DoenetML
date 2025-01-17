@@ -7903,31 +7903,6 @@ class CountAmongSiblingsDependency extends Dependency {
                 .map((x) => x.componentName)
                 .indexOf(this.upstreamComponentName) + 1;
 
-        if (this.parentName === this.dependencyHandler.core.documentName) {
-            let previousCounts =
-                this.dependencyHandler.core.previousComponentTypeCounts;
-
-            if (this.includeInheritedComponentTypes) {
-                for (let cType in previousCounts) {
-                    if (
-                        this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
-                            {
-                                inheritedComponentType: cType,
-                                baseComponentType: childComponentType,
-                            },
-                        )
-                    ) {
-                        value += previousCounts[cType];
-                    }
-                }
-            } else {
-                let thisPreviousCount = previousCounts[childComponentType];
-                if (thisPreviousCount) {
-                    value += thisPreviousCount;
-                }
-            }
-        }
-
         // don't need changes, as it is changed directly from core
         // and then upstream variables are marked as changed
         return { value, changes: {} };

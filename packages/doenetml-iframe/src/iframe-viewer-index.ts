@@ -30,39 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     args,
                 });
             },
-            updateActivityStatusCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "updateActivityStatusCallback",
-                    args,
-                });
-            },
             updateAttemptNumber: (args: unknown) => {
                 messageParentFromViewer({
                     callback: "updateAttemptNumber",
-                    args,
-                });
-            },
-            pageChangedCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "pageChangedCallback",
-                    args,
-                });
-            },
-            cidChangedCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "cidChangedCallback",
-                    args,
-                });
-            },
-            checkIfCidChanged: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "checkIfCidChanged",
-                    args,
-                });
-            },
-            setActivityAsCompleted: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "setActivityAsCompleted",
                     args,
                 });
             },

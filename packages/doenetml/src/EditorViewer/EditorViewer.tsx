@@ -18,7 +18,7 @@ import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
-import { ActivityViewer } from "../Viewer/ActivityViewer";
+import { PageViewer } from "../Viewer/PageViewer";
 import ErrorWarningPopovers from "./ErrorWarningPopovers";
 import type { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { nanoid } from "nanoid";
@@ -27,12 +27,10 @@ import { prettyPrint } from "@doenet/parser";
 export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
-    paginate = false,
     location = {},
     navigate,
-    idsIncludeActivityId = true,
+    prefixForIds = "",
     linkSettings,
-    addBottomPadding = false,
     darkMode = "light",
     showAnswerTitles,
     width = "100%",
@@ -52,12 +50,10 @@ export function EditorViewer({
 }: {
     doenetML: string;
     activityId?: string;
-    paginate?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
+    prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
-    addBottomPadding?: boolean;
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
     width?: string;
@@ -477,7 +473,7 @@ export function EditorViewer({
                     ref={scrollableContainer}
                 >
                     {/* @ts-ignore */}
-                    <ActivityViewer
+                    <PageViewer
                         doenetML={viewerDoenetML}
                         flags={{
                             showCorrectness: true,
@@ -493,18 +489,16 @@ export function EditorViewer({
                             readOnly: false,
                         }}
                         activityId={activityId}
+                        prefixForIds={prefixForIds}
                         attemptNumber={1}
                         generatedVariantCallback={setVariants}
                         requestedVariantIndex={variants.index}
-                        paginate={paginate}
                         setErrorsAndWarningsCallback={
                             setErrorsAndWarningsCallback
                         }
                         location={location}
                         navigate={navigate}
-                        idsIncludeActivityId={idsIncludeActivityId}
                         linkSettings={linkSettings}
-                        addBottomPadding={addBottomPadding}
                         scrollableContainer={
                             scrollableContainer.current ?? undefined
                         }

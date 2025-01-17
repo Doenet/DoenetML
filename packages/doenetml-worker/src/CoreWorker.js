@@ -145,6 +145,10 @@ async function initializeWorker({
             messageType: "initializeResult",
             args: initializeResult,
         });
+        postMessage({
+            messageType: "allPossibleVariants",
+            args: { success: false },
+        });
     }
 
     coreBaseArgs = {
@@ -165,6 +169,16 @@ async function initializeWorker({
     postMessage({
         messageType: "initializeResult",
         args: initializeResult,
+    });
+
+    let allPossibleVariants = await returnAllPossibleVariants(
+        coreBaseArgs.serializedDocument,
+        coreBaseArgs.componentInfoObjects,
+    );
+
+    postMessage({
+        messageType: "allPossibleVariants",
+        args: { success: true, allPossibleVariants },
     });
 }
 

@@ -66,17 +66,10 @@ describe("CobwebPolyline Tag Tests", function () {
             .eq(0)
             .click();
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            "x0=1\n",
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).should(
@@ -119,26 +112,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/deleteLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -150,17 +127,10 @@ describe("CobwebPolyline Tag Tests", function () {
         );
         cy.get(cesc2("#/gradedApplet/startFeedback")).should("be.visible");
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            "x0=1\n",
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -176,26 +146,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -225,26 +179,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -266,35 +204,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(3)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
 
@@ -317,35 +230,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(3)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -369,44 +257,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(3)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x3=${Math.round(x3 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(4)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -434,44 +288,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(3)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x3=${Math.round(x3 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(4)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}\n`,
+        );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
@@ -500,53 +320,10 @@ describe("CobwebPolyline Tag Tests", function () {
             "be.visible",
         );
 
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("x0=1");
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(1)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(2)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(3)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x3=${Math.round(x3 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(4)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal(
-                    `x4=${Math.round(x4 * 10000) / 10000}`,
-                );
-            });
-        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
-            .find(".mjx-mtr")
-            .eq(5)
-            .should("not.exist");
+        cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue")).should(
+            "contain.text",
+            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}x4=${Math.round(x4 * 10000) / 10000}\n`,
+        );
     });
 
     it("cobweb intro tutorial", () => {

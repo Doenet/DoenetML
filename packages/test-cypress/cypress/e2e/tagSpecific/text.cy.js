@@ -260,24 +260,12 @@ describe("Text Tag Tests", function () {
             cy.get(t2cAnchor).should("have.css", "color", "rgb(255, 0, 0)");
             cy.get(t2dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
 
-            cy.get(cesc("#\\/t1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/t2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(3,4)");
-            cy.get(cesc("#\\/t1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/t2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(3,4)");
-            cy.get(cesc("#\\/t1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/t2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t1coords")).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t2coords")).should("have.text", "(3,4)");
+            cy.get(cesc("#\\/t1acoords")).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t2acoords")).should("have.text", "(3,4)");
+            cy.get(cesc("#\\/t1bcoords")).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t2bcoords")).should("have.text", "(0,0)");
 
             cy.log("move first texts");
             cy.window().then(async (win) => {
@@ -293,29 +281,14 @@ describe("Text Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc("#\\/t2coords") + " .mjx-mrow").should(
-                "contain.text",
-                "(4,−5)",
-            );
+            cy.get(cesc("#\\/t2coords")).should("contain.text", "(4,−5)");
 
-            cy.get(cesc("#\\/t1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−2,3)");
-            cy.get(cesc("#\\/t2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(4,−5)");
-            cy.get(cesc("#\\/t1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−2,3)");
-            cy.get(cesc("#\\/t2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(4,−5)");
-            cy.get(cesc("#\\/t1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/t2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t1coords")).should("have.text", "(−2,3)");
+            cy.get(cesc("#\\/t2coords")).should("have.text", "(4,−5)");
+            cy.get(cesc("#\\/t1acoords")).should("have.text", "(−2,3)");
+            cy.get(cesc("#\\/t2acoords")).should("have.text", "(4,−5)");
+            cy.get(cesc("#\\/t1bcoords")).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t2bcoords")).should("have.text", "(0,0)");
 
             cy.log("move second texts");
             cy.window().then(async (win) => {
@@ -331,29 +304,14 @@ describe("Text Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc("#\\/t2coords") + " .mjx-mrow").should(
-                "contain.text",
-                "(−8,2)",
-            );
+            cy.get(cesc("#\\/t2coords")).should("contain.text", "(−8,2)");
 
-            cy.get(cesc("#\\/t1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/t2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/t1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/t2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/t1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/t2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t1coords")).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/t2coords")).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/t1acoords")).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/t2acoords")).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/t1bcoords")).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/t2bcoords")).should("have.text", "(0,0)");
 
             cy.log("move third texts");
             cy.window().then(async (win) => {
@@ -369,29 +327,14 @@ describe("Text Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc("#\\/t2bcoords") + " .mjx-mrow").should(
-                "contain.text",
-                "(−5,−4)",
-            );
+            cy.get(cesc("#\\/t2bcoords")).should("contain.text", "(−5,−4)");
 
-            cy.get(cesc("#\\/t1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/t2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/t1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/t2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/t1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−6,3)");
-            cy.get(cesc("#\\/t2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−5,−4)");
+            cy.get(cesc("#\\/t1coords")).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/t2coords")).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/t1acoords")).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/t2acoords")).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/t1bcoords")).should("have.text", "(−6,3)");
+            cy.get(cesc("#\\/t2bcoords")).should("have.text", "(−5,−4)");
         });
     });
 });
