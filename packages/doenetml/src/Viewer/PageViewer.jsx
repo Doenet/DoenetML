@@ -354,6 +354,11 @@ export function PageViewer({
                     ...e.data,
                     subject: "SPLICE.sendEvent",
                 });
+            } else if (e.data.messageType === "allPossibleVariants") {
+                window.postMessage({
+                    ...e.data,
+                    subject: "SPLICE.allPossibleVariants",
+                });
             } else if (e.data.messageType === "terminated") {
                 reinitializeCoreAndTerminateAnimations();
             }
@@ -1268,7 +1273,7 @@ export function PageViewer({
         setStage("readyToCreateCore");
     }
 
-    if (hideWhenNotCurrent && !pageIsCurrent) {
+    if ((hideWhenNotCurrent && !pageIsCurrent) || !pageIsActive) {
         return null;
     }
 

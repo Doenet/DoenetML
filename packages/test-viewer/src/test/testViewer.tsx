@@ -12,6 +12,7 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
+        render: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -20,6 +21,7 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
+        render: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -34,6 +36,7 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
+        render,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -137,6 +140,24 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
+                            checked={render}
+                            onChange={() => {
+                                setTestSettings((was) => {
+                                    let newObj = { ...was };
+                                    newObj.render = !was.render;
+                                    return newObj;
+                                });
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        />
+                        Render
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        {" "}
+                        <input
+                            type="checkbox"
                             checked={showEditor}
                             onChange={() => {
                                 setTestSettings((was) => {
@@ -204,7 +225,7 @@ export default function TestViewer() {
                 autoSubmit: false,
             }}
             activityId=""
-            apiURLs={{ postMessages: true }}
+            render={render}
             addVirtualKeyboard={true}
         />
     );

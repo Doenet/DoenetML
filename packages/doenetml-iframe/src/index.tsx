@@ -169,27 +169,8 @@ export function DoenetViewer({
                         data.args,
                     );
                 }
-                case "updateActivityStatusCallback": {
-                    return doenetViewerProps.updateActivityStatusCallback?.(
-                        data.args,
-                    );
-                }
                 case "updateAttemptNumber": {
                     return doenetViewerProps.updateAttemptNumber?.(data.args);
-                }
-                case "pageChangedCallback": {
-                    return doenetViewerProps.pageChangedCallback?.(data.args);
-                }
-                case "cidChangedCallback": {
-                    return doenetViewerProps.cidChangedCallback?.(data.args);
-                }
-                case "checkIfCidChanged": {
-                    return doenetViewerProps.checkIfCidChanged?.(data.args);
-                }
-                case "setActivityAsCompleted": {
-                    return doenetViewerProps.setActivityAsCompleted?.(
-                        data.args,
-                    );
                 }
                 case "setIsInErrorState": {
                     return doenetViewerProps.setIsInErrorState?.(data.args);

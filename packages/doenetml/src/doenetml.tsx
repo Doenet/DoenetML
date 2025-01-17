@@ -100,6 +100,9 @@ export function DoenetViewer({
     userId,
     attemptNumber = 1,
     itemNumber = 1,
+    render = true,
+    isCurrent = true,
+    hideWhenNotCurrent = false,
     requestedVariantIndex,
     updateCreditAchievedCallback,
     updateAttemptNumber,
@@ -128,6 +131,9 @@ export function DoenetViewer({
     userId?: string;
     attemptNumber?: number;
     itemNumber?: number;
+    render?: boolean;
+    isCurrent?: boolean;
+    hideWhenNotCurrent?: boolean;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
     updateAttemptNumber?: Function;
@@ -248,7 +254,11 @@ export function DoenetViewer({
             activityId={activityId}
             userId={userId}
             attemptNumber={attemptNumber}
+            pageNumber={itemNumber.toString()}
             itemNumber={itemNumber}
+            render={render}
+            isCurrent={isCurrent}
+            hideWhenNotCurrent={hideWhenNotCurrent}
             requestedVariantIndex={variantIndex.current}
             updateCreditAchievedCallback={updateCreditAchievedCallback}
             updateAttemptNumber={updateAttemptNumber}

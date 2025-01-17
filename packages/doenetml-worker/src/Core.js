@@ -11264,15 +11264,8 @@ export default class Core {
 
         let alreadySaved = false;
         if (recordItemSubmissions.length > 0) {
-            // if itemNumber is zero, it means this document wasn't given any weight,
-            // so don't record the submission to the attempt tables
-            // (the event will still get recorded)
-            if (this.itemNumber > 0) {
-                let pageCreditAchieved =
-                    await this.document.stateValues.creditAchieved;
-                this.saveState(true, true);
-                alreadySaved = true;
-            }
+            this.saveState(true, true);
+            alreadySaved = true;
         }
         if (!alreadySaved && !doNotSave) {
             clearTimeout(this.savePageStateTimeoutID);
