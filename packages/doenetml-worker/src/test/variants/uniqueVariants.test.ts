@@ -1717,8 +1717,6 @@ describe("Unique variant tests", async () => {
                 expect(stateVariables["/n"].stateValues.value).eq(n);
             }
 
-            console.log({ m, n, mOptions, nOptions });
-
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
