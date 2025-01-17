@@ -100,11 +100,11 @@ describe("SelectFromSequence Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "\uff3f");
+        cy.get(cesc("#\\/m")).should("contain.text", "\uff3f");
 
         cy.get(cesc("#\\/mi") + " textarea").type("x{enter}", { force: true });
-        cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "x");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow").should("contain.text", "x");
+        cy.get(cesc("#\\/m")).should("contain.text", "x");
+        cy.get(cesc("#\\/m2")).should("contain.text", "x");
 
         cy.wait(2000); // wait for debounce
 
@@ -121,17 +121,17 @@ describe("SelectFromSequence Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "x");
+        cy.get(cesc("#\\/m")).should("contain.text", "x");
 
         cy.log("core has not crashed and processes change in bi");
         cy.get(cesc("#\\/mi") + " textarea")
             .type("{end}{backspace}y", { force: true })
             .blur();
 
-        cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "y");
+        cy.get(cesc("#\\/m")).should("contain.text", "y");
 
         cy.get(cesc("#\\/mi") + " textarea").type("{enter}", { force: true });
-        cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "y");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow").should("contain.text", "y");
+        cy.get(cesc("#\\/m")).should("contain.text", "y");
+        cy.get(cesc("#\\/m2")).should("contain.text", "y");
     });
 });

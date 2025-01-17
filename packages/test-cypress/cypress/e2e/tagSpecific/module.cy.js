@@ -37,49 +37,13 @@ describe("Module Tag Tests", function () {
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc2(`#/m1/_m1`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(3,4)");
-            });
-        cy.get(cesc(`#\\/coordsa`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(-3,3)");
-            });
-        cy.get(cesc(`#\\/coordsb`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,-5)");
-            });
-        cy.get(cesc2(`#/m2/_m1`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,-5)");
-            });
-        cy.get(cesc("#\\/sr1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("＿");
-            });
+        cy.get(cesc2(`#/m1/_m1`)).should("have.text", "(3,4)");
+        cy.get(cesc(`#\\/coordsa`)).should("have.text", "(−3,3)");
+        cy.get(cesc(`#\\/coordsb`)).should("have.text", "(7,−5)");
+        cy.get(cesc2(`#/m2/_m1`)).should("have.text", "(7,−5)");
+        cy.get(cesc("#\\/sr1")).should("contain.text", "＿");
         cy.get(cesc("#\\/ca1")).should("have.text", "0");
-        cy.get(cesc("#\\/sr2"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("＿");
-            });
+        cy.get(cesc("#\\/sr2")).should("contain.text", "＿");
         cy.get(cesc("#\\/ca2")).should("have.text", "0");
 
         cy.window().then(async (win) => {
@@ -93,21 +57,9 @@ describe("Module Tag Tests", function () {
         cy.get(cesc2("#/m1/ans_submit")).click();
         cy.get(cesc2("#/m2/ans_submit")).click();
         cy.get(cesc("#\\/sr2")).should("contain.text", "(−3,3)");
-        cy.get(cesc("#\\/sr1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(0,0)");
-            });
+        cy.get(cesc("#\\/sr1")).should("have.text", "(0,0)");
         cy.get(cesc("#\\/ca1")).should("have.text", "0");
-        cy.get(cesc("#\\/sr2"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(-3,3)");
-            });
+        cy.get(cesc("#\\/sr2")).should("have.text", "(−3,3)");
         cy.get(cesc("#\\/ca2")).should("have.text", "0");
 
         cy.log("move near correct answers");
@@ -124,55 +76,19 @@ describe("Module Tag Tests", function () {
             });
         });
 
-        cy.get(cesc2(`#/m1/_m1`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(3,4)");
-            });
-        cy.get(cesc(`#\\/coordsa`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(-3,3)");
-            });
-        cy.get(cesc(`#\\/coordsb`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,-5)");
-            });
-        cy.get(cesc2(`#/m2/_m1`))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,-5)");
-            });
+        cy.get(cesc2(`#/m1/_m1`)).should("have.text", "(3,4)");
+        cy.get(cesc(`#\\/coordsa`)).should("have.text", "(−3,3)");
+        cy.get(cesc(`#\\/coordsb`)).should("have.text", "(7,−5)");
+        cy.get(cesc2(`#/m2/_m1`)).should("have.text", "(7,−5)");
 
         cy.log("submit answers");
 
         cy.get(cesc2("#/m1/ans_submit")).click();
         cy.get(cesc2("#/m2/ans_submit")).click();
         cy.get(cesc("#\\/sr2")).should("contain.text", "(7,−5)");
-        cy.get(cesc("#\\/sr1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(3,4)");
-            });
+        cy.get(cesc("#\\/sr1")).should("have.text", "(3,4)");
         cy.get(cesc("#\\/ca1")).should("have.text", "1");
-        cy.get(cesc("#\\/sr2"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,-5)");
-            });
+        cy.get(cesc("#\\/sr2")).should("have.text", "(7,−5)");
         cy.get(cesc("#\\/ca2")).should("have.text", "1");
     });
 
@@ -215,94 +131,22 @@ describe("Module Tag Tests", function () {
         let mediumWidth = 425;
         let largeWidth = 595;
 
-        cy.get(cesc2("#/g/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-            });
-        cy.get(cesc2("#/g/_m3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("3");
-            });
-        cy.get(cesc2("#/g/extMod/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-            });
-        cy.get(cesc2("#/g/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("＿");
-            });
+        cy.get(cesc2("#/g/_m1")).should("have.text", "(1,2)");
+        cy.get(cesc2("#/g/_m3")).should("have.text", "3");
+        cy.get(cesc2("#/g/extMod/_m1")).should("have.text", "(1,2)");
+        cy.get(cesc2("#/g/sr")).should("contain.text", "＿");
         cy.get(cesc2("#/g/ca")).should("have.text", "0");
 
-        cy.get(cesc2("#/g2/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-            });
-        cy.get(cesc2("#/g2/_m3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("9");
-            });
-        cy.get(cesc2("#/g2/extMod/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-            });
-        cy.get(cesc2("#/g2/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("＿");
-            });
+        cy.get(cesc2("#/g2/_m1")).should("have.text", "(1,−5)");
+        cy.get(cesc2("#/g2/_m3")).should("have.text", "9");
+        cy.get(cesc2("#/g2/extMod/_m1")).should("have.text", "(1,−5)");
+        cy.get(cesc2("#/g2/sr")).should("contain.text", "＿");
         cy.get(cesc2("#/g2/ca")).should("have.text", "0");
 
-        cy.get(cesc2("#/g3/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-            });
-        cy.get(cesc2("#/g3/_m3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("-3");
-            });
-        cy.get(cesc2("#/g3/extMod/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-            });
-        cy.get(cesc2("#/g3/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("＿");
-            });
+        cy.get(cesc2("#/g3/_m1")).should("have.text", "(7,2)");
+        cy.get(cesc2("#/g3/_m3")).should("have.text", "−3");
+        cy.get(cesc2("#/g3/extMod/_m1")).should("have.text", "(7,2)");
+        cy.get(cesc2("#/g3/sr")).should("contain.text", "＿");
         cy.get(cesc2("#/g3/ca")).should("have.text", "0");
 
         cy.window().then(async (win) => {
@@ -347,29 +191,11 @@ describe("Module Tag Tests", function () {
 
         cy.get(cesc2("#/g3/sr")).should("contain.text", "(−3,0)");
 
-        cy.get(cesc2("#/g/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(3,0)");
-            });
+        cy.get(cesc2("#/g/sr")).should("have.text", "(3,0)");
         cy.get(cesc2("#/g/ca")).should("have.text", "0");
-        cy.get(cesc2("#/g2/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(9,0)");
-            });
+        cy.get(cesc2("#/g2/sr")).should("have.text", "(9,0)");
         cy.get(cesc2("#/g2/ca")).should("have.text", "0");
-        cy.get(cesc2("#/g3/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(-3,0)");
-            });
+        cy.get(cesc2("#/g3/sr")).should("have.text", "(−3,0)");
         cy.get(cesc2("#/g3/ca")).should("have.text", "0");
 
         cy.log("move near correct answers");
@@ -391,94 +217,22 @@ describe("Module Tag Tests", function () {
             });
         });
 
-        cy.get(cesc2("#/g/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-            });
-        cy.get(cesc2("#/g/_m3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("3");
-            });
-        cy.get(cesc2("#/g/extMod/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-            });
-        cy.get(cesc2("#/g/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(3,0)");
-            });
+        cy.get(cesc2("#/g/_m1")).should("have.text", "(1,2)");
+        cy.get(cesc2("#/g/_m3")).should("have.text", "3");
+        cy.get(cesc2("#/g/extMod/_m1")).should("have.text", "(1,2)");
+        cy.get(cesc2("#/g/sr")).should("have.text", "(3,0)");
         cy.get(cesc2("#/g/ca")).should("have.text", "0");
 
-        cy.get(cesc2("#/g2/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-            });
-        cy.get(cesc2("#/g2/_m3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("9");
-            });
-        cy.get(cesc2("#/g2/extMod/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-            });
-        cy.get(cesc2("#/g2/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(9,0)");
-            });
+        cy.get(cesc2("#/g2/_m1")).should("have.text", "(1,−5)");
+        cy.get(cesc2("#/g2/_m3")).should("have.text", "9");
+        cy.get(cesc2("#/g2/extMod/_m1")).should("have.text", "(1,−5)");
+        cy.get(cesc2("#/g2/sr")).should("have.text", "(9,0)");
         cy.get(cesc2("#/g2/ca")).should("have.text", "0");
 
-        cy.get(cesc2("#/g3/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-            });
-        cy.get(cesc2("#/g3/_m3"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("-3");
-            });
-        cy.get(cesc2("#/g3/extMod/_m1"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-            });
-        cy.get(cesc2("#/g3/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(-3,0)");
-            });
+        cy.get(cesc2("#/g3/_m1")).should("have.text", "(7,2)");
+        cy.get(cesc2("#/g3/_m3")).should("have.text", "−3");
+        cy.get(cesc2("#/g3/extMod/_m1")).should("have.text", "(7,2)");
+        cy.get(cesc2("#/g3/sr")).should("have.text", "(−3,0)");
         cy.get(cesc2("#/g3/ca")).should("have.text", "0");
 
         cy.log("submit answers");
@@ -489,29 +243,11 @@ describe("Module Tag Tests", function () {
 
         cy.get(cesc2("#/g3/sr")).should("contain.text", "(7,2)");
 
-        cy.get(cesc2("#/g/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-            });
+        cy.get(cesc2("#/g/sr")).should("have.text", "(1,2)");
         cy.get(cesc2("#/g/ca")).should("have.text", "1");
-        cy.get(cesc2("#/g2/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-            });
+        cy.get(cesc2("#/g2/sr")).should("have.text", "(1,−5)");
         cy.get(cesc2("#/g2/ca")).should("have.text", "1");
-        cy.get(cesc2("#/g3/sr"))
-            .find(".mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-            });
+        cy.get(cesc2("#/g3/sr")).should("have.text", "(7,2)");
         cy.get(cesc2("#/g3/ca")).should("have.text", "1");
     });
 
@@ -635,69 +371,15 @@ describe("Module Tag Tests", function () {
                     "_incorrect",
             );
 
-            cy.get(cesc2("#/_m1"))
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-                });
-            cy.get(cesc2("#/_m3"))
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("3");
-                });
-            cy.get(cesc2("#/extMod/_m1"))
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-                });
-            cy.get(g2m1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-                });
-            cy.get(g2m3Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("9");
-                });
-            cy.get(g2extm1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-                });
-            cy.get(g3m1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-                });
-            cy.get(g3m3Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("-3");
-                });
-            cy.get(g3extm1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-                });
+            cy.get(cesc2("#/_m1")).should("have.text", "(1,2)");
+            cy.get(cesc2("#/_m3")).should("have.text", "3");
+            cy.get(cesc2("#/extMod/_m1")).should("have.text", "(1,2)");
+            cy.get(g2m1Anchor).should("have.text", "(1,−5)");
+            cy.get(g2m3Anchor).should("have.text", "9");
+            cy.get(g2extm1Anchor).should("have.text", "(1,−5)");
+            cy.get(g3m1Anchor).should("have.text", "(7,2)");
+            cy.get(g3m3Anchor).should("have.text", "−3");
+            cy.get(g3extm1Anchor).should("have.text", "(7,2)");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -779,69 +461,15 @@ describe("Module Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc2("#/_m1"))
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-                });
-            cy.get(cesc2("#/_m3"))
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("3");
-                });
-            cy.get(cesc2("#/extMod/_m1"))
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,2)");
-                });
-            cy.get(g2m1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-                });
-            cy.get(g2m3Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("9");
-                });
-            cy.get(g2extm1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(1,-5)");
-                });
-            cy.get(g3m1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-                });
-            cy.get(g3m3Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("-3");
-                });
-            cy.get(g3extm1Anchor)
-                .find(".mjx-mrow")
-                .eq(0)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim().replace(/−/g, "-")).equal("(7,2)");
-                });
+            cy.get(cesc2("#/_m1")).should("have.text", "(1,2)");
+            cy.get(cesc2("#/_m3")).should("have.text", "3");
+            cy.get(cesc2("#/extMod/_m1")).should("have.text", "(1,2)");
+            cy.get(g2m1Anchor).should("have.text", "(1,−5)");
+            cy.get(g2m3Anchor).should("have.text", "9");
+            cy.get(g2extm1Anchor).should("have.text", "(1,−5)");
+            cy.get(g3m1Anchor).should("have.text", "(7,2)");
+            cy.get(g3m3Anchor).should("have.text", "−3");
+            cy.get(g3extm1Anchor).should("have.text", "(7,2)");
 
             cy.log("submit answers");
 

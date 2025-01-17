@@ -47,7 +47,7 @@ describe("Circle Tag Tests", function () {
                 0, 0,
             ]);
             expect(stateVariables["/circ"].stateValues.numericalRadius).eq(1);
-            cy.get(cesc(`#\\/r2`) + ` .mjx-mrow`).should("contain.text", "1");
+            cy.get(cesc(`#\\/r2`)).should("contain.text", "1");
         });
 
         cy.log(`move circle`);
@@ -58,8 +58,8 @@ describe("Circle Tag Tests", function () {
                 args: { center: [-7, 2] },
             });
 
-            cy.get(cesc(`#\\/r2`) + ` .mjx-mrow`).should("contain.text", "1");
-            cy.get(cesc(`#\\/c`) + ` .mjx-mrow`).should(
+            cy.get(cesc(`#\\/r2`)).should("contain.text", "1");
+            cy.get(cesc(`#\\/c`)).should(
                 "contain.text",
                 `(${nInDOM(-7)},${nInDOM(2)})`,
             );
@@ -83,7 +83,7 @@ describe("Circle Tag Tests", function () {
             "contain.text",
             "3",
         );
-        cy.get(cesc(`#\\/r2`) + ` .mjx-mrow`).should("contain.text", "3");
+        cy.get(cesc(`#\\/r2`)).should("contain.text", "3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

@@ -34,25 +34,10 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
 
-        cy.get(cesc("#\\/expr1b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−1)");
-            });
-        cy.get(cesc("#\\/expr2b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−1)");
+        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
         cy.get(cesc("#\\/expr1a")).should("not.exist");
-        cy.get(cesc("#\\/expr2a") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        cy.get(cesc("#\\/expr2a")).should("have.text", "(x−1)(x2+1)");
 
         cy.get(cesc("#\\/expr1")).should("not.exist");
         cy.get(cesc("#\\/expr2") + " .mq-editable-field")
@@ -63,12 +48,7 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#\\/aside1_title")).click();
 
-        cy.get(cesc("#\\/expr1a") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−1)");
-            });
+        cy.get(cesc("#\\/expr1a")).should("have.text", "(x+1)(x2−1)");
         cy.get(cesc("#\\/expr1") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
@@ -79,30 +59,15 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/expr2a")).should("not.exist");
         cy.get(cesc("#\\/expr2")).should("not.exist");
 
-        cy.get(cesc("#\\/expr1b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−1)");
-            });
-        cy.get(cesc("#\\/expr2b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−1)");
+        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
 
         cy.get(cesc("#\\/expr1") + " textarea")
             .type("{end}{leftArrow}{backspace}4{enter}", { force: true })
             .blur();
 
         cy.get(cesc("#\\/expr1a")).should("contain.text", "(x+1)(x2−4)");
-        cy.get(cesc("#\\/expr1a") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−4)");
-            });
+        cy.get(cesc("#\\/expr1a")).should("have.text", "(x+1)(x2−4)");
         cy.get(cesc("#\\/expr1") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
@@ -111,44 +76,19 @@ describe("Sectioning Tag Tests", function () {
                 );
             });
 
-        cy.get(cesc("#\\/expr1b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−4)");
-            });
-        cy.get(cesc("#\\/expr2b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
 
         cy.get(cesc("#\\/aside1_title")).click();
         cy.get(cesc("#\\/expr1a")).should("not.exist");
         cy.get(cesc("#\\/expr1")).should("not.exist");
 
-        cy.get(cesc("#\\/expr1b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−4)");
-            });
-        cy.get(cesc("#\\/expr2b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
 
         cy.get(cesc("#\\/aside2_title")).click();
 
-        cy.get(cesc("#\\/expr2a") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        cy.get(cesc("#\\/expr2a")).should("have.text", "(x−1)(x2+1)");
         cy.get(cesc("#\\/expr2") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
@@ -159,12 +99,7 @@ describe("Sectioning Tag Tests", function () {
             .type("{end}{leftArrow}{backspace}4{enter}", { force: true })
             .blur();
 
-        cy.get(cesc("#\\/expr2a") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+4)");
-            });
+        cy.get(cesc("#\\/expr2a")).should("have.text", "(x−1)(x2+4)");
         cy.get(cesc("#\\/expr2") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
@@ -173,18 +108,8 @@ describe("Sectioning Tag Tests", function () {
                 );
             });
 
-        cy.get(cesc("#\\/expr1b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−4)");
-            });
-        cy.get(cesc("#\\/expr2b") + " .mjx-mrow")
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+4)");
-            });
+        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+4)");
     });
 
     it("copy and overwrite title", () => {

@@ -15,11 +15,11 @@ describe("Math Tag Tests", function () {
     <p><math name="m2">x + <math name="m3">y</math></math></p>
     <p><math name="m4">z</math></p>
     <p><math name="m5">a+$m4</math></p>
-    <p><mathinput name="mi1" bindValueTo="$m1" /></p>
-    <p><mathinput name="mi2" bindValueTo="$m2" /></p>
-    <p><mathinput name="mi3" bindValueTo="$m3" /></p>
-    <p><mathinput name="mi4" bindValueTo="$m4" /></p>
-    <p><mathinput name="mi5" bindValueTo="$m5" /></p>
+    <p><mathInput name="mi1" bindValueTo="$m1" /></p>
+    <p><mathInput name="mi2" bindValueTo="$m2" /></p>
+    <p><mathInput name="mi3" bindValueTo="$m3" /></p>
+    <p><mathInput name="mi4" bindValueTo="$m4" /></p>
+    <p><mathInput name="mi5" bindValueTo="$m5" /></p>
     `;
 
         cy.get("#testRunner_toggleControls").click();
@@ -38,18 +38,10 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
 
-        cy.get(cesc("#\\/m1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "w");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+y");
-        cy.get(cesc("#\\/m4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "z");
-        cy.get(cesc("#\\/m5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "a+z");
+        cy.get(cesc("#\\/m1")).should("have.text", "w");
+        cy.get(cesc("#\\/m2")).should("have.text", "x+y");
+        cy.get(cesc("#\\/m4")).should("have.text", "z");
+        cy.get(cesc("#\\/m5")).should("have.text", "a+z");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -78,20 +70,12 @@ describe("Math Tag Tests", function () {
             force: true,
         });
 
-        cy.get(cesc("#\\/m4") + " .mjx-mrow").should("contain.text", "3");
+        cy.get(cesc("#\\/m4")).should("contain.text", "3");
 
-        cy.get(cesc("#\\/m1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "1");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+2");
-        cy.get(cesc("#\\/m4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "3");
-        cy.get(cesc("#\\/m5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "a+3");
+        cy.get(cesc("#\\/m1")).should("have.text", "1");
+        cy.get(cesc("#\\/m2")).should("have.text", "x+2");
+        cy.get(cesc("#\\/m4")).should("have.text", "3");
+        cy.get(cesc("#\\/m5")).should("have.text", "a+3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -125,18 +109,10 @@ describe("Math Tag Tests", function () {
             }),
         );
 
-        cy.get(cesc("#\\/m1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "1");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+2");
-        cy.get(cesc("#\\/m4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "3");
-        cy.get(cesc("#\\/m5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "a+3");
+        cy.get(cesc("#\\/m1")).should("have.text", "1");
+        cy.get(cesc("#\\/m2")).should("have.text", "x+2");
+        cy.get(cesc("#\\/m4")).should("have.text", "3");
+        cy.get(cesc("#\\/m5")).should("have.text", "a+3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -166,20 +142,12 @@ describe("Math Tag Tests", function () {
             },
         );
 
-        cy.get(cesc("#\\/m5") + " .mjx-mrow").should("contain.text", "17");
+        cy.get(cesc("#\\/m5")).should("contain.text", "17");
 
-        cy.get(cesc("#\\/m1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "4+5");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+6+7");
-        cy.get(cesc("#\\/m4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "17");
-        cy.get(cesc("#\\/m5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "a+17");
+        cy.get(cesc("#\\/m1")).should("have.text", "4+5");
+        cy.get(cesc("#\\/m2")).should("have.text", "x+6+7");
+        cy.get(cesc("#\\/m4")).should("have.text", "17");
+        cy.get(cesc("#\\/m5")).should("have.text", "a+17");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -222,18 +190,10 @@ describe("Math Tag Tests", function () {
             }),
         );
 
-        cy.get(cesc("#\\/m1") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "4+5");
-        cy.get(cesc("#\\/m2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+6+7");
-        cy.get(cesc("#\\/m4") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "17");
-        cy.get(cesc("#\\/m5") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "a+17");
+        cy.get(cesc("#\\/m1")).should("have.text", "4+5");
+        cy.get(cesc("#\\/m2")).should("have.text", "x+6+7");
+        cy.get(cesc("#\\/m4")).should("have.text", "17");
+        cy.get(cesc("#\\/m5")).should("have.text", "a+17");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -266,7 +226,7 @@ describe("Math Tag Tests", function () {
       </styleDefinitions>
     </setup>
 
-    <p>Style number: <mathinput prefill="1" name="sn" /></p>
+    <p>Style number: <mathInput prefill="1" name="sn" /></p>
 
     <p><math name="no_style">x^2</math> is <text name="tsd_no_style">$no_style.textStyleDescription</text>, i.e., the text color is <text name="tc_no_style">$no_style.textColor</text> and the background color is <text name="bc_no_style">$no_style.backgroundColor</text>.</p>
     <p><math name="fixed_style" stylenumber="2">x^3</math> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
@@ -493,10 +453,10 @@ describe("Math Tag Tests", function () {
             let m1dName = stateVariables["/p2"].activeChildren[0].componentName;
             let m2dName = stateVariables["/p2"].activeChildren[2].componentName;
 
-            let m1cAnchor = "#" + cesc2(m1cName) + " .mjx-mrow";
-            let m2cAnchor = "#" + cesc2(m2cName) + " .mjx-mrow";
-            let m1dAnchor = "#" + cesc2(m1dName) + " .mjx-mrow";
-            let m2dAnchor = "#" + cesc2(m2dName) + " .mjx-mrow";
+            let m1cAnchor = "#" + cesc2(m1cName);
+            let m2cAnchor = "#" + cesc2(m2cName);
+            let m1dAnchor = "#" + cesc2(m1dName);
+            let m2dAnchor = "#" + cesc2(m2dName);
 
             cy.get(m1cAnchor).eq(0).should("have.text", "x2");
             cy.get(m1dAnchor).eq(0).should("have.text", "x2");
@@ -508,24 +468,12 @@ describe("Math Tag Tests", function () {
             cy.get(m2cAnchor).should("have.css", "color", "rgb(255, 0, 0)");
             cy.get(m2dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
 
-            cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/m2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(3,4)");
-            cy.get(cesc("#\\/m1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/m2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(3,4)");
-            cy.get(cesc("#\\/m1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m1coords")).eq(0).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m2coords")).eq(0).should("have.text", "(3,4)");
+            cy.get(cesc("#\\/m1acoords")).eq(0).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m2acoords")).eq(0).should("have.text", "(3,4)");
+            cy.get(cesc("#\\/m1bcoords")).eq(0).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m2bcoords")).eq(0).should("have.text", "(0,0)");
 
             cy.log("move first maths");
             cy.window().then(async (win) => {
@@ -541,29 +489,14 @@ describe("Math Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc("#\\/m2coords") + " .mjx-mrow").should(
-                "contain.text",
-                "(4,−5)",
-            );
+            cy.get(cesc("#\\/m2coords")).should("contain.text", "(4,−5)");
 
-            cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−2,3)");
-            cy.get(cesc("#\\/m2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(4,−5)");
-            cy.get(cesc("#\\/m1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−2,3)");
-            cy.get(cesc("#\\/m2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(4,−5)");
-            cy.get(cesc("#\\/m1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m1coords")).eq(0).should("have.text", "(−2,3)");
+            cy.get(cesc("#\\/m2coords")).eq(0).should("have.text", "(4,−5)");
+            cy.get(cesc("#\\/m1acoords")).eq(0).should("have.text", "(−2,3)");
+            cy.get(cesc("#\\/m2acoords")).eq(0).should("have.text", "(4,−5)");
+            cy.get(cesc("#\\/m1bcoords")).eq(0).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m2bcoords")).eq(0).should("have.text", "(0,0)");
 
             cy.log("move second maths");
             cy.window().then(async (win) => {
@@ -579,29 +512,14 @@ describe("Math Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc("#\\/m2coords") + " .mjx-mrow").should(
-                "contain.text",
-                "(−8,2)",
-            );
+            cy.get(cesc("#\\/m2coords")).should("contain.text", "(−8,2)");
 
-            cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/m2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/m1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/m2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/m1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
-            cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m1coords")).eq(0).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/m2coords")).eq(0).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/m1acoords")).eq(0).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/m2acoords")).eq(0).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/m1bcoords")).eq(0).should("have.text", "(0,0)");
+            cy.get(cesc("#\\/m2bcoords")).eq(0).should("have.text", "(0,0)");
 
             cy.log("move third maths");
             cy.window().then(async (win) => {
@@ -617,29 +535,14 @@ describe("Math Tag Tests", function () {
                 });
             });
 
-            cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow").should(
-                "contain.text",
-                "(−5,−4)",
-            );
+            cy.get(cesc("#\\/m2bcoords")).should("contain.text", "(−5,−4)");
 
-            cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/m2coords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/m1acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(7,1)");
-            cy.get(cesc("#\\/m2acoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−8,2)");
-            cy.get(cesc("#\\/m1bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−6,3)");
-            cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow")
-                .eq(0)
-                .should("have.text", "(−5,−4)");
+            cy.get(cesc("#\\/m1coords")).eq(0).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/m2coords")).eq(0).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/m1acoords")).eq(0).should("have.text", "(7,1)");
+            cy.get(cesc("#\\/m2acoords")).eq(0).should("have.text", "(−8,2)");
+            cy.get(cesc("#\\/m1bcoords")).eq(0).should("have.text", "(−6,3)");
+            cy.get(cesc("#\\/m2bcoords")).eq(0).should("have.text", "(−5,−4)");
         });
     });
 });

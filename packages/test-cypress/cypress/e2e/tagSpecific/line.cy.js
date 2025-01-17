@@ -1,3 +1,5 @@
+import { cesc } from "@doenet/utils";
+
 describe("Line Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -34,8 +36,8 @@ describe("Line Tag Tests", function () {
         // use this to wait for page to load
         cy.get(cesc("#\\/_text1")).should("have.text", "a");
 
-        cy.get(cesc("#\\/Ac") + " .mjx-mrow").should("contain.text", "(1,2)");
-        cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(3,4)");
+        cy.get(cesc("#\\/Ac")).should("contain.text", "(1,2)");
+        cy.get(cesc("#\\/Bc")).should("contain.text", "(3,4)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -56,8 +58,8 @@ describe("Line Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#\\/Ac") + " .mjx-mrow").should("contain.text", "(9,8)");
-        cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
+        cy.get(cesc("#\\/Ac")).should("contain.text", "(9,8)");
+        cy.get(cesc("#\\/Bc")).should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -89,8 +91,8 @@ describe("Line Tag Tests", function () {
             }),
         );
 
-        cy.get(cesc("#\\/Ac") + " .mjx-mrow").should("contain.text", "(9,8)");
-        cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
+        cy.get(cesc("#\\/Ac")).should("contain.text", "(9,8)");
+        cy.get(cesc("#\\/Bc")).should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -106,11 +108,8 @@ describe("Line Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#\\/Ac") + " .mjx-mrow").should(
-            "contain.text",
-            "(0.5,3.5)",
-        );
-        cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
+        cy.get(cesc("#\\/Ac")).should("contain.text", "(0.5,3.5)");
+        cy.get(cesc("#\\/Bc")).should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -142,11 +141,8 @@ describe("Line Tag Tests", function () {
             }),
         );
 
-        cy.get(cesc("#\\/Ac") + " .mjx-mrow").should(
-            "contain.text",
-            "(0.5,3.5)",
-        );
-        cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
+        cy.get(cesc("#\\/Ac")).should("contain.text", "(0.5,3.5)");
+        cy.get(cesc("#\\/Bc")).should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -162,11 +158,8 @@ describe("Line Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#\\/Ac") + " .mjx-mrow").should(
-            "contain.text",
-            "(8.5,1.5)",
-        );
-        cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
+        cy.get(cesc("#\\/Ac")).should("contain.text", "(8.5,1.5)");
+        cy.get(cesc("#\\/Bc")).should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
