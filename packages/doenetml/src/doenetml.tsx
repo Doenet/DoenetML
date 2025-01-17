@@ -95,8 +95,8 @@ const theme = extendTheme({
 export function DoenetViewer({
     doenetML,
     flags: specifiedFlags = {},
-    cid,
     activityId,
+    prefixForIds = "",
     userId,
     attemptNumber = 1,
     itemNumber = 1,
@@ -126,8 +126,8 @@ export function DoenetViewer({
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
-    cid?: string;
     activityId?: string;
+    prefixForIds?: string;
     userId?: string;
     attemptNumber?: number;
     itemNumber?: number;
@@ -161,13 +161,7 @@ export function DoenetViewer({
         allPossibleVariants: ["a"],
     });
 
-    const thisPropSet = [
-        doenetML,
-        cid,
-        activityId,
-        userId,
-        requestedVariantIndex,
-    ];
+    const thisPropSet = [doenetML, activityId, userId, requestedVariantIndex];
     const lastPropSet = useRef<any[]>([]);
 
     const variantIndex = useRef(1);
@@ -250,8 +244,8 @@ export function DoenetViewer({
             doenetML={doenetML}
             updateDataOnContentChange={updateDataOnContentChange}
             flags={flags}
-            cid={cid}
             activityId={activityId}
+            prefixForIds={prefixForIds}
             userId={userId}
             attemptNumber={attemptNumber}
             pageNumber={itemNumber.toString()}
@@ -299,13 +293,13 @@ export function DoenetViewer({
 export function DoenetEditor({
     doenetML,
     activityId,
+    prefixForIds = "",
     paginate = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     addBottomPadding = false,
     location,
     navigate,
-    idsIncludeActivityId = true,
     linkSettings,
     darkMode = "light",
     showAnswerTitles = false,
@@ -326,13 +320,13 @@ export function DoenetEditor({
 }: {
     doenetML: string;
     activityId?: string;
+    prefixForIds?: string;
     paginate?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
@@ -364,7 +358,7 @@ export function DoenetEditor({
             paginate={paginate}
             location={location}
             navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
+            prefixForIds={prefixForIds}
             linkSettings={linkSettings}
             addBottomPadding={addBottomPadding}
             darkMode={darkMode}

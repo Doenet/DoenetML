@@ -11,6 +11,7 @@ import {
     serializedComponentsReviver,
     cesc,
     data_format_version,
+    cidFromText,
 } from "@doenet/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
@@ -31,7 +32,6 @@ export const PageContext = createContext();
 export function PageViewer({
     userId,
     activityId,
-    cid,
     doenetML,
     pageNumber = "1",
     render: pageIsActive = true,
@@ -55,7 +55,6 @@ export function PageViewer({
     location = {},
     navigate,
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
-    errorsActivitySpecific = {},
     scrollableContainer,
     darkMode,
     showAnswerTitles,
@@ -149,7 +148,7 @@ export function PageViewer({
 
     const [errMsg, setErrMsg] = useState(null);
 
-    const lastCid = useRef(null);
+    const cid = useRef(null);
     const lastDoenetML = useRef(null);
     const lastPageNumber = useRef(null);
     const lastAttemptNumber = useRef(null);
@@ -209,22 +208,13 @@ export function PageViewer({
 
     useEffect(() => {
         async function initialize() {
-            let theInfo;
-            if (!coreWorkerInfo) {
-                let coreWorker = createCoreWorker();
+            let coreWorker = createCoreWorker();
 
-                theInfo = {
-                    coreWorker,
-                    doenetML,
-                    flags,
-                };
-            } else {
-                theInfo = {
-                    coreWorker: coreWorkerInfo.coreWorker,
-                    doenetML,
-                    flags,
-                };
-            }
+            let theInfo = {
+                coreWorker,
+                doenetML,
+                flags,
+            };
 
             setCoreWorkerInfo(theInfo);
 
@@ -236,7 +226,7 @@ export function PageViewer({
         }
 
         initialize();
-    }, [doenetML]);
+    }, []);
 
     useEffect(() => {
         if (!coreWorkerInfo) {
@@ -314,10 +304,6 @@ export function PageViewer({
                 resolveAllStateVariables.current(e.data.args);
             } else if (e.data.messageType === "returnErrorWarnings") {
                 let errorWarnings = e.data.args;
-                errorWarnings.errors = [
-                    ...errorsActivitySpecific,
-                    ...errorWarnings.errors,
-                ];
                 console.log(errorWarnings);
                 resolveErrorWarnings.current(errorWarnings);
             } else if (e.data.messageType === "componentRangePieces") {
@@ -360,7 +346,7 @@ export function PageViewer({
                     subject: "SPLICE.allPossibleVariants",
                 });
             } else if (e.data.messageType === "terminated") {
-                reinitializeCoreAndTerminateAnimations();
+                reinitializeCoreAndTerminateAnimations(coreWorkerInfo);
             }
         };
     }, [coreWorkerInfo?.coreWorker, location]);
@@ -554,7 +540,7 @@ export function PageViewer({
         [location],
     );
 
-    async function reinitializeCoreAndTerminateAnimations() {
+    async function reinitializeCoreAndTerminateAnimations(newCoreWorkerInfo) {
         preventMoreAnimations.current = true;
         coreWorkerInfo.coreWorker.terminate();
         coreWorkerInfo.coreWorker = createCoreWorker();
@@ -567,7 +553,7 @@ export function PageViewer({
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
 
-        await initializeCoreWorker(coreWorkerInfo);
+        await initializeCoreWorker(newCoreWorkerInfo);
     }
 
     async function callAction({
@@ -918,12 +904,14 @@ export function PageViewer({
         const coreIdWhenCalled = coreId.current;
         let loadedState = false;
 
+        cid.current = await cidFromText(doenetML);
+
         if (flags.allowLocalState) {
             let localInfo;
 
             try {
                 localInfo = await idb_get(
-                    `${activityId}|${pageNumber}|${attemptNumber}|${cid}`,
+                    `${activityId}|${pageNumber}|${attemptNumber}|${cid.current}`,
                 );
                 if (localInfo.data_format_version !== data_format_version) {
                     // the data saved does not match the current version, so we ignore it
@@ -980,7 +968,7 @@ export function PageViewer({
             if (flags.allowLoadState) {
                 try {
                     let resp = await getStateViaSplice({
-                        cid,
+                        cid: cid.current,
                         pageNumber,
                         attemptNumber,
                         activityId,
@@ -1083,8 +1071,20 @@ export function PageViewer({
     }
 
     async function startCore() {
+        let theInfo = {
+            coreWorker: coreWorkerInfo.coreWorker,
+            doenetML,
+            flags,
+        };
+        setCoreWorkerInfo(theInfo);
+
         //Kill the current core if it exists
-        await reinitializeCoreAndTerminateAnimations();
+        if (coreCreated.current) {
+            await reinitializeCoreAndTerminateAnimations(theInfo);
+        } else {
+            // otherwise, just initialize to give it the current DoenetML
+            await initializeCoreWorker(theInfo);
+        }
 
         resolveActionPromises.current = {};
 
@@ -1094,7 +1094,7 @@ export function PageViewer({
             args: {
                 coreId: coreId.current,
                 userId,
-                cid,
+                cid: cid.current,
                 activityId,
                 theme: darkMode,
                 requestedVariantIndex,
@@ -1185,16 +1185,12 @@ export function PageViewer({
         return null;
     }
 
-    // first, if lastCid or lastDoenetML don't match props
+    // first, if last parameters don't match props
     // set state to props and record that that need a new core
 
     let changedState = false;
     if (lastDoenetML.current !== doenetML) {
         lastDoenetML.current = doenetML;
-        changedState = true;
-    }
-    if (lastCid.current !== cid) {
-        lastCid.current = cid;
         changedState = true;
     }
 
@@ -1268,7 +1264,7 @@ export function PageViewer({
     ) {
         // we've moved off this page, but core is still being created
         // so reinitialize core
-        reinitializeCoreAndTerminateAnimations();
+        reinitializeCoreAndTerminateAnimations(coreWorkerInfo);
 
         setStage("readyToCreateCore");
     }

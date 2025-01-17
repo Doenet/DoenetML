@@ -30,7 +30,7 @@ export function EditorViewer({
     paginate = false,
     location = {},
     navigate,
-    idsIncludeActivityId = true,
+    prefixForIds = "",
     linkSettings,
     addBottomPadding = false,
     darkMode = "light",
@@ -55,7 +55,7 @@ export function EditorViewer({
     paginate?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
+    prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
     addBottomPadding?: boolean;
     darkMode?: "dark" | "light";
@@ -493,6 +493,7 @@ export function EditorViewer({
                             readOnly: false,
                         }}
                         activityId={activityId}
+                        prefixForIds={prefixForIds}
                         attemptNumber={1}
                         generatedVariantCallback={setVariants}
                         requestedVariantIndex={variants.index}
