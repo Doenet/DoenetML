@@ -38,8 +38,7 @@ import {
     returnDefaultGetArrayKeysFromVarName,
 } from "./utils/stateVariables";
 import { nanoid } from "nanoid";
-import { get as idb_get, set as idb_set } from "idb-keyval";
-import axios from "axios";
+import { set as idb_set } from "idb-keyval";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
@@ -66,7 +65,6 @@ export default class Core {
         stateVariableChanges: stateVariableChangesString,
         coreId,
         updateDataOnContentChange,
-        apiURLs = {},
     }) {
         // console.time('core');
 
@@ -80,7 +78,6 @@ export default class Core {
         this.serializedDocument = serializedDocument;
 
         this.cid = cid;
-        this.apiURLs = apiURLs;
 
         this.errorWarnings = {
             errors: [...preliminaryErrors],
@@ -459,16 +456,6 @@ export default class Core {
         };
 
         await this.document.stateValues.scoredDescendants; // to evaluated scoredDescendants
-
-        if (!foundAnswerDescendant(this.document)) {
-            // if there are no scored items in document
-            // then treat the first view of the document as a submission
-            // so that will get credit for viewing the page
-            this.saveSubmissions({
-                pageCreditAchieved:
-                    await this.document.stateValues.creditAchieved,
-            });
-        }
 
         setTimeout(
             this.sendVisibilityChangedEvents.bind(this),
@@ -11284,7 +11271,6 @@ export default class Core {
                 let pageCreditAchieved =
                     await this.document.stateValues.creditAchieved;
                 this.saveState(true, true);
-                this.saveSubmissions({ pageCreditAchieved });
                 alreadySaved = true;
             }
         }
@@ -11393,19 +11379,10 @@ export default class Core {
             version: "0.1.1",
         };
 
-        if (this.apiURLs.postMessages) {
-            postMessage({
-                messageType: "sendEvent",
-                data: payload,
-            });
-        } else {
-            try {
-                let resp = await axios.post(this.apiURLs.recordEvent, payload);
-                // console.log(">>>>resp from record event", resp.data)
-            } catch (e) {
-                console.error(`Error saving event: ${e.message}`);
-            }
-        }
+        postMessage({
+            messageType: "sendEvent",
+            data: payload,
+        });
     }
 
     processVisibilityChangedEvent(event) {
@@ -13054,322 +13031,13 @@ export default class Core {
 
         this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
 
-        if (this.apiURLs.postMessages) {
-            postMessage({
-                messageType: "saveCreditForItem",
-                state: { ...this.pageStateToBeSavedToDatabase },
-                score: await this.document.stateValues.creditAchieved,
-            });
-            return;
-        }
-
-        let resp;
-
-        this.savingPageState = true;
-
-        try {
-            resp = await axios.post(
-                this.apiURLs.savePageState,
-                this.pageStateToBeSavedToDatabase,
-            );
-        } catch (e) {
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message: `Error. Latest changes not saved. ${resp.data.message}`,
-                    alertType: "error",
-                    id: "dataError",
-                },
-            });
-
-            this.failedToSavePageState = true;
-            this.savingPageState = false;
-
-            return;
-        }
-
-        this.savingPageState = false;
-
-        if (resp.status === null) {
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message: `Error. Latest changes not saved. Are you connected to the internet?`,
-                    alertType: "error",
-                    id: "dataError",
-                },
-            });
-
-            this.failedToSavePageState = true;
-
-            return;
-        }
-
-        let data = resp.data;
-
-        if (!data.success) {
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message: `Error. Latest changes not saved. ${data.message}`,
-                    alertType: "error",
-                    id: "dataError",
-                },
-            });
-
-            this.failedToSavePageState = true;
-
-            return;
-        }
-
-        this.failedToSavePageState = false;
-
-        this.serverSaveId = data.saveId;
-
-        if (this.flags.allowLocalState) {
-            await idb_set(
-                `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}|ServerSaveId`,
-                data.saveId,
-            );
-        }
-
-        if (data.stateOverwritten) {
-            // if a new attempt number was generated or the cid didn't change,
-            // then we reset the page to the new state
-            if (
-                this.attemptNumber !== Number(data.attemptNumber) ||
-                this.cid === data.cid
-            ) {
-                if (this.flags.allowLocalState) {
-                    await idb_set(
-                        `${this.activityId}|${this.pageNumber}|${data.attemptNumber}|${data.cid}`,
-                        {
-                            data_format_version,
-                            coreState: data.coreState,
-                            rendererState: data.rendererState,
-                            coreInfo: data.coreInfo,
-                            saveId: data.saveId,
-                        },
-                    );
-                }
-
-                postMessage({
-                    messageType: "resetPage",
-                    coreId: this.coreId,
-                    args: {
-                        changedOnDevice: data.device,
-                        newCid: data.cid,
-                        newAttemptNumber: Number(data.attemptNumber),
-                    },
-                });
-            } else {
-                // if the cid changed without the attemptNumber changing, something went wrong
-                postMessage({
-                    messageType: "inErrorState",
-                    coreId: this.coreId,
-                    args: {
-                        errMsg: "Content changed unexpectedly!",
-                    },
-                });
-            }
-        }
-        // TODO: send message so that UI can show changes have been synchronized
-
-        // console.log(">>>>recordContentInteraction data",data)
+        postMessage({
+            messageType: "saveCreditForItem",
+            state: { ...this.pageStateToBeSavedToDatabase },
+            score: await this.document.stateValues.creditAchieved,
+        });
+        return;
     }
-
-    saveSubmissions({ pageCreditAchieved }) {
-        if (!this.flags.allowSaveSubmissions) {
-            return;
-        }
-
-        if (this.apiURLs.postMessages) {
-            // do nothing, saving credit is combined with saving page state in the SPLICE api
-            // that is implemented by Runestone
-            return;
-        }
-
-        const payload = {
-            activityId: this.activityId,
-            attemptNumber: this.attemptNumber,
-            credit: pageCreditAchieved,
-            itemNumber: this.itemNumber,
-        };
-
-        axios
-            .post(this.apiURLs.saveCreditForItem, payload)
-            .then((resp) => {
-                // console.log('>>>>saveCreditForItem resp', resp.data);
-
-                if (resp.status === null) {
-                    postMessage({
-                        messageType: "sendAlert",
-                        coreId: this.coreId,
-                        args: {
-                            message: `Credit not saved due to error. Are you connected to the internet?`,
-                            alertType: "error",
-                            id: "creditDataError",
-                        },
-                    });
-
-                    this.failedToSaveCreditForItem = true;
-                } else if (!resp.data.success) {
-                    postMessage({
-                        messageType: "sendAlert",
-                        coreId: this.coreId,
-                        args: {
-                            message: resp.data.message,
-                            alertType: "error",
-                            id: "creditDataError",
-                        },
-                    });
-
-                    this.failedToSaveCreditForItem = true;
-                } else {
-                    let data = resp.data;
-
-                    postMessage({
-                        messageType: "updateCreditAchieved",
-                        coreId: this.coreId,
-                        args: {
-                            creditByItem: data.creditByItem.map(Number),
-                            creditForAssignment: Number(
-                                data.creditForAssignment,
-                            ),
-                            creditForAttempt: Number(data.creditForAttempt),
-                            showCorrectness: data.showCorrectness === "1",
-                            totalPointsOrPercent: Number(
-                                data.totalPointsOrPercent,
-                            ),
-                        },
-                    });
-
-                    this.failedToSaveCreditForItem = false;
-                }
-            })
-            .catch((e) => {
-                postMessage({
-                    messageType: "sendAlert",
-                    coreId: this.coreId,
-                    args: {
-                        message: `Credit not saved due to error: ${e.message}`,
-                        alertType: "error",
-                        id: "creditDataError",
-                    },
-                });
-
-                this.failedToSaveCreditForItem = true;
-            });
-    }
-
-    // submitResponseCallBack(results) {
-
-    //   // console.log(`submit response callback`)
-    //   // console.log(results);
-    //   return;
-
-    //   if (!results.success) {
-    //     let errorMessage = "Answer not saved due to a network error. \nEither you are offline or your authentication has timed out.";
-    //     this.renderer.updateSection({
-    //       title: this.state.title,
-    //       viewedSolution: this.state.viewedSolution,
-    //       isError: true,
-    //       errorMessage,
-    //     });
-    //     alert(errorMessage);
-
-    //     this.coreFunctions.requestUpdate({
-    //       updateType: "updateRendererOnly",
-    //     });
-    //   } else if (results.viewedSolution) {
-    //     console.log(`******** Viewed solution for ${scoredComponent.componentName}`);
-    //     this.coreFunctions.requestUpdate({
-    //       updateType: "updateValue",
-    //       updateInstructions: [{
-    //         componentName: scoredComponent.componentName,
-    //         variableUpdates: {
-    //           viewedSolution: { changes: true },
-    //         }
-    //       }]
-    //     })
-    //   }
-
-    //   // if this.answersToSubmitCounter is a positive number
-    //   // that means that we have call this.submitAllAnswers and we still have
-    //   // some answers that haven't been submitted
-    //   // In this case, we will decrement this.answersToSubmitCounter
-    //   // If this.answersToSubmitCounter newly becomes zero,
-    //   // then we know that we have submitted the last one answer
-    //   if (this.answersToSubmitCounter > 0) {
-    //     this.answersToSubmitCounter -= 1;
-    //     if (this.answersToSubmitCounter === 0) {
-    //       this.externalFunctions.allAnswersSubmitted();
-    //     }
-    //   }
-    // }
-
-    // addComponents({ serializedComponents, parent }) {
-    //   //Check if
-    //   //Child logic is violated
-    //   //Parent exists
-    //   //Check composites in serializedComponents??
-    // }
-
-    // getDeferredStateVariable({ component, stateVariable, upstreamComponent, upstreamStateVariable, dependencyValues, inverseDefinition }) {
-
-    //   // console.log(`get deferred state variable ${stateVariable} of ${component.componentName}`)
-
-    //   let inverseResult = inverseDefinition({ dependencyValues, stateValues: upstreamComponent.stateValues });
-
-    //   if (!inverseResult.success) {
-    //     console.warn(`Inverse definition for deferring state variable failed. component: ${component.componentName}, stateVariable: ${stateVariable}, upstreamComponent: ${upstreamComponent.componentName}, upstreamStateVariable: ${upstreamStateVariable}`);
-    //     return undefined;
-    //   }
-
-    //   for (let newInstruction of inverseResult.instructions) {
-    //     if (newInstruction.setDependency) {
-    //       let dependencyName = newInstruction.setDependency;
-
-    //       let dep = this.dependencies.downstreamDependencies[upstreamComponent.componentName][upstreamStateVariable][dependencyName];
-
-    //       if (dep.dependencyType === "child") {
-    //         let cName = dep.downstreamComponentNames[newInstruction.childIndex];
-    //         if (!cName) {
-    //           throw Error(`Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`)
-    //         }
-    //         let varName = dep.mappedDownstreamVariableNamesByComponent[newInstruction.childIndex][newInstruction.variableIndex];
-    //         if (!varName) {
-    //           throw Error(`Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist..`)
-    //         }
-
-    //         let compNew = this._components[cName];
-
-    //         // delete before assigning value to remove any getter for the property
-    //         delete compNew.state[varName].value;
-    //         delete compNew.state[varName].deferred;
-    //         compNew.state[varName].value = newInstruction.desiredValue;
-
-    //       } else {
-    //         throw Error(`unimplemented dependency type ${dep.dependencyType} in deferred inverse definition`)
-    //       }
-
-    //     } else {
-    //       throw Error(`Unrecognized instruction deferred inverse definition of ${stateVariable} of ${component.componentName}`)
-    //     }
-    //   }
-
-    //   // if value of state variable still has a get, then it wasn't defined
-    //   // in the function called for its definition
-    //   if (Object.getOwnPropertyDescriptor(component.state[stateVariable], 'value').get) {
-    //     throw Error(`deferred inverse definition of ${stateVariable} of ${component.componentName} didn't return value of variable`);
-    //   }
-
-    //   return component.state[stateVariable].value;
-
-    // }
 
     async recordSolutionView() {
         // TODO: check if student was actually allowed to view solution.
@@ -13383,82 +13051,19 @@ export default class Core {
             };
         }
 
-        if (this.apiURLs.postMessages) {
-            postMessage({
-                messageType: "recordSolutionView",
-                activityId: this.activityId,
-                itemNumber: this.itemNumber,
-                pageNumber: this.pageNumber,
-                attemptNumber: this.attemptNumber,
-            });
+        postMessage({
+            messageType: "recordSolutionView",
+            activityId: this.activityId,
+            itemNumber: this.itemNumber,
+            pageNumber: this.pageNumber,
+            attemptNumber: this.attemptNumber,
+        });
 
-            return {
-                allowView: true,
-                message: "",
-                scoredComponent: this.documentName,
-            };
-        }
-
-        try {
-            const resp = await axios.post(this.apiURLs.reportSolutionViewed, {
-                activityId: this.activityId,
-                itemNumber: this.itemNumber,
-                pageNumber: this.pageNumber,
-                attemptNumber: this.attemptNumber,
-            });
-
-            if (resp.status === null) {
-                let message = `Cannot show solution due to error.  Are you connected to the internet?`;
-                postMessage({
-                    messageType: "sendAlert",
-                    coreId: this.coreId,
-                    args: {
-                        message,
-                        alertType: "error",
-                        id: "solutionDataError",
-                    },
-                });
-                return {
-                    allowView: false,
-                    message,
-                    scoredComponent: this.documentName,
-                };
-            } else {
-                let data = resp.data;
-                if (data.success) {
-                    return {
-                        allowView: true,
-                        message: "",
-                        scoredComponent: this.documentName,
-                    };
-                } else {
-                    let message = `Cannot show solution due to error: ${data.message}`;
-                    return {
-                        allowView: false,
-                        message,
-                        scoredComponent: this.documentName,
-                    };
-                }
-            }
-        } catch (e) {
-            let message = `Cannot show solution due to error.`;
-
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message,
-                    alertType: "error",
-                    id: "solutionDataError",
-                },
-            });
-
-            return {
-                allowView: false,
-                message,
-                scoredComponent: this.documentName,
-            };
-        }
+        return {
+            allowView: true,
+            message: "",
+            scoredComponent: this.documentName,
+        };
     }
 
     get scoredItemWeights() {

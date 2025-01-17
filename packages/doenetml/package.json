@@ -68,7 +68,6 @@
         "@fortawesome/free-solid-svg-icons": "^6.5.2",
         "@fortawesome/react-fontawesome": "^0.2.2",
         "@handsontable/react": "^12.4.0",
-        "axios": "^0.27.2",
         "better-react-mathjax": "^2.0.3",
         "copy-to-clipboard": "^3.3.3",
         "crypto-js": "^4.2.0",

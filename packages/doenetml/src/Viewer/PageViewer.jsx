@@ -16,8 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
-import { get as idb_get, set as idb_set } from "idb-keyval";
-import axios from "axios";
+import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/pageUtils";
 
 const rendererUpdatesToIgnore = atomFamily({
@@ -53,7 +52,6 @@ export function PageViewer({
     updateAttemptNumber,
     updateDataOnContentChange,
     prefixForIds = "",
-    apiURLs = {},
     location = {},
     navigate,
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
@@ -931,41 +929,6 @@ export function PageViewer({
             }
 
             if (localInfo) {
-                if (flags.allowSaveState) {
-                    // attempt to save local info to database,
-                    // resetting data to that from database if it has changed since last save
-
-                    let result =
-                        await saveLoadedLocalStateToDatabase(localInfo);
-
-                    if (result.changedOnDevice) {
-                        if (Number(result.newAttemptNumber) !== attemptNumber) {
-                            resetPage({
-                                changedOnDevice: result.changedOnDevice,
-                                newCid: result.newCid,
-                                newAttemptNumber: Number(
-                                    result.newAttemptNumber,
-                                ),
-                            });
-                            return;
-                        } else if (result.newCid !== cid) {
-                            // if cid changes for the same attempt number, then something went wrong
-                            setIsInErrorState?.(true);
-                            setErrMsg(`content changed unexpectedly!`);
-                        }
-
-                        // if just the localInfo changed, use that instead
-                        localInfo = result.newLocalInfo;
-                        console.log(
-                            `sending alert: Reverted page to state saved on device ${result.changedOnDevice}`,
-                        );
-                        sendAlert(
-                            `Reverted page to state saved on device ${result.changedOnDevice}`,
-                            "info",
-                        );
-                    }
-                }
-
                 const coreState = JSON.parse(
                     localInfo.coreState,
                     serializedComponentsReviver,
@@ -1008,7 +971,7 @@ export function PageViewer({
             }
         }
 
-        if (!loadedState && apiURLs.postMessages) {
+        if (!loadedState) {
             if (flags.allowLoadState) {
                 try {
                     let resp = await getStateViaSplice({
@@ -1025,55 +988,6 @@ export function PageViewer({
                     setIsInErrorState?.(true);
                     setErrMsg(`Error loading page state: ${e.message}`);
                     return;
-                }
-            }
-        } else if (!loadedState && apiURLs.loadPageState) {
-            // if didn't load state from local storage, try to load from database
-
-            // even if allowLoadState is false,
-            // still call loadPageState, in which case it will only retrieve the initial page state
-
-            const payload = {
-                params: {
-                    cid,
-                    pageNumber,
-                    attemptNumber,
-                    activityId,
-                    userId,
-                    requestedVariantIndex,
-                    allowLoadState: flags.allowLoadState,
-                    showCorrectness: flags.showCorrectness,
-                    solutionDisplayMode: flags.solutionDisplayMode,
-                    showFeedback: flags.showFeedback,
-                    showHints: flags.showHints,
-                    autoSubmit: flags.autoSubmit,
-                },
-            };
-
-            try {
-                let resp = await axios.get(apiURLs.loadPageState, payload);
-                if (!resp.data.success) {
-                    if (flags.allowLoadState) {
-                        setIsInErrorState?.(true);
-                        setErrMsg(
-                            `Error loading page state: ${resp.data.message}`,
-                        );
-                        return;
-                    } else {
-                        // ignore this error if didn't allow loading of page state
-                    }
-                }
-
-                if (resp.data.loadedState) {
-                    processLoadedPageState(resp);
-                }
-            } catch (e) {
-                if (flags.allowLoadState) {
-                    setIsInErrorState?.(true);
-                    setErrMsg(`Error loading page state: ${e.message}`);
-                    return;
-                } else {
-                    // ignore this error if didn't allow loading of page state
                 }
             }
         }
@@ -1163,78 +1077,6 @@ export function PageViewer({
         };
     }
 
-    async function saveLoadedLocalStateToDatabase(localInfo) {
-        // TODO: handle postMessages case
-        if (!flags.allowSaveState || !apiURLs.savePageState) {
-            return {};
-        }
-
-        let serverSaveId = await idb_get(
-            `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
-        );
-
-        let pageStateToBeSavedToDatabase = {
-            cid,
-            coreInfo: localInfo.coreInfo,
-            coreState: localInfo.coreState,
-            rendererState: localInfo.rendererState,
-            pageNumber,
-            attemptNumber,
-            activityId,
-            saveId: localInfo.saveId,
-            serverSaveId,
-            updateDataOnContentChange,
-        };
-
-        let resp;
-
-        try {
-            resp = await axios.post(
-                apiURLs.savePageState,
-                pageStateToBeSavedToDatabase,
-            );
-        } catch (e) {
-            // since this is initial load, don't show error message
-            return { localInfo, cid, attemptNumber };
-        }
-
-        let data = resp.data;
-
-        if (!data.success) {
-            // since this is initial load, don't show error message
-            return { localInfo, cid, attemptNumber };
-        }
-
-        await idb_set(
-            `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
-            data.saveId,
-        );
-
-        if (data.stateOverwritten) {
-            let newLocalInfo = {
-                data_format_version,
-                coreState: data.coreState,
-                rendererState: data.rendererState,
-                coreInfo: data.coreInfo,
-                saveId: data.saveId,
-            };
-
-            await idb_set(
-                `${activityId}|${pageNumber}|${data.attemptNumber}|${data.cid}`,
-                newLocalInfo,
-            );
-
-            return {
-                changedOnDevice: data.device,
-                newLocalInfo,
-                newCid: data.cid,
-                newAttemptNumber: data.attemptNumber,
-            };
-        }
-
-        return { localInfo, cid, attemptNumber };
-    }
-
     async function startCore() {
         //Kill the current core if it exists
         await reinitializeCoreAndTerminateAnimations();
@@ -1263,7 +1105,6 @@ export function PageViewer({
                           serializedComponentsReplacer,
                       )
                     : undefined,
-                apiURLs: apiURLs,
             },
         });
 

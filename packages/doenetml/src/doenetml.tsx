@@ -104,7 +104,6 @@ export function DoenetViewer({
     updateCreditAchievedCallback,
     updateAttemptNumber,
     setIsInErrorState,
-    apiURLs,
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
@@ -133,7 +132,6 @@ export function DoenetViewer({
     updateCreditAchievedCallback?: Function;
     updateAttemptNumber?: Function;
     setIsInErrorState?: Function;
-    apiURLs?: any;
     generatedVariantCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
     forceDisable?: boolean;
@@ -255,7 +253,6 @@ export function DoenetViewer({
             updateCreditAchievedCallback={updateCreditAchievedCallback}
             updateAttemptNumber={updateAttemptNumber}
             setIsInErrorState={setIsInErrorState}
-            apiURLs={apiURLs}
             generatedVariantCallback={generatedVariantCallback}
             setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
             forceDisable={forceDisable}
