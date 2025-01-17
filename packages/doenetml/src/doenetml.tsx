@@ -294,10 +294,8 @@ export function DoenetEditor({
     doenetML,
     activityId,
     prefixForIds = "",
-    paginate = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    addBottomPadding = false,
     location,
     navigate,
     linkSettings,
@@ -321,10 +319,8 @@ export function DoenetEditor({
     doenetML: string;
     activityId?: string;
     prefixForIds?: string;
-    paginate?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
@@ -355,12 +351,10 @@ export function DoenetEditor({
         <EditorViewer
             doenetML={doenetML}
             activityId={activityId}
-            paginate={paginate}
             location={location}
             navigate={navigate}
             prefixForIds={prefixForIds}
             linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
             darkMode={darkMode}
             showAnswerTitles={showAnswerTitles}
             width={width}

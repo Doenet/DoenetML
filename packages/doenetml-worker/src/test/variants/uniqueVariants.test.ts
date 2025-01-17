@@ -2122,10 +2122,7 @@ describe("Unique variant tests", async () => {
         variantsFromProblem = false,
         documentAndProblemVariantsDiffer = false,
     }: {
-        createDoenetML: ({
-            include,
-            exclude,
-        }?: {
+        createDoenetML: (arg?: {
             include?: string[];
             exclude?: string[];
         }) => string;

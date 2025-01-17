@@ -27,12 +27,10 @@ import { prettyPrint } from "@doenet/parser";
 export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
-    paginate = false,
     location = {},
     navigate,
     prefixForIds = "",
     linkSettings,
-    addBottomPadding = false,
     darkMode = "light",
     showAnswerTitles,
     width = "100%",
@@ -52,12 +50,10 @@ export function EditorViewer({
 }: {
     doenetML: string;
     activityId?: string;
-    paginate?: boolean;
     location?: any;
     navigate?: any;
     prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
-    addBottomPadding?: boolean;
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
     width?: string;

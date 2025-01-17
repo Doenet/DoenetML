@@ -18,7 +18,7 @@ export function CypressTest() {
         allowSaveSubmissions: boolean;
         allowSaveEvents: boolean;
         autoSubmit: boolean;
-        paginate: boolean;
+        render: boolean;
         darkMode: "light" | "dark";
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
@@ -36,7 +36,7 @@ export function CypressTest() {
         allowSaveSubmissions: false,
         allowSaveEvents: false,
         autoSubmit: false,
-        paginate: true,
+        render: true,
         darkMode: "light",
         showEditor: false,
         viewerLocation: "right",
@@ -89,7 +89,7 @@ export function CypressTest() {
         testSettings.allowSaveEvents,
     );
     const [autoSubmit, setAutoSubmit] = useState(testSettings.autoSubmit);
-    const [paginate, setPaginate] = useState(testSettings.paginate);
+    const [render, setRender] = useState(testSettings.render);
 
     const [showEditor, setShowEditor] = useState(testSettings.showEditor);
     const [viewerLocation, setViewerLocation] = useState(
@@ -210,8 +210,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setShowCorrectness((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setShowCorrectness((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Show Correctness
@@ -230,8 +230,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setReadOnly((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setReadOnly((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Read Only
@@ -251,8 +251,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setShowFeedback((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setShowFeedback((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Show Feedback
@@ -272,8 +272,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setShowHints((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setShowHints((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Show Hints
@@ -294,8 +294,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setAllowLoadState((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setAllowLoadState((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Allow Load Page State
@@ -315,8 +315,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setAllowSaveState((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setAllowSaveState((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Allow Save Page State
@@ -336,8 +336,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setAllowLocalState((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setAllowLocalState((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Allow Local Page State
@@ -357,8 +357,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setAllowSaveSubmissions((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setAllowSaveSubmissions((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Allow Save Submissions
@@ -378,8 +378,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setAllowSaveEvents((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setAllowSaveEvents((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Allow Save Events
@@ -399,8 +399,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setAutoSubmit((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setAutoSubmit((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Auto Submit Answers
@@ -411,20 +411,20 @@ export function CypressTest() {
                     <label>
                         {" "}
                         <input
-                            id="testRunner_paginate"
+                            id="testRunner_render"
                             type="checkbox"
-                            checked={paginate}
+                            checked={render}
                             onChange={() => {
-                                testSettings.paginate = !testSettings.paginate;
+                                testSettings.render = !testSettings.render;
                                 localStorage.setItem(
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setPaginate((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setRender((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
-                        Paginate
+                        Render
                     </label>
                 </div>
                 <hr />
@@ -459,8 +459,8 @@ export function CypressTest() {
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setShowEditor((was) => !was);
-                                setUpdateNumber((was) => was + 1);
+                                setShowEditor((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         />
                         Show Editor
@@ -478,7 +478,7 @@ export function CypressTest() {
                                     JSON.stringify(testSettings),
                                 );
                                 setViewerLocation(e.target.value);
-                                setUpdateNumber((was) => was + 1);
+                                setUpdateNumber((was: number) => was + 1);
                             }}
                         >
                             <option value="right">right</option>
@@ -494,13 +494,11 @@ export function CypressTest() {
 
     let editorOrViewer: React.JSX.Element | null = null;
 
-    console.log("type of doenetMLstring", typeof doenetMLstring);
     if (typeof doenetMLstring === "string") {
         const editor = (
             <DoenetEditor
                 key={"doenetml" + updateNumber}
                 doenetML={doenetMLstring}
-                paginate={paginate}
                 addVirtualKeyboard={true}
                 height="calc(100vh - 94px)"
                 width="100%"
@@ -529,8 +527,7 @@ export function CypressTest() {
                 attemptNumber={attemptNumber}
                 requestedVariantIndex={requestedVariantIndex.current}
                 activityId="activityIdFromCypress"
-                idsIncludeActivityId={false}
-                paginate={paginate}
+                render={render}
                 location={location}
                 navigate={navigate}
                 linkSettings={{
@@ -564,7 +561,9 @@ export function CypressTest() {
                         Test DoenetML for Cypress
                         <Button
                             id="testRunner_toggleControls"
-                            onClick={() => setControlsVisible((was) => !was)}
+                            onClick={() =>
+                                setControlsVisible((was: boolean) => !was)
+                            }
                             value={buttonText + " controls"}
                             style={{ marginLeft: "12px" }}
                         />
