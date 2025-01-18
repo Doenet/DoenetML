@@ -9,7 +9,6 @@ import {
 
 export async function expandDoenetMLsToFullSerializedComponents({
     doenetMLs,
-    preliminarySerializedComponents = [],
     componentInfoObjects,
     nPreviousDoenetMLs = 0,
 }) {
@@ -22,20 +21,9 @@ export async function expandDoenetMLsToFullSerializedComponents({
     for (let [ind, doenetML] of doenetMLs.entries()) {
         let errorsForDoenetML = [];
         let warningsForDoenetML = [];
-        let result;
-
-        // if we happened to send in the parsed preliminary serialized components,
-        // then we don't need to parse the DoenetML again
-        let serializedComponents;
-        if (preliminarySerializedComponents[ind]) {
-            serializedComponents = JSON.parse(
-                JSON.stringify(preliminarySerializedComponents[ind]),
-            );
-        } else {
-            result = parseAndCompile(doenetML);
-            serializedComponents = result.components;
-            errorsForDoenetML.push(...result.errors);
-        }
+        let result = parseAndCompile(doenetML);
+        let serializedComponents = result.components;
+        errorsForDoenetML.push(...result.errors);
 
         serializedComponents = cleanIfHaveJustDocument(serializedComponents);
 

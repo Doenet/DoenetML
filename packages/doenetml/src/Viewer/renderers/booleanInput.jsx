@@ -17,7 +17,7 @@ import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -65,7 +65,7 @@ export default React.memo(function BooleanInput(props) {
 
     const board = useContext(BoardContext);
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     let pointerAtDown = useRef(false);
     let pointAtDown = useRef(false);

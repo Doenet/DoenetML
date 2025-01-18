@@ -121,20 +121,18 @@ globalThis.onmessage = function (e) {
 
 async function initializeWorker({
     doenetML,
-    preliminarySerializedComponents,
     flags,
+    activityId,
+    docId,
+    attemptNumber,
+    requestedVariantIndex,
 }) {
-    // Note: preliminarySerializeComponents is optional.
-    // If it is undefined, expandDoenetMLsToFullSerializedComponents will parse doenetML
-    // to create the serialized components
-
     let componentInfoObjects = createComponentInfoObjects(flags);
 
     let expandResult;
     try {
         expandResult = await expandDoenetMLsToFullSerializedComponents({
             doenetMLs: [doenetML],
-            preliminarySerializedComponents: [preliminarySerializedComponents],
             componentInfoObjects,
             flags,
         });
@@ -143,18 +141,33 @@ async function initializeWorker({
         initializeResult = { success: false, errMsg: e.message };
         postMessage({
             messageType: "initializeResult",
-            args: initializeResult,
+            args: {
+                ...initializeResult,
+                activityId,
+                docId,
+                attemptNumber,
+                requestedVariantIndex,
+            },
         });
         postMessage({
             messageType: "allPossibleVariants",
-            args: { success: false },
+            args: {
+                success: false,
+                activityId,
+                docId,
+                attemptNumber,
+                requestedVariantIndex,
+            },
         });
     }
 
     coreBaseArgs = {
         doenetML,
-        preliminarySerializedComponents,
         flags,
+        activityId,
+        docId,
+        attemptNumber,
+        requestedVariantIndex,
         serializedDocument: addDocumentIfItsMissing(
             expandResult.fullSerializedComponents[0],
         )[0],
@@ -168,7 +181,13 @@ async function initializeWorker({
 
     postMessage({
         messageType: "initializeResult",
-        args: initializeResult,
+        args: {
+            ...initializeResult,
+            activityId,
+            docId,
+            attemptNumber,
+            requestedVariantIndex,
+        },
     });
 
     let allPossibleVariants = await returnAllPossibleVariants(
@@ -178,7 +197,14 @@ async function initializeWorker({
 
     postMessage({
         messageType: "allPossibleVariants",
-        args: { success: true, allPossibleVariants },
+        args: {
+            success: true,
+            allPossibleVariants,
+            activityId,
+            docId,
+            attemptNumber,
+            requestedVariantIndex,
+        },
     });
 }
 

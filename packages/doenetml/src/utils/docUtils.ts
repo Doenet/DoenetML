@@ -1,3 +1,4 @@
+import { DoenetMLFlags } from "../doenetml";
 import { doenetGlobalConfig } from "../global-config";
 
 export function createCoreWorker() {
@@ -6,21 +7,37 @@ export function createCoreWorker() {
     });
 }
 
-export function initializeCoreWorker({ coreWorker, doenetML, flags }) {
+export function initializeCoreWorker({
+    coreWorker,
+    doenetML,
+    flags,
+    activityId,
+    docId,
+    attemptNumber,
+    requestedVariantIndex,
+}: {
+    coreWorker: Worker;
+    doenetML: string;
+    flags: DoenetMLFlags;
+    activityId: string;
+    docId: string;
+    attemptNumber: number;
+    requestedVariantIndex: number;
+}) {
     // Initializes core worker with the given arguments.
     // Returns a promise.
     // If the worker is successfully initialized, the promise is resolved
     // If an error was encountered while initializing, the promise is rejected
 
-    let resolveInitializePromise;
-    let rejectInitializePromise;
+    let resolveInitializePromise: (value?: unknown) => void;
+    let rejectInitializePromise: (reason?: any) => void;
 
     let initializePromise = new Promise((resolve, reject) => {
         resolveInitializePromise = resolve;
         rejectInitializePromise = reject;
     });
 
-    let initializeListener = function (e) {
+    let initializeListener = function (e: MessageEvent<any>) {
         if (e.data.messageType === "initializeResult") {
             coreWorker.removeEventListener("message", initializeListener);
 
@@ -41,6 +58,10 @@ export function initializeCoreWorker({ coreWorker, doenetML, flags }) {
         args: {
             doenetML,
             flags,
+            activityId,
+            docId,
+            attemptNumber,
+            requestedVariantIndex,
         },
     });
 

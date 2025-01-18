@@ -54,25 +54,21 @@ export default class Core {
         preliminaryWarnings,
         activityId,
         cid,
-        pageNumber,
+        docId,
         attemptNumber = 1,
-        itemNumber = 1,
-        serverSaveId,
         requestedVariant,
         requestedVariantIndex,
         theme,
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
-        updateDataOnContentChange,
     }) {
         // console.time('core');
 
         this.coreId = coreId;
         this.activityId = activityId;
-        this.pageNumber = pageNumber;
+        this.docId = docId;
         this.attemptNumber = attemptNumber;
-        this.itemNumber = itemNumber;
         this.doenetML = doenetML;
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
@@ -83,9 +79,6 @@ export default class Core {
             errors: [...preliminaryErrors],
             warnings: [...preliminaryWarnings],
         };
-
-        this.serverSaveId = serverSaveId;
-        this.updateDataOnContentChange = updateDataOnContentChange;
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
@@ -11355,7 +11348,7 @@ export default class Core {
         const payload = {
             activityId: this.activityId,
             pageCid: this.cid,
-            pageNumber: this.pageNumber,
+            docId: this.docId,
             attemptNumber: this.attemptNumber,
             pageVariantIndex: this.requestedVariant.index,
             verb: event.verb,
@@ -12928,8 +12921,6 @@ export default class Core {
             return;
         }
 
-        let saveId = nanoid();
-
         let coreStateString = JSON.stringify(
             this.cumulativeStateVariableChanges,
             serializedComponentsReplacer,
@@ -12941,13 +12932,12 @@ export default class Core {
 
         if (this.flags.allowLocalState) {
             await idb_set(
-                `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}`,
+                `${this.activityId}|${this.docId}|${this.attemptNumber}|${this.cid}`,
                 {
                     data_format_version,
                     coreState: coreStateString,
                     rendererState: rendererStateString,
                     coreInfo: this.coreInfoString,
-                    saveId,
                 },
             );
         }
@@ -12966,12 +12956,9 @@ export default class Core {
             coreInfo: this.coreInfoString,
             coreState: coreStateString,
             rendererState: rendererStateString,
-            pageNumber: this.pageNumber,
+            docId: this.docId,
             attemptNumber: this.attemptNumber,
             activityId: this.activityId,
-            saveId,
-            serverSaveId: this.serverSaveId,
-            updateDataOnContentChange: this.updateDataOnContentChange,
             onSubmission,
         };
 
@@ -13022,8 +13009,6 @@ export default class Core {
             }
         }
 
-        this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
-
         postMessage({
             messageType: "saveCreditForItem",
             state: { ...this.pageStateToBeSavedToDatabase },
@@ -13047,8 +13032,7 @@ export default class Core {
         postMessage({
             messageType: "recordSolutionView",
             activityId: this.activityId,
-            itemNumber: this.itemNumber,
-            pageNumber: this.pageNumber,
+            docId: this.docId,
             attemptNumber: this.attemptNumber,
         });
 

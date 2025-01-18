@@ -2,7 +2,7 @@ import "./DoenetML.css";
 // @ts-ignore
 import { prng_alea } from "esm-seedrandom";
 import React, { useCallback, useRef, useState } from "react";
-import { PageViewer } from "./Viewer/PageViewer";
+import { DocViewer } from "./Viewer/DocViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
@@ -95,17 +95,15 @@ const theme = extendTheme({
 export function DoenetViewer({
     doenetML,
     flags: specifiedFlags = {},
-    activityId,
+    activityId = "a",
+    docId = "1",
     prefixForIds = "",
     userId,
     attemptNumber = 1,
-    itemNumber = 1,
-    render = true,
-    isCurrent = true,
-    hideWhenNotCurrent = false,
+    rendered = true,
+    hidden = false,
     requestedVariantIndex,
     updateCreditAchievedCallback,
-    updateAttemptNumber,
     setIsInErrorState,
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     setErrorsAndWarningsCallback,
@@ -117,7 +115,6 @@ export function DoenetViewer({
     externalVirtualKeyboardProvided = false,
     location,
     navigate,
-    updateDataOnContentChange = false,
     linkSettings,
     scrollableContainer,
     darkMode = "light",
@@ -127,16 +124,14 @@ export function DoenetViewer({
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
     activityId?: string;
+    docId?: string;
     prefixForIds?: string;
     userId?: string;
     attemptNumber?: number;
-    itemNumber?: number;
-    render?: boolean;
-    isCurrent?: boolean;
-    hideWhenNotCurrent?: boolean;
+    rendered?: boolean;
+    hidden?: boolean;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
-    updateAttemptNumber?: Function;
     setIsInErrorState?: Function;
     generatedVariantCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
@@ -148,7 +143,6 @@ export function DoenetViewer({
     externalVirtualKeyboardProvided?: boolean;
     location?: any;
     navigate?: any;
-    updateDataOnContentChange?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -240,22 +234,18 @@ export function DoenetViewer({
     ) : null;
 
     const viewer = (
-        <PageViewer
+        <DocViewer
             doenetML={doenetML}
-            updateDataOnContentChange={updateDataOnContentChange}
             flags={flags}
             activityId={activityId}
+            docId={docId}
             prefixForIds={prefixForIds}
             userId={userId}
             attemptNumber={attemptNumber}
-            pageNumber={itemNumber.toString()}
-            itemNumber={itemNumber}
-            render={render}
-            isCurrent={isCurrent}
-            hideWhenNotCurrent={hideWhenNotCurrent}
+            rendered={rendered}
+            hidden={hidden}
             requestedVariantIndex={variantIndex.current}
             updateCreditAchievedCallback={updateCreditAchievedCallback}
-            updateAttemptNumber={updateAttemptNumber}
             setIsInErrorState={setIsInErrorState}
             generatedVariantCallback={generatedVariantCallback}
             setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
@@ -292,7 +282,7 @@ export function DoenetViewer({
 
 export function DoenetEditor({
     doenetML,
-    activityId,
+    activityId = "a",
     prefixForIds = "",
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,

@@ -5,7 +5,7 @@ import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Label(props) {
     let { name, id, SVs, children, actions, callAction } =
@@ -37,7 +37,7 @@ export default React.memo(function Label(props) {
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

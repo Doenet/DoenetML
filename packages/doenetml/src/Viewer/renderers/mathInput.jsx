@@ -21,7 +21,7 @@ import { MathJax } from "better-react-mathjax";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -69,7 +69,7 @@ export default function MathInput(props) {
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     let rendererValue = useRef(SVs.rawRendererValue);
 

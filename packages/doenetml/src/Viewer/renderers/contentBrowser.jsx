@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 import { cesc } from "@doenet/utils";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
@@ -9,7 +9,7 @@ export default React.memo(function ContentBrowser(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let { location = {} } = useContext(PageContext) || {};
+    let { location = {} } = useContext(DocContext) || {};
 
     let search = location.search || "";
     let hash = location.hash || "";

@@ -8,7 +8,7 @@ import {
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -33,7 +33,7 @@ export default React.memo(function Answer(props) {
     let { name, id, SVs, actions, children, callAction } =
         useDoenetRenderer(props);
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     if (SVs.hidden) {
         return null;

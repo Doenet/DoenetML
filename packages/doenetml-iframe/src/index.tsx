@@ -169,9 +169,6 @@ export function DoenetViewer({
                         data.args,
                     );
                 }
-                case "updateAttemptNumber": {
-                    return doenetViewerProps.updateAttemptNumber?.(data.args);
-                }
                 case "setIsInErrorState": {
                     return doenetViewerProps.setIsInErrorState?.(data.args);
                 }

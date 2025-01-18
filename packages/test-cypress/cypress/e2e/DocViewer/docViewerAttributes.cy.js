@@ -20,7 +20,7 @@ describe("PageViewer Attribute Tests", function () {
         });
 
         cy.get("#testRunner_toggleControls").click();
-        cy.get("#testRunner_render").click();
+        cy.get("#testRunner_rendered").click();
         cy.wait(100);
         cy.get("#testRunner_toggleControls").click();
 

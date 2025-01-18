@@ -18,7 +18,7 @@ export function CypressTest() {
         allowSaveSubmissions: boolean;
         allowSaveEvents: boolean;
         autoSubmit: boolean;
-        render: boolean;
+        rendered: boolean;
         darkMode: "light" | "dark";
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
@@ -36,7 +36,7 @@ export function CypressTest() {
         allowSaveSubmissions: false,
         allowSaveEvents: false,
         autoSubmit: false,
-        render: true,
+        rendered: true,
         darkMode: "light",
         showEditor: false,
         viewerLocation: "right",
@@ -89,7 +89,7 @@ export function CypressTest() {
         testSettings.allowSaveEvents,
     );
     const [autoSubmit, setAutoSubmit] = useState(testSettings.autoSubmit);
-    const [render, setRender] = useState(testSettings.render);
+    const [rendered, setRendered] = useState(testSettings.rendered);
 
     const [showEditor, setShowEditor] = useState(testSettings.showEditor);
     const [viewerLocation, setViewerLocation] = useState(
@@ -411,20 +411,20 @@ export function CypressTest() {
                     <label>
                         {" "}
                         <input
-                            id="testRunner_render"
+                            id="testRunner_rendered"
                             type="checkbox"
-                            checked={render}
+                            checked={rendered}
                             onChange={() => {
-                                testSettings.render = !testSettings.render;
+                                testSettings.rendered = !testSettings.rendered;
                                 localStorage.setItem(
                                     "test settings",
                                     JSON.stringify(testSettings),
                                 );
-                                setRender((was: boolean) => !was);
+                                setRendered((was: boolean) => !was);
                                 setUpdateNumber((was: number) => was + 1);
                             }}
                         />
-                        Render
+                        Rendered
                     </label>
                 </div>
                 <hr />
@@ -510,7 +510,6 @@ export function CypressTest() {
                 key={"activityViewer" + updateNumber}
                 doenetML={doenetMLstring}
                 // cid={"185fd09b6939d867d4faee82393d4a879a2051196b476acdca26140864bc967a"}
-                updateDataOnContentChange={true}
                 flags={{
                     showCorrectness,
                     readOnly,
@@ -527,7 +526,7 @@ export function CypressTest() {
                 attemptNumber={attemptNumber}
                 requestedVariantIndex={requestedVariantIndex.current}
                 activityId="activityIdFromCypress"
-                render={render}
+                rendered={rendered}
                 location={location}
                 navigate={navigate}
                 linkSettings={{

@@ -12,7 +12,7 @@ import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import "./choiceInput.css";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -59,7 +59,7 @@ export default React.memo(function ChoiceInput(props) {
 
     let selectedIndicesWhenSetState = useRef(null);
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     if (
         !ignoreUpdate &&

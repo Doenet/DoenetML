@@ -4,7 +4,7 @@ import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
 import { textRendererStyle } from "@doenet/utils";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Line(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
@@ -34,7 +34,7 @@ export default React.memo(function Line(props) {
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     switchable.current = SVs.switchable && !SVs.fixed;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

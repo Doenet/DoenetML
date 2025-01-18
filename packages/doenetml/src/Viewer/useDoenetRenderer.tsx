@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
 // import { serializedComponentsReviver } from '@doenet/utils';
-import { renderersloadComponent } from "./PageViewer";
+import { renderersloadComponent } from "./DocViewer";
 import { cesc } from "@doenet/utils";
 
-export const rendererState = atomFamily({
+export const rendererState = atomFamily<
+    {
+        stateValues: Record<string, any>;
+        sourceOfUpdate?: Record<string, any>;
+        ignoreUpdate: boolean;
+        childrenInstructions: Record<string, any>[];
+        prefixForIds: string;
+    },
+    string
+>({
     key: "rendererState",
     default: {
         stateValues: {},
@@ -18,7 +27,7 @@ export const rendererState = atomFamily({
 
 // TODO: potentially remove initializeChildrenOnConstruction
 export default function useDoenetRenderer(
-    props,
+    props: Record<string, any>,
     initializeChildrenOnConstruction = true,
 ) {
     let actions = props.componentInstructions.actions;
@@ -59,7 +68,10 @@ export default function useDoenetRenderer(
         }
     }, [renderersToLoad, props.rendererClasses]);
 
-    function createChildFromInstructions(childInstructions, loadMoreRenderers) {
+    function createChildFromInstructions(
+        childInstructions: Record<string, any> | string,
+        loadMoreRenderers: boolean,
+    ) {
         if (typeof childInstructions === "string") {
             return childInstructions;
         }
@@ -78,7 +90,7 @@ export default function useDoenetRenderer(
         if (!rendererClass) {
             //If we don't have the component then attempt to load it
             if (loadMoreRenderers) {
-                setRenderersToLoad((old) => {
+                setRenderersToLoad((old: Promise<any>[]) => {
                     let rendererPromises = { ...old };
                     if (!(childInstructions.rendererType in rendererPromises)) {
                         rendererPromises[childInstructions.rendererType] =
@@ -98,7 +110,7 @@ export default function useDoenetRenderer(
     }
 
     let rendererType = props.componentInstructions.rendererType;
-    const callAction = (argObj) => {
+    const callAction = (argObj: Record<string, any>) => {
         if (!argObj.componentName) {
             argObj = { ...argObj };
             argObj.componentName = componentName;

@@ -12,7 +12,7 @@ export default function TestViewer() {
         readOnly: boolean;
         showFeedback: boolean;
         showHints: boolean;
-        render: boolean;
+        rendered: boolean;
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
     } = {
@@ -21,7 +21,7 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
-        render: true,
+        rendered: true,
         showEditor: false,
         viewerLocation: "right",
     };
@@ -36,7 +36,7 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
-        render,
+        rendered,
         showEditor,
         viewerLocation,
     } = testSettings;
@@ -140,17 +140,17 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={render}
+                            checked={rendered}
                             onChange={() => {
                                 setTestSettings((was) => {
                                     let newObj = { ...was };
-                                    newObj.render = !was.render;
+                                    newObj.rendered = !was.rendered;
                                     return newObj;
                                 });
                                 setUpdateNumber((was) => was + 1);
                             }}
                         />
-                        Render
+                        Rendered
                     </label>
                 </div>
                 <div>
@@ -225,7 +225,7 @@ export default function TestViewer() {
                 autoSubmit: false,
             }}
             activityId=""
-            render={render}
+            rendered={rendered}
             addVirtualKeyboard={true}
         />
     );
