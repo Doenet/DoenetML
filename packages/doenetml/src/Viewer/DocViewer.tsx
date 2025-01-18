@@ -200,7 +200,6 @@ export function DocViewer({
     const lastDocId = useRef<string | null>(null);
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
-    const initialPass = useRef(true);
 
     const [stage, setStage] = useState("initial");
 
@@ -1004,7 +1003,7 @@ export function DocViewer({
         }
     }
 
-    async function loadStateAndInitialize() {
+    async function loadStateAndInitialize(initialPass = false) {
         const coreIdWhenCalled = coreId.current;
         let loadedState = false;
 
@@ -1096,7 +1095,7 @@ export function DocViewer({
         //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
             if (rendered) {
-                startCore();
+                startCore(initialPass);
             } else {
                 setStage("readyToCreateCore");
             }
@@ -1186,14 +1185,13 @@ export function DocViewer({
         };
     }
 
-    async function startCore() {
-        //Kill the current core if it exists
-
+    async function startCore(initialPass = false) {
         let thisCoreWorker = coreWorker;
 
         if (coreCreated.current || !thisCoreWorker) {
+            //Kill the current core if it exists
             thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
-        } else if (!initialPass.current) {
+        } else if (!initialPass) {
             // otherwise, if not initial pass, then re-initialize to give it the current DoenetML
             await initializeCoreWorker({
                 coreWorker: thisCoreWorker,
@@ -1326,7 +1324,15 @@ export function DocViewer({
     // set state to props and record that that need a new core
 
     let changedState = false;
-    initialPass.current = lastDoenetML.current === null;
+
+    const initialPass = lastDoenetML.current === null;
+
+    // if we are just starting and the document isn't being rendered,
+    // don't do anything more
+    if (initialPass && !rendered) {
+        return null;
+    }
+
     if (lastDoenetML.current !== doenetML) {
         lastDoenetML.current = doenetML;
         changedState = true;
@@ -1370,7 +1376,7 @@ export function DocViewer({
 
         setStage("wait");
 
-        loadStateAndInitialize();
+        loadStateAndInitialize(initialPass);
 
         return null;
     }

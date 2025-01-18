@@ -19,6 +19,7 @@ const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
 export type { ErrorDescription, WarningDescription };
+export { parseAndCompile } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";

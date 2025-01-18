@@ -216,7 +216,7 @@ export function DoenetViewer({
         // regenerate only if one of the props in propSet has changed
         if (thisPropSet.some((v, i) => v !== lastPropSet.current[i])) {
             if (requestedVariantIndex === undefined) {
-                let rng = new rngClass(new Date());
+                let rng = new rngClass();
                 requestedVariantIndex = Math.floor(rng() * 1000000) + 1;
             }
             variantIndex.current = Math.round(requestedVariantIndex);
