@@ -360,6 +360,10 @@ export function DocViewer({
                     });
                 }
                 setStage("coreCreated");
+                window.postMessage({
+                    subject: "SPLICE.initialized",
+                    arg: { activityId, docId },
+                });
                 // coreCreatedCallback?.();
             } else if (e.data.messageType === "initializeRenderers") {
                 if (
