@@ -15,7 +15,6 @@ export function CypressTest() {
         allowLoadState: boolean;
         allowSaveState: boolean;
         allowLocalState: boolean;
-        allowSaveSubmissions: boolean;
         allowSaveEvents: boolean;
         autoSubmit: boolean;
         render: boolean;
@@ -33,7 +32,6 @@ export function CypressTest() {
         allowLoadState: false,
         allowSaveState: false,
         allowLocalState: false,
-        allowSaveSubmissions: false,
         allowSaveEvents: false,
         autoSubmit: false,
         render: true,
@@ -81,9 +79,6 @@ export function CypressTest() {
     );
     const [allowLocalState, setAllowLocalState] = useState(
         testSettings.allowLocalState,
-    );
-    const [allowSaveSubmissions, setAllowSaveSubmissions] = useState(
-        testSettings.allowSaveSubmissions,
     );
     const [allowSaveEvents, setAllowSaveEvents] = useState(
         testSettings.allowSaveEvents,
@@ -347,27 +342,6 @@ export function CypressTest() {
                     <label>
                         {" "}
                         <input
-                            id="testRunner_allowSaveSubmissions"
-                            type="checkbox"
-                            checked={allowSaveSubmissions}
-                            onChange={() => {
-                                testSettings.allowSaveSubmissions =
-                                    !testSettings.allowSaveSubmissions;
-                                localStorage.setItem(
-                                    "test settings",
-                                    JSON.stringify(testSettings),
-                                );
-                                setAllowSaveSubmissions((was: boolean) => !was);
-                                setUpdateNumber((was: number) => was + 1);
-                            }}
-                        />
-                        Allow Save Submissions
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        {" "}
-                        <input
                             id="testRunner_allowSaveEvents"
                             type="checkbox"
                             checked={allowSaveEvents}
@@ -519,7 +493,6 @@ export function CypressTest() {
                     allowLoadState,
                     allowSaveState,
                     allowLocalState,
-                    allowSaveSubmissions,
                     allowSaveEvents,
                     autoSubmit,
                 }}

@@ -141,7 +141,6 @@ export default React.memo(function CodeViewer(props) {
                         allowLoadState: false,
                         allowSaveState: false,
                         allowLocalState: false,
-                        allowSaveSubmissions: false,
                         allowSaveEvents: false,
                     }}
                     activityId={id}

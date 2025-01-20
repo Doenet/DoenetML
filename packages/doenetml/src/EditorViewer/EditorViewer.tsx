@@ -484,7 +484,6 @@ export function EditorViewer({
                             allowLoadState: false,
                             allowSaveState: false,
                             allowLocalState: false,
-                            allowSaveSubmissions: false,
                             allowSaveEvents: false,
                             readOnly: false,
                         }}

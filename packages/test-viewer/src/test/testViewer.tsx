@@ -220,7 +220,6 @@ export default function TestViewer() {
                 allowLoadState: false,
                 allowSaveState: false,
                 allowLocalState: false,
-                allowSaveSubmissions: true,
                 allowSaveEvents: false,
                 autoSubmit: false,
             }}

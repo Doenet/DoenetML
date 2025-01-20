@@ -13023,8 +13023,8 @@ export default class Core {
     async recordSolutionView() {
         // TODO: check if student was actually allowed to view solution.
 
-        // if not allowed to save submissions, then allow view but don't record it
-        if (!this.flags.allowSaveSubmissions) {
+        // if not allowed to save state, then allow view but don't record it
+        if (!this.flags.allowSaveState) {
             return {
                 allowView: true,
                 message: "",
