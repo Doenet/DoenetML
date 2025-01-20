@@ -145,15 +145,16 @@ export function DoenetViewer({
 
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
             // forward response from SPLICE getState to iframe
             if (event.data.subject === "SPLICE.getState.response") {
                 ref.current?.contentWindow?.postMessage(event.data);
                 return;
             }
-            if (
-                event.origin !== window.location.origin ||
-                event.data?.origin !== id
-            ) {
+            if (event.data?.origin !== id) {
                 return;
             }
 
