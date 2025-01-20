@@ -209,10 +209,28 @@ async function initializeWorker({
 }
 
 async function createCore(args) {
-    if (initializeResult.success) {
-        let coreArgs = Object.assign({}, coreBaseArgs);
-        Object.assign(coreArgs, args);
+    // Wait for `initializeWorker()` for up to around 2 seconds before failing.
+    // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
+    // could take time if it needs to retrieve external content.)
+    const maxIters = 20;
+    let i = 0;
+    while (initializeResult.success === undefined) {
+        const pause100 = function () {
+            return new Promise((resolve, reject) => {
+                setTimeout(resolve, 100);
+            });
+        };
+        await pause100();
+        i++;
+        if (i > maxIters) {
+            break;
+        }
+    }
 
+    let coreArgs = Object.assign({}, coreBaseArgs);
+    Object.assign(coreArgs, args);
+
+    if (initializeResult.success) {
         core = new Core(coreArgs);
 
         try {
