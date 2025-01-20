@@ -100,7 +100,7 @@ export function DoenetViewer({
     prefixForIds = "",
     userId,
     attemptNumber = 1,
-    rendered = true,
+    render = true,
     hidden = false,
     requestedVariantIndex,
     updateCreditAchievedCallback,
@@ -128,7 +128,7 @@ export function DoenetViewer({
     prefixForIds?: string;
     userId?: string;
     attemptNumber?: number;
-    rendered?: boolean;
+    render?: boolean;
     hidden?: boolean;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
@@ -242,7 +242,7 @@ export function DoenetViewer({
             prefixForIds={prefixForIds}
             userId={userId}
             attemptNumber={attemptNumber}
-            rendered={rendered}
+            render={render}
             hidden={hidden}
             requestedVariantIndex={variantIndex.current}
             updateCreditAchievedCallback={updateCreditAchievedCallback}

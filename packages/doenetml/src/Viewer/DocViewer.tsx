@@ -36,7 +36,7 @@ export function DocViewer({
     userId,
     activityId = "a",
     docId = "1",
-    rendered = true,
+    render = true,
     hidden = false,
     attemptNumber = 1,
     forceDisable = false,
@@ -61,7 +61,7 @@ export function DocViewer({
     userId?: string;
     activityId?: string;
     docId?: string;
-    rendered?: boolean;
+    render?: boolean;
     hidden?: boolean;
     attemptNumber?: number;
     forceDisable?: boolean;
@@ -75,18 +75,12 @@ export function DocViewer({
     updateCreditAchievedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
-    render?: boolean;
-    isCurrent?: boolean;
-    hideWhenNotCurrent?: boolean;
-    addVirtualKeyboard?: boolean;
-    externalVirtualKeyboardProvided?: boolean;
     location?: any;
     navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
-    includeVariantSelector?: boolean;
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
         ({ snapshot, set }) =>
@@ -559,7 +553,7 @@ export function DocViewer({
     }, [location, hash, coreCreated.current, coreWorker]);
 
     useEffect(() => {
-        if (hash && documentRenderer && rendered) {
+        if (hash && documentRenderer && render) {
             let anchor = hash.slice(1);
             if (
                 (!previousLocationKeys.current.includes(location.key) ||
@@ -571,7 +565,7 @@ export function DocViewer({
             }
             previousLocationKeys.current.push(location.key);
         }
-    }, [location, hash, documentRenderer, rendered]);
+    }, [location, hash, documentRenderer, render]);
 
     useEffect(() => {
         callAction({
@@ -1099,7 +1093,7 @@ export function DocViewer({
 
         //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
-            if (rendered) {
+            if (render) {
                 startCore(initialPass);
             } else {
                 setStage("readyToCreateCore");
@@ -1334,7 +1328,7 @@ export function DocViewer({
 
     // if we are just starting and the document isn't being rendered,
     // don't do anything more
-    if (initialPass && !rendered) {
+    if (initialPass && !render) {
         return null;
     }
 
@@ -1409,9 +1403,9 @@ export function DocViewer({
         return null;
     }
 
-    if (stage === "readyToCreateCore" && rendered) {
+    if (stage === "readyToCreateCore" && render) {
         startCore();
-    } else if (stage === "waitingOnCore" && !rendered && !coreCreated.current) {
+    } else if (stage === "waitingOnCore" && !render && !coreCreated.current) {
         // we've moved off this doc, but core is still being created
         // so reinitialize core
         reinitializeCoreAndTerminateAnimations();
@@ -1419,7 +1413,7 @@ export function DocViewer({
         setStage("readyToCreateCore");
     }
 
-    if (hidden || !rendered) {
+    if (hidden || !render) {
         return null;
     }
 
