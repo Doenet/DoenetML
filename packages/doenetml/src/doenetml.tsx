@@ -120,6 +120,7 @@ export function DoenetViewer({
     darkMode = "light",
     showAnswerTitles = false,
     includeVariantSelector = false,
+    initializeCounters = {},
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
@@ -147,6 +148,7 @@ export function DoenetViewer({
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
     includeVariantSelector?: boolean;
+    initializeCounters?: Record<string, number>;
 }) {
     const [variants, setVariants] = useState({
         index: 1,
@@ -272,6 +274,7 @@ export function DoenetViewer({
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerTitles={showAnswerTitles}
+            initializeCounters={initializeCounters}
         />
     );
 
