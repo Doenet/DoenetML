@@ -30,12 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     args,
                 });
             },
-            updateAttemptNumber: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "updateAttemptNumber",
-                    args,
-                });
-            },
             setIsInErrorState: (args: unknown) => {
                 messageParentFromViewer({
                     callback: "setIsInErrorState",

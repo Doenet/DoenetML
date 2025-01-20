@@ -18,7 +18,7 @@ import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
-import { PageViewer } from "../Viewer/PageViewer";
+import { DocViewer } from "../Viewer/DocViewer";
 import ErrorWarningPopovers from "./ErrorWarningPopovers";
 import type { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { nanoid } from "nanoid";
@@ -473,7 +473,7 @@ export function EditorViewer({
                     ref={scrollableContainer}
                 >
                     {/* @ts-ignore */}
-                    <PageViewer
+                    <DocViewer
                         doenetML={viewerDoenetML}
                         flags={{
                             showCorrectness: true,

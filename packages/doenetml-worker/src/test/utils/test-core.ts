@@ -67,14 +67,12 @@ export async function createTestCore({
         componentInfoObjects,
         activityId: "",
         cid: "",
-        pageNumber: 1,
-        serverSaveId: "",
+        docId: "1",
         activityVariantIndex: 1,
         requestedVariant: null,
         requestedVariantIndex: requestedVariantIndex,
         stateVariableChanges: "",
         coreId: "",
-        updateDataOnContentChange: null,
         theme,
     };
 

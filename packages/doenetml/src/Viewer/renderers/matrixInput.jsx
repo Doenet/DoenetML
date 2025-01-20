@@ -14,7 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import "./mathInput.css";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 const Matrix = styled.div`
     position: relative;
@@ -75,7 +75,7 @@ export default React.memo(function MatrixInput(props) {
 
     let validationState = useRef(null);
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     function updateValidationState() {
         validationState.current = "unvalidated";

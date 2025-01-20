@@ -1,5 +1,8 @@
 import React, {
     createContext,
+    ErrorInfo,
+    ReactElement,
+    ReactNode,
     useCallback,
     useEffect,
     useRef,
@@ -18,26 +21,23 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get } from "idb-keyval";
-import { createCoreWorker, initializeCoreWorker } from "../utils/pageUtils";
+import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
+import { DoenetMLFlags } from "../doenetml";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
     default: {},
 });
 
-const sendAlert = (msg, type) => console.log(msg);
+export const DocContext = createContext({});
 
-export const PageContext = createContext();
-
-export function PageViewer({
-    userId,
-    activityId,
+export function DocViewer({
     doenetML,
-    pageNumber = "1",
-    render: pageIsActive = true,
-    isCurrent: pageIsCurrent = true,
-    hideWhenNotCurrent = false,
-    itemNumber = 1,
+    userId,
+    activityId = "a",
+    docId = "1",
+    render = true,
+    hidden = false,
     attemptNumber = 1,
     forceDisable = false,
     forceShowCorrectness = false,
@@ -49,8 +49,6 @@ export function PageViewer({
     setErrorsAndWarningsCallback,
     updateCreditAchievedCallback,
     setIsInErrorState,
-    updateAttemptNumber,
-    updateDataOnContentChange,
     prefixForIds = "",
     location = {},
     navigate,
@@ -58,6 +56,31 @@ export function PageViewer({
     scrollableContainer,
     darkMode,
     showAnswerTitles,
+}: {
+    doenetML: string;
+    userId?: string;
+    activityId?: string;
+    docId?: string;
+    render?: boolean;
+    hidden?: boolean;
+    attemptNumber?: number;
+    forceDisable?: boolean;
+    forceShowCorrectness?: boolean;
+    forceShowSolution?: boolean;
+    forceUnsuppressCheckwork?: boolean;
+    generatedVariantCallback?: Function;
+    flags: DoenetMLFlags;
+    requestedVariantIndex: number;
+    setErrorsAndWarningsCallback?: Function;
+    updateCreditAchievedCallback?: Function;
+    setIsInErrorState?: Function;
+    prefixForIds?: string;
+    location?: any;
+    navigate?: any;
+    linkSettings?: { viewURL: string; editURL: string };
+    scrollableContainer?: HTMLDivElement | Window;
+    darkMode?: "dark" | "light";
+    showAnswerTitles?: boolean;
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
         ({ snapshot, set }) =>
@@ -69,6 +92,14 @@ export function PageViewer({
                 sourceOfUpdate,
                 baseStateVariable,
                 actionId,
+            }: {
+                coreId: string;
+                componentName: string;
+                stateValues: Record<string, any>;
+                childrenInstructions?: Record<string, any>[];
+                sourceOfUpdate?: Record<string, any>;
+                baseStateVariable?: string;
+                actionId?: string;
             }) => {
                 let ignoreUpdate = false;
 
@@ -80,7 +111,7 @@ export function PageViewer({
                     ).contents;
 
                     if (Object.keys(updatesToIgnore).length > 0) {
-                        let valueFromRenderer = updatesToIgnore[actionId];
+                        let valueFromRenderer = updatesToIgnore[actionId || ""];
                         let valueFromCore = stateValues[baseStateVariable];
                         if (
                             valueFromRenderer === valueFromCore ||
@@ -96,9 +127,11 @@ export function PageViewer({
                             ignoreUpdate = true;
                             set(
                                 rendererUpdatesToIgnore(rendererName),
-                                (was) => {
+                                (was: Record<string, any>) => {
                                     let newUpdatesToIgnore = { ...was };
-                                    delete newUpdatesToIgnore[actionId];
+                                    if (actionId) {
+                                        delete newUpdatesToIgnore[actionId];
+                                    }
                                     return newUpdatesToIgnore;
                                 },
                             );
@@ -111,21 +144,25 @@ export function PageViewer({
                     }
                 }
 
-                let newRendererState = {
-                    stateValues,
-                    childrenInstructions,
-                    sourceOfUpdate,
-                    ignoreUpdate,
-                    prefixForIds,
-                };
+                let childrenInstructions2: Record<string, any>[];
 
                 if (childrenInstructions === undefined) {
                     let previousRendererState = snapshot.getLoadable(
                         rendererState(rendererName),
                     ).contents;
-                    newRendererState.childrenInstructions =
+                    childrenInstructions2 =
                         previousRendererState.childrenInstructions;
+                } else {
+                    childrenInstructions2 = childrenInstructions;
                 }
+
+                let newRendererState = {
+                    stateValues,
+                    childrenInstructions: childrenInstructions2,
+                    sourceOfUpdate,
+                    ignoreUpdate,
+                    prefixForIds,
+                };
 
                 set(rendererState(rendererName), newRendererState);
             },
@@ -138,55 +175,95 @@ export function PageViewer({
                 // add to updates to ignore so don't apply change again
                 // if it comes back from core without any changes
                 // (possibly after a delay)
-                set(rendererUpdatesToIgnore(rendererName), (was) => {
-                    let newUpdatesToIgnore = { ...was };
-                    newUpdatesToIgnore[actionId] = baseVariableValue;
-                    return newUpdatesToIgnore;
-                });
+                set(
+                    rendererUpdatesToIgnore(rendererName),
+                    (was: Record<string, any>) => {
+                        let newUpdatesToIgnore = { ...was };
+                        newUpdatesToIgnore[actionId] = baseVariableValue;
+                        return newUpdatesToIgnore;
+                    },
+                );
             },
     );
 
-    const [errMsg, setErrMsg] = useState(null);
+    const [errMsg, setErrMsg] = useState<string | null>(null);
 
-    const cid = useRef(null);
-    const lastDoenetML = useRef(null);
-    const lastPageNumber = useRef(null);
-    const lastAttemptNumber = useRef(null);
-    const lastRequestedVariantIndex = useRef(null);
+    const cid = useRef<string | null>(null);
+    const lastDoenetML = useRef<string | null>(null);
+    const lastActivityId = useRef<string | null>(null);
+    const lastDocId = useRef<string | null>(null);
+    const lastAttemptNumber = useRef<number | null>(null);
+    const lastRequestedVariantIndex = useRef<number | null>(null);
 
     const [stage, setStage] = useState("initial");
 
-    const [documentRenderer, setDocumentRenderer] = useState(null);
+    const [documentRenderer, setDocumentRenderer] =
+        useState<ReactElement | null>(null);
 
-    const initialCoreData = useRef({});
+    const initialCoreData = useRef<{
+        coreState: Record<string, any>;
+        requestedVariant: Record<string, any>;
+    } | null>(null);
 
-    const rendererClasses = useRef({});
-    const coreInfo = useRef(null);
+    const rendererClasses = useRef<Record<string, any>>({});
+    const coreInfo = useRef<Record<string, any> | null>(null);
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
-    const coreId = useRef(null);
-    const errorWarnings = useRef(null);
+    const coreId = useRef<string>("");
+    const errorWarnings = useRef<{
+        errors: any[];
+        warnings: any[];
+    }>({ errors: [], warnings: [] });
 
-    const resolveAllStateVariables = useRef(null);
-    const resolveErrorWarnings = useRef(null);
-    const actionsBeforeCoreCreated = useRef([]);
+    const resolveAllStateVariables = useRef<((value: unknown) => void) | null>(
+        null,
+    );
+    const resolveErrorWarnings = useRef<((value: unknown) => void) | null>(
+        null,
+    );
+    const actionsBeforeCoreCreated = useRef<
+        {
+            actionName: string;
+            componentName?: string;
+            args: Record<string, any>;
+        }[]
+    >([]);
 
     const preventMoreAnimations = useRef(false);
-    const animationInfo = useRef({});
+    const animationInfo = useRef<
+        Record<string, { animationFrameID?: number; timeoutId?: number }>
+    >({});
 
-    const resolveActionPromises = useRef({});
-    const actionTentativelySkipped = useRef(null);
+    const resolveActionPromises = useRef<Record<string, (value: any) => void>>(
+        {},
+    );
+    const actionTentativelySkipped = useRef<{
+        action: { actionName: string; componentName?: string };
+        args: Record<string, any>;
+        baseVariableValue?: any;
+        componentName?: string;
+        rendererType?: string;
+        promiseResolve?: (value: any) => void;
+    } | null>(null);
 
-    const saveStatePromises = useRef({});
+    const saveStatePromises = useRef<
+        Record<
+            string,
+            {
+                resolve: (value: Record<string, any>) => void;
+                reject: (value: unknown) => void;
+            }
+        >
+    >({});
 
-    const previousLocationKeys = useRef([]);
+    const previousLocationKeys = useRef<any[]>([]);
 
     const errorInitializingRenderers = useRef(false);
     const errorInsideRenderers = useRef(false);
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
-    const [coreWorkerInfo, setCoreWorkerInfo] = useState(null);
+    const [coreWorker, setCoreWorker] = useState<Worker | null>(null);
 
     let hash = location.hash;
 
@@ -208,20 +285,25 @@ export function PageViewer({
 
     useEffect(() => {
         async function initialize() {
-            let coreWorker = createCoreWorker();
-
-            let theInfo = {
-                coreWorker,
-                doenetML,
-                flags,
-            };
-
-            setCoreWorkerInfo(theInfo);
+            let newCoreWorker = createCoreWorker();
+            setCoreWorker(newCoreWorker);
 
             try {
-                await initializeCoreWorker(theInfo);
-            } catch (e) {
-                setErrMsg(`Error initializing activity: ${e.message}`);
+                await initializeCoreWorker({
+                    coreWorker: newCoreWorker,
+                    doenetML,
+                    flags,
+                    activityId,
+                    docId,
+                    attemptNumber,
+                    requestedVariantIndex,
+                });
+            } catch (e: any) {
+                let message = "";
+                if ("message" in e) {
+                    message = e.message;
+                }
+                setErrMsg(`Error initializing activity: ${message}`);
             }
         }
 
@@ -229,10 +311,10 @@ export function PageViewer({
     }, []);
 
     useEffect(() => {
-        if (!coreWorkerInfo) {
+        if (!coreWorker) {
             return;
         }
-        coreWorkerInfo.coreWorker.onmessage = function (e) {
+        coreWorker.onmessage = function (e) {
             // console.log("message from core", e.data);
             if (e.data.messageType === "updateRenderers") {
                 if (
@@ -240,12 +322,12 @@ export function PageViewer({
                     coreInfo.current &&
                     !errorInitializingRenderers.current &&
                     !errorInsideRenderers.current &&
-                    !(hideWhenNotCurrent && !pageIsCurrent)
+                    !hidden
                 ) {
                     // we don't initialize renderer state values if already have a coreInfo
                     // and no errors were encountered
                     // as we must have already gotten the renderer information before core was created.
-                    // Exception if page is not current and we hide the page when it is not current,
+                    // Exception if doc is hidden,
                     // then we still update the renderers.
                     // This exception is important because, in this case,
                     // the renderers have not yet been rendered, so any errors would not yet have revealed
@@ -266,12 +348,17 @@ export function PageViewer({
                 coreCreationInProgress.current = false;
                 preventMoreAnimations.current = false;
                 for (let actionArgs of actionsBeforeCoreCreated.current) {
-                    coreWorkerInfo.coreWorker.postMessage({
+                    coreWorker.postMessage({
                         messageType: "requestAction",
                         args: actionArgs,
                     });
                 }
                 setStage("coreCreated");
+                window.postMessage({
+                    subject: "SPLICE.initialized",
+                    activityId,
+                    docId,
+                });
                 // coreCreatedCallback?.();
             } else if (e.data.messageType === "initializeRenderers") {
                 if (
@@ -296,18 +383,18 @@ export function PageViewer({
                 // saveStateCallback?.();
             } else if (e.data.messageType === "sendAlert") {
                 console.log(`Sending alert message: ${e.data.args.message}`);
-                sendAlert(e.data.args.message, e.data.args.alertType);
+                // sendAlert(e.data.args.message, e.data.args.alertType);
             } else if (e.data.messageType === "resolveAction") {
                 resolveAction(e.data.args);
             } else if (e.data.messageType === "returnAllStateVariables") {
                 console.log(e.data.args);
-                resolveAllStateVariables.current(e.data.args);
+                resolveAllStateVariables.current?.(e.data.args);
             } else if (e.data.messageType === "returnErrorWarnings") {
-                let errorWarnings = e.data.args;
-                console.log(errorWarnings);
-                resolveErrorWarnings.current(errorWarnings);
+                let returnedErrorWarnings = e.data.args;
+                console.log(returnedErrorWarnings);
+                resolveErrorWarnings.current?.(returnedErrorWarnings);
             } else if (e.data.messageType === "componentRangePieces") {
-                window["componentRangePieces" + pageNumber] =
+                (window as any)["componentRangePieces" + docId] =
                     e.data.args.componentRangePieces;
             } else if (e.data.messageType === "inErrorState") {
                 setIsInErrorState?.(true);
@@ -315,8 +402,6 @@ export function PageViewer({
             } else if (e.data.messageType === "setErrorWarnings") {
                 errorWarnings.current = e.data.errorWarnings;
                 setErrorsAndWarningsCallback?.(errorWarnings.current);
-            } else if (e.data.messageType === "resetPage") {
-                resetPage(e.data.args);
             } else if (e.data.messageType === "copyToClipboard") {
                 copyToClipboard(e.data.args);
             } else if (e.data.messageType === "navigateToTarget") {
@@ -346,14 +431,14 @@ export function PageViewer({
                     subject: "SPLICE.allPossibleVariants",
                 });
             } else if (e.data.messageType === "terminated") {
-                reinitializeCoreAndTerminateAnimations(coreWorkerInfo);
+                reinitializeCoreAndTerminateAnimations();
             }
         };
-    }, [coreWorkerInfo?.coreWorker, location]);
+    }, [coreWorker, location]);
 
     useEffect(() => {
         return () => {
-            coreWorkerInfo?.coreWorker.postMessage({
+            coreWorker?.postMessage({
                 messageType: "terminate",
             });
         };
@@ -381,24 +466,25 @@ export function PageViewer({
     });
 
     useEffect(() => {
-        if (!coreWorkerInfo) {
+        if (!coreWorker) {
             return;
         }
-        if (pageNumber !== null) {
-            window["returnAllStateVariables" + postfixForWindowFunctions] =
-                function () {
-                    coreWorkerInfo.coreWorker.postMessage({
-                        messageType: "returnAllStateVariables",
-                    });
+        if (docId !== null) {
+            (window as any)[
+                "returnAllStateVariables" + postfixForWindowFunctions
+            ] = function () {
+                coreWorker.postMessage({
+                    messageType: "returnAllStateVariables",
+                });
 
-                    return new Promise((resolve, reject) => {
-                        resolveAllStateVariables.current = resolve;
-                    });
-                };
+                return new Promise((resolve, reject) => {
+                    resolveAllStateVariables.current = resolve;
+                });
+            };
 
-            window["returnErrorWarnings" + postfixForWindowFunctions] =
+            (window as any)["returnErrorWarnings" + postfixForWindowFunctions] =
                 function () {
-                    coreWorkerInfo.coreWorker.postMessage({
+                    coreWorker.postMessage({
                         messageType: "returnErrorWarnings",
                     });
 
@@ -407,18 +493,23 @@ export function PageViewer({
                     });
                 };
 
-            window["callAction" + postfixForWindowFunctions] = async function ({
-                actionName,
-                componentName,
-                args,
-            }) {
-                return await callAction({
-                    action: { actionName, componentName },
+            (window as any)["callAction" + postfixForWindowFunctions] =
+                async function ({
+                    actionName,
+                    componentName,
                     args,
-                });
-            };
+                }: {
+                    actionName: string;
+                    componentName: string;
+                    args: Record<string, any>;
+                }) {
+                    return await callAction({
+                        action: { actionName, componentName },
+                        args,
+                    });
+                };
         }
-    }, [pageNumber, coreWorkerInfo]);
+    }, [docId, coreWorker]);
 
     useEffect(() => {
         return () => {
@@ -431,24 +522,24 @@ export function PageViewer({
     }, []);
 
     useEffect(() => {
-        if (!coreWorkerInfo) {
+        if (!coreWorker) {
             return;
         }
         document.addEventListener("visibilitychange", () => {
-            coreWorkerInfo.coreWorker.postMessage({
+            coreWorker.postMessage({
                 messageType: "visibilityChange",
                 args: {
                     visible: document.visibilityState === "visible",
                 },
             });
         });
-    }, [coreWorkerInfo]);
+    }, [coreWorker]);
 
     useEffect(() => {
-        if (hash && coreCreated.current && coreWorkerInfo?.coreWorker) {
+        if (hash && coreCreated.current && coreWorker) {
             let anchor = hash.slice(1);
             if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
-                coreWorkerInfo.coreWorker.postMessage({
+                coreWorker.postMessage({
                     messageType: "navigatingToComponent",
                     args: {
                         componentName: anchor
@@ -459,16 +550,10 @@ export function PageViewer({
                 });
             }
         }
-    }, [
-        location,
-        hash,
-        coreCreated.current,
-        coreWorkerInfo,
-        coreWorkerInfo?.coreWorker,
-    ]);
+    }, [location, hash, coreCreated.current, coreWorker]);
 
     useEffect(() => {
-        if (hash && documentRenderer && pageIsActive) {
+        if (hash && documentRenderer && render) {
             let anchor = hash.slice(1);
             if (
                 (!previousLocationKeys.current.includes(location.key) ||
@@ -480,7 +565,7 @@ export function PageViewer({
             }
             previousLocationKeys.current.push(location.key);
         }
-    }, [location, hash, documentRenderer, pageIsActive]);
+    }, [location, hash, documentRenderer, render]);
 
     useEffect(() => {
         callAction({
@@ -489,6 +574,7 @@ export function PageViewer({
         });
     }, [darkMode]);
 
+    // TODO: fix this function as it uses conventions that are no longer valid
     const navigateToTarget = useCallback(
         async ({
             cid,
@@ -502,6 +588,18 @@ export function PageViewer({
             actionId,
             componentName,
             effectiveName,
+        }: {
+            cid?: string;
+            activityId?: string;
+            variantIndex?: number;
+            edit?: boolean;
+            hash?: string;
+            page?: number;
+            uri?: string;
+            targetName?: string;
+            actionId?: string;
+            componentName?: string;
+            effectiveName: string;
         }) => {
             let id = prefixForIds + cesc(effectiveName);
             let { targetForATag, url, haveValidTarget, externalUri } =
@@ -540,10 +638,11 @@ export function PageViewer({
         [location],
     );
 
-    async function reinitializeCoreAndTerminateAnimations(newCoreWorkerInfo) {
+    async function reinitializeCoreAndTerminateAnimations() {
         preventMoreAnimations.current = true;
-        coreWorkerInfo.coreWorker.terminate();
-        coreWorkerInfo.coreWorker = createCoreWorker();
+        coreWorker?.terminate();
+        const newCoreWorker = createCoreWorker();
+        setCoreWorker(newCoreWorker);
 
         coreCreated.current = false;
         coreCreationInProgress.current = false;
@@ -553,7 +652,17 @@ export function PageViewer({
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
 
-        await initializeCoreWorker(newCoreWorkerInfo);
+        await initializeCoreWorker({
+            coreWorker: newCoreWorker,
+            doenetML,
+            flags,
+            activityId,
+            docId,
+            attemptNumber,
+            requestedVariantIndex,
+        });
+
+        return newCoreWorker;
     }
 
     async function callAction({
@@ -563,13 +672,21 @@ export function PageViewer({
         componentName,
         rendererType,
         promiseResolve,
+    }: {
+        action: { actionName: string; componentName?: string };
+        args: Record<string, any>;
+        baseVariableValue?: any;
+        componentName?: string;
+        rendererType?: string;
+        promiseResolve?: (value: any) => void;
     }) {
         // Note: the reason we check both the renderer class and .type
         // is that if the renderer was memoized, then the renderer class itself is on .type,
         // Otherwise, the renderer class is the value of the rendererClasses entry.
         let ignoreActionsWithoutCore =
-            rendererClasses.current[rendererType]?.ignoreActionsWithoutCore ||
-            rendererClasses.current[rendererType]?.type
+            rendererClasses.current[rendererType ?? ""]
+                ?.ignoreActionsWithoutCore ||
+            rendererClasses.current[rendererType ?? ""]?.type
                 ?.ignoreActionsWithoutCore;
         if (
             !coreCreated.current &&
@@ -581,7 +698,7 @@ export function PageViewer({
             // and either the action must be ignored without core or core isn't actually
             // in the process of being created (relevant case is that core has been terminated).
             // Also, don't ignore if the doNotIgnore argument has been set
-            // (used for actions called directly from PageViewer for initialization)
+            // (used for actions called directly from DocViewer for initialization)
 
             if (promiseResolve) {
                 // if were given promiseResolve, then action was called from resolveAction
@@ -599,7 +716,7 @@ export function PageViewer({
         if (actionTentativelySkipped.current) {
             // we are for sure skipping the actionTentativelySkipped,
             // so resolve its promise as false
-            actionTentativelySkipped.current.promiseResolve(false);
+            actionTentativelySkipped.current.promiseResolve?.(false);
             actionTentativelySkipped.current = null;
         }
 
@@ -669,7 +786,7 @@ export function PageViewer({
 
         if (coreCreated.current) {
             // Note: it is possible that core has been terminated, so we need the question mark
-            coreWorkerInfo.coreWorker?.postMessage({
+            coreWorker?.postMessage({
                 messageType: "requestAction",
                 args: actionArgs,
             });
@@ -700,6 +817,12 @@ export function PageViewer({
         forceShowCorrectness,
         forceShowSolution,
         forceUnsuppressCheckwork,
+    }: {
+        rendererState: Record<string, Record<string, any>>;
+        forceDisable: boolean;
+        forceShowCorrectness: boolean;
+        forceShowSolution: boolean;
+        forceUnsuppressCheckwork: boolean;
     }) {
         for (let componentName in rendererState) {
             let stateValues = rendererState[componentName].stateValues;
@@ -736,7 +859,7 @@ export function PageViewer({
         }
     }
 
-    function initializeRenderers(args) {
+    function initializeRenderers(args: Record<string, any>) {
         if (args.rendererState) {
             delete args.rendererState.__componentNeedingUpdateValue;
             if (
@@ -766,15 +889,18 @@ export function PageViewer({
 
         coreInfo.current = args.coreInfo;
 
+        if (!coreInfo.current) {
+            return;
+        }
+
         generatedVariantCallback?.({
-            pageVariant: {
-                variantInfo: JSON.parse(
-                    coreInfo.current.generatedVariantString,
-                    serializedComponentsReviver,
-                ),
-                allPossibleVariants: coreInfo.current.allPossibleVariants,
-                itemNumber,
-            },
+            variantInfo: JSON.parse(
+                coreInfo.current.generatedVariantString,
+                serializedComponentsReviver,
+            ),
+            allPossibleVariants: coreInfo.current.allPossibleVariants,
+            activityId,
+            docId,
         });
 
         let renderPromises = [];
@@ -814,7 +940,7 @@ export function PageViewer({
                     }),
                 );
 
-                renderersInitializedCallback?.();
+                // renderersInitializedCallback?.();
             })
             .catch((e) => {
                 errorInitializingRenderers.current = true;
@@ -822,7 +948,13 @@ export function PageViewer({
     }
 
     //offscreen then postpone that one
-    function updateRenderers({ updateInstructions, actionId }) {
+    function updateRenderers({
+        updateInstructions,
+        actionId,
+    }: {
+        updateInstructions: Record<string, any>[];
+        actionId?: string;
+    }) {
         for (let instruction of updateInstructions) {
             if (instruction.instructionType === "updateRendererStates") {
                 for (let {
@@ -854,7 +986,7 @@ export function PageViewer({
         resolveAction({ actionId });
     }
 
-    function resolveAction({ actionId }) {
+    function resolveAction({ actionId }: { actionId?: string }) {
         if (actionId) {
             resolveActionPromises.current[actionId]?.(true);
             delete resolveActionPromises.current[actionId];
@@ -870,37 +1002,7 @@ export function PageViewer({
         }
     }
 
-    function resetPage({ changedOnDevice, newCid, newAttemptNumber }) {
-        // console.log('resetPage', changedOnDevice, newCid, newAttemptNumber);
-
-        if (newAttemptNumber !== attemptNumber) {
-            sendAlert(
-                `Reverted activity as attempt number changed on other device`,
-                "info",
-            );
-            if (updateAttemptNumber) {
-                updateAttemptNumber(newAttemptNumber);
-            } else {
-                // what do we do in this case?
-                setIsInErrorState?.(true);
-                setErrMsg(
-                    "how to reset attempt number when not given updateAttemptNumber function?",
-                );
-            }
-        } else {
-            // TODO: are there cases where will get an infinite loop here?
-            // TODO: since we removed the pageContentChanged feature, it's not clear what to do here.
-            // We should either make this work correctly or remove any calls to resetPage.
-            // sendAlert(
-            //     `Reverted page to state saved on device ${changedOnDevice}`,
-            //     "info",
-            // );
-            // coreId.current = nanoid();
-            // setPageContentChanged(true);
-        }
-    }
-
-    async function loadStateAndInitialize() {
+    async function loadStateAndInitialize(initialPass = false) {
         const coreIdWhenCalled = coreId.current;
         let loadedState = false;
 
@@ -911,7 +1013,7 @@ export function PageViewer({
 
             try {
                 localInfo = await idb_get(
-                    `${activityId}|${pageNumber}|${attemptNumber}|${cid.current}`,
+                    `${activityId}|${docId}|${attemptNumber}|${cid.current}`,
                 );
                 if (localInfo.data_format_version !== data_format_version) {
                     // the data saved does not match the current version, so we ignore it
@@ -953,7 +1055,6 @@ export function PageViewer({
 
                 initialCoreData.current = {
                     coreState,
-                    serverSaveId: localInfo.saveId,
                     requestedVariant: JSON.parse(
                         coreInfo.generatedVariantString,
                         serializedComponentsReviver,
@@ -969,17 +1070,22 @@ export function PageViewer({
                 try {
                     let resp = await getStateViaSplice({
                         cid: cid.current,
-                        pageNumber,
-                        attemptNumber,
                         activityId,
+                        docId,
+                        attemptNumber,
                         userId,
                     });
                     if (resp.loadedState) {
-                        processLoadedPageState(JSON.parse(resp.state));
+                        processLoadedDocState(JSON.parse(resp.state));
                     }
-                } catch (e) {
+                } catch (e: any) {
                     setIsInErrorState?.(true);
-                    setErrMsg(`Error loading page state: ${e.message}`);
+
+                    let message = "";
+                    if ("message" in e) {
+                        message = e.message;
+                    }
+                    setErrMsg(`Error loading doc state: ${message}`);
                     return;
                 }
             }
@@ -987,8 +1093,8 @@ export function PageViewer({
 
         //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
-            if (pageIsActive) {
-                startCore();
+            if (render) {
+                startCore(initialPass);
             } else {
                 setStage("readyToCreateCore");
             }
@@ -997,31 +1103,40 @@ export function PageViewer({
 
     function getStateViaSplice({
         cid,
-        pageNumber,
-        attemptNumber,
         activityId,
+        docId,
+        attemptNumber,
         userId,
+    }: {
+        cid: string;
+        activityId: string;
+        docId: string;
+        attemptNumber: number;
+        userId?: string;
     }) {
         let messageId = nanoid();
-        let savePromiseResolve, savePromiseReject;
+        let savePromiseResolve: (value: Record<string, any>) => void,
+            savePromiseReject: (value: unknown) => void;
 
-        let savePromise = new Promise((resolve, reject) => {
-            savePromiseResolve = resolve;
-            savePromiseReject = reject;
-            window.postMessage({
-                subject: "SPLICE.getState",
-                messageId,
-                cid,
-                pageNumber,
-                attemptNumber,
-                activityId,
-                userId,
-            });
-        });
+        let savePromise = new Promise<Record<string, any>>(
+            (resolve, reject) => {
+                savePromiseResolve = resolve;
+                savePromiseReject = reject;
+                window.postMessage({
+                    subject: "SPLICE.getState",
+                    messageId,
+                    cid,
+                    activityId,
+                    docId,
+                    attemptNumber,
+                    userId,
+                });
+            },
+        );
 
         saveStatePromises.current[messageId] = {
-            resolve: savePromiseResolve,
-            reject: savePromiseReject,
+            resolve: savePromiseResolve!,
+            reject: savePromiseReject!,
         };
 
         const MESSAGE_TIMEOUT = 15000;
@@ -1031,13 +1146,13 @@ export function PageViewer({
                 return;
             }
             delete saveStatePromises.current[messageId];
-            savePromiseReject({ message: "Time out loading page state" });
+            savePromiseReject({ message: "Time out loading doc state" });
         }, MESSAGE_TIMEOUT);
 
         return savePromise;
     }
 
-    function processLoadedPageState(data) {
+    function processLoadedDocState(data: Record<string, any>) {
         let coreInfo = JSON.parse(data.coreInfo, serializedComponentsReviver);
 
         let rendererState = JSON.parse(
@@ -1062,7 +1177,6 @@ export function PageViewer({
 
         initialCoreData.current = {
             coreState: JSON.parse(data.coreState, serializedComponentsReviver),
-            serverSaveId: data.saveId,
             requestedVariant: JSON.parse(
                 coreInfo.generatedVariantString,
                 serializedComponentsReviver,
@@ -1070,41 +1184,37 @@ export function PageViewer({
         };
     }
 
-    async function startCore() {
-        let theInfo = {
-            coreWorker: coreWorkerInfo.coreWorker,
-            doenetML,
-            flags,
-        };
-        setCoreWorkerInfo(theInfo);
+    async function startCore(initialPass = false) {
+        let thisCoreWorker = coreWorker;
 
-        //Kill the current core if it exists
-        if (coreCreated.current) {
-            await reinitializeCoreAndTerminateAnimations(theInfo);
-        } else {
-            // otherwise, just initialize to give it the current DoenetML
-            await initializeCoreWorker(theInfo);
+        if (coreCreated.current || !thisCoreWorker) {
+            //Kill the current core if it exists
+            thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
+        } else if (!initialPass) {
+            // otherwise, if not initial pass, then re-initialize to give it the current DoenetML
+            await initializeCoreWorker({
+                coreWorker: thisCoreWorker,
+                doenetML,
+                flags,
+                activityId,
+                docId,
+                attemptNumber,
+                requestedVariantIndex,
+            });
         }
 
         resolveActionPromises.current = {};
 
-        // console.log(`send message to create core ${pageNumber}`)
-        coreWorkerInfo.coreWorker.postMessage({
+        // console.log(`send message to create core ${docId}`)
+        thisCoreWorker.postMessage({
             messageType: "createCore",
             args: {
                 coreId: coreId.current,
                 userId,
                 cid: cid.current,
-                activityId,
                 theme: darkMode,
-                requestedVariantIndex,
-                pageNumber,
-                attemptNumber,
-                itemNumber,
-                updateDataOnContentChange,
-                serverSaveId: initialCoreData.current.serverSaveId,
-                requestedVariant: initialCoreData.current.requestedVariant,
-                stateVariableChanges: initialCoreData.current.coreState
+                requestedVariant: initialCoreData.current?.requestedVariant,
+                stateVariableChanges: initialCoreData.current?.coreState
                     ? JSON.stringify(
                           initialCoreData.current.coreState,
                           serializedComponentsReplacer,
@@ -1117,7 +1227,17 @@ export function PageViewer({
         coreCreationInProgress.current = true;
     }
 
-    function requestAnimationFrame({ action, actionArgs, delay, animationId }) {
+    function requestAnimationFrame({
+        action,
+        actionArgs,
+        delay,
+        animationId,
+    }: {
+        action: { actionName: string; componentName?: string };
+        actionArgs: Record<string, any>;
+        delay?: number;
+        animationId: string;
+    }) {
         if (!preventMoreAnimations.current) {
             // create new animationId
 
@@ -1141,7 +1261,15 @@ export function PageViewer({
         }
     }
 
-    function _requestAnimationFrame({ action, actionArgs, animationId }) {
+    function _requestAnimationFrame({
+        action,
+        actionArgs,
+        animationId,
+    }: {
+        action: { actionName: string; componentName?: string };
+        actionArgs: Record<string, any>;
+        animationId: string;
+    }) {
         let animationFrameID = window.requestAnimationFrame(() =>
             callAction({
                 action,
@@ -1154,7 +1282,7 @@ export function PageViewer({
         animationInfoObj.animationFrameID = animationFrameID;
     }
 
-    async function cancelAnimationFrame(animationId) {
+    async function cancelAnimationFrame(animationId: string) {
         let animationInfoObj = animationInfo.current[animationId];
         let timeoutId = animationInfoObj?.timeoutId;
         if (timeoutId !== undefined) {
@@ -1167,7 +1295,13 @@ export function PageViewer({
         delete animationInfo.current[animationId];
     }
 
-    async function copyToClipboard({ text, actionId }) {
+    async function copyToClipboard({
+        text,
+        actionId,
+    }: {
+        text: string;
+        actionId?: string;
+    }) {
         await navigator.clipboard.writeText(text);
 
         resolveAction({ actionId });
@@ -1181,7 +1315,7 @@ export function PageViewer({
         }
     }
 
-    if (!coreWorkerInfo) {
+    if (!coreWorker) {
         return null;
     }
 
@@ -1189,13 +1323,27 @@ export function PageViewer({
     // set state to props and record that that need a new core
 
     let changedState = false;
+
+    const initialPass = lastDoenetML.current === null;
+
+    // if we are just starting and the document isn't being rendered,
+    // don't do anything more
+    if (initialPass && !render) {
+        return null;
+    }
+
     if (lastDoenetML.current !== doenetML) {
         lastDoenetML.current = doenetML;
         changedState = true;
     }
 
-    if (lastPageNumber.current !== pageNumber) {
-        lastPageNumber.current = pageNumber;
+    if (lastDocId.current !== docId) {
+        lastDocId.current = docId;
+        changedState = true;
+    }
+
+    if (lastActivityId.current !== activityId) {
+        lastActivityId.current = activityId;
         changedState = true;
     }
 
@@ -1219,7 +1367,7 @@ export function PageViewer({
         }
 
         coreId.current = nanoid();
-        initialCoreData.current = {};
+        initialCoreData.current = null;
         coreInfo.current = null;
         setDocumentRenderer(null);
         coreCreated.current = false;
@@ -1227,7 +1375,7 @@ export function PageViewer({
 
         setStage("wait");
 
-        loadStateAndInitialize();
+        loadStateAndInitialize(initialPass);
 
         return null;
     }
@@ -1255,29 +1403,26 @@ export function PageViewer({
         return null;
     }
 
-    if (stage === "readyToCreateCore" && pageIsActive) {
+    if (stage === "readyToCreateCore" && render) {
         startCore();
-    } else if (
-        stage === "waitingOnCore" &&
-        !pageIsActive &&
-        !coreCreated.current
-    ) {
-        // we've moved off this page, but core is still being created
+    } else if (stage === "waitingOnCore" && !render && !coreCreated.current) {
+        // we've moved off this doc, but core is still being created
         // so reinitialize core
-        reinitializeCoreAndTerminateAnimations(coreWorkerInfo);
+        reinitializeCoreAndTerminateAnimations();
 
         setStage("readyToCreateCore");
     }
 
-    if ((hideWhenNotCurrent && !pageIsCurrent) || !pageIsActive) {
+    if (hidden || !render) {
         return null;
     }
 
     let noCoreWarning = null;
-    let pageStyle = {
+    let viewerStyle = {
         maxWidth: "850px",
         paddingLeft: "20px",
         paddingRight: "20px",
+        backgroundColor: "inherit",
     };
     if (!coreCreated.current) {
         if (!documentRenderer) {
@@ -1287,14 +1432,14 @@ export function PageViewer({
                 </div>
             );
         }
-        pageStyle.backgroundColor = "#F0F0F0";
+        viewerStyle.backgroundColor = "#F0F0F0";
     }
 
     let errorOverview = null;
     if (documentRenderer && errorWarnings.current?.errors.length > 0) {
         let errorStyle = {
             backgroundColor: "#ff9999",
-            textAlign: "center",
+            textAlign: "center" as const,
             borderWidth: 3,
             borderStyle: "solid",
         };
@@ -1314,18 +1459,21 @@ export function PageViewer({
             coreCreated={coreCreated.current}
         >
             {noCoreWarning}
-            <div style={pageStyle} className="doenet-viewer">
+            <div style={viewerStyle} className="doenet-viewer">
                 {errorOverview}
-                <PageContext.Provider value={contextForRenderers}>
+                <DocContext.Provider value={contextForRenderers}>
                     {documentRenderer}
-                </PageContext.Provider>
+                </DocContext.Provider>
             </div>
         </ErrorBoundary>
     );
 }
 
-export async function renderersloadComponent(promises, rendererClassNames) {
-    var rendererClasses = {};
+export async function renderersloadComponent(
+    promises: Promise<any>[],
+    rendererClassNames: string[],
+) {
+    var rendererClasses: Record<string, any> = {};
     for (let [index, promise] of promises.entries()) {
         try {
             let module = await promise;
@@ -1338,18 +1486,28 @@ export async function renderersloadComponent(promises, rendererClassNames) {
     return rendererClasses;
 }
 
-class ErrorBoundary extends React.Component {
-    constructor(props) {
+type ErrorProps = {
+    setIsInErrorState: Function | undefined;
+    errorHandler: Function | undefined;
+    ignoreError: boolean;
+    coreCreated: boolean;
+    children?: ReactNode;
+};
+
+type ErrorState = { hasError: boolean };
+
+class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
+    constructor(props: ErrorProps) {
         super(props);
         this.state = { hasError: false };
     }
 
-    static getDerivedStateFromError(error) {
+    static getDerivedStateFromError(_: Error): ErrorState {
         return { hasError: true };
     }
-    componentDidCatch(error, errorInfo) {
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         this.props.setIsInErrorState?.(true);
-        this.props.errorHandler();
+        this.props.errorHandler?.();
     }
     render() {
         if (this.state.hasError && !this.props.ignoreError) {
@@ -1363,6 +1521,7 @@ class ErrorBoundary extends React.Component {
     }
 }
 
+// TODO: fix this function as it assume conventions that are no longer valid
 export function getURLFromRef({
     cid,
     activityId,
@@ -1375,6 +1534,18 @@ export function getURLFromRef({
     linkSettings,
     search = "",
     id = "",
+}: {
+    cid?: string;
+    activityId?: string;
+    variantIndex?: number;
+    edit?: boolean;
+    hash?: string;
+    page?: number;
+    givenUri?: string;
+    targetName?: string;
+    linkSettings: Record<string, any>;
+    search?: string;
+    id?: string;
 }) {
     // possible linkSettings
     // - viewURL
@@ -1382,7 +1553,7 @@ export function getURLFromRef({
     // - useQueryParameters
 
     let url = "";
-    let targetForATag = "_blank";
+    let targetForATag: string | null = "_blank";
     let haveValidTarget = false;
     let externalUri = false;
 
