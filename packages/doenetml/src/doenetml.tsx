@@ -1,7 +1,7 @@
 import "./DoenetML.css";
 // @ts-ignore
 import { prng_alea } from "esm-seedrandom";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
@@ -12,6 +12,7 @@ import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
+import { useIsOnPage } from "./utils/isVisible";
 
 export const version: string = DOENETML_VERSION;
 
@@ -101,7 +102,6 @@ export function DoenetViewer({
     userId,
     attemptNumber = 1,
     render = true,
-    hidden = false,
     requestedVariantIndex,
     updateCreditAchievedCallback,
     setIsInErrorState,
@@ -129,7 +129,6 @@ export function DoenetViewer({
     userId?: string;
     attemptNumber?: number;
     render?: boolean;
-    hidden?: boolean;
     requestedVariantIndex?: number;
     updateCreditAchievedCallback?: Function;
     setIsInErrorState?: Function;
@@ -159,6 +158,20 @@ export function DoenetViewer({
     const lastPropSet = useRef<any[]>([]);
 
     const variantIndex = useRef(1);
+
+    // Start off hidden and then unhide once the viewer is visible.
+    // This is needed to delay the initialization of JSXgraph
+    // until it is no longer hidden.
+    // Otherwise, the graphs are often displayed in a garbled fashion
+    // with the bounded calculated incorrectly
+    const ref = useRef<HTMLDivElement>(null);
+    const isOnPage = useIsOnPage(ref);
+    const [hidden, setHidden] = useState(true);
+    useEffect(() => {
+        if (isOnPage) {
+            setHidden(false);
+        }
+    }, [isOnPage]);
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -270,10 +283,12 @@ export function DoenetViewer({
         >
             <RecoilRoot>
                 <MathJaxContext version={3} config={mathjaxConfig}>
-                    {variantSelector}
-                    {viewer}
-                    <div className="before-keyboard" />
-                    {keyboard}
+                    <div ref={ref}>
+                        {variantSelector}
+                        {viewer}
+                        <div className="before-keyboard" />
+                        {keyboard}
+                    </div>
                 </MathJaxContext>
             </RecoilRoot>
         </ChakraProvider>
