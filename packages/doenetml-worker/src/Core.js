@@ -58,6 +58,7 @@ export default class Core {
         attemptNumber = 1,
         requestedVariant,
         requestedVariantIndex,
+        initializeCounters = {},
         theme,
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
@@ -89,6 +90,8 @@ export default class Core {
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
+
+        this.initializeCounters = initializeCounters;
 
         const stateVariableChanges = stateVariableChangesString
             ? JSON.parse(

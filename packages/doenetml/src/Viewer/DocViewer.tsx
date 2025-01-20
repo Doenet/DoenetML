@@ -56,6 +56,7 @@ export function DocViewer({
     scrollableContainer,
     darkMode,
     showAnswerTitles,
+    initializeCounters = {},
 }: {
     doenetML: string;
     userId?: string;
@@ -81,6 +82,7 @@ export function DocViewer({
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
+    initializeCounters?: Record<string, number>;
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
         ({ snapshot, set }) =>
@@ -297,6 +299,7 @@ export function DocViewer({
                     docId,
                     attemptNumber,
                     requestedVariantIndex,
+                    initializeCounters,
                 });
             } catch (e: any) {
                 let message = "";
@@ -660,6 +663,7 @@ export function DocViewer({
             docId,
             attemptNumber,
             requestedVariantIndex,
+            initializeCounters,
         });
 
         return newCoreWorker;
@@ -1200,6 +1204,7 @@ export function DocViewer({
                 docId,
                 attemptNumber,
                 requestedVariantIndex,
+                initializeCounters,
             });
         }
 

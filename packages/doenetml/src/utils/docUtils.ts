@@ -15,6 +15,7 @@ export function initializeCoreWorker({
     docId,
     attemptNumber,
     requestedVariantIndex,
+    initializeCounters,
 }: {
     coreWorker: Worker;
     doenetML: string;
@@ -23,6 +24,7 @@ export function initializeCoreWorker({
     docId: string;
     attemptNumber: number;
     requestedVariantIndex: number;
+    initializeCounters: Record<string, number>;
 }) {
     // Initializes core worker with the given arguments.
     // Returns a promise.
@@ -62,6 +64,7 @@ export function initializeCoreWorker({
             docId,
             attemptNumber,
             requestedVariantIndex,
+            initializeCounters,
         },
     });
 

@@ -126,6 +126,7 @@ async function initializeWorker({
     docId,
     attemptNumber,
     requestedVariantIndex,
+    initializeCounters,
 }) {
     let componentInfoObjects = createComponentInfoObjects(flags);
 
@@ -168,6 +169,7 @@ async function initializeWorker({
         docId,
         attemptNumber,
         requestedVariantIndex,
+        initializeCounters,
         serializedDocument: addDocumentIfItsMissing(
             expandResult.fullSerializedComponents[0],
         )[0],
