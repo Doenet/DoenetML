@@ -10,6 +10,9 @@ describe("PageViewer Attribute Tests", function () {
         let allPossibleVariants = null;
 
         function variantsListener(e) {
+            if (e.origin !== window.location.origin) {
+                return;
+            }
             if (e.data.subject === "SPLICE.allPossibleVariants") {
                 allPossibleVariants = e.data.args.allPossibleVariants;
             }

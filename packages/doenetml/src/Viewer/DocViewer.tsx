@@ -449,6 +449,9 @@ export function DocViewer({
 
     useEffect(() => {
         window.addEventListener("message", (e) => {
+            if (e.origin !== window.location.origin) {
+                return;
+            }
             if (typeof e.data !== "object") {
                 return;
             }

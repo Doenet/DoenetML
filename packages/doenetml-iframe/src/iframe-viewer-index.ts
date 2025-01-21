@@ -54,6 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // forward all SPLICE messages that aren't a response to parent
 window.addEventListener("message", (e) => {
+    if (e.origin !== window.parent.location.origin) {
+        return;
+    }
     if (
         e.data.subject.startsWith("SPLICE") &&
         !e.data.subject.endsWith("response")

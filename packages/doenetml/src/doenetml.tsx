@@ -25,7 +25,6 @@ export type DoenetMLFlags = {
     allowLoadState: boolean;
     allowSaveState: boolean;
     allowLocalState: boolean;
-    allowSaveSubmissions: boolean;
     allowSaveEvents: boolean;
     autoSubmit: boolean;
 };
@@ -41,7 +40,6 @@ export const defaultFlags: DoenetMLFlags = {
     allowLoadState: false,
     allowSaveState: false,
     allowLocalState: false,
-    allowSaveSubmissions: false,
     allowSaveEvents: false,
     autoSubmit: false,
 };
@@ -183,10 +181,6 @@ export function DoenetViewer({
         // and disable even looking up state from local storage (as we want to get the state from the database)
         flags.allowLocalState = false;
         flags.allowSaveState = false;
-    } else if (flags.allowSaveState) {
-        // allowSaveState implies allowLoadState
-        // Rationale: saving state will result in loading a new state if another device changed it
-        flags.allowLoadState = true;
     }
 
     const generatedVariantCallback = useCallback(
