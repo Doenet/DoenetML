@@ -417,21 +417,29 @@ export function DocViewer({
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.reportScoreAndState",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "recordSolutionView") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.recordSolutionView",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "sendEvent") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.sendEvent",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "allPossibleVariants") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.allPossibleVariants",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "terminated") {
                 reinitializeCoreAndTerminateAnimations();

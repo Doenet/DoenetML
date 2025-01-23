@@ -144,8 +144,6 @@ async function initializeWorker({
             messageType: "initializeResult",
             args: {
                 ...initializeResult,
-                activityId,
-                docId,
                 attemptNumber,
                 requestedVariantIndex,
             },
@@ -154,8 +152,6 @@ async function initializeWorker({
             messageType: "allPossibleVariants",
             args: {
                 success: false,
-                activityId,
-                docId,
                 attemptNumber,
                 requestedVariantIndex,
             },
@@ -185,8 +181,6 @@ async function initializeWorker({
         messageType: "initializeResult",
         args: {
             ...initializeResult,
-            activityId,
-            docId,
             attemptNumber,
             requestedVariantIndex,
         },
@@ -202,8 +196,6 @@ async function initializeWorker({
         args: {
             success: true,
             allPossibleVariants,
-            activityId,
-            docId,
             attemptNumber,
             requestedVariantIndex,
         },
