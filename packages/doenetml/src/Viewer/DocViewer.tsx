@@ -1091,7 +1091,7 @@ export function DocViewer({
                         userId,
                     });
                     if (resp.loadedState) {
-                        processLoadedDocState(JSON.parse(resp.state));
+                        processLoadedDocState(resp.state);
                     }
                 } catch (e: any) {
                     setIsInErrorState?.(true);
