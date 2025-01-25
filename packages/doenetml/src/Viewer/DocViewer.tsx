@@ -456,8 +456,11 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
-        window.addEventListener("message", (e) => {
-            if (e.origin !== window.location.origin) {
+        const listener = function (e: MessageEvent) {
+            if (
+                e.origin !== window.location.origin &&
+                e.origin !== window.parent.location.origin
+            ) {
                 return;
             }
             if (typeof e.data !== "object") {
@@ -476,8 +479,14 @@ export function DocViewer({
                     promiseInfo.reject(e.data);
                 }
             }
-        });
-    });
+        };
+
+        window.addEventListener("message", listener);
+
+        return () => {
+            window.removeEventListener("message", listener);
+        };
+    }, []);
 
     useEffect(() => {
         if (!coreWorker) {
