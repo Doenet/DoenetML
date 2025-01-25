@@ -417,21 +417,29 @@ export function DocViewer({
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.reportScoreAndState",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "recordSolutionView") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.recordSolutionView",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "sendEvent") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.sendEvent",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "allPossibleVariants") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.allPossibleVariants",
+                    activityId,
+                    docId,
                 });
             } else if (e.data.messageType === "terminated") {
                 reinitializeCoreAndTerminateAnimations();
@@ -448,8 +456,11 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
-        window.addEventListener("message", (e) => {
-            if (e.origin !== window.location.origin) {
+        const listener = function (e: MessageEvent) {
+            if (
+                e.origin !== window.location.origin &&
+                e.origin !== window.parent.location.origin
+            ) {
                 return;
             }
             if (typeof e.data !== "object") {
@@ -468,8 +479,14 @@ export function DocViewer({
                     promiseInfo.reject(e.data);
                 }
             }
-        });
-    });
+        };
+
+        window.addEventListener("message", listener);
+
+        return () => {
+            window.removeEventListener("message", listener);
+        };
+    }, []);
 
     useEffect(() => {
         if (!coreWorker) {
@@ -1083,7 +1100,7 @@ export function DocViewer({
                         userId,
                     });
                     if (resp.loadedState) {
-                        processLoadedDocState(JSON.parse(resp.state));
+                        processLoadedDocState(resp.state);
                     }
                 } catch (e: any) {
                     setIsInErrorState?.(true);
