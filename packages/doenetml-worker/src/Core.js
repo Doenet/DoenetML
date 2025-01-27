@@ -229,9 +229,6 @@ export default class Core {
         this.errorWarnings.errors.push(...res.errors);
         this.errorWarnings.warnings.push(...res.warnings);
 
-        this.failedToSavePageState = false;
-        this.failedToSaveCreditForItem = false;
-
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
@@ -12908,13 +12905,6 @@ export default class Core {
             // else override timeout to save any pending changes to database
             await this.saveChangesToDatabase(true);
         }
-
-        postMessage({
-            messageType: "saveImmediatelyResult",
-            success: !(
-                this.failedToSavePageState || this.failedToSaveCreditForItem
-            ),
-        });
     }
 
     async saveState(overrideThrottle = false, onSubmission = false) {
@@ -13013,7 +13003,7 @@ export default class Core {
         }
 
         postMessage({
-            messageType: "saveCreditForItem",
+            messageType: "reportScoreAndState",
             state: { ...this.pageStateToBeSavedToDatabase },
             score: await this.document.stateValues.creditAchieved,
         });
@@ -13145,10 +13135,6 @@ export default class Core {
         }
 
         await this.saveImmediately();
-
-        if (this.failedToSavePageState || this.failedToSaveCreditForItem) {
-            throw Error("Terminating core failed due to failure to save data.");
-        }
     }
 
     recordAnswerToAutoSubmit(componentName) {

@@ -47,7 +47,8 @@ export function DocViewer({
     flags,
     requestedVariantIndex,
     setErrorsAndWarningsCallback,
-    updateCreditAchievedCallback,
+    reportScoreAndStateCallback,
+    documentStructureCallback,
     setIsInErrorState,
     prefixForIds = "",
     location = {},
@@ -73,7 +74,8 @@ export function DocViewer({
     flags: DoenetMLFlags;
     requestedVariantIndex: number;
     setErrorsAndWarningsCallback?: Function;
-    updateCreditAchievedCallback?: Function;
+    reportScoreAndStateCallback?: Function;
+    documentStructureCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
     location?: any;
@@ -380,8 +382,6 @@ export function DocViewer({
                         setIsInErrorState?.(false);
                     }
                 }
-            } else if (e.data.messageType === "updateCreditAchieved") {
-                updateCreditAchievedCallback?.(e.data.args);
             } else if (e.data.messageType === "savedState") {
                 // saveStateCallback?.();
             } else if (e.data.messageType === "sendAlert") {
@@ -413,10 +413,15 @@ export function DocViewer({
                 navigate(location.search + e.data.args.hash, {
                     replace: true,
                 });
-            } else if (e.data.messageType === "saveCreditForItem") {
+            } else if (e.data.messageType === "reportScoreAndState") {
                 window.postMessage({
                     ...e.data,
                     subject: "SPLICE.reportScoreAndState",
+                    activityId,
+                    docId,
+                });
+                reportScoreAndStateCallback?.({
+                    ...e.data,
                     activityId,
                     docId,
                 });
@@ -434,10 +439,9 @@ export function DocViewer({
                     activityId,
                     docId,
                 });
-            } else if (e.data.messageType === "allPossibleVariants") {
-                window.postMessage({
+            } else if (e.data.messageType === "documentStructure") {
+                documentStructureCallback?.({
                     ...e.data,
-                    subject: "SPLICE.allPossibleVariants",
                     activityId,
                     docId,
                 });

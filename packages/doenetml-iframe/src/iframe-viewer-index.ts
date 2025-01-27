@@ -24,9 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
             externalVirtualKeyboardProvided: true,
             // Callbacks have to be explicitly overridden here so that they
             // can message the parent React component (outside the iframe).
-            updateCreditAchievedCallback: (args: unknown) => {
+            reportScoreAndStateCallback: (args: unknown) => {
                 messageParentFromViewer({
-                    callback: "updateCreditAchievedCallback",
+                    callback: "reportScoreAndStateCallback",
                     args,
                 });
             },
@@ -39,6 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
             generatedVariantCallback: (args: unknown) => {
                 messageParentFromViewer({
                     callback: "generatedVariantCallback",
+                    args,
+                });
+            },
+            documentStructureCallback: (args: unknown) => {
+                messageParentFromViewer({
+                    callback: "documentStructureCallback",
                     args,
                 });
             },
@@ -58,8 +64,8 @@ window.addEventListener("message", (e) => {
         return;
     }
     if (
-        e.data.subject.startsWith("SPLICE") &&
-        !e.data.subject.endsWith("response")
+        e.data.subject?.startsWith("SPLICE") &&
+        !e.data.subject?.endsWith("response")
     ) {
         window.parent.postMessage(e.data);
     }
