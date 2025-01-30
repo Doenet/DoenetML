@@ -2,6 +2,7 @@
 // created by DoenetViewer.
 declare const viewerId: string;
 declare const doenetViewerProps: object;
+declare const haveCallbacks: string[];
 interface Window {
     renderDoenetViewerToContainer: (
         container: Element,
@@ -16,44 +17,39 @@ document.addEventListener("DOMContentLoaded", () => {
             error: "Invalid DoenetML version or DoenetML package not found",
         });
     }
+
+    // Callbacks have to be explicitly overridden here so that they
+    // can message the parent React component (outside the iframe).
+    const callbackOverrides: Record<
+        string,
+        ((args: unknown) => void) | undefined
+    > = {};
+    const callbackNames = [
+        "reportScoreAndStateCallback",
+        "setIsInErrorState",
+        "generatedVariantCallback",
+        "documentStructureCallback",
+        "initializedCallback",
+        "setErrorsAndWarningsCallback",
+    ];
+    for (const callback of callbackNames) {
+        callbackOverrides[callback] = haveCallbacks.includes(callback)
+            ? (args: unknown) => {
+                  messageParentFromViewer({
+                      callback,
+                      args,
+                  });
+              }
+            : undefined;
+    }
+
     window.renderDoenetViewerToContainer(
         document.getElementById("root")!,
         undefined,
         {
             ...doenetViewerProps,
             externalVirtualKeyboardProvided: true,
-            // Callbacks have to be explicitly overridden here so that they
-            // can message the parent React component (outside the iframe).
-            reportScoreAndStateCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "reportScoreAndStateCallback",
-                    args,
-                });
-            },
-            setIsInErrorState: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "setIsInErrorState",
-                    args,
-                });
-            },
-            generatedVariantCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "generatedVariantCallback",
-                    args,
-                });
-            },
-            documentStructureCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "documentStructureCallback",
-                    args,
-                });
-            },
-            setErrorsAndWarningsCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "setErrorsAndWarningsCallback",
-                    args,
-                });
-            },
+            ...callbackOverrides,
         },
     );
 });

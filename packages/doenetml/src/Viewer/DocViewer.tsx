@@ -46,9 +46,11 @@ export function DocViewer({
     generatedVariantCallback,
     flags,
     requestedVariantIndex,
+    initialState,
     setErrorsAndWarningsCallback,
     reportScoreAndStateCallback,
     documentStructureCallback,
+    initializedCallback,
     setIsInErrorState,
     prefixForIds = "",
     location = {},
@@ -73,9 +75,11 @@ export function DocViewer({
     generatedVariantCallback?: Function;
     flags: DoenetMLFlags;
     requestedVariantIndex: number;
+    initialState?: Record<string, any> | null;
     setErrorsAndWarningsCallback?: Function;
     reportScoreAndStateCallback?: Function;
     documentStructureCallback?: Function;
+    initializedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
     location?: any;
@@ -359,12 +363,7 @@ export function DocViewer({
                     });
                 }
                 setStage("coreCreated");
-                window.postMessage({
-                    subject: "SPLICE.initialized",
-                    activityId,
-                    docId,
-                });
-                // coreCreatedCallback?.();
+                initializedCallback?.({ activityId, docId });
             } else if (e.data.messageType === "initializeRenderers") {
                 if (
                     coreInfo.current &&
@@ -414,17 +413,20 @@ export function DocViewer({
                     replace: true,
                 });
             } else if (e.data.messageType === "reportScoreAndState") {
-                window.postMessage({
-                    ...e.data,
-                    subject: "SPLICE.reportScoreAndState",
-                    activityId,
-                    docId,
-                });
-                reportScoreAndStateCallback?.({
-                    ...e.data,
-                    activityId,
-                    docId,
-                });
+                if (reportScoreAndStateCallback) {
+                    reportScoreAndStateCallback({
+                        ...e.data,
+                        activityId,
+                        docId,
+                    });
+                } else {
+                    window.postMessage({
+                        ...e.data,
+                        subject: "SPLICE.reportScoreAndState",
+                        activityId,
+                        docId,
+                    });
+                }
             } else if (e.data.messageType === "recordSolutionView") {
                 window.postMessage({
                     ...e.data,
@@ -1096,15 +1098,20 @@ export function DocViewer({
         if (!loadedState) {
             if (flags.allowLoadState) {
                 try {
-                    let resp = await getStateViaSplice({
-                        cid: cid.current,
-                        activityId,
-                        docId,
-                        attemptNumber,
-                        userId,
-                    });
-                    if (resp.loadedState) {
-                        processLoadedDocState(resp.state);
+                    // Note: initialState === null means don't attempt to load in any state
+                    if (initialState) {
+                        processLoadedDocState(initialState);
+                    } else if (initialState === undefined) {
+                        let resp = await getStateViaSplice({
+                            cid: cid.current,
+                            activityId,
+                            docId,
+                            attemptNumber,
+                            userId,
+                        });
+                        if (resp.loadedState) {
+                            processLoadedDocState(resp.state);
+                        }
                     }
                 } catch (e: any) {
                     setIsInErrorState?.(true);

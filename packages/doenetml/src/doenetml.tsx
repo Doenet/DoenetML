@@ -101,10 +101,12 @@ export function DoenetViewer({
     attemptNumber = 1,
     render = true,
     requestedVariantIndex,
+    initialState,
     reportScoreAndStateCallback,
     setIsInErrorState,
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     documentStructureCallback,
+    initializedCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
     forceShowCorrectness = false,
@@ -130,10 +132,12 @@ export function DoenetViewer({
     attemptNumber?: number;
     render?: boolean;
     requestedVariantIndex?: number;
+    initialState?: Record<string, any> | null;
     reportScoreAndStateCallback?: Function;
     setIsInErrorState?: Function;
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
+    initializedCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
@@ -256,10 +260,12 @@ export function DoenetViewer({
             render={render}
             hidden={hidden}
             requestedVariantIndex={variantIndex.current}
+            initialState={initialState}
             reportScoreAndStateCallback={reportScoreAndStateCallback}
             setIsInErrorState={setIsInErrorState}
             generatedVariantCallback={generatedVariantCallback}
             documentStructureCallback={documentStructureCallback}
+            initializedCallback={initializedCallback}
             setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}

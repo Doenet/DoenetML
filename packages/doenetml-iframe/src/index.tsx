@@ -184,6 +184,9 @@ export function DoenetViewer({
                         data.args,
                     );
                 }
+                case "initializedCallback": {
+                    return doenetViewerProps.initializedCallback?.(data.args);
+                }
                 case "setErrorsAndWarningsCallback": {
                     return doenetViewerProps.setErrorsAndWarningsCallback?.(
                         data.args,
