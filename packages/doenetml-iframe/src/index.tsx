@@ -166,8 +166,8 @@ export function DoenetViewer({
             }
 
             switch (data.callback) {
-                case "updateCreditAchievedCallback": {
-                    return doenetViewerProps.updateCreditAchievedCallback?.(
+                case "reportScoreAndStateCallback": {
+                    return doenetViewerProps.reportScoreAndStateCallback?.(
                         data.args,
                     );
                 }
@@ -178,6 +178,14 @@ export function DoenetViewer({
                     return doenetViewerProps.generatedVariantCallback?.(
                         data.args,
                     );
+                }
+                case "documentStructureCallback": {
+                    return doenetViewerProps.documentStructureCallback?.(
+                        data.args,
+                    );
+                }
+                case "initializedCallback": {
+                    return doenetViewerProps.initializedCallback?.(data.args);
                 }
                 case "setErrorsAndWarningsCallback": {
                     return doenetViewerProps.setErrorsAndWarningsCallback?.(

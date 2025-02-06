@@ -498,6 +498,9 @@ export function CypressTest() {
                 }}
                 attemptNumber={attemptNumber}
                 requestedVariantIndex={requestedVariantIndex.current}
+                documentStructureCallback={(args: unknown) => {
+                    window.postMessage(args);
+                }}
                 activityId="activityIdFromCypress"
                 render={render}
                 location={location}

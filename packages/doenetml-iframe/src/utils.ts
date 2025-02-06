@@ -27,6 +27,21 @@ export function createHtmlForDoenetViewer(
     standaloneUrl: string,
     cssUrl: string,
 ) {
+    const haveCallbacks: string[] = [];
+    const callbackNames = [
+        "reportScoreAndStateCallback",
+        "setIsInErrorState",
+        "generatedVariantCallback",
+        "documentStructureCallback",
+        "initializedCallback",
+        "setErrorsAndWarningsCallback",
+    ];
+    for (const callback of callbackNames) {
+        if (callback in doenetViewerProps) {
+            haveCallbacks.push(callback);
+        }
+    }
+
     return `
     <html style="overflow:hidden">
     <head>
@@ -37,9 +52,10 @@ export function createHtmlForDoenetViewer(
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
+            const haveCallbacks = ${JSON.stringify(haveCallbacks)};
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetViewerProps are defined in the global scope.
+            // It assumes that viewerId, doenetViewerProps, and haveCallbacks are defined in the global scope.
             ${viewerIframeJsSource}
         </script>
         <div id="root">
@@ -75,7 +91,7 @@ export function createHtmlForDoenetEditor(
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetEditorProps are defined in the global scope.
+            // It assumes that editorId and doenetEditorProps are defined in the global scope.
             ${editorIframeJsSource}
         </script>
         <div id="root">
