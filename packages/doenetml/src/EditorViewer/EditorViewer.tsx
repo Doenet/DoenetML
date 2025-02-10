@@ -40,6 +40,7 @@ export function EditorViewer({
     viewerLocation = "right",
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
+    documentStructureCallback,
     id: specifiedId,
     readOnly = false,
     showFormatter = true,
@@ -63,6 +64,7 @@ export function EditorViewer({
     viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
+    documentStructureCallback?: Function;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
@@ -495,6 +497,7 @@ export function EditorViewer({
                         setErrorsAndWarningsCallback={
                             setErrorsAndWarningsCallback
                         }
+                        documentStructureCallback={documentStructureCallback}
                         location={location}
                         navigate={navigate}
                         linkSettings={linkSettings}

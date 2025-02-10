@@ -319,6 +319,7 @@ export function DoenetEditor({
     showViewer,
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
+    documentStructureCallback,
     id,
     readOnly = false,
     showFormatter = true,
@@ -344,6 +345,7 @@ export function DoenetEditor({
     showViewer?: boolean;
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
+    documentStructureCallback?: Function;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
@@ -375,6 +377,7 @@ export function DoenetEditor({
             showViewer={showViewer}
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
+            documentStructureCallback={documentStructureCallback}
             id={id}
             readOnly={readOnly}
             showFormatter={showFormatter}

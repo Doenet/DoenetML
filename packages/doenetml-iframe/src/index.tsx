@@ -350,6 +350,11 @@ export function DoenetEditor({
                         data.args,
                     );
                 }
+                case "documentStructureCallback": {
+                    return doenetEditorProps.documentStructureCallback?.(
+                        data.args,
+                    );
+                }
             }
         };
         if (ref.current) {
