@@ -267,6 +267,66 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/title32")).should("have.text", "Aside 5");
     });
 
+    it("Aside with postpone rendering opens before initializing", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+
+<aside name="aside" postponeRendering>
+  <title>An aside</title>
+  <p>The aside</p>
+  <samplePrimeNumbers minValue="1" maxValue="10000000" />
+</aside>
+
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/aside")).should("contain.text", "An aside");
+        cy.get(cesc2("#/aside")).should("not.contain.text", "The aside");
+
+        cy.get(cesc2("#/aside")).click();
+        cy.get(cesc2("#/aside")).should("contain.text", "Initializing");
+        cy.get(cesc2("#/aside")).should("not.contain.text", "The aside");
+
+        cy.log("Eventually aside finishes rendering");
+        cy.get(cesc2("#/aside")).should("contain.text", "The aside");
+        cy.get(cesc2("#/aside")).should("not.contain.text", "Initializing");
+    });
+
+    it("Proof with postpone rendering opens before initializing", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+
+<proof name="proof" postponeRendering>
+<title>An proof</title>
+<p>The proof</p>
+<samplePrimeNumbers minValue="1" maxValue="10000000" />
+</proof>
+
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/proof")).should("contain.text", "An proof");
+        cy.get(cesc2("#/proof")).should("not.contain.text", "The proof");
+
+        cy.get(cesc2("#/proof")).click();
+        cy.get(cesc2("#/proof")).should("contain.text", "Initializing");
+        cy.get(cesc2("#/proof")).should("not.contain.text", "The proof");
+
+        cy.log("Eventually proof finishes rendering");
+        cy.get(cesc2("#/proof")).should("contain.text", "The proof");
+        cy.get(cesc2("#/proof")).should("not.contain.text", "Initializing");
+    });
+
     it("Exercise with statement, hint, givenanswer, and solution", () => {
         cy.window().then(async (win) => {
             win.postMessage(

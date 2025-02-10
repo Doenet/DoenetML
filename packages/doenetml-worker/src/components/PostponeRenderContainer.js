@@ -1,9 +1,7 @@
 import Template from "./Template";
 
-export default class SolutionContainer extends Template {
-    static componentType = "_solutionContainer";
-
-    static stateVariableToEvaluateAfterReplacements = "open";
+export default class PostponeRenderContainer extends Template {
+    static componentType = "_postponeRenderContainer";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -16,14 +14,14 @@ export default class SolutionContainer extends Template {
 
         stateVariableDefinitions.rendered = {
             returnDependencies: () => ({
-                parentOpen: {
+                parentRendered: {
                     dependencyType: "parentStateVariable",
-                    variableName: "open",
+                    variableName: "rendered",
                 },
             }),
             markStale: () => ({ updateReplacements: true }),
             definition({ dependencyValues }) {
-                let rendered = Boolean(dependencyValues.parentOpen);
+                let rendered = Boolean(dependencyValues.parentRendered);
                 return { setValue: { rendered } };
             },
         };

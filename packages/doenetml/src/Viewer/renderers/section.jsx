@@ -351,7 +351,7 @@ export default React.memo(function Section(props) {
         if (SVs.open) {
             innerContent = (
                 <div style={{ display: "block", padding: "6px" }}>
-                    {children}
+                    {SVs.rendered ? children : <p>Initializing...</p>}
                     {checkworkComponent}
                 </div>
             );
