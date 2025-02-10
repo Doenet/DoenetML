@@ -297,6 +297,36 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc2("#/aside")).should("not.contain.text", "Initializing");
     });
 
+    it("Proof with postpone rendering opens before initializing", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+
+<proof name="proof" postponeRendering>
+<title>An proof</title>
+<p>The proof</p>
+<samplePrimeNumbers minValue="1" maxValue="10000000" />
+</proof>
+
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/proof")).should("contain.text", "An proof");
+        cy.get(cesc2("#/proof")).should("not.contain.text", "The proof");
+
+        cy.get(cesc2("#/proof")).click();
+        cy.get(cesc2("#/proof")).should("contain.text", "Initializing");
+        cy.get(cesc2("#/proof")).should("not.contain.text", "The proof");
+
+        cy.log("Eventually proof finishes rendering");
+        cy.get(cesc2("#/proof")).should("contain.text", "The proof");
+        cy.get(cesc2("#/proof")).should("not.contain.text", "Initializing");
+    });
+
     it("Exercise with statement, hint, givenanswer, and solution", () => {
         cy.window().then(async (win) => {
             win.postMessage(
