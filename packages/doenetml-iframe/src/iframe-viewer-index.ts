@@ -2,7 +2,7 @@
 // created by DoenetViewer.
 declare const viewerId: string;
 declare const doenetViewerProps: object;
-declare const haveCallbacks: string[];
+declare const haveViewerCallbacks: string[];
 interface Window {
     renderDoenetViewerToContainer: (
         container: Element,
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "setErrorsAndWarningsCallback",
     ];
     for (const callback of callbackNames) {
-        callbackOverrides[callback] = haveCallbacks.includes(callback)
+        callbackOverrides[callback] = haveViewerCallbacks.includes(callback)
             ? (args: unknown) => {
                   messageParentFromViewer({
                       callback,
