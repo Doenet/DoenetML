@@ -930,6 +930,114 @@ describe("Sectioning tag tests", async () => {
         expect(stateVariables["/aside1"].stateValues.open).eq(false);
     });
 
+    it("aside content with postponeRendering isn't created before opening", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <aside name="aside" postponeRendering>
+        <title>My aside</title>
+        <p name="asideText">This is the text of the aside.</p>
+      </aside>
+      `,
+        });
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/aside"].stateValues.title).eq("My aside"); // title is created before opening
+        expect(stateVariables["/asideText"]).be.undefined;
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentName: "/aside",
+            args: {},
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/aside"].stateValues.title).eq("My aside");
+        expect(stateVariables["/asideText"].stateValues.text).eq(
+            "This is the text of the aside.",
+        );
+    });
+
+    it("aside content without postponeRendering is created before opening", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <aside name="aside">
+        <title>My aside</title>
+        <p name="asideText">This is the text of the aside.</p>
+      </aside>
+      `,
+        });
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/aside"].stateValues.title).eq("My aside");
+        expect(stateVariables["/asideText"].stateValues.text).eq(
+            "This is the text of the aside.",
+        );
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentName: "/aside",
+            args: {},
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/aside"].stateValues.title).eq("My aside");
+        expect(stateVariables["/asideText"].stateValues.text).eq(
+            "This is the text of the aside.",
+        );
+    });
+
+    it("proof content with postponeRendering isn't created before opening", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <proof name="proof" postponeRendering>
+        <title>My proof</title>
+        <p name="proofText">This is the text of the proof.</p>
+      </proof>
+      `,
+        });
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/proof"].stateValues.title).eq("My proof"); // title is created before opening
+        expect(stateVariables["/proofText"]).be.undefined;
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentName: "/proof",
+            args: {},
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/proof"].stateValues.title).eq("My proof");
+        expect(stateVariables["/proofText"].stateValues.text).eq(
+            "This is the text of the proof.",
+        );
+    });
+
+    it("proof content without postponeRendering is created before opening", async () => {
+        let core = await createTestCore({
+            doenetML: `
+      <proof name="proof">
+        <title>My proof</title>
+        <p name="proofText">This is the text of the proof.</p>
+      </proof>
+      `,
+        });
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/proof"].stateValues.title).eq("My proof");
+        expect(stateVariables["/proofText"].stateValues.text).eq(
+            "This is the text of the proof.",
+        );
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentName: "/proof",
+            args: {},
+            event: null,
+        });
+        stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/proof"].stateValues.title).eq("My proof");
+        expect(stateVariables["/proofText"].stateValues.text).eq(
+            "This is the text of the proof.",
+        );
+    });
+
     it("Exercise with statement, hint, givenanswer, and solution", async () => {
         let core = await createTestCore({
             doenetML: `
