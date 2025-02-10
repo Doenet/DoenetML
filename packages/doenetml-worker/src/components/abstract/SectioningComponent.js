@@ -1064,7 +1064,6 @@ export class SectioningComponent extends BlockComponent {
                 },
             ],
             overrideReadOnly: true,
-            actionId,
             sourceInformation,
             skipRendererUpdate,
             event: {
