@@ -87,10 +87,10 @@ export function setUpVariantSeedAndRng({
     }
 
     sharedParameters.variantSeed = variantSeed;
-    sharedParameters.variantRng = new sharedParameters.rngClass(
+    sharedParameters.variantRng = sharedParameters.rngClass(
         sharedParameters.variantSeed,
     );
-    sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
+    sharedParameters.subpartVariantRng = sharedParameters.rngClass(
         sharedParameters.variantSeed + "s",
     );
 

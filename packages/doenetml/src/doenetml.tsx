@@ -1,6 +1,5 @@
 import "./DoenetML.css";
-// @ts-ignore
-import { prng_alea } from "esm-seedrandom";
+import seedrandom from "seedrandom";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { RecoilRoot } from "recoil";
@@ -44,7 +43,7 @@ export const defaultFlags: DoenetMLFlags = {
     autoSubmit: false,
 };
 
-let rngClass = prng_alea;
+const rngClass = seedrandom.alea;
 
 /**
  * this is a hack for react-mathqill
@@ -231,7 +230,7 @@ export function DoenetViewer({
         // regenerate only if one of the props in propSet has changed
         if (thisPropSet.some((v, i) => v !== lastPropSet.current[i])) {
             if (requestedVariantIndex === undefined) {
-                let rng = new rngClass();
+                let rng = rngClass();
                 requestedVariantIndex = Math.floor(rng() * 1000000) + 1;
             }
             variantIndex.current = Math.round(requestedVariantIndex);

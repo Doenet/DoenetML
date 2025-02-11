@@ -1209,10 +1209,10 @@ export class SectioningComponent extends BlockComponent {
                 variantIndex - 1
             ];
 
-        sharedParameters.variantRng = new sharedParameters.rngClass(
+        sharedParameters.variantRng = sharedParameters.rngClass(
             sharedParameters.variantSeed,
         );
-        sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
+        sharedParameters.subpartVariantRng = sharedParameters.rngClass(
             sharedParameters.variantSeed + "s",
         );
 
