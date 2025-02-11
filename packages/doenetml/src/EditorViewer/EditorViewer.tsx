@@ -129,6 +129,17 @@ export function EditorViewer({
         setEditorDoenetML(initialDoenetML);
     }, [initialDoenetML]);
 
+    // call documentStructure callback followed by doenetmlChangeCallback
+    // so that one can have access to the document structure before a
+    // save in response to doenetmlChangeCallback
+    const documentStructureThenChangeCallback = useCallback(
+        (obj: unknown) => {
+            documentStructureCallback?.(obj);
+            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+        },
+        [documentStructureCallback, doenetmlChangeCallback],
+    );
+
     const onEditorChange = useCallback(
         (value: string) => {
             if (editorDoenetMLRef.current !== value) {
@@ -175,7 +186,9 @@ export function EditorViewer({
                     lastReportedDoenetML.current !== editorDoenetMLRef.current
                 ) {
                     lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    if (!showViewer) {
+                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    }
                 }
 
                 setCodeChanged(false);
@@ -425,9 +438,11 @@ export function EditorViewer({
                                     ) {
                                         lastReportedDoenetML.current =
                                             editorDoenetMLRef.current;
-                                        doenetmlChangeCallback?.(
-                                            editorDoenetMLRef.current,
-                                        );
+                                        if (!showViewer) {
+                                            doenetmlChangeCallback?.(
+                                                editorDoenetMLRef.current,
+                                            );
+                                        }
                                     }
                                     setCodeChanged(false);
                                     updateValueTimer.current = null;
@@ -513,7 +528,9 @@ export function EditorViewer({
                         setErrorsAndWarningsCallback={
                             setErrorsAndWarningsCallback
                         }
-                        documentStructureCallback={documentStructureCallback}
+                        documentStructureCallback={
+                            documentStructureThenChangeCallback
+                        }
                         location={location}
                         navigate={navigate}
                         linkSettings={linkSettings}

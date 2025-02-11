@@ -192,20 +192,21 @@ async function initializeWorker({
     );
 
     // count the number of occurrences of each component type from the document's immediate children
-    const baseLevelComponentCounts =
-        coreBaseArgs.serializedDocument.children.reduce((a, c) => {
+    const baseComponentCounts = coreBaseArgs.serializedDocument.children.reduce(
+        (a, c) => {
             if (typeof c === "object") {
                 a[c.componentType] = (a[c.componentType] ?? 0) + 1;
             }
             return a;
-        }, {});
+        },
+        {},
+    );
 
     postMessage({
         messageType: "documentStructure",
         args: {
-            success: true,
             allPossibleVariants,
-            baseLevelComponentCounts,
+            baseComponentCounts,
         },
     });
 }
