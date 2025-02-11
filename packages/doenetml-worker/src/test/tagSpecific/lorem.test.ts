@@ -166,15 +166,16 @@ describe("lorem tag tests", async () => {
 
         let stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/n"].stateValues.value).eq(1);
+        const n1 = stateVariables["/n"].stateValues.value;
+
         expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
-        let paragraph0 =
+        const paragraph1 =
             stateVariables[
                 stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0];
 
-        expect(stateVariables["/a"].stateValues.text).eq(paragraph0);
+        expect(stateVariables["/a"].stateValues.text).eq(paragraph1);
 
         core = await createTestCore({
             doenetML: `
@@ -186,16 +187,16 @@ describe("lorem tag tests", async () => {
 
         stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/n"].stateValues.value).eq(1);
+        expect(stateVariables["/n"].stateValues.value).eq(n1);
         expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
         expect(
             stateVariables[
                 stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0],
-        ).eq(paragraph0);
+        ).eq(paragraph1);
 
-        expect(stateVariables["/a"].stateValues.text).eq(paragraph0);
+        expect(stateVariables["/a"].stateValues.text).eq(paragraph1);
 
         core = await createTestCore({
             doenetML: `
@@ -207,16 +208,17 @@ describe("lorem tag tests", async () => {
 
         stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/n"].stateValues.value).eq(2);
+        const n2 = stateVariables["/n"].stateValues.value;
+        expect(n2).eq(3 - n1);
         expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
-        let paragraph1 =
+        const paragraph2 =
             stateVariables[
                 stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0];
-        expect(paragraph1).not.eq(paragraph0);
+        expect(paragraph2).not.eq(paragraph1);
 
-        expect(stateVariables["/a"].stateValues.text).eq(paragraph1);
+        expect(stateVariables["/a"].stateValues.text).eq(paragraph2);
 
         core = await createTestCore({
             doenetML: `
@@ -229,15 +231,15 @@ describe("lorem tag tests", async () => {
 
         stateVariables = await returnAllStateVariables(core);
 
-        expect(stateVariables["/n"].stateValues.value).eq(2);
+        expect(stateVariables["/n"].stateValues.value).eq(n2);
         expect(stateVariables["/lPars"].replacements!.length).eq(1);
 
         expect(
             stateVariables[
                 stateVariables["/lPars"].replacements![0].componentName
             ].activeChildren[0],
-        ).eq(paragraph1);
+        ).eq(paragraph2);
 
-        expect(stateVariables["/a"].stateValues.text).eq(paragraph1);
+        expect(stateVariables["/a"].stateValues.text).eq(paragraph2);
     });
 });

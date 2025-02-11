@@ -394,10 +394,14 @@ describe("Problem tag tests", async () => {
         stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/hello"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.5);
+        const bananaInd =
+            stateVariables["/fruitInput"].stateValues.choiceTexts.indexOf(
+                "banana",
+            ) + 1;
 
         await updateSelectedIndices({
             name: "/fruitInput",
-            selectedIndices: [1],
+            selectedIndices: [bananaInd],
             core,
         });
         await submitAnswer({ name: "/fruit", core });
@@ -634,9 +638,15 @@ describe("Problem tag tests", async () => {
             false,
         );
         expect(stateVariables["/subProblem"].stateValues.creditAchieved).eq(0);
+
+        const bananaInd =
+            stateVariables["/fruitInput"].stateValues.choiceTexts.indexOf(
+                "banana",
+            ) + 1;
+
         await updateSelectedIndices({
             name: "/fruitInput",
-            selectedIndices: [1],
+            selectedIndices: [bananaInd],
             core,
         });
         await core.requestAction({
