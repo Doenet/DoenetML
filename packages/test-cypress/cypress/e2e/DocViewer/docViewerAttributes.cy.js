@@ -8,7 +8,7 @@ describe("PageViewer Attribute Tests", function () {
 
     it("get variants, component counts without rendering or starting core", () => {
         let allPossibleVariants = null;
-        let baseLevelComponentCounts = null;
+        let baseComponentCounts = null;
 
         function variantsListener(e) {
             if (e.origin !== window.location.origin) {
@@ -17,7 +17,7 @@ describe("PageViewer Attribute Tests", function () {
 
             if (e.data.messageType === "documentStructure") {
                 allPossibleVariants = e.data.args.allPossibleVariants;
-                baseLevelComponentCounts = e.data.args.baseLevelComponentCounts;
+                baseComponentCounts = e.data.args.baseComponentCounts;
             }
         }
 
@@ -54,7 +54,7 @@ describe("PageViewer Attribute Tests", function () {
 
         cy.window().then(async (win) => {
             win.removeEventListener("message", variantsListener);
-            expect(baseLevelComponentCounts).eqls({
+            expect(baseComponentCounts).eqls({
                 text: 1,
                 selectFromSequence: 1,
             });
