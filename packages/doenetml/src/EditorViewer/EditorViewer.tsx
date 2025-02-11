@@ -492,7 +492,23 @@ export function EditorViewer({
                         activityId={activityId}
                         prefixForIds={prefixForIds}
                         attemptNumber={1}
-                        generatedVariantCallback={setVariants}
+                        generatedVariantCallback={(x: any) => {
+                            const allPossibleVariants = x.allPossibleVariants;
+                            if (Array.isArray(allPossibleVariants)) {
+                                const numVariants = allPossibleVariants.length;
+                                if (
+                                    typeof x.variantInfo === "object" &&
+                                    typeof x.variantInfo.index === "number"
+                                ) {
+                                    const index = x.variantInfo.index;
+                                    setVariants({
+                                        index,
+                                        numVariants,
+                                        allPossibleVariants,
+                                    });
+                                }
+                            }
+                        }}
                         requestedVariantIndex={variants.index}
                         setErrorsAndWarningsCallback={
                             setErrorsAndWarningsCallback
