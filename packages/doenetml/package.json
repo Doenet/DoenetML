@@ -72,7 +72,6 @@
         "copy-to-clipboard": "^3.3.3",
         "crypto-js": "^4.2.0",
         "cssesc": "^3.0.0",
-        "esm-seedrandom": "^3.0.5",
         "framer-motion": "^11.2.11",
         "handsontable": "^12.4.0",
         "hi-base32": "^0.5.1",
@@ -89,6 +88,7 @@
         "react-router": "^6.26.2",
         "react-visibility-sensor-v2": "^1.0.0",
         "recoil": "^0.7.7",
+        "seedrandom": "^3.0.5",
         "styled-components": "^5.3.11"
     }
 }

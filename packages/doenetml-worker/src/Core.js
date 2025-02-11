@@ -1,7 +1,7 @@
 import readOnlyProxyHandler from "./ReadOnlyProxyHandler";
 import ParameterStack from "./ParameterStack";
 import Numerics from "./Numerics";
-import { prng_alea } from "esm-seedrandom";
+import seedrandom from "seedrandom";
 import me from "math-expressions";
 import createStateProxyHandler from "./StateProxyHandler";
 import {
@@ -178,7 +178,7 @@ export default class Core {
 
         this.parameterStack = new ParameterStack();
 
-        this.parameterStack.parameters.rngClass = prng_alea;
+        this.parameterStack.parameters.rngClass = seedrandom.alea;
         this.parameterStack.parameters.prerender = prerender;
 
         this.initialized = false;
