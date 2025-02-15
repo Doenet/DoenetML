@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { PageContext, getURLFromRef } from "../PageViewer";
+import { DocContext, getURLFromRef } from "../DocViewer";
 import useDoenetRenderer from "../useDoenetRenderer";
 import styled from "styled-components";
 
@@ -49,7 +49,7 @@ export default React.memo(function Ref(props) {
         navigate,
         linkSettings,
         scrollableContainer,
-    } = useContext(PageContext) || {};
+    } = useContext(DocContext) || {};
 
     let search = location.search || "";
 

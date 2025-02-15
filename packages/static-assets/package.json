@@ -21,7 +21,8 @@
     "scripts": {
         "test": "echo \"No tests \"",
         "build": "wireit",
-        "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-math-assets.ts"
+        "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-math-assets.ts",
+        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts"
     },
     "wireit": {
         "build": {
@@ -29,6 +30,7 @@
             "files": [
                 "src/**/*.ts",
                 "vite.config.ts",
+                "scripts/**/*.ts",
                 "src/**/*.json",
                 "tsconfig.json"
             ],

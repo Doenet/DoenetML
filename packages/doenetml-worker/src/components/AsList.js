@@ -31,7 +31,7 @@ export default class AsList extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inline"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                     variablesOptional: true,
                 },
             }),
@@ -39,7 +39,7 @@ export default class AsList extends InlineComponent {
                 let textpieces =
                     dependencyValues.inlineChildren.map(textFromComponent);
 
-                let text = textpieces.join(", ");
+                let text = textpieces.filter((x) => x).join(", ");
 
                 return { setValue: { text } };
             },

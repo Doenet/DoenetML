@@ -4,13 +4,16 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { returnLabelStateVariableDefinitions } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../utils/label";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
 } from "../utils/triggering";
 import InlineComponent from "./abstract/InlineComponent";
-import me from "math-expressions";
+import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 
 export default class CallAction extends InlineComponent {
     constructor(args) {
@@ -56,13 +59,6 @@ export default class CallAction extends InlineComponent {
         // attributes.width = {default: 300};
         // attributes.height = {default: 50};
 
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
-
         attributes.actionName = {
             createComponentOfType: "text",
             createStateVariable: "actionName",
@@ -77,6 +73,8 @@ export default class CallAction extends InlineComponent {
             public: true,
             forRenderer: true,
         };
+
+        Object.assign(attributes, returnLabelAttributes());
 
         Object.assign(attributes, returnAnchorAttributes());
 
@@ -108,6 +106,11 @@ export default class CallAction extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        let selectedStyleDefinition =
+            returnSelectedStyleStateVariableDefinition();
+
+        Object.assign(stateVariableDefinitions, selectedStyleDefinition);
 
         addStandardTriggeringStateVariableDefinitions(
             stateVariableDefinitions,

@@ -10,6 +10,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { textFromChildren } from "../utils/text";
+import { latexToText, textToLatex } from "../utils/math";
 
 export default class Label extends InlineComponent {
     constructor(args) {
@@ -209,6 +210,7 @@ export default class Label extends InlineComponent {
                         "value",
                         "hasLatex",
                         "renderAsMath",
+                        "hidden",
                     ],
                     variablesOptional: true,
                 },
@@ -221,55 +223,74 @@ export default class Label extends InlineComponent {
                     variableName: "hasLatex",
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentName }) {
                 if (
                     dependencyValues.inlineChildren.length === 0 &&
                     dependencyValues.valueShadow !== null
                 ) {
                     let value = dependencyValues.valueShadow;
                     let text = value;
+                    let latex = value;
                     if (dependencyValues.hasLatex) {
-                        text = text.replace(/\\\(/g, "");
-                        text = text.replace(/\\\)/g, "");
+                        latex = latex.replace(/\\\(/g, "");
+                        latex = latex.replace(/\\\)/g, "");
+
+                        text = extractTextFromLabel(text);
                     }
-                    return { setValue: { text, latex: text, value } };
+
+                    return { setValue: { text, latex, value } };
                 }
 
-                let textFromComponentConverter = function (
-                    comp,
-                    getValue = true,
-                ) {
+                let valueFromComponentConverter = function (comp) {
                     if (typeof comp !== "object") {
                         return comp.toString();
+                    } else if (comp.stateValues.hidden) {
+                        return "";
                     } else if (
                         typeof comp.stateValues.hasLatex === "boolean" &&
-                        typeof comp.stateValues.value === "string" &&
-                        typeof comp.stateValues.text === "string"
+                        typeof comp.stateValues.value === "string"
                     ) {
                         // if component has a boolean hasLatex state variable
-                        // and value and text are strings
-                        // then use value and text directly
-                        return getValue
-                            ? comp.stateValues.value
-                            : comp.stateValues.text;
+                        // and value is string
+                        // then use value directly
+                        // (as it is a label or similar)
+                        return comp.stateValues.value;
                     } else if (
                         typeof comp.stateValues.renderAsMath === "boolean" &&
                         typeof comp.stateValues.latex === "string" &&
                         typeof comp.stateValues.text === "string"
                     ) {
                         // if have both latex and string,
-                        // use render as math, if exists, to decide which to use
+                        // and renderAsMath exists, then we'll use renderAsMath
+                        // to decide which to use
                         if (comp.stateValues.renderAsMath) {
-                            return getValue
-                                ? "\\(" + comp.stateValues.latex + "\\)"
-                                : comp.stateValues.latex;
+                            return "\\(" + comp.stateValues.latex + "\\)";
                         } else {
                             return comp.stateValues.text;
                         }
                     } else if (typeof comp.stateValues.latex === "string") {
-                        return getValue
-                            ? "\\(" + comp.stateValues.latex + "\\)"
-                            : comp.stateValues.latex;
+                        // if no renderAsMath, then we'll use latex if it exists
+                        return "\\(" + comp.stateValues.latex + "\\)";
+                    } else if (typeof comp.stateValues.text === "string") {
+                        return comp.stateValues.text;
+                    }
+                };
+
+                let textFromComponentConverter = function (
+                    comp,
+                    preferLatex = false,
+                ) {
+                    if (typeof comp !== "object") {
+                        return comp.toString();
+                    } else if (comp.stateValues.hidden) {
+                        return "";
+                    } else if (
+                        typeof comp.stateValues.text === "string" &&
+                        !preferLatex
+                    ) {
+                        return comp.stateValues.text;
+                    } else if (typeof comp.stateValues.latex === "string") {
+                        return comp.stateValues.latex;
                     } else if (typeof comp.stateValues.text === "string") {
                         return comp.stateValues.text;
                     }
@@ -277,14 +298,18 @@ export default class Label extends InlineComponent {
 
                 let value = textFromChildren(
                     dependencyValues.inlineChildren,
-                    (x) => textFromComponentConverter(x, true),
+                    valueFromComponentConverter,
                 );
                 let text = textFromChildren(
                     dependencyValues.inlineChildren,
                     (x) => textFromComponentConverter(x, false),
                 );
+                let latex = textFromChildren(
+                    dependencyValues.inlineChildren,
+                    (x) => textFromComponentConverter(x, true),
+                );
 
-                return { setValue: { text, latex: text, value } };
+                return { setValue: { text, latex, value } };
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,
@@ -297,7 +322,16 @@ export default class Label extends InlineComponent {
                 } else if (
                     typeof desiredStateVariableValues.text === "string"
                 ) {
-                    desiredValue = desiredStateVariableValues.text;
+                    if (dependencyValues.hasLatex) {
+                        // if hasLatex is set, then the only invertible form is where there is a single
+                        // latex expression.
+                        // Attempt to convert text into latex.
+                        desiredValue = textToLatex(
+                            desiredStateVariableValues.text,
+                        );
+                    } else {
+                        desiredValue = desiredStateVariableValues.text;
+                    }
                 } else if (
                     typeof desiredStateVariableValues.latex === "string"
                 ) {
@@ -321,7 +355,6 @@ export default class Label extends InlineComponent {
                     };
                 } else if (dependencyValues.inlineChildren.length === 1) {
                     let comp = dependencyValues.inlineChildren[0];
-                    let desiredValue = desiredStateVariableValues.value;
 
                     if (typeof comp !== "object") {
                         return {
@@ -514,4 +547,33 @@ export default class Label extends InlineComponent {
             });
         }
     }
+}
+
+/**
+ * Extract text from a label string consisting of regular text and latex snippets enclosed by `\(` and `\)`.
+ *
+ * For each latex string delimited by `\(` and `\)`, attempt to create a math expression from that latex.
+ */
+function extractTextFromLabel(labelValue) {
+    let unprocessedText = labelValue;
+    let text = "";
+    let match = unprocessedText.match(/\\\((.*?)\\\)/);
+    while (match) {
+        let preChars = match.index;
+
+        // add text before the latex piece found
+        text += unprocessedText.slice(0, preChars);
+
+        // attempt to convert the latex piece found
+        text += latexToText(match[1]);
+
+        // remove processed text and continue
+        unprocessedText = unprocessedText.slice(preChars + match[0].length);
+        match = unprocessedText.match(/\\\((.*?)\\\)/);
+    }
+
+    // add any leftover text after all latex pieces
+    text += unprocessedText;
+
+    return text;
 }

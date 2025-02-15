@@ -1,6 +1,10 @@
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
-import { evaluateLogic } from "../utils/booleanLogic";
+import {
+    buildParsedExpression,
+    evaluateLogic,
+    returnChildrenByCodeStateVariableDefinitions,
+} from "../utils/booleanLogic";
 import { getNamespaceFromName } from "@doenet/utils";
 
 export default class Award extends BaseComponent {
@@ -317,40 +321,18 @@ export default class Award extends BaseComponent {
                 componentTypes: ["when"],
             },
             {
-                group: "maths",
-                componentTypes: ["math"],
+                group: "strings",
+                componentTypes: ["string"],
             },
             {
-                group: "numbers",
-                componentTypes: ["number"],
-            },
-            {
-                group: "texts",
-                componentTypes: ["text"],
-            },
-            {
-                group: "booleans",
-                componentTypes: ["boolean"],
-            },
-            {
-                group: "mathLists",
-                componentTypes: ["mathList"],
-            },
-            {
-                group: "numberLists",
-                componentTypes: ["numberList"],
-            },
-            {
-                group: "textLists",
-                componentTypes: ["textList"],
-            },
-            {
-                group: "booleanLists",
-                componentTypes: ["booleanList"],
-            },
-            {
-                group: "otherComparableTypes",
-                componentTypes: ["orbitalDiagram"],
+                group: "comparableTypes",
+                componentTypes: [
+                    "math",
+                    "number",
+                    "text",
+                    "boolean",
+                    "orbitalDiagram",
+                ],
             },
         ];
     }
@@ -359,43 +341,83 @@ export default class Award extends BaseComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.parsedExpression = {
-            additionalStateVariablesDefined: ["requireInputInAnswer"],
+            additionalStateVariablesDefined: [
+                "requireInputInAnswer",
+                "codePre",
+            ],
             returnDependencies: () => ({
                 whenChild: {
                     dependencyType: "child",
                     childGroups: ["whens"],
                 },
-                typeChildren: {
+                // call it "allChildren" so that can use the buildParsedExpression function that Boolean uses
+                allChildren: {
                     dependencyType: "child",
-                    childGroups: [
-                        "maths",
-                        "numbers",
-                        "texts",
-                        "booleans",
-                        "mathLists",
-                        "numberLists",
-                        "textLists",
-                        "booleanLists",
-                        "otherComparableTypes",
-                    ],
+                    childGroups: ["strings", "comparableTypes"],
+                },
+                stringChildren: {
+                    dependencyType: "child",
+                    childGroups: ["strings"],
+                    variableNames: ["value"],
+                },
+                answerType: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "answer",
+                    variableName: "type",
+                },
+                splitSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "splitSymbols",
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentInfoObjects }) {
                 let parsedExpression = null;
                 let requireInputInAnswer = false;
+                let codePre = "";
 
                 if (
                     dependencyValues.whenChild.length == 0 &&
-                    dependencyValues.typeChildren.length > 0
+                    dependencyValues.allChildren.length > 0
                 ) {
                     requireInputInAnswer = true;
 
-                    parsedExpression = me.fromAst(["=", "comp1", "comp2"]);
+                    let doNotSplit =
+                        dependencyValues.splitSymbols === false ||
+                        (dependencyValues.answerType &&
+                            !["number", "math"].includes(
+                                dependencyValues.answerType,
+                            ));
+
+                    let { setValue } = buildParsedExpression({
+                        dependencyValues,
+                        componentInfoObjects,
+                        doNotSplit,
+                        splitAtInitialLevel: true,
+                    });
+
+                    codePre = setValue.codePre;
+
+                    parsedExpression = me.fromAst([
+                        "=",
+                        codePre + "Input",
+                        setValue.parsedExpression.tree,
+                    ]);
                 }
 
-                return { setValue: { parsedExpression, requireInputInAnswer } };
+                return {
+                    setValue: {
+                        parsedExpression,
+                        requireInputInAnswer,
+                        codePre,
+                    },
+                };
             },
         };
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnChildrenByCodeStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.creditAchievedIfSubmit = {
             public: true,
@@ -421,62 +443,9 @@ export default class Award extends BaseComponent {
                     childGroups: ["whens"],
                     variableNames: ["fractionSatisfied"],
                 },
-                mathChild: {
-                    dependencyType: "child",
-                    childGroups: ["maths"],
-                    variableNames: ["value", "unordered"],
-                },
-                numberChild: {
-                    dependencyType: "child",
-                    childGroups: ["numbers"],
-                    variableNames: ["value"],
-                },
-                textChild: {
-                    dependencyType: "child",
-                    childGroups: ["texts"],
-                    variableNames: ["value"],
-                },
-                booleanChild: {
-                    dependencyType: "child",
-                    childGroups: ["booleans"],
-                    variableNames: ["value"],
-                },
-                mathListChild: {
-                    dependencyType: "child",
-                    childGroups: ["mathLists"],
-                    variableNames: ["maths", "unordered"],
-                },
-                numberListChild: {
-                    dependencyType: "child",
-                    childGroups: ["numberLists"],
-                    variableNames: ["numbers", "unordered"],
-                },
-                textListChild: {
-                    dependencyType: "child",
-                    childGroups: ["textLists"],
-                    variableNames: ["texts", "unordered"],
-                },
-                booleanListChild: {
-                    dependencyType: "child",
-                    childGroups: ["booleanLists"],
-                    variableNames: ["booleans", "unordered"],
-                },
-                otherComparableChild: {
-                    dependencyType: "child",
-                    childGroups: ["otherComparableTypes"],
-                    variableNames: ["value"],
-                },
                 answerInput: {
                     dependencyType: "parentStateVariable",
                     variableName: "inputChildWithValues",
-                },
-                parsedExpression: {
-                    dependencyType: "stateVariable",
-                    variableName: "parsedExpression",
-                },
-                matchPartial: {
-                    dependencyType: "stateVariable",
-                    variableName: "matchPartial",
                 },
                 symbolicEquality: {
                     dependencyType: "stateVariable",
@@ -525,6 +494,44 @@ export default class Award extends BaseComponent {
                 matchBlanks: {
                     dependencyType: "stateVariable",
                     variableName: "matchBlanks",
+                },
+                parsedExpression: {
+                    dependencyType: "stateVariable",
+                    variableName: "parsedExpression",
+                },
+                allChildren: {
+                    dependencyType: "child",
+                    childGroups: ["strings", "comparableTypes"],
+                    variableNames: ["value"],
+                    variablesOptional: true,
+                },
+                booleanChildrenByCode: {
+                    dependencyType: "stateVariable",
+                    variableName: "booleanChildrenByCode",
+                },
+                textChildrenByCode: {
+                    dependencyType: "stateVariable",
+                    variableName: "textChildrenByCode",
+                },
+                mathChildrenByCode: {
+                    dependencyType: "stateVariable",
+                    variableName: "mathChildrenByCode",
+                },
+                numberChildrenByCode: {
+                    dependencyType: "stateVariable",
+                    variableName: "numberChildrenByCode",
+                },
+                otherChildrenByCode: {
+                    dependencyType: "stateVariable",
+                    variableName: "otherChildrenByCode",
+                },
+                matchPartial: {
+                    dependencyType: "stateVariable",
+                    variableName: "matchPartial",
+                },
+                codePre: {
+                    dependencyType: "stateVariable",
+                    variableName: "codePre",
                 },
             }),
             definition: function ({ dependencyValues, usedDefault }) {
@@ -803,50 +810,11 @@ export default class Award extends BaseComponent {
 }
 
 function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
-    let dependenciesForEvaluateLogic = {
-        mathChildrenByCode: {},
-        mathListChildrenByCode: {},
-        numberChildrenByCode: {},
-        numberListChildrenByCode: {},
-        textChildrenByCode: {},
-        textListChildrenByCode: {},
-        booleanChildrenByCode: {},
-        booleanListChildrenByCode: {},
-        otherChildrenByCode: {},
-    };
+    let dependenciesForEvaluateLogic = {};
 
     Object.assign(dependenciesForEvaluateLogic, dependencyValues);
 
     let canOverrideUnorderedCompare = usedDefault.unorderedCompare;
-
-    if (dependencyValues.textChild.length > 0) {
-        dependenciesForEvaluateLogic.textChildrenByCode.comp2 =
-            dependencyValues.textChild[0];
-    } else if (dependencyValues.mathChild.length > 0) {
-        dependenciesForEvaluateLogic.mathChildrenByCode.comp2 =
-            dependencyValues.mathChild[0];
-    } else if (dependencyValues.numberChild.length > 0) {
-        dependenciesForEvaluateLogic.numberChildrenByCode.comp2 =
-            dependencyValues.numberChild[0];
-    } else if (dependencyValues.booleanChild.length > 0) {
-        dependenciesForEvaluateLogic.booleanChildrenByCode.comp2 =
-            dependencyValues.booleanChild[0];
-    } else if (dependencyValues.textListChild.length > 0) {
-        dependenciesForEvaluateLogic.textListChildrenByCode.comp2 =
-            dependencyValues.textListChild[0];
-    } else if (dependencyValues.mathListChild.length > 0) {
-        dependenciesForEvaluateLogic.mathListChildrenByCode.comp2 =
-            dependencyValues.mathListChild[0];
-    } else if (dependencyValues.numberListChild.length > 0) {
-        dependenciesForEvaluateLogic.numberListChildrenByCode.comp2 =
-            dependencyValues.numberListChild[0];
-    } else if (dependencyValues.booleanListChild.length > 0) {
-        dependenciesForEvaluateLogic.booleanListChildrenByCode.comp2 =
-            dependencyValues.booleanListChild[0];
-    } else if (dependencyValues.otherComparableChild.length > 0) {
-        dependenciesForEvaluateLogic.otherChildrenByCode.comp2 =
-            dependencyValues.otherComparableChild[0];
-    }
 
     let answerValue = dependencyValues.answerInput.stateValues.immediateValue;
     if (answerValue === undefined) {
@@ -857,14 +825,15 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
         stateValues: { value: answerValue },
     };
 
+    let inputCode = dependencyValues.codePre + "Input";
     if (dependencyValues.answerInput.componentType === "textInput") {
-        dependenciesForEvaluateLogic.textChildrenByCode.comp1 =
+        dependenciesForEvaluateLogic.textChildrenByCode[inputCode] =
             answerChildForLogic;
     } else if (dependencyValues.answerInput.componentType === "booleanInput") {
-        dependenciesForEvaluateLogic.booleanChildrenByCode.comp1 =
+        dependenciesForEvaluateLogic.booleanChildrenByCode[inputCode] =
             answerChildForLogic;
     } else {
-        dependenciesForEvaluateLogic.mathChildrenByCode.comp1 =
+        dependenciesForEvaluateLogic.mathChildrenByCode[inputCode] =
             answerChildForLogic;
     }
 

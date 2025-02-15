@@ -1,18 +1,18 @@
 import BaseComponent from "./BaseComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
-import { returnLabelStateVariableDefinitions } from "../../utils/label";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../../utils/label";
 
 export default class GraphicalComponent extends BaseComponent {
     static componentType = "_graphical";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
+
+        Object.assign(attributes, returnLabelAttributes());
+
         attributes.applyStyleToLabel = {
             createComponentOfType: "boolean",
             createStateVariable: "applyStyleToLabel",

@@ -5062,6 +5062,35 @@ class ChildDependency extends Dependency {
             downstreamComponentTypes.push(child.componentType);
         }
 
+        if (
+            this.originalDownstreamVariableNames.includes("hidden") &&
+            this.downstreamPrimitives.find((x) => x !== null)
+        ) {
+            // We are asking for the hidden state variable and the result includes primitives.
+            // Since primitives don't have a hidden state variable, we instead depend on the hidden state variable
+            // of the composite.
+
+            for (let compositeObj of this.compositeReplacementRange) {
+                downstreamComponentNames.push(compositeObj.compositeName);
+                downstreamComponentTypes.push(
+                    this.dependencyHandler._components[
+                        compositeObj.compositeName
+                    ].componentType,
+                );
+
+                this.addedCompositeHiddenDependency = true;
+            }
+
+            if (
+                this.addedCompositeHiddenDependency &&
+                this.originalDownstreamVariableNames.length > 1
+            ) {
+                // Added a composite hidden dependency but there are other variables that may not be on the composite.
+                // Make variables optional so we don't cause an unexpected error.
+                this.variablesOptional = true;
+            }
+        }
+
         return {
             success: true,
             downstreamComponentNames,
@@ -5074,6 +5103,28 @@ class ChildDependency extends Dependency {
 
         // TODO: do we have to adjust anything else from result
         // if we add primitives to result.value?
+
+        let compositeReplacementRange = this.compositeReplacementRange;
+
+        if (this.addedCompositeHiddenDependency) {
+            // We added composite hidden dependencies.
+            // Delete them off the actual dependencies returned
+            // and instead add them to the compositeReplacesRange object returned.
+
+            let nDepsAdded = compositeReplacementRange.length;
+            let extraDependencies = result.value.splice(
+                result.value.length - nDepsAdded,
+                nDepsAdded,
+            );
+
+            compositeReplacementRange = JSON.parse(
+                JSON.stringify(compositeReplacementRange),
+            );
+
+            for (let [ind, range] of compositeReplacementRange.entries()) {
+                range.hidden = extraDependencies[ind].stateValues.hidden;
+            }
+        }
 
         let resultValueWithPrimitives = [];
         let resultInd = 0;
@@ -5088,7 +5139,7 @@ class ChildDependency extends Dependency {
         }
 
         resultValueWithPrimitives.compositeReplacementRange =
-            this.compositeReplacementRange;
+            compositeReplacementRange;
 
         result.value = resultValueWithPrimitives;
 
@@ -6994,6 +7045,19 @@ class ShadowSourceDependency extends Dependency {
             };
         }
 
+        // only get sources that are shadowed without propVariable
+        // unless from implicit prop
+        if (
+            component.shadows.propVariable &&
+            !component.shadows.fromImplicitProp
+        ) {
+            return {
+                success: true,
+                downstreamComponentNames: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         let shadowSourceComponentName = component.shadows.componentName;
         let shadowSource =
             this.dependencyHandler._components[shadowSourceComponentName];
@@ -7839,12 +7903,17 @@ class CountAmongSiblingsDependency extends Dependency {
                 .map((x) => x.componentName)
                 .indexOf(this.upstreamComponentName) + 1;
 
+        // if `initializeCounters` was passed into core with a key that matches the component type
+        // then increment `value` so that the first instance would yield that initial counter.
         if (this.parentName === this.dependencyHandler.core.documentName) {
-            let previousCounts =
-                this.dependencyHandler.core.previousComponentTypeCounts;
+            let initializeCounters =
+                this.dependencyHandler.core.initializeCounters;
 
             if (this.includeInheritedComponentTypes) {
-                for (let cType in previousCounts) {
+                // if we are including inherited component types,
+                // then just use the first counter found and skip any additional counters
+                // (where the order encountered is arbitrary)
+                for (let cType in initializeCounters) {
                     if (
                         this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
                             {
@@ -7853,13 +7922,14 @@ class CountAmongSiblingsDependency extends Dependency {
                             },
                         )
                     ) {
-                        value += previousCounts[cType];
+                        value += initializeCounters[cType] - 1;
+                        break;
                     }
                 }
             } else {
-                let thisPreviousCount = previousCounts[childComponentType];
-                if (thisPreviousCount) {
-                    value += thisPreviousCount;
+                let initialCounter = initializeCounters[childComponentType];
+                if (initialCounter) {
+                    value += initialCounter - 1;
                 }
             }
         }

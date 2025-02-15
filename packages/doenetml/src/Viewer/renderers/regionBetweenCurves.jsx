@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { createFunctionFromDefinition } from "@doenet/utils";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function RegionBetweenCurves(props) {
     let { name, id, SVs } = useDoenetRenderer(props);
@@ -17,7 +17,7 @@ export default React.memo(function RegionBetweenCurves(props) {
     let left = useRef(null);
     let right = useRef(null);
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

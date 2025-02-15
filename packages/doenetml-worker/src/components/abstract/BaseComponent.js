@@ -532,7 +532,9 @@ export default class BaseComponent {
                 if (!usedDefault.disabledPreliminary) {
                     return {
                         setValue: {
-                            disabled: dependencyValues.disabledPreliminary,
+                            disabled: Boolean(
+                                dependencyValues.disabledPreliminary,
+                            ),
                         },
                     };
                 }
@@ -1200,6 +1202,14 @@ export default class BaseComponent {
             primitiveSourceAttributesToIgnore = [];
         }
 
+        let componentSourceAttributesToIgnore;
+        if (parameters.componentSourceAttributesToIgnore) {
+            componentSourceAttributesToIgnore =
+                parameters.componentSourceAttributesToIgnore;
+        } else {
+            componentSourceAttributesToIgnore = [];
+        }
+
         if (includeDefiningChildren) {
             if (
                 this.constructor.serializeReplacementsForChildren &&
@@ -1244,8 +1254,15 @@ export default class BaseComponent {
         for (let attrName in this.attributes) {
             let attribute = this.attributes[attrName];
             if (attribute.component) {
-                // only copy attribute components if copy all
-                if (parameters.copyAll) {
+                // only copy attribute components if copy all and not set to be ignored
+                // Note that, unlike for the primitive case, below,
+                // attributeToIgnore supersedes copyAll.
+                // As of Nov 2024, the only componentSourceAttributesToIgnore
+                // is labelIsName when copying without link.
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
                     serializedComponent.attributes[attrName] = {
                         component: await attribute.component.serialize(
                             parametersForChildren,

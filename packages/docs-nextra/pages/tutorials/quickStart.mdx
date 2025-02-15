@@ -1,4 +1,4 @@
-import { DoenetML} from "../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { Callout } from 'nextra/components'
 
 # Quick Start Tutorial
@@ -8,21 +8,23 @@ DoenetML is an easy way to author interactive math activities for the web. In th
 
 Here is an example math question with a place for students to type in and check their answers. Go ahead and answer the question and check your work.
 
-<DoenetML>
-{`
-Simplify
-<math>3/3+3</math>
-<answer symbolicEquality>4</answer>
-`}
-</DoenetML>
-
 Now lets look at the DoenetML you need to write to make this question.
 
-```html
+```doenet-example
 Simplify
 <math>3 / 3 + 3</math>
 <answer symbolicEquality>4</answer>
 ```
+
+Now lets look at the DoenetML you need to write to make this question.
+
+```doenet
+Simplify
+<math>3 / 3 + 3</math>
+<answer symbolicEquality>4</answer>
+```
+
+
 Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Markup Languages

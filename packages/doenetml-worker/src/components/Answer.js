@@ -167,6 +167,8 @@ export default class Answer extends InlineComponent {
         };
         attributes.type = {
             createPrimitiveOfType: "string",
+            createStateVariable: "type",
+            defaultValue: null,
         };
 
         attributes.disableAfterCorrect = {
@@ -251,8 +253,8 @@ export default class Answer extends InlineComponent {
             componentAttributes,
             componentInfoObjects,
         }) {
-            // if chidren are strings and macros
-            // wrap with award and type
+            // if children are strings and macros
+            // wrap with award
 
             function checkForResponseDescendant(components) {
                 for (let component of components) {
@@ -355,7 +357,7 @@ export default class Answer extends InlineComponent {
                             } else if (
                                 componentIsSpecifiedType(grandChild, "when")
                             ) {
-                                // have to test for when before boolean, sincd when is derived from boolean!
+                                // have to test for `when` before `boolean`, since `when` is derived from `boolean`!
                             } else if (
                                 componentIsSpecifiedType(grandChild, "math") ||
                                 componentIsSpecifiedType(
@@ -596,28 +598,7 @@ export default class Answer extends InlineComponent {
                     ...childrenToNotWrapEnd,
                 ];
             } else {
-                // if have one child and it has a specified componentType
-                // then no need to wrap with componentType
-
-                let needToWrapWithComponentType =
-                    childrenToWrap.length > 1 ||
-                    (componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: childrenToWrap[0].componentType,
-                        baseComponentType: "_composite",
-                    }) &&
-                        !childrenToWrap[0].props?.componentType);
-
-                let awardChildren;
-                if (needToWrapWithComponentType) {
-                    awardChildren = [
-                        {
-                            componentType: type,
-                            children: childrenToWrap,
-                        },
-                    ];
-                } else {
-                    awardChildren = childrenToWrap;
-                }
+                let awardChildren = childrenToWrap;
                 newChildren = [
                     ...childrenToNotWrapBegin,
                     {
@@ -1595,6 +1576,13 @@ export default class Answer extends InlineComponent {
                         awardCredits.reduce((a, c) => a + c, 0),
                     );
                 }
+
+                // remove any trailing null's in awardsUsed
+                let lastNull = awardsUsed.indexOf(null);
+                if (lastNull !== -1) {
+                    awardsUsed = awardsUsed.slice(0, lastNull);
+                }
+
                 return {
                     setValue: {
                         creditAchievedIfSubmit: creditAchieved,
@@ -1703,22 +1691,46 @@ export default class Answer extends InlineComponent {
                     includeOnlyEssentialValues: true,
                 },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentName }) {
                 // Use stringify from json-stringify-deterministic
                 // so that the string will be the same
                 // even if the object was built in a different order
                 // (as can happen when reloading from a database)
 
+                let warnings = [];
+
+                let selfDependencies =
+                    dependencyValues.currentCreditAchievedDependencies.find(
+                        (x) => x.componentName === componentName,
+                    );
+
+                if (selfDependencies) {
+                    // look for a dependency on a submitted response
+                    if (
+                        Object.keys(selfDependencies.stateValues).find(
+                            (x) => x.substring(0, 17) === "submittedResponse",
+                        )
+                    ) {
+                        warnings.push({
+                            message:
+                                "An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.",
+                            level: 1,
+                        });
+                    }
+                }
+
                 let stringified = stringify(
                     dependencyValues.currentCreditAchievedDependencies,
                     { replacer: serializedComponentsReplacer },
                 );
+
                 return {
                     setValue: {
                         creditAchievedDependencies: Base64.stringify(
                             sha1(stringified),
                         ),
                     },
+                    sendWarnings: warnings,
                 };
             },
             markStale: () => ({ answerCreditPotentiallyChanged: true }),
@@ -2068,6 +2080,11 @@ export default class Answer extends InlineComponent {
     }) {
         let numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
+            return;
+        }
+
+        let disabled = await this.stateValues.disabled;
+        if (disabled) {
             return;
         }
 

@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Domains, Derivatives and Variables
 
@@ -7,7 +7,7 @@ In this section we'll explore additional options and operations with functions i
 ### Specifying the Domain of a Function
 So far the functions we've used have been defined for all real numbers. If you want to restrict the domain of a function, you can use the domain attribute in the `<function>` tag. Any attempt to evaluate the function outside of its specified domain will return an empty result. In the example below, this happens for $f(3)$.
 
-```html
+```doenet
 <setup>
   <function name="f" domain="[0,2]">
     x^2
@@ -23,20 +23,20 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 As of this writing, DoenetML supports any interval (open, closed, half open / half closed) as the domain of a single variable function. This includes intervals which stretch to infinity, e.g.
 
-```html
+```doenet
 <function name="f" domain="[1,infinity)">1/x</function>
 ```
 
 ### Computing Derivatives
 In DoenetML, we can compute the derivative of an elementary function using the `<derivative>` tag. The code
 
-```html
+```doenet
 <derivative name="fPrime">$f</derivative>
 ```
 
 creates a new DoenetML function named `fPrime` which is the derivative of $f$. The new function `fPrime` can be used in all the same ways as the original function, including evaluation using the `$$` macro. Here's an example.
 
-```html
+```doenet
 <setup>
   <function name="f">$userFormula</function>
 </setup>
@@ -61,7 +61,7 @@ If your original function has a specified `domain`, its derivative will have the
 The default variable in a DoenetML function is 
 $x$, but we can switch to a different variable using the `variable` attribute. This affects how the function is rendered on screen, and the `<derivative>` tag will use the correct variable as well.
 
-```html
+```doenet
 <p><m>f(u) = </m>
   <function name="f" variable="u">cos(u)</function>
 </p>
@@ -75,7 +75,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 ### Higher Order Derivatives
 You can compute higher order derivatives through repeated use of `<derivative>` tags. For example, the following code defines a function along with its first and second derivatives.
 
-```html
+```doenet
 <function name="f">x sin(x)</function>
 
 <derivative name="fP">$f</derivative>
@@ -85,7 +85,7 @@ You can compute higher order derivatives through repeated use of `<derivative>` 
 
 However, if you don't need $f'(x)$, you can jump straight to the second (or higher) derivative using the `derivVariables` attribute, as demonstrated in the following example.
 
-```html
+```doenet
 <p><m>f(x) = </m>
   <function name="f">x sin(x)</function>
 </p>
@@ -105,13 +105,13 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 ### Multivariable Functions and Partial Derivatives
 For those familiar with multivariable calculus: now it's time to tie all of the concepts in this section together! We can define a multivariable function using the `variables` attribute with `<function>`. For example,
 
-```html
+```doenet
 <function name="f" variables="x y">x^2 cos(y)</function>
 ```
 
 defines the function $f(x,y) = x^2 \cos (y)$ in DoenetML. The input variables should be listed (in order) in the variables attribute, separated by spaces. "In order" means that, if we evaluate `$$f(1,2)`, Doenet will set $x = 1$ and $y = 2$ because $x$ was listed first in the variables attribute, and $y$ second.
 
-```html
+```doenet
 <p><m>f(x,y) = </m>
   <function name="f" variables="x y">x^2 cos(y)</function>
 </p>
@@ -124,7 +124,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 To compute partial derivatives, we'll use the same `derivVariables` attribute from above. We can list one variable to specify which partial derivative to take. We can provide a list of variables to compute higher order (and mixed) partial derivatives.
 
-```html
+```doenet
 <p><m>f(x,y) = </m>
   <function name="f" variables="x y">x^2 cos(y)</function>
 </p>
@@ -146,7 +146,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 Although it's not demonstrated in these examples, you can also define a `domain` for multivariable functions. In the following definition,
 
-```html
+```doenet
 <function name="f" variables="x y" domain="[0,1] (2,3)">x+y</function>
 ```
 

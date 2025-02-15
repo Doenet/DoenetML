@@ -112,7 +112,9 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                 let lim1 = dependencyValues.limits[0];
                 let lim2 = dependencyValues.limits[1];
 
-                if (lim1 < lim2) {
+                let strict = dependencyValues.strict;
+
+                if (lim1 < lim2 || (!strict && lim1 === lim2)) {
                     lowerLimit = lim1;
                     upperLimit = lim2;
                 } else if (lim2 < lim1) {
@@ -121,8 +123,6 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                 } else {
                     return { setValue: { booleanOperator: () => false } };
                 }
-
-                let strict = dependencyValues.strict;
 
                 return {
                     setValue: {

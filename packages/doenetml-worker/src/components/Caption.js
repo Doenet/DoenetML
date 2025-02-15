@@ -42,7 +42,7 @@ export default class Caption extends BlockComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlinesBlocks"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                     variablesOptional: true,
                 },
             }),

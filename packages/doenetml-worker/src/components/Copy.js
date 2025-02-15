@@ -1830,6 +1830,7 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = [
                 await replacementSourceComponent.serialize({
                     copyAll: !link,
+                    componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
                     primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                     copyPrimaryEssential,
@@ -1894,6 +1895,18 @@ export default class Copy extends CompositeComponent {
                 dontSkipAttributes: ["asList"],
                 compositeCreatesNewNamespace: newNamespace,
             });
+
+            // Since if either displayDigits or displayDecimals is supplied in the composite,
+            // it should override both displayDigits and displayDecimals from the source,
+            // we delete the attributes from the source in this special case.
+            // TODO: is there a more generic way to accomplish this?
+            if (
+                attributesFromComposite.displayDigits ||
+                attributesFromComposite.displayDecimals
+            ) {
+                delete repl.attributes.displayDigits;
+                delete repl.attributes.displayDecimals;
+            }
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
