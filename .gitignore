@@ -60,3 +60,4 @@ tsconfig.tsbuildinfo
 .vscode
 packages/docs-nextra/public/bundle
 .next
+cspell.json

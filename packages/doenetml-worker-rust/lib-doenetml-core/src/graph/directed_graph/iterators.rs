@@ -19,7 +19,7 @@ pub(super) struct SkipToRawSkipFn<'a, Node, F: Fn(&Node) -> bool> {
 pub(super) trait RawSkipFn {
     fn skip(&self, _: usize) -> bool;
 }
-impl<'a, Node, F: Fn(&Node) -> bool> RawSkipFn for SkipToRawSkipFn<'a, Node, F> {
+impl<Node, F: Fn(&Node) -> bool> RawSkipFn for SkipToRawSkipFn<'_, Node, F> {
     fn skip(&self, index: usize) -> bool {
         (self.f)(&self.nodes[index])
     }
@@ -36,7 +36,7 @@ struct DescendantReverseTopologicalIteratorRaw<'a, SkipFn: RawSkipFn> {
     skip_fn: Option<SkipFn>,
 }
 
-impl<'a, SkipFn: RawSkipFn> Iterator for DescendantReverseTopologicalIteratorRaw<'a, SkipFn> {
+impl<SkipFn: RawSkipFn> Iterator for DescendantReverseTopologicalIteratorRaw<'_, SkipFn> {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {

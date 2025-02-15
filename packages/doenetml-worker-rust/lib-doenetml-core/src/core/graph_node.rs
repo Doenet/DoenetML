@@ -201,7 +201,7 @@ mod iterators {
             Self { graph, stack }
         }
     }
-    impl<'a> Iterator for ContentChildrenIterator<'a> {
+    impl Iterator for ContentChildrenIterator<'_> {
         type Item = GraphNode;
         fn next(&mut self) -> Option<Self::Item> {
             let node = self.stack.pop();
@@ -250,7 +250,7 @@ mod iterators {
             }
         }
     }
-    impl<'a> Iterator for MarkedContentChildrenIterator<'a> {
+    impl Iterator for MarkedContentChildrenIterator<'_> {
         type Item = (GraphNode, bool);
         fn next(&mut self) -> Option<Self::Item> {
             let node = self.stack.pop();
