@@ -165,7 +165,7 @@ impl StructureGraph {
         &'a self,
         node: GraphNode,
         marker: &'a GraphNodeLookup<bool>,
-    ) -> MarkedContentChildrenIterator<'_> {
+    ) -> MarkedContentChildrenIterator<'a> {
         MarkedContentChildrenIterator::new(self, node, marker)
     }
 }
