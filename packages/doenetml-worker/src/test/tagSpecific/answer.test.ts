@@ -10,10 +10,7 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
-import {
-    latexToMathFactory,
-    normalizeLatexString,
-} from "../../utils/math";
+import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import Core from "../../Core";
 
 const Mock = vi.fn();
