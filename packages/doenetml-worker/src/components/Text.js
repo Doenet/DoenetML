@@ -11,7 +11,7 @@ import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
 } from "../utils/text";
-import { getLatexToMathConvetextToMathFactoryverter } from "../utils/math";
+import { textToMathFactory, latexToMathFactory } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
