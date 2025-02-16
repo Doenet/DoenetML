@@ -22,12 +22,6 @@ export default {
     aside: {
         display: "hidden",
     },
-    asList: {
-        display: "hidden",
-    },
-    atom: {
-        display: "hidden",
-    },
     boolean: {
         display: "hidden",
     },
