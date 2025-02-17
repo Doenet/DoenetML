@@ -6,6 +6,7 @@ import {
     textToMathFactory,
     numberToMathExpression,
 } from "./math";
+import { createInputStringFromChildren } from "./parseMath";
 
 const appliedFunctionSymbolsWithBooleanOperators = [
     ...appliedFunctionSymbolsDefault,
@@ -26,6 +27,8 @@ var fromTextSplit = textToMathFactory({
 export function buildParsedExpression({
     dependencyValues,
     componentInfoObjects,
+    doNotSplit = false,
+    splitAtInitialLevel = false,
 }) {
     let codePre = "comp";
 
@@ -44,27 +47,23 @@ export function buildParsedExpression({
         }
     }
 
-    let inputString = "";
+    let stringResults = createInputStringFromChildren({
+        children: dependencyValues.allChildren,
+        codePre,
+        format: "text",
+        createInternalLists: true,
+        parser: fromTextUnsplit,
+    });
+
+    let inputString = stringResults.string;
+    let internalLists = stringResults.internalLists;
+
     let subnum = 0;
     let nonMathCodes = [];
-    let stringChildInd = 0;
 
     for (let child of dependencyValues.allChildren) {
-        if (typeof child === "string") {
-            // need to use stringChildren
-            // as child variable doesn't have stateVariables
-            inputString +=
-                " " + dependencyValues.stringChildren[stringChildInd] + " ";
-            stringChildInd++;
-        } else {
-            // a math, mathList, number, numberList, text, textList, boolean, or booleanList
+        if (typeof child !== "string") {
             let code = codePre + subnum;
-
-            // make sure code is surrounded by spaces
-            // (the presence of numbers inside code will ensure that
-            // it is parsed as a multicharcter variable)
-            inputString += " " + code + " ";
-
             if (
                 !(
                     componentInfoObjects.isInheritedComponentType({
@@ -73,15 +72,7 @@ export function buildParsedExpression({
                     }) ||
                     componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType: child.componentType,
-                        baseComponentType: "mathList",
-                    }) ||
-                    componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: child.componentType,
                         baseComponentType: "number",
-                    }) ||
-                    componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: child.componentType,
-                        baseComponentType: "numberList",
                     })
                 )
             ) {
@@ -99,12 +90,16 @@ export function buildParsedExpression({
     } catch (e) {}
 
     if (parsedExpression) {
-        parsedExpression = me.fromAst(
-            splitSymbolsIfMath({
-                logicTree: parsedExpression.tree,
-                nonMathCodes,
-            }),
-        );
+        parsedExpression = parsedExpression.substitute(internalLists);
+        if (!doNotSplit) {
+            parsedExpression = me.fromAst(
+                splitSymbolsIfMath({
+                    logicTree: parsedExpression.tree,
+                    nonMathCodes,
+                    init: !splitAtInitialLevel,
+                }),
+            );
+        }
     }
 
     return {
@@ -113,6 +108,96 @@ export function buildParsedExpression({
             parsedExpression,
         },
     };
+}
+
+export function returnChildrenByCodeStateVariableDefinitions() {
+    let stateVariableDefinitions = {};
+
+    stateVariableDefinitions.mathChildrenByCode = {
+        additionalStateVariablesDefined: [
+            "numberChildrenByCode",
+            "textChildrenByCode",
+            "booleanChildrenByCode",
+            "otherChildrenByCode",
+        ],
+        returnDependencies: () => ({
+            children: {
+                dependencyType: "child",
+                childGroups: ["comparableTypes"],
+                variableNames: [
+                    "value",
+                    "fractionSatisfied",
+                    "unordered",
+                    "inUnorderedList",
+                ],
+                variablesOptional: true,
+            },
+            codePre: {
+                dependencyType: "stateVariable",
+                variableName: "codePre",
+            },
+        }),
+        definition({ dependencyValues, componentInfoObjects }) {
+            let mathChildrenByCode = {};
+            let numberChildrenByCode = {};
+            let textChildrenByCode = {};
+            let booleanChildrenByCode = {};
+            let otherChildrenByCode = {};
+            let subnum = 0;
+
+            let codePre = dependencyValues.codePre;
+
+            for (let child of dependencyValues.children) {
+                // a math, text, or boolean
+                let code = codePre + subnum;
+
+                if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "math",
+                    })
+                ) {
+                    mathChildrenByCode[code] = child;
+                } else if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "number",
+                    })
+                ) {
+                    numberChildrenByCode[code] = child;
+                } else if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "text",
+                    })
+                ) {
+                    textChildrenByCode[code] = child;
+                } else if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "boolean",
+                    })
+                ) {
+                    booleanChildrenByCode[code] = child;
+                } else {
+                    otherChildrenByCode[code] = child;
+                }
+                subnum += 1;
+            }
+
+            return {
+                setValue: {
+                    mathChildrenByCode,
+                    numberChildrenByCode,
+                    textChildrenByCode,
+                    booleanChildrenByCode,
+                    otherChildrenByCode,
+                },
+            };
+        },
+    };
+
+    return stateVariableDefinitions;
 }
 
 export function evaluateLogic({
@@ -226,30 +311,28 @@ export function evaluateLogic({
     let foundBoolean = false;
     let foundOther = false;
 
-    operands.forEach(function (x) {
-        if (typeof x === "string") {
-            if (
-                x in dependencyValues.mathChildrenByCode ||
-                x in dependencyValues.mathListChildrenByCode ||
-                x in dependencyValues.numberChildrenByCode ||
-                x in dependencyValues.numberListChildrenByCode
-            ) {
-                foundMath = true;
-            } else if (
-                x in dependencyValues.textChildrenByCode ||
-                x in dependencyValues.textListChildrenByCode
-            ) {
-                foundText = true;
-            } else if (
-                x in dependencyValues.booleanChildrenByCode ||
-                x in dependencyValues.booleanListChildrenByCode
-            ) {
-                foundBoolean = true;
-            } else if (x in dependencyValues.otherChildrenByCode) {
-                foundOther = true;
+    function findTypes(ops) {
+        for (let op of ops) {
+            if (typeof op === "string") {
+                if (
+                    op in dependencyValues.mathChildrenByCode ||
+                    op in dependencyValues.numberChildrenByCode
+                ) {
+                    foundMath = true;
+                } else if (op in dependencyValues.textChildrenByCode) {
+                    foundText = true;
+                } else if (op in dependencyValues.booleanChildrenByCode) {
+                    foundBoolean = true;
+                } else if (op in dependencyValues.otherChildrenByCode) {
+                    foundOther = true;
+                }
+            } else if (Array.isArray(op)) {
+                findTypes(op.slice(1));
             }
         }
-    });
+    }
+
+    findTypes(operands);
 
     let replaceMath = function (tree) {
         if (typeof tree === "string") {
@@ -257,18 +340,9 @@ export function evaluateLogic({
             if (child !== undefined) {
                 return child.stateValues.value.tree;
             }
-            child = dependencyValues.mathListChildrenByCode[tree];
-            if (child !== undefined) {
-                return ["list", ...child.stateValues.maths.map((x) => x.tree)];
-            }
             child = dependencyValues.numberChildrenByCode[tree];
             if (child !== undefined) {
                 return numberToMathExpression(child.stateValues.value).tree;
-            }
-            child = dependencyValues.numberListChildrenByCode[tree];
-
-            if (child !== undefined) {
-                return ["list", ...child.stateValues.numbers];
             }
             return tree;
         }
@@ -355,43 +429,47 @@ export function evaluateLogic({
             return valueOnInvalid;
         }
 
-        let foundInvalidFormat = false;
-        let foundUnorderedList = false;
-        // every operand must be a boolean, booleanlist, or a string that is true or false
-        operands = operands.map(function (x) {
-            if (typeof x === "string") {
-                let child = dependencyValues.booleanChildrenByCode[x];
+        let foundUnordered = false;
+        let replaceBooleanAndFindUnordered = function (tree) {
+            if (typeof tree === "string") {
+                let child = dependencyValues.booleanChildrenByCode[tree];
                 if (child !== undefined) {
+                    if (child.stateValues.inUnorderedList) {
+                        foundUnordered = true;
+                    }
                     return child.stateValues.value;
                 }
-                child = dependencyValues.booleanListChildrenByCode[x];
-                if (child !== undefined) {
-                    if (child.stateValues.unordered) {
-                        foundUnorderedList = true;
-                    }
-                    return child.stateValues.booleans;
-                }
-                x = x.toLowerCase().trim();
-                if (x === "true" || x === "t") {
+                tree = tree.toLowerCase().trim();
+                if (tree === "true") {
                     return true;
                 }
-                if (x === "false" || x === "f") {
+                if (tree === "false") {
                     return false;
                 }
-                foundInvalidFormat = true;
-                return valueOnInvalid;
-            }
-            foundInvalidFormat = true;
-            return valueOnInvalid;
-        });
 
-        if (foundInvalidFormat) {
+                throw Error("Invalid format");
+            }
+
+            if (!Array.isArray(tree)) {
+                throw Error("Invalid format");
+            }
+
+            if (tree[0] === "list") {
+                return tree.slice(1).map(replaceBooleanAndFindUnordered);
+            } else {
+                return evaluateSub(tree) === 1 ? true : false;
+            }
+        };
+
+        try {
+            operands = operands.map(replaceBooleanAndFindUnordered);
+        } catch (e) {
             return valueOnInvalid;
         }
 
         let unorderedCompare = dependencyValues.unorderedCompare;
         if (canOverrideUnorderedCompare) {
-            if (foundUnorderedList) {
+            if (foundUnordered) {
                 unorderedCompare = true;
             }
         }
@@ -471,6 +549,15 @@ export function evaluateLogic({
             let booleanList1 = operands[0];
             let booleanList2 = operands[1];
 
+            // since single lists are indistinguishable from singletons,
+            // turn single booleans into arrays
+            if (typeof booleanList1 === "boolean") {
+                booleanList1 = [booleanList1];
+            }
+            if (typeof booleanList2 === "boolean") {
+                booleanList2 = [booleanList2];
+            }
+
             if (
                 !(
                     operands.length === 2 &&
@@ -508,22 +595,16 @@ export function evaluateLogic({
             return valueOnInvalid;
         }
 
-        let foundUnorderedList = false;
+        let foundUnordered = false;
 
         let replaceTextAndFindUnordered = function (tree, recurse = true) {
             if (typeof tree === "string") {
                 let child = dependencyValues.textChildrenByCode[tree];
                 if (child !== undefined) {
-                    return child.stateValues.value.trim().replace(/\s+/, " ");
-                }
-                child = dependencyValues.textListChildrenByCode[tree];
-                if (child !== undefined) {
-                    if (child.stateValues.unordered) {
-                        foundUnorderedList = true;
+                    if (child.stateValues.inUnorderedList) {
+                        foundUnordered = true;
                     }
-                    return child.stateValues.texts.map((x) =>
-                        x.trim().replace(/\s+/, " "),
-                    );
+                    return child.stateValues.value.trim().replace(/\s+/, " ");
                 }
                 return tree.trim();
             }
@@ -532,27 +613,34 @@ export function evaluateLogic({
                 return tree.toString();
             }
 
-            // multiple words would become multiplication
-            if (!(recurse && Array.isArray(tree) && tree[0] === "*")) {
-                throw Error("Invalid format");
+            if (recurse && Array.isArray(tree)) {
+                if (tree[0] === "*") {
+                    // multiple words would become multiplication
+                    return tree
+                        .slice(1)
+                        .map((x) => replaceTextAndFindUnordered(x, false))
+                        .join(" ");
+                } else if (tree[0] === "list") {
+                    return tree
+                        .slice(1)
+                        .map((x) => replaceTextAndFindUnordered(x, false))
+                        .map((x) => x.trim().replace(/\s+/, " "));
+                }
             }
 
-            return tree
-                .slice(1)
-                .map((x) => replaceTextAndFindUnordered(x, false))
-                .join(" ");
+            throw Error("Invalid format");
         };
 
         try {
             // every operand must be a text or string
-            operands = operands.map(replaceTextAndFindUnordered);
+            operands = operands.map((x) => replaceTextAndFindUnordered(x));
         } catch (e) {
             return valueOnInvalid;
         }
 
         let unorderedCompare = dependencyValues.unorderedCompare;
         if (canOverrideUnorderedCompare) {
-            if (foundUnorderedList) {
+            if (foundUnordered) {
                 unorderedCompare = true;
             }
         }
@@ -661,6 +749,15 @@ export function evaluateLogic({
             let textList1 = operands[0];
             let textList2 = operands[1];
 
+            // since single lists are indistinguishable from singletons,
+            // turn single texts into arrays
+            if (typeof textList1 === "string") {
+                textList1 = [textList1];
+            }
+            if (typeof textList2 === "string") {
+                textList2 = [textList2];
+            }
+
             if (
                 !(
                     operands.length === 2 &&
@@ -742,7 +839,7 @@ export function evaluateLogic({
         return 0;
     }
 
-    // no boolean or text, just math, mathList, number, numberList, and strings
+    // no boolean or text, just math, number, and strings
 
     let strict;
     if (operator === "lts" || operator === "gts") {
@@ -761,23 +858,12 @@ export function evaluateLogic({
                 }
                 return child.stateValues.value.tree;
             }
-            child = dependencyValues.mathListChildrenByCode[tree];
-            if (child !== undefined) {
-                if (child.stateValues.unordered) {
-                    foundUnordered = true;
-                }
-                return ["list", ...child.stateValues.maths.map((x) => x.tree)];
-            }
             child = dependencyValues.numberChildrenByCode[tree];
             if (child !== undefined) {
-                return numberToMathExpression(child.stateValues.value).tree;
-            }
-            child = dependencyValues.numberListChildrenByCode[tree];
-            if (child !== undefined) {
-                if (child.stateValues.unordered) {
+                if (child.stateValues.inUnorderedList) {
                     foundUnordered = true;
                 }
-                return ["list", ...child.stateValues.numbers];
+                return numberToMathExpression(child.stateValues.value).tree;
             }
             return tree;
         }
@@ -898,10 +984,79 @@ export function evaluateLogic({
 
         let element = mathOperands[0];
         let set = mathOperands[1];
+
+        // operator is in or notin
+        // If first operand is a number and second operand can be turned into a subset of reals,
+        // then we can check for inclusion.
+
+        let number1 = element.evaluate_to_constant();
+
+        // Note: since single lists are indistinguishable from singletons,
+        // we accept the behavior that buildSubsetFromMathExpression will turn
+        // a number into a singleton set
+
+        if (Number.isFinite(number1)) {
+            let subsetOfReals = buildSubsetFromMathExpression(set);
+
+            if (subsetOfReals.isValid()) {
+                let containsNumber = subsetOfReals.containsElement(number1);
+                if (operator === "in") {
+                    return containsNumber ? 1 : 0;
+                } else {
+                    // notin
+                    return containsNumber ? 0 : 1;
+                }
+            }
+        }
+
         let set_tree = set.tree;
-        if (Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0])) {
-            if (dependencyValues.matchPartial) {
-                let results = set_tree.slice(1).map((x) =>
+
+        // since single lists are indistinguishable from singletons,
+        // turn single values into lists
+        if (
+            !(Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0]))
+        ) {
+            set_tree = ["list", set_tree];
+        }
+
+        if (dependencyValues.matchPartial) {
+            let results = set_tree.slice(1).map((x) =>
+                checkEquality({
+                    object1: element,
+                    object2: me.fromAst(x),
+                    isUnordered: unorderedCompare,
+                    partialMatches: dependencyValues.matchPartial,
+                    matchByExactPositions:
+                        dependencyValues.matchByExactPositions,
+                    symbolicEquality: dependencyValues.symbolicEquality,
+                    simplify: dependencyValues.simplifyOnCompare,
+                    expand: dependencyValues.expandOnCompare,
+                    allowedErrorInNumbers:
+                        dependencyValues.allowedErrorInNumbers,
+                    includeErrorInNumberExponents:
+                        dependencyValues.includeErrorInNumberExponents,
+                    allowedErrorIsAbsolute:
+                        dependencyValues.allowedErrorIsAbsolute,
+                    numSignErrorsMatched: dependencyValues.numSignErrorsMatched,
+                    numPeriodicSetMatchesRequired:
+                        dependencyValues.numPeriodicSetMatchesRequired,
+                    caseInsensitiveMatch: dependencyValues.caseInsensitiveMatch,
+                    matchBlanks: dependencyValues.matchBlanks,
+                }),
+            );
+
+            let max_fraction = results.reduce(
+                (a, c) => Math.max(a, c.fraction_equal),
+                0,
+            );
+            if (operator === "in") {
+                return max_fraction;
+            } else {
+                return 1 - max_fraction;
+            }
+        } else {
+            let result = set_tree.slice(1).some(
+                (x) =>
                     checkEquality({
                         object1: element,
                         object2: me.fromAst(x),
@@ -925,80 +1080,15 @@ export function evaluateLogic({
                         caseInsensitiveMatch:
                             dependencyValues.caseInsensitiveMatch,
                         matchBlanks: dependencyValues.matchBlanks,
-                    }),
-                );
+                    }).fraction_equal === 1,
+            );
 
-                let max_fraction = results.reduce(
-                    (a, c) => Math.max(a, c.fraction_equal),
-                    0,
-                );
-                if (operator === "in") {
-                    return max_fraction;
-                } else {
-                    return 1 - max_fraction;
-                }
+            if (operator === "in") {
+                return result ? 1 : 0;
             } else {
-                let result = set_tree.slice(1).some(
-                    (x) =>
-                        checkEquality({
-                            object1: element,
-                            object2: me.fromAst(x),
-                            isUnordered: unorderedCompare,
-                            partialMatches: dependencyValues.matchPartial,
-                            matchByExactPositions:
-                                dependencyValues.matchByExactPositions,
-                            symbolicEquality: dependencyValues.symbolicEquality,
-                            simplify: dependencyValues.simplifyOnCompare,
-                            expand: dependencyValues.expandOnCompare,
-                            allowedErrorInNumbers:
-                                dependencyValues.allowedErrorInNumbers,
-                            includeErrorInNumberExponents:
-                                dependencyValues.includeErrorInNumberExponents,
-                            allowedErrorIsAbsolute:
-                                dependencyValues.allowedErrorIsAbsolute,
-                            numSignErrorsMatched:
-                                dependencyValues.numSignErrorsMatched,
-                            numPeriodicSetMatchesRequired:
-                                dependencyValues.numPeriodicSetMatchesRequired,
-                            caseInsensitiveMatch:
-                                dependencyValues.caseInsensitiveMatch,
-                            matchBlanks: dependencyValues.matchBlanks,
-                        }).fraction_equal === 1,
-                );
-
-                if (operator === "in") {
-                    return result ? 1 : 0;
-                } else {
-                    return result ? 0 : 1;
-                }
+                return result ? 0 : 1;
             }
         }
-
-        // operator is in or notin, but second operand is not a set or list
-        // If first operand is a number and second operand can be turned into a subset of reals,
-        // then we can check for inclusion.
-
-        let number1 = element.evaluate_to_constant();
-        let number2 = set.evaluate_to_constant();
-
-        // Note: since buildSubsetFromMathExpression will create a subset from a number,
-        // we exclude this case to make it consistent with the fact that non-numerical
-        // single values are not treated as sets.
-        if (Number.isFinite(number1) && !Number.isFinite(number2)) {
-            let subsetOfReals = buildSubsetFromMathExpression(set);
-
-            if (subsetOfReals.isValid()) {
-                let containsNumber = subsetOfReals.containsElement(number1);
-                if (operator === "in") {
-                    return containsNumber ? 1 : 0;
-                } else {
-                    // notin
-                    return containsNumber ? 0 : 1;
-                }
-            }
-        }
-
-        return valueOnInvalid;
     }
 
     if (["subset", "notsubset", "superset", "notsuperset"].includes(operator)) {
@@ -1014,84 +1104,91 @@ export function evaluateLogic({
             [set1, set2] = [set2, set1];
         }
 
-        let set1_tree = set1.tree;
-        let set2_tree = set2.tree;
-
-        if (
-            Array.isArray(set1_tree) &&
-            ["set", "list"].includes(set1_tree[0]) &&
-            Array.isArray(set2_tree) &&
-            ["set", "list"].includes(set2_tree[0])
-        ) {
-            // check if every element in set 1 is equal to an element in set 2
-            let haveContainment = set1_tree.slice(1).every((elt1) =>
-                set2_tree.slice(1).some(
-                    (elt2) =>
-                        checkEquality({
-                            object1: me.fromAst(elt1),
-                            object2: me.fromAst(elt2),
-                            isUnordered: unorderedCompare,
-                            partialMatches: dependencyValues.matchPartial,
-                            matchByExactPositions:
-                                dependencyValues.matchByExactPositions,
-                            symbolicEquality: dependencyValues.symbolicEquality,
-                            simplify: dependencyValues.simplifyOnCompare,
-                            expand: dependencyValues.expandOnCompare,
-                            allowedErrorInNumbers:
-                                dependencyValues.allowedErrorInNumbers,
-                            includeErrorInNumberExponents:
-                                dependencyValues.includeErrorInNumberExponents,
-                            allowedErrorIsAbsolute:
-                                dependencyValues.allowedErrorIsAbsolute,
-                            numSignErrorsMatched:
-                                dependencyValues.numSignErrorsMatched,
-                            numPeriodicSetMatchesRequired:
-                                dependencyValues.numPeriodicSetMatchesRequired,
-                            caseInsensitiveMatch:
-                                dependencyValues.caseInsensitiveMatch,
-                            matchBlanks: dependencyValues.matchBlanks,
-                        }).fraction_equal === 1,
-                ),
-            );
-
-            if (operator.substring(0, 3) === "not") {
-                return haveContainment ? 0 : 1;
-            } else {
-                return haveContainment ? 1 : 0;
-            }
-        }
-
         // operator is subset, notsubset, superset, or notsuperset,
         // but operands are not lists or sets
         // If both operands can be turned into a subset of reals,
         // then we can check for inclusion.
 
-        // Note: since buildSubsetFromMathExpression will create a subset from a number,
-        // we exclude this case to make it consistent with the fact that non-numerical
-        // single values are not treated as sets.
-        let number1 = set1.evaluate_to_constant();
-        let number2 = set2.evaluate_to_constant();
+        // Note: since single lists are indistinguishable from singletons,
+        // we accept the behavior that buildSubsetFromMathExpression will turn
+        // a number into a singleton set
 
-        if (!(Number.isFinite(number1) || Number.isFinite(number2))) {
-            let subsetOfReals1 = buildSubsetFromMathExpression(set1);
+        let subsetOfReals1 = buildSubsetFromMathExpression(set1);
 
-            if (subsetOfReals1.isValid()) {
-                let subsetOfReals2 = buildSubsetFromMathExpression(set2);
+        if (subsetOfReals1.isValid()) {
+            let subsetOfReals2 = buildSubsetFromMathExpression(set2);
 
-                if (subsetOfReals2.isValid()) {
-                    let haveContainment =
-                        subsetOfReals2.containsSubset(subsetOfReals1);
+            if (subsetOfReals2.isValid()) {
+                let haveContainment =
+                    subsetOfReals2.containsSubset(subsetOfReals1);
 
-                    if (operator.substring(0, 3) === "not") {
-                        return haveContainment ? 0 : 1;
-                    } else {
-                        return haveContainment ? 1 : 0;
-                    }
+                if (operator.substring(0, 3) === "not") {
+                    return haveContainment ? 0 : 1;
+                } else {
+                    return haveContainment ? 1 : 0;
                 }
             }
         }
 
-        return valueOnInvalid;
+        let set1_tree = set1.tree;
+        let set2_tree = set2.tree;
+
+        // since single lists are indistinguishable from singletons,
+        // turn single values into lists
+
+        if (
+            !(
+                Array.isArray(set1_tree) &&
+                ["set", "list"].includes(set1_tree[0])
+            )
+        ) {
+            set1_tree = ["list", set1_tree];
+        }
+        if (
+            !(
+                Array.isArray(set2_tree) &&
+                ["set", "list"].includes(set2_tree[0])
+            )
+        ) {
+            set2_tree = ["list", set2_tree];
+        }
+
+        // check if every element in set 1 is equal to an element in set 2
+        let haveContainment = set1_tree.slice(1).every((elt1) =>
+            set2_tree.slice(1).some(
+                (elt2) =>
+                    checkEquality({
+                        object1: me.fromAst(elt1),
+                        object2: me.fromAst(elt2),
+                        isUnordered: unorderedCompare,
+                        partialMatches: dependencyValues.matchPartial,
+                        matchByExactPositions:
+                            dependencyValues.matchByExactPositions,
+                        symbolicEquality: dependencyValues.symbolicEquality,
+                        simplify: dependencyValues.simplifyOnCompare,
+                        expand: dependencyValues.expandOnCompare,
+                        allowedErrorInNumbers:
+                            dependencyValues.allowedErrorInNumbers,
+                        includeErrorInNumberExponents:
+                            dependencyValues.includeErrorInNumberExponents,
+                        allowedErrorIsAbsolute:
+                            dependencyValues.allowedErrorIsAbsolute,
+                        numSignErrorsMatched:
+                            dependencyValues.numSignErrorsMatched,
+                        numPeriodicSetMatchesRequired:
+                            dependencyValues.numPeriodicSetMatchesRequired,
+                        caseInsensitiveMatch:
+                            dependencyValues.caseInsensitiveMatch,
+                        matchBlanks: dependencyValues.matchBlanks,
+                    }).fraction_equal === 1,
+            ),
+        );
+
+        if (operator.substring(0, 3) === "not") {
+            return haveContainment ? 0 : 1;
+        } else {
+            return haveContainment ? 1 : 0;
+        }
     }
 
     // since have inequality, all operands must be numbers
@@ -1173,8 +1270,20 @@ export function splitSymbolsIfMath({
         ];
     }
 
-    if (operands.some((x) => nonMathCodes.includes(x))) {
-        foundNonMath = true;
+    // check if an operand is a non-math or a list containing a non-math
+    for (let op of operands) {
+        if (nonMathCodes.includes(op)) {
+            foundNonMath = true;
+            break;
+        }
+        if (
+            Array.isArray(op) &&
+            op[0] === "list" &&
+            op.slice(1).some((x) => nonMathCodes.includes(x))
+        ) {
+            foundNonMath = true;
+            break;
+        }
     }
 
     if (operator === "apply") {

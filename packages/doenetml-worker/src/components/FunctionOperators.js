@@ -614,9 +614,12 @@ export class Derivative extends FunctionBaseOperator {
                                 ]);
                             } else {
                                 for (let variable of dependencyValues.derivVariables) {
-                                    value = value.derivative(
-                                        variable.subscripts_to_strings().tree,
-                                    );
+                                    value = value
+                                        .normalize_applied_functions()
+                                        .derivative(
+                                            variable.subscripts_to_strings()
+                                                .tree,
+                                        );
                                 }
                             }
                             return value.strings_to_subscripts();

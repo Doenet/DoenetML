@@ -2,7 +2,6 @@ export * from "./ast/logging";
 export * from "./ast/ast";
 export * from "./errors/errorWarning";
 export * from "./media/cid";
-export * from "./media/retrieveMedia";
 export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";
 export * from "./copy/parseStringify";
@@ -19,3 +18,5 @@ export * from "./math/subset-of-reals";
 export * from "./style/style";
 export * from "./url/url";
 export * from "./version/doenetMLversion";
+
+export const data_format_version = "0.7.0";

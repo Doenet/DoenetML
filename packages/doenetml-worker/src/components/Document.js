@@ -878,10 +878,10 @@ export default class Document extends BaseComponent {
                 variantIndex - 1
             ];
 
-        sharedParameters.variantRng = new sharedParameters.rngClass(
+        sharedParameters.variantRng = sharedParameters.rngClass(
             sharedParameters.variantSeed,
         );
-        sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
+        sharedParameters.subpartVariantRng = sharedParameters.rngClass(
             sharedParameters.variantSeed + "s",
         );
 

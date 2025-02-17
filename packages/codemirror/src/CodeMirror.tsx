@@ -7,7 +7,7 @@ import {
     lspPlugin,
     uniqueLanguageServerInstance,
 } from "./extensions/lsp/plugin";
-import { colorTheme } from "./extensions/theme";
+import { colorTheme, readOnlyColorTheme } from "./extensions/theme";
 
 export function CodeMirror({
     value,
@@ -43,7 +43,7 @@ export function CodeMirror({
 
     const extensions: Extension[] = [
         syntaxHighlightingExtension,
-        colorTheme,
+        readOnly ? readOnlyColorTheme : colorTheme,
         EditorView.lineWrapping,
     ];
     if (!readOnly) {
@@ -59,6 +59,8 @@ export function CodeMirror({
             editable={!readOnly}
             basicSetup={{
                 indentOnInput: true,
+                highlightActiveLine: !readOnly,
+                highlightActiveLineGutter: !readOnly,
             }}
             onChange={(editor, update) => {
                 if (onChange) {

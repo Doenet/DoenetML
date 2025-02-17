@@ -128,6 +128,50 @@ export class SectioningComponent extends BlockComponent {
         return attributes;
     }
 
+    static returnSugarInstructions() {
+        let sugarInstructions = super.returnSugarInstructions();
+
+        let wrapWithContainer = function ({
+            matchedChildren,
+            componentAttributes,
+        }) {
+            if (componentAttributes.postponeRendering) {
+                const titleChildren = [];
+                const postponedChildren = [];
+
+                for (const child of matchedChildren) {
+                    if (
+                        typeof child === "object" &&
+                        child.componentType === "title"
+                    ) {
+                        titleChildren.push(child);
+                    } else {
+                        postponedChildren.push(child);
+                    }
+                }
+
+                return {
+                    success: true,
+                    newChildren: [
+                        ...titleChildren,
+                        {
+                            componentType: "_postponeRenderContainer",
+                            children: postponedChildren,
+                        },
+                    ],
+                };
+            } else {
+                return { success: false };
+            }
+        };
+
+        sugarInstructions.push({
+            replacementFunction: wrapWithContainer,
+        });
+
+        return sugarInstructions;
+    }
+
     static returnChildGroups() {
         return [
             {
@@ -861,6 +905,31 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.rendered = {
+            forRenderer: true,
+            defaultValue: true,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition() {
+                return {
+                    useEssentialOrDefaultValue: {
+                        rendered: true,
+                    },
+                };
+            },
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "rendered",
+                            value: desiredStateVariableValues.rendered,
+                        },
+                    ],
+                };
+            },
+        };
+
         stateVariableDefinitions.createSubmitAllButton = {
             forRenderer: true,
             additionalStateVariablesDefined: [
@@ -909,7 +978,7 @@ export class SectioningComponent extends BlockComponent {
                         suppressAnswerSubmitButtons = true;
                     } else {
                         warnings.push({
-                            message: `Cannot create submit all button for <section> because it doesn't aggegrate scores.`,
+                            message: `Cannot create submit all button for <section> because it doesn't aggregate scores.`,
                             level: 1,
                         });
                     }
@@ -985,7 +1054,7 @@ export class SectioningComponent extends BlockComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        return await this.coreFunctions.performUpdate({
+        await this.coreFunctions.performUpdate({
             updateInstructions: [
                 {
                     updateType: "updateValue",
@@ -995,7 +1064,6 @@ export class SectioningComponent extends BlockComponent {
                 },
             ],
             overrideReadOnly: true,
-            actionId,
             sourceInformation,
             skipRendererUpdate,
             event: {
@@ -1005,6 +1073,21 @@ export class SectioningComponent extends BlockComponent {
                     componentType: this.componentType,
                 },
             },
+        });
+
+        return this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentName: this.componentName,
+                    stateVariable: "rendered",
+                    value: true,
+                },
+            ],
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+            overrideReadOnly: true,
         });
     }
 
@@ -1126,10 +1209,10 @@ export class SectioningComponent extends BlockComponent {
                 variantIndex - 1
             ];
 
-        sharedParameters.variantRng = new sharedParameters.rngClass(
+        sharedParameters.variantRng = sharedParameters.rngClass(
             sharedParameters.variantSeed,
         );
-        sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
+        sharedParameters.subpartVariantRng = sharedParameters.rngClass(
             sharedParameters.variantSeed + "s",
         );
 

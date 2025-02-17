@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Writing Mathematics with DoenetML
 
@@ -20,7 +20,7 @@ but you have no control over where the line breaks occur, how far the bullet poi
 If you've created a webpage with HTML, you'll feel right at home writing in DoenetML. (And if you haven't, don't worry -- there's not too much to learn!) Content is always contained between opening and closing tags. Just like HTML, tags are denoted with angle brackets, < and >. The closing tag includes an extra slash.
 
 For example, the following text would create a new paragraph:
-```html
+```doenet
      <p>Write the paragraph text here!</p>
 ```
 Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
@@ -31,7 +31,7 @@ Below this paragraph, you'll see an example with one line of code using `<p>` an
 
 In your test editor, you can click on the blank line at the bottom and add a new paragraph, surrounded by `<p>` and `</p>`. Then click "update" to see the results. If you get an error, make sure you've included both the opening and ending tags,
 
-```html
+```doenet
 <p>This is a short paragraph, which includes some <em>emphasized</em> text. Similar to other markup languages, DoenetML ignores    extra    spaces
 
 and blank lines.</p>
@@ -48,7 +48,7 @@ Similar to HTML, tags in DoenetML are **case-insensitive**. In other words, you 
 
 In DoenetML, mathematical expressions are denoted with the `<m>` tag, and are rendered with [MathJax](https://www.mathjax.org/). If an expression or equation is important enough to be centered on a line by itself, use the `<me>` tag instead.
 
-```html
+```doenet
 <p>Consider the function</p>
 
 <me>f(x) = x^2-3x-10.</me>
@@ -59,7 +59,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 For those familiar with LaTeX, the difference between `<m>` and `<me>` is essentially the same as "inline" and "display" mode in LaTeX. Speaking of LaTeX: you can use nearly any valid LaTeX code in `<m>` and `<me>` tags. (You can see the full list of [commands supported by MathJax](https://docs.mathjax.org/en/latest/input/tex/macros/index.html); although you can't embed full text environments in an `<m>`, essentially any code you would use to typeset mathematics should work.) See below for some examples.
 
-```html
+```doenet
 <me>x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</me>
 
 <me>F(x) = \int_a^x f(t) \, dt</me>
@@ -70,7 +70,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 The `<m>` and `<me>` tags do not recognize strings such as "sqrt" or "sin" as mathematical functions. To render those functions correctly, use the appropriate LaTeX code:
 
-```html
+```doenet
 <me>\sqrt{a^2+b^2}</me>
 
 <me>\sin{(a+b)}</me>
@@ -83,7 +83,7 @@ A full LaTeX introduction is beyond the scope of this tutorial. If you're not fa
 
 Many of the basic HTML tags for formatting text carry over to DoenetML. The code sample below demonstrates paragraphs, lists, and alert (bold) text.
 
-```html
+```doenet
 <p>You've already seen paragraphs and <em>emphasized</em> text.  Although DoenetML does not have a tag for bold text, it does have a tag for <alert>alert text</alert>.</p>
   
 <p>Lists come in two flavors: ordered and unordered.</p>
@@ -107,12 +107,12 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 ### Comments
 Occasionally you might want to "comment out" part of your document, i.e. prevent it from being processed by Doenet and displayed on screen. (Perhaps something isn't working correctly, or you're working on a long document and only want a portion of it to render on screen.). DoenetML uses the same comment tag as HTML; anything between `<!-- and -->` will be ignored:
-```html
+```doenet
     <!-- this code will be ignored by Doenet -->
 ```
 
 You can see a DoenetML comment in action in the following sample:
-```html
+```doenet
 <!-- <p>This paragraph will be ignored by Doenet</p> -->
 
 <p>This text will be displayed.</p>

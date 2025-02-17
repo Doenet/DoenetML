@@ -122,7 +122,7 @@ export default class Substitute extends CompositeComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         let roundingDefinitions = returnRoundingStateVariableDefinitions({
-            childsGroupIfSingleMatch: ["anything"],
+            childGroupsIfSingleMatch: ["anything"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 

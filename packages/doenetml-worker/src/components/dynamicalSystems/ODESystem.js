@@ -411,6 +411,7 @@ export default class ODESystem extends InlineComponent {
 
         stateVariableDefinitions.latex = {
             public: true,
+            forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
@@ -532,23 +533,6 @@ export default class ODESystem extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.latexWithInputChildren = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                latex: {
-                    dependencyType: "stateVariable",
-                    variableName: "latex",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                return {
-                    setValue: {
-                        latexWithInputChildren: [dependencyValues.latex],
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.numericalRHSf = {
             additionalStateVariablesDefined: ["numericalRHSfDefinitions"],
             returnDependencies: () => ({
@@ -574,7 +558,7 @@ export default class ODESystem extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                console.log(dependencyValues);
+                // console.log(dependencyValues);
                 let warnings = [];
 
                 let valid = true;

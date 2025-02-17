@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Doenet Authoring Advice
 
@@ -11,14 +11,14 @@ Doenet's general philosphy is to crash with an error message as rarely as possib
 At a basic level, this often means Doenet objects have default values chosen for their options. In some languages, for example, you can't create a slider without specifying the range of values and the step size. In DoenetML, you can omit one or more of those options from a `<slider/>` tag, and Doenet will still display a slider. It just might not be the one you originally intended!
 
 More generally, there are some fairly serious errors that would immediately cause a crash with other languages, but not Doenet -- although the results may look odd at times! Consider the following short example,
-```html
+```doenet
 <math>$x^2</math>
 ```
  Here, we define a `<math>` object whose value is the square of `$x`... except $x$ isn't defined in the document! As seen in an earlier example, the result is $_^2$, which is Doenet's way of saying "there's nothing to square here, so I'll just render a blank/unknown value raised to the second power."
 
 Along the same lines: if you give Doenet an invalid attribute value, it will generally just ignore the attribute instead of crashing with an error message. In the following code, we made a typo and used a curly bracket in the domain, writing $[0,2\}$ instead of $[0,2]$. Notice that Doenet still defines the function, and does not restrict its domain at all; $f(-1)$ and $f(3)$ are both defined.
 
-```html
+```doenet
 <function name="f" domain="[0,2}">
   x^2
 </function>
@@ -63,13 +63,13 @@ There are relatively few reasons why a Doenet document will fail to load, and di
 
 In DoenetML there are two common ways to modify the definitions or behavior of components. You're already familiar with attributes, which are included in the opening tag of a component, e.g.
 
-```html
+```doenet
      <function name="f" domain="[0,1]">3x-1</function>.
 ```
 
 Children are essentially nested tags. For example, the label in a slider has to be provided inside a `<label>` tag, like this:
 
-```html
+```doenet
      <slider>
 
        <label>label text</label>
@@ -85,7 +85,7 @@ So far you've usually worked with attributes, but as you continue on through thi
 Up until now, we've made a point of mentioning when a tag is self-closing. For those who are new to HTML-style markeup languages (including DoenetML), it's worth saying a few extra words about these tags before you continue on to the more advanced sections of this tutorial.
 
 * Self-closing is an option for some DoenetML tags, but is never *required*. It might be faster to write `<mathInput name="x"/>`, but
-    ```html
+    ```doenet
      <mathInput name="x"><mathInput>
     ```
 

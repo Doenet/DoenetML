@@ -1,5 +1,11 @@
 import nextraConfig from "nextra";
-import { autoInsertAttrPropDescriptions } from "./dist/index.js";
+import {
+    autoInsertAttrPropDescriptions,
+    wrapDoenetExample,
+    wrapDoenetEditor,
+    wrapDoenetEditorHorizontal,
+    wrapDoenetViewer,
+} from "./dist/index.js";
 import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
 import fs from "node:fs";
 
@@ -58,7 +64,13 @@ const withNextra = nextraConfig({
                 return await highlighter;
             },
         },
-        remarkPlugins: [autoInsertAttrPropDescriptions],
+        remarkPlugins: [
+            autoInsertAttrPropDescriptions,
+            wrapDoenetExample,
+            wrapDoenetEditor,
+            wrapDoenetEditorHorizontal,
+            wrapDoenetViewer,
+        ],
         rehypePlugins: [
             /**
              * Add any data in `extraSearchData` to `structurizedData` so that it shows up in the search box.
@@ -117,8 +129,19 @@ const withNextra = nextraConfig({
 // module.exports = require('nextra')({
 //     latex: true
 //   });
+//
 
-export default withNextra();
+let assetPrefix = "";
+let basePath = "";
+
+export default withNextra({
+    output: "export",
+    assetPrefix,
+    basePath,
+    images: {
+        unoptimized: true,
+    },
+});
 
 // If you have other Next.js configurations, you can pass them as the parameter:
 // module.exports = withNextra({ /* other next.js config */ })

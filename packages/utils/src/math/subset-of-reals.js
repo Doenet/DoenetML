@@ -263,6 +263,11 @@ class Union extends Subset {
 
     constructor(subsets) {
         super();
+
+        if (subsets.some((s) => !s.isValid())) {
+            return new InvalidSet();
+        }
+
         let prelimSubsets = subsets.filter((s) => !s.isEmpty());
 
         if (prelimSubsets.length === 0) {

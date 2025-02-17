@@ -1,4 +1,5 @@
-import { prng_alea } from "esm-seedrandom";
+import seedrandom from "seedrandom";
+
 import { parseAndCompile } from "@doenet/parser";
 // import componentInfoObjects from "../../../assets/assets/componentInfoObjects.json";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@doenet/utils";
 import { doenetGlobalConfig } from "../global-config";
 
-let rngClass = prng_alea;
+let rngClass = seedrandom.alea;
 
 export async function parseActivityDefinition(activityDoenetML, activityCid) {
     // parse the activity DoenetML, validate and normalize the form so that the activityJSON
@@ -493,7 +494,7 @@ export async function calculateOrderAndVariants({
         variantIndex = 1;
     }
 
-    let rng = new rngClass(variantIndex.toString());
+    let rng = rngClass(variantIndex.toString());
 
     let activityPages = [];
 

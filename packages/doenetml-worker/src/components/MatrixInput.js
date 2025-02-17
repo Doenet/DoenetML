@@ -142,6 +142,7 @@ export class MatrixInput extends Input {
             createComponentOfType: "integer",
             createStateVariable: "minComponentWidth",
             defaultValue: 0,
+            clamp: [0, Infinity],
         };
 
         return attributes;
@@ -1226,6 +1227,9 @@ export class MatrixInput extends Input {
                 let numRows = globalDependencyValues.numRows;
                 let numColumns = globalDependencyValues.numColumns;
 
+                let accumulatedComponents =
+                    globalDependencyValues.accumulatedComponents;
+
                 let originalIsColumnVector = false;
                 let originalIsRowVector = false;
                 let originalIsMatrix = false;
@@ -1263,14 +1267,19 @@ export class MatrixInput extends Input {
                             .slice(1, 1 + numRows)
                             .map((x) => [x]);
                         if (valueData.length < numRows) {
-                            // pad first column with blanks
+                            // pad first column with accumulated components or blanks
                             for (
                                 let rowInd = valueData.length;
                                 rowInd < numRows;
                                 rowInd++
                             ) {
+                                let accumRow =
+                                    accumulatedComponents[rowInd] ?? [];
+
                                 valueData.push([
-                                    globalDependencyValues.defaultEntry.tree,
+                                    accumRow[0] ??
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
                                 ]);
                             }
                         }
@@ -1292,12 +1301,20 @@ export class MatrixInput extends Input {
                         valueData = [originalTree[1].slice(1, 1 + numColumns)];
 
                         if (valueData[0].length < numColumns) {
-                            // pad first row with blanks
-                            valueData[0].push(
-                                ...Array(numColumns - valueData[0].length).fill(
-                                    globalDependencyValues.defaultEntry.tree,
-                                ),
-                            );
+                            // pad first row with accumulated components or blanks
+                            for (
+                                let colInd = valueData[0].length;
+                                colInd < numColumns;
+                                colInd++
+                            ) {
+                                let accumRow = accumulatedComponents[0] ?? [];
+
+                                valueData[0].push(
+                                    accumRow[colInd] ??
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                );
+                            }
                         }
 
                         if (numRows > 1) {
@@ -1318,35 +1335,54 @@ export class MatrixInput extends Input {
                             .map((x) => x.slice(1, numColumns + 1));
 
                         if (valueData[0].length < numColumns) {
-                            // pad existing rows with blanks
+                            // pad existing rows with accumulated components or blanks
                             for (
                                 let rowInd = 0;
                                 rowInd < valueData.length;
                                 rowInd++
                             ) {
-                                valueData[rowInd].push(
-                                    ...Array(
-                                        numColumns - valueData[rowInd].length,
-                                    ).fill(
-                                        globalDependencyValues.defaultEntry
-                                            .tree,
-                                    ),
-                                );
+                                let row = valueData[rowInd];
+                                let accumRow =
+                                    accumulatedComponents[rowInd] ?? [];
+
+                                for (
+                                    let colInd = row.length;
+                                    colInd < numColumns;
+                                    colInd++
+                                ) {
+                                    row.push(
+                                        accumRow[colInd] ??
+                                            globalDependencyValues.defaultEntry
+                                                .tree,
+                                    );
+                                }
                             }
                         }
 
                         if (valueData.length < numRows) {
+                            // pad with rows of accumulated components or blanks
                             for (
                                 let rowInd = valueData.length;
                                 rowInd < numRows;
                                 rowInd++
                             ) {
-                                valueData.push(
-                                    Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry
-                                            .tree,
-                                    ),
-                                );
+                                let row = [];
+                                let accumRow =
+                                    accumulatedComponents[rowInd] ?? [];
+
+                                for (
+                                    let colInd = 0;
+                                    colInd < numColumns;
+                                    colInd++
+                                ) {
+                                    row.push(
+                                        accumRow[colInd] ??
+                                            globalDependencyValues.defaultEntry
+                                                .tree,
+                                    );
+                                }
+
+                                valueData.push(row);
                             }
                         }
                     } else {
@@ -1753,6 +1789,9 @@ export class MatrixInput extends Input {
                 // workspace.immediateValueData,
                 // creating it from immediateValueOriginal if not defined yet
 
+                let accumulatedComponents =
+                    globalDependencyValues.accumulatedComponents;
+
                 let numRows = globalDependencyValues.numRows;
                 let numColumns = globalDependencyValues.numColumns;
 
@@ -1796,14 +1835,19 @@ export class MatrixInput extends Input {
                             .slice(1, 1 + numRows)
                             .map((x) => [x]);
                         if (immediateValueData.length < numRows) {
-                            // pad first column with blanks
+                            // pad first column with accumulated components or blanks
                             for (
                                 let rowInd = immediateValueData.length;
                                 rowInd < numRows;
                                 rowInd++
                             ) {
+                                let accumRow =
+                                    accumulatedComponents[rowInd] ?? [];
+
                                 immediateValueData.push([
-                                    globalDependencyValues.defaultEntry.tree,
+                                    accumRow[0] ??
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
                                 ]);
                             }
                         }
@@ -1827,14 +1871,20 @@ export class MatrixInput extends Input {
                         ];
 
                         if (immediateValueData[0].length < numColumns) {
-                            // pad first row with blanks
-                            immediateValueData[0].push(
-                                ...Array(
-                                    numColumns - immediateValueData[0].length,
-                                ).fill(
-                                    globalDependencyValues.defaultEntry.tree,
-                                ),
-                            );
+                            // pad first row with accumulated components or blanks
+                            for (
+                                let colInd = immediateValueData[0].length;
+                                colInd < numColumns;
+                                colInd++
+                            ) {
+                                let accumRow = accumulatedComponents[0] ?? [];
+
+                                immediateValueData[0].push(
+                                    accumRow[colInd] ??
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                );
+                            }
                         }
 
                         if (numRows > 1) {
@@ -1855,36 +1905,54 @@ export class MatrixInput extends Input {
                             .map((x) => x.slice(1, numColumns + 1));
 
                         if (immediateValueData[0].length < numColumns) {
-                            // pad existing rows with blanks
+                            // pad existing rows with accumulated components or blanks
                             for (
                                 let rowInd = 0;
                                 rowInd < immediateValueData.length;
                                 rowInd++
                             ) {
-                                immediateValueData[rowInd].push(
-                                    ...Array(
-                                        numColumns -
-                                            immediateValueData[rowInd].length,
-                                    ).fill(
-                                        globalDependencyValues.defaultEntry
-                                            .tree,
-                                    ),
-                                );
+                                let row = immediateValueData[rowInd];
+                                let accumRow =
+                                    accumulatedComponents[rowInd] ?? [];
+
+                                for (
+                                    let colInd = row.length;
+                                    colInd < numColumns;
+                                    colInd++
+                                ) {
+                                    row.push(
+                                        accumRow[colInd] ??
+                                            globalDependencyValues.defaultEntry
+                                                .tree,
+                                    );
+                                }
                             }
                         }
 
                         if (immediateValueData.length < numRows) {
+                            // pad with rows of accumulated components or blanks
                             for (
                                 let rowInd = immediateValueData.length;
                                 rowInd < numRows;
                                 rowInd++
                             ) {
-                                immediateValueData.push(
-                                    Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry
-                                            .tree,
-                                    ),
-                                );
+                                let row = [];
+                                let accumRow =
+                                    accumulatedComponents[rowInd] ?? [];
+
+                                for (
+                                    let colInd = 0;
+                                    colInd < numColumns;
+                                    colInd++
+                                ) {
+                                    row.push(
+                                        accumRow[colInd] ??
+                                            globalDependencyValues.defaultEntry
+                                                .tree,
+                                    );
+                                }
+
+                                immediateValueData.push(row);
                             }
                         }
                     } else {
@@ -2386,6 +2454,26 @@ export class MatrixInput extends Input {
 
                 return {
                     setValue: { valueForDisplay: rounded },
+                };
+            },
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                valueForDisplay: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueForDisplay",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return {
+                    setValue: {
+                        text: dependencyValues.valueForDisplay.toString(),
+                    },
                 };
             },
         };

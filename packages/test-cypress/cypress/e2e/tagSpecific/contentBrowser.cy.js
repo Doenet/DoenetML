@@ -99,9 +99,7 @@ describe("ContentBrowser Tag Tests", function () {
             .invoke("attr", "src")
             .then((src) => expect(src.includes("tJ4ypc5L6uU")).eq(true));
 
-        cy.get(cesc2("#/mathp2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+x");
+        cy.get(cesc2("#/mathp2")).should("contain.text", "x+x");
 
         cy.get(cesc2("#/mathinputp1")).should("not.exist");
         cy.get(cesc2("#/mathinputp2")).should("not.exist");
@@ -303,9 +301,7 @@ describe("ContentBrowser Tag Tests", function () {
             .invoke("attr", "src")
             .then((src) => expect(src.includes("tJ4ypc5L6uU")).eq(true));
 
-        cy.get(cesc2("#/mathp2") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "x+x");
+        cy.get(cesc2("#/mathp2")).should("contain.text", "x+x");
 
         cy.log("select unlabeled");
 

@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # `<mathInput/>`
 
@@ -41,7 +41,7 @@ In addition, a `<mathInput/>` cannot function if nested within any [Display Math
 
 <a id="name1-ex"></a>
 ### Example: Assign a name to user-input math expression
-```html {2}
+```doenet {2}
 <p>Type <c>x^2 + sqrt4 - 1/y</c>: 
   <mathInput name="userExpression"/></p>
 <p>You've typed: $userExpression</p>
@@ -50,7 +50,7 @@ A `<mathInput/>` renders an input field for storing and naming user-provided mat
 
 <a id="name2-ex"></a>
 ### Example: Do some math with user-input
-```html {3}
+```doenet {3}
 <p>Enter <c>pi/4</c>: <mathInput name="userAngle"/></p>
   <p>
     <math name="sinOfUserAngle">sin($userAngle)</math> = 
@@ -62,7 +62,7 @@ A named `<mathInput/>` can be referenced within a `<math>` for computations. Tes
 
 <a id="name3-ex"></a>
 ### Example: `<mathInput/>` with structured prefill
-```html {4}
+```doenet {4}
 <p>Simplify.</p>
   <math>2/10</math> = 
     <answer symbolicEquality="true">

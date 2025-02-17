@@ -4,9 +4,11 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
+    returnLabelAttributes,
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
+import { returnTextPieceStateVariableDefinitions } from "../utils/text";
 import Input from "./abstract/Input";
 
 export default class Textinput extends Input {
@@ -72,12 +74,6 @@ export default class Textinput extends Input {
             forRenderer: true,
             public: true,
         };
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
         attributes.draggable = {
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
@@ -87,6 +83,8 @@ export default class Textinput extends Input {
         };
 
         Object.assign(attributes, returnAnchorAttributes());
+
+        Object.assign(attributes, returnLabelAttributes());
 
         return attributes;
     }
@@ -100,6 +98,7 @@ export default class Textinput extends Input {
         sugarInstructions.push({
             replacementFunction: returnWrapNonLabelsSugarFunction({
                 wrappingComponentType: "text",
+                wrapSingleIfNotWrappingComponentType: true,
             }),
         });
 
@@ -451,6 +450,9 @@ export default class Textinput extends Input {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { componentType: "text" } }),
         };
+
+        let pieceDefs = returnTextPieceStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, pieceDefs);
 
         return stateVariableDefinitions;
     }

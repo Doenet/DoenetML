@@ -70,6 +70,10 @@ export class Aside extends SectioningComponentNumberWithSiblings {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.postponeRendering = {
+            createPrimitiveOfType: "boolean",
+        };
+
         attributes.collapsible = {
             createComponentOfType: "boolean",
             createStateVariable: "collapsible",
@@ -101,6 +105,23 @@ export class Aside extends SectioningComponentNumberWithSiblings {
         stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
             useEssentialOrDefaultValue: {
                 open: {
+                    defaultValue: dependencyValues.startOpen,
+                },
+            },
+        });
+
+        stateVariableDefinitions.rendered.returnDependencies = () => ({
+            startOpen: {
+                dependencyType: "stateVariable",
+                variableName: "startOpen",
+            },
+        });
+
+        stateVariableDefinitions.rendered.definition = ({
+            dependencyValues,
+        }) => ({
+            useEssentialOrDefaultValue: {
+                rendered: {
                     defaultValue: dependencyValues.startOpen,
                 },
             },
@@ -212,6 +233,10 @@ export class Proof extends UnnumberedSectioningComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.postponeRendering = {
+            createPrimitiveOfType: "boolean",
+        };
+
         attributes.collapsible = {
             createComponentOfType: "boolean",
             createStateVariable: "collapsible",
@@ -243,6 +268,23 @@ export class Proof extends UnnumberedSectioningComponent {
         stateVariableDefinitions.open.definition = ({ dependencyValues }) => ({
             useEssentialOrDefaultValue: {
                 open: {
+                    defaultValue: dependencyValues.startOpen,
+                },
+            },
+        });
+
+        stateVariableDefinitions.rendered.returnDependencies = () => ({
+            startOpen: {
+                dependencyType: "stateVariable",
+                variableName: "startOpen",
+            },
+        });
+
+        stateVariableDefinitions.rendered.definition = ({
+            dependencyValues,
+        }) => ({
+            useEssentialOrDefaultValue: {
+                rendered: {
                     defaultValue: dependencyValues.startOpen,
                 },
             },

@@ -1,7 +1,10 @@
 import { roundForDisplay } from "../utils/math";
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
-import { returnLabelStateVariableDefinitions } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../utils/label";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -50,12 +53,6 @@ export default class Slider extends BaseComponent {
             createStateVariable: "initialValue",
             defaultValue: null,
         };
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
         attributes.showControls = {
             createComponentOfType: "boolean",
             createStateVariable: "showControls",
@@ -98,6 +95,8 @@ export default class Slider extends BaseComponent {
             public: true,
             forRenderer: true,
         };
+
+        Object.assign(attributes, returnLabelAttributes());
 
         Object.assign(attributes, returnRoundingAttributes());
 

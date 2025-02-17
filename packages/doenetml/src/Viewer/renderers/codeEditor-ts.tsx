@@ -96,6 +96,7 @@ export default React.memo(function CodeEditor(props) {
             <EditorViewer
                 id={id}
                 activityId={id}
+                prefixForIds={id}
                 doenetML={currentValue}
                 width={sizeToCSS(SVs.width)}
                 height={sizeToCSS(SVs.height)}

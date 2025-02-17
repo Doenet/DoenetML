@@ -303,8 +303,6 @@ export function getSchema() {
                     }),
                 );
             } else {
-                let foundMatch = false;
-
                 for (let prefix of arrayEntryPrefixesLongestToShortest) {
                     if (
                         aliasTargetName.substring(0, prefix.length) === prefix
@@ -338,17 +336,8 @@ export function getSchema() {
                             }),
                         );
 
-                        foundMatch = true;
                         break;
                     }
-                }
-
-                if (!foundMatch) {
-                    properties.push({
-                        name: aliasName,
-                        type: "unknown",
-                        isArray: false,
-                    });
                 }
             }
         }

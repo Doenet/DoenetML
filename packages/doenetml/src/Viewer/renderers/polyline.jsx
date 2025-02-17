@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Polyline(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -37,7 +37,7 @@ export default React.memo(function Polyline(props) {
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

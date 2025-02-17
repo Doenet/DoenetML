@@ -1,11 +1,11 @@
-import { DoenetMLExample } from "../../../components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Cartesian Grids and Function Graphs
 
 One of the most powerful features of DoenetML is the ability to create complicated graphics with a few lines of code. This section covers the basics of the `<graph>` tag and its attributes, and shows you how to graph a function $y = f(x)$. Later sections will demonstrate how to graph points, lines, polygons, circles, and other objects.
 
 By default, the following code creates the Cartesian grid, which goes from -10 to 10 in both the $x$ and $y$ directions. 
-```html
+```doenet
 <graph></graph>
 ```
 Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
@@ -22,8 +22,7 @@ DoenetML has attributes to adjust various features of a graph: the range of $x$ 
 
 Rather that listing out all of the possible attributes and values, documentation-style, you can learn these options by experimenting with the controls below. Try adjusting values and see how the graph changes. Doenet also provides you with the corresponding code to create the graph; you can copy and paste that code into your own documents.
 
-<DoenetMLExample>
-{`
+```doenet-example
  <tabular top="minor" bottom="minor">
     <row>
       <cell halign="right"><c>xmin=</c></cell>
@@ -88,8 +87,7 @@ Rather that listing out all of the possible attributes and values, documentation
     showNavigation="$showControls" 
     showBorder="$showBorder"
     horizontalAlign="$alignChoice"/>
-`}
-</DoenetMLExample>
+```
 
 Notice that the `<graph></graph>` code above includes `grid` (which is equivalent to `grid="true"`) when you check the grid box, but the tag does not include `grid="false"` if the grid is turned off. That's because `false` is the default value for `grid`; hence the attribute doesn't need to be included in that case. Similarly, the other attributes are suppressed if their default values are chosen:
 
@@ -101,14 +99,14 @@ Notice that the `<graph></graph>` code above includes `grid` (which is equivalen
 
 One additional attribute which was not demonstrated above is `identicalAxisScales`. By default, Deonet will always display a square graph. If you adjust the ranges of $x$ and $y$, that often means the axes are scaled differently. That's true in the following graph; $x$ ranges from -10 to 10, but $y$ only stretches from -4 to 4.
 
-```html
+```doenet
     <graph ymin="-4" ymax="4" showNavigation="false"/>
 ```
 
 
 By including the `identicalAxisScales` attribute (equivalent to `identicalAxisScales="true"`), we force Doenet to use the same scaling for both axes, which results in a rectangular graph.
 
-```html
+```doenet
     <graph ymin="-4" ymax="4" identicalAxisScales="true" showNavigation="false" />
 ```
 Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
@@ -117,7 +115,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 By default, the axes in Doenet graphs are unlabeled. You can adjust this behavior, but not with an attribute. Similar to the `<label>` tag in a slider, axis labels are provided with tags that are nested between `<graph>` and `</graph>`. (As mentioned in a previous section, they're known as children of the `<graph>` object.) The `<xLabel>` child specifies the label for the horizontal axes, and you can provide a label for the vertical axis with `<yLabel>`. As Either label can contain text, an `<m>` tag, or even a `<math>` object, as shown in the following example.
 
-```html {5,6}
+```doenet {5,6}
 <graph showNavigation="false"
        xmin="-1" xmax="8" 
        ymin="-2" ymax="10" >
@@ -131,7 +129,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 ### Graphing Functions
 Graphing a function in DoenetML is easy: simply create your graph, using whichever attributes and labels you want, and then include the function between the opening and closing tags. You can either define the function inside the graph, or define it elsewhere (say, in a `<setup>` block) and simply reference it within the graph using the `$functionName` notation. The example below shows both methods. Notice that Doenet also pays attention to the `domain` of a function when displaying its graph!
 
-```html {2-4,8,9}
+```doenet {2-4,8,9}
 <setup>
   <function name="f" domain="[-2pi,pi]">
     sin(x)-4
@@ -149,7 +147,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 If a function changes because of user interaction, e.g. a `<mathInput>` or `<slider>`, then its graph will automatically change as well. Try adjusting the value of $a$ below and notice the effects on the graph.
 
-```html
+```doenet
 <p>Graph of <m>y = (x-1)(x+1)(x-a)</m>.</p>
 
 <slider from="-3" to="3" name="a" step="1" initialValue="2" >
@@ -165,7 +163,7 @@ If a function changes because of user interaction, e.g. a `<mathInput>` or `<sli
 
 If you have multiple functions graphed at once, it can be confusing if they're all the same color and style. In DoenetML you can adjust styles by adding `styleNumber="n"` to a function, where $n$ values for default styles range from 1 to 6. (In fact, $n$ can be any natural number, but by default, the styles repeat once you get beyond 6, unless you have defined custom style numbers using the `<styleDefinition>` component. See the example below for default styles 1 to 3.
 
-```html
+```doenet
 <graph showNavigation="false">
     <function styleNumber="1">x^2+3</function>
     <function styleNumber="2">ln(x+2)</function>
@@ -174,7 +172,7 @@ If you have multiple functions graphed at once, it can be confusing if they're a
 ```
 The styles associated with each `styleNumber` vary in terms of color and width. Some styles will have solid lines, others might be dotted or dashed. The default styles are chosen to make sure each style is distinguishable from each other. (For example, the colors are chosen from a palatte of colors which still look different to most color-blind users.) In the following example, you can use the slider below to "scroll" through the different possible default style numbers.
 
-```html
+```doenet
 <slider from="1" to="6" step="1" name="styleSlider" width="200px">
     <label>stylenumber</label>
 </slider>

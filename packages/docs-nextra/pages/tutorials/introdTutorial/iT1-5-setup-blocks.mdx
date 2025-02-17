@@ -1,4 +1,4 @@
-import { DoenetML} from "../../../components/doenet"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Setup Blocks
 
@@ -8,7 +8,7 @@ In the following example, the numbers $a$, $b$, and $c$ are defined as `<math>` 
 $b^2 - 4 a c$
 . None of those definitions and computation are displayed on screen, but all four numbers are used later on.
 
-```html {1,9}
+```doenet {1,9}
 <setup>  
   <math name="a">2</math>
   <math name="b">8</math>
@@ -29,7 +29,7 @@ Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_
 
 For comparison, here's the same code with `<setup>` and `</setup>` removed. The four numbers from the `<setup>` block are all displayed on screen, which is confusing to the user!
 
-```html
+```doenet
 <math name="a">2</math>
 <math name="b">8</math>
 <math name="c">6</math>

@@ -27,6 +27,21 @@ export function createHtmlForDoenetViewer(
     standaloneUrl: string,
     cssUrl: string,
 ) {
+    const haveViewerCallbacks: string[] = [];
+    const callbackNames = [
+        "reportScoreAndStateCallback",
+        "setIsInErrorState",
+        "generatedVariantCallback",
+        "documentStructureCallback",
+        "initializedCallback",
+        "setErrorsAndWarningsCallback",
+    ];
+    for (const callback of callbackNames) {
+        if (callback in doenetViewerProps) {
+            haveViewerCallbacks.push(callback);
+        }
+    }
+
     return `
     <html style="overflow:hidden">
     <head>
@@ -37,9 +52,10 @@ export function createHtmlForDoenetViewer(
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
+            const haveViewerCallbacks = ${JSON.stringify(haveViewerCallbacks)};
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetViewerProps are defined in the global scope.
+            // It assumes that viewerId, doenetViewerProps, and haveViewerCallbacks are defined in the global scope.
             ${viewerIframeJsSource}
         </script>
         <div id="root">
@@ -63,6 +79,18 @@ export function createHtmlForDoenetEditor(
 ) {
     const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
 
+    const haveEditorCallbacks: string[] = [];
+    const callbackNames = [
+        "doenetmlChangeCallback",
+        "immediateDoenetmlChangeCallback",
+        "documentStructureCallback",
+    ];
+    for (const callback of callbackNames) {
+        if (callback in doenetEditorProps) {
+            haveEditorCallbacks.push(callback);
+        }
+    }
+
     return `
     <html style="overflow:hidden">
     <head>
@@ -73,9 +101,10 @@ export function createHtmlForDoenetEditor(
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
+            const haveEditorCallbacks = ${JSON.stringify(haveEditorCallbacks)};
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that id and doenetEditorProps are defined in the global scope.
+            // It assumes that editorId, doenetEditorProps, and have EditorCallbacks are defined in the global scope.
             ${editorIframeJsSource}
         </script>
         <div id="root">

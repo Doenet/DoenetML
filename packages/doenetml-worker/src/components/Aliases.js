@@ -36,13 +36,11 @@ export class Ylabel extends Label {
 
 export class MatrixRow extends MathList {
     static componentType = "matrixRow";
-    static rendererType = "mathList";
     static excludeFromSchema = true;
 }
 
 export class MatrixColumn extends MathList {
     static componentType = "matrixColumn";
-    static rendererType = "mathList";
     static excludeFromSchema = true;
 }
 

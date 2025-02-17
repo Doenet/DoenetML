@@ -140,17 +140,55 @@ export default function TestViewer() {
                         {" "}
                         <input
                             type="checkbox"
-                            checked={paginate}
+                            checked={render}
                             onChange={() => {
                                 setTestSettings((was) => {
                                     let newObj = { ...was };
-                                    newObj.paginate = !was.paginate;
+                                    newObj.render = !was.render;
                                     return newObj;
                                 });
                                 setUpdateNumber((was) => was + 1);
                             }}
                         />
-                        Paginate
+                        Render
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        {" "}
+                        <input
+                            type="checkbox"
+                            checked={showEditor}
+                            onChange={() => {
+                                setTestSettings((was) => {
+                                    let newObj = { ...was };
+                                    newObj.showEditor = !was.showEditor;
+                                    return newObj;
+                                });
+                            }}
+                        />
+                        Show Editor
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Viewer location{" "}
+                        <select
+                            value={viewerLocation}
+                            onChange={(e) => {
+                                setTestSettings((was) => {
+                                    let newObj = { ...was };
+                                    //@ts-ignore
+                                    newObj.viewerLocation = e.target.value;
+                                    return newObj;
+                                });
+                            }}
+                        >
+                            <option value="right">right</option>
+                            <option value="left">left</option>
+                            <option value="top">top</option>
+                            <option value="bottom">bottom</option>
+                        </select>
                     </label>
                 </div>
                 <div>

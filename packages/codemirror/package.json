@@ -30,7 +30,8 @@
             "files": [
                 "src/**/*.ts",
                 "tsconfig.json",
-                "vite.config.ts"
+                "vite.config.ts",
+                "src/**/*.tsx"
             ],
             "output": [
                 "dist/**/*.js",
@@ -44,6 +45,7 @@
         }
     },
     "dependencies": {
+        "codemirror": "6.0.1",
         "@codemirror/commands": "^6.6.0",
         "@codemirror/lang-xml": "^6.1.0",
         "@codemirror/language": "^6.10.2",

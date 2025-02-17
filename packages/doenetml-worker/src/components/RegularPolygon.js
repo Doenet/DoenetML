@@ -2122,8 +2122,6 @@ export default class RegularPolygon extends Polygon {
                         (v, i) => Math.abs(v - resultingCenter[i]) < tol,
                     );
 
-                    console.log({ vertex1Changed, centerChanged });
-
                     if (centerChanged) {
                         if (!vertex1Changed) {
                             // only center changed

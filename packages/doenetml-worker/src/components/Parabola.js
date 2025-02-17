@@ -477,6 +477,28 @@ export default class Parabola extends Curve {
 
                 return { setValue: { numericalPrescribedVertex: [x, y] } };
             },
+
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                if (dependencyValues.prescribedVertex === null) {
+                    return { success: false };
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "prescribedVertex",
+                            desiredValue: me.fromAst([
+                                "vector",
+                                ...desiredStateVariableValues.numericalPrescribedVertex,
+                            ]),
+                        },
+                    ],
+                };
+            },
         };
 
         stateVariableDefinitions.pointsAreNumerical = {
@@ -597,12 +619,15 @@ export default class Parabola extends Curve {
                                 realValued: true,
                             },
                         };
-                    } else {
-                        // vertex and at least one point prescribed.
-                        // use the first point and ignore the remaining
+                    } else if (
+                        dependencyValues.numericalThroughPoints.length === 1
+                    ) {
+                        // vertex and one point prescribed.
 
                         // create parabola y = a*(x-x1)^2 + y1
                         // where a is determined by the first point
+
+                        // if point is on top of vertex, then ignore it
 
                         let v = dependencyValues.numericalPrescribedVertex;
                         let x1 = v[0];
@@ -612,17 +637,38 @@ export default class Parabola extends Curve {
                         let x2 = p1[0];
                         let y2 = p1[1];
 
-                        a = (y2 - y1) / (x2 - x1) ** 2;
-                        b = -2 * a * x1;
-                        c = a * x1 * x1 + y1;
+                        if (x1 === x2) {
+                            if (y1 == y2) {
+                                a = dependencyValues.aShadow;
+                                b = -2 * a * x1;
+                                c = a * x1 ** 2 + y1;
+                            } else {
+                                realValued = false;
+                                a = NaN;
+                                b = NaN;
+                                c = NaN;
+                            }
+                        } else {
+                            a = (y2 - y1) / (x2 - x1) ** 2;
+                            b = -2 * a * x1;
+                            c = a * x1 * x1 + y1;
+                        }
 
+                        return { setValue: { a, b, c, realValued } };
+                    } else {
+                        let warning = {
+                            message:
+                                "Haven't implemented parabola with vertex through more than 1 point.",
+                            level: 1,
+                        };
                         return {
                             setValue: {
-                                a,
-                                b,
-                                c,
-                                realValued: true,
+                                a: NaN,
+                                b: NaN,
+                                c: NaN,
+                                realValued: false,
                             },
+                            sendWarnings: [warning],
                         };
                     }
                 }
@@ -875,6 +921,83 @@ export default class Parabola extends Curve {
                         return await stateValues[parName];
                     }
                 };
+
+                if (dependencyValues.numericalPrescribedVertex) {
+                    if (dependencyValues.numericalThroughPoints.length === 0) {
+                        // just vertex
+                        // move it to be at vertex with new parameter values
+                        // modify a if changed
+
+                        let a = await getWorkingParameterValue("a");
+                        let b = await getWorkingParameterValue("b");
+                        let c = await getWorkingParameterValue("c");
+
+                        let x1 = -b / (2 * a);
+                        let y1 = c - (b * b) / (4 * a);
+
+                        let instructions = [
+                            {
+                                setDependency: "numericalPrescribedVertex",
+                                desiredValue: [x1, y1],
+                            },
+                        ];
+
+                        if (desiredNumericalValues.a !== undefined) {
+                            instructions.push({
+                                setDependency: "aShadow",
+                                desiredValue: desiredNumericalValues.a,
+                            });
+                        }
+
+                        return {
+                            success: true,
+                            instructions,
+                        };
+                    } else {
+                        // vertex and one point prescribed
+
+                        // Move vertex to be at the new vertex.
+                        // Translate the point horizontally by the amount vertex moved
+                        // and move point vertical to parabola
+
+                        let a = await getWorkingParameterValue("a");
+                        let b = await getWorkingParameterValue("b");
+                        let c = await getWorkingParameterValue("c");
+
+                        let vx = -b / (2 * a);
+                        let vy = c - (b * b) / (4 * a);
+
+                        let dx =
+                            vx - dependencyValues.numericalPrescribedVertex[0];
+
+                        let px =
+                            dependencyValues.numericalThroughPoints[0][0] + dx;
+                        let py = a * px * px + b * px + c;
+
+                        let instructions = [
+                            {
+                                setDependency: "numericalPrescribedVertex",
+                                desiredValue: [vx, vy],
+                            },
+                            {
+                                setDependency: "numericalThroughPoints",
+                                desiredValue: [[px, py]],
+                            },
+                        ];
+
+                        if (desiredNumericalValues.a !== undefined) {
+                            instructions.push({
+                                setDependency: "aShadow",
+                                desiredValue: desiredNumericalValues.a,
+                            });
+                        }
+
+                        return {
+                            success: true,
+                            instructions,
+                        };
+                    }
+                }
 
                 if (dependencyValues.numericalThroughPoints.length === 0) {
                     let instructions = [];

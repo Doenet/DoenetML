@@ -144,18 +144,12 @@ div.jxgbox input {
 }
 div.jxgbox button {
     margin: 0;
-    border-radius: var(--mainBorderRadius);
-    border-width: 2px;
-    border-color: var(--mainBlue);
-    border-style: solid;
-    padding: 1px 6px;
-    background-color: var(--mainBlue);
+    border-radius: 20px;
+    border-width: 0px;
+    border-style: hidden;
+    padding: 0px 10px;
     color: white;
-}
-div.jxgbox button:hover {
-    background-color: var(--lightBlue);
-    color: black;
-    border-color: var(--lightBlue);
+    height: 24px;
 }
 div.jxgbox input[type="checkbox"] {
     margin: 3px 3px 3px 4px;

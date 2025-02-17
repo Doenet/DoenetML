@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function LineSegment(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -36,7 +36,7 @@ export default React.memo(function LineSegment(props) {
     endpointsFixed.current =
         !SVs.endpointsDraggable || SVs.fixed || SVs.fixLocation;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

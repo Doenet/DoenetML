@@ -1,7 +1,7 @@
 // @ts-ignore
 import me from "math-expressions";
 
-import { vectorOperators } from "@doenet/utils";
+import { subsets, vectorOperators } from "@doenet/utils";
 
 export var appliedFunctionSymbolsDefault = [
     "abs",
@@ -417,6 +417,7 @@ export function normalizeLatexString(
         ["\u2212", "-"], // minus sign
         ["\u22C5", " \\cdot "], // dot operator
         ["\u00B7", " \\cdot "], // middle dot
+        ["\u00D7", " \\times "], // times operator
         ["\u222A", " \\cup "], // ∪
         ["\u2229", " \\cap "], // ∩
         ["\u221E", " \\infty "], // ∞
@@ -849,9 +850,9 @@ export function superSubscriptsToUnicode(text: string) {
         return newVal;
     }
 
-    text = text.replace(/_(\d+)/g, replaceSubscripts);
+    text = text.replace(/_(\d+)(?!\.)/g, replaceSubscripts);
     text = text.replace(/_\(([\d +-]+)\)/g, replaceSubscripts);
-    text = text.replace(/\^(\d+)/g, replaceSuperscripts);
+    text = text.replace(/\^(\d+)(?!\.)/g, replaceSuperscripts);
     text = text.replace(/\^\(([\d +-]+)\)/g, replaceSuperscripts);
 
     return text;
@@ -929,7 +930,12 @@ export function removeFunctionsMathExpressionClass(value: any) {
         value = undefined;
     } else if (Array.isArray(value)) {
         value = value.map((x) => removeFunctionsMathExpressionClass(x));
-    } else if (typeof value === "object" && value !== null) {
+    } else if (
+        typeof value === "object" &&
+        value !== null &&
+        //@ts-ignore
+        !(value instanceof subsets.Subset)
+    ) {
         let valueCopy: any = {};
         for (let key in value) {
             valueCopy[key] = removeFunctionsMathExpressionClass(value[key]);
@@ -939,13 +945,44 @@ export function removeFunctionsMathExpressionClass(value: any) {
     return value;
 }
 
+/**
+ * Preprocess the desired value within the inverse definition of a math state variable
+ * to fill in any any vector components.
+ *
+ * If the workspace already have values from a previous call to
+ * `preprocessMathInverseDefinition` with the current state variable,
+ * then use the values from the workspace to fill in empty components.
+ * Otherwise, use values from the current value of the state variable
+ * to fill in empty components.
+ *
+ * If the desired value is a list, then recurse on the list components,
+ * keeping track of the list indices used in order to find the current value
+ * of the given list component.
+ */
 export async function preprocessMathInverseDefinition({
     desiredValue,
     stateValues,
     variableName = "value",
     arrayKey,
     workspace,
+    listIndex = [],
 }: any) {
+    if (desiredValue.tree[0] === "list") {
+        let newAst = ["list"];
+        for (let [ind, entry] of desiredValue.tree.slice(1).entries()) {
+            let newEntryResult = await preprocessMathInverseDefinition({
+                desiredValue: me.fromAst(entry),
+                stateValues,
+                variableName,
+                arrayKey,
+                workspace,
+                listIndex: [...listIndex, ind],
+            });
+            newAst.push(newEntryResult.desiredValue.tree);
+        }
+        return { desiredValue: me.fromAst(newAst) };
+    }
+
     if (
         !vectorOperators.includes(desiredValue.tree[0]) ||
         !desiredValue.tree.includes()
@@ -961,6 +998,9 @@ export async function preprocessMathInverseDefinition({
     if (arrayKey !== undefined) {
         workspaceKey += `_${arrayKey}`;
     }
+    if (listIndex.length > 0) {
+        workspaceKey += `_list_` + listIndex.join("_");
+    }
 
     if (workspace[workspaceKey]) {
         // if have value from workspace
@@ -969,17 +1009,30 @@ export async function preprocessMathInverseDefinition({
     } else {
         let currentValue = await stateValues[variableName];
 
-        currentValue = currentValue.expand().simplify();
+        if (currentValue) {
+            currentValue = currentValue.expand().simplify();
 
-        if (currentValue && arrayKey !== undefined) {
-            // TODO: generalize to multi-dimensional arrays?
-            currentValue = currentValue[arrayKey];
-        }
+            if (arrayKey !== undefined && currentValue[arrayKey]) {
+                // TODO: generalize to multi-dimensional arrays?
+                currentValue = currentValue[arrayKey];
+            }
 
-        if (currentValue && vectorOperators.includes(currentValue.tree[0])) {
-            // if we have a currentValue that is a vector
-            // we will merge components from desired value into current value
-            valueAst = currentValue.tree.slice(0, desiredValue.tree.length);
+            if (listIndex.length > 0) {
+                for (let ind of listIndex) {
+                    if (
+                        currentValue.tree[0] === "list" &&
+                        currentValue.tree[ind + 1]
+                    ) {
+                        currentValue = me.fromAst(currentValue.tree[ind + 1]);
+                    }
+                }
+            }
+
+            if (vectorOperators.includes(currentValue.tree[0])) {
+                // if we have a currentValue that is a vector
+                // we will merge components from desired value into current value
+                valueAst = currentValue.tree.slice(0, desiredValue.tree.length);
+            }
         }
     }
 
@@ -1025,4 +1078,38 @@ export async function preprocessMathInverseDefinition({
 
         return { desiredValue };
     }
+}
+
+/**
+ * Attempt to create a text representation of a latex expression by creating a math expression from that latex
+ * and converting the math expression to a string.
+ * If unsuccessful, just return the original latex.
+ */
+export function latexToText(latex: string) {
+    let expression;
+    try {
+        expression = me.fromAst(latexToAst.convert(latex));
+    } catch (e) {
+        // just return latex if can't parse with math-expressions
+        return latex;
+    }
+
+    return superSubscriptsToUnicode(expression.toString());
+}
+
+/**
+ * Attempt to create a latex representation of a text expression by creating a math expression from that text
+ * and converting the math expression to a latex.
+ * If unsuccessful, just return the original text.
+ */
+export function textToLatex(text: string) {
+    let expression;
+    try {
+        expression = me.fromAst(textToAst.convert(text));
+    } catch (e) {
+        // just return text if can't parse with math-expressions
+        return text;
+    }
+
+    return expression.toLatex();
 }

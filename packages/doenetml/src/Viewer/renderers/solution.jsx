@@ -68,7 +68,7 @@ export default React.memo(function Solution(props) {
 
         icon = <FontAwesomeIcon icon={puzzle} />;
         openCloseText = "close";
-        childrenToRender = children;
+        childrenToRender = SVs.rendered ? children : <p>Initializing...</p>;
         infoBlockStyle = {
             display: "block",
             margin: "0px 4px 12px 4px",

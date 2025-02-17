@@ -1,5 +1,6 @@
 import BlockComponent from "./abstract/BlockComponent";
 import BaseComponent from "./abstract/BaseComponent";
+import { textFromChildren } from "../utils/text";
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -170,6 +171,26 @@ export class Li extends BaseComponent {
             forRenderer: true,
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { item: true } }),
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                children: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
+                    variableNames: ["text", "hidden"],
+                    variablesOptional: true,
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let text = textFromChildren(dependencyValues.children);
+
+                return { setValue: { text } };
+            },
         };
 
         return stateVariableDefinitions;

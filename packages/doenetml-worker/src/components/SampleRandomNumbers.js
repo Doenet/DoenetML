@@ -102,9 +102,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
         }
 
         attributes.variantDeterminesSeed = {
-            createComponentOfType: "boolean",
+            createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
-            defaultValue: false,
+            defaultPrimitiveValue: false,
             public: true,
         };
 
@@ -776,7 +776,17 @@ export default class SampleRandomNumbers extends CompositeComponent {
         serializedComponent,
         componentInfoObjects,
     }) {
-        return { success: false };
+        let variantDeterminesSeed =
+            serializedComponent.attributes.variantDeterminesSeed.primitive;
+
+        if (variantDeterminesSeed) {
+            return { success: false };
+        } else {
+            return super.determineNumberOfUniqueVariants({
+                serializedComponent,
+                componentInfoObjects,
+            });
+        }
     }
 
     async resample({

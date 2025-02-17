@@ -809,15 +809,10 @@ export default class Atom extends InlineComponent {
 
         stateVariableDefinitions.latex = {
             public: true,
+            forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "latexWithInputChildren",
-                    forRenderer: true,
-                },
-            ],
             returnDependencies: () => ({
                 symbol: {
                     dependencyType: "stateVariable",
@@ -832,7 +827,7 @@ export default class Atom extends InlineComponent {
                     latex = "[\\text{Invalid Chemical Symbol}]";
                 }
                 return {
-                    setValue: { latex, latexWithInputChildren: [latex] },
+                    setValue: { latex },
                 };
             },
         };

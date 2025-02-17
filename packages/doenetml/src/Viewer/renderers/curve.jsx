@@ -7,7 +7,7 @@ import {
     LINE_LAYER_OFFSET,
     VERTEX_LAYER_OFFSET,
 } from "./graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Curve(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -58,7 +58,7 @@ export default React.memo(function Curve(props) {
     let lastControlPointPositionsFromCore = useRef(null);
     lastControlPointPositionsFromCore.current = SVs.numericalControlPoints;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

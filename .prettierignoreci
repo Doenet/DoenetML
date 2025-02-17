@@ -1,3 +1,4 @@
 cypress
 packages/doenetml-worker-rust/lib-js-wasm-binding/pkg
 .vscode
+package-lock.json

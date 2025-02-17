@@ -10,7 +10,7 @@ import {
     normalizePointSize,
     normalizePointStyle,
 } from "./utils/graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Point(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -51,7 +51,7 @@ export default React.memo(function Point(props) {
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     switchable.current = SVs.switchable && !SVs.fixed;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     const useOpenSymbol =
         SVs.open || ["cross", "plus"].includes(SVs.selectedStyle.markerStyle); // Cross and plus should always be treated as "open" to remain visible on graph

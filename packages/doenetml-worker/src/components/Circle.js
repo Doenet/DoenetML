@@ -1692,12 +1692,14 @@ export default class Circle extends Curve {
                     };
 
                     if (stateValues.havePrescribedRadius) {
-                        // still used numericalRadius, rather than numericalPrescribedRadius
-                        // as numericalRadius becomes zero if have negative numericalPrescribedRadius
-                        globalDependencies.numericalRadius = {
-                            dependencyType: "stateVariable",
-                            variableName: "numericalRadius",
-                        };
+                        if (stateValues.numThroughPoints > 0) {
+                            // still used numericalRadius, rather than numericalPrescribedRadius
+                            // as numericalRadius becomes zero if have negative numericalPrescribedRadius
+                            globalDependencies.numericalRadius = {
+                                dependencyType: "stateVariable",
+                                variableName: "numericalRadius",
+                            };
+                        }
                     } else if (stateValues.numThroughPoints == 1) {
                         // if didn't have prescribed radius but just one point
                         // we treat the radius calculated above as prescribed
@@ -2521,14 +2523,19 @@ export default class Circle extends Curve {
                         // we call prescribedRadius as radius
                         // as we will treat the same as calculated radius
                         // for case with one through point
-                        globalDependencies.radius = {
-                            dependencyType: "stateVariable",
-                            variableName: "prescribedRadius",
-                        };
-                        globalDependencies.haveNonNumericalPrescribedRadius = {
-                            dependencyType: "stateVariable",
-                            variableName: "haveNonNumericalPrescribedRadius",
-                        };
+                        if (stateValues.numThroughPoints > 0) {
+                            globalDependencies.radius = {
+                                dependencyType: "stateVariable",
+                                variableName: "prescribedRadius",
+                            };
+                            globalDependencies.haveNonNumericalPrescribedRadius =
+                                {
+                                    dependencyType: "stateVariable",
+                                    variableName:
+                                        "haveNonNumericalPrescribedRadius",
+                                };
+                        }
+
                         if (stateValues.numThroughPoints > 1) {
                             globalDependencies.haveNonNumericalThroughPoints = {
                                 dependencyType: "stateVariable",

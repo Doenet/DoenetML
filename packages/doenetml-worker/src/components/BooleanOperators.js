@@ -29,7 +29,7 @@ export class Xor extends BooleanBaseOperator {
     static componentType = "xor";
 
     static applyBooleanOperator(values) {
-        let numberTrues = values.reduce((acc, curr) => acc + curr, 0);
+        let numberTrues = values.reduce((acc, curr) => acc + (curr ? 1 : 0), 0);
         return numberTrues === 1;
     }
 }

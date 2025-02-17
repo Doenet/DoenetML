@@ -8,7 +8,7 @@ import {
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -33,7 +33,7 @@ export default React.memo(function Answer(props) {
     let { name, id, SVs, actions, children, callAction } =
         useDoenetRenderer(props);
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     if (SVs.hidden) {
         return null;
@@ -87,12 +87,14 @@ export default React.memo(function Answer(props) {
             padding: "1px 6px 1px 6px",
         };
 
+        let checkWorkTabIndex = "0";
         if (disabled) {
             checkWorkStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainGray");
             checkWorkStyle.color = "black";
             checkWorkStyle.cursor = "not-allowed";
+            checkWorkTabIndex = "-1";
         }
 
         let checkWorkText = SVs.submitLabel;
@@ -102,7 +104,7 @@ export default React.memo(function Answer(props) {
         let checkworkComponent = (
             <Button
                 id={id + "_submit"}
-                tabIndex="0"
+                tabIndex={checkWorkTabIndex}
                 disabled={disabled}
                 style={checkWorkStyle}
                 onClick={submitAnswer}
@@ -133,7 +135,11 @@ export default React.memo(function Answer(props) {
                     document.documentElement,
                 ).getPropertyValue("--mainGreen");
                 checkworkComponent = (
-                    <Button id={id + "_correct"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_correct"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faCheck} />
                         &nbsp; Correct
                     </Button>
@@ -143,7 +149,11 @@ export default React.memo(function Answer(props) {
                     document.documentElement,
                 ).getPropertyValue("--mainRed");
                 checkworkComponent = (
-                    <Button id={id + "_incorrect"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_incorrect"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faTimes} />
                         &nbsp; Incorrect
                     </Button>
@@ -154,7 +164,11 @@ export default React.memo(function Answer(props) {
                 let partialCreditContents = `${percent}% Correct`;
 
                 checkworkComponent = (
-                    <Button id={id + "_partial"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_partial"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         {partialCreditContents}
                     </Button>
                 );
@@ -164,7 +178,11 @@ export default React.memo(function Answer(props) {
             if (validationState !== "unvalidated") {
                 checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
                 checkworkComponent = (
-                    <Button id={id + "_saved"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_saved"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faCloud} />
                         &nbsp; Response Saved
                     </Button>

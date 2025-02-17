@@ -3,7 +3,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
 import { textRendererStyle } from "@doenet/utils";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Vector(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -41,7 +41,7 @@ export default React.memo(function Vector(props) {
     tailDraggable.current = SVs.tailDraggable && !SVs.fixed && !SVs.fixLocation;
     headDraggable.current = SVs.headDraggable && !SVs.fixed && !SVs.fixLocation;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

@@ -4,6 +4,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
+    returnLabelAttributes,
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
@@ -48,12 +49,6 @@ export default class BooleanInput extends Input {
             defaultValue: false,
             public: true,
         };
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
         attributes.asToggleButton = {
             createComponentOfType: "boolean",
             createStateVariable: "asToggleButton",
@@ -72,6 +67,8 @@ export default class BooleanInput extends Input {
             public: true,
             forRenderer: true,
         };
+
+        Object.assign(attributes, returnLabelAttributes());
 
         Object.assign(attributes, returnAnchorAttributes());
 

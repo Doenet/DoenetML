@@ -7,8 +7,11 @@ import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
-import { textFromChildren } from "../utils/text";
-import { latexToMathFactory, textToMathFactory } from "../utils/math";
+import {
+    returnTextPieceStateVariableDefinitions,
+    textFromChildren,
+} from "../utils/text";
+import { textToMathFactory, latexToMathFactory } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
@@ -29,9 +32,8 @@ export default class Text extends InlineComponent {
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
 
-    // even if inside a component that turned on descendantCompositesMustHaveAReplacement
-    // don't required composite replacements
-    static descendantCompositesMustHaveAReplacement = false;
+    static descendantCompositesMustHaveAReplacement = true;
+    static descendantCompositesDefaultReplacementType = "text";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -93,6 +95,36 @@ export default class Text extends InlineComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
+        stateVariableDefinitions.inUnorderedList = {
+            defaultValue: false,
+            returnDependencies: () => ({
+                sourceCompositeUnordered: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "unordered",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (
+                    dependencyValues.sourceCompositeUnordered !== null &&
+                    !usedDefault.sourceCompositeUnordered
+                ) {
+                    return {
+                        setValue: {
+                            inUnorderedList: Boolean(
+                                dependencyValues.sourceCompositeUnordered,
+                            ),
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            inUnorderedList: false,
+                        },
+                    };
+                }
+            },
+        };
+
         stateVariableDefinitions.value = {
             public: true,
             shadowingInstructions: {
@@ -136,9 +168,48 @@ export default class Text extends InlineComponent {
                 dependencyValues,
             }) {
                 let numChildren = dependencyValues.textLikeChildren.length;
+
                 if (numChildren > 1) {
+                    // if have multiple children, then we could still update them if
+                    // 1. all children come from a single composite with asList set to true, and
+                    // 2. the desired value is a comma-separated list with the number of entries
+                    //    matching the number of children.
+                    // In that case, we will attempt to update each child to the corresponding entry
+                    // from the desired value.
+
+                    // Check if all text children are from a composite with asList set to true
+                    let foundAllFromListComposite = false;
+                    for (let range of dependencyValues.textLikeChildren
+                        .compositeReplacementRange) {
+                        if (
+                            range.asList &&
+                            range.firstInd === 0 &&
+                            range.lastInd === numChildren - 1
+                        ) {
+                            foundAllFromListComposite = true;
+                        }
+                    }
+
+                    if (foundAllFromListComposite) {
+                        // Check if desired value is a comma-separated list with the same number of entries as children
+                        let splitValues = desiredStateVariableValues.value
+                            .split(",")
+                            .map((v) => v.trim());
+
+                        if (splitValues.length === numChildren) {
+                            // All conditions are met, so we attempt to update the children
+                            let instructions = splitValues.map((v, i) => ({
+                                setDependency: "textLikeChildren",
+                                desiredValue: v,
+                                childIndex: i,
+                                variableIndex: 0,
+                            }));
+                            return { success: true, instructions };
+                        }
+                    }
                     return { success: false };
                 }
+
                 if (numChildren === 1) {
                     return {
                         success: true,
@@ -164,24 +235,6 @@ export default class Text extends InlineComponent {
                                     : String(desiredStateVariableValues.value),
                         },
                     ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.numCharacters = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: { numCharacters: dependencyValues.value.length },
                 };
             },
         };
@@ -295,6 +348,9 @@ export default class Text extends InlineComponent {
                 };
             },
         };
+
+        let pieceDefs = returnTextPieceStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, pieceDefs);
 
         return stateVariableDefinitions;
     }

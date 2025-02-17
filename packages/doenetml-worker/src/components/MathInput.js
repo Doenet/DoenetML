@@ -7,6 +7,7 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import {
+    returnLabelAttributes,
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
@@ -16,6 +17,7 @@ import {
     roundForDisplay,
     stripLatex,
 } from "../utils/math";
+import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -125,15 +127,13 @@ export default class MathInput extends Input {
             createComponentOfType: "integer",
             createStateVariable: "minWidth",
             defaultValue: 50,
+            clamp: [0, Infinity],
             public: true,
             forRenderer: true,
         };
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
+
+        Object.assign(attributes, returnLabelAttributes());
+
         return attributes;
     }
 
@@ -146,6 +146,7 @@ export default class MathInput extends Input {
         sugarInstructions.push({
             replacementFunction: returnWrapNonLabelsSugarFunction({
                 wrappingComponentType: "math",
+                wrapSingleIfNotWrappingComponentType: true,
             }),
         });
 
@@ -794,6 +795,11 @@ export default class MathInput extends Input {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { componentType: "math" } }),
         };
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnMathVectorMatrixStateVariableDefinitions(),
+        );
 
         return stateVariableDefinitions;
     }
