@@ -180,14 +180,6 @@ export function DoenetViewer({
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
-    if (userId) {
-        // if userId was specified, then we're viewing results of someone other than the logged in person
-        // so disable saving state
-        // and disable even looking up state from local storage (as we want to get the state from the database)
-        flags.allowLocalState = false;
-        flags.allowSaveState = false;
-    }
-
     const generatedVariantCallback = useCallback(
         (newVariants: any) => {
             specifiedGeneratedVariantCallback?.(newVariants);
