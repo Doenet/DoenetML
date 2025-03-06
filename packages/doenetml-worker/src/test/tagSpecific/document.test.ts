@@ -80,7 +80,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
     });
 
-    it(`unit credit achieved, don't skip weight 0`, async () => {
+    it(`component credit achieved, don't skip weight 0`, async () => {
         let core = await createTestCore({
             doenetML: `
   $_document1.creditAchieved{assignNames="docCa"}
