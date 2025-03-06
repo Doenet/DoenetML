@@ -227,7 +227,7 @@ export default class Ref extends InlineComponent {
                     } else {
                         warnings.push({
                             message:
-                                "The doenetId URI parameters is deprecated. Use activityId instead. Its will be ignored starting with the next major version (0.7). Version 0.6 will be phased out in summer 2024.",
+                                "The doenetId URI parameters is deprecated. Use activityId instead. Its will be ignored starting with the next major version (0.7). Version 0.6 will be phased out in summer 2025.",
                             level: 1,
                         });
                         activityId = result[1];

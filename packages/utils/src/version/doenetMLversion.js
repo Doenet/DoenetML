@@ -1,6 +1,6 @@
 export const currentVersion = "0.6";
 
-const phaseOutPlan = { 0.6: "summer 2024" };
+const phaseOutPlan = { 0.6: "summer 2025" };
 
 export function returnCurrentMinorVersionNumber() {
     let versionPieces = currentVersion.match(/^(\d+)\.(\d+)/);
