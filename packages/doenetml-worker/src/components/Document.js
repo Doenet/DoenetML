@@ -326,7 +326,7 @@ export default class Document extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.unitCreditAchieved = {
+        stateVariableDefinitions.componentCreditAchieved = {
             isArray: true,
             returnArraySizeDependencies: () => ({
                 numScoredDescendants: {
@@ -356,18 +356,18 @@ export default class Document extends BaseComponent {
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let unitCreditAchieved = {};
+                let componentCreditAchieved = {};
 
                 for (let arrayKey of arrayKeys) {
-                    unitCreditAchieved[arrayKey] =
+                    componentCreditAchieved[arrayKey] =
                         dependencyValuesByKey[arrayKey].creditAchieved;
                 }
 
-                return { setValue: { unitCreditAchieved } };
+                return { setValue: { componentCreditAchieved } };
             },
         };
 
-        stateVariableDefinitions.unitNumberByAnswerName = {
+        stateVariableDefinitions.componentNumberByAnswerName = {
             stateVariablesDeterminingDependencies: ["scoredDescendants"],
             returnDependencies({ stateValues }) {
                 let dependencies = {
@@ -389,18 +389,19 @@ export default class Document extends BaseComponent {
                 return dependencies;
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                let unitNumberByAnswerName = {};
+                let componentNumberByAnswerName = {};
 
                 for (let [
                     ind,
                     component,
                 ] of dependencyValues.scoredDescendants.entries()) {
-                    let unitNumber = ind + 1;
+                    let componentNumber = ind + 1;
                     for (let answerDescendant of dependencyValues[
                         `descendantsOf${ind}`
                     ]) {
-                        unitNumberByAnswerName[answerDescendant.componentName] =
-                            unitNumber;
+                        componentNumberByAnswerName[
+                            answerDescendant.componentName
+                        ] = componentNumber;
                     }
                     if (
                         componentInfoObjects.isInheritedComponentType({
@@ -408,12 +409,12 @@ export default class Document extends BaseComponent {
                             baseComponentType: "answer",
                         })
                     ) {
-                        unitNumberByAnswerName[component.componentName] =
-                            unitNumber;
+                        componentNumberByAnswerName[component.componentName] =
+                            componentNumber;
                     }
                 }
 
-                return { setValue: { unitNumberByAnswerName } };
+                return { setValue: { componentNumberByAnswerName } };
             },
         };
 
@@ -558,9 +559,9 @@ export default class Document extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "scoredDescendants",
                 },
-                unitCreditAchieved: {
+                componentCreditAchieved: {
                     dependencyType: "stateVariable",
-                    variableName: "unitCreditAchieved",
+                    variableName: "componentCreditAchieved",
                 },
             }),
             definition({ dependencyValues }) {
@@ -573,7 +574,7 @@ export default class Document extends BaseComponent {
                 ] of dependencyValues.scoredDescendants.entries()) {
                     let weight = component.stateValues.weight;
                     creditSum +=
-                        dependencyValues.unitCreditAchieved[ind] * weight;
+                        dependencyValues.componentCreditAchieved[ind] * weight;
                     totalWeight += weight;
                 }
                 let creditAchieved;

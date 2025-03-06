@@ -383,9 +383,9 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateRenderers.clear();
 
-        // evaluate unitCreditAchieved so that will be fresh
+        // evaluate componentCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.unitCreditAchieved;
+        await this.document.stateValues.componentCreditAchieved;
 
         // console.log(serializedComponents)
         // console.timeEnd('start up time');
@@ -11047,7 +11047,7 @@ export default class Core {
         let newStateVariableValues = {};
         let newStateVariableValuesProcessed = [];
         let workspace = {};
-        let recordUnitSubmissions = [];
+        let recordComponentSubmissions = [];
 
         for (let instruction of updateInstructions) {
             if (instruction.componentName) {
@@ -11111,7 +11111,7 @@ export default class Core {
                 newStateVariableValuesProcessed.push(newStateVariableValues);
                 newStateVariableValues = {};
             } else if (instruction.updateType === "recordItemSubmission") {
-                recordUnitSubmissions.push(instruction);
+                recordComponentSubmissions.push(instruction);
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
@@ -11143,32 +11143,35 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate || recordUnitSubmissions.length > 0) {
+        if (!skipRendererUpdate || recordComponentSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
-        if (recordUnitSubmissions.length > 0) {
-            let unitsSubmitted = [
-                ...new Set(recordUnitSubmissions.map((x) => x.unitNumber)),
+        if (recordComponentSubmissions.length > 0) {
+            let componentsSubmitted = [
+                ...new Set(
+                    recordComponentSubmissions.map((x) => x.componentNumber),
+                ),
             ];
-            let unitCreditAchieved =
-                await this.document.stateValues.unitCreditAchieved;
+            let componentCreditAchieved =
+                await this.document.stateValues.componentCreditAchieved;
 
             if (event) {
                 if (!event.context) {
                     event.context = {};
                 }
-                event.context.unit = unitsSubmitted[0];
-                event.context.unitCreditAchieved =
-                    unitCreditAchieved[unitsSubmitted[0] - 1];
+                event.context.component = componentsSubmitted[0];
+                event.context.componentCreditAchieved =
+                    componentCreditAchieved[componentsSubmitted[0] - 1];
 
-                // Just in case the code gets changed to that more than unit can be submitted at once
+                // Just in case the code gets changed to that more than component can be submitted at once
                 // record credit achieved for any additional items
-                if (unitsSubmitted.length > 1) {
-                    event.context.additionalUnitCreditAchieved = {};
-                    for (let unitNumber of unitsSubmitted) {
-                        event.context.additionalUnitCreditAchieved[unitNumber] =
-                            unitCreditAchieved[unitNumber - 1];
+                if (componentsSubmitted.length > 1) {
+                    event.context.additionalComponentCreditAchieved = {};
+                    for (let componentNumber of componentsSubmitted) {
+                        event.context.additionalComponentCreditAchieved[
+                            componentNumber
+                        ] = componentCreditAchieved[componentNumber - 1];
                     }
                 }
                 event.context.docCreditAchieved =
@@ -11256,7 +11259,7 @@ export default class Core {
         }
 
         let alreadySaved = false;
-        if (recordUnitSubmissions.length > 0) {
+        if (recordComponentSubmissions.length > 0) {
             this.saveState(true, true);
             alreadySaved = true;
         }
@@ -11269,9 +11272,9 @@ export default class Core {
             }, 1000);
         }
 
-        // evaluate unitCreditAchieved so that will be fresh
+        // evaluate componentCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.unitCreditAchieved;
+        await this.document.stateValues.componentCreditAchieved;
 
         if (event) {
             this.requestRecordEvent(event);
@@ -13020,7 +13023,7 @@ export default class Core {
         };
     }
 
-    get scoredUnitWeights() {
+    get scoredComponentWeights() {
         return (async () =>
             (await this.document.stateValues.scoredDescendants).map(
                 (x) => x.stateValues.weight,
