@@ -1170,12 +1170,16 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc2("#/ca")).should("have.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+
+            let correctSound =
+                stateVariables["/problem1/sound"].stateValues.value;
+
             choices =
                 stateVariables["/problem1/_choiceinput1"].stateValues
                     .choiceTexts;
-            let mouseInd = choices.indexOf("squeak") + 1;
+            let correctInd = choices.indexOf(correctSound) + 1;
             cy.get(
-                cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`),
+                cesc2(`#/problem1/_choiceinput1_choice${correctInd}_input`),
             ).click();
         });
 
@@ -1335,13 +1339,21 @@ describe("Paginator Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
+
+                let correctSound =
+                    stateVariables["/problem1/sound"].stateValues.value;
+                let incorrectSound =
+                    correctSound === "woof" ? "squeak" : "woof";
+
                 let choiceTexts =
                     stateVariables["/problem1/_choiceinput1"].stateValues
                         .choiceTexts;
                 expect(choiceTexts).eqls(choices);
-                let dogInd = choices.indexOf("woof") + 1;
+                let incorrectInd = choices.indexOf(incorrectSound) + 1;
                 cy.get(
-                    cesc2(`#/problem1/_choiceinput1_choice${dogInd}_input`),
+                    cesc2(
+                        `#/problem1/_choiceinput1_choice${incorrectInd}_input`,
+                    ),
                 ).click();
             });
 
@@ -1353,13 +1365,16 @@ describe("Paginator Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
+                let correctSound =
+                    stateVariables["/problem1/sound"].stateValues.value;
+
                 let choiceTexts =
                     stateVariables["/problem1/_choiceinput1"].stateValues
                         .choiceTexts;
                 expect(choiceTexts).eqls(choices);
-                let mouseInd = choices.indexOf("squeak") + 1;
+                let correctInd = choices.indexOf(correctSound) + 1;
                 cy.get(
-                    cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`),
+                    cesc2(`#/problem1/_choiceinput1_choice${correctInd}_input`),
                 ).click();
             });
 
@@ -1418,13 +1433,17 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc2("#/ca")).should("have.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
+
+            let correctSound =
+                stateVariables["/problem1/sound"].stateValues.value;
+
             let choices = [
                 ...stateVariables["/problem1/_choiceinput1"].stateValues
                     .choiceTexts,
             ];
-            let mouseInd = choices.indexOf("squeak") + 1;
+            let correctInd = choices.indexOf(correctSound) + 1;
             cy.get(
-                cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`),
+                cesc2(`#/problem1/_choiceinput1_choice${correctInd}_input`),
             ).click();
         });
 

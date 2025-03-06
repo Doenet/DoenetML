@@ -2051,20 +2051,20 @@ export default class Answer extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.inItemNumber = {
+        stateVariableDefinitions.inComponentNumber = {
             returnDependencies: () => ({
                 documentAncestor: {
                     dependencyType: "ancestor",
                     componentType: "document",
-                    variableNames: ["itemNumberByAnswerName"],
+                    variableNames: ["componentNumberByAnswerName"],
                 },
             }),
             definition({ dependencyValues, componentName }) {
                 return {
                     setValue: {
-                        inItemNumber:
+                        inComponentNumber:
                             dependencyValues.documentAncestor.stateValues
-                                .itemNumberByAnswerName[componentName],
+                                .componentNumberByAnswerName[componentName],
                     },
                 };
             },
@@ -2211,7 +2211,7 @@ export default class Answer extends InlineComponent {
 
         instructions.push({
             updateType: "recordItemSubmission",
-            itemNumber: await this.stateValues.inItemNumber,
+            componentNumber: await this.stateValues.inComponentNumber,
             submittedComponent: this.componentName,
             response: currentResponses,
             responseText,
