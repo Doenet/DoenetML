@@ -326,7 +326,7 @@ export default class Document extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.itemCreditAchieved = {
+        stateVariableDefinitions.unitCreditAchieved = {
             isArray: true,
             returnArraySizeDependencies: () => ({
                 numScoredDescendants: {
@@ -356,18 +356,18 @@ export default class Document extends BaseComponent {
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let itemCreditAchieved = {};
+                let unitCreditAchieved = {};
 
                 for (let arrayKey of arrayKeys) {
-                    itemCreditAchieved[arrayKey] =
+                    unitCreditAchieved[arrayKey] =
                         dependencyValuesByKey[arrayKey].creditAchieved;
                 }
 
-                return { setValue: { itemCreditAchieved } };
+                return { setValue: { unitCreditAchieved } };
             },
         };
 
-        stateVariableDefinitions.itemNumberByAnswerName = {
+        stateVariableDefinitions.unitNumberByAnswerName = {
             stateVariablesDeterminingDependencies: ["scoredDescendants"],
             returnDependencies({ stateValues }) {
                 let dependencies = {
@@ -389,18 +389,18 @@ export default class Document extends BaseComponent {
                 return dependencies;
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                let itemNumberByAnswerName = {};
+                let unitNumberByAnswerName = {};
 
                 for (let [
                     ind,
                     component,
                 ] of dependencyValues.scoredDescendants.entries()) {
-                    let itemNumber = ind + 1;
+                    let unitNumber = ind + 1;
                     for (let answerDescendant of dependencyValues[
                         `descendantsOf${ind}`
                     ]) {
-                        itemNumberByAnswerName[answerDescendant.componentName] =
-                            itemNumber;
+                        unitNumberByAnswerName[answerDescendant.componentName] =
+                            unitNumber;
                     }
                     if (
                         componentInfoObjects.isInheritedComponentType({
@@ -408,16 +408,16 @@ export default class Document extends BaseComponent {
                             baseComponentType: "answer",
                         })
                     ) {
-                        itemNumberByAnswerName[component.componentName] =
-                            itemNumber;
+                        unitNumberByAnswerName[component.componentName] =
+                            unitNumber;
                     }
                 }
 
-                return { setValue: { itemNumberByAnswerName } };
+                return { setValue: { unitNumberByAnswerName } };
             },
         };
 
-        stateVariableDefinitions.itemVariantInfo = {
+        stateVariableDefinitions.docVariantInfo = {
             isArray: true,
             returnArraySizeDependencies: () => ({
                 numScoredDescendants: {
@@ -448,14 +448,14 @@ export default class Document extends BaseComponent {
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let itemVariantInfo = {};
+                let docVariantInfo = {};
 
                 for (let arrayKey of arrayKeys) {
-                    itemVariantInfo[arrayKey] =
+                    docVariantInfo[arrayKey] =
                         dependencyValuesByKey[arrayKey].generatedVariantInfo;
                 }
 
-                return { setValue: { itemVariantInfo } };
+                return { setValue: { docVariantInfo } };
             },
         };
 
@@ -558,9 +558,9 @@ export default class Document extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "scoredDescendants",
                 },
-                itemCreditAchieved: {
+                unitCreditAchieved: {
                     dependencyType: "stateVariable",
-                    variableName: "itemCreditAchieved",
+                    variableName: "unitCreditAchieved",
                 },
             }),
             definition({ dependencyValues }) {
@@ -573,7 +573,7 @@ export default class Document extends BaseComponent {
                 ] of dependencyValues.scoredDescendants.entries()) {
                     let weight = component.stateValues.weight;
                     creditSum +=
-                        dependencyValues.itemCreditAchieved[ind] * weight;
+                        dependencyValues.unitCreditAchieved[ind] * weight;
                     totalWeight += weight;
                 }
                 let creditAchieved;

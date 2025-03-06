@@ -80,7 +80,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
     });
 
-    it(`item credit achieved, don't skip weight 0`, async () => {
+    it(`unit credit achieved, don't skip weight 0`, async () => {
         let core = await createTestCore({
             doenetML: `
   $_document1.creditAchieved{assignNames="docCa"}
@@ -102,7 +102,7 @@ describe("Document tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         expect(stateVariables["/docCa"].stateValues.value).eq(0);
         expect(
-            stateVariables["/_document1"].stateValues.itemCreditAchieved,
+            stateVariables["/_document1"].stateValues.unitCreditAchieved,
         ).eqls([0, 0, 0, 0, 0]);
 
         let mathInputXName =
@@ -127,7 +127,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/x"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(1 / 3);
         expect(
-            stateVariables["/_document1"].stateValues.itemCreditAchieved,
+            stateVariables["/_document1"].stateValues.unitCreditAchieved,
         ).eqls([1, 0, 0, 0, 0]);
 
         await updateMathInputValue({
@@ -141,7 +141,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(1 / 3);
         expect(
-            stateVariables["/_document1"].stateValues.itemCreditAchieved,
+            stateVariables["/_document1"].stateValues.unitCreditAchieved,
         ).eqls([1, 1, 0, 0, 0]);
 
         await updateMathInputValue({
@@ -155,7 +155,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/y"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(2 / 3);
         expect(
-            stateVariables["/_document1"].stateValues.itemCreditAchieved,
+            stateVariables["/_document1"].stateValues.unitCreditAchieved,
         ).eqls([1, 1, 1, 0, 0]);
 
         await updateMathInputValue({
@@ -169,7 +169,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/b"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(2 / 3);
         expect(
-            stateVariables["/_document1"].stateValues.itemCreditAchieved,
+            stateVariables["/_document1"].stateValues.unitCreditAchieved,
         ).eqls([1, 1, 1, 1, 0]);
 
         await updateMathInputValue({
@@ -183,7 +183,7 @@ describe("Document tag tests", async () => {
         expect(stateVariables["/z"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
         expect(
-            stateVariables["/_document1"].stateValues.itemCreditAchieved,
+            stateVariables["/_document1"].stateValues.unitCreditAchieved,
         ).eqls([1, 1, 1, 1, 1]);
     });
 

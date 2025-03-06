@@ -383,9 +383,9 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateRenderers.clear();
 
-        // evaluate itemCreditAchieved so that will be fresh
+        // evaluate unitCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.itemCreditAchieved;
+        await this.document.stateValues.unitCreditAchieved;
 
         // console.log(serializedComponents)
         // console.timeEnd('start up time');
@@ -396,8 +396,8 @@ export default class Core {
             await this.document.stateValues.generatedVariantInfo,
             serializedComponentsReplacer,
         );
-        this.canonicalItemVariantStrings = (
-            await this.document.stateValues.itemVariantInfo
+        this.canonicalDocVariantStrings = (
+            await this.document.stateValues.docVariantInfo
         ).map((x) => JSON.stringify(x, serializedComponentsReplacer));
 
         // Note: coreInfo is fixed even though this.rendererTypesInDocument could change
@@ -11047,7 +11047,7 @@ export default class Core {
         let newStateVariableValues = {};
         let newStateVariableValuesProcessed = [];
         let workspace = {};
-        let recordItemSubmissions = [];
+        let recordUnitSubmissions = [];
 
         for (let instruction of updateInstructions) {
             if (instruction.componentName) {
@@ -11111,7 +11111,7 @@ export default class Core {
                 newStateVariableValuesProcessed.push(newStateVariableValues);
                 newStateVariableValues = {};
             } else if (instruction.updateType === "recordItemSubmission") {
-                recordItemSubmissions.push(instruction);
+                recordUnitSubmissions.push(instruction);
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
@@ -11143,32 +11143,32 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate || recordItemSubmissions.length > 0) {
+        if (!skipRendererUpdate || recordUnitSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
-        if (recordItemSubmissions.length > 0) {
-            let itemsSubmitted = [
-                ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
+        if (recordUnitSubmissions.length > 0) {
+            let unitsSubmitted = [
+                ...new Set(recordUnitSubmissions.map((x) => x.unitNumber)),
             ];
-            let itemCreditAchieved =
-                await this.document.stateValues.itemCreditAchieved;
+            let unitCreditAchieved =
+                await this.document.stateValues.unitCreditAchieved;
 
             if (event) {
                 if (!event.context) {
                     event.context = {};
                 }
-                event.context.item = itemsSubmitted[0];
-                event.context.itemCreditAchieved =
-                    itemCreditAchieved[itemsSubmitted[0] - 1];
+                event.context.unit = unitsSubmitted[0];
+                event.context.unitCreditAchieved =
+                    unitCreditAchieved[unitsSubmitted[0] - 1];
 
-                // Just in case the code gets changed to that more than item can be submitted at once
+                // Just in case the code gets changed to that more than unit can be submitted at once
                 // record credit achieved for any additional items
-                if (itemsSubmitted.length > 1) {
-                    event.context.additionalItemCreditAchieved = {};
-                    for (let itemNumber of itemsSubmitted) {
-                        event.context.additionalItemCreditAchieved[itemNumber] =
-                            itemCreditAchieved[itemNumber - 1];
+                if (unitsSubmitted.length > 1) {
+                    event.context.additionalUnitCreditAchieved = {};
+                    for (let unitNumber of unitsSubmitted) {
+                        event.context.additionalUnitCreditAchieved[unitNumber] =
+                            unitCreditAchieved[unitNumber - 1];
                     }
                 }
                 event.context.docCreditAchieved =
@@ -11256,7 +11256,7 @@ export default class Core {
         }
 
         let alreadySaved = false;
-        if (recordItemSubmissions.length > 0) {
+        if (recordUnitSubmissions.length > 0) {
             this.saveState(true, true);
             alreadySaved = true;
         }
@@ -11269,9 +11269,9 @@ export default class Core {
             }, 1000);
         }
 
-        // evaluate itemCreditAchieved so that will be fresh
+        // evaluate unitCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.itemCreditAchieved;
+        await this.document.stateValues.unitCreditAchieved;
 
         if (event) {
             this.requestRecordEvent(event);
@@ -13020,7 +13020,7 @@ export default class Core {
         };
     }
 
-    get scoredItemWeights() {
+    get scoredUnitWeights() {
         return (async () =>
             (await this.document.stateValues.scoredDescendants).map(
                 (x) => x.stateValues.weight,
