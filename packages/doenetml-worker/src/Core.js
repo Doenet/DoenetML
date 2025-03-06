@@ -10762,7 +10762,7 @@ export default class Core {
                     },
                 ],
                 actionId: args.actionId,
-                doNotSave: true, // this isn't an interaction, so don't save page state
+                doNotSave: true, // this isn't an interaction, so don't save doc state
             });
         }
 
@@ -11171,7 +11171,7 @@ export default class Core {
                             itemCreditAchieved[itemNumber - 1];
                     }
                 }
-                event.context.pageCreditAchieved =
+                event.context.docCreditAchieved =
                     await this.document.stateValues.creditAchieved;
             }
         }
@@ -11261,10 +11261,10 @@ export default class Core {
             alreadySaved = true;
         }
         if (!alreadySaved && !doNotSave) {
-            clearTimeout(this.savePageStateTimeoutID);
+            clearTimeout(this.saveDocStateTimeoutID);
 
             //Debounce the save to localstorage and then to DB with a throttle
-            this.savePageStateTimeoutID = setTimeout(() => {
+            this.saveDocStateTimeoutID = setTimeout(() => {
                 this.saveState();
             }, 1000);
         }
@@ -11347,10 +11347,10 @@ export default class Core {
 
         const payload = {
             activityId: this.activityId,
-            pageCid: this.cid,
+            cid: this.cid,
             docId: this.docId,
             attemptNumber: this.attemptNumber,
-            pageVariantIndex: this.requestedVariant.index,
+            variantIndex: this.requestedVariant.index,
             verb: event.verb,
             object: JSON.stringify(event.object, serializedComponentsReplacer),
             result: JSON.stringify(
@@ -12895,11 +12895,11 @@ export default class Core {
     }
 
     async saveImmediately() {
-        if (this.savePageStateTimeoutID) {
-            // if in debounce to save page to local storage
+        if (this.saveDocStateTimeoutID) {
+            // if in debounce to save doc to local storage
             // then immediate save to local storage
             // and override timeout to save to database
-            clearTimeout(this.savePageStateTimeoutID);
+            clearTimeout(this.saveDocStateTimeoutID);
             await this.saveState(true);
         } else {
             // else override timeout to save any pending changes to database
@@ -12908,7 +12908,7 @@ export default class Core {
     }
 
     async saveState(overrideThrottle = false, onSubmission = false) {
-        this.savePageStateTimeoutID = null;
+        this.saveDocStateTimeoutID = null;
 
         if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
             return;
@@ -12944,7 +12944,7 @@ export default class Core {
             return;
         }
 
-        this.pageStateToBeSavedToDatabase = {
+        this.docStateToBeSavedToDatabase = {
             cid: this.cid,
             coreInfo: this.coreInfoString,
             coreState: coreStateString,
@@ -12986,25 +12986,9 @@ export default class Core {
             this.saveChangesToDatabase();
         }, 60000);
 
-        let pause100 = function () {
-            return new Promise((resolve, reject) => {
-                setTimeout(resolve, 100);
-            });
-        };
-
-        if (this.savingPageState) {
-            for (let i = 0; i < 100; i++) {
-                await pause100();
-
-                if (!this.savingPageState) {
-                    break;
-                }
-            }
-        }
-
         postMessage({
             messageType: "reportScoreAndState",
-            state: { ...this.pageStateToBeSavedToDatabase },
+            state: { ...this.docStateToBeSavedToDatabase },
             score: await this.document.stateValues.creditAchieved,
         });
         return;

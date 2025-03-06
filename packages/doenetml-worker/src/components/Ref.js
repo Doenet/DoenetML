@@ -28,13 +28,6 @@ export default class Ref extends InlineComponent {
             public: true,
             forRenderer: true,
         };
-        attributes.page = {
-            createPrimitiveOfType: "integer",
-            createStateVariable: "page",
-            defaultValue: null,
-            public: true,
-            forRenderer: true,
-        };
         attributes.createButton = {
             createComponentOfType: "boolean",
             createStateVariable: "createButton",
@@ -109,10 +102,6 @@ export default class Ref extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "uri",
                 },
-                page: {
-                    dependencyType: "stateVariable",
-                    variableName: "page",
-                },
                 targetInactive: {
                     dependencyType: "stateVariable",
                     variableName: "targetInactive",
@@ -123,7 +112,7 @@ export default class Ref extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                if (dependencyValues.uri || dependencyValues.page) {
+                if (dependencyValues.uri) {
                     if (dependencyValues.targetAttribute) {
                         let targetName = dependencyValues.targetAttribute;
                         if (targetName[0] !== "/") {
@@ -364,7 +353,6 @@ export default class Ref extends InlineComponent {
         let variantIndex = await this.stateValues.variantIndex;
         let edit = await this.stateValues.edit;
         let hash = await this.stateValues.hash;
-        let page = await this.stateValues.page;
         let uri = await this.stateValues.uri;
         let targetName = await this.stateValues.targetName;
 
@@ -376,7 +364,6 @@ export default class Ref extends InlineComponent {
             variantIndex,
             edit,
             hash,
-            page,
             uri,
             targetName,
             actionId,
