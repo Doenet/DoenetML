@@ -1091,17 +1091,17 @@ describe("Copy Tag Tests", function () {
             "Two variants from copied document",
         ); // to wait for page to load
 
-        cy.get(cesc("#\\/thedoc")).should("contain.text", "first");
-
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(
                 stateVariables["/thedoc"].sharedParameters.allPossibleVariants,
             ).eqls(["first", "last"]);
-            expect(stateVariables["/thedoc"].sharedParameters.variantName).eq(
-                "first",
-            );
+
+            const variantOne =
+                stateVariables["/thedoc"].sharedParameters.variantName;
+            const variantTwo = variantOne === "first" ? "last" : "first";
+
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
@@ -1109,36 +1109,39 @@ describe("Copy Tag Tests", function () {
             expect(
                 stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
-        });
 
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                    requestedVariantIndex: 2,
-                },
-                "*",
-            );
-        });
+            cy.get(cesc("#\\/thedoc")).should("contain.text", variantOne);
 
-        cy.get(cesc("#\\/thedoc")).should("contain.text", "last");
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML,
+                        requestedVariantIndex: 2,
+                    },
+                    "*",
+                );
+            });
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
+            cy.get(cesc("#\\/thedoc")).should("contain.text", variantTwo);
 
-            expect(
-                stateVariables["/thedoc"].sharedParameters.allPossibleVariants,
-            ).eqls(["first", "last"]);
-            expect(stateVariables["/thedoc"].sharedParameters.variantName).eq(
-                "last",
-            );
-            expect(
-                stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["a", "b"]);
-            expect(
-                stateVariables["/_document1"].sharedParameters.variantName,
-            ).eq("b");
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(
+                    stateVariables["/thedoc"].sharedParameters
+                        .allPossibleVariants,
+                ).eqls(["first", "last"]);
+                expect(
+                    stateVariables["/thedoc"].sharedParameters.variantName,
+                ).eq(variantTwo);
+                expect(
+                    stateVariables["/_document1"].sharedParameters
+                        .allPossibleVariants,
+                ).eqls(["a", "b"]);
+                expect(
+                    stateVariables["/_document1"].sharedParameters.variantName,
+                ).eq("b");
+            });
         });
     });
 

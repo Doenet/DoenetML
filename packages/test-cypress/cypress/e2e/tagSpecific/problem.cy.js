@@ -1439,80 +1439,101 @@ describe("Problem Tag Tests", function () {
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc2("#/ca")).should("have.text", "0");
-
-        cy.get(cesc2("#/problem1/input1_input")).type("banana{enter}");
-        cy.get(cesc2("#/problem1/input1_incorrect")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0");
-
-        cy.get(cesc2("#/problem1/input2_submit")).should("be.visible");
-
-        cy.wait(2000); // wait to make sure debounce save happened
-
-        cy.reload();
-
         cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                },
-                "*",
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let selectedFruitName =
+                stateVariables["/problem1/fruit/name"].stateValues.value;
+            let otherFruitName =
+                selectedFruitName === "apple" ? "banana" : "apple";
+            let selectedFruitColor =
+                stateVariables["/problem1/fruit/color"].stateValues.value;
+            let otherFruitColor =
+                selectedFruitColor === "red" ? "yellow" : "red";
+
+            cy.get(cesc2("#/ca")).should("have.text", "0");
+
+            cy.get(cesc2("#/problem1/input1_input")).type(
+                `${otherFruitName}{enter}`,
             );
+            cy.get(cesc2("#/problem1/input1_incorrect")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "0");
+
+            cy.get(cesc2("#/problem1/input2_submit")).should("be.visible");
+
+            cy.wait(2000); // wait to make sure debounce save happened
+
+            cy.reload();
+
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML,
+                    },
+                    "*",
+                );
+            });
+            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+            cy.get(cesc2("#/problem1/input1_incorrect")).should("be.visible");
+            cy.get(cesc2("#/problem1/input2_submit")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "0");
+
+            cy.get(cesc2("#/problem1/input1_input"))
+                .clear()
+                .type(selectedFruitName);
+            cy.get(cesc2("#/problem1/input1_submit")).click();
+            cy.get(cesc2("#/problem1/input1_correct")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "0.5");
+
+            cy.get(cesc2("#/problem1/input2_input"))
+                .clear()
+                .type(`${otherFruitColor}{enter}`);
+            cy.get(cesc2("#/problem1/input2_incorrect")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "0.5");
+
+            cy.wait(2000); // wait to make sure debounce save happened
+
+            cy.reload();
+
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML,
+                    },
+                    "*",
+                );
+            });
+            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+            cy.get(cesc2("#/problem1/input1_correct")).should("be.visible");
+            cy.get(cesc2("#/problem1/input2_incorrect")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "0.5");
+
+            cy.get(cesc2("#/problem1/input2_input"))
+                .clear()
+                .type(selectedFruitColor);
+            cy.get(cesc2("#/problem1/input2_submit")).click();
+            cy.get(cesc2("#/problem1/input2_correct")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "1");
+
+            cy.wait(2000); // wait to make sure debounce save happened
+
+            cy.reload();
+
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML,
+                    },
+                    "*",
+                );
+            });
+            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+
+            cy.get(cesc2("#/problem1/input1_correct")).should("be.visible");
+            cy.get(cesc2("#/problem1/input2_correct")).should("be.visible");
+            cy.get(cesc2("#/ca")).should("have.text", "1");
         });
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-        cy.get(cesc2("#/problem1/input1_incorrect")).should("be.visible");
-        cy.get(cesc2("#/problem1/input2_submit")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0");
-
-        cy.get(cesc2("#/problem1/input1_input")).clear().type("apple");
-        cy.get(cesc2("#/problem1/input1_submit")).click();
-        cy.get(cesc2("#/problem1/input1_correct")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
-
-        cy.get(cesc2("#/problem1/input2_input")).clear().type("yellow{enter}");
-        cy.get(cesc2("#/problem1/input2_incorrect")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
-
-        cy.wait(2000); // wait to make sure debounce save happened
-
-        cy.reload();
-
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                },
-                "*",
-            );
-        });
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-        cy.get(cesc2("#/problem1/input1_correct")).should("be.visible");
-        cy.get(cesc2("#/problem1/input2_incorrect")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
-
-        cy.get(cesc2("#/problem1/input2_input")).clear().type("red");
-        cy.get(cesc2("#/problem1/input2_submit")).click();
-        cy.get(cesc2("#/problem1/input2_correct")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "1");
-
-        cy.wait(2000); // wait to make sure debounce save happened
-
-        cy.reload();
-
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML,
-                },
-                "*",
-            );
-        });
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-        cy.get(cesc2("#/problem1/input1_correct")).should("be.visible");
-        cy.get(cesc2("#/problem1/input2_correct")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "1");
     });
 });
