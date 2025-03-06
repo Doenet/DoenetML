@@ -11160,12 +11160,12 @@ export default class Core {
                 if (!event.context) {
                     event.context = {};
                 }
-                event.context.component = componentsSubmitted[0];
+                event.context.componentNumber = componentsSubmitted[0];
                 event.context.componentCreditAchieved =
                     componentCreditAchieved[componentsSubmitted[0] - 1];
 
-                // Just in case the code gets changed to that more than component can be submitted at once
-                // record credit achieved for any additional items
+                // Just in case the code gets changed so that more than one component can be submitted at once,
+                // record credit achieved for any additional components.
                 if (componentsSubmitted.length > 1) {
                     event.context.additionalComponentCreditAchieved = {};
                     for (let componentNumber of componentsSubmitted) {
