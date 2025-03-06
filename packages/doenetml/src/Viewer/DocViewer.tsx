@@ -286,7 +286,6 @@ export function DocViewer({
 
     const postfixForWindowFunctions =
         prefixForIds
-            .replace(/^page/, "")
             .replaceAll("/", "")
             .replaceAll("\\", "")
             .replaceAll("-", "_") || "1";
@@ -611,7 +610,6 @@ export function DocViewer({
             variantIndex,
             edit,
             hash,
-            page,
             uri,
             targetName,
             actionId,
@@ -623,7 +621,6 @@ export function DocViewer({
             variantIndex?: number;
             edit?: boolean;
             hash?: string;
-            page?: number;
             uri?: string;
             targetName?: string;
             actionId?: string;
@@ -638,7 +635,6 @@ export function DocViewer({
                     variantIndex,
                     edit,
                     hash,
-                    page,
                     givenUri: uri,
                     targetName,
                     linkSettings,
@@ -1564,7 +1560,6 @@ export function getURLFromRef({
     variantIndex,
     edit,
     hash,
-    page,
     givenUri,
     targetName = "",
     linkSettings,
@@ -1576,7 +1571,6 @@ export function getURLFromRef({
     variantIndex?: number;
     edit?: boolean;
     hash?: string;
-    page?: number;
     givenUri?: string;
     targetName?: string;
     linkSettings: Record<string, any>;
@@ -1639,12 +1633,7 @@ export function getURLFromRef({
         if (hash) {
             url += hash;
         } else {
-            if (page) {
-                url += `#page${page}`;
-                if (targetName) {
-                    url += cesc(targetName);
-                }
-            } else if (targetName) {
+            if (targetName) {
                 url += "#" + cesc(targetName);
             }
         }
@@ -1661,13 +1650,9 @@ export function getURLFromRef({
     } else {
         url = search;
 
-        if (page) {
-            url += `#page${page}`;
-        } else {
-            let firstSlash = id.indexOf("\\/");
-            let prefix = id.substring(0, firstSlash);
-            url += "#" + prefix;
-        }
+        let firstSlash = id.indexOf("\\/");
+        let prefix = id.substring(0, firstSlash);
+        url += "#" + prefix;
         url += cesc(targetName);
         targetForATag = null;
         haveValidTarget = true;
