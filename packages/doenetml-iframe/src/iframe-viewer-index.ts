@@ -78,6 +78,8 @@ window.addEventListener("message", (e) => {
         !e.data.subject?.endsWith("response")
     ) {
         window.parent.postMessage(e.data);
+    } else if (e.data.subject === "requestAnswerResponses") {
+        window.parent.postMessage(e.data);
     }
 });
 
