@@ -11,7 +11,21 @@ interface Window {
     ) => void;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    let pause100 = function () {
+        return new Promise((resolve, _reject) => {
+            setTimeout(resolve, 100);
+        });
+    };
+
+    // wait up to a second window.renderDoenetViewerToContainer to be found
+    for (let i = 0; i < 10; i++) {
+        if (typeof window.renderDoenetViewerToContainer === "function") {
+            break;
+        }
+        await pause100();
+    }
+
     if (typeof window.renderDoenetViewerToContainer !== "function") {
         return messageParentFromViewer({
             error: "Invalid DoenetML version or DoenetML package not found",
