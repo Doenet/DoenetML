@@ -13,7 +13,6 @@ import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { addCommasForCompositeRanges } from "./utils/composites";
-import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -38,8 +37,6 @@ export default React.memo(function Section(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
     // console.log("name: ", name, " SVs: ", SVs," Children",children);
-
-    const { showAnswerTitles } = useContext(DocContext) || {};
 
     let onChangeVisibility = (isVisible) => {
         callAction({
@@ -239,7 +236,6 @@ export default React.memo(function Section(props) {
                         submitAllAnswers();
                     }
                 }}
-                title={showAnswerTitles ? `Answer name: ${name}` : null}
             >
                 <FontAwesomeIcon
                     icon={faLevelDownAlt}

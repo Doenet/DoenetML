@@ -9,6 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import { DocContext } from "../DocViewer";
+import { AnswerResponseMenu } from "./utils/AnswerResponseMenu";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -30,10 +31,11 @@ const Button = styled.button`
 `;
 
 export default React.memo(function Answer(props) {
-    let { name, id, SVs, actions, children, callAction } =
+    let { name, id, SVs, docId, activityId, actions, children, callAction } =
         useDoenetRenderer(props);
 
-    const { showAnswerTitles } = useContext(DocContext) || {};
+    const { showAnswerResponseMenu, answerResponseCounts } =
+        useContext(DocContext) || {};
 
     if (SVs.hidden) {
         return null;
@@ -67,6 +69,18 @@ export default React.memo(function Answer(props) {
                 inputChildNames.includes(
                     child.props.componentInstructions.componentName,
                 ),
+        );
+    }
+
+    let answerResponseMenu = null;
+    if (showAnswerResponseMenu) {
+        answerResponseMenu = (
+            <AnswerResponseMenu
+                answerId={name}
+                docId={docId}
+                activityId={activityId}
+                numResponses={answerResponseCounts?.[name]}
+            />
         );
     }
 
@@ -113,14 +127,8 @@ export default React.memo(function Answer(props) {
                         submitAnswer();
                     }
                 }}
-                title={showAnswerTitles ? `Answer name: ${name}` : null}
             >
                 <FontAwesomeIcon
-                    style={
-                        {
-                            /*marginRight: "4px", paddingLeft: "2px"*/
-                        }
-                    }
                     icon={faLevelDownAlt}
                     transform={{ rotate: 90 }}
                 />
@@ -218,6 +226,7 @@ export default React.memo(function Answer(props) {
                 <a name={id} />
                 {inputChildrenToRender}
                 {checkworkComponent}
+                {answerResponseMenu}
             </span>
         );
     } else {
@@ -225,6 +234,7 @@ export default React.memo(function Answer(props) {
             <span id={id} style={{ marginBottom: "4px" }}>
                 <a name={id} />
                 {inputChildrenToRender}
+                {answerResponseMenu}
             </span>
         );
     }

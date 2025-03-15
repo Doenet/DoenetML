@@ -32,7 +32,8 @@ export function EditorViewer({
     prefixForIds = "",
     linkSettings,
     darkMode = "light",
-    showAnswerTitles,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width = "100%",
     height = "500px",
     backgroundColor = "doenet.mainGray",
@@ -56,7 +57,8 @@ export function EditorViewer({
     prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     backgroundColor?: string;
@@ -538,7 +540,8 @@ export function EditorViewer({
                             scrollableContainer.current ?? undefined
                         }
                         darkMode={darkMode}
-                        showAnswerTitles={showAnswerTitles}
+                        showAnswerResponseMenu={showAnswerResponseMenu}
+                        answerResponseCounts={answerResponseCounts}
                     />
                 </Box>
             </GridItem>

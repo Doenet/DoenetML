@@ -81,6 +81,8 @@ export default function useDoenetRenderer(
             componentInstructions: childInstructions,
             rendererClasses: props.rendererClasses,
             coreId: props.coreId,
+            docId: props.docId,
+            activityId: props.activityId,
             callAction: props.callAction,
         };
 
@@ -126,6 +128,8 @@ export default function useDoenetRenderer(
         name: effectiveName,
         id: prefixForIds + cesc(effectiveName),
         SVs: stateValues,
+        docId: props.docId,
+        activityId: props.activityId,
         actions,
         children,
         sourceOfUpdate,
