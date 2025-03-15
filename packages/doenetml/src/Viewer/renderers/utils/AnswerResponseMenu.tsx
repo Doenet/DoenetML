@@ -1,45 +1,42 @@
 import React from "react";
-import {
-    IconButton,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuList,
-} from "@chakra-ui/react";
-import { MdInfoOutline } from "react-icons/md";
+import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 
 export function AnswerResponseMenu({
-    answerName,
+    answerId,
     activityId,
     docId,
+    numResponses = 0,
 }: {
-    answerName: string;
+    answerId: string;
     activityId: string;
     docId: string;
+    numResponses?: number;
 }) {
     return (
         <Menu>
             <MenuButton
-                as={IconButton}
-                icon={<MdInfoOutline />}
+                as={Button}
                 size="xs"
                 paddingLeft="2px"
                 paddingRight="2px"
                 cursor="pointer"
-            />
+            >
+                {numResponses}
+            </MenuButton>
             <MenuList>
                 <MenuItem
                     cursor="pointer"
                     onClick={() => {
                         window.postMessage({
                             subject: "requestAnswerResponses",
-                            answerName,
+                            answerId,
                             activityId,
                             docId,
                         });
                     }}
                 >
-                    Show responses to {answerName}
+                    Show {numResponses} response{numResponses === 1 ? "" : "s"}{" "}
+                    to {answerId}
                 </MenuItem>
             </MenuList>
         </Menu>

@@ -32,7 +32,8 @@ export function EditorViewer({
     prefixForIds = "",
     linkSettings,
     darkMode = "light",
-    showAnswerResponseMenu,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width = "100%",
     height = "500px",
     backgroundColor = "doenet.mainGray",
@@ -57,6 +58,7 @@ export function EditorViewer({
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     backgroundColor?: string;
@@ -539,6 +541,7 @@ export function EditorViewer({
                         }
                         darkMode={darkMode}
                         showAnswerResponseMenu={showAnswerResponseMenu}
+                        answerResponseCounts={answerResponseCounts}
                     />
                 </Box>
             </GridItem>

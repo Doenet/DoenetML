@@ -34,7 +34,8 @@ export default React.memo(function Answer(props) {
     let { name, id, SVs, docId, activityId, actions, children, callAction } =
         useDoenetRenderer(props);
 
-    const { showAnswerResponseMenu } = useContext(DocContext) || {};
+    const { showAnswerResponseMenu, answerResponseCounts } =
+        useContext(DocContext) || {};
 
     if (SVs.hidden) {
         return null;
@@ -75,9 +76,10 @@ export default React.memo(function Answer(props) {
     if (showAnswerResponseMenu) {
         answerResponseMenu = (
             <AnswerResponseMenu
-                answerName={name}
+                answerId={name}
                 docId={docId}
                 activityId={activityId}
+                numResponses={answerResponseCounts?.[name]}
             />
         );
     }

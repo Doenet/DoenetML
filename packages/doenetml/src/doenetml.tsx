@@ -119,6 +119,7 @@ export function DoenetViewer({
     scrollableContainer,
     darkMode = "light",
     showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
 }: {
@@ -150,6 +151,7 @@ export function DoenetViewer({
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
 }) {
@@ -268,6 +270,7 @@ export function DoenetViewer({
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
         />
     );
@@ -303,6 +306,7 @@ export function DoenetEditor({
     linkSettings,
     darkMode = "light",
     showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width,
     height,
     viewerLocation,
@@ -329,6 +333,7 @@ export function DoenetEditor({
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     viewerLocation?: "left" | "right" | "top" | "bottom";
@@ -361,6 +366,7 @@ export function DoenetEditor({
             linkSettings={linkSettings}
             darkMode={darkMode}
             showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             width={width}
             height={height}
             viewerLocation={viewerLocation}
