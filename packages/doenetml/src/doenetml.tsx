@@ -118,7 +118,8 @@ export function DoenetViewer({
     linkSettings,
     scrollableContainer,
     darkMode = "light",
-    showAnswerTitles = false,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
 }: {
@@ -149,7 +150,8 @@ export function DoenetViewer({
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
 }) {
@@ -267,7 +269,8 @@ export function DoenetViewer({
             linkSettings={linkSettings}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
+            showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
         />
     );
@@ -302,7 +305,8 @@ export function DoenetEditor({
     navigate,
     linkSettings,
     darkMode = "light",
-    showAnswerTitles = false,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width,
     height,
     viewerLocation,
@@ -328,7 +332,8 @@ export function DoenetEditor({
     navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     viewerLocation?: "left" | "right" | "top" | "bottom";
@@ -360,7 +365,8 @@ export function DoenetEditor({
             prefixForIds={prefixForIds}
             linkSettings={linkSettings}
             darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
+            showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             width={width}
             height={height}
             viewerLocation={viewerLocation}

@@ -58,7 +58,8 @@ export function DocViewer({
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
     scrollableContainer,
     darkMode,
-    showAnswerTitles,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     initializeCounters = {},
 }: {
     doenetML: string;
@@ -87,7 +88,8 @@ export function DocViewer({
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
@@ -281,7 +283,8 @@ export function DocViewer({
         linkSettings,
         scrollableContainer,
         darkMode,
-        showAnswerTitles,
+        showAnswerResponseMenu,
+        answerResponseCounts,
     };
 
     const postfixForWindowFunctions =
@@ -958,6 +961,8 @@ export function DocViewer({
                         rendererClasses: newRendererClasses,
                         flags,
                         coreId: coreId.current,
+                        docId,
+                        activityId,
                         callAction,
                         navigate,
                         location,

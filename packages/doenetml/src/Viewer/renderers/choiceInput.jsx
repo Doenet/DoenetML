@@ -12,7 +12,6 @@ import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import "./choiceInput.css";
-import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -58,8 +57,6 @@ export default React.memo(function ChoiceInput(props) {
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
     let selectedIndicesWhenSetState = useRef(null);
-
-    const { showAnswerTitles } = useContext(DocContext) || {};
 
     if (
         !ignoreUpdate &&
@@ -203,11 +200,6 @@ export default React.memo(function ChoiceInput(props) {
                                 });
                             }
                         }}
-                        title={
-                            showAnswerTitles
-                                ? `Answer name: ${actions.submitAnswer.componentName}`
-                                : null
-                        }
                     >
                         <FontAwesomeIcon
                             style={
@@ -411,11 +403,6 @@ export default React.memo(function ChoiceInput(props) {
                                 });
                             }
                         }}
-                        title={
-                            showAnswerTitles
-                                ? `Answer name: ${actions.submitAnswer.componentName}`
-                                : null
-                        }
                     >
                         <FontAwesomeIcon
                             style={
