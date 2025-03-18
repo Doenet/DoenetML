@@ -60,7 +60,7 @@ export function DocViewer({
     darkMode,
     showAnswerResponseMenu = false,
     answerResponseCounts = {},
-    initializeCounters = {},
+    initializeCounters: prescribedInitializeCounters = {},
 }: {
     doenetML: string;
     userId?: string;
@@ -215,6 +215,13 @@ export function DocViewer({
         requestedVariant: Record<string, any>;
     } | null>(null);
 
+    const initializeCounters = useRef<Record<string, number>>(
+        prescribedInitializeCounters,
+    );
+    useEffect(() => {
+        initializeCounters.current = prescribedInitializeCounters;
+    }, [prescribedInitializeCounters]);
+
     const rendererClasses = useRef<Record<string, any>>({});
     const coreInfo = useRef<Record<string, any> | null>(null);
     const coreCreated = useRef(false);
@@ -307,7 +314,6 @@ export function DocViewer({
                     docId,
                     attemptNumber,
                     requestedVariantIndex,
-                    initializeCounters,
                 });
             } catch (e: any) {
                 let message = "";
@@ -688,7 +694,6 @@ export function DocViewer({
             docId,
             attemptNumber,
             requestedVariantIndex,
-            initializeCounters,
         });
 
         return newCoreWorker;
@@ -1111,7 +1116,9 @@ export function DocViewer({
                             userId,
                         });
                         if (resp.loadedState) {
-                            processLoadedDocState(resp.state);
+                            if (resp.state) {
+                                processLoadedDocState(resp.state);
+                            }
                         }
                     }
                 } catch (e: any) {
@@ -1218,6 +1225,7 @@ export function DocViewer({
                 serializedComponentsReviver,
             ),
         };
+        initializeCounters.current = data.initializeCounters;
     }
 
     async function startCore(initialPass = false) {
@@ -1236,7 +1244,6 @@ export function DocViewer({
                 docId,
                 attemptNumber,
                 requestedVariantIndex,
-                initializeCounters,
             });
         }
 
@@ -1257,6 +1264,7 @@ export function DocViewer({
                           serializedComponentsReplacer,
                       )
                     : undefined,
+                initializeCounters: initializeCounters.current,
             },
         });
 
