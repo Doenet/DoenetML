@@ -110,6 +110,7 @@ export default class Core {
                 }
             }
         }
+        this.receivedStateVariableChanges = Boolean(stateVariableChangesString);
 
         this.coreFunctions = {
             requestUpdate: this.requestUpdate.bind(this),
@@ -420,6 +421,10 @@ export default class Core {
         this.messageViewerReady();
 
         this.resolveInitialized();
+
+        if (!this.receivedStateVariableChanges) {
+            this.saveState();
+        }
     }
 
     async onDocumentFirstVisible() {
@@ -12952,6 +12957,7 @@ export default class Core {
             coreInfo: this.coreInfoString,
             coreState: coreStateString,
             rendererState: rendererStateString,
+            initializeCounters: this.initializeCounters,
             docId: this.docId,
             attemptNumber: this.attemptNumber,
             activityId: this.activityId,
