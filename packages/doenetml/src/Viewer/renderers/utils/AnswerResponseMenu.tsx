@@ -12,6 +12,7 @@ export function AnswerResponseMenu({
     docId: string;
     numResponses?: number;
 }) {
+    const modifiedId = answerId[0] === "/" ? answerId.substring(1) : answerId;
     return (
         <Menu>
             <MenuButton
@@ -36,7 +37,7 @@ export function AnswerResponseMenu({
                     }}
                 >
                     Show {numResponses} response{numResponses === 1 ? "" : "s"}{" "}
-                    to {answerId}
+                    to {modifiedId}
                 </MenuItem>
             </MenuList>
         </Menu>
