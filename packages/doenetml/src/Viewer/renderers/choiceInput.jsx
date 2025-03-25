@@ -193,13 +193,6 @@ export default React.memo(function ChoiceInput(props) {
                                 action: actions.submitAnswer,
                             })
                         }
-                        onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                                callAction({
-                                    action: actions.submitAnswer,
-                                });
-                            }
-                        }}
                     >
                         <FontAwesomeIcon
                             style={
@@ -396,13 +389,6 @@ export default React.memo(function ChoiceInput(props) {
                                 action: actions.submitAnswer,
                             })
                         }
-                        onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                                callAction({
-                                    action: actions.submitAnswer,
-                                });
-                            }
-                        }}
                     >
                         <FontAwesomeIcon
                             style={

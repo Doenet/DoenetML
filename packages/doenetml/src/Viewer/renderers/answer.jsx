@@ -122,11 +122,6 @@ export default React.memo(function Answer(props) {
                 disabled={disabled}
                 style={checkWorkStyle}
                 onClick={submitAnswer}
-                onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                        submitAnswer();
-                    }
-                }}
             >
                 <FontAwesomeIcon
                     icon={faLevelDownAlt}
