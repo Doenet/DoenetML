@@ -58,6 +58,7 @@ export function EditorViewer({
     readOnly = false,
     showFormatter = true,
     showErrorsWarnings = true,
+    showResponses = true,
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
@@ -83,6 +84,7 @@ export function EditorViewer({
     readOnly?: boolean;
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
+    showResponses?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
@@ -97,6 +99,9 @@ export function EditorViewer({
 
     if (readOnly) {
         showFormatter = false;
+    }
+    if (!showViewer) {
+        showResponses = false;
     }
 
     const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
@@ -302,72 +307,82 @@ export function EditorViewer({
         };
     }, []);
 
-    let formatter: React.ReactNode = null;
-    if (showFormatter) {
-        formatter = (
-            <Flex
-                ml="0px"
-                h="32px"
-                bg="doenet.mainGray"
-                pl="10px"
-                pt="1px"
-                alignItems="center"
-                justify="end"
-            >
-                <Box>
-                    <FormControl display="flex" alignItems="center">
-                        <Switch
-                            id="asXml"
-                            isChecked={formatAsDoenetML}
-                            onChange={(e) => {
-                                setFormatAsDoenetML(e.target.checked);
-                            }}
-                            title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                        />
-                        <FormLabel
-                            htmlFor="asXml"
-                            mb="0"
-                            ml="2"
-                            width="9.8em"
-                            mr="10px"
-                        >
-                            Format as {formatAsDoenetML ? "DoenetML" : "XML"}
-                        </FormLabel>
-                    </FormControl>
-                </Box>
-                <Box>
-                    <Button
-                        size="xs"
-                        px="4"
-                        mr="10px"
-                        title="Format your source code"
-                        onClick={async () => {
-                            const printed = await prettyPrint(
-                                editorDoenetMLRef.current,
-                                { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
-                            );
-                            onEditorChange(printed);
-                        }}
-                    >
-                        Format
-                    </Button>
-                </Box>
-                <Box alignSelf="center" fontSize="smaller" mr="10px">
-                    Version: {DOENETML_VERSION}
-                </Box>
-            </Flex>
-        );
-    }
+    let formatterAndVersion: React.ReactNode = null;
 
-    const errorsWarningsResponses = (
-        <ErrorWarningResponseTabs
-            warnings={warningsObjs}
-            errors={errorsObjs}
-            submittedResponses={responses}
-            isOpen={infoPanelIsOpen}
-            setIsOpen={setInfoPanelIsOpen}
-        />
+    formatterAndVersion = (
+        <Flex
+            ml="0px"
+            h="32px"
+            bg="doenet.mainGray"
+            pl="10px"
+            pt="1px"
+            alignItems="center"
+            justify="end"
+        >
+            {showFormatter ? (
+                <>
+                    <Box>
+                        <FormControl display="flex" alignItems="center">
+                            <Switch
+                                id="asXml"
+                                isChecked={formatAsDoenetML}
+                                onChange={(e) => {
+                                    setFormatAsDoenetML(e.target.checked);
+                                }}
+                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
+                            />
+                            <FormLabel
+                                htmlFor="asXml"
+                                mb="0"
+                                ml="2"
+                                width="9.8em"
+                                mr="10px"
+                            >
+                                Format as{" "}
+                                {formatAsDoenetML ? "DoenetML" : "XML"}
+                            </FormLabel>
+                        </FormControl>
+                    </Box>
+                    <Box>
+                        <Button
+                            size="xs"
+                            px="4"
+                            mr="10px"
+                            title="Format your source code"
+                            onClick={async () => {
+                                const printed = await prettyPrint(
+                                    editorDoenetMLRef.current,
+                                    {
+                                        doenetSyntax: formatAsDoenetML,
+                                        tabWidth: 2,
+                                    },
+                                );
+                                onEditorChange(printed);
+                            }}
+                        >
+                            Format
+                        </Button>
+                    </Box>
+                </>
+            ) : null}
+            <Box alignSelf="center" fontSize="smaller" mr="10px">
+                Version: {DOENETML_VERSION}
+            </Box>
+        </Flex>
     );
+
+    const errorsWarningsResponses =
+        showErrorsWarnings || showResponses ? (
+            <ErrorWarningResponseTabs
+                warnings={warningsObjs}
+                errors={errorsObjs}
+                submittedResponses={responses}
+                isOpen={infoPanelIsOpen}
+                setIsOpen={setInfoPanelIsOpen}
+                showErrorsWarnings={showErrorsWarnings}
+                showResponses={showResponses}
+            />
+        ) : null;
 
     const codeMirror = (
         <CodeMirror
@@ -386,6 +401,17 @@ export function EditorViewer({
             }}
             onChange={onEditorChange}
         />
+    );
+
+    const editorAndCollapsiblePanel = errorsWarningsResponses ? (
+        <ResizableCollapsiblePanelPair
+            mainPanel={codeMirror}
+            subPanel={errorsWarningsResponses}
+            isOpen={infoPanelIsOpen}
+            setIsOpen={setInfoPanelIsOpen}
+        />
+    ) : (
+        codeMirror
     );
 
     const editorPanel = (
@@ -410,12 +436,7 @@ export function EditorViewer({
                 placeSelf="center"
                 overflow="hidden"
             >
-                <ResizableCollapsiblePanelPair
-                    mainPanel={codeMirror}
-                    subPanel={errorsWarningsResponses}
-                    isOpen={infoPanelIsOpen}
-                    setIsOpen={setInfoPanelIsOpen}
-                />
+                {editorAndCollapsiblePanel}
             </GridItem>
             <GridItem
                 area="formatter"
@@ -424,7 +445,7 @@ export function EditorViewer({
                 placeSelf="center"
                 overflow="hidden"
             >
-                {formatter}
+                {formatterAndVersion}
             </GridItem>
         </Grid>
     );
@@ -562,7 +583,7 @@ export function EditorViewer({
                             allowLoadState: false,
                             allowSaveState: false,
                             allowLocalState: false,
-                            allowSaveEvents: true,
+                            allowSaveEvents: showResponses,
                             readOnly: false,
                         }}
                         activityId={activityId}
