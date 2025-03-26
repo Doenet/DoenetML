@@ -319,6 +319,7 @@ export function DoenetEditor({
     readOnly = false,
     showFormatter = true,
     showErrorsWarnings = true,
+    showResponses = true,
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
@@ -346,6 +347,7 @@ export function DoenetEditor({
     readOnly?: boolean;
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
+    showResponses?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
@@ -379,6 +381,7 @@ export function DoenetEditor({
             readOnly={readOnly}
             showFormatter={showFormatter}
             showErrorsWarnings={showErrorsWarnings}
+            showResponses={showResponses}
             border={border}
             initialErrors={initialErrors}
             initialWarnings={initialWarnings}
