@@ -11,7 +11,13 @@ import {
     Switch,
     Tooltip,
 } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+    ReactElement,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { ResizablePanelPair } from "./ResizablePanelPair";
 import { RxUpdate } from "react-icons/rx";
 import { WarningTwoIcon } from "@chakra-ui/icons";
@@ -19,10 +25,16 @@ import { WarningTwoIcon } from "@chakra-ui/icons";
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
 import { DocViewer } from "../Viewer/DocViewer";
-import ErrorWarningPopovers from "./ErrorWarningPopovers";
-import type { WarningDescription, ErrorDescription } from "@doenet/utils";
+import ErrorWarningResponseTabs from "./ErrorWarningResponseTabs";
+import {
+    type WarningDescription,
+    type ErrorDescription,
+    nanInfinityReviver,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
+import { formatResponse } from "../utils/responses";
+import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -112,6 +124,8 @@ export function EditorViewer({
         allPossibleVariants: ["a"],
     });
 
+    const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
+
     const [errorsAndWarnings, setErrorsAndWarningsCallback] = useState<{
         errors: ErrorDescription[];
         warnings: WarningDescription[];
@@ -126,6 +140,64 @@ export function EditorViewer({
         ...errorsAndWarnings.warnings.filter((w) => w.level <= warningsLevel),
     ];
     const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
+
+    const [responses, setResponses] = useState<
+        {
+            answerId: string;
+            response: ReactElement;
+            creditAchieved: number;
+            submittedAt: string;
+        }[]
+    >([]);
+
+    useEffect(() => setResponses([]), [initialDoenetML]);
+
+    useEffect(() => {
+        function submittedResponseListener(event: any) {
+            if (event.data.subject == "SPLICE.sendEvent") {
+                const data = event.data.data;
+                if (data.verb === "submitted") {
+                    const object = JSON.parse(data.object);
+                    const answerId = object.componentName;
+
+                    if (answerId) {
+                        const result = JSON.parse(
+                            data.result,
+                            nanInfinityReviver,
+                        );
+                        const answerCreditAchieved = result.creditAchieved;
+                        const response: unknown[] = result.response;
+                        const componentTypes: string[] = result.componentTypes;
+
+                        const responseElement = formatResponse(
+                            response,
+                            componentTypes,
+                        );
+
+                        setResponses((was) => {
+                            const arr = [...was];
+                            arr.push({
+                                answerId:
+                                    answerId[0] === "/"
+                                        ? answerId.substring(1)
+                                        : answerId,
+                                response: responseElement,
+                                creditAchieved: answerCreditAchieved,
+                                submittedAt: new Date().toLocaleTimeString(),
+                            });
+                            return arr;
+                        });
+                    }
+                }
+            }
+        }
+
+        addEventListener("message", submittedResponseListener);
+
+        return () => {
+            removeEventListener("message", submittedResponseListener);
+        };
+    }, [showViewer]);
 
     useEffect(() => {
         setEditorDoenetML(initialDoenetML);
@@ -194,6 +266,7 @@ export function EditorViewer({
                 }
 
                 setCodeChanged(false);
+                setResponses([]);
 
                 updateValueTimer.current = null;
             }
@@ -242,23 +315,6 @@ export function EditorViewer({
                 justify="end"
             >
                 <Box>
-                    <Button
-                        size="sm"
-                        px="4"
-                        mr="8px"
-                        title="Pretty-print your source code"
-                        onClick={async () => {
-                            const printed = await prettyPrint(
-                                editorDoenetMLRef.current,
-                                { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
-                            );
-                            onEditorChange(printed);
-                        }}
-                    >
-                        Pretty Print
-                    </Button>
-                </Box>
-                <Box>
                     <FormControl display="flex" alignItems="center">
                         <Switch
                             id="asXml"
@@ -279,30 +335,57 @@ export function EditorViewer({
                         </FormLabel>
                     </FormControl>
                 </Box>
+                <Box>
+                    <Button
+                        size="xs"
+                        px="4"
+                        mr="10px"
+                        title="Format your source code"
+                        onClick={async () => {
+                            const printed = await prettyPrint(
+                                editorDoenetMLRef.current,
+                                { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
+                            );
+                            onEditorChange(printed);
+                        }}
+                    >
+                        Format
+                    </Button>
+                </Box>
+                <Box alignSelf="center" fontSize="smaller" mr="10px">
+                    Version: {DOENETML_VERSION}
+                </Box>
             </Flex>
         );
     }
 
-    let errorsWarningsVersion = (
-        <Flex
-            ml="0px"
-            h="32px"
-            bg="doenet.mainGray"
-            pl="10px"
-            pt="1px"
-            pr="10px"
-        >
-            {showErrorsWarnings ? (
-                <ErrorWarningPopovers
-                    warnings={warningsObjs}
-                    errors={errorsObjs}
-                />
-            ) : null}
-            <Spacer />
-            <Box alignSelf="center" fontSize="smaller">
-                Version: {DOENETML_VERSION}
-            </Box>
-        </Flex>
+    const errorsWarningsResponses = (
+        <ErrorWarningResponseTabs
+            warnings={warningsObjs}
+            errors={errorsObjs}
+            submittedResponses={responses}
+            isOpen={infoPanelIsOpen}
+            setIsOpen={setInfoPanelIsOpen}
+        />
+    );
+
+    const codeMirror = (
+        <CodeMirror
+            value={editorDoenetML}
+            //TODO: read only isn't working <codeeditor disabled />
+            readOnly={readOnly}
+            onBlur={() => {
+                window.clearTimeout(updateValueTimer.current ?? undefined);
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                }
+                updateValueTimer.current = null;
+            }}
+            onChange={onEditorChange}
+        />
     );
 
     const editorPanel = (
@@ -310,9 +393,8 @@ export function EditorViewer({
             width="100%"
             height="100%"
             templateAreas={`"editor"
-                            "errorWarnings"
                             "formatter"`}
-            gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
+            gridTemplateRows={`1fr 32px`}
             gridTemplateColumns={`1fr`}
             boxSizing="border-box"
             background="doenet.canvas"
@@ -328,36 +410,12 @@ export function EditorViewer({
                 placeSelf="center"
                 overflow="hidden"
             >
-                <CodeMirror
-                    value={editorDoenetML}
-                    //TODO: read only isn't working <codeeditor disabled />
-                    readOnly={readOnly}
-                    onBlur={() => {
-                        window.clearTimeout(
-                            updateValueTimer.current ?? undefined,
-                        );
-                        if (
-                            lastReportedDoenetML.current !==
-                            editorDoenetMLRef.current
-                        ) {
-                            lastReportedDoenetML.current =
-                                editorDoenetMLRef.current;
-                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                        }
-                        updateValueTimer.current = null;
-                    }}
-                    onChange={onEditorChange}
+                <ResizableCollapsiblePanelPair
+                    mainPanel={codeMirror}
+                    subPanel={errorsWarningsResponses}
+                    isOpen={infoPanelIsOpen}
+                    setIsOpen={setInfoPanelIsOpen}
                 />
-            </GridItem>
-            <GridItem
-                area="errorWarnings"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-                backgroundColor="doenet.mainGray"
-            >
-                {errorsWarningsVersion}
             </GridItem>
             <GridItem
                 area="formatter"
@@ -448,6 +506,7 @@ export function EditorViewer({
                                     }
                                     setCodeChanged(false);
                                     updateValueTimer.current = null;
+                                    setResponses([]);
                                 }}
                             >
                                 Update
@@ -503,7 +562,7 @@ export function EditorViewer({
                             allowLoadState: false,
                             allowSaveState: false,
                             allowLocalState: false,
-                            allowSaveEvents: false,
+                            allowSaveEvents: true,
                             readOnly: false,
                         }}
                         activityId={activityId}

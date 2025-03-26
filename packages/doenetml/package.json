@@ -61,8 +61,8 @@
         "styled-components": "^5.3.11"
     },
     "dependencies": {
-        "@chakra-ui/icons": "^2.0.19",
-        "@chakra-ui/react": "^2.7.0",
+        "@chakra-ui/icons": "^2.2.4",
+        "@chakra-ui/react": "^2.10.5",
         "@fortawesome/fontawesome-svg-core": "^6.5.2",
         "@fortawesome/free-regular-svg-icons": "^6.5.2",
         "@fortawesome/free-solid-svg-icons": "^6.5.2",
