@@ -838,4 +838,26 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/na")).should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
+
+    it("mathjax has extension packages", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+
+    <m name="bbox">\\bbox{R}</m>
+    <m name="cancel">\\cancel{x}</m>
+    <m name="bcancel">\\bcancel{y}</m>
+    <m name="circle">\\enclose{circle}{\\kern .1em 1 \\kern .1em}</m>  
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/cancel")).should("have.text", "x");
+        cy.get(cesc2("#/bcancel")).should("have.text", "y");
+        cy.get(cesc2("#/bbox")).should("have.text", "R");
+        cy.get(cesc2("#/circle")).should("have.text", "1");
+    });
 });
