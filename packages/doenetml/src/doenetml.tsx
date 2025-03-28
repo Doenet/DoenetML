@@ -282,7 +282,11 @@ export function DoenetViewer({
             disableGlobalStyle
         >
             <RecoilRoot>
-                <MathJaxContext version={3} config={mathjaxConfig}>
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
                     <div ref={ref}>
                         {variantSelector}
                         {viewer}
@@ -395,7 +399,11 @@ export function DoenetEditor({
             disableGlobalStyle
         >
             <RecoilRoot>
-                <MathJaxContext version={3} config={mathjaxConfig}>
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
                     {editor}
                     <div className="before-keyboard" />
                     {keyboard}

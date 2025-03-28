@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DoenetEditor, DoenetViewer } from "@doenet/doenetml";
-import { useLocation, useNavigate } from "react-router";
 import { Button } from "@doenet/ui-components";
 
 export function CypressTest() {
@@ -92,9 +91,6 @@ export function CypressTest() {
     );
 
     const solutionDisplayMode = "button";
-
-    let navigate = useNavigate();
-    let location = useLocation();
 
     // requestedVariantIndex is undefined by default so that viewer
     // will use attemptNumber for variant
@@ -503,8 +499,6 @@ export function CypressTest() {
                 }}
                 activityId="activityIdFromCypress"
                 render={render}
-                location={location}
-                navigate={navigate}
                 linkSettings={{
                     viewURL: "/portfolioviewer",
                     editURL: "/publiceditor",
