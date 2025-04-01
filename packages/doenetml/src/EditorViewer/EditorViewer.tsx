@@ -463,13 +463,16 @@ export function EditorViewer({
         );
     }
 
+    const controlHeight =
+        !readOnly || variants.numVariants > 1 ? "32px" : "0px";
+
     const viewerPanel = (
         <Grid
             width="100%"
             height="100%"
             templateAreas={`"controls"
                             "viewer"`}
-            gridTemplateRows={`32px 1fr`}
+            gridTemplateRows={`${controlHeight} 1fr`}
             gridTemplateColumns={`1fr`}
             overflowY="hidden"
         >
@@ -482,58 +485,61 @@ export function EditorViewer({
                 id={id + "-viewer-controls"}
             >
                 <HStack w="100%" h="32px" bg={backgroundColor}>
-                    <Box>
-                        <Tooltip
-                            hasArrow
-                            label={
-                                platform == "Mac"
-                                    ? "Updates Viewer cmd+s"
-                                    : "Updates Viewer ctrl+s"
-                            }
-                        >
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                data-test="Viewer Update Button"
-                                bg="doenet.canvas"
-                                leftIcon={<RxUpdate />}
-                                rightIcon={
-                                    codeChanged ? (
-                                        <WarningTwoIcon
-                                            color="doenet.mainBlue"
-                                            fontSize="18px"
-                                        />
-                                    ) : undefined
+                    {!readOnly && (
+                        <Box>
+                            <Tooltip
+                                hasArrow
+                                label={
+                                    platform == "Mac"
+                                        ? "Updates Viewer cmd+s"
+                                        : "Updates Viewer ctrl+s"
                                 }
-                                isDisabled={!codeChanged}
-                                onClick={() => {
-                                    setViewerDoenetML(
-                                        editorDoenetMLRef.current,
-                                    );
-                                    window.clearTimeout(
-                                        updateValueTimer.current ?? undefined,
-                                    );
-                                    if (
-                                        lastReportedDoenetML.current !==
-                                        editorDoenetMLRef.current
-                                    ) {
-                                        lastReportedDoenetML.current =
-                                            editorDoenetMLRef.current;
-                                        if (!showViewer) {
-                                            doenetmlChangeCallback?.(
-                                                editorDoenetMLRef.current,
-                                            );
-                                        }
-                                    }
-                                    setCodeChanged(false);
-                                    updateValueTimer.current = null;
-                                    setResponses([]);
-                                }}
                             >
-                                Update
-                            </Button>
-                        </Tooltip>
-                    </Box>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    data-test="Viewer Update Button"
+                                    bg="doenet.canvas"
+                                    leftIcon={<RxUpdate />}
+                                    rightIcon={
+                                        codeChanged ? (
+                                            <WarningTwoIcon
+                                                color="doenet.mainBlue"
+                                                fontSize="18px"
+                                            />
+                                        ) : undefined
+                                    }
+                                    isDisabled={!codeChanged}
+                                    onClick={() => {
+                                        setViewerDoenetML(
+                                            editorDoenetMLRef.current,
+                                        );
+                                        window.clearTimeout(
+                                            updateValueTimer.current ??
+                                                undefined,
+                                        );
+                                        if (
+                                            lastReportedDoenetML.current !==
+                                            editorDoenetMLRef.current
+                                        ) {
+                                            lastReportedDoenetML.current =
+                                                editorDoenetMLRef.current;
+                                            if (!showViewer) {
+                                                doenetmlChangeCallback?.(
+                                                    editorDoenetMLRef.current,
+                                                );
+                                            }
+                                        }
+                                        setCodeChanged(false);
+                                        updateValueTimer.current = null;
+                                        setResponses([]);
+                                    }}
+                                >
+                                    Update
+                                </Button>
+                            </Tooltip>
+                        </Box>
+                    )}
                     {variants.numVariants > 1 && (
                         <Box bg={backgroundColor} h="32px" width="100%">
                             <VariantSelect
