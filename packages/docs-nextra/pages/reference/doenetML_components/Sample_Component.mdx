@@ -1,16 +1,22 @@
 import { DoenetViewer, DoenetEditor, DoenetExample, AttrDisplay, PropDisplay } from "../../../components"
 
-# `<abs>`
+# `<Sample>`
 
 ## What it does
-The `<abs>` component renders the absolute value of the enclosed math.
+The `<Sample>` component does this stuff
 
 ## Attributes and Properties
-<AttrDisplay name='abs'/>
+<AttrDisplay name='math'/>
 
-<PropDisplay name='abs'/>
+<PropDisplay name='math'/>
 
 ## Examples
+1. [Render the absolute value of a math expression](#math-ex)
+2. [Absolute value of `<mathInput>`](#mathInput-ex)
+3. [Absolute value of numerical properties](#numProps-ex)
+4. [Absolute value of a function](#function-ex)
+
+
 <a id="math-ex"></a>
 ### Example: Render the absolute value of a math expression
 To embed the example in an editor, use doenet-editor, which defaults to top/bottom.
@@ -18,10 +24,10 @@ To embed the example in an editor, use doenet-editor, which defaults to top/bott
 ```doenet-editor
 <m>|5 - 8| = <abs>5 - 8</abs></m>
 ```
-#### Description:
+
+#### Brief description of the example:
 The `<abs>` component is used to render the absolute value of a math expression.
 
----
 
 <a id="mathInput-ex"></a>
 ### Example: Absolute value of `<mathInput>`
@@ -31,10 +37,8 @@ To embed the example in a viewer, use the DoenetViewer react component with doen
     <p><m>|$userN| = <abs>$userN</abs></m></p>
 ```
 
-#### Description:
+#### Brief description of the example:
 This component hides the source code and just renders the doenetML.
-
----
 
 <a id="numProps-ex"></a>
 ### Example: Absolute value of numerical properties

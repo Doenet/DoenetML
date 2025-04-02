@@ -1,6 +1,7 @@
 export default {
     starting: "Tutorials",
     quickStart: {
+        display: "hidden",
         title: "📘 Quick Start Tutorial (0.5 hr)",
     },
     introdTutorial: {
