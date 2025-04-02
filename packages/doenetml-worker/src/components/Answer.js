@@ -258,13 +258,24 @@ export default class Answer extends InlineComponent {
 
             function checkForResponseDescendant(components) {
                 for (let component of components) {
+                    if (component?.attributes) {
+                        for (const attr in component.attributes) {
+                            // Need a case-insensitive test because composites such as Copy
+                            // don't have have an isResponse attribute, but accept any attribute,
+                            // which means those attribute names have not been normalized
+                            if (attr.toLowerCase() === "isresponse") {
+                                if (
+                                    component.attributes[attr].primitive !==
+                                    false
+                                ) {
+                                    // idea: catch either isResponse = true or isResponse.primitive=true
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
                     if (
-                        component?.attributes?.isResponse &&
-                        component.attributes.isResponse.primitive !== false
-                    ) {
-                        // idea: catch either isResponse = true or isResponse.primitive=true
-                        return true;
-                    } else if (
                         component.children &&
                         checkForResponseDescendant(component.children)
                     ) {
