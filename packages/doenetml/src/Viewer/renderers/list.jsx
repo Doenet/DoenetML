@@ -1,27 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
 export default React.memo(function List(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -40,16 +28,10 @@ export default React.memo(function List(props) {
     // TODO: incorporate label
     if (SVs.item) {
         return (
-            <VisibilitySensor
-                partialVisibility={true}
-                onChange={onChangeVisibility}
-                requireContentsSize={false}
-            >
-                <>
-                    <a name={id} />
-                    <li id={id}>{children}</li>
-                </>
-            </VisibilitySensor>
+            <li id={id} ref={ref}>
+                <a name={id} />
+                {children}
+            </li>
         );
     } else if (SVs.numbered) {
         let list_style;
@@ -73,17 +55,10 @@ export default React.memo(function List(props) {
                 ];
         }
         return (
-            <VisibilitySensor
-                partialVisibility={true}
-                onChange={onChangeVisibility}
-            >
-                <>
-                    <ol id={id} style={{ listStyleType: list_style }}>
-                        <a name={id} />
-                        {children}
-                    </ol>
-                </>
-            </VisibilitySensor>
+            <ol id={id} style={{ listStyleType: list_style }} ref={ref}>
+                <a name={id} />
+                {children}
+            </ol>
         );
     } else {
         let list_style;
@@ -100,17 +75,10 @@ export default React.memo(function List(props) {
                 ];
         }
         return (
-            <VisibilitySensor
-                partialVisibility={true}
-                onChange={onChangeVisibility}
-            >
-                <>
-                    <ul id={id} style={{ listStyleType: list_style }}>
-                        <a name={id} />
-                        {children}
-                    </ul>
-                </>
-            </VisibilitySensor>
+            <ul id={id} style={{ listStyleType: list_style }} ref={ref}>
+                <a name={id} />
+                {children}
+            </ul>
         );
     }
 });

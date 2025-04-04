@@ -1,27 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import Measure from "react-measure";
 
 export default React.memo(function Figure(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden || !children) {
         return null;
@@ -115,26 +103,21 @@ export default React.memo(function Figure(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <figure id={id} style={{ margin: "12px 0" }}>
-                <a name={id} />
-                {childrenToRender}
-                <figcaption id={id + "_caption"}>
-                    <Measure onResize={handleResize}>
-                        {({ measureRef }) => (
-                            <div
-                                ref={measureRef}
-                                style={{ textAlign: captionTextAlign }}
-                            >
-                                {caption}
-                            </div>
-                        )}
-                    </Measure>
-                </figcaption>
-            </figure>
-        </VisibilitySensor>
+        <figure id={id} style={{ margin: "12px 0" }} ref={ref}>
+            <a name={id} />
+            {childrenToRender}
+            <figcaption id={id + "_caption"}>
+                <Measure onResize={handleResize}>
+                    {({ measureRef }) => (
+                        <div
+                            ref={measureRef}
+                            style={{ textAlign: captionTextAlign }}
+                        >
+                            {caption}
+                        </div>
+                    )}
+                </Measure>
+            </figcaption>
+        </figure>
     );
 });

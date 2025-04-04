@@ -11,7 +11,7 @@ import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
-import { useIsOnPage } from "./utils/isVisible";
+import { useIsOnPage } from "./utils/visibility";
 
 export const version: string = DOENETML_VERSION;
 
@@ -170,7 +170,7 @@ export function DoenetViewer({
     // This is needed to delay the initialization of JSXgraph
     // until it is no longer hidden.
     // Otherwise, the graphs are often displayed in a garbled fashion
-    // with the bounded calculated incorrectly
+    // with the bounds calculated incorrectly
     const ref = useRef<HTMLDivElement>(null);
     const isOnPage = useIsOnPage(ref);
     const [hidden, setHidden] = useState(true);

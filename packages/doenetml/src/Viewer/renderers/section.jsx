@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useContext } from "react";
+import React, { useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -11,7 +11,7 @@ import { faCaretRight as twirlIsClosed } from "@fortawesome/free-solid-svg-icons
 import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
 // Moved most of checkWorkStyle styling into Button
@@ -38,21 +38,9 @@ export default React.memo(function Section(props) {
         useDoenetRenderer(props);
     // console.log("name: ", name, " SVs: ", SVs," Children",children);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -444,53 +432,31 @@ export default React.memo(function Section(props) {
     switch (SVs.containerTag) {
         case "aside":
             return (
-                <VisibilitySensor
-                    partialVisibility={true}
-                    onChange={onChangeVisibility}
-                >
-                    <aside id={id} style={{ margin: "12px 0" }}>
-                        {" "}
-                        {content}{" "}
-                    </aside>
-                </VisibilitySensor>
+                <aside id={id} style={{ margin: "12px 0" }} ref={ref}>
+                    {" "}
+                    {content}{" "}
+                </aside>
             );
         case "article":
             return (
-                <VisibilitySensor
-                    partialVisibility={true}
-                    onChange={onChangeVisibility}
-                >
-                    <article id={id} style={{ margin: "12px 0" }}>
-                        {" "}
-                        {content}{" "}
-                    </article>
-                </VisibilitySensor>
+                <article id={id} style={{ margin: "12px 0" }} ref={ref}>
+                    {" "}
+                    {content}{" "}
+                </article>
             );
         case "div":
             return (
-                <VisibilitySensor
-                    partialVisibility={true}
-                    onChange={onChangeVisibility}
-                >
-                    <div id={id} style={{ margin: "12px 0" }}>
-                        {" "}
-                        {content}{" "}
-                    </div>
-                </VisibilitySensor>
+                <div id={id} style={{ margin: "12px 0" }} ref={ref}>
+                    {" "}
+                    {content}{" "}
+                </div>
             );
-        case "none":
-            return <>{content}</>;
         default:
             return (
-                <VisibilitySensor
-                    partialVisibility={true}
-                    onChange={onChangeVisibility}
-                >
-                    <section id={id} style={{ margin: "12px 0" }}>
-                        {" "}
-                        {content}{" "}
-                    </section>
-                </VisibilitySensor>
+                <section id={id} style={{ margin: "12px 0" }} ref={ref}>
+                    {" "}
+                    {content}{" "}
+                </section>
             );
     }
 });

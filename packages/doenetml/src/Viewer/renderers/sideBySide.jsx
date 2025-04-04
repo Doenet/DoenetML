@@ -1,30 +1,17 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef } from "react";
 
 // import styled from "styled-components";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function sideBySide(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
     // console.log(">>>name: ", name, " value: ", SVs);
     // console.log(">>>children",children)
+    const ref = useRef(null);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
-
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -68,17 +55,13 @@ export default React.memo(function sideBySide(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
+        <div
+            id={id}
+            style={{ display: "flex", maxWidth: "850px", margin: "12px 0" }}
+            ref={ref}
         >
-            <div
-                id={id}
-                style={{ display: "flex", maxWidth: "850px", margin: "12px 0" }}
-            >
-                <a name={id} />
-                {styledChildren}
-            </div>
-        </VisibilitySensor>
+            <a name={id} />
+            {styledChildren}
+        </div>
     );
 });

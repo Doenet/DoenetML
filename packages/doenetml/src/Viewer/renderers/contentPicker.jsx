@@ -1,10 +1,9 @@
 import React, { useRef, useState } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
-import { useEffect } from "react";
 import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function ContentPicker(props) {
     let {
@@ -38,21 +37,9 @@ export default React.memo(function ContentPicker(props) {
         selectedIndicesWhenSetState.current = null;
     }
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     function onChangeHandler(e) {
         let newSelectedIndices = [];
@@ -161,15 +148,10 @@ export default React.memo(function ContentPicker(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <section id={id}>
-                <a name={id} />
-                {picker}
-                {children}
-            </section>
-        </VisibilitySensor>
+        <section id={id} ref={ref}>
+            <a name={id} />
+            {picker}
+            {children}
+        </section>
     );
 });

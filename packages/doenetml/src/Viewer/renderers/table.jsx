@@ -1,26 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function Table(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -69,15 +57,10 @@ export default React.memo(function Table(props) {
     heading = <div id={id + "_title"}>{title}</div>;
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <div id={id} style={{ margin: "12px 0" }}>
-                <a name={id} />
-                {heading}
-                {childrenToRender}
-            </div>
-        </VisibilitySensor>
+        <div id={id} style={{ margin: "12px 0" }} ref={ref}>
+            <a name={id} />
+            {heading}
+            {childrenToRender}
+        </div>
     );
 });

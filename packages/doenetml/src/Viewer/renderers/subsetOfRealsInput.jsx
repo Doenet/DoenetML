@@ -1,11 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 import { ToggleButton } from "@doenet/ui-components";
 import { ToggleButtonGroup } from "@doenet/ui-components";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 const TextNoSelect = styled.text`
     -webkit-user-select: none;
@@ -39,21 +39,9 @@ export default React.memo(function subsetOfReals(props) {
     let bounds = useRef(null);
     let pointGrabbed = useRef(null);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -344,61 +332,56 @@ export default React.memo(function subsetOfReals(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <>
-                <a name={id} />
-                <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
-                    {controlButtons}
-                </div>
-                <svg
-                    width="808"
-                    height="80"
-                    style={{ backgroundColor: "white" }}
-                    onMouseDown={(e) => {
-                        handleInput(e, "down");
+        <div ref={ref}>
+            <a name={id} />
+            <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
+                {controlButtons}
+            </div>
+            <svg
+                width="808"
+                height="80"
+                style={{ backgroundColor: "white" }}
+                onMouseDown={(e) => {
+                    handleInput(e, "down");
+                }}
+                onMouseUp={(e) => {
+                    handleInput(e, "up");
+                }}
+                onMouseMove={(e) => {
+                    handleInput(e, "move");
+                }}
+                onMouseLeave={(e) => {
+                    handleInput(e, "leave");
+                }}
+            >
+                <polygon
+                    points="5,40 20,50 20,30"
+                    style={{
+                        fill: "black",
+                        stroke: "black",
+                        strokeWidth: "1",
                     }}
-                    onMouseUp={(e) => {
-                        handleInput(e, "up");
+                />
+                <polygon
+                    points="795,40 780,50 780,30"
+                    style={{
+                        fill: "black",
+                        stroke: "black",
+                        strokeWidth: "1",
                     }}
-                    onMouseMove={(e) => {
-                        handleInput(e, "move");
-                    }}
-                    onMouseLeave={(e) => {
-                        handleInput(e, "leave");
-                    }}
-                >
-                    <polygon
-                        points="5,40 20,50 20,30"
-                        style={{
-                            fill: "black",
-                            stroke: "black",
-                            strokeWidth: "1",
-                        }}
-                    />
-                    <polygon
-                        points="795,40 780,50 780,30"
-                        style={{
-                            fill: "black",
-                            stroke: "black",
-                            strokeWidth: "1",
-                        }}
-                    />
-                    {storedLines}
-                    {hashLines}
-                    <line
-                        x1="20"
-                        y1="40"
-                        x2="780"
-                        y2="40"
-                        style={{ stroke: "black", strokeWidth: "2" }}
-                    />
-                    {storedPoints}
-                    {labels}
-                </svg>
-            </>
-        </VisibilitySensor>
+                />
+                {storedLines}
+                {hashLines}
+                <line
+                    x1="20"
+                    y1="40"
+                    x2="780"
+                    y2="40"
+                    style={{ stroke: "black", strokeWidth: "2" }}
+                />
+                {storedPoints}
+                {labels}
+            </svg>
+        </div>
     );
 });
