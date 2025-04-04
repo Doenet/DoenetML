@@ -118,7 +118,8 @@ export function DoenetViewer({
     linkSettings,
     scrollableContainer,
     darkMode = "light",
-    showAnswerTitles = false,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
 }: {
@@ -149,7 +150,8 @@ export function DoenetViewer({
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
 }) {
@@ -179,14 +181,6 @@ export function DoenetViewer({
     }, [isOnPage]);
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
-
-    if (userId) {
-        // if userId was specified, then we're viewing results of someone other than the logged in person
-        // so disable saving state
-        // and disable even looking up state from local storage (as we want to get the state from the database)
-        flags.allowLocalState = false;
-        flags.allowSaveState = false;
-    }
 
     const generatedVariantCallback = useCallback(
         (newVariants: any) => {
@@ -275,7 +269,8 @@ export function DoenetViewer({
             linkSettings={linkSettings}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
+            showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
         />
     );
@@ -287,7 +282,11 @@ export function DoenetViewer({
             disableGlobalStyle
         >
             <RecoilRoot>
-                <MathJaxContext version={3} config={mathjaxConfig}>
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
                     <div ref={ref}>
                         {variantSelector}
                         {viewer}
@@ -310,7 +309,8 @@ export function DoenetEditor({
     navigate,
     linkSettings,
     darkMode = "light",
-    showAnswerTitles = false,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width,
     height,
     viewerLocation,
@@ -323,6 +323,7 @@ export function DoenetEditor({
     readOnly = false,
     showFormatter = true,
     showErrorsWarnings = true,
+    showResponses = true,
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
@@ -336,7 +337,8 @@ export function DoenetEditor({
     navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     viewerLocation?: "left" | "right" | "top" | "bottom";
@@ -349,6 +351,7 @@ export function DoenetEditor({
     readOnly?: boolean;
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
+    showResponses?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
@@ -368,7 +371,8 @@ export function DoenetEditor({
             prefixForIds={prefixForIds}
             linkSettings={linkSettings}
             darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
+            showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             width={width}
             height={height}
             viewerLocation={viewerLocation}
@@ -381,6 +385,7 @@ export function DoenetEditor({
             readOnly={readOnly}
             showFormatter={showFormatter}
             showErrorsWarnings={showErrorsWarnings}
+            showResponses={showResponses}
             border={border}
             initialErrors={initialErrors}
             initialWarnings={initialWarnings}
@@ -394,7 +399,11 @@ export function DoenetEditor({
             disableGlobalStyle
         >
             <RecoilRoot>
-                <MathJaxContext version={3} config={mathjaxConfig}>
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
                     {editor}
                     <div className="before-keyboard" />
                     {keyboard}

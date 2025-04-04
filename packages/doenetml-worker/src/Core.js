@@ -110,6 +110,7 @@ export default class Core {
                 }
             }
         }
+        this.receivedStateVariableChanges = Boolean(stateVariableChangesString);
 
         this.coreFunctions = {
             requestUpdate: this.requestUpdate.bind(this),
@@ -383,9 +384,9 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateRenderers.clear();
 
-        // evaluate itemCreditAchieved so that will be fresh
+        // evaluate componentCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.itemCreditAchieved;
+        await this.document.stateValues.componentCreditAchieved;
 
         // console.log(serializedComponents)
         // console.timeEnd('start up time');
@@ -396,8 +397,8 @@ export default class Core {
             await this.document.stateValues.generatedVariantInfo,
             serializedComponentsReplacer,
         );
-        this.canonicalItemVariantStrings = (
-            await this.document.stateValues.itemVariantInfo
+        this.canonicalDocVariantStrings = (
+            await this.document.stateValues.docVariantInfo
         ).map((x) => JSON.stringify(x, serializedComponentsReplacer));
 
         // Note: coreInfo is fixed even though this.rendererTypesInDocument could change
@@ -420,6 +421,10 @@ export default class Core {
         this.messageViewerReady();
 
         this.resolveInitialized();
+
+        if (!this.receivedStateVariableChanges) {
+            this.saveState();
+        }
     }
 
     async onDocumentFirstVisible() {
@@ -10762,7 +10767,7 @@ export default class Core {
                     },
                 ],
                 actionId: args.actionId,
-                doNotSave: true, // this isn't an interaction, so don't save page state
+                doNotSave: true, // this isn't an interaction, so don't save doc state
             });
         }
 
@@ -11047,7 +11052,7 @@ export default class Core {
         let newStateVariableValues = {};
         let newStateVariableValuesProcessed = [];
         let workspace = {};
-        let recordItemSubmissions = [];
+        let recordComponentSubmissions = [];
 
         for (let instruction of updateInstructions) {
             if (instruction.componentName) {
@@ -11111,7 +11116,7 @@ export default class Core {
                 newStateVariableValuesProcessed.push(newStateVariableValues);
                 newStateVariableValues = {};
             } else if (instruction.updateType === "recordItemSubmission") {
-                recordItemSubmissions.push(instruction);
+                recordComponentSubmissions.push(instruction);
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
@@ -11143,35 +11148,38 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate || recordItemSubmissions.length > 0) {
+        if (!skipRendererUpdate || recordComponentSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
-        if (recordItemSubmissions.length > 0) {
-            let itemsSubmitted = [
-                ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
+        if (recordComponentSubmissions.length > 0) {
+            let componentsSubmitted = [
+                ...new Set(
+                    recordComponentSubmissions.map((x) => x.componentNumber),
+                ),
             ];
-            let itemCreditAchieved =
-                await this.document.stateValues.itemCreditAchieved;
+            let componentCreditAchieved =
+                await this.document.stateValues.componentCreditAchieved;
 
             if (event) {
                 if (!event.context) {
                     event.context = {};
                 }
-                event.context.item = itemsSubmitted[0];
-                event.context.itemCreditAchieved =
-                    itemCreditAchieved[itemsSubmitted[0] - 1];
+                event.context.componentNumber = componentsSubmitted[0];
+                event.context.componentCreditAchieved =
+                    componentCreditAchieved[componentsSubmitted[0] - 1];
 
-                // Just in case the code gets changed to that more than item can be submitted at once
-                // record credit achieved for any additional items
-                if (itemsSubmitted.length > 1) {
-                    event.context.additionalItemCreditAchieved = {};
-                    for (let itemNumber of itemsSubmitted) {
-                        event.context.additionalItemCreditAchieved[itemNumber] =
-                            itemCreditAchieved[itemNumber - 1];
+                // Just in case the code gets changed so that more than one component can be submitted at once,
+                // record credit achieved for any additional components.
+                if (componentsSubmitted.length > 1) {
+                    event.context.additionalComponentCreditAchieved = {};
+                    for (let componentNumber of componentsSubmitted) {
+                        event.context.additionalComponentCreditAchieved[
+                            componentNumber
+                        ] = componentCreditAchieved[componentNumber - 1];
                     }
                 }
-                event.context.pageCreditAchieved =
+                event.context.docCreditAchieved =
                     await this.document.stateValues.creditAchieved;
             }
         }
@@ -11256,22 +11264,22 @@ export default class Core {
         }
 
         let alreadySaved = false;
-        if (recordItemSubmissions.length > 0) {
+        if (recordComponentSubmissions.length > 0) {
             this.saveState(true, true);
             alreadySaved = true;
         }
         if (!alreadySaved && !doNotSave) {
-            clearTimeout(this.savePageStateTimeoutID);
+            clearTimeout(this.saveDocStateTimeoutID);
 
             //Debounce the save to localstorage and then to DB with a throttle
-            this.savePageStateTimeoutID = setTimeout(() => {
+            this.saveDocStateTimeoutID = setTimeout(() => {
                 this.saveState();
             }, 1000);
         }
 
-        // evaluate itemCreditAchieved so that will be fresh
+        // evaluate componentCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.itemCreditAchieved;
+        await this.document.stateValues.componentCreditAchieved;
 
         if (event) {
             this.requestRecordEvent(event);
@@ -11347,10 +11355,10 @@ export default class Core {
 
         const payload = {
             activityId: this.activityId,
-            pageCid: this.cid,
+            cid: this.cid,
             docId: this.docId,
             attemptNumber: this.attemptNumber,
-            pageVariantIndex: this.requestedVariant.index,
+            variantIndex: this.requestedVariant.index,
             verb: event.verb,
             object: JSON.stringify(event.object, serializedComponentsReplacer),
             result: JSON.stringify(
@@ -12895,11 +12903,11 @@ export default class Core {
     }
 
     async saveImmediately() {
-        if (this.savePageStateTimeoutID) {
-            // if in debounce to save page to local storage
+        if (this.saveDocStateTimeoutID) {
+            // if in debounce to save doc to local storage
             // then immediate save to local storage
             // and override timeout to save to database
-            clearTimeout(this.savePageStateTimeoutID);
+            clearTimeout(this.saveDocStateTimeoutID);
             await this.saveState(true);
         } else {
             // else override timeout to save any pending changes to database
@@ -12908,7 +12916,7 @@ export default class Core {
     }
 
     async saveState(overrideThrottle = false, onSubmission = false) {
-        this.savePageStateTimeoutID = null;
+        this.saveDocStateTimeoutID = null;
 
         if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
             return;
@@ -12944,11 +12952,12 @@ export default class Core {
             return;
         }
 
-        this.pageStateToBeSavedToDatabase = {
+        this.docStateToBeSavedToDatabase = {
             cid: this.cid,
             coreInfo: this.coreInfoString,
             coreState: coreStateString,
             rendererState: rendererStateString,
+            initializeCounters: this.initializeCounters,
             docId: this.docId,
             attemptNumber: this.attemptNumber,
             activityId: this.activityId,
@@ -12986,25 +12995,9 @@ export default class Core {
             this.saveChangesToDatabase();
         }, 60000);
 
-        let pause100 = function () {
-            return new Promise((resolve, reject) => {
-                setTimeout(resolve, 100);
-            });
-        };
-
-        if (this.savingPageState) {
-            for (let i = 0; i < 100; i++) {
-                await pause100();
-
-                if (!this.savingPageState) {
-                    break;
-                }
-            }
-        }
-
         postMessage({
             messageType: "reportScoreAndState",
-            state: { ...this.pageStateToBeSavedToDatabase },
+            state: { ...this.docStateToBeSavedToDatabase },
             score: await this.document.stateValues.creditAchieved,
         });
         return;
@@ -13036,7 +13029,7 @@ export default class Core {
         };
     }
 
-    get scoredItemWeights() {
+    get scoredComponentWeights() {
         return (async () =>
             (await this.document.stateValues.scoredDescendants).map(
                 (x) => x.stateValues.weight,

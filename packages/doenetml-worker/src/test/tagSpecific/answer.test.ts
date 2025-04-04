@@ -2881,7 +2881,7 @@ Enter any letter:
         });
     });
 
-    it("answer based on point", async () => {
+    it("answer based on point, nonstandard case for isResponse", async () => {
         const doenetML = `
         <p>Criterion: <mathInput name="mi" prefill="1" /></p>
         <p>Move point so that its x-coordinate is larger than $mi.value.</p>
@@ -2892,7 +2892,7 @@ Enter any letter:
 
         <answer name="a"> 
           <award><when>
-            $mi < $P.x{isResponse}
+            $mi < $P.x{isresPoNse}
           </when></award>
         </answer>
 

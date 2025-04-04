@@ -58,8 +58,9 @@ export function DocViewer({
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
     scrollableContainer,
     darkMode,
-    showAnswerTitles,
-    initializeCounters = {},
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
+    initializeCounters: prescribedInitializeCounters = {},
 }: {
     doenetML: string;
     userId?: string;
@@ -87,7 +88,8 @@ export function DocViewer({
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
@@ -213,6 +215,13 @@ export function DocViewer({
         requestedVariant: Record<string, any>;
     } | null>(null);
 
+    const initializeCounters = useRef<Record<string, number>>(
+        prescribedInitializeCounters,
+    );
+    useEffect(() => {
+        initializeCounters.current = prescribedInitializeCounters;
+    }, [prescribedInitializeCounters]);
+
     const rendererClasses = useRef<Record<string, any>>({});
     const coreInfo = useRef<Record<string, any> | null>(null);
     const coreCreated = useRef(false);
@@ -281,12 +290,12 @@ export function DocViewer({
         linkSettings,
         scrollableContainer,
         darkMode,
-        showAnswerTitles,
+        showAnswerResponseMenu,
+        answerResponseCounts,
     };
 
     const postfixForWindowFunctions =
         prefixForIds
-            .replace(/^page/, "")
             .replaceAll("/", "")
             .replaceAll("\\", "")
             .replaceAll("-", "_") || "1";
@@ -305,7 +314,6 @@ export function DocViewer({
                     docId,
                     attemptNumber,
                     requestedVariantIndex,
-                    initializeCounters,
                 });
             } catch (e: any) {
                 let message = "";
@@ -611,7 +619,6 @@ export function DocViewer({
             variantIndex,
             edit,
             hash,
-            page,
             uri,
             targetName,
             actionId,
@@ -623,7 +630,6 @@ export function DocViewer({
             variantIndex?: number;
             edit?: boolean;
             hash?: string;
-            page?: number;
             uri?: string;
             targetName?: string;
             actionId?: string;
@@ -638,7 +644,6 @@ export function DocViewer({
                     variantIndex,
                     edit,
                     hash,
-                    page,
                     givenUri: uri,
                     targetName,
                     linkSettings,
@@ -689,7 +694,6 @@ export function DocViewer({
             docId,
             attemptNumber,
             requestedVariantIndex,
-            initializeCounters,
         });
 
         return newCoreWorker;
@@ -962,6 +966,8 @@ export function DocViewer({
                         rendererClasses: newRendererClasses,
                         flags,
                         coreId: coreId.current,
+                        docId,
+                        activityId,
                         callAction,
                         navigate,
                         location,
@@ -1110,7 +1116,9 @@ export function DocViewer({
                             userId,
                         });
                         if (resp.loadedState) {
-                            processLoadedDocState(resp.state);
+                            if (resp.state) {
+                                processLoadedDocState(resp.state);
+                            }
                         }
                     }
                 } catch (e: any) {
@@ -1217,6 +1225,7 @@ export function DocViewer({
                 serializedComponentsReviver,
             ),
         };
+        initializeCounters.current = data.initializeCounters;
     }
 
     async function startCore(initialPass = false) {
@@ -1235,7 +1244,6 @@ export function DocViewer({
                 docId,
                 attemptNumber,
                 requestedVariantIndex,
-                initializeCounters,
             });
         }
 
@@ -1256,6 +1264,7 @@ export function DocViewer({
                           serializedComponentsReplacer,
                       )
                     : undefined,
+                initializeCounters: initializeCounters.current,
             },
         });
 
@@ -1564,7 +1573,6 @@ export function getURLFromRef({
     variantIndex,
     edit,
     hash,
-    page,
     givenUri,
     targetName = "",
     linkSettings,
@@ -1576,7 +1584,6 @@ export function getURLFromRef({
     variantIndex?: number;
     edit?: boolean;
     hash?: string;
-    page?: number;
     givenUri?: string;
     targetName?: string;
     linkSettings: Record<string, any>;
@@ -1639,12 +1646,7 @@ export function getURLFromRef({
         if (hash) {
             url += hash;
         } else {
-            if (page) {
-                url += `#page${page}`;
-                if (targetName) {
-                    url += cesc(targetName);
-                }
-            } else if (targetName) {
+            if (targetName) {
                 url += "#" + cesc(targetName);
             }
         }
@@ -1661,13 +1663,9 @@ export function getURLFromRef({
     } else {
         url = search;
 
-        if (page) {
-            url += `#page${page}`;
-        } else {
-            let firstSlash = id.indexOf("\\/");
-            let prefix = id.substring(0, firstSlash);
-            url += "#" + prefix;
-        }
+        let firstSlash = id.indexOf("\\/");
+        let prefix = id.substring(0, firstSlash);
+        url += "#" + prefix;
         url += cesc(targetName);
         targetForATag = null;
         haveValidTarget = true;

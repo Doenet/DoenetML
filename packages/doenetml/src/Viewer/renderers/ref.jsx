@@ -68,7 +68,6 @@ export default React.memo(function Ref(props) {
         variantIndex: SVs.variantIndex,
         edit: SVs.edit,
         hash: SVs.hash,
-        page: SVs.page,
         givenUri: SVs.uri,
         targetName: SVs.targetName,
         linkSettings,

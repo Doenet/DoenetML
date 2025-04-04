@@ -316,7 +316,7 @@ impl ComponentBuilder {
     fn init_normalized_root_without_extending(&mut self, normalized_root: &NormalizedRoot) {
         // Keep track of special expanding behavior for components with `extend`.
         self.component_preserve_refs =
-            TiVec::from_iter(std::iter::repeat(false).take(normalized_root.nodes.len()));
+            TiVec::from_iter(std::iter::repeat_n(false, normalized_root.nodes.len()));
 
         // We are going to create components possibly out of order. We will track which components are created
         // and which are in the process of being created.

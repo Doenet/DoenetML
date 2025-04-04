@@ -14,7 +14,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import "./mathInput.css";
-import { DocContext } from "../DocViewer";
 
 const Matrix = styled.div`
     position: relative;
@@ -74,8 +73,6 @@ export default React.memo(function MatrixInput(props) {
         useDoenetRenderer(props);
 
     let validationState = useRef(null);
-
-    const { showAnswerTitles } = useContext(DocContext) || {};
 
     function updateValidationState() {
         validationState.current = "unvalidated";
@@ -137,18 +134,6 @@ export default React.memo(function MatrixInput(props) {
                         callAction({
                             action: actions.submitAnswer,
                         })
-                    }
-                    onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                            callAction({
-                                action: actions.submitAnswer,
-                            });
-                        }
-                    }}
-                    title={
-                        showAnswerTitles
-                            ? `Answer name: ${actions.submitAnswer.componentName}`
-                            : null
                     }
                 >
                     <FontAwesomeIcon

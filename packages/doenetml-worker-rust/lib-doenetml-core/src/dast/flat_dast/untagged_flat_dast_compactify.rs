@@ -102,8 +102,7 @@ impl FlatRoot {
     /// Remove any unreferenced nodes and shrink the `nodes` array to fit.
     /// Indices are adjusted to reflect the new positions of the nodes.
     pub fn compactify(&mut self) {
-        let mut is_referenced: Vec<bool> =
-            std::iter::repeat(false).take(self.nodes.len()).collect();
+        let mut is_referenced: Vec<bool> = std::iter::repeat_n(false, self.nodes.len()).collect();
         let mut to_visit = self
             .children
             .iter()

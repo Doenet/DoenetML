@@ -118,7 +118,7 @@ impl PropUpdater for ComponentRefProp {
                 );
                 let component = match self.component_to_select {
                     Some(ComponentToSelect::First) => elements.next(),
-                    Some(ComponentToSelect::Last) => elements.last(),
+                    Some(ComponentToSelect::Last) => elements.next_back(),
                     None => unreachable!("component_to_select should be Some"),
                 };
                 PropCalcResult::Calculated(component)

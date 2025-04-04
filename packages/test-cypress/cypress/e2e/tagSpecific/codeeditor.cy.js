@@ -1306,6 +1306,9 @@ describe("Code Editor Tag Tests", function () {
             "text",
             "<p>Hello!</p>",
         );
+
+        cy.wait(500);
+
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should("have.text", "<p>Hello!</p>");
@@ -1400,6 +1403,9 @@ describe("Code Editor Tag Tests", function () {
         );
 
         cy.get(cesc("#\\/editor") + " .cm-content").type("{end}{enter}");
+
+        cy.wait(500);
+
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should("have.text", "<p>Hello!</p>\n");
@@ -1470,6 +1476,8 @@ describe("Code Editor Tag Tests", function () {
             "<p>Apple</p>",
         );
         cy.get(cesc("#\\/editor1") + " .cm-content").type("{end}{enter}");
+
+        cy.wait(500);
 
         cy.get(
             cesc2("#/editor1-viewer-controls") +
