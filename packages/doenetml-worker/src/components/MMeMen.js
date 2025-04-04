@@ -9,7 +9,8 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
+import { latexToText } from "../utils/math";
+import { createInputStringFromChildren } from "../utils/parseMath";
 
 export class M extends InlineComponent {
     constructor(args) {
@@ -93,7 +94,6 @@ export class M extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let warnings = [];
                 if (dependencyValues.inlineChildren.length === 0) {
                     return {
                         useEssentialOrDefaultValue: {
@@ -102,33 +102,14 @@ export class M extends InlineComponent {
                     };
                 }
 
-                let pieces = [];
-                for (let child of dependencyValues.inlineChildren) {
-                    if (typeof child !== "object") {
-                        let childtrim = String(child).trim();
-                        if (childtrim) {
-                            pieces.push(childtrim);
-                        }
-                    } else if (typeof child.stateValues.latex === "string") {
-                        let latex = child.stateValues.latex.trim();
-                        if (latex) {
-                            pieces.push(latex);
-                        }
-                    } else if (typeof child.stateValues.text === "string") {
-                        let text = child.stateValues.text.trim();
-                        if (text) {
-                            pieces.push(text);
-                        }
-                    } else {
-                        warnings.push({
-                            message: `Child <${child.componentType}> of <${componentClass.componentType}> ignored as it does not have a string "text" or "latex" state variable.`,
-                            level: 1,
-                        });
-                    }
-                }
-                let latex = pieces.join(" ");
+                let latex = createInputStringFromChildren({
+                    children: dependencyValues.inlineChildren,
+                    codePre: "",
+                    format: "latex",
+                    createDisplayedMathString: true,
+                }).string;
 
-                return { setValue: { latex }, sendWarnings: warnings };
+                return { setValue: { latex } };
             },
             inverseDefinition({
                 desiredStateVariableValues,
@@ -198,74 +179,6 @@ export class M extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.latexWithInputChildren = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                inlineChildren: {
-                    dependencyType: "child",
-                    childGroups: ["inline"],
-                    variableNames: ["latex", "text"],
-                    variablesOptional: true,
-                },
-                latex: {
-                    dependencyType: "stateVariable",
-                    variableName: "latex",
-                },
-            }),
-            definition: function ({ dependencyValues, componentInfoObjects }) {
-                if (dependencyValues.inlineChildren.length === 0) {
-                    return {
-                        setValue: {
-                            latexWithInputChildren: [dependencyValues.latex],
-                        },
-                    };
-                }
-
-                let latexWithInputChildren = [];
-                let lastLatexPieces = [];
-                let inputInd = 0;
-                for (let child of dependencyValues.inlineChildren) {
-                    if (typeof child !== "object") {
-                        let childtrim = String(child).trim();
-                        if (childtrim) {
-                            lastLatexPieces.push(childtrim);
-                        }
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "input",
-                        })
-                    ) {
-                        if (lastLatexPieces.length > 0) {
-                            latexWithInputChildren.push(
-                                lastLatexPieces.join(" "),
-                            );
-                            lastLatexPieces = [];
-                        }
-                        latexWithInputChildren.push(inputInd);
-                        inputInd++;
-                    } else {
-                        if (typeof child.stateValues.latex === "string") {
-                            let latex = child.stateValues.latex.trim();
-                            if (latex) {
-                                lastLatexPieces.push(latex);
-                            }
-                        } else if (typeof child.stateValues.text === "string") {
-                            let text = child.stateValues.text.trim();
-                            if (text) {
-                                lastLatexPieces.push(text);
-                            }
-                        }
-                    }
-                }
-                if (lastLatexPieces.length > 0) {
-                    latexWithInputChildren.push(lastLatexPieces.join(" "));
-                }
-
-                return { setValue: { latexWithInputChildren } };
-            },
-        };
-
         stateVariableDefinitions.renderMode = {
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -284,20 +197,8 @@ export class M extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let expression;
-                try {
-                    expression = me.fromAst(
-                        latexToAst.convert(dependencyValues.latex),
-                    );
-                } catch (e) {
-                    // just return latex if can't parse with math-expressions
-                    return { setValue: { text: dependencyValues.latex } };
-                }
-
                 return {
-                    setValue: {
-                        text: superSubscriptsToUnicode(expression.toString()),
-                    },
+                    setValue: { text: latexToText(dependencyValues.latex) },
                 };
             },
         };

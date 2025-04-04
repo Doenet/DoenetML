@@ -231,6 +231,7 @@ impl PropsEnum {
             )),
             None => descriptions.push("- No profile set for this prop".to_string()),
         }
+        #[allow(clippy::single_match)]
         match variant.default {
             true => descriptions.push(
                 "- Default: this prop is the _unique_ default prop for this component.".to_string(),

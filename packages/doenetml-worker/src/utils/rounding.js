@@ -1,7 +1,6 @@
 export function returnRoundingStateVariableDefinitions({
-    childsGroupIfSingleMatch = [],
+    childGroupsIfSingleMatch = [],
     childGroupsToStopSingleMatch = [],
-    includeListParents = false,
     additionalAttributeComponent = null,
     displayDigitsDefault = 3,
     displaySmallAsZeroDefault = 1e-14,
@@ -17,16 +16,14 @@ export function returnRoundingStateVariableDefinitions({
         defaultValue: displayDigitsDefault,
         returnDependencies: roundingDependencies({
             stateVariable: "displayDigits",
-            childsGroupIfSingleMatch,
+            childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
             ignoreShadowsIfHaveAttribute: "displayDecimals",
-            includeListParents,
             additionalAttributeComponent,
         }),
         definition: roundingDefinition({
             stateVariable: "displayDigits",
             valueIfIgnore: 0,
-            includeListParents,
         }),
     };
 
@@ -39,16 +36,14 @@ export function returnRoundingStateVariableDefinitions({
         defaultValue: 2,
         returnDependencies: roundingDependencies({
             stateVariable: "displayDecimals",
-            childsGroupIfSingleMatch,
+            childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
             ignoreShadowsIfHaveAttribute: "displayDigits",
-            includeListParents,
             additionalAttributeComponent,
         }),
         definition: roundingDefinition({
             stateVariable: "displayDecimals",
             valueIfIgnore: -Infinity,
-            includeListParents,
         }),
     };
 
@@ -61,14 +56,12 @@ export function returnRoundingStateVariableDefinitions({
         defaultValue: displaySmallAsZeroDefault,
         returnDependencies: roundingDependencies({
             stateVariable: "displaySmallAsZero",
-            childsGroupIfSingleMatch,
+            childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
-            includeListParents,
             additionalAttributeComponent,
         }),
         definition: roundingDefinition({
             stateVariable: "displaySmallAsZero",
-            includeListParents,
         }),
     };
 
@@ -81,14 +74,12 @@ export function returnRoundingStateVariableDefinitions({
         defaultValue: false,
         returnDependencies: roundingDependencies({
             stateVariable: "padZeros",
-            childsGroupIfSingleMatch,
+            childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
-            includeListParents,
             additionalAttributeComponent,
         }),
         definition: roundingDefinition({
             stateVariable: "padZeros",
-            includeListParents,
         }),
     };
 
@@ -97,10 +88,9 @@ export function returnRoundingStateVariableDefinitions({
 
 function roundingDependencies({
     stateVariable,
-    childsGroupIfSingleMatch,
+    childGroupsIfSingleMatch,
     childGroupsToStopSingleMatch,
     ignoreShadowsIfHaveAttribute = null,
-    includeListParents = false,
     additionalAttributeComponent = null,
 }) {
     return function () {
@@ -112,7 +102,7 @@ function roundingDependencies({
             },
             singleMatchChildren: {
                 dependencyType: "child",
-                childGroups: childsGroupIfSingleMatch,
+                childGroups: childGroupsIfSingleMatch,
                 variableNames: [stateVariable],
                 variablesOptional: true,
             },
@@ -121,19 +111,6 @@ function roundingDependencies({
                 childGroups: childGroupsToStopSingleMatch,
             },
         };
-
-        if (includeListParents) {
-            dependencies.fromMathListParent = {
-                dependencyType: "parentStateVariable",
-                parentComponentType: "mathList",
-                variableName: stateVariable,
-            };
-            dependencies.fromNumberListParent = {
-                dependencyType: "parentStateVariable",
-                parentComponentType: "numberList",
-                variableName: stateVariable,
-            };
-        }
 
         if (ignoreShadowsIfHaveAttribute) {
             dependencies.attributePromptingIgnore = {
@@ -158,32 +135,8 @@ function roundingDependencies({
     };
 }
 
-function roundingDefinition({
-    stateVariable,
-    valueIfIgnore = null,
-    includeListParents,
-}) {
+function roundingDefinition({ stateVariable, valueIfIgnore = null }) {
     return function ({ dependencyValues, usedDefault }) {
-        if (includeListParents) {
-            if (dependencyValues.fromMathListParent !== null) {
-                // A mathlist parent overrides everything else.
-                return {
-                    setValue: {
-                        [stateVariable]: dependencyValues.fromMathListParent,
-                    },
-                };
-            }
-
-            if (dependencyValues.fromNumberListParent !== null) {
-                // A numberlist parent overrides everything else.
-                return {
-                    setValue: {
-                        [stateVariable]: dependencyValues.fromNumberListParent,
-                    },
-                };
-            }
-        }
-
         let foundDefaultValue = false;
         let theDefaultValueFound;
 

@@ -572,6 +572,7 @@ export default class Polyline extends GraphicalComponent {
             entryPrefixes: ["unconstrainedVertexX", "unconstrainedVertex"],
             returnEntryDimensions: (prefix) =>
                 prefix === "unconstrainedVertex" ? 1 : 0,
+            set: (x) => (x === null ? null : convertValueToMathExpression(x)),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

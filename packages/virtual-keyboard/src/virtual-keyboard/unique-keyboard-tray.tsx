@@ -10,14 +10,16 @@ type VirtualKeyboardState = {
     callbacks: OnClick[];
 };
 
-const virtualKeyboardState: VirtualKeyboardState = (window as any)
-    .virtualKeyboardState || {
-    count: 0,
-    keyboardDomNode: null,
-    keyboardReactRoot: null,
-    callbacks: [],
-};
-(window as any).virtualKeyboardState = virtualKeyboardState;
+const globalThis = Function("return this")() || {};
+
+const virtualKeyboardState: VirtualKeyboardState =
+    globalThis?.virtualKeyboardState || {
+        count: 0,
+        keyboardDomNode: null,
+        keyboardReactRoot: null,
+        callbacks: [],
+    };
+globalThis.virtualKeyboardState = virtualKeyboardState;
 
 /**
  * An expandable keyboard tray that is unique among the document. If multiple instances of `UniqueKeyboardTray` are used,

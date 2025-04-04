@@ -11,7 +11,7 @@ DoenetML is a **markup language** much like HTML. When creating content in Doene
 
 * **Properties** - information stored internally relating to a component that may be accessed by referencing the component by name, followed by the name of the property. 
 
-```html
+```doenet
 <p>This is a graphical component: 
     <point name="p1">(1,2)</point>
 </p>
@@ -74,7 +74,7 @@ Components can communicate information between one another by means of reference
 
 When you need to access the value of the named component or one of its stored properties, use the notation `$componentName` to create a reference to the component itself, and use the notation `$componentName.propertyName` to create a reference to one of its properties. 
 
-```html
+```doenet
 <line name="line1" through="(1,2) (-7,5)"/>
 
 <p>Referencing the line component on a graph:</p>

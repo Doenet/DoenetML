@@ -21,7 +21,7 @@ import { MathJax } from "better-react-mathjax";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -69,7 +69,7 @@ export default function MathInput(props) {
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
-    const { showAnswerTitles } = useContext(PageContext) || {};
+    const { showAnswerTitles } = useContext(DocContext) || {};
 
     let rendererValue = useRef(SVs.rawRendererValue);
 
@@ -249,6 +249,7 @@ export default function MathInput(props) {
     }
 
     let mathInputWrapperCursor = "allowed";
+    let checkWorkTabIndex = "0";
     if (SVs.disabled) {
         // Disable the checkWorkButton
         checkWorkStyle.backgroundColor = getComputedStyle(
@@ -256,6 +257,7 @@ export default function MathInput(props) {
         ).getPropertyValue("--mainGray");
         checkWorkStyle.color = "black";
         checkWorkStyle.cursor = "not-allowed";
+        checkWorkTabIndex = "-1";
 
         // Disable the mathInput
         mathInputStyle.borderColor = getComputedStyle(
@@ -278,7 +280,7 @@ export default function MathInput(props) {
             checkWorkButton = (
                 <Button
                     id={id + "_submit"}
-                    tabIndex="0"
+                    tabIndex={checkWorkTabIndex}
                     disabled={SVs.disabled}
                     style={checkWorkStyle}
                     onClick={() =>
@@ -312,7 +314,11 @@ export default function MathInput(props) {
                         document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
-                        <Button id={id + "_correct"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_correct"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             <FontAwesomeIcon icon={faCheck} />
                         </Button>
                     );
@@ -325,7 +331,11 @@ export default function MathInput(props) {
 
                     checkWorkStyle.backgroundColor = "#efab34";
                     checkWorkButton = (
-                        <Button id={id + "_partial"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_partial"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             {partialCreditContents}
                         </Button>
                     );
@@ -335,7 +345,11 @@ export default function MathInput(props) {
                         document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
-                        <Button id={id + "_incorrect"} style={checkWorkStyle}>
+                        <Button
+                            id={id + "_incorrect"}
+                            style={checkWorkStyle}
+                            tabIndex={checkWorkTabIndex}
+                        >
                             <FontAwesomeIcon icon={faTimes} />
                         </Button>
                     );
@@ -345,7 +359,11 @@ export default function MathInput(props) {
                 checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
                 checkWorkStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
                 checkWorkButton = (
-                    <Button id={id + "_saved"} style={checkWorkStyle}>
+                    <Button
+                        id={id + "_saved"}
+                        style={checkWorkStyle}
+                        tabIndex={checkWorkTabIndex}
+                    >
                         <FontAwesomeIcon icon={faCloud} />
                     </Button>
                 );

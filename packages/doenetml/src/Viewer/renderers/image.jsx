@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
-import { retrieveMediaForCid } from "@doenet/utils";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import VisibilitySensor from "react-visibility-sensor-v2";
@@ -64,15 +63,7 @@ export default React.memo(function Image(props) {
 
     useEffect(() => {
         if (SVs.cid) {
-            retrieveMediaForCid(SVs.cid, SVs.mimeType)
-                .then((result) => {
-                    // console.log('retrieved media')
-                    // console.log(result)
-                    setUrl(result.mediaURL);
-                })
-                .catch((e) => {
-                    //Ignore errors for now
-                });
+            // TODO: need new approach for getting media
         }
     }, []);
 

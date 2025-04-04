@@ -29,7 +29,7 @@ export default class Footnote extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inlines"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                     variablesOptional: true,
                 },
             }),

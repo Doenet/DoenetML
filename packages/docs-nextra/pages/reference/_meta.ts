@@ -1,5 +1,3 @@
-import { w } from "nextra/dist/types-BtS3w-gJ";
-
 export default {
     essentialConcepts: "Essential Concepts",
     doenetML_components: "Components",

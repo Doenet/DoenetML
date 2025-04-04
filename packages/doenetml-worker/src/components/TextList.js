@@ -1,9 +1,18 @@
-import InlineComponent from "./abstract/InlineComponent";
+import CompositeComponent from "./abstract/CompositeComponent";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import {
+    convertAttributesForComponentType,
+    postProcessCopy,
+} from "../utils/copy";
+import { processAssignNames } from "../utils/naming";
 
-export default class TextList extends InlineComponent {
+export default class TextList extends CompositeComponent {
     static componentType = "textList";
-    static renderChildren = true;
+
+    static stateVariableToEvaluateAfterReplacements =
+        "readyToExpandWhenResolved";
+
+    static assignNamesToReplacements = true;
 
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
@@ -16,6 +25,8 @@ export default class TextList extends InlineComponent {
     // even if inside a component that turned on descendantCompositesMustHaveAReplacement
     // don't required composite replacements
     static descendantCompositesMustHaveAReplacement = false;
+
+    static doNotExpandAsShadowed = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -30,8 +41,16 @@ export default class TextList extends InlineComponent {
         attributes.maxNumber = {
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
-            defaultValue: null,
+            defaultValue: Infinity,
             public: true,
+        };
+
+        attributes.fixed = {
+            leaveRaw: true,
+        };
+
+        attributes.isResponse = {
+            leaveRaw: true,
         };
 
         return attributes;
@@ -63,23 +82,11 @@ export default class TextList extends InlineComponent {
                 group: "texts",
                 componentTypes: ["text"],
             },
-            {
-                group: "textLists",
-                componentTypes: ["textList"],
-            },
         ];
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        // set overrideChildHide so that children are hidden
-        // only based on whether or not the list is hidden
-        // so that can't have a list with partially hidden components
-        stateVariableDefinitions.overrideChildHide = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { overrideChildHide: true } }),
-        };
 
         stateVariableDefinitions.textsShadow = {
             defaultValue: null,
@@ -92,27 +99,28 @@ export default class TextList extends InlineComponent {
             }),
         };
 
+        stateVariableDefinitions.asList = {
+            returnDependencies: () => ({}),
+            definition() {
+                return { setValue: { asList: true } };
+            },
+        };
+
         stateVariableDefinitions.numComponents = {
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
-            additionalStateVariablesDefined: ["childIndexByArrayKey"],
+            additionalStateVariablesDefined: ["childNameByComponent"],
             returnDependencies() {
                 return {
                     maxNumber: {
                         dependencyType: "stateVariable",
                         variableName: "maxNumber",
                     },
-                    textListChildren: {
+                    textChildren: {
                         dependencyType: "child",
-                        childGroups: ["textLists"],
-                        variableNames: ["numComponents"],
-                    },
-                    textAndTextListChildren: {
-                        dependencyType: "child",
-                        childGroups: ["texts", "textLists"],
-                        skipComponentNames: true,
+                        childGroups: ["texts"],
                     },
                     textsShadow: {
                         dependencyType: "stateVariable",
@@ -120,70 +128,39 @@ export default class TextList extends InlineComponent {
                     },
                 };
             },
-            definition: function ({ dependencyValues, componentInfoObjects }) {
+            definition: function ({ dependencyValues }) {
                 let numComponents = 0;
-                let childIndexByArrayKey = [];
+                let childNameByComponent = [];
 
-                if (dependencyValues.textAndTextListChildren.length > 0) {
-                    let nTextLists = 0;
-                    for (let [
-                        childInd,
-                        child,
-                    ] of dependencyValues.textAndTextListChildren.entries()) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "textList",
-                            })
-                        ) {
-                            let textListChild =
-                                dependencyValues.textListChildren[nTextLists];
-                            nTextLists++;
-                            for (
-                                let i = 0;
-                                i < textListChild.stateValues.numComponents;
-                                i++
-                            ) {
-                                childIndexByArrayKey[numComponents + i] = [
-                                    childInd,
-                                    i,
-                                ];
-                            }
-                            numComponents +=
-                                textListChild.stateValues.numComponents;
-                        } else {
-                            childIndexByArrayKey[numComponents] = [childInd, 0];
-                            numComponents += 1;
-                        }
-                    }
+                if (dependencyValues.textChildren.length > 0) {
+                    childNameByComponent = dependencyValues.textChildren.map(
+                        (x) => x.componentName,
+                    );
+                    numComponents = dependencyValues.textChildren.length;
                 } else if (dependencyValues.textsShadow !== null) {
                     numComponents = dependencyValues.textsShadow.length;
                 }
 
                 let maxNum = dependencyValues.maxNumber;
-                if (maxNum !== null && numComponents > maxNum) {
+                if (numComponents > maxNum) {
                     numComponents = maxNum;
-                    childIndexByArrayKey = childIndexByArrayKey.slice(
+                    childNameByComponent = childNameByComponent.slice(
                         0,
                         maxNum,
                     );
                 }
 
                 return {
-                    setValue: { numComponents, childIndexByArrayKey },
+                    setValue: { numComponents, childNameByComponent },
                     checkForActualChange: { numComponents: true },
                 };
             },
         };
 
         stateVariableDefinitions.texts = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
             isArray: true,
             entryPrefixes: ["text"],
-            stateVariablesDeterminingDependencies: ["childIndexByArrayKey"],
+            stateVariablesDeterminingDependencies: ["childNameByComponent"],
             returnArraySizeDependencies: () => ({
                 numComponents: {
                     dependencyType: "stateVariable",
@@ -197,9 +174,9 @@ export default class TextList extends InlineComponent {
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 let dependenciesByKey = {};
                 let globalDependencies = {
-                    childIndexByArrayKey: {
+                    childNameByComponent: {
                         dependencyType: "stateVariable",
-                        variableName: "childIndexByArrayKey",
+                        variableName: "childNameByComponent",
                     },
                     textsShadow: {
                         dependencyType: "stateVariable",
@@ -209,20 +186,14 @@ export default class TextList extends InlineComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let childIndices = [];
-                    let textIndex = "1";
-                    if (stateValues.childIndexByArrayKey[arrayKey]) {
-                        childIndices = [
-                            stateValues.childIndexByArrayKey[arrayKey][0],
-                        ];
-                        textIndex =
-                            stateValues.childIndexByArrayKey[arrayKey][1] + 1;
+                    if (stateValues.childNameByComponent[arrayKey]) {
+                        childIndices = [arrayKey];
                     }
                     dependenciesByKey[arrayKey] = {
-                        textAndTextListChildren: {
+                        textChildren: {
                             dependencyType: "child",
-                            childGroups: ["texts", "textLists"],
-                            variableNames: ["value", "text" + textIndex],
-                            variablesOptional: true,
+                            childGroups: ["texts"],
+                            variableNames: ["value"],
                             childIndices,
                         },
                     };
@@ -238,21 +209,10 @@ export default class TextList extends InlineComponent {
                 let texts = {};
 
                 for (let arrayKey of arrayKeys) {
-                    let child =
-                        dependencyValuesByKey[arrayKey]
-                            .textAndTextListChildren[0];
+                    let child = dependencyValuesByKey[arrayKey].textChildren[0];
 
                     if (child) {
-                        if (child.stateValues.value !== undefined) {
-                            texts[arrayKey] = child.stateValues.value;
-                        } else {
-                            let textIndex =
-                                globalDependencyValues.childIndexByArrayKey[
-                                    arrayKey
-                                ][1] + 1;
-                            texts[arrayKey] =
-                                child.stateValues["text" + textIndex];
-                        }
+                        texts[arrayKey] = child.stateValues.value;
                     } else if (globalDependencyValues.textsShadow !== null) {
                         texts[arrayKey] =
                             globalDependencyValues.textsShadow[arrayKey];
@@ -266,7 +226,7 @@ export default class TextList extends InlineComponent {
                 globalDependencyValues,
                 dependencyValuesByKey,
                 dependencyNamesByKey,
-                arraySize,
+                workspace,
             }) {
                 let instructions = [];
 
@@ -275,32 +235,29 @@ export default class TextList extends InlineComponent {
                         continue;
                     }
 
-                    let child =
-                        dependencyValuesByKey[arrayKey]
-                            .textAndTextListChildren[0];
+                    let child = dependencyValuesByKey[arrayKey].textChildren[0];
 
                     if (child) {
-                        if (child.stateValues.value !== undefined) {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey]
-                                        .textAndTextListChildren,
-                                desiredValue:
-                                    desiredStateVariableValues.texts[arrayKey],
-                                childIndex: 0,
-                                variableIndex: 0,
-                            });
-                        } else {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey]
-                                        .textAndTextListChildren,
-                                desiredValue:
-                                    desiredStateVariableValues.texts[arrayKey],
-                                childIndex: 0,
-                                variableIndex: 1,
-                            });
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey].textChildren,
+                            desiredValue:
+                                desiredStateVariableValues.texts[arrayKey],
+                            childIndex: 0,
+                            variableIndex: 0,
+                        });
+                    } else if (globalDependencyValues.textsShadow !== null) {
+                        if (!workspace.desiredTextShadow) {
+                            workspace.desiredTextShadow = [
+                                ...globalDependencyValues.textsShadow,
+                            ];
                         }
+                        workspace.desiredTextShadow[arrayKey] =
+                            desiredStateVariableValues.texts[arrayKey];
+                        instructions.push({
+                            setDependency: "textsShadow",
+                            desiredValue: workspace.desiredTextShadow,
+                        });
                     }
                 }
 
@@ -321,158 +278,175 @@ export default class TextList extends InlineComponent {
             targetVariableName: "texts",
         };
 
-        stateVariableDefinitions.text = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            forRenderer: true,
+        stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
-                texts: {
+                childNameByComponent: {
                     dependencyType: "stateVariable",
-                    variableName: "texts",
+                    variableName: "childNameByComponent",
                 },
             }),
-            definition: ({ dependencyValues }) => ({
-                setValue: { text: dependencyValues.texts.join(", ") },
-            }),
-        };
-
-        stateVariableDefinitions.componentNamesInList = {
-            returnDependencies: () => ({
-                textAndTextListChildren: {
-                    dependencyType: "child",
-                    childGroups: ["texts", "textLists"],
-                    variableNames: ["componentNamesInList"],
-                    variablesOptional: true,
-                },
-                maxNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumber",
-                },
-            }),
-            definition: function ({ dependencyValues, componentInfoObjects }) {
-                let componentNamesInList = [];
-
-                for (let child of dependencyValues.textAndTextListChildren) {
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "textList",
-                        })
-                    ) {
-                        componentNamesInList.push(
-                            ...child.stateValues.componentNamesInList,
-                        );
-                    } else {
-                        componentNamesInList.push(child.componentName);
-                    }
-                }
-
-                let maxNum = dependencyValues.maxNumber;
-                if (maxNum !== null && componentNamesInList.length > maxNum) {
-                    maxNum = Math.max(0, Math.floor(maxNum));
-                    componentNamesInList = componentNamesInList.slice(
-                        0,
-                        maxNum,
-                    );
-                }
-
-                return { setValue: { componentNamesInList } };
+            // When this state variable is marked stale
+            // it indicates we should update replacements.
+            // For this to work, must set
+            // stateVariableToEvaluateAfterReplacements
+            // to this variable so that it is marked fresh
+            markStale: () => ({ updateReplacements: true }),
+            definition: function () {
+                return { setValue: { readyToExpandWhenResolved: true } };
             },
-        };
-
-        stateVariableDefinitions.numComponentsToDisplayByChild = {
-            additionalStateVariablesDefined: ["numChildrenToRender"],
-            returnDependencies: () => ({
-                numComponents: {
-                    dependencyType: "stateVariable",
-                    variableName: "numComponents",
-                },
-                textListChildren: {
-                    dependencyType: "child",
-                    childGroups: ["textLists"],
-                    variableNames: ["numComponents"],
-                },
-                textAndTextListChildren: {
-                    dependencyType: "child",
-                    childGroups: ["texts", "textLists"],
-                    skipComponentNames: true,
-                },
-                parentNComponentsToDisplayByChild: {
-                    dependencyType: "parentStateVariable",
-                    parentComponentType: "textList",
-                    variableName: "numComponentsToDisplayByChild",
-                },
-            }),
-            definition: function ({
-                dependencyValues,
-                componentInfoObjects,
-                componentName,
-            }) {
-                let numComponentsToDisplay = dependencyValues.numComponents;
-
-                if (
-                    dependencyValues.parentNComponentsToDisplayByChild !== null
-                ) {
-                    // have a parent textList, which could have limited
-                    // text of components to display
-                    numComponentsToDisplay =
-                        dependencyValues.parentNComponentsToDisplayByChild[
-                            componentName
-                        ];
-                }
-
-                let numComponentsToDisplayByChild = {};
-
-                let numComponentsSoFar = 0;
-                let numChildrenToRender = 0;
-
-                let nTextLists = 0;
-                for (let child of dependencyValues.textAndTextListChildren) {
-                    let numComponentsLeft = Math.max(
-                        0,
-                        numComponentsToDisplay - numComponentsSoFar,
-                    );
-                    if (numComponentsLeft > 0) {
-                        numChildrenToRender++;
-                    }
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "textList",
-                        })
-                    ) {
-                        let textListChild =
-                            dependencyValues.textListChildren[nTextLists];
-                        nTextLists++;
-
-                        let numComponentsForTextListChild = Math.min(
-                            numComponentsLeft,
-                            textListChild.stateValues.numComponents,
-                        );
-
-                        numComponentsToDisplayByChild[
-                            textListChild.componentName
-                        ] = numComponentsForTextListChild;
-                        numComponentsSoFar += numComponentsForTextListChild;
-                    } else {
-                        numComponentsSoFar += 1;
-                    }
-                }
-
-                return {
-                    setValue: {
-                        numComponentsToDisplayByChild,
-                        numChildrenToRender,
-                    },
-                };
-            },
-            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         return stateVariableDefinitions;
     }
 
-    static adapters = ["text"];
+    static async createSerializedReplacements({
+        component,
+        components,
+        componentInfoObjects,
+        workspace,
+    }) {
+        let errors = [];
+        let warnings = [];
+
+        let replacements = [];
+        let componentsCopied = [];
+
+        let attributesToConvert = {};
+        for (let attr of ["fixed", "isResponse"]) {
+            if (attr in component.attributes) {
+                attributesToConvert[attr] = component.attributes[attr];
+            }
+        }
+
+        let newNamespace = component.attributes.newNamespace?.primitive;
+
+        // allow one to override the fixed and isResponse attributes
+        // as well as rounding settings
+        // by specifying it on the sequence
+        let attributesFromComposite = {};
+
+        if (Object.keys(attributesToConvert).length > 0) {
+            attributesFromComposite = convertAttributesForComponentType({
+                attributes: attributesToConvert,
+                componentType: "text",
+                componentInfoObjects,
+                compositeCreatesNewNamespace: newNamespace,
+            });
+        }
+
+        let childNameByComponent =
+            await component.stateValues.childNameByComponent;
+
+        let numComponents = await component.stateValues.numComponents;
+        for (let i = 0; i < numComponents; i++) {
+            let childName = childNameByComponent[i];
+            let replacementSource = components[childName];
+
+            if (replacementSource) {
+                componentsCopied.push(replacementSource.componentName);
+            }
+            replacements.push({
+                componentType: "text",
+                attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                downstreamDependencies: {
+                    [component.componentName]: [
+                        {
+                            dependencyType: "referenceShadow",
+                            compositeName: component.componentName,
+                            propVariable: `text${i + 1}`,
+                        },
+                    ],
+                },
+            });
+        }
+
+        workspace.uniqueIdentifiersUsed = [];
+        replacements = postProcessCopy({
+            serializedComponents: replacements,
+            componentName: component.componentName,
+            uniqueIdentifiersUsed: workspace.uniqueIdentifiersUsed,
+            addShadowDependencies: true,
+            markAsPrimaryShadow: true,
+        });
+
+        let processResult = processAssignNames({
+            assignNames: component.doenetAttributes.assignNames,
+            serializedComponents: replacements,
+            parentName: component.componentName,
+            parentCreatesNewNamespace: newNamespace,
+            componentInfoObjects,
+        });
+        errors.push(...processResult.errors);
+        warnings.push(...processResult.warnings);
+
+        workspace.componentsCopied = componentsCopied;
+        workspace.numComponents = numComponents;
+
+        return {
+            replacements: processResult.serializedComponents,
+            errors,
+            warnings,
+        };
+    }
+
+    static async calculateReplacementChanges({
+        component,
+        components,
+        componentInfoObjects,
+        workspace,
+    }) {
+        // TODO: don't yet have a way to return errors and warnings!
+        let errors = [];
+        let warnings = [];
+
+        let numComponents = await component.stateValues.numComponents;
+
+        if (numComponents === workspace.numComponents) {
+            let componentsToCopy = [];
+
+            let childNameByComponent =
+                await component.stateValues.childNameByComponent;
+
+            for (let childName of childNameByComponent) {
+                let replacementSource = components[childName];
+
+                if (replacementSource) {
+                    componentsToCopy.push(replacementSource.componentName);
+                }
+            }
+
+            if (
+                componentsToCopy.length == workspace.componentsCopied.length &&
+                workspace.componentsCopied.every(
+                    (x, i) => x === componentsToCopy[i],
+                )
+            ) {
+                return [];
+            }
+        }
+
+        // for now, just recreate
+        let replacementResults = await this.createSerializedReplacements({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+        });
+
+        let replacements = replacementResults.replacements;
+        errors.push(...replacementResults.errors);
+        warnings.push(...replacementResults.warnings);
+
+        let replacementChanges = [
+            {
+                changeType: "add",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: 0,
+                numberReplacementsToReplace: component.replacements.length,
+                serializedReplacements: replacements,
+            },
+        ];
+
+        return replacementChanges;
+    }
 }

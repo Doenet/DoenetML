@@ -13,7 +13,7 @@ import {
     normalizePointSize,
     normalizePointStyle,
 } from "./utils/graph";
-import { PageContext } from "../PageViewer";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Circle(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
@@ -52,7 +52,7 @@ export default React.memo(function Circle(props) {
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
-    const { darkMode } = useContext(PageContext) || {};
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount

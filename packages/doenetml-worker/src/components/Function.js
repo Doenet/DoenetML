@@ -16,7 +16,10 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import {
+    returnLabelAttributes,
+    returnWrapNonLabelsSugarFunction,
+} from "../utils/label";
 import {
     find_local_global_maxima,
     find_local_global_minima,
@@ -25,6 +28,7 @@ import {
     returnNVariables,
     roundForDisplay,
     mergeListsWithOtherContainers,
+    superSubscriptsToUnicode,
 } from "../utils/math";
 
 export default class Function extends InlineComponent {
@@ -78,12 +82,8 @@ export default class Function extends InlineComponent {
         // include attributes of graphical components
         // for case when function is adapted into a curve
 
-        attributes.labelIsName = {
-            createComponentOfType: "boolean",
-            createStateVariable: "labelIsName",
-            defaultValue: false,
-            public: true,
-        };
+        Object.assign(attributes, returnLabelAttributes());
+
         attributes.applyStyleToLabel = {
             createComponentOfType: "boolean",
             createStateVariable: "applyStyleToLabel",
@@ -258,7 +258,7 @@ export default class Function extends InlineComponent {
         };
 
         let roundingDefinitions = returnRoundingStateVariableDefinitions({
-            childsGroupIfSingleMatch: ["functions"],
+            childGroupsIfSingleMatch: ["functions"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
@@ -2693,6 +2693,7 @@ export default class Function extends InlineComponent {
 
         stateVariableDefinitions.latex = {
             public: true,
+            forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
@@ -2755,20 +2756,67 @@ export default class Function extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.latexWithInputChildren = {
-            forRenderer: true,
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
             returnDependencies: () => ({
-                latex: {
+                functionChild: {
+                    dependencyType: "child",
+                    childGroups: ["functions"],
+                    variableNames: ["text"],
+                },
+                formula: {
                     dependencyType: "stateVariable",
-                    variableName: "latex",
+                    variableName: "formula",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                displaySmallAsZero: {
+                    dependencyType: "stateVariable",
+                    variableName: "displaySmallAsZero",
+                },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
                 },
             }),
             definition: function ({ dependencyValues }) {
-                return {
-                    setValue: {
-                        latexWithInputChildren: [dependencyValues.latex],
-                    },
-                };
+                if (
+                    dependencyValues.functionChild?.[0]?.componentType ===
+                    "piecewiseFunction"
+                ) {
+                    // Note: A temporary solution until we can capture a piecewise function in formula (a math-expression).
+                    // This solution is not perfect as it ignores any display attributes
+                    // from the outer function.
+                    return {
+                        setValue: {
+                            text: dependencyValues.functionChild[0].stateValues
+                                .text,
+                        },
+                    };
+                }
+                let params = {};
+                if (dependencyValues.padZeros) {
+                    if (Number.isFinite(dependencyValues.displayDecimals)) {
+                        params.padToDecimals = dependencyValues.displayDecimals;
+                    }
+                    if (dependencyValues.displayDigits >= 1) {
+                        params.padToDigits = dependencyValues.displayDigits;
+                    }
+                }
+                let text = roundForDisplay({
+                    value: dependencyValues.formula,
+                    dependencyValues,
+                }).toString(params);
+                return { setValue: { text: superSubscriptsToUnicode(text) } };
             },
         };
 

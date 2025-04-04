@@ -18,7 +18,7 @@ import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
-import { ActivityViewer } from "../Viewer/ActivityViewer";
+import { DocViewer } from "../Viewer/DocViewer";
 import ErrorWarningPopovers from "./ErrorWarningPopovers";
 import type { WarningDescription, ErrorDescription } from "@doenet/utils";
 import { nanoid } from "nanoid";
@@ -27,13 +27,11 @@ import { prettyPrint } from "@doenet/parser";
 export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
-    paginate = false,
     location = {},
     navigate,
-    idsIncludeActivityId = true,
+    prefixForIds = "",
     linkSettings,
-    addBottomPadding = false,
-    darkMode,
+    darkMode = "light",
     showAnswerTitles,
     width = "100%",
     height = "500px",
@@ -42,6 +40,7 @@ export function EditorViewer({
     viewerLocation = "right",
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
+    documentStructureCallback,
     id: specifiedId,
     readOnly = false,
     showFormatter = true,
@@ -52,13 +51,11 @@ export function EditorViewer({
 }: {
     doenetML: string;
     activityId?: string;
-    paginate?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
+    prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
-    addBottomPadding?: boolean;
-    darkMode?: string;
+    darkMode?: "dark" | "light";
     showAnswerTitles?: boolean;
     width?: string;
     height?: string;
@@ -67,6 +64,7 @@ export function EditorViewer({
     viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
+    documentStructureCallback?: Function;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
@@ -81,6 +79,10 @@ export function EditorViewer({
         platform = "Win";
     } else if (navigator.platform.indexOf("Mac") != -1) {
         platform = "Mac";
+    }
+
+    if (readOnly) {
+        showFormatter = false;
     }
 
     const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
@@ -126,6 +128,17 @@ export function EditorViewer({
     useEffect(() => {
         setEditorDoenetML(initialDoenetML);
     }, [initialDoenetML]);
+
+    // call documentStructure callback followed by doenetmlChangeCallback
+    // so that one can have access to the document structure before a
+    // save in response to doenetmlChangeCallback
+    const documentStructureThenChangeCallback = useCallback(
+        (obj: unknown) => {
+            documentStructureCallback?.(obj);
+            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+        },
+        [documentStructureCallback, doenetmlChangeCallback],
+    );
 
     const onEditorChange = useCallback(
         (value: string) => {
@@ -173,7 +186,9 @@ export function EditorViewer({
                     lastReportedDoenetML.current !== editorDoenetMLRef.current
                 ) {
                     lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    if (!showViewer) {
+                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    }
                 }
 
                 setCodeChanged(false);
@@ -423,9 +438,11 @@ export function EditorViewer({
                                     ) {
                                         lastReportedDoenetML.current =
                                             editorDoenetMLRef.current;
-                                        doenetmlChangeCallback?.(
-                                            editorDoenetMLRef.current,
-                                        );
+                                        if (!showViewer) {
+                                            doenetmlChangeCallback?.(
+                                                editorDoenetMLRef.current,
+                                            );
+                                        }
                                     }
                                     setCodeChanged(false);
                                     updateValueTimer.current = null;
@@ -473,7 +490,7 @@ export function EditorViewer({
                     ref={scrollableContainer}
                 >
                     {/* @ts-ignore */}
-                    <ActivityViewer
+                    <DocViewer
                         doenetML={viewerDoenetML}
                         flags={{
                             showCorrectness: true,
@@ -484,23 +501,39 @@ export function EditorViewer({
                             allowLoadState: false,
                             allowSaveState: false,
                             allowLocalState: false,
-                            allowSaveSubmissions: false,
                             allowSaveEvents: false,
                             readOnly: false,
                         }}
                         activityId={activityId}
+                        prefixForIds={prefixForIds}
                         attemptNumber={1}
-                        generatedVariantCallback={setVariants}
+                        generatedVariantCallback={(x: any) => {
+                            const allPossibleVariants = x.allPossibleVariants;
+                            if (Array.isArray(allPossibleVariants)) {
+                                const numVariants = allPossibleVariants.length;
+                                if (
+                                    typeof x.variantInfo === "object" &&
+                                    typeof x.variantInfo.index === "number"
+                                ) {
+                                    const index = x.variantInfo.index;
+                                    setVariants({
+                                        index,
+                                        numVariants,
+                                        allPossibleVariants,
+                                    });
+                                }
+                            }
+                        }}
                         requestedVariantIndex={variants.index}
-                        paginate={paginate}
                         setErrorsAndWarningsCallback={
                             setErrorsAndWarningsCallback
                         }
+                        documentStructureCallback={
+                            documentStructureThenChangeCallback
+                        }
                         location={location}
                         navigate={navigate}
-                        idsIncludeActivityId={idsIncludeActivityId}
                         linkSettings={linkSettings}
-                        addBottomPadding={addBottomPadding}
                         scrollableContainer={
                             scrollableContainer.current ?? undefined
                         }

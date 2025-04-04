@@ -59,9 +59,9 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         };
 
         attributes.variantDeterminesSeed = {
-            createComponentOfType: "boolean",
+            createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
-            defaultValue: false,
+            defaultPrimitiveValue: false,
             public: true,
         };
 
@@ -353,13 +353,25 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         // seed from date plus a few digits from variant
         let seedForRandomNumbers =
             sharedParameters.variantRng().toString().slice(2, 8) + +new Date();
-        sharedParameters.rngWithDateSeed = new sharedParameters.rngClass(
-            seedForRandomNumbers,
-        );
+        sharedParameters.rngWithDateSeed =
+            sharedParameters.rngClass(seedForRandomNumbers);
     }
 
-    static determineNumberOfUniqueVariants() {
-        return { success: false };
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        componentInfoObjects,
+    }) {
+        let variantDeterminesSeed =
+            serializedComponent.attributes.variantDeterminesSeed.primitive;
+
+        if (variantDeterminesSeed) {
+            return { success: false };
+        } else {
+            return super.determineNumberOfUniqueVariants({
+                serializedComponent,
+                componentInfoObjects,
+            });
+        }
     }
 
     async resample({

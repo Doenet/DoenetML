@@ -148,7 +148,7 @@ import Endpoint from "./components/Endpoint";
 import Sort from "./components/Sort";
 import Shuffle from "./components/Shuffle";
 import SolveEquations from "./components/SolveEquations";
-import SolutionContainer from "./components/SolutionContainer";
+import PostponeRenderContainer from "./components/PostponeRenderContainer";
 import SubsetOfRealsInput from "./components/SubsetOfRealsInput";
 import SubsetOfReals from "./components/SubsetOfReals";
 import Split from "./components/Split";
@@ -161,7 +161,6 @@ import CodeViewer from "./components/CodeViewer";
 import HasSameFactoring from "./components/HasSameFactoring";
 import DataFrame from "./components/DataFrame";
 import SummaryStatistics from "./components/SummaryStatistics";
-import Chart from "./components/Chart";
 import Legend from "./components/Legend";
 import Label from "./components/Label";
 import MatchesPattern from "./components/MatchesPattern";
@@ -345,7 +344,7 @@ const componentTypeArray = [
     Sort,
     Shuffle,
     SolveEquations,
-    SolutionContainer,
+    PostponeRenderContainer,
     SubsetOfRealsInput,
     SubsetOfReals,
     Split,
@@ -358,7 +357,6 @@ const componentTypeArray = [
     HasSameFactoring,
     DataFrame,
     SummaryStatistics,
-    Chart,
     Legend,
     Label,
     MatchesPattern,
