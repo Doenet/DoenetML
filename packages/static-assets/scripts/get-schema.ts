@@ -342,8 +342,6 @@ export function getSchema() {
             }
         }
 
-        console.log(properties);
-
         elements.push({
             name: type,
             children,

@@ -89,5 +89,8 @@
         "recoil": "^0.7.7",
         "seedrandom": "^3.0.5",
         "styled-components": "^5.3.11"
+    },
+    "prettier": {
+        "tabWidth": 4
     }
 }

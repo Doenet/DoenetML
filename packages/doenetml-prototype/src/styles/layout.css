@@ -1,0 +1,64 @@
+.doenet-document {
+    --menuWidth: 220px;
+    --mainBlue: #1a5a99;
+    --lightBlue: hsl(209, 54%, 82%);
+    --solidLightBlue: #8fb8de;
+    --mainGray: #e3e3e3;
+    --donutBody: #eea177;
+    --donutTopping: #6d4445;
+    --mainBorder: 2px solid black;
+    --mainBorderRadius: 5px;
+    --mainRed: #c1292e;
+    --lightRed: hsl(0, 54%, 82%);
+    --mainGreen: #459152;
+    --lightGreen: #a6f19f;
+    --lightYellow: #f5ed85;
+    --whiteBlankLink: #6d4445;
+    --mainYellow: #94610a;
+    --mainPurple: #4a03d9;
+
+    /* DoenetML Colors */
+    --dn-text-color-raw: 15 23 42;
+    --dn-bg-color-raw: 252 250 252;
+    --dn-primary-color-raw: 14 165 233; /* TW sky 500 */
+    --dn-primary-color-accent-raw: 7 89 133;
+
+    --dn-text: rgb(var(--dn-text-color-raw));
+    --dn-bg: rgb(var(--dn-bg-color-raw));
+    --dn-primary: rgb(var(--dn-primary-color-raw));
+    --dn-primary-accent: rgb(var(--dn-primary-color-accent-raw));
+
+    --canvastext: var(--dn-text);
+    --canvas: var(--dn-bg);
+
+    color: var(--dn-text);
+    background-color: var(--dn-bg);
+
+    @apply mx-3;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply m-0 my-2 p-0 text-lg font-bold;
+    }
+
+    .para {
+        @apply my-2;
+    }
+}
+
+html.dark .doenet-document {
+    --dn-bg-color-raw: 17 24 39;
+    --dn-text-color-raw: 243 244 246;
+    --dn-primary-color-accent-raw: 3 105 161;
+}
+
+@layer components {
+    .dn-outline {
+        @apply outline-dotted outline-2 z-50;
+        outline-color: var(--dn-primary-accent);
+    }
+}

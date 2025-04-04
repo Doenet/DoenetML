@@ -330,18 +330,6 @@ describe("DAST", async () => {
                   "foo": {
                     "children": [],
                     "name": "foo",
-                    "position": {
-                      "end": {
-                        "column": 7,
-                        "line": 1,
-                        "offset": 6,
-                      },
-                      "start": {
-                        "column": 4,
-                        "line": 1,
-                        "offset": 3,
-                      },
-                    },
                     "type": "attribute",
                   },
                 },
@@ -363,52 +351,16 @@ describe("DAST", async () => {
                   "bar": {
                     "children": [
                       {
-                        "position": {
-                          "end": {
-                            "column": 17,
-                            "line": 1,
-                            "offset": 16,
-                          },
-                          "start": {
-                            "column": 12,
-                            "line": 1,
-                            "offset": 11,
-                          },
-                        },
                         "type": "text",
                         "value": "baz",
                       },
                     ],
                     "name": "bar",
-                    "position": {
-                      "end": {
-                        "column": 17,
-                        "line": 1,
-                        "offset": 16,
-                      },
-                      "start": {
-                        "column": 8,
-                        "line": 1,
-                        "offset": 7,
-                      },
-                    },
                     "type": "attribute",
                   },
                   "foo": {
                     "children": [],
                     "name": "foo",
-                    "position": {
-                      "end": {
-                        "column": 7,
-                        "line": 1,
-                        "offset": 6,
-                      },
-                      "start": {
-                        "column": 4,
-                        "line": 1,
-                        "offset": 3,
-                      },
-                    },
                     "type": "attribute",
                   },
                 },

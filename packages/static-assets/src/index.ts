@@ -1,6 +1,7 @@
 import doenetSchema from "./generated/doenet-schema.json";
 import _doenetRelaxngSchema from "./generated/doenet-relaxng-schema.json";
 import _ENTITY_MAP from "./generated/entity-map.json";
+import mathAssets from "./generated/math-assets.json";
 const ENTITY_MAP: Record<string, string> = _ENTITY_MAP;
 
 export type SchemaProperty = {
@@ -26,4 +27,4 @@ export type RelaxNgAttribute = {
 };
 
 const doenetRelaxngSchema: RelaxNgSchema = _doenetRelaxngSchema as any;
-export { doenetSchema, ENTITY_MAP, doenetRelaxngSchema };
+export { doenetSchema, ENTITY_MAP, doenetRelaxngSchema, mathAssets };

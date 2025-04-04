@@ -1,0 +1,65 @@
+.editor-viewer {
+    height: 100%;
+    @apply flex flex-col overflow-hidden;
+
+    .editor-viewer-header {
+        @apply flex items-center bg-slate-300 border-x border-slate-500 gap-2 p-2;
+    }
+
+    .editor-viewer-panels {
+        @apply flex-grow basis-0 overflow-hidden;
+    }
+
+    .editor-panel {
+        height: 100%;
+        @apply flex flex-col;
+        .editor-panel-codemirror {
+            @apply flex-grow basis-0 overflow-hidden;
+        }
+        .editor-panel-footer {
+            @apply flex items-center bg-slate-300 border-t border-slate-500 gap-2 p-2;
+        }
+    }
+    .icon-button {
+        @apply flex flex-row gap-1 items-center;
+    }
+}
+
+.modal-full {
+    --bs-modal-width: 95vw;
+    height: 90vh;
+    overflow: hidden;
+
+    .modal-body {
+        flex-grow: 1;
+        flex-basis: 0;
+        overflow: hidden;
+        @apply flex flex-col;
+    }
+
+    .modal-content {
+        height: 100%;
+        @apply flex flex-col;
+    }
+
+    .tab-content {
+        @apply grow basis-0 overflow-hidden;
+    }
+
+    .tab-pane {
+        @apply h-full;
+    }
+}
+
+.file-preview {
+    height: 100%;
+    @apply p-3 bg-slate-100 overflow-auto relative;
+    pre {
+        @apply overflow-visible;
+        width: content-width;
+    }
+
+    .copy-button {
+        @apply absolute top-0 right-0 m-2;
+    }
+}

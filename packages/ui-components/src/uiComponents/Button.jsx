@@ -11,9 +11,7 @@ const ButtonStyling = styled.button`
     // border-width: 2px;
     color: white;
     background-color: ${(props) =>
-        props.alert
-            ? "var(--mainRed)"
-            : (props.fillColor ?? "var(--mainBlue)")};
+        props.alert ? "var(--mainRed)" : props.fillColor ?? "var(--mainBlue)"};
     border-radius: ${(props) => props.theme.borderRadius};
     padding: ${(props) => props.theme.padding};
     cursor: pointer;

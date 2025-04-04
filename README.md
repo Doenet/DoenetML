@@ -166,9 +166,20 @@ The Doenet Rust code is in the doenet-core crate, doenet-core/src/lib.rs being t
 ## Development
 
 DoenetML features are split into npm _workspace_ located in the `packages/*` directory. Each package is built
-using `vite`. Automatic building
-of dependencies is handled via the [wireit](https://github.com/google/wireit) project, which is configured in
+using `vite`. Automatic building of dependencies is handled via the [wireit](https://github.com/google/wireit)
+project, which is configured in
 each workspace's `package.json`.
+
+### VSCode
+
+When using Visual Studio Code to work on DoenetML, you should open the pre-configured VSCode workspaces
+located at `.vscode/doenet.code-workspace`. This will, among other things, make sure that `rust-analyzer` is pointed
+at the correct directory.
+
+You can do this directly by running
+```bash
+code .vscode/doenet.code-workspace
+```
 
 ### Automatic Rebuilding (watch mode)
 

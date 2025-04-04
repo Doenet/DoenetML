@@ -10,10 +10,7 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
-import {
-    getLatexToMathConverter,
-    normalizeLatexString,
-} from "../../utils/math";
+import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import Core from "../../Core";
 
 const Mock = vi.fn();
@@ -42,7 +39,7 @@ async function test_math_answer({
     answerName?: string;
     mathInputName?: string;
 }) {
-    let fromLatexBase = getLatexToMathConverter();
+    let fromLatexBase = latexToMathFactory();
     let fromLatex = (x: string) => fromLatexBase(normalizeLatexString(x));
     let currentResponse = "\uff3f";
     let submittedResponses: any[] = [];
@@ -847,7 +844,7 @@ async function test_answer_multiple_inputs({
     answerName?: string;
     inputs: { type: "math" | "number" | "text" | "boolean"; name?: string }[];
 }) {
-    let fromLatexBase = getLatexToMathConverter();
+    let fromLatexBase = latexToMathFactory();
     let fromLatex = (x: string) => fromLatexBase(normalizeLatexString(x));
     let currentResponses = inputs.map((input) => {
         if (input.type === "math") {
@@ -5230,7 +5227,7 @@ What is the derivative of <function name="f">x^2</function>?
   </answer>
   `;
 
-        let fromLatex = getLatexToMathConverter();
+        let fromLatex = latexToMathFactory();
         await test_matrix_answer({
             doenetML,
             answerName: "/ans",

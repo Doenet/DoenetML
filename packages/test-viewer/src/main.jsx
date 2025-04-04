@@ -1,15 +1,12 @@
-import React from "react";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import TestViewer from "./test/testViewer";
-import "@doenet/doenetml/style.css";
+// XXX: this file is currently not in @doenet/doenetml-prototype. Uncomment import when that is fixed.
+import "@doenet/doenetml-prototype/style.css";
 
 const root = createRoot(document.getElementById("root"));
 
 window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) {
-        return;
-    }
-
     if (event.data.subject == "SPLICE.reportScoreAndState") {
         console.log(event.data.score);
         console.log(event.data.state);

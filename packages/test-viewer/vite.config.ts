@@ -15,7 +15,7 @@ export default defineConfig({
                 {
                     src: path.join(
                         require.resolve(
-                            "@doenet/doenetml-worker/CoreWorker.js",
+                            "@doenet/doenetml-worker-rust/index.js",
                         ),
                         "../*",
                     ),
@@ -23,7 +23,7 @@ export default defineConfig({
                 },
                 {
                     src: path.join(
-                        require.resolve("@doenet/doenetml"),
+                        require.resolve("@doenet/doenetml-prototype"),
                         "../fonts/*",
                     ),
                     dest: "fonts/",

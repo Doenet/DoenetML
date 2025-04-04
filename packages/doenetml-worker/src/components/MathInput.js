@@ -12,7 +12,7 @@ import {
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
 import {
-    getLatexToMathConverter,
+    latexToMathFactory,
     normalizeLatexString,
     roundForDisplay,
     stripLatex,
@@ -967,7 +967,7 @@ function calculateMathExpressionFromLatex({
         unionFromU,
     });
 
-    let fromLatex = getLatexToMathConverter({
+    let fromLatex = latexToMathFactory({
         functionSymbols,
         splitSymbols,
         parseScientificNotation,

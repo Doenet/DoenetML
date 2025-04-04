@@ -29,8 +29,9 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
-                "src/**/*.tsx",
-                "tsconfig.json"
+                "tsconfig.json",
+                "vite.config.ts",
+                "src/**/*.tsx"
             ],
             "output": [
                 "dist/**/*.js",
@@ -49,7 +50,7 @@
         "@codemirror/lang-xml": "^6.1.0",
         "@codemirror/language": "^6.10.2",
         "@codemirror/state": "^6.4.1",
-        "@codemirror/view": "^6.28.1",
+        "@codemirror/view": "^6.28.4",
         "@lezer/common": "^1.2.1",
         "@lezer/highlight": "^1.2.0",
         "@lezer/lr": "^1.4.1",
