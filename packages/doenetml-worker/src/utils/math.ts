@@ -933,8 +933,7 @@ export function removeFunctionsMathExpressionClass(value: any) {
     } else if (
         typeof value === "object" &&
         value !== null &&
-        //@ts-ignore
-        !(value instanceof subsets.Subset)
+        !subsets.isSubset(value)
     ) {
         let valueCopy: any = {};
         for (let key in value) {

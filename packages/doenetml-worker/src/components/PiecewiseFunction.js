@@ -811,9 +811,8 @@ export default class PiecewiseFunction extends Function {
                                 }
                                 // Simplify the expression for the numerical domain by calculating the combined subset
                                 // and reconverting to latex
-                                let overallDomain = new subsets.Union(
-                                    subsetDomains,
-                                );
+                                let overallDomain =
+                                    subsets.Union(subsetDomains);
                                 conditionLatex += latexFromSubsetDomain({
                                     subsetDomain: overallDomain,
                                     dependencyValues,

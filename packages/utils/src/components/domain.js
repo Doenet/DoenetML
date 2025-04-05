@@ -83,19 +83,19 @@ export function find_effective_domains_piecewise_children({
         let domainMax = me.fromAst(domain[0].tree[1][2]).evaluate_to_constant();
 
         if (Number.isNaN(domainMin) || Number.isNaN(domainMax)) {
-            domainUnused = new subsets.RealLine();
+            domainUnused = subsets.RealLine();
         } else {
             domainUnused = buildSubsetFromMathExpression(domain[0]);
         }
     } else {
-        domainUnused = new subsets.RealLine();
+        domainUnused = subsets.RealLine();
     }
 
     let effectiveChildDomains = [];
 
     for (let childDomain of numericalDomainsOfChildren) {
         if (!childDomain) {
-            effectiveChildDomains.push(new subsets.EmptySet());
+            effectiveChildDomains.push(subsets.EmptySet());
         } else {
             let childDomainMathExpr = me.fromAst([
                 "interval",

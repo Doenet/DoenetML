@@ -1,7 +1,8 @@
+//@ts-ignore
 import me from "math-expressions";
 import { subsets } from "../math/subset-of-reals";
 
-export function serializedComponentsReplacer(key, value) {
+export function serializedComponentsReplacer(key: any, value: any) {
     if (value !== value) {
         return { objectType: "special-numeric", stringValue: "NaN" };
     } else if (value === Infinity) {
@@ -12,7 +13,7 @@ export function serializedComponentsReplacer(key, value) {
     return value;
 }
 
-export function nanInfinityReviver(key, value) {
+export function nanInfinityReviver(key: any, value: any) {
     if (value && value.objectType === "special-numeric") {
         if (value.stringValue === "NaN") {
             return NaN;
@@ -26,9 +27,9 @@ export function nanInfinityReviver(key, value) {
     return value;
 }
 
-export function serializedComponentsReviver(key, value) {
+export function serializedComponentsReviver(key: any, value: any) {
     return me.reviver(
         key,
-        subsets.Subset.reviver(key, nanInfinityReviver(key, value)),
+        subsets.subsetReviver(key, nanInfinityReviver(key, value)),
     );
 }

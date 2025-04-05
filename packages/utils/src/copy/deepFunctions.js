@@ -9,7 +9,7 @@ export function deepClone(obj, BaseComponent, hash) {
     // Do not try to clone Doenet components
     if (BaseComponent !== undefined && obj instanceof BaseComponent) return obj;
 
-    if (obj instanceof me.class || obj instanceof subsets.Subset) {
+    if (obj instanceof me.class || subsets.isSubset(obj)) {
         return obj.copy();
     }
 

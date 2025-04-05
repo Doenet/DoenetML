@@ -643,7 +643,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         let pieces = [];
         for (let interval of intervalsFromSubset) {
             pieces.push(
-                new subsets.OpenInterval(
+                subsets.OpenInterval(
                     roundValue(interval[0]),
                     roundValue(interval[1]),
                 ),
@@ -651,17 +651,17 @@ export default class SubsetOfRealsInput extends BlockComponent {
         }
         for (let point of pointsFromSubset) {
             if (point.inSubset) {
-                pieces.push(new subsets.Singleton(roundValue(point.value)));
+                pieces.push(subsets.Singleton(roundValue(point.value)));
             }
         }
 
         let newSubset;
         if (pieces.length === 0) {
-            newSubset = new subsets.EmptySet();
+            newSubset = subsets.EmptySet();
         } else if (pieces.length === 1) {
             newSubset = pieces[0];
         } else {
-            newSubset = new subsets.Union(pieces);
+            newSubset = subsets.Union(pieces);
         }
 
         let updateInstructions = [
@@ -1431,7 +1431,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
 function parseValueIntoSubset({ inputString, format, variable }) {
     if (!inputString) {
-        return new subsets.EmptySet();
+        return subsets.EmptySet();
     }
 
     let expression;
@@ -1439,13 +1439,13 @@ function parseValueIntoSubset({ inputString, format, variable }) {
         try {
             expression = me.fromLatex(inputString);
         } catch (e) {
-            return new subsets.EmptySet();
+            return subsets.EmptySet();
         }
     } else if (format === "text") {
         try {
             expression = me.fromText(inputString);
         } catch (e) {
-            return new subsets.EmptySet();
+            return subsets.EmptySet();
         }
     }
     return buildSubsetFromMathExpression(expression, variable);
