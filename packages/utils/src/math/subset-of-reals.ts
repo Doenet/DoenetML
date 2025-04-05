@@ -62,12 +62,12 @@ export namespace Interfaces {
 
 export function isSubset(obj: unknown) {
     return (
-        obj instanceof Classes.InvalidSet ||
-        obj instanceof Classes.EmptySet ||
-        obj instanceof Classes.RealLine ||
-        obj instanceof Classes.Singleton ||
-        obj instanceof Classes.OpenInterval ||
-        obj instanceof Classes.Union
+        obj instanceof Constructors.InvalidSet ||
+        obj instanceof Constructors.EmptySet ||
+        obj instanceof Constructors.RealLine ||
+        obj instanceof Constructors.Singleton ||
+        obj instanceof Constructors.OpenInterval ||
+        obj instanceof Constructors.Union
     );
 }
 
@@ -120,9 +120,9 @@ export function subsetReviver(_key: any, value: unknown): any {
         value.subsetType !== undefined
     ) {
         if (value.subsetType === "emptySet") {
-            return Constructors.EmptySet();
+            return EmptySet();
         } else if (value.subsetType === "realLine") {
-            return Constructors.RealLine();
+            return RealLine();
         } else if (value.subsetType === "singleton") {
             if (
                 "data" in value &&
@@ -132,7 +132,7 @@ export function subsetReviver(_key: any, value: unknown): any {
                 "element" in value.data &&
                 typeof value.data.element === "number"
             ) {
-                return Constructors.Singleton(value.data.element);
+                return Singleton(value.data.element);
             }
         } else if (value.subsetType === "union") {
             if (
@@ -144,11 +144,11 @@ export function subsetReviver(_key: any, value: unknown): any {
                 Array.isArray(value.data.subsets) &&
                 value.data.subsets.every(
                     (s) =>
-                        s instanceof Classes.Singleton ||
-                        s instanceof Classes.OpenInterval,
+                        s instanceof Constructors.Singleton ||
+                        s instanceof Constructors.OpenInterval,
                 )
             ) {
-                return Constructors.Union(value.data.subsets);
+                return Union(value.data.subsets);
             }
         } else if (value.subsetType === "openInterval") {
             if (
@@ -161,10 +161,7 @@ export function subsetReviver(_key: any, value: unknown): any {
                 "right" in value.data &&
                 typeof value.data.right === "number"
             ) {
-                return Constructors.OpenInterval(
-                    value.data.left,
-                    value.data.right,
-                );
+                return OpenInterval(value.data.left, value.data.right);
             }
         }
     }
@@ -172,7 +169,7 @@ export function subsetReviver(_key: any, value: unknown): any {
     return value;
 }
 
-const Classes = {
+const Constructors = {
     EmptySet: class implements Interfaces.EmptySet {
         type = "empty" as const;
 
@@ -199,7 +196,7 @@ const Classes = {
         }
 
         intersect(/* subset */) {
-            return Constructors.EmptySet();
+            return EmptySet();
         }
 
         containsElement(/* element */) {
@@ -211,7 +208,7 @@ const Classes = {
         }
 
         complement() {
-            return Constructors.RealLine();
+            return RealLine();
         }
 
         isValid() {
@@ -261,11 +258,11 @@ const Classes = {
         }
 
         union(/* subset */) {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
 
         intersect(/* subset */) {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
 
         containsElement(/* element */) {
@@ -277,7 +274,7 @@ const Classes = {
         }
 
         complement() {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
 
         isValid() {
@@ -331,7 +328,7 @@ const Classes = {
         }
 
         union(/* that */): Interfaces.Subset {
-            return Constructors.RealLine();
+            return RealLine();
         }
 
         intersect(that: Interfaces.Subset) {
@@ -343,7 +340,7 @@ const Classes = {
         }
 
         complement(): Interfaces.Subset {
-            return Constructors.EmptySet();
+            return EmptySet();
         }
 
         isEmpty() {
@@ -405,15 +402,15 @@ const Classes = {
             if (that.containsElement(this.element)) {
                 return that;
             } else {
-                return Constructors.Union([that, this]);
+                return Union([that, this]);
             }
         }
 
         intersect(subset: Interfaces.Subset): Interfaces.Subset {
             if (subset.containsElement(this.element)) {
-                return Constructors.Singleton(this.element);
+                return Singleton(this.element);
             } else {
-                return Constructors.EmptySet();
+                return EmptySet();
             }
         }
 
@@ -426,9 +423,9 @@ const Classes = {
         }
 
         complement(): Interfaces.Subset {
-            return Constructors.Union([
-                Constructors.OpenInterval(-Infinity, this.element),
-                Constructors.OpenInterval(this.element, Infinity),
+            return Union([
+                OpenInterval(-Infinity, this.element),
+                OpenInterval(this.element, Infinity),
             ]);
         }
 
@@ -491,16 +488,16 @@ const Classes = {
         }
 
         intersectWithOpenInterval(that: Interfaces.OpenInterval) {
-            return Constructors.OpenInterval(
+            return OpenInterval(
                 Math.max(this.left, that.left),
                 Math.min(this.right, that.right),
             );
         }
 
         complement(): Interfaces.Subset {
-            return Constructors.Union([
-                Constructors.OpenClosedInterval(-Infinity, this.left),
-                Constructors.ClosedOpenInterval(this.right, Infinity),
+            return Union([
+                OpenClosedInterval(-Infinity, this.left),
+                ClosedOpenInterval(this.right, Infinity),
             ]);
         }
 
@@ -593,9 +590,7 @@ const Classes = {
         }
 
         intersect(subset: Interfaces.Subset) {
-            return Constructors.Union(
-                this.subsets.map((s) => subset.intersect(s)),
-            );
+            return Union(this.subsets.map((s) => subset.intersect(s)));
         }
 
         toString() {
@@ -625,86 +620,138 @@ const Classes = {
     },
 };
 
-export const Constructors = {
-    EmptySet: function (): Interfaces.Subset {
-        return new Classes.EmptySet();
-    },
+export function EmptySet(): Interfaces.Subset {
+    return new Constructors.EmptySet();
+}
 
-    InvalidSet: function (): Interfaces.Subset {
-        return new Classes.InvalidSet();
-    },
+export function InvalidSet(): Interfaces.Subset {
+    return new Constructors.InvalidSet();
+}
 
-    RealLine: function (): Interfaces.Subset {
-        return new Classes.RealLine();
-    },
+export function RealLine(): Interfaces.Subset {
+    return new Constructors.RealLine();
+}
 
-    Singleton: function (element: number): Interfaces.Subset {
-        if (!Number.isFinite(element)) {
-            return new Classes.EmptySet();
+export function Singleton(element: number): Interfaces.Subset {
+    if (!Number.isFinite(element)) {
+        return new Constructors.EmptySet();
+    }
+    return new Constructors.Singleton(element);
+}
+
+export function OpenInterval(left: number, right: number): Interfaces.Subset {
+    if (!(left < right)) {
+        return new Constructors.EmptySet();
+    } else if (left === -Infinity && right === Infinity) {
+        return new Constructors.RealLine();
+    } else {
+        return new Constructors.OpenInterval(left, right);
+    }
+}
+
+export function Union(subsets: Interfaces.Subset[]): Interfaces.Subset {
+    if (subsets.some((s) => s.type === "invalid")) {
+        return new Constructors.InvalidSet();
+    }
+
+    // flatten
+    const flattenedSubsets = (
+        subsets as Exclude<Interfaces.Subset, Interfaces.InvalidSet>[]
+    ).reduce<
+        Exclude<Interfaces.Subset, Interfaces.Union | Interfaces.InvalidSet>[]
+    >(
+        (acc, val) =>
+            val.type === "union" ? [...acc, ...val.subsets] : [...acc, val],
+        [],
+    );
+
+    const filtered: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [];
+
+    for (const sub of flattenedSubsets) {
+        if (sub.type === "realLine") {
+            return new Constructors.RealLine();
+        } else if (sub.type !== "empty" && !sub.isEmpty()) {
+            filtered.push(sub);
         }
-        return new Classes.Singleton(element);
-    },
+    }
 
-    OpenInterval: function (left: number, right: number): Interfaces.Subset {
-        if (!(left < right)) {
-            return new Classes.EmptySet();
-        } else if (left === -Infinity && right === Infinity) {
-            return new Classes.RealLine();
-        } else {
-            return new Classes.OpenInterval(left, right);
-        }
-    },
+    if (filtered.length === 0) {
+        return new Constructors.EmptySet();
+    }
 
-    Union: function (subsets: Interfaces.Subset[]): Interfaces.Subset {
-        if (subsets.some((s) => s.type === "invalid")) {
-            return new Classes.InvalidSet();
-        }
+    const newSubsets: (Interfaces.OpenInterval | Interfaces.Singleton)[] = [];
 
-        // flatten
-        const flattenedSubsets = (
-            subsets as Exclude<Interfaces.Subset, Interfaces.InvalidSet>[]
-        ).reduce<
-            Exclude<
-                Interfaces.Subset,
-                Interfaces.Union | Interfaces.InvalidSet
-            >[]
-        >(
-            (acc, val) =>
-                val.type === "union" ? [...acc, ...val.subsets] : [...acc, val],
-            [],
-        );
+    for (let ind1 = 0; ind1 < filtered.length; ind1++) {
+        let sub1 = filtered[ind1];
+        let addSub1 = true;
 
-        const filtered: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [];
+        if (sub1.type === "openInterval") {
+            let left = sub1.left;
+            let right = sub1.right;
 
-        for (const sub of flattenedSubsets) {
-            if (sub.type === "realLine") {
-                return new Classes.RealLine();
-            } else if (sub.type !== "empty" && !sub.isEmpty()) {
-                filtered.push(sub);
-            }
-        }
+            for (let ind2 = ind1 + 1; ind2 < filtered.length; ind2++) {
+                let sub2 = filtered[ind2];
+                if (sub2.type === "openInterval") {
+                    // two open intervals
+                    if (left < sub2.right && sub2.left < right) {
+                        // intervals overlap
+                        left = Math.min(left, sub2.left);
+                        right = Math.max(right, sub2.right);
+                        filtered.splice(ind2, 1);
+                        ind2--;
 
-        if (filtered.length === 0) {
-            return new Classes.EmptySet();
-        }
+                        // stop processing sub2s and
+                        // keep sub1 in the queue to be processed
+                        // so that will catch passed singletons or intervals
+                        // that overlap with the extension of sub1
+                        addSub1 = false;
+                        ind1--;
+                        break;
+                    } else if (left === sub2.right || right === sub2.left) {
+                        // intervals just touch.  Check if there is a singleton
+                        // to fill in the gap
 
-        const newSubsets: (Interfaces.OpenInterval | Interfaces.Singleton)[] =
-            [];
+                        let gap = left === sub2.right ? left : right;
 
-        for (let ind1 = 0; ind1 < filtered.length; ind1++) {
-            let sub1 = filtered[ind1];
-            let addSub1 = true;
+                        // first check if already passed a singleton that fits the gap
+                        let foundSingleton = false;
+                        for (let ind3 = 0; ind3 < newSubsets.length; ind3++) {
+                            let sub3 = newSubsets[ind3];
+                            if (
+                                sub3.type === "singleton" &&
+                                sub3.element === gap
+                            ) {
+                                newSubsets.splice(ind3, 1);
+                                foundSingleton = true;
+                                break;
+                            }
+                        }
 
-            if (sub1.type === "openInterval") {
-                let left = sub1.left;
-                let right = sub1.right;
+                        // then check if a future singleton fits the gap
+                        if (!foundSingleton) {
+                            for (
+                                let ind3 = ind1 + 1;
+                                ind3 < filtered.length;
+                                ind3++
+                            ) {
+                                let sub3 = filtered[ind3];
+                                if (
+                                    sub3.type === "singleton" &&
+                                    sub3.element === gap
+                                ) {
+                                    filtered.splice(ind3, 1);
+                                    foundSingleton = true;
+                                    if (ind3 < ind2) {
+                                        // have to shift ind2 as splice an entry in front of it
+                                        ind2--;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
 
-                for (let ind2 = ind1 + 1; ind2 < filtered.length; ind2++) {
-                    let sub2 = filtered[ind2];
-                    if (sub2.type === "openInterval") {
-                        // two open intervals
-                        if (left < sub2.right && sub2.left < right) {
-                            // intervals overlap
+                        if (foundSingleton) {
+                            // merge intervals
                             left = Math.min(left, sub2.left);
                             right = Math.max(right, sub2.right);
                             filtered.splice(ind2, 1);
@@ -717,179 +764,117 @@ export const Constructors = {
                             addSub1 = false;
                             ind1--;
                             break;
-                        } else if (left === sub2.right || right === sub2.left) {
-                            // intervals just touch.  Check if there is a singleton
-                            // to fill in the gap
-
-                            let gap = left === sub2.right ? left : right;
-
-                            // first check if already passed a singleton that fits the gap
-                            let foundSingleton = false;
-                            for (
-                                let ind3 = 0;
-                                ind3 < newSubsets.length;
-                                ind3++
-                            ) {
-                                let sub3 = newSubsets[ind3];
-                                if (
-                                    sub3.type === "singleton" &&
-                                    sub3.element === gap
-                                ) {
-                                    newSubsets.splice(ind3, 1);
-                                    foundSingleton = true;
-                                    break;
-                                }
-                            }
-
-                            // then check if a future singleton fits the gap
-                            if (!foundSingleton) {
-                                for (
-                                    let ind3 = ind1 + 1;
-                                    ind3 < filtered.length;
-                                    ind3++
-                                ) {
-                                    let sub3 = filtered[ind3];
-                                    if (
-                                        sub3.type === "singleton" &&
-                                        sub3.element === gap
-                                    ) {
-                                        filtered.splice(ind3, 1);
-                                        foundSingleton = true;
-                                        if (ind3 < ind2) {
-                                            // have to shift ind2 as splice an entry in front of it
-                                            ind2--;
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (foundSingleton) {
-                                // merge intervals
-                                left = Math.min(left, sub2.left);
-                                right = Math.max(right, sub2.right);
-                                filtered.splice(ind2, 1);
-                                ind2--;
-
-                                // stop processing sub2s and
-                                // keep sub1 in the queue to be processed
-                                // so that will catch passed singletons or intervals
-                                // that overlap with the extension of sub1
-                                addSub1 = false;
-                                ind1--;
-                                break;
-                            }
-                        }
-                    } else {
-                        // open interval and singleton
-                        if (sub2.element > left && sub2.element < right) {
-                            // singleton is inside interval, delete it
-                            filtered.splice(ind2, 1);
-                            ind2--;
                         }
                     }
-                }
-
-                sub1.left = left;
-                sub1.right = right;
-
-                if (sub1.left === -Infinity && sub1.right === Infinity) {
-                    return new Classes.RealLine();
-                }
-            } else {
-                // have singleton
-                let val = sub1.element;
-
-                for (let ind2 = ind1 + 1; ind2 < filtered.length; ind2++) {
-                    let sub2 = filtered[ind2];
-                    if (sub2.type === "openInterval") {
-                        if (val > sub2.left && val < sub2.right) {
-                            // point is inside interval, delete point
-                            filtered.splice(ind1, 1);
-                            ind1--;
-                            addSub1 = false;
-                            break;
-                        }
-                    } else if (sub2.element === val) {
-                        // duplicate point, delete duplicate
+                } else {
+                    // open interval and singleton
+                    if (sub2.element > left && sub2.element < right) {
+                        // singleton is inside interval, delete it
                         filtered.splice(ind2, 1);
                         ind2--;
                     }
                 }
             }
 
-            if (addSub1) {
-                newSubsets.push(sub1);
+            sub1.left = left;
+            sub1.right = right;
+
+            if (sub1.left === -Infinity && sub1.right === Infinity) {
+                return new Constructors.RealLine();
             }
-        }
-
-        if (newSubsets.length === 1) {
-            return newSubsets[0];
-        }
-
-        return new Classes.Union(newSubsets);
-    },
-
-    ClosedInterval: function (left: number, right: number): Interfaces.Subset {
-        if (!(left <= right)) {
-            return new Classes.EmptySet();
-        } else if (left === -Infinity && right === Infinity) {
-            return new Classes.RealLine();
         } else {
-            const pieces: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [
-                new Classes.OpenInterval(left, right),
-            ];
+            // have singleton
+            let val = sub1.element;
 
-            if (Number.isFinite(left)) {
-                pieces.push(new Classes.Singleton(left));
+            for (let ind2 = ind1 + 1; ind2 < filtered.length; ind2++) {
+                let sub2 = filtered[ind2];
+                if (sub2.type === "openInterval") {
+                    if (val > sub2.left && val < sub2.right) {
+                        // point is inside interval, delete point
+                        filtered.splice(ind1, 1);
+                        ind1--;
+                        addSub1 = false;
+                        break;
+                    }
+                } else if (sub2.element === val) {
+                    // duplicate point, delete duplicate
+                    filtered.splice(ind2, 1);
+                    ind2--;
+                }
             }
-            if (Number.isFinite(right)) {
-                pieces.push(new Classes.Singleton(right));
-            }
-
-            return Constructors.Union(pieces);
         }
-    },
 
-    OpenClosedInterval: function (
-        left: number,
-        right: number,
-    ): Interfaces.Subset {
-        if (!(left < right)) {
-            return new Classes.EmptySet();
-        } else if (left === -Infinity && right === Infinity) {
-            return new Classes.RealLine();
-        } else {
-            const pieces: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [
-                new Classes.OpenInterval(left, right),
-            ];
-
-            if (Number.isFinite(right)) {
-                pieces.push(new Classes.Singleton(right));
-            }
-
-            return Constructors.Union(pieces);
+        if (addSub1) {
+            newSubsets.push(sub1);
         }
-    },
+    }
 
-    ClosedOpenInterval: function (
-        left: number,
-        right: number,
-    ): Interfaces.Subset {
-        if (!(left < right)) {
-            return new Classes.EmptySet();
-        } else if (left === -Infinity && right === Infinity) {
-            return new Classes.RealLine();
-        } else {
-            const pieces: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [
-                new Classes.OpenInterval(left, right),
-            ];
+    if (newSubsets.length === 1) {
+        return newSubsets[0];
+    }
 
-            if (Number.isFinite(left)) {
-                pieces.push(new Classes.Singleton(left));
-            }
+    return new Constructors.Union(newSubsets);
+}
 
-            return Constructors.Union(pieces);
+export function ClosedInterval(left: number, right: number): Interfaces.Subset {
+    if (!(left <= right)) {
+        return new Constructors.EmptySet();
+    } else if (left === -Infinity && right === Infinity) {
+        return new Constructors.RealLine();
+    } else {
+        const pieces: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [
+            new Constructors.OpenInterval(left, right),
+        ];
+
+        if (Number.isFinite(left)) {
+            pieces.push(new Constructors.Singleton(left));
         }
-    },
-};
+        if (Number.isFinite(right)) {
+            pieces.push(new Constructors.Singleton(right));
+        }
+
+        return Union(pieces);
+    }
+}
+
+export function OpenClosedInterval(
+    left: number,
+    right: number,
+): Interfaces.Subset {
+    if (!(left < right)) {
+        return new Constructors.EmptySet();
+    } else if (left === -Infinity && right === Infinity) {
+        return new Constructors.RealLine();
+    } else {
+        const pieces: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [
+            new Constructors.OpenInterval(left, right),
+        ];
+
+        if (Number.isFinite(right)) {
+            pieces.push(new Constructors.Singleton(right));
+        }
+
+        return Union(pieces);
+    }
+}
+
+export function ClosedOpenInterval(
+    left: number,
+    right: number,
+): Interfaces.Subset {
+    if (!(left < right)) {
+        return new Constructors.EmptySet();
+    } else if (left === -Infinity && right === Infinity) {
+        return new Constructors.RealLine();
+    } else {
+        const pieces: (Interfaces.Singleton | Interfaces.OpenInterval)[] = [
+            new Constructors.OpenInterval(left, right),
+        ];
+
+        if (Number.isFinite(left)) {
+            pieces.push(new Constructors.Singleton(left));
+        }
+
+        return Union(pieces);
+    }
+}

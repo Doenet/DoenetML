@@ -2,7 +2,18 @@
 import me from "math-expressions";
 import { deepCompare } from "../copy/deepFunctions";
 
-import { Interfaces, Constructors } from "./subset-of-reals";
+import {
+    ClosedInterval,
+    ClosedOpenInterval,
+    EmptySet,
+    Interfaces,
+    InvalidSet,
+    OpenClosedInterval,
+    OpenInterval,
+    RealLine,
+    Singleton,
+    Union,
+} from "./subset-of-reals";
 
 type ClosedIntervalData = {
     type: "closedInterval";
@@ -37,13 +48,13 @@ function buildSubsetFromIntervals(
 ): Interfaces.Subset {
     if (!Array.isArray(tree)) {
         if (Number.isFinite(tree)) {
-            return Constructors.Singleton(tree);
+            return Singleton(tree);
         } else if (tree === "R") {
-            return Constructors.RealLine();
+            return RealLine();
         } else if (tree === "emptyset") {
-            return Constructors.EmptySet();
+            return EmptySet();
         } else {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
     }
 
@@ -63,7 +74,7 @@ function buildSubsetFromIntervals(
                     left === -Infinity
                 )
             ) {
-                return Constructors.InvalidSet();
+                return InvalidSet();
             }
         }
 
@@ -77,21 +88,21 @@ function buildSubsetFromIntervals(
                     right === -Infinity
                 )
             ) {
-                return Constructors.InvalidSet();
+                return InvalidSet();
             }
         }
 
         if (closed[1]) {
             if (closed[2]) {
-                return Constructors.ClosedInterval(left, right);
+                return ClosedInterval(left, right);
             } else {
-                return Constructors.ClosedOpenInterval(left, right);
+                return ClosedOpenInterval(left, right);
             }
         } else {
             if (closed[2]) {
-                return Constructors.OpenClosedInterval(left, right);
+                return OpenClosedInterval(left, right);
             } else {
-                return Constructors.OpenInterval(left, right);
+                return OpenInterval(left, right);
             }
         }
     } else if (operator === "union" || operator === "or") {
@@ -101,11 +112,11 @@ function buildSubsetFromIntervals(
             .filter((x) => x);
 
         if (pieces.length === 0) {
-            return Constructors.EmptySet();
+            return EmptySet();
         } else if (pieces.length === 1) {
             return pieces[0];
         } else {
-            return Constructors.Union(pieces);
+            return Union(pieces);
         }
     } else if (operator === "intersect" || operator === "and") {
         let pieces = tree
@@ -114,7 +125,7 @@ function buildSubsetFromIntervals(
             .filter((x) => x);
 
         if (pieces.length === 0) {
-            return Constructors.RealLine();
+            return RealLine();
         } else {
             return pieces.reduce((a, c) => a.intersect(c));
         }
@@ -125,11 +136,11 @@ function buildSubsetFromIntervals(
             .filter((x) => x);
 
         if (pieces.length === 0) {
-            return Constructors.EmptySet();
+            return EmptySet();
         } else if (pieces.length === 1) {
             return pieces[0];
         } else {
-            return Constructors.Union(pieces);
+            return Union(pieces);
         }
     } else if (["<", "le", ">", "ge", "=", "ne"].includes(operator)) {
         let left = tree[1];
@@ -146,7 +157,7 @@ function buildSubsetFromIntervals(
                         left === -Infinity
                     )
                 ) {
-                    return Constructors.InvalidSet();
+                    return InvalidSet();
                 }
             }
         }
@@ -165,72 +176,72 @@ function buildSubsetFromIntervals(
                         right === -Infinity
                     )
                 ) {
-                    return Constructors.InvalidSet();
+                    return InvalidSet();
                 }
             }
         }
 
         if (varAtLeft) {
             if (varAtRight) {
-                return Constructors.InvalidSet();
+                return InvalidSet();
             } else {
                 if (operator === "<") {
-                    return Constructors.OpenInterval(-Infinity, right);
+                    return OpenInterval(-Infinity, right);
                 } else if (operator === "le") {
-                    return Constructors.OpenClosedInterval(-Infinity, right);
+                    return OpenClosedInterval(-Infinity, right);
                 } else if (operator === ">") {
-                    return Constructors.OpenInterval(right, Infinity);
+                    return OpenInterval(right, Infinity);
                 } else if (operator === "ge") {
-                    return Constructors.ClosedOpenInterval(right, Infinity);
+                    return ClosedOpenInterval(right, Infinity);
                 } else if (operator === "=") {
                     if (Number.isFinite(right)) {
-                        return Constructors.Singleton(right);
+                        return Singleton(right);
                     } else {
-                        return Constructors.EmptySet();
+                        return EmptySet();
                     }
                 } else {
                     // operator === "ne"
                     if (Number.isFinite(right)) {
-                        return Constructors.Union([
-                            Constructors.OpenInterval(-Infinity, right),
-                            Constructors.OpenInterval(right, Infinity),
+                        return Union([
+                            OpenInterval(-Infinity, right),
+                            OpenInterval(right, Infinity),
                         ]);
                     } else {
                         // var != Infinity or -Infinity is whole real line
-                        return Constructors.RealLine();
+                        return RealLine();
                     }
                 }
             }
         } else {
             if (varAtRight) {
                 if (operator === "<") {
-                    return Constructors.OpenInterval(left, Infinity);
+                    return OpenInterval(left, Infinity);
                 } else if (operator === "le") {
-                    return Constructors.ClosedOpenInterval(left, Infinity);
+                    return ClosedOpenInterval(left, Infinity);
                 } else if (operator === ">") {
-                    return Constructors.OpenInterval(-Infinity, left);
+                    return OpenInterval(-Infinity, left);
                 } else if (operator === "ge") {
-                    return Constructors.OpenClosedInterval(-Infinity, left);
+                    return OpenClosedInterval(-Infinity, left);
                 } else if (operator === "=") {
                     if (Number.isFinite(left)) {
-                        return Constructors.Singleton(left);
+                        return Singleton(left);
                     } else {
-                        return Constructors.EmptySet();
+                        return EmptySet();
                     }
                 } else {
                     // operator === "ne"
                     if (Number.isFinite(left)) {
-                        return Constructors.Union([
-                            Constructors.OpenInterval(-Infinity, left),
-                            Constructors.OpenInterval(left, Infinity),
+                        return Union([
+                            OpenInterval(-Infinity, left),
+                            OpenInterval(left, Infinity),
                         ]);
                     } else {
                         // var != Infinity or -Infinity is whole real line
-                        return Constructors.RealLine();
+                        return RealLine();
                     }
                 }
             } else {
-                return Constructors.InvalidSet();
+                return InvalidSet();
             }
         }
     } else if (["lts", "gts"].includes(operator)) {
@@ -238,7 +249,7 @@ function buildSubsetFromIntervals(
         let strict = tree[2].slice(1);
 
         if (vals.length !== 3 || !deepCompare(vals[1], variable)) {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
 
         if (operator === "gts") {
@@ -256,7 +267,7 @@ function buildSubsetFromIntervals(
                     left === -Infinity
                 )
             ) {
-                return Constructors.InvalidSet();
+                return InvalidSet();
             }
         }
 
@@ -270,21 +281,21 @@ function buildSubsetFromIntervals(
                     right === -Infinity
                 )
             ) {
-                return Constructors.InvalidSet();
+                return InvalidSet();
             }
         }
 
         if (strict[0]) {
             if (strict[1]) {
-                return Constructors.OpenInterval(left, right);
+                return OpenInterval(left, right);
             } else {
-                return Constructors.OpenClosedInterval(left, right);
+                return OpenClosedInterval(left, right);
             }
         } else {
             if (strict[1]) {
-                return Constructors.ClosedOpenInterval(left, right);
+                return ClosedOpenInterval(left, right);
             } else {
-                return Constructors.ClosedInterval(left, right);
+                return ClosedInterval(left, right);
             }
         }
     } else if (operator === "|") {
@@ -297,33 +308,33 @@ function buildSubsetFromIntervals(
         if (deepCompare(tree[1], variable)) {
             return buildSubsetFromIntervals(tree[2], variable);
         } else {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
     } else if (operator === "ni") {
         if (deepCompare(tree[2], variable)) {
             return buildSubsetFromIntervals(tree[1], variable);
         } else {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
     } else if (operator === "notin") {
         if (deepCompare(tree[1], variable)) {
             let orig = buildSubsetFromIntervals(tree[2], variable);
             return orig.complement();
         }
-        return Constructors.InvalidSet();
+        return InvalidSet();
     } else if (operator === "notni") {
         if (deepCompare(tree[2], variable)) {
             let orig = buildSubsetFromIntervals(tree[1], variable);
             return orig.complement();
         }
-        return Constructors.InvalidSet();
+        return InvalidSet();
     } else {
         let num = me.fromAst(tree).evaluate_to_constant();
 
         if (Number.isFinite(num)) {
-            return Constructors.Singleton(num);
+            return Singleton(num);
         } else {
-            return Constructors.InvalidSet();
+            return InvalidSet();
         }
     }
 }
