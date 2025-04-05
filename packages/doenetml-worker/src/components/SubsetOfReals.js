@@ -3,7 +3,6 @@ import {
     buildSubsetFromMathExpression,
     mathExpressionFromSubsetValue,
     mergeIntervals,
-    subsets,
 } from "@doenet/utils";
 import { renameStateVariable } from "../utils/stateVariables";
 import me from "math-expressions";

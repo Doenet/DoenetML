@@ -1,9 +1,7 @@
 import me from "math-expressions";
 
-import {
-    subsets,
-    buildSubsetFromMathExpression,
-} from "../math/subset-of-reals";
+import { Constructors } from "../math/subset-of-reals";
+import { buildSubsetFromMathExpression } from "../math/subset-of-reals-operations";
 
 export function find_effective_domain({
     domain,
@@ -83,19 +81,19 @@ export function find_effective_domains_piecewise_children({
         let domainMax = me.fromAst(domain[0].tree[1][2]).evaluate_to_constant();
 
         if (Number.isNaN(domainMin) || Number.isNaN(domainMax)) {
-            domainUnused = subsets.RealLine();
+            domainUnused = Constructors.RealLine();
         } else {
             domainUnused = buildSubsetFromMathExpression(domain[0]);
         }
     } else {
-        domainUnused = subsets.RealLine();
+        domainUnused = Constructors.RealLine();
     }
 
     let effectiveChildDomains = [];
 
     for (let childDomain of numericalDomainsOfChildren) {
         if (!childDomain) {
-            effectiveChildDomains.push(subsets.EmptySet());
+            effectiveChildDomains.push(Constructors.EmptySet());
         } else {
             let childDomainMathExpr = me.fromAst([
                 "interval",

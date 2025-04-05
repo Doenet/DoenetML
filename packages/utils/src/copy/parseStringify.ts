@@ -1,6 +1,6 @@
 //@ts-ignore
 import me from "math-expressions";
-import { subsets } from "../math/subset-of-reals";
+import { subsetReviver } from "../math/subset-of-reals";
 
 export function serializedComponentsReplacer(key: any, value: any) {
     if (value !== value) {
@@ -28,8 +28,5 @@ export function nanInfinityReviver(key: any, value: any) {
 }
 
 export function serializedComponentsReviver(key: any, value: any) {
-    return me.reviver(
-        key,
-        subsets.subsetReviver(key, nanInfinityReviver(key, value)),
-    );
+    return me.reviver(key, subsetReviver(key, nanInfinityReviver(key, value)));
 }

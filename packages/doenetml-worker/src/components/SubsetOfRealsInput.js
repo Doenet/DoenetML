@@ -643,7 +643,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         let pieces = [];
         for (let interval of intervalsFromSubset) {
             pieces.push(
-                subsets.OpenInterval(
+                subsets.Constructors.OpenInterval(
                     roundValue(interval[0]),
                     roundValue(interval[1]),
                 ),
@@ -651,17 +651,19 @@ export default class SubsetOfRealsInput extends BlockComponent {
         }
         for (let point of pointsFromSubset) {
             if (point.inSubset) {
-                pieces.push(subsets.Singleton(roundValue(point.value)));
+                pieces.push(
+                    subsets.Constructors.Singleton(roundValue(point.value)),
+                );
             }
         }
 
         let newSubset;
         if (pieces.length === 0) {
-            newSubset = subsets.EmptySet();
+            newSubset = subsets.Constructors.EmptySet();
         } else if (pieces.length === 1) {
             newSubset = pieces[0];
         } else {
-            newSubset = subsets.Union(pieces);
+            newSubset = subsets.Constructors.Union(pieces);
         }
 
         let updateInstructions = [
@@ -1431,7 +1433,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
 function parseValueIntoSubset({ inputString, format, variable }) {
     if (!inputString) {
-        return subsets.EmptySet();
+        return subsets.Constructors.EmptySet();
     }
 
     let expression;
@@ -1439,13 +1441,13 @@ function parseValueIntoSubset({ inputString, format, variable }) {
         try {
             expression = me.fromLatex(inputString);
         } catch (e) {
-            return subsets.EmptySet();
+            return subsets.Constructors.EmptySet();
         }
     } else if (format === "text") {
         try {
             expression = me.fromText(inputString);
         } catch (e) {
-            return subsets.EmptySet();
+            return subsets.Constructors.EmptySet();
         }
     }
     return buildSubsetFromMathExpression(expression, variable);
