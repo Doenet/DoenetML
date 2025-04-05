@@ -11,30 +11,41 @@ import {
     Switch,
     Tooltip,
 } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+    ReactElement,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { ResizablePanelPair } from "./ResizablePanelPair";
 import { RxUpdate } from "react-icons/rx";
 import { WarningTwoIcon } from "@chakra-ui/icons";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
 import { CodeMirror } from "@doenet/codemirror";
-import { ActivityViewer } from "../Viewer/ActivityViewer";
-import ErrorWarningPopovers from "./ErrorWarningPopovers";
-import type { WarningDescription, ErrorDescription } from "@doenet/utils";
+import { DocViewer } from "../Viewer/DocViewer";
+import ErrorWarningResponseTabs from "./ErrorWarningResponseTabs";
+import {
+    type WarningDescription,
+    type ErrorDescription,
+    nanInfinityReviver,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser";
+import { formatResponse } from "../utils/responses";
+import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
-    paginate = false,
     location = {},
     navigate,
-    idsIncludeActivityId = true,
+    prefixForIds = "",
     linkSettings,
-    addBottomPadding = false,
     darkMode = "light",
-    showAnswerTitles,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width = "100%",
     height = "500px",
     backgroundColor = "doenet.mainGray",
@@ -42,24 +53,25 @@ export function EditorViewer({
     viewerLocation = "right",
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
+    documentStructureCallback,
     id: specifiedId,
     readOnly = false,
     showFormatter = true,
     showErrorsWarnings = true,
+    showResponses = true,
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
 }: {
     doenetML: string;
     activityId?: string;
-    paginate?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
+    prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
-    addBottomPadding?: boolean;
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     backgroundColor?: string;
@@ -67,10 +79,12 @@ export function EditorViewer({
     viewerLocation?: "left" | "right" | "top" | "bottom";
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
+    documentStructureCallback?: Function;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
+    showResponses?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
@@ -85,6 +99,9 @@ export function EditorViewer({
 
     if (readOnly) {
         showFormatter = false;
+    }
+    if (!showViewer) {
+        showResponses = false;
     }
 
     const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
@@ -112,6 +129,8 @@ export function EditorViewer({
         allPossibleVariants: ["a"],
     });
 
+    const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
+
     const [errorsAndWarnings, setErrorsAndWarningsCallback] = useState<{
         errors: ErrorDescription[];
         warnings: WarningDescription[];
@@ -127,9 +146,78 @@ export function EditorViewer({
     ];
     const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
+    const [responses, setResponses] = useState<
+        {
+            answerId: string;
+            response: ReactElement;
+            creditAchieved: number;
+            submittedAt: string;
+        }[]
+    >([]);
+
+    useEffect(() => setResponses([]), [initialDoenetML]);
+
+    useEffect(() => {
+        function submittedResponseListener(event: any) {
+            if (event.data.subject == "SPLICE.sendEvent") {
+                const data = event.data.data;
+                if (data.verb === "submitted") {
+                    const object = JSON.parse(data.object);
+                    const answerId = object.componentName;
+
+                    if (answerId) {
+                        const result = JSON.parse(
+                            data.result,
+                            nanInfinityReviver,
+                        );
+                        const answerCreditAchieved = result.creditAchieved;
+                        const response: unknown[] = result.response;
+                        const componentTypes: string[] = result.componentTypes;
+
+                        const responseElement = formatResponse(
+                            response,
+                            componentTypes,
+                        );
+
+                        setResponses((was) => {
+                            const arr = [...was];
+                            arr.push({
+                                answerId:
+                                    answerId[0] === "/"
+                                        ? answerId.substring(1)
+                                        : answerId,
+                                response: responseElement,
+                                creditAchieved: answerCreditAchieved,
+                                submittedAt: new Date().toLocaleTimeString(),
+                            });
+                            return arr;
+                        });
+                    }
+                }
+            }
+        }
+
+        addEventListener("message", submittedResponseListener);
+
+        return () => {
+            removeEventListener("message", submittedResponseListener);
+        };
+    }, [showViewer]);
+
     useEffect(() => {
         setEditorDoenetML(initialDoenetML);
     }, [initialDoenetML]);
+
+    // call documentStructure callback followed by doenetmlChangeCallback
+    // so that one can have access to the document structure before a
+    // save in response to doenetmlChangeCallback
+    const documentStructureThenChangeCallback = useCallback(
+        (obj: unknown) => {
+            documentStructureCallback?.(obj);
+            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+        },
+        [documentStructureCallback, doenetmlChangeCallback],
+    );
 
     const onEditorChange = useCallback(
         (value: string) => {
@@ -177,10 +265,13 @@ export function EditorViewer({
                     lastReportedDoenetML.current !== editorDoenetMLRef.current
                 ) {
                     lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    if (!showViewer) {
+                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                    }
                 }
 
                 setCodeChanged(false);
+                setResponses([]);
 
                 updateValueTimer.current = null;
             }
@@ -216,80 +307,111 @@ export function EditorViewer({
         };
     }, []);
 
-    let formatter: React.ReactNode = null;
-    if (showFormatter) {
-        formatter = (
-            <Flex
-                ml="0px"
-                h="32px"
-                bg="doenet.mainGray"
-                pl="10px"
-                pt="1px"
-                alignItems="center"
-                justify="end"
-            >
-                <Box>
-                    <Button
-                        size="sm"
-                        px="4"
-                        mr="8px"
-                        title="Pretty-print your source code"
-                        onClick={async () => {
-                            const printed = await prettyPrint(
-                                editorDoenetMLRef.current,
-                                { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
-                            );
-                            onEditorChange(printed);
-                        }}
-                    >
-                        Pretty Print
-                    </Button>
-                </Box>
-                <Box>
-                    <FormControl display="flex" alignItems="center">
-                        <Switch
-                            id="asXml"
-                            isChecked={formatAsDoenetML}
-                            onChange={(e) => {
-                                setFormatAsDoenetML(e.target.checked);
-                            }}
-                            title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
-                        />
-                        <FormLabel
-                            htmlFor="asXml"
-                            mb="0"
-                            ml="2"
-                            width="9.8em"
-                            mr="10px"
-                        >
-                            Format as {formatAsDoenetML ? "DoenetML" : "XML"}
-                        </FormLabel>
-                    </FormControl>
-                </Box>
-            </Flex>
-        );
-    }
+    let formatterAndVersion: React.ReactNode = null;
 
-    let errorsWarningsVersion = (
+    formatterAndVersion = (
         <Flex
             ml="0px"
             h="32px"
             bg="doenet.mainGray"
             pl="10px"
             pt="1px"
-            pr="10px"
+            alignItems="center"
+            justify="end"
         >
-            {showErrorsWarnings ? (
-                <ErrorWarningPopovers
-                    warnings={warningsObjs}
-                    errors={errorsObjs}
-                />
+            {showFormatter ? (
+                <>
+                    <Box>
+                        <FormControl display="flex" alignItems="center">
+                            <Switch
+                                id="asXml"
+                                isChecked={formatAsDoenetML}
+                                onChange={(e) => {
+                                    setFormatAsDoenetML(e.target.checked);
+                                }}
+                                title="Format as DoenetML or XML. The DoenetML syntax is more compact but may not be compatible with other XML tools."
+                            />
+                            <FormLabel
+                                htmlFor="asXml"
+                                mb="0"
+                                ml="2"
+                                width="9.8em"
+                                mr="10px"
+                            >
+                                Format as{" "}
+                                {formatAsDoenetML ? "DoenetML" : "XML"}
+                            </FormLabel>
+                        </FormControl>
+                    </Box>
+                    <Box>
+                        <Button
+                            size="xs"
+                            px="4"
+                            mr="10px"
+                            title="Format your source code"
+                            onClick={async () => {
+                                const printed = await prettyPrint(
+                                    editorDoenetMLRef.current,
+                                    {
+                                        doenetSyntax: formatAsDoenetML,
+                                        tabWidth: 2,
+                                    },
+                                );
+                                onEditorChange(printed);
+                            }}
+                        >
+                            Format
+                        </Button>
+                    </Box>
+                </>
             ) : null}
-            <Spacer />
-            <Box alignSelf="center" fontSize="smaller">
+            <Box alignSelf="center" fontSize="smaller" mr="10px">
                 Version: {DOENETML_VERSION}
             </Box>
         </Flex>
+    );
+
+    const errorsWarningsResponses =
+        showErrorsWarnings || showResponses ? (
+            <ErrorWarningResponseTabs
+                warnings={warningsObjs}
+                errors={errorsObjs}
+                submittedResponses={responses}
+                isOpen={infoPanelIsOpen}
+                setIsOpen={setInfoPanelIsOpen}
+                showErrorsWarnings={showErrorsWarnings}
+                showResponses={showResponses}
+            />
+        ) : null;
+
+    const codeMirror = (
+        <CodeMirror
+            value={editorDoenetML}
+            //TODO: read only isn't working <codeeditor disabled />
+            readOnly={readOnly}
+            onBlur={() => {
+                window.clearTimeout(updateValueTimer.current ?? undefined);
+                if (
+                    lastReportedDoenetML.current !== editorDoenetMLRef.current
+                ) {
+                    lastReportedDoenetML.current = editorDoenetMLRef.current;
+                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                }
+                updateValueTimer.current = null;
+            }}
+            onChange={onEditorChange}
+        />
+    );
+
+    const editorAndCollapsiblePanel = errorsWarningsResponses ? (
+        <ResizableCollapsiblePanelPair
+            mainPanel={codeMirror}
+            subPanel={errorsWarningsResponses}
+            isOpen={infoPanelIsOpen}
+            setIsOpen={setInfoPanelIsOpen}
+        />
+    ) : (
+        codeMirror
     );
 
     const editorPanel = (
@@ -297,9 +419,8 @@ export function EditorViewer({
             width="100%"
             height="100%"
             templateAreas={`"editor"
-                            "errorWarnings"
                             "formatter"`}
-            gridTemplateRows={`1fr 32px ${showFormatter ? "32px" : "0px"}`}
+            gridTemplateRows={`1fr 32px`}
             gridTemplateColumns={`1fr`}
             boxSizing="border-box"
             background="doenet.canvas"
@@ -315,36 +436,7 @@ export function EditorViewer({
                 placeSelf="center"
                 overflow="hidden"
             >
-                <CodeMirror
-                    value={editorDoenetML}
-                    //TODO: read only isn't working <codeeditor disabled />
-                    readOnly={readOnly}
-                    onBlur={() => {
-                        window.clearTimeout(
-                            updateValueTimer.current ?? undefined,
-                        );
-                        if (
-                            lastReportedDoenetML.current !==
-                            editorDoenetMLRef.current
-                        ) {
-                            lastReportedDoenetML.current =
-                                editorDoenetMLRef.current;
-                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                        }
-                        updateValueTimer.current = null;
-                    }}
-                    onChange={onEditorChange}
-                />
-            </GridItem>
-            <GridItem
-                area="errorWarnings"
-                width="100%"
-                height="100%"
-                placeSelf="center"
-                overflow="hidden"
-                backgroundColor="doenet.mainGray"
-            >
-                {errorsWarningsVersion}
+                {editorAndCollapsiblePanel}
             </GridItem>
             <GridItem
                 area="formatter"
@@ -353,7 +445,7 @@ export function EditorViewer({
                 placeSelf="center"
                 overflow="hidden"
             >
-                {formatter}
+                {formatterAndVersion}
             </GridItem>
         </Grid>
     );
@@ -371,13 +463,16 @@ export function EditorViewer({
         );
     }
 
+    const controlHeight =
+        !readOnly || variants.numVariants > 1 ? "32px" : "0px";
+
     const viewerPanel = (
         <Grid
             width="100%"
             height="100%"
             templateAreas={`"controls"
                             "viewer"`}
-            gridTemplateRows={`32px 1fr`}
+            gridTemplateRows={`${controlHeight} 1fr`}
             gridTemplateColumns={`1fr`}
             overflowY="hidden"
         >
@@ -390,55 +485,61 @@ export function EditorViewer({
                 id={id + "-viewer-controls"}
             >
                 <HStack w="100%" h="32px" bg={backgroundColor}>
-                    <Box>
-                        <Tooltip
-                            hasArrow
-                            label={
-                                platform == "Mac"
-                                    ? "Updates Viewer cmd+s"
-                                    : "Updates Viewer ctrl+s"
-                            }
-                        >
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                data-test="Viewer Update Button"
-                                bg="doenet.canvas"
-                                leftIcon={<RxUpdate />}
-                                rightIcon={
-                                    codeChanged ? (
-                                        <WarningTwoIcon
-                                            color="doenet.mainBlue"
-                                            fontSize="18px"
-                                        />
-                                    ) : undefined
+                    {!readOnly && (
+                        <Box>
+                            <Tooltip
+                                hasArrow
+                                label={
+                                    platform == "Mac"
+                                        ? "Updates Viewer cmd+s"
+                                        : "Updates Viewer ctrl+s"
                                 }
-                                isDisabled={!codeChanged}
-                                onClick={() => {
-                                    setViewerDoenetML(
-                                        editorDoenetMLRef.current,
-                                    );
-                                    window.clearTimeout(
-                                        updateValueTimer.current ?? undefined,
-                                    );
-                                    if (
-                                        lastReportedDoenetML.current !==
-                                        editorDoenetMLRef.current
-                                    ) {
-                                        lastReportedDoenetML.current =
-                                            editorDoenetMLRef.current;
-                                        doenetmlChangeCallback?.(
+                            >
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    data-test="Viewer Update Button"
+                                    bg="doenet.canvas"
+                                    leftIcon={<RxUpdate />}
+                                    rightIcon={
+                                        codeChanged ? (
+                                            <WarningTwoIcon
+                                                color="doenet.mainBlue"
+                                                fontSize="18px"
+                                            />
+                                        ) : undefined
+                                    }
+                                    isDisabled={!codeChanged}
+                                    onClick={() => {
+                                        setViewerDoenetML(
                                             editorDoenetMLRef.current,
                                         );
-                                    }
-                                    setCodeChanged(false);
-                                    updateValueTimer.current = null;
-                                }}
-                            >
-                                Update
-                            </Button>
-                        </Tooltip>
-                    </Box>
+                                        window.clearTimeout(
+                                            updateValueTimer.current ??
+                                                undefined,
+                                        );
+                                        if (
+                                            lastReportedDoenetML.current !==
+                                            editorDoenetMLRef.current
+                                        ) {
+                                            lastReportedDoenetML.current =
+                                                editorDoenetMLRef.current;
+                                            if (!showViewer) {
+                                                doenetmlChangeCallback?.(
+                                                    editorDoenetMLRef.current,
+                                                );
+                                            }
+                                        }
+                                        setCodeChanged(false);
+                                        updateValueTimer.current = null;
+                                        setResponses([]);
+                                    }}
+                                >
+                                    Update
+                                </Button>
+                            </Tooltip>
+                        </Box>
+                    )}
                     {variants.numVariants > 1 && (
                         <Box bg={backgroundColor} h="32px" width="100%">
                             <VariantSelect
@@ -477,7 +578,7 @@ export function EditorViewer({
                     ref={scrollableContainer}
                 >
                     {/* @ts-ignore */}
-                    <ActivityViewer
+                    <DocViewer
                         doenetML={viewerDoenetML}
                         flags={{
                             showCorrectness: true,
@@ -488,28 +589,45 @@ export function EditorViewer({
                             allowLoadState: false,
                             allowSaveState: false,
                             allowLocalState: false,
-                            allowSaveSubmissions: false,
-                            allowSaveEvents: false,
+                            allowSaveEvents: showResponses,
                             readOnly: false,
                         }}
                         activityId={activityId}
+                        prefixForIds={prefixForIds}
                         attemptNumber={1}
-                        generatedVariantCallback={setVariants}
+                        generatedVariantCallback={(x: any) => {
+                            const allPossibleVariants = x.allPossibleVariants;
+                            if (Array.isArray(allPossibleVariants)) {
+                                const numVariants = allPossibleVariants.length;
+                                if (
+                                    typeof x.variantInfo === "object" &&
+                                    typeof x.variantInfo.index === "number"
+                                ) {
+                                    const index = x.variantInfo.index;
+                                    setVariants({
+                                        index,
+                                        numVariants,
+                                        allPossibleVariants,
+                                    });
+                                }
+                            }
+                        }}
                         requestedVariantIndex={variants.index}
-                        paginate={paginate}
                         setErrorsAndWarningsCallback={
                             setErrorsAndWarningsCallback
                         }
+                        documentStructureCallback={
+                            documentStructureThenChangeCallback
+                        }
                         location={location}
                         navigate={navigate}
-                        idsIncludeActivityId={idsIncludeActivityId}
                         linkSettings={linkSettings}
-                        addBottomPadding={addBottomPadding}
                         scrollableContainer={
                             scrollableContainer.current ?? undefined
                         }
                         darkMode={darkMode}
-                        showAnswerTitles={showAnswerTitles}
+                        showAnswerResponseMenu={showAnswerResponseMenu}
+                        answerResponseCounts={answerResponseCounts}
                     />
                 </Box>
             </GridItem>

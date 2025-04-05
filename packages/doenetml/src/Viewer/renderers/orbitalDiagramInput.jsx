@@ -1,8 +1,8 @@
-import React, { createRef, useEffect, useState } from "react";
+import React, { createRef, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import styled from "styled-components";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 // border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
 
@@ -25,21 +25,9 @@ export default React.memo(function orbitalDiagramInput(props) {
     let fixed = createRef(SVs.fixed);
     fixed.current = SVs.fixed;
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -230,15 +218,10 @@ export default React.memo(function orbitalDiagramInput(props) {
         );
     }
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <>
-                {controls}
-                {rowsJSX}
-            </>
-        </VisibilitySensor>
+        <div ref={ref}>
+            {controls}
+            {rowsJSX}
+        </div>
     );
 });
 

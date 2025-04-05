@@ -1559,7 +1559,10 @@ describe("Specifying single variant tests", async () => {
         });
     });
 
-    it("variantsToInclude and variantsToExclude in problem, extra child", async () => {
+    // Now that we are shuffling the order of unique variants,
+    // the variants of the document and the problem no longer coincide with an extra child.
+    // I think we can delete this test, as I'm not sure if there is anything left to test. (DQN, 2/10/2025)
+    it.skip("variantsToInclude and variantsToExclude in problem, extra child", async () => {
         function createDoenetML({
             include = [],
             exclude = [],

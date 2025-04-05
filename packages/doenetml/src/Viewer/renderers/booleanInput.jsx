@@ -17,7 +17,6 @@ import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
-import { PageContext } from "../PageViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -64,8 +63,6 @@ export default React.memo(function BooleanInput(props) {
     let anchorRel = useRef(null);
 
     const board = useContext(BoardContext);
-
-    const { showAnswerTitles } = useContext(PageContext) || {};
 
     let pointerAtDown = useRef(false);
     let pointAtDown = useRef(false);
@@ -482,7 +479,6 @@ export default React.memo(function BooleanInput(props) {
 
     //Assume we don't have a check work button
     let checkWorkButton = null;
-    let icon = props.icon;
     if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
         let validationState = "unvalidated";
         if (SVs.valueHasBeenValidated) {
@@ -507,18 +503,6 @@ export default React.memo(function BooleanInput(props) {
                         callAction({
                             action: actions.submitAnswer,
                         })
-                    }
-                    onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                            callAction({
-                                action: actions.submitAnswer,
-                            });
-                        }
-                    }}
-                    title={
-                        showAnswerTitles
-                            ? `Answer name: ${actions.submitAnswer.componentName}`
-                            : null
                     }
                 >
                     <FontAwesomeIcon
@@ -664,9 +648,6 @@ export default React.memo(function BooleanInput(props) {
                 )}
             </label>
         );
-        {
-            checkWorkButton;
-        }
     }
 
     return (

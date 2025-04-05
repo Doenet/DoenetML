@@ -39,9 +39,7 @@ describe("Point Tag Tests 2", function () {
             );
         });
 
-        cy.get(cesc2("#/P0a") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(3,4)");
+        cy.get(cesc2("#/P0a")).should("have.text", "(3,4)");
 
         cy.log("move point using skippable actions to upper right");
         let promises = [];
@@ -73,13 +71,7 @@ describe("Point Tag Tests 2", function () {
             });
         });
 
-        cy.get(cesc2("#/P0a") + " .mjx-mrow").should(
-            "contain.text",
-            "(9.9,9.9)",
-        );
-        cy.get(cesc2("#/P0a") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(9.9,9.9)");
+        cy.get(cesc2("#/P0a")).should("have.text", "(9.9,9.9)");
 
         cy.log(
             "move point using skippable and non-skippable actions to upper left",
@@ -121,12 +113,6 @@ describe("Point Tag Tests 2", function () {
             });
         });
 
-        cy.get(cesc2("#/P0a") + " .mjx-mrow").should(
-            "contain.text",
-            "(−9.9,9.9)",
-        );
-        cy.get(cesc2("#/P0a") + " .mjx-mrow")
-            .eq(0)
-            .should("have.text", "(−9.9,9.9)");
+        cy.get(cesc2("#/P0a")).should("have.text", "(−9.9,9.9)");
     });
 });

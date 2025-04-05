@@ -32,7 +32,7 @@ export class Solution extends BlockComponent {
                 success: true,
                 newChildren: [
                     {
-                        componentType: "_solutionContainer",
+                        componentType: "_postponeRenderContainer",
                         children: matchedChildren,
                     },
                 ],
@@ -177,6 +177,54 @@ export class Solution extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.rendered = {
+            forRenderer: true,
+            defaultValue: false,
+            hasEssential: true,
+            returnDependencies: () => ({
+                displayMode: {
+                    dependencyType: "flag",
+                    flagName: "solutionDisplayMode",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.displayMode === "displayed") {
+                    return { setValue: { rendered: true } };
+                } else if (dependencyValues.displayMode === "none") {
+                    return { setValue: { rendered: false } };
+                } else {
+                    return {
+                        useEssentialOrDefaultValue: {
+                            rendered: true,
+                        },
+                    };
+                }
+            },
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                if (
+                    dependencyValues.displayMode === "displayed" ||
+                    dependencyValues.displayMode === "none"
+                ) {
+                    // will always be rendered if displaymode is displayed
+                    // or always closed if displaymode is none
+                    return { success: false };
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "rendered",
+                            value: desiredStateVariableValues.rendered,
+                        },
+                    ],
+                };
+            },
+        };
+
         stateVariableDefinitions.canBeClosed = {
             forRenderer: true,
             returnDependencies: () => ({
@@ -272,12 +320,26 @@ export class Solution extends BlockComponent {
             };
         }
 
-        return await this.coreFunctions.performUpdate({
+        await this.coreFunctions.performUpdate({
             updateInstructions,
-            actionId,
             sourceInformation,
             skipRendererUpdate,
             event,
+            overrideReadOnly: true,
+        });
+
+        return this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentName: this.componentName,
+                    stateVariable: "rendered",
+                    value: allowView,
+                },
+            ],
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
             overrideReadOnly: true,
         });
     }

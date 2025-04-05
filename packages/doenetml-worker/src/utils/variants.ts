@@ -1,4 +1,5 @@
 import { numberToLetters, enumerateCombinations } from "@doenet/utils";
+import seedrandom from "seedrandom";
 
 // getVariantsForDescendantsForUniqueVariants: only needed in worker
 export function getVariantsForDescendantsForUniqueVariants({
@@ -38,7 +39,7 @@ export function getVariantsForDescendantsForUniqueVariants({
         if (r.success) {
             desiredVariants.push(r.desiredVariant);
         } else {
-            return { succss: false };
+            return { success: false };
         }
     }
 
@@ -73,7 +74,7 @@ export function setUpVariantSeedAndRng({
     if (desiredVariant?.seed !== undefined) {
         variantSeed = desiredVariant.seed.toString();
     } else {
-        // if variant seed wasn't specifed
+        // if variant seed wasn't specified
 
         // randomly pick variant seed
         if (useSubpartVariantRng) {
@@ -87,10 +88,10 @@ export function setUpVariantSeedAndRng({
     }
 
     sharedParameters.variantSeed = variantSeed;
-    sharedParameters.variantRng = new sharedParameters.rngClass(
+    sharedParameters.variantRng = sharedParameters.rngClass(
         sharedParameters.variantSeed,
     );
-    sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
+    sharedParameters.subpartVariantRng = sharedParameters.rngClass(
         sharedParameters.variantSeed + "s",
     );
 
@@ -108,7 +109,7 @@ export function setUpVariantSeedAndRng({
     }
 }
 
-// gatherVariantComonents: needed in getNumVariants, which is needed in returnAllPossibleVariants
+// gatherVariantComponents: needed in getNumVariants, which is needed in returnAllPossibleVariants
 // needed from componentInfoObjects:
 // - componentTypesCreatingVariants
 // - ignoreVariantsFromChildren from component class
@@ -413,10 +414,6 @@ export function determineVariantsForSection({
         );
     }
 
-    let variantsToIncludeUniqueIndices = variantsToInclude.map(
-        (variant: any) => variantNames.indexOf(variant) + 1,
-    );
-
     // determine seeds
     let specifiedSeeds: string[] = [];
     if (variantControlChild?.attributes.seeds) {
@@ -427,39 +424,26 @@ export function determineVariantsForSection({
     let variantSeeds = [...specifiedSeeds];
 
     if (variantSeeds.length < numVariantsSpecified) {
-        // if fewer variantSeeds specified than numVariantsSpecified, find additional seeds
-        // try seeds, n, n+1, ...., numVariantsSpecified
-        // except skipping seeds that are already in specifiedSeeds
-
-        let seedNumber = variantSeeds.length;
-        let seedValue = seedNumber;
-        let seedString: string;
-        while (seedNumber < numVariantsSpecified) {
-            seedNumber++;
-            seedValue++;
-            seedString = seedValue.toString();
-            while (specifiedSeeds.includes(seedString)) {
-                seedValue++;
-                seedString = seedValue.toString();
-            }
-            variantSeeds.push(seedString);
-        }
+        // if fewer variantSeeds specified than numVariantsSpecified,
+        // then ignore the specified seeds and just use seeds 1, 2, ...numVariantsSpecified
+        variantSeeds = [...Array(numVariantsSpecified).keys()].map((i) =>
+            (i + 1).toString(),
+        );
     } else {
         variantSeeds = variantSeeds.slice(0, numVariantsSpecified);
     }
 
-    let variantsToIncludeSeeds = variantsToIncludeUniqueIndices.map(
-        (i) => variantSeeds[i - 1],
-    );
+    let variantsIndicesSeedsToInclude = variantsToInclude.map((variant) => {
+        // Note: this index is for the case where we have unique indices.
+        // After unique options are shuffled, use these indices
+        const index = variantNames.indexOf(variant) + 1;
+        return { variant, index, seed: variantSeeds[index - 1] };
+    });
 
     // determine if use unique variants
     // if unique variants attribute is specified as false or fail to determine number of unique variants
     // then do no use unique variants
-    // else if
-    // - unique variants attribute is specified as true or
-    // - number of unique variants <= numVariantsSpecified
-    // then use unique variants
-    // else do not use unique variants
+    // else use unique variants
 
     let uniqueVariantsIsSpecified =
         variantControlChild?.attributes.uniqueVariants !== undefined;
@@ -468,21 +452,30 @@ export function determineVariantsForSection({
         variantControlChild?.attributes.uniqueVariants?.primitive,
     );
 
-    let uniqueResult;
+    let uniqueResult: { success: boolean; numVariants: number } | undefined;
 
     if (uniqueVariants || !uniqueVariantsIsSpecified) {
         let BaseComponent = componentInfoObjects.allComponentClasses._base;
         uniqueResult = BaseComponent.determineNumberOfUniqueVariants({
             serializedComponent,
             componentInfoObjects,
-        });
+        }) as { success: boolean; numVariants: number };
 
-        if (!uniqueResult.success || !(uniqueResult.numVariants > 0)) {
+        if (
+            !uniqueResult.success ||
+            !(
+                uniqueResult.numVariants > 0 &&
+                // If there are more than 10000000 variants,
+                // there is no more than about a 0.05% chance of getting a duplicate in 100 tries
+                // and no more than about a 5% chance of getting a duplicate in 1000 tries.
+                // Since creating arrays that large to enumerate the unique results is getting to be expensive,
+                // we'll just randomly and independently select variants.
+                uniqueResult.numVariants <= 10000000
+            )
+        ) {
             uniqueVariants = false;
         } else {
-            uniqueVariants =
-                uniqueVariants ||
-                uniqueResult.numVariants <= numVariantsSpecified;
+            uniqueVariants = true;
         }
     }
 
@@ -490,18 +483,52 @@ export function determineVariantsForSection({
     let allPossibleVariantUniqueIndices: number[] = [];
     let allPossibleVariantSeeds: string[] = [];
 
-    if (uniqueVariants) {
-        for (let [ind, num] of variantsToIncludeUniqueIndices.entries()) {
-            if (num <= uniqueResult.numVariants) {
-                allPossibleVariantUniqueIndices.push(num);
-                allPossibleVariants.push(variantsToInclude[ind]);
-                allPossibleVariantSeeds.push(variantsToIncludeSeeds[ind]);
-            }
+    // including `uniqueResult` in test is just for typescript
+    if (uniqueVariants && uniqueResult) {
+        // if the variant control specified indices beyond the ones available, ignore them
+        variantsIndicesSeedsToInclude = variantsIndicesSeedsToInclude.filter(
+            ({ index }) => index <= uniqueResult.numVariants,
+        );
+        const maxIndex = variantsIndicesSeedsToInclude.reduce(
+            (a, c) => Math.max(a, c.index),
+            0,
+        );
+
+        // for this shuffling of the variants, we just use a separate instance of the rng with seed "0"
+        const rng = seedrandom.alea("0");
+        const N = uniqueResult.numVariants;
+
+        // Shuffle the unique indices and choose maxIndex of them
+        // (We don't actually have to shuffle them all, just shuffle into the first part of the array of size maxIndex)
+        // https://stackoverflow.com/a/11935263
+        const uniqueIndices = [...Array(N).keys()].map((i) => i + 1);
+
+        for (let i = 0; i < maxIndex; i++) {
+            const rand = rng();
+            const j = i + Math.floor(rand * (N - i));
+            [uniqueIndices[i], uniqueIndices[j]] = [
+                uniqueIndices[j],
+                uniqueIndices[i],
+            ];
+        }
+
+        const uniqueIndicesToChooseFrom = uniqueIndices.slice(0, maxIndex);
+
+        for (const { variant, index, seed } of variantsIndicesSeedsToInclude) {
+            allPossibleVariantUniqueIndices.push(
+                uniqueIndicesToChooseFrom[index - 1],
+            );
+            allPossibleVariants.push(variant);
+            allPossibleVariantSeeds.push(seed);
         }
     } else {
         allPossibleVariants = variantsToInclude;
-        allPossibleVariantUniqueIndices = variantsToIncludeUniqueIndices;
-        allPossibleVariantSeeds = variantsToIncludeSeeds;
+        allPossibleVariantUniqueIndices = variantsIndicesSeedsToInclude.map(
+            ({ index }) => index,
+        );
+        allPossibleVariantSeeds = variantsIndicesSeedsToInclude.map(
+            ({ seed }) => seed,
+        );
     }
 
     let numVariants = allPossibleVariants.length;

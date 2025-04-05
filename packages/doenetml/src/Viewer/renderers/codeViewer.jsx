@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import VisibilitySensor from "react-visibility-sensor-v2";
 import { DoenetViewer } from "../../doenetml";
 import { Box, HStack, Button, Tooltip } from "@chakra-ui/react";
 import VariantSelect from "../../EditorViewer/VariantSelect";
 import { WarningTwoIcon } from "@chakra-ui/icons";
 import { RxUpdate } from "react-icons/rx";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function CodeViewer(props) {
     let { name, id, SVs, children, actions, callAction } = useDoenetRenderer(
@@ -20,21 +20,9 @@ export default React.memo(function CodeViewer(props) {
         allPossibleVariants: ["a"],
     });
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -141,10 +129,10 @@ export default React.memo(function CodeViewer(props) {
                         allowLoadState: false,
                         allowSaveState: false,
                         allowLocalState: false,
-                        allowSaveSubmissions: false,
                         allowSaveEvents: false,
                     }}
                     activityId={id}
+                    prefixForIds={id}
                     generatedVariantCallback={setVariants}
                     requestedVariantIndex={variants.index}
                     setErrorsAndWarningsCallback={(errorsAndWarnings) => {
@@ -164,20 +152,15 @@ export default React.memo(function CodeViewer(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <div style={outerStyle}>
-                <a name={id} />
-                <div
-                    style={surroundingBoxStyle}
-                    className="codeViewerSurroundingBox"
-                    id={id}
-                >
-                    {contentPanel}
-                </div>
+        <div style={outerStyle} ref={ref}>
+            <a name={id} />
+            <div
+                style={surroundingBoxStyle}
+                className="codeViewerSurroundingBox"
+                id={id}
+            >
+                {contentPanel}
             </div>
-        </VisibilitySensor>
+        </div>
     );
 });

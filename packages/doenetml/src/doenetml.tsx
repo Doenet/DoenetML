@@ -1,8 +1,7 @@
 import "./DoenetML.css";
-// @ts-ignore
-import { prng_alea } from "esm-seedrandom";
-import React, { useCallback, useRef, useState } from "react";
-import { ActivityViewer } from "./Viewer/ActivityViewer";
+import seedrandom from "seedrandom";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { DocViewer } from "./Viewer/DocViewer";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "@doenet/utils";
@@ -12,6 +11,7 @@ import { Box, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "@doenet/virtual-keyboard/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
 import VariantSelect from "./EditorViewer/VariantSelect";
+import { useIsOnPage } from "./utils/visibility";
 
 export const version: string = DOENETML_VERSION;
 
@@ -24,7 +24,6 @@ export type DoenetMLFlags = {
     allowLoadState: boolean;
     allowSaveState: boolean;
     allowLocalState: boolean;
-    allowSaveSubmissions: boolean;
     allowSaveEvents: boolean;
     autoSubmit: boolean;
 };
@@ -40,12 +39,11 @@ export const defaultFlags: DoenetMLFlags = {
     allowLoadState: false,
     allowSaveState: false,
     allowLocalState: false,
-    allowSaveSubmissions: false,
     allowSaveEvents: false,
     autoSubmit: false,
 };
 
-let rngClass = prng_alea;
+const rngClass = seedrandom.alea;
 
 /**
  * this is a hack for react-mathqill
@@ -95,23 +93,19 @@ const theme = extendTheme({
 export function DoenetViewer({
     doenetML,
     flags: specifiedFlags = {},
-    cid,
-    activityId,
+    activityId = "a",
+    docId = "1",
+    prefixForIds = "",
     userId,
     attemptNumber = 1,
+    render = true,
     requestedVariantIndex,
-    updateCreditAchievedCallback,
-    updateActivityStatusCallback,
-    updateAttemptNumber,
-    pageChangedCallback,
-    paginate = false,
-    showFinishButton,
-    cidChangedCallback,
-    checkIfCidChanged,
-    setActivityAsCompleted,
+    initialState,
+    reportScoreAndStateCallback,
     setIsInErrorState,
-    apiURLs,
     generatedVariantCallback: specifiedGeneratedVariantCallback,
+    documentStructureCallback,
+    initializedCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
     forceShowCorrectness = false,
@@ -119,36 +113,31 @@ export function DoenetViewer({
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    addBottomPadding = false,
     location,
     navigate,
-    updateDataOnContentChange = false,
-    idsIncludeActivityId = true,
     linkSettings,
     scrollableContainer,
     darkMode = "light",
-    showAnswerTitles = false,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     includeVariantSelector = false,
+    initializeCounters = {},
 }: {
     doenetML: string;
     flags?: DoenetMLFlagsSubset;
-    cid?: string;
     activityId?: string;
+    docId?: string;
+    prefixForIds?: string;
     userId?: string;
     attemptNumber?: number;
+    render?: boolean;
     requestedVariantIndex?: number;
-    updateCreditAchievedCallback?: Function;
-    updateActivityStatusCallback?: Function;
-    updateAttemptNumber?: Function;
-    pageChangedCallback?: Function;
-    paginate?: boolean;
-    showFinishButton?: boolean;
-    cidChangedCallback?: Function;
-    checkIfCidChanged?: Function;
-    setActivityAsCompleted?: Function;
+    initialState?: Record<string, any> | null;
+    reportScoreAndStateCallback?: Function;
     setIsInErrorState?: Function;
-    apiURLs?: any;
     generatedVariantCallback?: Function;
+    documentStructureCallback?: Function;
+    initializedCallback?: Function;
     setErrorsAndWarningsCallback?: Function;
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
@@ -156,16 +145,15 @@ export function DoenetViewer({
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
-    updateDataOnContentChange?: boolean;
-    idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
+    initializeCounters?: Record<string, number>;
 }) {
     const [variants, setVariants] = useState({
         index: 1,
@@ -173,30 +161,26 @@ export function DoenetViewer({
         allPossibleVariants: ["a"],
     });
 
-    const thisPropSet = [
-        doenetML,
-        cid,
-        activityId,
-        userId,
-        requestedVariantIndex,
-    ];
+    const thisPropSet = [doenetML, activityId, userId, requestedVariantIndex];
     const lastPropSet = useRef<any[]>([]);
 
     const variantIndex = useRef(1);
 
-    const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
+    // Start off hidden and then unhide once the viewer is visible.
+    // This is needed to delay the initialization of JSXgraph
+    // until it is no longer hidden.
+    // Otherwise, the graphs are often displayed in a garbled fashion
+    // with the bounds calculated incorrectly
+    const ref = useRef<HTMLDivElement>(null);
+    const isOnPage = useIsOnPage(ref);
+    const [hidden, setHidden] = useState(true);
+    useEffect(() => {
+        if (isOnPage) {
+            setHidden(false);
+        }
+    }, [isOnPage]);
 
-    if (userId) {
-        // if userId was specified, then we're viewing results of someone other than the logged in person
-        // so disable saving state
-        // and disable even looking up state from local storage (as we want to get the state from the database)
-        flags.allowLocalState = false;
-        flags.allowSaveState = false;
-    } else if (flags.allowSaveState) {
-        // allowSaveState implies allowLoadState
-        // Rationale: saving state will result in loading a new state if another device changed it
-        flags.allowLoadState = true;
-    }
+    const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
     const generatedVariantCallback = useCallback(
         (newVariants: any) => {
@@ -240,7 +224,7 @@ export function DoenetViewer({
         // regenerate only if one of the props in propSet has changed
         if (thisPropSet.some((v, i) => v !== lastPropSet.current[i])) {
             if (requestedVariantIndex === undefined) {
-                let rng = new rngClass(new Date());
+                let rng = rngClass();
                 requestedVariantIndex = Math.floor(rng() * 1000000) + 1;
             }
             variantIndex.current = Math.round(requestedVariantIndex);
@@ -258,27 +242,23 @@ export function DoenetViewer({
     ) : null;
 
     const viewer = (
-        <ActivityViewer
+        <DocViewer
             doenetML={doenetML}
-            updateDataOnContentChange={updateDataOnContentChange}
             flags={flags}
-            cid={cid}
             activityId={activityId}
+            docId={docId}
+            prefixForIds={prefixForIds}
             userId={userId}
             attemptNumber={attemptNumber}
+            render={render}
+            hidden={hidden}
             requestedVariantIndex={variantIndex.current}
-            updateCreditAchievedCallback={updateCreditAchievedCallback}
-            updateActivityStatusCallback={updateActivityStatusCallback}
-            updateAttemptNumber={updateAttemptNumber}
-            pageChangedCallback={pageChangedCallback}
-            paginate={paginate}
-            showFinishButton={showFinishButton}
-            cidChangedCallback={cidChangedCallback}
-            checkIfCidChanged={checkIfCidChanged}
-            setActivityAsCompleted={setActivityAsCompleted}
+            initialState={initialState}
+            reportScoreAndStateCallback={reportScoreAndStateCallback}
             setIsInErrorState={setIsInErrorState}
-            apiURLs={apiURLs}
             generatedVariantCallback={generatedVariantCallback}
+            documentStructureCallback={documentStructureCallback}
+            initializedCallback={initializedCallback}
             setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
@@ -286,12 +266,12 @@ export function DoenetViewer({
             forceUnsuppressCheckwork={forceUnsuppressCheckwork}
             location={location}
             navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
             linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
+            showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
+            initializeCounters={initializeCounters}
         />
     );
 
@@ -302,11 +282,17 @@ export function DoenetViewer({
             disableGlobalStyle
         >
             <RecoilRoot>
-                <MathJaxContext version={3} config={mathjaxConfig}>
-                    {variantSelector}
-                    {viewer}
-                    <div className="before-keyboard" />
-                    {keyboard}
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
+                    <div ref={ref}>
+                        {variantSelector}
+                        {viewer}
+                        <div className="before-keyboard" />
+                        {keyboard}
+                    </div>
                 </MathJaxContext>
             </RecoilRoot>
         </ChakraProvider>
@@ -315,17 +301,16 @@ export function DoenetViewer({
 
 export function DoenetEditor({
     doenetML,
-    activityId,
-    paginate = false,
+    activityId = "a",
+    prefixForIds = "",
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    addBottomPadding = false,
     location,
     navigate,
-    idsIncludeActivityId = true,
     linkSettings,
     darkMode = "light",
-    showAnswerTitles = false,
+    showAnswerResponseMenu = false,
+    answerResponseCounts = {},
     width,
     height,
     viewerLocation,
@@ -333,26 +318,27 @@ export function DoenetEditor({
     showViewer,
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
+    documentStructureCallback,
     id,
     readOnly = false,
     showFormatter = true,
     showErrorsWarnings = true,
+    showResponses = true,
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
 }: {
     doenetML: string;
     activityId?: string;
-    paginate?: boolean;
+    prefixForIds?: string;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    addBottomPadding?: boolean;
     location?: any;
     navigate?: any;
-    idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
-    showAnswerTitles?: boolean;
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
     viewerLocation?: "left" | "right" | "top" | "bottom";
@@ -360,10 +346,12 @@ export function DoenetEditor({
     showViewer?: boolean;
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
+    documentStructureCallback?: Function;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
     showErrorsWarnings?: boolean;
+    showResponses?: boolean;
     border?: string;
     initialErrors?: ErrorDescription[];
     initialWarnings?: WarningDescription[];
@@ -378,14 +366,13 @@ export function DoenetEditor({
         <EditorViewer
             doenetML={doenetML}
             activityId={activityId}
-            paginate={paginate}
             location={location}
             navigate={navigate}
-            idsIncludeActivityId={idsIncludeActivityId}
+            prefixForIds={prefixForIds}
             linkSettings={linkSettings}
-            addBottomPadding={addBottomPadding}
             darkMode={darkMode}
-            showAnswerTitles={showAnswerTitles}
+            showAnswerResponseMenu={showAnswerResponseMenu}
+            answerResponseCounts={answerResponseCounts}
             width={width}
             height={height}
             viewerLocation={viewerLocation}
@@ -393,10 +380,12 @@ export function DoenetEditor({
             showViewer={showViewer}
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
+            documentStructureCallback={documentStructureCallback}
             id={id}
             readOnly={readOnly}
             showFormatter={showFormatter}
             showErrorsWarnings={showErrorsWarnings}
+            showResponses={showResponses}
             border={border}
             initialErrors={initialErrors}
             initialWarnings={initialWarnings}
@@ -410,7 +399,11 @@ export function DoenetEditor({
             disableGlobalStyle
         >
             <RecoilRoot>
-                <MathJaxContext version={3} config={mathjaxConfig}>
+                <MathJaxContext
+                    version={3}
+                    config={mathjaxConfig}
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+                >
                     {editor}
                     <div className="before-keyboard" />
                     {keyboard}

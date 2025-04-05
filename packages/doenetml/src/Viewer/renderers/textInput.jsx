@@ -16,7 +16,6 @@ import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
-import { PageContext } from "../PageViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -87,8 +86,6 @@ export default function TextInput(props) {
         actionName === "moveInput";
 
     const [rendererValue, setRendererValue] = useState(SVs.immediateValue);
-
-    const { showAnswerTitles } = useContext(PageContext) || {};
 
     // add ref, because event handler called from jsxgraph doesn't get new value
     let rendererValueRef = useRef(null);
@@ -631,18 +628,6 @@ export default function TextInput(props) {
                         callAction({
                             action: actions.submitAnswer,
                         })
-                    }
-                    onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                            callAction({
-                                action: actions.submitAnswer,
-                            });
-                        }
-                    }}
-                    title={
-                        showAnswerTitles
-                            ? `Answer name: ${actions.submitAnswer.componentName}`
-                            : null
                     }
                 >
                     <FontAwesomeIcon

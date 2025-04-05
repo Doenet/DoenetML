@@ -27,6 +27,7 @@
             "files": [
                 "src/**/*.ts",
                 "src/**/*.js",
+                "vite.config.ts",
                 "tsconfig.json"
             ],
             "output": [

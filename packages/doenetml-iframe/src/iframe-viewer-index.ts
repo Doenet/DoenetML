@@ -2,6 +2,7 @@
 // created by DoenetViewer.
 declare const viewerId: string;
 declare const doenetViewerProps: object;
+declare const haveViewerCallbacks: string[];
 interface Window {
     renderDoenetViewerToContainer: (
         container: Element,
@@ -10,90 +11,74 @@ interface Window {
     ) => void;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    let pause100 = function () {
+        return new Promise((resolve, _reject) => {
+            setTimeout(resolve, 100);
+        });
+    };
+
+    // wait up to a second window.renderDoenetViewerToContainer to be found
+    for (let i = 0; i < 10; i++) {
+        if (typeof window.renderDoenetViewerToContainer === "function") {
+            break;
+        }
+        await pause100();
+    }
+
     if (typeof window.renderDoenetViewerToContainer !== "function") {
         return messageParentFromViewer({
             error: "Invalid DoenetML version or DoenetML package not found",
         });
     }
+
+    // Callbacks have to be explicitly overridden here so that they
+    // can message the parent React component (outside the iframe).
+    const callbackOverrides: Record<
+        string,
+        ((args: unknown) => void) | undefined
+    > = {};
+    const callbackNames = [
+        "reportScoreAndStateCallback",
+        "setIsInErrorState",
+        "generatedVariantCallback",
+        "documentStructureCallback",
+        "initializedCallback",
+        "setErrorsAndWarningsCallback",
+    ];
+    for (const callback of callbackNames) {
+        callbackOverrides[callback] = haveViewerCallbacks.includes(callback)
+            ? (args: unknown) => {
+                  messageParentFromViewer({
+                      callback,
+                      args,
+                  });
+              }
+            : undefined;
+    }
+
     window.renderDoenetViewerToContainer(
         document.getElementById("root")!,
         undefined,
         {
             ...doenetViewerProps,
             externalVirtualKeyboardProvided: true,
-            // Callbacks have to be explicitly overridden here so that they
-            // can message the parent React component (outside the iframe).
-            updateCreditAchievedCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "updateCreditAchievedCallback",
-                    args,
-                });
-            },
-            updateActivityStatusCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "updateActivityStatusCallback",
-                    args,
-                });
-            },
-            updateAttemptNumber: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "updateAttemptNumber",
-                    args,
-                });
-            },
-            pageChangedCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "pageChangedCallback",
-                    args,
-                });
-            },
-            cidChangedCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "cidChangedCallback",
-                    args,
-                });
-            },
-            checkIfCidChanged: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "checkIfCidChanged",
-                    args,
-                });
-            },
-            setActivityAsCompleted: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "setActivityAsCompleted",
-                    args,
-                });
-            },
-            setIsInErrorState: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "setIsInErrorState",
-                    args,
-                });
-            },
-            generatedVariantCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "generatedVariantCallback",
-                    args,
-                });
-            },
-            setErrorsAndWarningsCallback: (args: unknown) => {
-                messageParentFromViewer({
-                    callback: "setErrorsAndWarningsCallback",
-                    args,
-                });
-            },
+            ...callbackOverrides,
         },
     );
 });
 
 // forward all SPLICE messages that aren't a response to parent
 window.addEventListener("message", (e) => {
+    if (e.origin !== window.parent.location.origin) {
+        return;
+    }
     if (
-        e.data.subject.startsWith("SPLICE") &&
-        !e.data.subject.endsWith("response")
+        e.data.subject?.startsWith("SPLICE") &&
+        !e.data.subject?.endsWith("response")
     ) {
+        window.parent.postMessage(e.data);
+    } else if (e.data.subject === "requestAnswerResponses") {
         window.parent.postMessage(e.data);
     }
 });

@@ -4,13 +4,10 @@ export default {
     abs: {
         display: "hidden",
     },
-    alert: {
+    Sample_Component: {
         display: "hidden",
     },
     and: {
-        display: "hidden",
-    },
-    angle: {
         display: "hidden",
     },
     animateFromSequence: {
@@ -20,12 +17,6 @@ export default {
         display: "hidden",
     },
     aside: {
-        display: "hidden",
-    },
-    asList: {
-        display: "hidden",
-    },
-    atom: {
         display: "hidden",
     },
     boolean: {

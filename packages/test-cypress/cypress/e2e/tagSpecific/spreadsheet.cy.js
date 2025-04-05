@@ -1140,50 +1140,50 @@ describe("Spreadsheet Tag Tests", function () {
         let c3 = "(5,6)";
         let c4 = "(7,8)";
 
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c1);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c1);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c3);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c3);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c2);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c4);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c2);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c4);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
     });
 
     it("copy propIndex of points in cells, dot and array notation", () => {
@@ -1218,50 +1218,50 @@ describe("Spreadsheet Tag Tests", function () {
         let c3 = "(5,6)";
         let c4 = "(7,8)";
 
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c1);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c1);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c3);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c3);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c2);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c4);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c2);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c4);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
     });
 
     it("copy multidimensional propIndex of points in cells, dot and array notation", () => {
@@ -1296,50 +1296,50 @@ describe("Spreadsheet Tag Tests", function () {
         let c3 = "(5,6)";
         let c4 = "(7,8)";
 
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c1);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c1);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c3);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c3);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c2);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c4);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c2);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c4);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
     });
 
     it("copy multidimensional propIndex of points in rows and columns, dot and array notation", () => {
@@ -1374,50 +1374,50 @@ describe("Spreadsheet Tag Tests", function () {
         let c3 = "(5,6)";
         let c4 = "(7,8)";
 
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c1);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c1);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c3);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c3);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c2);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c4);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c2);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c4);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
     });
 
     it("copy single propIndex of points in rows and columns, dot and array notation", () => {
@@ -1452,49 +1452,49 @@ describe("Spreadsheet Tag Tests", function () {
         let c3 = "(5,6)";
         let c4 = "(7,8)";
 
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c1);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("contain.text", c2);
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c1);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c1);
+        cy.get(cesc("#\\/P2")).should("contain.text", c2);
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c1);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c3);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c3);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("contain.text", c4);
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c3);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c3);
+        cy.get(cesc("#\\/P5")).should("contain.text", c4);
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("contain.text", c4);
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", c2);
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("contain.text", c4);
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("contain.text", c2);
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/P1") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P5") + " .mjx-mrow").should("not.exist");
-        cy.get(cesc("#\\/P6") + " .mjx-mrow").should("not.exist");
+        cy.get(cesc("#\\/P1")).should("not.exist");
+        cy.get(cesc("#\\/P2")).should("not.exist");
+        cy.get(cesc("#\\/P3")).should("not.exist");
+        cy.get(cesc("#\\/P4")).should("not.exist");
+        cy.get(cesc("#\\/P5")).should("not.exist");
+        cy.get(cesc("#\\/P6")).should("not.exist");
     });
 });

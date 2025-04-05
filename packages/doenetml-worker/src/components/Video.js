@@ -606,7 +606,7 @@ export default class Video extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
             overrideReadOnly: true,
-            doNotSave: true, // video actions don't count as changing page state
+            doNotSave: true, // video actions don't count as changing doc state
         });
     }
 

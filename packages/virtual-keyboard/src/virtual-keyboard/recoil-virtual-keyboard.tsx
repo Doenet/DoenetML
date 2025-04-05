@@ -12,7 +12,7 @@ import { UniqueKeyboardTray } from "./unique-keyboard-tray";
 export function RecoilVirtualKeyboard({
     externalVirtualKeyboardProvided = false,
 }: {
-    externalVirtualKeyboardProvided: boolean;
+    externalVirtualKeyboardProvided?: boolean;
 }) {
     const callback = useRecoilValue(focusedMathField);
     const returnCallback = useRecoilValue(focusedMathFieldReturn);

@@ -121,20 +121,18 @@ globalThis.onmessage = function (e) {
 
 async function initializeWorker({
     doenetML,
-    preliminarySerializedComponents,
     flags,
+    activityId,
+    docId,
+    attemptNumber,
+    requestedVariantIndex,
 }) {
-    // Note: preliminarySerializeComponents is optional.
-    // If it is undefined, expandDoenetMLsToFullSerializedComponents will parse doenetML
-    // to create the serialized components
-
     let componentInfoObjects = createComponentInfoObjects(flags);
 
     let expandResult;
     try {
         expandResult = await expandDoenetMLsToFullSerializedComponents({
             doenetMLs: [doenetML],
-            preliminarySerializedComponents: [preliminarySerializedComponents],
             componentInfoObjects,
             flags,
         });
@@ -143,14 +141,29 @@ async function initializeWorker({
         initializeResult = { success: false, errMsg: e.message };
         postMessage({
             messageType: "initializeResult",
-            args: initializeResult,
+            args: {
+                ...initializeResult,
+                attemptNumber,
+                requestedVariantIndex,
+            },
+        });
+        postMessage({
+            messageType: "allPossibleVariants",
+            args: {
+                success: false,
+                attemptNumber,
+                requestedVariantIndex,
+            },
         });
     }
 
     coreBaseArgs = {
         doenetML,
-        preliminarySerializedComponents,
         flags,
+        activityId,
+        docId,
+        attemptNumber,
+        requestedVariantIndex,
         serializedDocument: addDocumentIfItsMissing(
             expandResult.fullSerializedComponents[0],
         )[0],
@@ -164,15 +177,61 @@ async function initializeWorker({
 
     postMessage({
         messageType: "initializeResult",
-        args: initializeResult,
+        args: {
+            ...initializeResult,
+            attemptNumber,
+            requestedVariantIndex,
+        },
+    });
+
+    let allPossibleVariants = await returnAllPossibleVariants(
+        coreBaseArgs.serializedDocument,
+        coreBaseArgs.componentInfoObjects,
+    );
+
+    // count the number of occurrences of each component type from the document's immediate children
+    const baseComponentCounts = coreBaseArgs.serializedDocument.children.reduce(
+        (a, c) => {
+            if (typeof c === "object") {
+                a[c.componentType] = (a[c.componentType] ?? 0) + 1;
+            }
+            return a;
+        },
+        {},
+    );
+
+    postMessage({
+        messageType: "documentStructure",
+        args: {
+            allPossibleVariants,
+            baseComponentCounts,
+        },
     });
 }
 
 async function createCore(args) {
-    if (initializeResult.success) {
-        let coreArgs = Object.assign({}, coreBaseArgs);
-        Object.assign(coreArgs, args);
+    // Wait for `initializeWorker()` for up to around 2 seconds before failing.
+    // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
+    // could take time if it needs to retrieve external content.)
+    const maxIters = 20;
+    let i = 0;
+    while (initializeResult.success === undefined) {
+        const pause100 = function () {
+            return new Promise((resolve, reject) => {
+                setTimeout(resolve, 100);
+            });
+        };
+        await pause100();
+        i++;
+        if (i > maxIters) {
+            break;
+        }
+    }
 
+    let coreArgs = Object.assign({}, coreBaseArgs);
+    Object.assign(coreArgs, args);
+
+    if (initializeResult.success) {
         core = new Core(coreArgs);
 
         try {

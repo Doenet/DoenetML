@@ -148,7 +148,7 @@ import Endpoint from "./components/Endpoint";
 import Sort from "./components/Sort";
 import Shuffle from "./components/Shuffle";
 import SolveEquations from "./components/SolveEquations";
-import SolutionContainer from "./components/SolutionContainer";
+import PostponeRenderContainer from "./components/PostponeRenderContainer";
 import SubsetOfRealsInput from "./components/SubsetOfRealsInput";
 import SubsetOfReals from "./components/SubsetOfReals";
 import Split from "./components/Split";
@@ -344,7 +344,7 @@ const componentTypeArray = [
     Sort,
     Shuffle,
     SolveEquations,
-    SolutionContainer,
+    PostponeRenderContainer,
     SubsetOfRealsInput,
     SubsetOfReals,
     Split,

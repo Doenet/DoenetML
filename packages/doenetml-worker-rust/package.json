@@ -1,0 +1,106 @@
+{
+    "name": "@doenet/doenetml-worker-rust",
+    "type": "module",
+    "description": "Repo for compiled WebWorker code for DoenetML",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.js"
+        },
+        "./*": {
+            "import": "./dist/*",
+            "require": "./dist/*"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "test": "npm run test:rust && echo 'tests complete (keep this message at the end of the tests)'",
+        "test:rust": "npm run test:rust:before && cargo test --workspace --features testing",
+        "test:rust:before": "wireit",
+        "build:rust": "wireit",
+        "build:rust-wasm-test": "wireit",
+        "build:js": "wireit",
+        "build": "npm run build:rust && npm run build:js",
+        "bench": "cargo bench -p doenetml-core"
+    },
+    "wireit": {
+        "test:rust:before": {
+            "command": "vite build -c vite.rust-tests.config.ts",
+            "files": [
+                "lib-doenetml-core/tests/**/*.ts",
+                "vite.rust-tests.config.ts"
+            ],
+            "output": [
+                "lib-doenetml-core/tests/**/*.js"
+            ],
+            "dependencies": [
+                "../parser:build"
+            ]
+        },
+        "build:js": {
+            "command": "vite build",
+            "files": [
+                "lib-*/src/**/*.ts",
+                "lib-*/src/**/*.js",
+                "tsconfig.json",
+                "lib-*/tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../utils:build",
+                "../parser:build",
+                "build:rust"
+            ]
+        },
+        "build:rust": {
+            "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-binding/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-binding/pkg/**/*.js",
+                "lib-js-wasm-binding/pkg/**/*.d.ts",
+                "lib-js-wasm-binding/pkg/**/*.wasm",
+                "lib-js-wasm-binding/pkg/**/*.json"
+            ]
+        },
+        "build:rust-wasm-test": {
+            "command": "npx wasm-pack build lib-js-wasm-test --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-test/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-test/pkg/**/*.js",
+                "lib-js-wasm-test/pkg/**/*.d.ts",
+                "lib-js-wasm-test/pkg/**/*.wasm",
+                "lib-js-wasm-test/pkg/**/*.json"
+            ]
+        }
+    },
+    "devDependencies": {
+        "@vitest/browser": "^1.6.0",
+        "node-stdlib-browser": "^1.2.0",
+        "rollup-plugin-polyfill-node": "^0.13.0",
+        "vite": "^5.3.3",
+        "vite-plugin-static-copy": "^1.0.6",
+        "webdriverio": "^8.39.1"
+    }
+}

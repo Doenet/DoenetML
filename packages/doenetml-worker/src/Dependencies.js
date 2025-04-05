@@ -7903,12 +7903,17 @@ class CountAmongSiblingsDependency extends Dependency {
                 .map((x) => x.componentName)
                 .indexOf(this.upstreamComponentName) + 1;
 
+        // if `initializeCounters` was passed into core with a key that matches the component type
+        // then increment `value` so that the first instance would yield that initial counter.
         if (this.parentName === this.dependencyHandler.core.documentName) {
-            let previousCounts =
-                this.dependencyHandler.core.previousComponentTypeCounts;
+            let initializeCounters =
+                this.dependencyHandler.core.initializeCounters;
 
             if (this.includeInheritedComponentTypes) {
-                for (let cType in previousCounts) {
+                // if we are including inherited component types,
+                // then just use the first counter found and skip any additional counters
+                // (where the order encountered is arbitrary)
+                for (let cType in initializeCounters) {
                     if (
                         this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
                             {
@@ -7917,13 +7922,14 @@ class CountAmongSiblingsDependency extends Dependency {
                             },
                         )
                     ) {
-                        value += previousCounts[cType];
+                        value += initializeCounters[cType] - 1;
+                        break;
                     }
                 }
             } else {
-                let thisPreviousCount = previousCounts[childComponentType];
-                if (thisPreviousCount) {
-                    value += thisPreviousCount;
+                let initialCounter = initializeCounters[childComponentType];
+                if (initialCounter) {
+                    value += initialCounter - 1;
                 }
             }
         }

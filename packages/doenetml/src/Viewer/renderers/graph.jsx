@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, createContext } from "react";
 import { sizeToCSS } from "./utils/css";
 import useDoenetRenderer from "../useDoenetRenderer";
 import me from "math-expressions";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 //@ts-ignore
 import JXG from "./jsxgraph-distrib/jsxgraphcore.mjs";
 // import JXG from './jsxgraph';
@@ -33,12 +33,9 @@ export default React.memo(function Graph(props) {
 
     let showNavigation = SVs.showNavigation && !SVs.fixAxes;
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
+
+    useRecordVisibilityChanges(ref, callAction, actions, SVs.haveGraphParent);
 
     useEffect(() => {
         if (SVs.haveGraphParent) {
@@ -223,15 +220,10 @@ export default React.memo(function Graph(props) {
 
     if (!board) {
         return (
-            <VisibilitySensor
-                partialVisibility={true}
-                onChange={onChangeVisibility}
-            >
-                <div style={outerStyle}>
-                    <a name={id} />
-                    <div id={id} className="jxgbox" style={divStyle} />
-                </div>
-            </VisibilitySensor>
+            <div style={outerStyle} ref={ref}>
+                <a name={id} />
+                <div id={id} className="jxgbox" style={divStyle} />
+            </div>
         );
     }
 
@@ -440,18 +432,13 @@ export default React.memo(function Graph(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <div style={outerStyle}>
-                <a name={id} />
-                <div id={id} className="jxgbox" style={divStyle} />
-                <BoardContext.Provider value={board}>
-                    {children}
-                </BoardContext.Provider>
-            </div>
-        </VisibilitySensor>
+        <div style={outerStyle} ref={ref}>
+            <a name={id} />
+            <div id={id} className="jxgbox" style={divStyle} />
+            <BoardContext.Provider value={board}>
+                {children}
+            </BoardContext.Provider>
+        </div>
     );
 
     function createYAxis(theBoard) {

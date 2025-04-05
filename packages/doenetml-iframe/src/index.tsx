@@ -19,6 +19,7 @@ const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
 export type { ErrorDescription, WarningDescription };
+export { parseAndCompile } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
@@ -144,15 +145,16 @@ export function DoenetViewer({
 
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
             // forward response from SPLICE getState to iframe
             if (event.data.subject === "SPLICE.getState.response") {
                 ref.current?.contentWindow?.postMessage(event.data);
                 return;
             }
-            if (
-                event.origin !== window.location.origin ||
-                event.data?.origin !== id
-            ) {
+            if (event.data?.origin !== id) {
                 return;
             }
 
@@ -164,30 +166,8 @@ export function DoenetViewer({
             }
 
             switch (data.callback) {
-                case "updateCreditAchievedCallback": {
-                    return doenetViewerProps.updateCreditAchievedCallback?.(
-                        data.args,
-                    );
-                }
-                case "updateActivityStatusCallback": {
-                    return doenetViewerProps.updateActivityStatusCallback?.(
-                        data.args,
-                    );
-                }
-                case "updateAttemptNumber": {
-                    return doenetViewerProps.updateAttemptNumber?.(data.args);
-                }
-                case "pageChangedCallback": {
-                    return doenetViewerProps.pageChangedCallback?.(data.args);
-                }
-                case "cidChangedCallback": {
-                    return doenetViewerProps.cidChangedCallback?.(data.args);
-                }
-                case "checkIfCidChanged": {
-                    return doenetViewerProps.checkIfCidChanged?.(data.args);
-                }
-                case "setActivityAsCompleted": {
-                    return doenetViewerProps.setActivityAsCompleted?.(
+                case "reportScoreAndStateCallback": {
+                    return doenetViewerProps.reportScoreAndStateCallback?.(
                         data.args,
                     );
                 }
@@ -198,6 +178,14 @@ export function DoenetViewer({
                     return doenetViewerProps.generatedVariantCallback?.(
                         data.args,
                     );
+                }
+                case "documentStructureCallback": {
+                    return doenetViewerProps.documentStructureCallback?.(
+                        data.args,
+                    );
+                }
+                case "initializedCallback": {
+                    return doenetViewerProps.initializedCallback?.(data.args);
                 }
                 case "setErrorsAndWarningsCallback": {
                     return doenetViewerProps.setErrorsAndWarningsCallback?.(
@@ -359,6 +347,11 @@ export function DoenetEditor({
                 }
                 case "immediateDoenetmlChangeCallback": {
                     return doenetEditorProps.immediateDoenetmlChangeCallback?.(
+                        data.args,
+                    );
+                }
+                case "documentStructureCallback": {
+                    return doenetEditorProps.documentStructureCallback?.(
                         data.args,
                     );
                 }

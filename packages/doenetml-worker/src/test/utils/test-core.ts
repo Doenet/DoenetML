@@ -14,7 +14,6 @@ type DoenetMLFlags = {
     allowLoadState: boolean;
     allowSaveState: boolean;
     allowLocalState: boolean;
-    allowSaveSubmissions: boolean;
     allowSaveEvents: boolean;
     autoSubmit: boolean;
 };
@@ -30,7 +29,6 @@ const defaultFlags: DoenetMLFlags = {
     allowLoadState: false,
     allowSaveState: false,
     allowLocalState: false,
-    allowSaveSubmissions: false,
     allowSaveEvents: false,
     autoSubmit: false,
 };
@@ -40,11 +38,13 @@ export async function createTestCore({
     requestedVariantIndex = 1,
     flags: specifiedFlags = {},
     theme,
+    initializeCounters = {},
 }: {
     doenetML: string;
     requestedVariantIndex?: number;
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
+    initializeCounters?: Record<string, number>;
 }) {
     let componentInfoObjects = createComponentInfoObjects();
 
@@ -67,15 +67,13 @@ export async function createTestCore({
         componentInfoObjects,
         activityId: "",
         cid: "",
-        cidForActivity: "",
-        pageNumber: 1,
-        serverSaveId: "",
+        docId: "1",
         activityVariantIndex: 1,
         requestedVariant: null,
-        requestedVariantIndex: requestedVariantIndex,
+        requestedVariantIndex,
+        initializeCounters,
         stateVariableChanges: "",
         coreId: "",
-        updateDataOnContentChange: null,
         theme,
     };
 

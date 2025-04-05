@@ -1,8 +1,8 @@
-import React from "react";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TestViewer from "./test/testViewer";
-import "@doenet/doenetml/style.css";
+// XXX: this file is currently not in @doenet/doenetml-prototype. Uncomment import when that is fixed.
+import "@doenet/doenetml-prototype/style.css";
 
 const root = createRoot(document.getElementById("root"));
 
@@ -17,13 +17,7 @@ window.addEventListener("message", (event) => {
     }
 });
 
-root.render(
-    <Router>
-        <Routes>
-            <Route path="*" element={<TestViewer />} />
-        </Routes>
-    </Router>,
-);
+root.render(<TestViewer />);
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.
 // Learn more: https://www.snowpack.dev/concepts/hot-module-replacement

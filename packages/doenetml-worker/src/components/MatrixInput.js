@@ -14,7 +14,7 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import {
-    getLatexToMathConverter,
+    latexToMathFactory,
     normalizeLatexString,
     roundForDisplay,
     stripLatex,
@@ -3677,7 +3677,7 @@ export default class MatrixComponentInput extends BaseComponent {
                     // unlike math-expression's latex parser
                     text = text.replace(/\^(\w)/g, "^{$1}");
 
-                    let fromLatex = getLatexToMathConverter({
+                    let fromLatex = latexToMathFactory({
                         functionSymbols: await stateValues.functionSymbols,
                         splitSymbols: await stateValues.splitSymbols,
                         parseScientificNotation:

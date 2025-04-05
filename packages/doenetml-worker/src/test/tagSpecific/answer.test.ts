@@ -10,10 +10,7 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
-import {
-    getLatexToMathConverter,
-    normalizeLatexString,
-} from "../../utils/math";
+import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import Core from "../../Core";
 
 const Mock = vi.fn();
@@ -42,7 +39,7 @@ async function test_math_answer({
     answerName?: string;
     mathInputName?: string;
 }) {
-    let fromLatexBase = getLatexToMathConverter();
+    let fromLatexBase = latexToMathFactory();
     let fromLatex = (x: string) => fromLatexBase(normalizeLatexString(x));
     let currentResponse = "\uff3f";
     let submittedResponses: any[] = [];
@@ -847,7 +844,7 @@ async function test_answer_multiple_inputs({
     answerName?: string;
     inputs: { type: "math" | "number" | "text" | "boolean"; name?: string }[];
 }) {
-    let fromLatexBase = getLatexToMathConverter();
+    let fromLatexBase = latexToMathFactory();
     let fromLatex = (x: string) => fromLatexBase(normalizeLatexString(x));
     let currentResponses = inputs.map((input) => {
         if (input.type === "math") {
@@ -2884,7 +2881,7 @@ Enter any letter:
         });
     });
 
-    it("answer based on point", async () => {
+    it("answer based on point, nonstandard case for isResponse", async () => {
         const doenetML = `
         <p>Criterion: <mathInput name="mi" prefill="1" /></p>
         <p>Move point so that its x-coordinate is larger than $mi.value.</p>
@@ -2895,7 +2892,7 @@ Enter any letter:
 
         <answer name="a"> 
           <award><when>
-            $mi < $P.x{isResponse}
+            $mi < $P.x{isresPoNse}
           </when></award>
         </answer>
 
@@ -5230,7 +5227,7 @@ What is the derivative of <function name="f">x^2</function>?
   </answer>
   `;
 
-        let fromLatex = getLatexToMathConverter();
+        let fromLatex = latexToMathFactory();
         await test_matrix_answer({
             doenetML,
             answerName: "/ans",
@@ -5789,5 +5786,31 @@ What is the derivative of <function name="f">x^2</function>?
                 { latex: "x < 0", credit: 0 },
             ],
         });
+    });
+
+    it("bugfix: answer with select in award", async () => {
+        const doenetML = `
+    <select name="c">30</select>
+
+    <mathInput name="userAns" />
+
+    <answer name="ans">
+        <award name="correct">
+        <when>$userAns = $c</when> </award>
+    </answer>
+  `;
+
+        let core = await createTestCore({ doenetML });
+
+        await updateMathInputValue({
+            latex: "30",
+            name: "/userAns",
+            core,
+        });
+
+        await submitAnswer({ name: "/ans", core });
+
+        let stateVariables = await returnAllStateVariables(core);
+        expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
     });
 });

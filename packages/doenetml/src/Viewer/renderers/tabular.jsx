@@ -1,27 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function Tabular(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -47,16 +35,11 @@ export default React.memo(function Tabular(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <div style={{ margin: "12px 0" }}>
-                <a name={id} />
-                <table id={id} style={tableStyle}>
-                    <tbody>{children}</tbody>
-                </table>
-            </div>
-        </VisibilitySensor>
+        <div style={{ margin: "12px 0" }} ref={ref}>
+            <a name={id} />
+            <table id={id} style={tableStyle}>
+                <tbody>{children}</tbody>
+            </table>
+        </div>
     );
 });

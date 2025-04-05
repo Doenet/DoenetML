@@ -5,7 +5,7 @@
 import React, { useRef, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import styled from "styled-components";
 const VideoStyling = styled.div`
     &: focus {
@@ -28,21 +28,9 @@ export default React.memo(function Video(props) {
     let pollIntervalId = useRef(null);
     let lastSetTimeAction = useRef(null);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     useEffect(() => {
         if (SVs.youtube) {
@@ -501,14 +489,14 @@ export default React.memo(function Video(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
+        <VideoStyling
+            tabIndex="0"
+            style={outerStyle}
+            id={id + "_outer"}
+            ref={ref}
         >
-            <VideoStyling tabIndex="0" style={outerStyle} id={id + "_outer"}>
-                <a name={id} />
-                {videoTag}
-            </VideoStyling>
-        </VisibilitySensor>
+            <a name={id} />
+            {videoTag}
+        </VideoStyling>
     );
 });

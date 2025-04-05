@@ -33,9 +33,7 @@ describe("Code Editor Tag Tests", function () {
         });
 
         cy.log("type text in editor");
-        cy.get(cesc("#\\/editor") + " .cm-content").type("Hello!", {
-            delay: 10,
-        });
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke("text", "Hello!");
 
         cy.get(cesc("#\\/_p1")).should("have.text", "Hello!");
         cy.get(cesc("#\\/_p2")).should("have.text", "");
@@ -62,9 +60,11 @@ describe("Code Editor Tag Tests", function () {
         });
 
         cy.log("type more in editor");
-        cy.get(cesc("#\\/editor") + " .cm-content").type("{enter}More here.", {
-            delay: 10,
-        });
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").type("{enter}");
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "More here.",
+        );
 
         cy.get(cesc("#\\/_p1")).should("have.text", "Hello!\nMore here.");
         cy.get(cesc("#\\/_p2")).should("have.text", "Hello!");
@@ -128,9 +128,11 @@ describe("Code Editor Tag Tests", function () {
         });
 
         cy.log("type text in editor");
-        cy.get(cesc("#\\/editor") + " .cm-content").type("<p>Hello!</p>", {
-            delay: 10,
-        });
+        cy.get(cesc("#\\/editor") + " .cm-content").focus();
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<p>Hello!</p>",
+        );
 
         cy.get(cesc("#\\/_p1")).should("have.text", "<p>Hello!</p>");
         cy.get(cesc("#\\/_p2")).should("have.text", "");
@@ -193,9 +195,13 @@ describe("Code Editor Tag Tests", function () {
         });
 
         cy.log("type more content");
-        cy.get(cesc("#\\/editor") + " .cm-content").type(
-            "{ctrl+end}{enter}<p><math simplify>1+1</math></p>",
-            { delay: 10 },
+
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").type(
+            "{ctrl+end}{enter}",
+        );
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<p><math simplify>1+1</math></p>",
         );
 
         cy.get(cesc("#\\/_p1")).should(
@@ -1247,7 +1253,7 @@ describe("Code Editor Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/ce") + " .cm-content").type("hello", { delay: 10 });
+        cy.get(cesc("#\\/ce") + " .cm-activeLine").invoke("text", "hello");
 
         cy.get(cesc("#\\/piv")).should("have.text", "immediate value: hello");
         cy.get(cesc("#\\/pv")).should("have.text", "value: ");
@@ -1296,9 +1302,13 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/_p1")).should("have.text", "");
 
         cy.log("type text in editor");
-        cy.get(cesc("#\\/editor") + " .cm-content").type("<p>Hello!</p>", {
-            delay: 10,
-        });
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<p>Hello!</p>",
+        );
+
+        cy.wait(500);
+
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should("have.text", "<p>Hello!</p>");
@@ -1322,29 +1332,19 @@ describe("Code Editor Tag Tests", function () {
 
         cy.log("Overwrite text");
 
-        if (Cypress.platform === "darwin") {
-            cy.get(cesc("#\\/editor") + " .cm-content").type(
-                "{command+a}<alert>Ovewritten!</alert>",
-                {
-                    delay: 10,
-                },
-            );
-        } else {
-            cy.get(cesc("#\\/editor") + " .cm-content").type(
-                "{control+a}<alert>Ovewritten!</alert>",
-                {
-                    delay: 10,
-                },
-            );
-        }
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<alert>Overwritten!</alert>",
+        );
+
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should(
             "have.text",
-            "<alert>Ovewritten!</alert>",
+            "<alert>Overwritten!</alert>",
         );
         cy.get(cesc2("#/editor/_p1")).should("not.exist");
-        cy.get(cesc2("#/editor/_alert1")).should("have.text", "Ovewritten!");
+        cy.get(cesc2("#/editor/_alert1")).should("have.text", "Overwritten!");
 
         cy.wait(1500); // wait for 1 second debounce
 
@@ -1397,30 +1397,32 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/_p1")).should("have.text", "");
 
         cy.log("type text in editor");
-        cy.get(cesc("#\\/editor") + " .cm-content").type("<p>Hello!</p>", {
-            delay: 10,
-        });
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<p>Hello!</p>",
+        );
 
-        // Note: for some reason, have to type {enter} more slowly
         cy.get(cesc("#\\/editor") + " .cm-content").type("{end}{enter}");
+
+        cy.wait(500);
+
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should("have.text", "<p>Hello!</p>\n");
         cy.get(cesc2("#/editor/_p1")).should("have.text", "Hello!");
 
-        cy.get(cesc("#\\/editor") + " .cm-content").type(
-            "{ctrl+end}<text name='ti'>$ti</text>",
-            {
-                delay: 10,
-            },
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").type("{ctrl+end}");
+
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<text name='ti'>$ti</text>",
         );
-        // Note: for some reason, have to type {enter} more slowly
-        cy.get(cesc("#\\/editor") + " .cm-content").type("{end}{enter}");
+
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should(
             "have.text",
-            "<p>Hello!</p>\n<text name='ti'>$ti</text>\n",
+            "<p>Hello!</p>\n<text name='ti'>$ti</text>",
         );
 
         cy.get(cesc2("#/editor-viewer")).should(
@@ -1428,18 +1430,16 @@ describe("Code Editor Tag Tests", function () {
             "Circular dependency",
         );
 
-        cy.get(cesc("#\\/editor") + " .cm-content").type(
-            "{ctrl+end}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}Bye",
-            {
-                delay: 10,
-            },
+        cy.get(cesc("#\\/editor") + " .cm-activeLine").invoke(
+            "text",
+            "<text name='ti'>Bye</text>",
         );
 
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc2("#/_p1")).should(
             "have.text",
-            "<p>Hello!</p>\n<text name='ti'>Bye</text>\n",
+            "<p>Hello!</p>\n<text name='ti'>Bye</text>",
         );
         cy.get(cesc2("#/editor/_p1")).should("have.text", "Hello!");
         cy.get(cesc2("#/editor/ti")).should("have.text", "Bye");
@@ -1471,11 +1471,13 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc("#\\/_text1")).should("contain.text", "a");
 
         cy.log("type text in editor 1");
-        cy.get(cesc("#\\/editor1") + " .cm-content").type("<p>Apple</p>", {
-            delay: 10,
-        });
-        // Note: for some reason, have to type {enter} more slowly
+        cy.get(cesc("#\\/editor1") + " .cm-activeLine").invoke(
+            "text",
+            "<p>Apple</p>",
+        );
         cy.get(cesc("#\\/editor1") + " .cm-content").type("{end}{enter}");
+
+        cy.wait(500);
 
         cy.get(
             cesc2("#/editor1-viewer-controls") +
@@ -1486,10 +1488,10 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/editor1/_p1")).should("contain.text", "Apple");
 
         cy.log("type text in editor 2");
-        cy.get(cesc("#\\/editor2") + " .cm-content").type("<p>Banana</p>", {
-            delay: 10,
-        });
-        // Note: for some reason, have to type {enter} more slowly
+        cy.get(cesc("#\\/editor2") + " .cm-activeLine").invoke(
+            "text",
+            "<p>Banana</p>",
+        );
         cy.get(cesc("#\\/editor2") + " .cm-content").type("{end}{enter}");
         cy.get(
             cesc2("#/editor2-viewer-controls") +
@@ -1500,10 +1502,10 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/editor2/_p1")).should("contain.text", "Banana");
 
         cy.log("type text in editor 3");
-        cy.get(cesc("#\\/editor3") + " .cm-content").type("<p>Cherry</p>", {
-            delay: 10,
-        });
-        // Note: for some reason, have to type {enter} more slowly
+        cy.get(cesc("#\\/editor3") + " .cm-activeLine").invoke(
+            "text",
+            "<p>Cherry</p>",
+        );
         cy.get(cesc("#\\/editor3") + " .cm-content").type("{end}{enter}");
         cy.get(
             cesc2("#/editor3-viewer-controls") +

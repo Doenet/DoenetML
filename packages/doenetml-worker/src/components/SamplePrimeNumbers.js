@@ -353,9 +353,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         // seed from date plus a few digits from variant
         let seedForRandomNumbers =
             sharedParameters.variantRng().toString().slice(2, 8) + +new Date();
-        sharedParameters.rngWithDateSeed = new sharedParameters.rngClass(
-            seedForRandomNumbers,
-        );
+        sharedParameters.rngWithDateSeed =
+            sharedParameters.rngClass(seedForRandomNumbers);
     }
 
     static determineNumberOfUniqueVariants({

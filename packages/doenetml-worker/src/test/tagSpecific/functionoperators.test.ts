@@ -303,7 +303,7 @@ describe("Function Operator tag tests", async () => {
         await check_items({ a, b, c, x, x1, x2 });
     });
 
-    async function checkd_list(core: Core) {
+    async function check_list(core: Core) {
         const stateVariables = await returnAllStateVariables(core);
         expect(
             stateVariables["/d1"].stateValues.formula.equals(me.fromText("2x")),
@@ -424,6 +424,7 @@ describe("Function Operator tag tests", async () => {
             expect(d12(x)).closeTo(0, 1e-10);
         }
     }
+
     it("derivative 2", async () => {
         let core = await createTestCore({
             doenetML: `
@@ -456,7 +457,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        await checkd_list(core);
+        await check_list(core);
     });
 
     it("derivative 2, labeled", async () => {
@@ -491,7 +492,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        await checkd_list(core);
+        await check_list(core);
 
         const stateVariables = await returnAllStateVariables(core);
 
@@ -516,6 +517,43 @@ describe("Function Operator tag tests", async () => {
         expect(stateVariables["/d12"].stateValues.label).eq("d12");
         expect(stateVariables["/d13"].stateValues.label).eq("d13");
         expect(stateVariables["/d14"].stateValues.label).eq("d14");
+    });
+
+    it("derivative of trig functions raised to powers", async () => {
+        const core = await createTestCore({
+            doenetML: `
+    <function name="f1">sin(x)^2</function>
+    <function name="f1a">sin^2(x)</function>
+    <function name="f2">tan(x)^3</function>
+    <function name="f2a">tan^3(x)</function>
+    <derivative name="d1">$f1</derivative>
+    <derivative name="d1a">$f1a</derivative>
+    <derivative name="d2">$f2</derivative>
+    <derivative name="d2a">$f2a</derivative>
+    `,
+        });
+
+        const stateVariables = await returnAllStateVariables(core);
+        expect(
+            stateVariables["/d1"].stateValues.formula.equals(
+                me.fromText("2 sin(x) cos(x)"),
+            ),
+        ).be.true;
+        expect(
+            stateVariables["/d1a"].stateValues.formula.equals(
+                me.fromText("2 sin(x) cos(x)"),
+            ),
+        ).be.true;
+        expect(
+            stateVariables["/d2"].stateValues.formula.equals(
+                me.fromText("3 tan^2(x) sec^2(x)"),
+            ),
+        ).be.true;
+        expect(
+            stateVariables["/d2a"].stateValues.formula.equals(
+                me.fromText("3 tan^2(x) sec^2(x)"),
+            ),
+        ).be.true;
     });
 
     it("specifying derivative variables of a function", async () => {

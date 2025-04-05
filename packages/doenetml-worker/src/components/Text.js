@@ -11,7 +11,7 @@ import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
 } from "../utils/text";
-import { getLatexToMathConverter, getTextToMathConverter } from "../utils/math";
+import { textToMathFactory, latexToMathFactory } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
@@ -283,8 +283,8 @@ export default class Text extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 let parser = dependencyValues.isLatex
-                    ? getLatexToMathConverter()
-                    : getTextToMathConverter();
+                    ? latexToMathFactory()
+                    : textToMathFactory();
                 let expression;
                 try {
                     expression = parser(dependencyValues.value);

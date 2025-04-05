@@ -41,6 +41,7 @@ src/test/testCode.doenet
 
 **/cypress/videos
 **/cypress/screenshots
+**/cypress/downloads
 runner-results
 parallel-weights.json
 
@@ -56,5 +57,7 @@ test.doenet
 stats.html
 
 .wireit
+tsconfig.tsbuildinfo
+.vscode
 packages/docs-nextra/public/bundle
 .next

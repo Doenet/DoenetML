@@ -1102,7 +1102,7 @@ export default class Vector extends GraphicalComponent {
         // head and tail (displacement/xs set to head-tail)
         // head and displacement/xs (tail set to head-displacement)
         // tail and displacement/xs (head set to tail+displacement)
-        // If head, tail, and displacment/xs supplied, ignore head
+        // If head, tail, and displacement/xs supplied, ignore head
 
         stateVariableDefinitions.displacement = {
             public: true,
@@ -2285,6 +2285,12 @@ export default class Vector extends GraphicalComponent {
 
                 return { setValue: { latex } };
             },
+        };
+
+        // currently value is used by answer to get variable for response
+        stateVariableDefinitions.value = {
+            isAlias: true,
+            targetVariableName: "displacementCoords",
         };
 
         stateVariableDefinitions.nearestPoint = {

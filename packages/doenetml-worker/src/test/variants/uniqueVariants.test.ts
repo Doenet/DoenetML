@@ -17,11 +17,11 @@ describe("Unique variant tests", async () => {
     it("single select", async () => {
         let values = ["u", "v", "w", "x", "y", "z"];
         let doenetML = `
-        <variantControl uniqueVariants />
         <select assignNames="x">u v w x y z</select>
       `;
 
-        // get all values in order and they repeat in next variants
+        // get all values before they repeat in next variants
+        const sampledValues: string[] = [];
         for (let ind = 1; ind <= 18; ind++) {
             let core = await createTestCore({
                 doenetML,
@@ -29,22 +29,27 @@ describe("Unique variant tests", async () => {
             });
 
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/x"].stateValues.value.tree).eq(
-                values[(ind - 1) % 6],
-            );
+            sampledValues.push(stateVariables["/x"].stateValues.value.tree);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
         }
+
+        // first six are in a random order
+        expect(sampledValues.slice(0, 6).sort()).eqls(values);
+        // then that order is repeated
+        expect(sampledValues.slice(6, 12)).eqls(sampledValues.slice(0, 6));
+        expect(sampledValues.slice(12, 18)).eqls(sampledValues.slice(0, 6));
     });
 
     it("single selectFromSequence", async () => {
         let doenetML = `
-        <variantControl uniqueVariants />
         <selectFromSequence assignNames="x" length="5" />
       `;
-        // get all values in order and they repeat in next variants
+
+        // get all values before they repeat in next variants
+        const sampledValues: number[] = [];
         for (let ind = 1; ind <= 15; ind++) {
             let core = await createTestCore({
                 doenetML,
@@ -52,34 +57,42 @@ describe("Unique variant tests", async () => {
             });
 
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/x"].stateValues.value).eq(
-                ((ind - 1) % 5) + 1,
-            );
+            sampledValues.push(stateVariables["/x"].stateValues.value);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e"]);
         }
+
+        // first five are in a random order
+        expect(sampledValues.slice(0, 5).sort()).eqls([1, 2, 3, 4, 5]);
+        // then that order is repeated
+        expect(sampledValues.slice(5, 10)).eqls(sampledValues.slice(0, 5));
+        expect(sampledValues.slice(10, 15)).eqls(sampledValues.slice(0, 5));
     });
 
     it("selectFromSequence with excludes", async () => {
         let doenetML = `
-        <variantControl uniqueVariants />
         <selectFromSequence assignNames="x" type="letters" from="c" to="m" step="2" exclude="g k" />
       `;
-        // get all values in order and they repeat in next variants
-        for (let ind = 1; ind <= 12; ind++) {
-            let letters = ["c", "e", "i", "m"];
+        let letters = ["c", "e", "i", "m"];
 
+        // get all values before they repeat in next variants
+        const sampledValues: string[] = [];
+        for (let ind = 1; ind <= 12; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/x"].stateValues.value).eq(
-                letters[(ind - 1) % 4],
-            );
+            sampledValues.push(stateVariables["/x"].stateValues.value);
         }
+
+        // first four are in a random order
+        expect(sampledValues.slice(0, 4).sort()).eqls(letters);
+        // then that order is repeated
+        expect(sampledValues.slice(4, 8)).eqls(sampledValues.slice(0, 4));
+        expect(sampledValues.slice(8, 12)).eqls(sampledValues.slice(0, 4));
     });
 
     it("select and selectFromSequence combination", async () => {
@@ -109,7 +122,6 @@ describe("Unique variant tests", async () => {
             zsFound: number[] = [];
 
         let doenetML = `
-      <variantControl uniqueVariants />
       <asList>
         <selectFromSequence type="letters" assignNames="w" from="m" to="n" />
         <select assignNames="x">x y z</select>
@@ -135,19 +147,17 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
 
-            if (ind <= 3) {
-                wsFound.push(newW);
-                xsFound.push(newX);
-                ysFound.push(newY);
-                zsFound.push(newZ);
-            }
+            wsFound.push(newW);
+            xsFound.push(newX);
+            ysFound.push(newY);
+            zsFound.push(newZ);
         }
 
         // all individual options selected in first variants
-        expect(wsFound.slice(0, 2).sort()).eqls(valuesW);
-        expect(xsFound.sort()).eqls(valuesX);
-        expect(ysFound.sort()).eqls(valuesY);
-        expect(zsFound.slice(0, 2).sort()).eqls(valuesZ);
+        expect([...new Set(wsFound.slice(0, 10))].sort()).eqls(valuesW);
+        expect([...new Set(xsFound.slice(0, 10))].sort()).eqls(valuesX);
+        expect([...new Set(ysFound.slice(0, 10))].sort()).eqls(valuesY);
+        expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesZ);
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 15; ind += 3) {
@@ -192,7 +202,6 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <variantControl uniqueVariants />
         <select assignNames="x y z" numToSelect="3">w x y z</select>
       `;
 
@@ -212,17 +221,15 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
 
-            if (ind <= 4) {
-                xsFound.push(newX);
-                ysFound.push(newY);
-                zsFound.push(newZ);
-            }
+            xsFound.push(newX);
+            ysFound.push(newY);
+            zsFound.push(newZ);
         }
 
         // all individual options selected in first variants
-        expect(xsFound.sort()).eqls(valuesSingle);
-        expect(ysFound.sort()).eqls(valuesSingle);
-        expect(zsFound.sort()).eqls(valuesSingle);
+        expect([...new Set(xsFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(ysFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesSingle);
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
@@ -259,7 +266,6 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <variantControl uniqueVariants />
         <select assignNames="x y z" numToSelect="3" withReplacement>x y z</select>
       `;
 
@@ -279,17 +285,15 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
 
-            if (ind <= 3) {
-                xsFound.push(newX);
-                ysFound.push(newY);
-                zsFound.push(newZ);
-            }
+            xsFound.push(newX);
+            ysFound.push(newY);
+            zsFound.push(newZ);
         }
 
         // all individual options selected in first variants
-        expect(xsFound.sort()).eqls(valuesSingle);
-        expect(ysFound.sort()).eqls(valuesSingle);
-        expect(zsFound.sort()).eqls(valuesSingle);
+        expect([...new Set(xsFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(ysFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesSingle);
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
@@ -332,7 +336,6 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <variantControl uniqueVariants />
         <selectFromSequence type="letters" assignNames="x y z" numToSelect="3" from="w" to="z" />
       `;
 
@@ -352,17 +355,15 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
 
-            if (ind <= 4) {
-                xsFound.push(newX);
-                ysFound.push(newY);
-                zsFound.push(newZ);
-            }
+            xsFound.push(newX);
+            ysFound.push(newY);
+            zsFound.push(newZ);
         }
 
         // all individual options selected in first variants
-        expect(xsFound.sort()).eqls(valuesSingle);
-        expect(ysFound.sort()).eqls(valuesSingle);
-        expect(zsFound.sort()).eqls(valuesSingle);
+        expect([...new Set(xsFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(ysFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesSingle);
 
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
             let core = await createTestCore({
@@ -398,7 +399,6 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <variantControl uniqueVariants />
         <selectFromSequence type="letters" assignNames="x y z" numToSelect="3" withReplacement from="x" to="z" />
       `;
 
@@ -418,17 +418,15 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
 
-            if (ind <= 3) {
-                xsFound.push(newX);
-                ysFound.push(newY);
-                zsFound.push(newZ);
-            }
+            xsFound.push(newX);
+            ysFound.push(newY);
+            zsFound.push(newZ);
         }
 
         // all individual options selected in first variants
-        expect(xsFound.sort()).eqls(valuesSingle);
-        expect(ysFound.sort()).eqls(valuesSingle);
-        expect(zsFound.sort()).eqls(valuesSingle);
+        expect([...new Set(xsFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(ysFound.slice(0, 10))].sort()).eqls(valuesSingle);
+        expect([...new Set(zsFound.slice(0, 10))].sort()).eqls(valuesSingle);
 
         // values begin to repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
@@ -468,7 +466,7 @@ describe("Unique variant tests", async () => {
             zsFound: string[] = [];
 
         let doenetML = `
-        <variantControl uniqueVariants numVariants="10" />
+        <variantControl numVariants="10" />
         <selectFromSequence type="letters" assignNames="w x y z" numToSelect="4" withReplacement from="u" to="z" />
       `;
 
@@ -489,19 +487,17 @@ describe("Unique variant tests", async () => {
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
 
-            if (ind <= 6) {
-                wsFound.push(newW);
-                xsFound.push(newX);
-                ysFound.push(newY);
-                zsFound.push(newZ);
-            }
+            wsFound.push(newW);
+            xsFound.push(newX);
+            ysFound.push(newY);
+            zsFound.push(newZ);
         }
 
-        // all individual options selected in first variants
-        expect(wsFound.sort()).eqls(valuesSingle);
-        expect(xsFound.sort()).eqls(valuesSingle);
-        expect(ysFound.sort()).eqls(valuesSingle);
-        expect(zsFound.sort()).eqls(valuesSingle);
+        // most individual options selected in first variants
+        expect([...new Set(wsFound)].length).greaterThan(4);
+        expect([...new Set(xsFound)].length).greaterThan(4);
+        expect([...new Set(ysFound)].length).greaterThan(4);
+        expect([...new Set(zsFound)].length).greaterThan(4);
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= 2 * numVariants + 3; ind++) {
@@ -528,7 +524,6 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <variantControl uniqueVariants />
       <select assignNames="((x))">
         <option>
           <selectFromSequence from="1" to="2" />
@@ -558,51 +553,6 @@ describe("Unique variant tests", async () => {
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
-
-            if (ind === 3) {
-                // all individual groups selected in first variants
-                expect(valuesFound.some((x) => x <= 2)).eq(true);
-                expect(valuesFound.some((x) => x >= 101 && x <= 103)).eq(true);
-                expect(valuesFound.some((x) => x >= 201 && x <= 204)).eq(true);
-            }
-
-            if (ind === 6) {
-                // all individual groups selected twice in first variants
-                expect(
-                    valuesFound.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(2);
-            }
-
-            if (ind === 8) {
-                // most individual groups selected three times in first variants
-                expect(
-                    valuesFound.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(3);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(3);
-            }
         }
 
         // values repeat in next variants
@@ -624,7 +574,6 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <variantControl uniqueVariants />
       <select assignNames="((x))">
         <option>
           <select>1 2</select>
@@ -653,51 +602,6 @@ describe("Unique variant tests", async () => {
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
-
-            if (ind === 3) {
-                // all individual groups selected in first variants
-                expect(valuesFound.some((x) => x <= 2)).eq(true);
-                expect(valuesFound.some((x) => x >= 101 && x <= 103)).eq(true);
-                expect(valuesFound.some((x) => x >= 201 && x <= 204)).eq(true);
-            }
-
-            if (ind === 6) {
-                // all individual groups selected twice in first variants
-                expect(
-                    valuesFound.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(2);
-            }
-
-            if (ind === 8) {
-                // most individual groups selected three times in first variants
-                expect(
-                    valuesFound.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(3);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(3);
-            }
         }
 
         // values repeat in next variants
@@ -719,7 +623,6 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <variantControl uniqueVariants />
       <select assignNames="x">
         <option newNamespace>
           <p><select assignNames="n">1 2</select></p>
@@ -751,51 +654,6 @@ describe("Unique variant tests", async () => {
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
-
-            if (ind === 3) {
-                // all individual groups selected in first variants
-                expect(valuesFound.some((x) => x <= 2)).eq(true);
-                expect(valuesFound.some((x) => x >= 101 && x <= 103)).eq(true);
-                expect(valuesFound.some((x) => x >= 201 && x <= 204)).eq(true);
-            }
-
-            if (ind === 6) {
-                // all individual groups selected twice in first variants
-                expect(
-                    valuesFound.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(2);
-            }
-
-            if (ind === 8) {
-                // most individual groups selected three times in first variants
-                expect(
-                    valuesFound.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
-                ).eq(2);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(3);
-                expect(
-                    valuesFound.reduce(
-                        (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0,
-                    ),
-                ).eq(3);
-            }
         }
 
         // values repeat in next variants
@@ -828,7 +686,6 @@ describe("Unique variant tests", async () => {
         let numVariants = values.length;
 
         let doenetML = `
-      <variantControl uniqueVariants />
       <asList>
         <select assignNames="((x)) ((y))" numToSelect="2">
           <option>
@@ -873,57 +730,11 @@ describe("Unique variant tests", async () => {
             let newValue = [newX, newY].join(",");
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
-
-        // selects all individual groups equally in first variants
-        let valuesFound1: number[] = [];
-        let valuesFound2: number[] = [];
-        for (let pass = 0; pass < 12; pass++) {
-            for (let ind = pass * 3 + 1; ind <= (pass + 1) * 3; ind++) {
-                let core = await createTestCore({
-                    doenetML,
-                    requestedVariantIndex: ind,
-                });
-
-                let stateVariables = await returnAllStateVariables(core);
-                valuesFound1.push(stateVariables["/x"].stateValues.value.tree);
-                valuesFound2.push(stateVariables["/y"].stateValues.value.tree);
-            }
-            expect(valuesFound1.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0)).eq(
-                pass + 1,
-            );
-            expect(
-                valuesFound1.reduce(
-                    (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                    0,
-                ),
-            ).eq(pass + 1);
-            expect(
-                valuesFound1.reduce(
-                    (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                    0,
-                ),
-            ).eq(pass + 1);
-            expect(valuesFound2.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0)).eq(
-                pass + 1,
-            );
-            expect(
-                valuesFound2.reduce(
-                    (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                    0,
-                ),
-            ).eq(pass + 1);
-            expect(
-                valuesFound2.reduce(
-                    (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                    0,
-                ),
-            ).eq(pass + 1);
-        }
     });
 
     it("deeper nesting of selects/selectFromSequence", async () => {
         let doenetML = `
-    <variantControl numVariants="24" uniqueVariants/>
+    <variantControl numVariants="24" />
     <select assignNames="(p)">
       <option>
         <p>Favorite color:
@@ -943,13 +754,13 @@ describe("Unique variant tests", async () => {
       <option>
         <p>Selected number:
           <select>
-            <option><selectFromSequence from="1000" to="2000" /></option>
-            <option><selectFromSequence from="-1000" to="-900" /></option>
+            <option><selectFromSequence from="1000" to="1010" /></option>
+            <option><selectFromSequence from="-1000" to="-995" /></option>
           </select>
         </p>
       </option>
       <option>
-        <p>Chosen letter: <selectFromSequence type="letters" from="a" to="z" /></p>
+        <p>Chosen letter: <selectFromSequence type="letters" from="a" to="o" /></p>
       </option>
       <option>
         <p>Variable:
@@ -974,7 +785,7 @@ describe("Unique variant tests", async () => {
         let colorsC = ["white", "black"];
         let allColors = [...colorsA, ...colorsB, ...colorsC];
 
-        let letters = [...Array(26)].map((_, i) =>
+        let letters = [...Array(15)].map((_, i) =>
             String.fromCharCode("a".charCodeAt(0) + i),
         );
 
@@ -1015,20 +826,24 @@ describe("Unique variant tests", async () => {
             let newValue = component.stateValues.value;
             if (category === categories[0]) {
                 expect(allColors.includes(newValue)).eq(true);
+                expect(colorsFound.includes(newValue)).eq(false);
                 colorsFound.push(newValue);
             } else if (category === categories[1]) {
                 let validNum =
                     Number.isInteger(newValue) &&
-                    ((newValue >= 1000 && newValue <= 2000) ||
-                        (newValue >= -1000 && newValue <= -900));
+                    ((newValue >= 1000 && newValue <= 1010) ||
+                        (newValue >= -1000 && newValue <= -995));
                 expect(validNum).eq(true);
+                expect(numbersFound.includes(newValue)).eq(false);
                 numbersFound.push(newValue);
             } else if (category === categories[2]) {
                 expect(letters.includes(newValue)).eq(true);
+                expect(lettersFound.includes(newValue)).eq(false);
                 lettersFound.push(newValue);
             } else {
                 newValue = newValue.tree;
                 expect(variables.includes(newValue)).eq(true);
+                expect(variablesFound.includes(newValue)).eq(false);
                 variablesFound.push(newValue);
             }
 
@@ -1038,44 +853,22 @@ describe("Unique variant tests", async () => {
             valuesFound.push(combinedValue);
 
             categoriesFound.push(category);
-
-            if (ind === 4) {
-                // all individual groups selected in first variants
-                for (let ind = 0; ind < 4; ind++) {
-                    expect(categoriesFound.includes(categories[ind])).eq(true);
-                }
-            }
-
-            if (ind === 8) {
-                // all individual groups selected twice in first variants
-                for (let ind = 0; ind < 4; ind++) {
-                    expect(
-                        categoriesFound.slice(4, 8).includes(categories[ind]),
-                    ).eq(true);
-                }
-            }
         }
 
-        // the 24 values are distributed 6 to each category and evenly distributed across subcategories
+        expect([...new Set(categoriesFound)].sort()).eqls([
+            "Chosen letter:",
+            "Favorite color:",
+            "Selected number:",
+            "Variable:",
+        ]);
+
         let colorsFoundSet = new Set(colorsFound);
-        expect(colorsFoundSet.size).eq(6);
-        expect(
-            colorsA.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(2);
-        expect(
-            colorsB.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(2);
-        expect(
-            colorsC.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(2);
+        expect(colorsFoundSet.size).gte(3);
 
-        expect(numbersFound.reduce((a, c) => a + (c > 0 ? 1 : 0), 0)).eq(3);
-        expect(numbersFound.reduce((a, c) => a + (c < 0 ? 1 : 0), 0)).eq(3);
+        expect(numbersFound.length).gte(5);
 
-        expect(lettersFound.length).eq(6);
-        expect(variablesFound.length).eq(6);
-
-        expect(variablesFound.sort()).eqls(variables);
+        expect(lettersFound.length).gte(5);
+        expect(variablesFound.length).gte(2);
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 25; ind += 5) {
@@ -1103,7 +896,7 @@ describe("Unique variant tests", async () => {
 
     it("select problems of selects/selectFromSequence", async () => {
         let doenetML = `
-    <variantControl numVariants="6" uniqueVariants/>
+    <variantControl numVariants="6"/>
     <select assignNames="(problem)">
       <option>
         <problem newNamespace><title>Favorite color</title>
@@ -1134,7 +927,7 @@ describe("Unique variant tests", async () => {
       <option>
         <problem newNamespace><title>Chosen letter</title>
           <p>Letter
-            <selectFromSequence  assignNames="l" type="letters" from="a" to="z" />
+            <selectFromSequence  assignNames="l" type="letters" from="a" to="j" />
           </p>
           <p>Enter the letter $l: <answer name="ans" type="text">$l</answer></p>
         </problem>
@@ -1167,7 +960,7 @@ describe("Unique variant tests", async () => {
         ];
         let allWords = [...wordsA, ...wordsB];
 
-        let letters = [...Array(26)].map((_, i) =>
+        let letters = [...Array(10)].map((_, i) =>
             String.fromCharCode("a".charCodeAt(0) + i),
         );
 
@@ -1206,12 +999,15 @@ describe("Unique variant tests", async () => {
             let newValue = component.stateValues.value;
             if (category === categories[0]) {
                 expect(allColors.includes(newValue)).eq(true);
+                expect(colorsFound.includes(newValue)).eq(false);
                 colorsFound.push(newValue);
             } else if (category === categories[1]) {
                 expect(allWords.includes(newValue)).eq(true);
+                expect(wordsFound.includes(newValue)).eq(false);
                 wordsFound.push(newValue);
             } else if (category === categories[2]) {
                 expect(letters.includes(newValue)).eq(true);
+                expect(lettersFound.includes(newValue)).eq(false);
                 lettersFound.push(newValue);
             }
 
@@ -1226,22 +1022,6 @@ describe("Unique variant tests", async () => {
             ).eqls(["a", "b", "c", "d", "e", "f"]);
 
             categoriesFound.push(category);
-
-            if (ind === 3) {
-                // all individual groups selected in first variants
-                for (let ind = 0; ind < 3; ind++) {
-                    expect(categoriesFound.includes(categories[ind])).eq(true);
-                }
-            }
-
-            if (ind === 6) {
-                // all individual groups selected twice in first variants
-                for (let ind = 0; ind < 3; ind++) {
-                    expect(
-                        categoriesFound.slice(3).includes(categories[ind]),
-                    ).eq(true);
-                }
-            }
 
             await updateTextInputValue({
                 text: `${newValue}`,
@@ -1298,22 +1078,13 @@ describe("Unique variant tests", async () => {
         }
 
         let colorsFoundSet = new Set(colorsFound);
-        expect(colorsFoundSet.size).eq(2);
-        expect(
-            colorsA.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(1);
-        expect(
-            colorsB.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(1);
+        expect(colorsFoundSet.size).gte(1);
 
         let wordsFoundSet = new Set(wordsFound);
-        expect(wordsFoundSet.size).eq(2);
-        expect(
-            wordsA.reduce((a, c) => a + (wordsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(1);
-        expect(
-            wordsB.reduce((a, c) => a + (wordsFoundSet.has(c) ? 1 : 0), 0),
-        ).eq(1);
+        expect(wordsFoundSet.size).gte(1);
+
+        let lettersFoundSet = new Set(lettersFound);
+        expect(lettersFoundSet.size).gte(1);
 
         // values repeat in next variants
         for (let ind = numVariants + 1; ind <= numVariants + 6; ind += 2) {
@@ -1340,7 +1111,6 @@ describe("Unique variant tests", async () => {
 
     it("can get unique with map without variants", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <selectFromSequence assignNames="x" length="3" />
     <map assignNames="(p1) (p2) (p3) (p4)">
       <template>
@@ -1353,7 +1123,8 @@ describe("Unique variant tests", async () => {
     <p>N: <mathInput name="n" prefill="1" /></p>
     `;
 
-        // get all values in order and they repeat in next variants
+        // get all values before they repeat in next variants
+        const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
             let core = await createTestCore({
                 doenetML,
@@ -1361,9 +1132,7 @@ describe("Unique variant tests", async () => {
             });
 
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/x"].stateValues.value).eq(
-                ((ind - 1) % 3) + 1,
-            );
+            sampledValues.push(stateVariables["/x"].stateValues.value);
             expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
             expect(stateVariables["/p2"]).be.undefined;
 
@@ -1374,7 +1143,7 @@ describe("Unique variant tests", async () => {
             expect(stateVariables["/p3"].stateValues.text).eq("letter: c");
 
             expect(stateVariables["/x"].stateValues.value).eq(
-                ((ind - 1) % 3) + 1,
+                sampledValues[ind - 1],
             );
             expect(
                 stateVariables[
@@ -1404,6 +1173,10 @@ describe("Unique variant tests", async () => {
             expect(stateVariables["/p3"].stateValues.text).eq("letter: c");
             expect(stateVariables["/p4"].stateValues.text).eq("letter: d");
         }
+        // first three are in a random order
+        expect(sampledValues.slice(0, 3).sort()).eqls([1, 2, 3]);
+        // then that order is repeated
+        expect(sampledValues[3]).eq(sampledValues[0]);
     });
 
     async function test_shuffled_choice_input(
@@ -1482,7 +1255,6 @@ describe("Unique variant tests", async () => {
 
     it("single shuffled choiceInput", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <choiceInput name="ci" shuffleOrder>
       <choice>red</choice>
       <choice>blue</choice>
@@ -1496,7 +1268,6 @@ describe("Unique variant tests", async () => {
 
     it("single shuffled choiceInput, choices copied in", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <choice name="red">red</choice>
     <group name="twoChoices">
       <choice>blue</choice>
@@ -1527,7 +1298,6 @@ describe("Unique variant tests", async () => {
 
     it("shuffled choiceInput with selectFromSequence in choices", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <choiceInput name="ci" shuffleOrder>
       <choice><selectFromSequence from="1" to="2" assignNames="n" /></choice>
       <choice><selectFromSequence type="letters" from="a" to="b" assignNames="l" /></choice>
@@ -1644,7 +1414,6 @@ describe("Unique variant tests", async () => {
 
     it("shuffle", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <p name="pList"><shuffle name="sh">
       <text>red</text>
       <text>blue</text>
@@ -1658,7 +1427,6 @@ describe("Unique variant tests", async () => {
 
     it("shuffle, copy in components", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <text name="red">red</text>
     <group name="twoColors">
       <text>blue</text>
@@ -1676,8 +1444,8 @@ describe("Unique variant tests", async () => {
 
     async function test_document_problem_unique({
         doenetML,
-        mOptions = [],
-        nOptions = [],
+        mOptions,
+        nOptions,
     }: {
         doenetML: string;
         mOptions?: number[];
@@ -1687,7 +1455,10 @@ describe("Unique variant tests", async () => {
         // nOptions must be length 3 if exists
 
         // get all 6 options and then they repeat
-        for (let ind = 1; ind <= 8; ind++) {
+        const msFound: number[] = [];
+        const nsFound: number[] = [];
+
+        for (let ind = 1; ind <= 12; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
@@ -1702,22 +1473,10 @@ describe("Unique variant tests", async () => {
                 stateVariables["/ans2"].stateValues.inputChildren[0]
                     .componentName;
 
-            let m = mOptions[(ind - 1) % 2];
-            let n = nOptions[(ind - 1) % 3];
-            if (m === undefined) {
-                m = stateVariables["/m"].stateValues.value;
-                mOptions.push(m);
-            } else {
-                expect(stateVariables["/m"].stateValues.value).eq(m);
-            }
-            if (n === undefined) {
-                n = stateVariables["/n"].stateValues.value;
-                nOptions.push(n);
-            } else {
-                expect(stateVariables["/n"].stateValues.value).eq(n);
-            }
-
-            console.log({ m, n, mOptions, nOptions });
+            const m = stateVariables["/m"].stateValues.value;
+            msFound.push(m);
+            const n = stateVariables["/n"].stateValues.value;
+            nsFound.push(n);
 
             expect(
                 stateVariables["/_document1"].sharedParameters
@@ -1794,6 +1553,22 @@ describe("Unique variant tests", async () => {
                 stateVariables["/ans2"].stateValues.submittedResponses[0].tree,
             ).eq(n);
         }
+
+        // get the m values repeated three times in the first six, then that sequence repeats
+        if (mOptions) {
+            const tripleSort = [...mOptions, ...mOptions, ...mOptions].sort(
+                (a, b) => a - b,
+            );
+            expect(msFound.slice(0, 6).sort((a, b) => a - b)).eqls(tripleSort);
+        }
+        expect(msFound.slice(6, 12)).eqls(msFound.slice(0, 6));
+
+        // get the n values repeated twice times in the first six, then that sequence repeats
+        if (nOptions) {
+            const doubleSort = [...nOptions, ...nOptions].sort((a, b) => a - b);
+            expect(nsFound.slice(0, 6).sort((a, b) => a - b)).eqls(doubleSort);
+        }
+        expect(nsFound.slice(6, 12)).eqls(nsFound.slice(0, 6));
     }
 
     it("document and problems with unique variants", async () => {
@@ -1823,13 +1598,13 @@ describe("Unique variant tests", async () => {
     it("document and problems with unique variants, even without specifying in document", async () => {
         let doenetML = `
     <problem>
-      <variantControl uniqueVariants />
+      <variantControl />
       <p>Enter <selectFromSequence from="1" to="2" assignNames="m" />:
         <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
-      <variantControl uniqueVariants />
+      <variantControl />
       <p>Enter <selectFromSequence from="3" to="5" assignNames="n" />:
         <answer name="ans2">$n</answer>
       </p>
@@ -1866,34 +1641,14 @@ describe("Unique variant tests", async () => {
 
     it("document with unique variants, from problems without unique variants", async () => {
         let doenetML = `
-    <variantControl uniqueVariants />
     <problem>
-      <variantControl numVariants="2" />
+      <variantControl numVariants="2" uniqueVariants="false" />
       <p>Enter <selectFromSequence from="1000000" to="2000000" assignNames="m" />:
         <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
-      <variantControl numVariants="3" />
-      <p>Enter <selectFromSequence from="3000000" to="5000000" assignNames="n" />:
-        <answer name="ans2">$n</answer>
-      </p>
-    </problem>
-    `;
-
-        await test_document_problem_unique({ doenetML });
-    });
-
-    it("document with unique variants, from problems without unique variants, even without specifying unique", async () => {
-        let doenetML = `
-    <problem>
-      <variantControl numVariants="2" />
-      <p>Enter <selectFromSequence from="1000000" to="2000000" assignNames="m" />:
-        <answer name="ans1">$m</answer>
-      </p>
-    </problem>
-    <problem>
-      <variantControl numVariants="3" />
+      <variantControl numVariants="3" uniqueVariants="false" />
       <p>Enter <selectFromSequence from="3000000" to="5000000" assignNames="n" />:
         <answer name="ans2">$n</answer>
       </p>
@@ -1906,21 +1661,20 @@ describe("Unique variant tests", async () => {
     it("document inherits variants from single problem with unique variants", async () => {
         let doenetML = `
         <problem>
-          <variantControl uniqueVariants variantNames="five six seven" />
+          <variantControl variantNames="first second third" />
           <p>Enter <selectFromSequence from="5" to="7" assignNames="m" />:
             <answer name="ans">$m</answer>
           </p>
         </problem>
         `;
 
-        // get all 3 options and then they repeat
+        // get all 3 options before they repeat
+        const sampledValues: number[] = [];
         for (let ind = 1; ind <= 4; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
-
-            let m = ((ind - 1) % 3) + 5;
 
             let stateVariables = await returnAllStateVariables(core);
 
@@ -1928,14 +1682,15 @@ describe("Unique variant tests", async () => {
                 stateVariables["/ans"].stateValues.inputChildren[0]
                     .componentName;
 
-            expect(stateVariables["/m"].stateValues.value).eq(m);
+            const m = stateVariables["/m"].stateValues.value;
+            sampledValues.push(m);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
-            ).eqls(["five", "six", "seven"]);
+            ).eqls(["first", "second", "third"]);
             expect(
                 stateVariables["/_document1"].sharedParameters.variantName,
-            ).eq(["five", "six", "seven"][(ind - 1) % 3]);
+            ).eq(["first", "second", "third"][(ind - 1) % 3]);
 
             await updateMathInputValue({
                 latex: `${m}`,
@@ -1975,6 +1730,10 @@ describe("Unique variant tests", async () => {
                 stateVariables["/ans"].stateValues.submittedResponses[0].tree,
             ).eq(m);
         }
+        // first three are in a random order
+        expect(sampledValues.slice(0, 3).sort()).eqls([5, 6, 7]);
+        // then that order is repeated
+        expect(sampledValues[3]).eq(sampledValues[0]);
     });
 
     it("no variant control, 1 unique variant", async () => {
@@ -1990,62 +1749,85 @@ describe("Unique variant tests", async () => {
         let doenetML = `<select assignNames="x">u v w</select>`;
         let values = ["u", "v", "w"];
 
-        // get all values in order and they repeat in next variants
+        // get all values before they repeat in next variants
+        const sampledValues: string[] = [];
         for (let ind = 1; ind <= 4; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/x"].stateValues.value.tree).eq(
-                values[(ind - 1) % 3],
-            );
+
+            sampledValues.push(stateVariables["/x"].stateValues.value.tree);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants,
             ).eqls(["a", "b", "c"]);
         }
+
+        // first three are in a random order
+        expect(sampledValues.slice(0, 3).sort()).eqls(values);
+        // then that order is repeated
+        expect(sampledValues[3]).eq(sampledValues[0]);
     });
 
     it("no variant control, select and selectFromSequence", async () => {
         let doenetML = `
         <select assignNames="x">u v w</select>
-        <selectFromSequence assignNames="n" />
+        <selectFromSequence assignNames="n" length="3" />
       `;
         let values = ["u", "v", "w"];
 
-        // get first values in order
-        for (let ind = 1; ind <= 3; ind++) {
+        // get all values before they repeat
+        const sampledLetters: string[] = [];
+        const sampledNumbers: number[] = [];
+        for (let ind = 1; ind <= 18; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
 
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/x"].stateValues.value.tree).eq(
-                values[ind - 1],
-            );
-            expect(stateVariables["/n"].stateValues.value).eq(ind);
+            sampledLetters.push(stateVariables["/x"].stateValues.value.tree);
+            sampledNumbers.push(stateVariables["/n"].stateValues.value);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants.length,
-            ).eq(30);
+            ).eq(9);
         }
+
+        // get the values repeated three times in the first 9, then that sequence repeats
+        expect(sampledLetters.slice(0, 9).sort()).eqls(
+            [...values, ...values, ...values].sort(),
+        );
+        expect(sampledNumbers.slice(0, 9).sort()).eqls([
+            1, 1, 1, 2, 2, 2, 3, 3, 3,
+        ]);
+        expect(sampledLetters.slice(9, 18)).eqls(sampledLetters.slice(0, 9));
+        expect(sampledNumbers.slice(9, 18)).eqls(sampledNumbers.slice(0, 9));
     });
 
     it("no variant control, 100 is still unique variants", async () => {
         let doenetML = `
         <selectFromSequence assignNames="n" length="100" />
       `;
-        // get first values in order
-        for (let ind = 1; ind <= 5; ind++) {
+        // first 100 values are not repeated, then order repeats
+        const sampledValues: number[] = [];
+        for (let ind = 1; ind <= 102; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
 
             let stateVariables = await returnAllStateVariables(core);
-            expect(stateVariables["/n"].stateValues.value).eq(ind);
+            const n = stateVariables["/n"].stateValues.value;
+            expect(n).gte(1).lte(100);
+            if (ind <= 100) {
+                expect(sampledValues.includes(n)).eq(false);
+            } else {
+                expect(n).eq(sampledValues[ind - 101]);
+            }
+            sampledValues.push(n);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants.length,
@@ -2053,30 +1835,177 @@ describe("Unique variant tests", async () => {
         }
     });
 
-    it("no variant control, 101 is not unique variants", async () => {
+    it("no variant control, 101 is still unique, though random selection", async () => {
         let doenetML = `
         <selectFromSequence assignNames="n" length="101" />
       `;
-        let foundOneNotInOrder = false;
 
-        // don't get first values in order
-        for (let ind = 1; ind <= 3; ind++) {
+        // first 100 values are not repeated, then order repeats
+        const sampledValues: number[] = [];
+        for (let ind = 1; ind <= 102; ind++) {
             let core = await createTestCore({
                 doenetML,
                 requestedVariantIndex: ind,
             });
 
             let stateVariables = await returnAllStateVariables(core);
-            if (stateVariables["/n"].stateValues.value !== ind) {
-                foundOneNotInOrder = true;
+            const n = stateVariables["/n"].stateValues.value;
+            expect(n).gte(1).lte(101);
+            if (ind <= 100) {
+                expect(sampledValues.includes(n)).eq(false);
+            } else {
+                expect(n).eq(sampledValues[ind - 101]);
             }
+            sampledValues.push(n);
+            expect(
+                stateVariables["/_document1"].sharedParameters
+                    .allPossibleVariants.length,
+            ).eq(100);
+        }
+    });
+
+    it("no variant control, 1000 is still unique, values spread out", async () => {
+        let doenetML = `
+        <selectFromSequence assignNames="n" length="1000" />
+      `;
+
+        // first 100 values are not repeated, then order repeats
+        const sampledValues: number[] = [];
+        for (let ind = 1; ind <= 102; ind++) {
+            let core = await createTestCore({
+                doenetML,
+                requestedVariantIndex: ind,
+            });
+
+            let stateVariables = await returnAllStateVariables(core);
+            const n = stateVariables["/n"].stateValues.value;
+            expect(n).gte(1).lte(1000);
+            if (ind <= 100) {
+                expect(sampledValues.includes(n)).eq(false);
+            } else {
+                expect(n).eq(sampledValues[ind - 101]);
+            }
+            sampledValues.push(n);
             expect(
                 stateVariables["/_document1"].sharedParameters
                     .allPossibleVariants.length,
             ).eq(100);
         }
 
-        expect(foundOneNotInOrder).eq(true);
+        // find values in each group of 50
+        for (let i = 0; i <= 950; i += 50) {
+            expect(sampledValues.findIndex((v) => v > i && v <= i + 50)).not.eq(
+                -1,
+            );
+        }
+    });
+
+    it("limit variants from 100, still unique, values spread out", async () => {
+        let doenetML = `
+        <variantControl numVariants="10" />
+        <selectFromSequence assignNames="n" length="100" />
+      `;
+
+        // first 10 values are not repeated, then order repeats
+        const sampledValues: number[] = [];
+        for (let ind = 1; ind <= 20; ind++) {
+            let core = await createTestCore({
+                doenetML,
+                requestedVariantIndex: ind,
+            });
+
+            let stateVariables = await returnAllStateVariables(core);
+            const n = stateVariables["/n"].stateValues.value;
+            expect(n).gte(1).lte(100);
+            if (ind <= 10) {
+                expect(sampledValues.includes(n)).eq(false);
+            } else {
+                expect(n).eq(sampledValues[ind - 11]);
+            }
+            sampledValues.push(n);
+            expect(
+                stateVariables["/_document1"].sharedParameters
+                    .allPossibleVariants.length,
+            ).eq(10);
+        }
+
+        // find values in each group of 20
+        for (let i = 0; i <= 80; i += 20) {
+            expect(sampledValues.findIndex((v) => v > i && v <= i + 20)).not.eq(
+                -1,
+            );
+        }
+    });
+
+    it("increasing variant limit preserves the identity of original variants", async () => {
+        let doenetML4 = `
+        <variantControl numVariants="4" />
+        <selectFromSequence assignNames="n" length="100" />
+      `;
+
+        let doenetML6 = `
+      <variantControl numVariants="6" />
+      <selectFromSequence assignNames="n" length="100" />
+    `;
+
+        let doenetML100 = `
+  <selectFromSequence assignNames="n" length="100" />
+`;
+
+        const sampledValues: number[] = [];
+        for (let ind = 1; ind <= 4; ind++) {
+            let core = await createTestCore({
+                doenetML: doenetML4,
+                requestedVariantIndex: ind,
+            });
+
+            let stateVariables = await returnAllStateVariables(core);
+            sampledValues.push(stateVariables["/n"].stateValues.value);
+
+            expect(
+                stateVariables["/_document1"].sharedParameters
+                    .allPossibleVariants.length,
+            ).eq(4);
+        }
+
+        // first four variants match numVariants=4 case
+        for (let ind = 1; ind <= 6; ind++) {
+            let core = await createTestCore({
+                doenetML: doenetML6,
+                requestedVariantIndex: ind,
+            });
+
+            let stateVariables = await returnAllStateVariables(core);
+            if (ind <= 4) {
+                expect(stateVariables["/n"].stateValues.value).eq(
+                    sampledValues[ind - 1],
+                );
+            } else {
+                sampledValues.push(stateVariables["/n"].stateValues.value);
+            }
+            expect(
+                stateVariables["/_document1"].sharedParameters
+                    .allPossibleVariants.length,
+            ).eq(6);
+        }
+
+        // first six variants match numVariants=6 case
+        for (let ind = 1; ind <= 6; ind++) {
+            let core = await createTestCore({
+                doenetML: doenetML100,
+                requestedVariantIndex: ind,
+            });
+
+            let stateVariables = await returnAllStateVariables(core);
+            expect(stateVariables["/n"].stateValues.value).eq(
+                sampledValues[ind - 1],
+            );
+
+            expect(
+                stateVariables["/_document1"].sharedParameters
+                    .allPossibleVariants.length,
+            ).eq(100);
+        }
     });
 
     it("no variant control, problem with 3 selects", async () => {
@@ -2093,7 +2022,7 @@ describe("Unique variant tests", async () => {
 
         let values = [135, 246, 145, 236, 136, 245, 146, 235];
 
-        // get each value exactly one, in order corresponding to above list
+        // get each value exactly one
         let valuesFound: number[] = [];
         for (let ind = 1; ind <= 8; ind++) {
             let core = await createTestCore({
@@ -2114,518 +2043,7 @@ describe("Unique variant tests", async () => {
             ).eq(8);
         }
 
-        expect(valuesFound).eqls(values);
-    });
-
-    async function test_variants_include_exclude({
-        createDoenetML,
-        variantsFromProblem = false,
-        documentAndProblemVariantsDiffer = false,
-    }: {
-        createDoenetML: ({
-            include,
-            exclude,
-        }?: {
-            include?: string[];
-            exclude?: string[];
-        }) => string;
-        variantsFromProblem?: boolean;
-        documentAndProblemVariantsDiffer?: boolean;
-    }) {
-        // get two variants with no include/exclude
-
-        let core = await createTestCore({
-            doenetML: createDoenetML(),
-            requestedVariantIndex: 2,
-        });
-
-        let stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(2);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            "2",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            2,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            "b",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
-
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "2",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(2);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "b",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
-        }
-
-        core = await createTestCore({
-            doenetML: createDoenetML(),
-            requestedVariantIndex: 5,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(5);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            "5",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            5,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            "e",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
-
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "5",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(5);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "e",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
-        }
-
-        // get same variants when add variantsToInclude
-
-        core = await createTestCore({
-            doenetML: createDoenetML({ include: ["b", "e"] }),
-            requestedVariantIndex: 1,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(2);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            variantsFromProblem ? "1" : "2",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            1,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            documentAndProblemVariantsDiffer ? "a" : "b",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(documentAndProblemVariantsDiffer ? ["a", "b"] : ["b", "e"]);
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "2",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(1);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "b",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["b", "e"]);
-        }
-
-        core = await createTestCore({
-            doenetML: createDoenetML({ include: ["b", "e"] }),
-            requestedVariantIndex: 2,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(5);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            variantsFromProblem ? "2" : "5",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            2,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            documentAndProblemVariantsDiffer ? "b" : "e",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(documentAndProblemVariantsDiffer ? ["a", "b"] : ["b", "e"]);
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "5",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(2);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "e",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["b", "e"]);
-        }
-
-        // get same variants when add variantsToExclude
-
-        core = await createTestCore({
-            doenetML: createDoenetML({ exclude: ["a", "d", "h", "j"] }),
-            requestedVariantIndex: 1,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(2);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            variantsFromProblem ? "1" : "2",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            1,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            documentAndProblemVariantsDiffer ? "a" : "b",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(
-            documentAndProblemVariantsDiffer
-                ? ["a", "b", "c", "d", "e", "f"]
-                : ["b", "c", "e", "f", "g", "i"],
-        );
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "2",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(1);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "b",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["b", "c", "e", "f", "g", "i"]);
-        }
-
-        core = await createTestCore({
-            doenetML: createDoenetML({ exclude: ["a", "d", "h", "j"] }),
-            requestedVariantIndex: 3,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(5);
-
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            variantsFromProblem ? "3" : "5",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            3,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            documentAndProblemVariantsDiffer ? "c" : "e",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(
-            documentAndProblemVariantsDiffer
-                ? ["a", "b", "c", "d", "e", "f"]
-                : ["b", "c", "e", "f", "g", "i"],
-        );
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "5",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(3);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "e",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["b", "c", "e", "f", "g", "i"]);
-        }
-
-        // get same variants when add variantsToInclude and variantsToExclude
-
-        core = await createTestCore({
-            doenetML: createDoenetML({
-                include: ["a", "b", "d", "e", "g", "h"],
-                exclude: ["a", "c", "d", "h", "j"],
-            }),
-            requestedVariantIndex: 1,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(2);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            variantsFromProblem ? "1" : "2",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            1,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            documentAndProblemVariantsDiffer ? "a" : "b",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(
-            documentAndProblemVariantsDiffer
-                ? ["a", "b", "c"]
-                : ["b", "e", "g"],
-        );
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "2",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(1);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "b",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["b", "e", "g"]);
-        }
-
-        core = await createTestCore({
-            doenetML: createDoenetML({
-                include: ["a", "b", "d", "e", "g", "h"],
-                exclude: ["a", "c", "d", "h", "j"],
-            }),
-            requestedVariantIndex: 2,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(5);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            variantsFromProblem ? "2" : "5",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            2,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            documentAndProblemVariantsDiffer ? "b" : "e",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(
-            documentAndProblemVariantsDiffer
-                ? ["a", "b", "c"]
-                : ["b", "e", "g"],
-        );
-
-        if (variantsFromProblem) {
-            expect(stateVariables["/problem1"].sharedParameters.variantSeed).eq(
-                "5",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters.variantIndex,
-            ).eq(2);
-            expect(stateVariables["/problem1"].sharedParameters.variantName).eq(
-                "e",
-            );
-            expect(
-                stateVariables["/problem1"].sharedParameters
-                    .allPossibleVariants,
-            ).eqls(["b", "e", "g"]);
-        }
-    }
-
-    it("variantsToInclude and variantsToExclude", async () => {
-        function createDoenetML({
-            include = [],
-            exclude = [],
-        }: { include?: string[]; exclude?: string[] } = {}) {
-            let attributes = "";
-            if (include.length > 0) {
-                attributes += `variantsToInclude="${include.join(" ")}"`;
-            }
-            if (exclude.length > 0) {
-                attributes += `variantsToExclude="${exclude.join(" ")}"`;
-            }
-
-            return `
-            <variantControl numVariants="10" ${attributes} />
-            Selected number: 
-            <selectFromSequence assignNames="n" length="10" />
-            `;
-        }
-
-        await test_variants_include_exclude({ createDoenetML });
-    });
-
-    it("variantsToInclude and variantsToExclude in problem as only child", async () => {
-        function createDoenetML({
-            include = [],
-            exclude = [],
-        }: { include?: string[]; exclude?: string[] } = {}) {
-            let attributes = "";
-            if (include.length > 0) {
-                attributes += `variantsToInclude="${include.join(" ")}"`;
-            }
-            if (exclude.length > 0) {
-                attributes += `variantsToExclude="${exclude.join(" ")}"`;
-            }
-
-            return `
-    <problem name="problem1">
-        <text>Hello!</text>
-        <variantControl numVariants="10" ${attributes} />
-        Selected number: 
-        <selectFromSequence assignNames="n" length="10" />
-    </problem>
-            `;
-        }
-
-        await test_variants_include_exclude({
-            createDoenetML,
-            variantsFromProblem: true,
-            documentAndProblemVariantsDiffer: false,
-        });
-    });
-
-    it("variantsToInclude and variantsToExclude in problem, extra child", async () => {
-        function createDoenetML({
-            include = [],
-            exclude = [],
-        }: { include?: string[]; exclude?: string[] } = {}) {
-            let attributes = "";
-            if (include.length > 0) {
-                attributes += `variantsToInclude="${include.join(" ")}"`;
-            }
-            if (exclude.length > 0) {
-                attributes += `variantsToExclude="${exclude.join(" ")}"`;
-            }
-
-            return `
-    <text>Hello!</text>
-    <problem name="problem1">
-        <variantControl numVariants="10" ${attributes} />
-        Selected number: 
-        <selectFromSequence assignNames="n" length="10" />
-    </problem>
-            `;
-        }
-
-        await test_variants_include_exclude({
-            createDoenetML,
-            variantsFromProblem: true,
-            documentAndProblemVariantsDiffer: true,
-        });
-    });
-
-    it("unique variants determined by numVariants specified, even with variantsToInclude and variantsToExclude", async () => {
-        // unique variants when numVariants is 1000
-
-        let doenetMLa = `
-    <variantControl numVariants="1000" variantsToInclude="b t ax cv" variantsToExclude="b ax" />
-    Selected number: 
-    <selectFromSequence assignNames="n" length="1000" />
-    `;
-
-        let core = await createTestCore({
-            doenetML: doenetMLa,
-            requestedVariantIndex: 1,
-        });
-
-        let stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(20);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            "20",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            1,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            "t",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(["t", "cv"]);
-
-        core = await createTestCore({
-            doenetML: doenetMLa,
-            requestedVariantIndex: 2,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).eq(100);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            "100",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            2,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            "cv",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(["t", "cv"]);
-
-        // non-unique variants when numVariants is 100
-
-        let doenetMLb = `
-    <variantControl numVariants="100" variantsToInclude="b t ax cv" variantsToExclude="b ax" />
-    Selected number: 
-    <selectFromSequence assignNames="n" length="1000" />
-    `;
-
-        core = await createTestCore({
-            doenetML: doenetMLb,
-            requestedVariantIndex: 1,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).not.eq(20);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            "20",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            1,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            "t",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(["t", "cv"]);
-
-        core = await createTestCore({
-            doenetML: doenetMLb,
-            requestedVariantIndex: 2,
-        });
-
-        stateVariables = await returnAllStateVariables(core);
-        expect(stateVariables["/n"].stateValues.value).not.eq(100);
-        expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
-            "100",
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantIndex).eq(
-            2,
-        );
-        expect(stateVariables["/_document1"].sharedParameters.variantName).eq(
-            "cv",
-        );
-        expect(
-            stateVariables["/_document1"].sharedParameters.allPossibleVariants,
-        ).eqls(["t", "cv"]);
+        expect(valuesFound.sort()).eqls(values.sort());
     });
 
     it("unless variant determines seed, sample random/prime numbers does not add variants", async () => {

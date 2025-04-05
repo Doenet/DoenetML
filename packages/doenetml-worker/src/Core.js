@@ -1,7 +1,7 @@
 import readOnlyProxyHandler from "./ReadOnlyProxyHandler";
 import ParameterStack from "./ParameterStack";
 import Numerics from "./Numerics";
-import { prng_alea } from "esm-seedrandom";
+import seedrandom from "seedrandom";
 import me from "math-expressions";
 import createStateProxyHandler from "./StateProxyHandler";
 import {
@@ -38,8 +38,7 @@ import {
     returnDefaultGetArrayKeysFromVarName,
 } from "./utils/stateVariables";
 import { nanoid } from "nanoid";
-import { get as idb_get, set as idb_set } from "idb-keyval";
-import axios from "axios";
+import { set as idb_set } from "idb-keyval";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
@@ -55,45 +54,32 @@ export default class Core {
         preliminaryWarnings,
         activityId,
         cid,
-        cidForActivity: activityCid,
-        pageNumber,
+        docId,
         attemptNumber = 1,
-        itemNumber = 1,
-        serverSaveId,
-        activityVariantIndex,
         requestedVariant,
         requestedVariantIndex,
-        previousComponentTypeCounts = {},
+        initializeCounters = {},
         theme,
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
-        updateDataOnContentChange,
-        apiURLs = {},
     }) {
         // console.time('core');
 
         this.coreId = coreId;
         this.activityId = activityId;
-        this.activityCid = activityCid;
-        this.pageNumber = pageNumber;
+        this.docId = docId;
         this.attemptNumber = attemptNumber;
-        this.itemNumber = itemNumber;
-        this.activityVariantIndex = activityVariantIndex;
         this.doenetML = doenetML;
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
 
         this.cid = cid;
-        this.apiURLs = apiURLs;
 
         this.errorWarnings = {
             errors: [...preliminaryErrors],
             warnings: [...preliminaryWarnings],
         };
-
-        this.serverSaveId = serverSaveId;
-        this.updateDataOnContentChange = updateDataOnContentChange;
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
@@ -105,7 +91,7 @@ export default class Core {
 
         this.componentInfoObjects = componentInfoObjects;
 
-        this.previousComponentTypeCounts = previousComponentTypeCounts;
+        this.initializeCounters = initializeCounters;
 
         const stateVariableChanges = stateVariableChangesString
             ? JSON.parse(
@@ -124,6 +110,7 @@ export default class Core {
                 }
             }
         }
+        this.receivedStateVariableChanges = Boolean(stateVariableChangesString);
 
         this.coreFunctions = {
             requestUpdate: this.requestUpdate.bind(this),
@@ -192,7 +179,7 @@ export default class Core {
 
         this.parameterStack = new ParameterStack();
 
-        this.parameterStack.parameters.rngClass = prng_alea;
+        this.parameterStack.parameters.rngClass = seedrandom.alea;
         this.parameterStack.parameters.prerender = prerender;
 
         this.initialized = false;
@@ -242,9 +229,6 @@ export default class Core {
         });
         this.errorWarnings.errors.push(...res.errors);
         this.errorWarnings.warnings.push(...res.warnings);
-
-        this.failedToSavePageState = false;
-        this.failedToSaveCreditForItem = false;
 
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
@@ -400,9 +384,9 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateRenderers.clear();
 
-        // evaluate itemCreditAchieved so that will be fresh
+        // evaluate componentCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.itemCreditAchieved;
+        await this.document.stateValues.componentCreditAchieved;
 
         // console.log(serializedComponents)
         // console.timeEnd('start up time');
@@ -413,8 +397,8 @@ export default class Core {
             await this.document.stateValues.generatedVariantInfo,
             serializedComponentsReplacer,
         );
-        this.canonicalItemVariantStrings = (
-            await this.document.stateValues.itemVariantInfo
+        this.canonicalDocVariantStrings = (
+            await this.document.stateValues.docVariantInfo
         ).map((x) => JSON.stringify(x, serializedComponentsReplacer));
 
         // Note: coreInfo is fixed even though this.rendererTypesInDocument could change
@@ -437,6 +421,10 @@ export default class Core {
         this.messageViewerReady();
 
         this.resolveInitialized();
+
+        if (!this.receivedStateVariableChanges) {
+            this.saveState();
+        }
     }
 
     async onDocumentFirstVisible() {
@@ -466,16 +454,6 @@ export default class Core {
         };
 
         await this.document.stateValues.scoredDescendants; // to evaluated scoredDescendants
-
-        if (!foundAnswerDescendant(this.document)) {
-            // if there are no scored items in document
-            // then treat the first view of the document as a submission
-            // so that will get credit for viewing the page
-            this.saveSubmissions({
-                pageCreditAchieved:
-                    await this.document.stateValues.creditAchieved,
-            });
-        }
 
         setTimeout(
             this.sendVisibilityChangedEvents.bind(this),
@@ -10789,7 +10767,7 @@ export default class Core {
                     },
                 ],
                 actionId: args.actionId,
-                doNotSave: true, // this isn't an interaction, so don't save page state
+                doNotSave: true, // this isn't an interaction, so don't save doc state
             });
         }
 
@@ -11074,7 +11052,7 @@ export default class Core {
         let newStateVariableValues = {};
         let newStateVariableValuesProcessed = [];
         let workspace = {};
-        let recordItemSubmissions = [];
+        let recordComponentSubmissions = [];
 
         for (let instruction of updateInstructions) {
             if (instruction.componentName) {
@@ -11138,7 +11116,7 @@ export default class Core {
                 newStateVariableValuesProcessed.push(newStateVariableValues);
                 newStateVariableValues = {};
             } else if (instruction.updateType === "recordItemSubmission") {
-                recordItemSubmissions.push(instruction);
+                recordComponentSubmissions.push(instruction);
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
@@ -11170,35 +11148,38 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate || recordItemSubmissions.length > 0) {
+        if (!skipRendererUpdate || recordComponentSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
-        if (recordItemSubmissions.length > 0) {
-            let itemsSubmitted = [
-                ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
+        if (recordComponentSubmissions.length > 0) {
+            let componentsSubmitted = [
+                ...new Set(
+                    recordComponentSubmissions.map((x) => x.componentNumber),
+                ),
             ];
-            let itemCreditAchieved =
-                await this.document.stateValues.itemCreditAchieved;
+            let componentCreditAchieved =
+                await this.document.stateValues.componentCreditAchieved;
 
             if (event) {
                 if (!event.context) {
                     event.context = {};
                 }
-                event.context.item = itemsSubmitted[0];
-                event.context.itemCreditAchieved =
-                    itemCreditAchieved[itemsSubmitted[0] - 1];
+                event.context.componentNumber = componentsSubmitted[0];
+                event.context.componentCreditAchieved =
+                    componentCreditAchieved[componentsSubmitted[0] - 1];
 
-                // Just in case the code gets changed to that more than item can be submitted at once
-                // record credit achieved for any additional items
-                if (itemsSubmitted.length > 1) {
-                    event.context.additionalItemCreditAchieved = {};
-                    for (let itemNumber of itemsSubmitted) {
-                        event.context.additionalItemCreditAchieved[itemNumber] =
-                            itemCreditAchieved[itemNumber - 1];
+                // Just in case the code gets changed so that more than one component can be submitted at once,
+                // record credit achieved for any additional components.
+                if (componentsSubmitted.length > 1) {
+                    event.context.additionalComponentCreditAchieved = {};
+                    for (let componentNumber of componentsSubmitted) {
+                        event.context.additionalComponentCreditAchieved[
+                            componentNumber
+                        ] = componentCreditAchieved[componentNumber - 1];
                     }
                 }
-                event.context.pageCreditAchieved =
+                event.context.docCreditAchieved =
                     await this.document.stateValues.creditAchieved;
             }
         }
@@ -11283,30 +11264,22 @@ export default class Core {
         }
 
         let alreadySaved = false;
-        if (recordItemSubmissions.length > 0) {
-            // if itemNumber is zero, it means this document wasn't given any weight,
-            // so don't record the submission to the attempt tables
-            // (the event will still get recorded)
-            if (this.itemNumber > 0) {
-                let pageCreditAchieved =
-                    await this.document.stateValues.creditAchieved;
-                this.saveState(true, true);
-                this.saveSubmissions({ pageCreditAchieved });
-                alreadySaved = true;
-            }
+        if (recordComponentSubmissions.length > 0) {
+            this.saveState(true, true);
+            alreadySaved = true;
         }
         if (!alreadySaved && !doNotSave) {
-            clearTimeout(this.savePageStateTimeoutID);
+            clearTimeout(this.saveDocStateTimeoutID);
 
             //Debounce the save to localstorage and then to DB with a throttle
-            this.savePageStateTimeoutID = setTimeout(() => {
+            this.saveDocStateTimeoutID = setTimeout(() => {
                 this.saveState();
             }, 1000);
         }
 
-        // evaluate itemCreditAchieved so that will be fresh
+        // evaluate componentCreditAchieved so that will be fresh
         // and can detect changes when it is marked stale
-        await this.document.stateValues.itemCreditAchieved;
+        await this.document.stateValues.componentCreditAchieved;
 
         if (event) {
             this.requestRecordEvent(event);
@@ -11382,12 +11355,10 @@ export default class Core {
 
         const payload = {
             activityId: this.activityId,
-            activityCid: this.activityCid,
-            pageCid: this.cid,
-            pageNumber: this.pageNumber,
+            cid: this.cid,
+            docId: this.docId,
             attemptNumber: this.attemptNumber,
-            activityVariantIndex: this.activityVariantIndex,
-            pageVariantIndex: this.requestedVariant.index,
+            variantIndex: this.requestedVariant.index,
             verb: event.verb,
             object: JSON.stringify(event.object, serializedComponentsReplacer),
             result: JSON.stringify(
@@ -11402,19 +11373,10 @@ export default class Core {
             version: "0.1.1",
         };
 
-        if (this.apiURLs.postMessages) {
-            postMessage({
-                messageType: "sendEvent",
-                data: payload,
-            });
-        } else {
-            try {
-                let resp = await axios.post(this.apiURLs.recordEvent, payload);
-                // console.log(">>>>resp from record event", resp.data)
-            } catch (e) {
-                console.error(`Error saving event: ${e.message}`);
-            }
-        }
+        postMessage({
+            messageType: "sendEvent",
+            data: payload,
+        });
     }
 
     processVisibilityChangedEvent(event) {
@@ -12941,33 +12903,24 @@ export default class Core {
     }
 
     async saveImmediately() {
-        if (this.savePageStateTimeoutID) {
-            // if in debounce to save page to local storage
+        if (this.saveDocStateTimeoutID) {
+            // if in debounce to save doc to local storage
             // then immediate save to local storage
             // and override timeout to save to database
-            clearTimeout(this.savePageStateTimeoutID);
+            clearTimeout(this.saveDocStateTimeoutID);
             await this.saveState(true);
         } else {
             // else override timeout to save any pending changes to database
             await this.saveChangesToDatabase(true);
         }
-
-        postMessage({
-            messageType: "saveImmediatelyResult",
-            success: !(
-                this.failedToSavePageState || this.failedToSaveCreditForItem
-            ),
-        });
     }
 
     async saveState(overrideThrottle = false, onSubmission = false) {
-        this.savePageStateTimeoutID = null;
+        this.saveDocStateTimeoutID = null;
 
         if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
             return;
         }
-
-        let saveId = nanoid();
 
         let coreStateString = JSON.stringify(
             this.cumulativeStateVariableChanges,
@@ -12980,13 +12933,12 @@ export default class Core {
 
         if (this.flags.allowLocalState) {
             await idb_set(
-                `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}`,
+                `${this.activityId}|${this.docId}|${this.attemptNumber}|${this.cid}`,
                 {
                     data_format_version,
                     coreState: coreStateString,
                     rendererState: rendererStateString,
                     coreInfo: this.coreInfoString,
-                    saveId,
                 },
             );
         }
@@ -13000,17 +12952,15 @@ export default class Core {
             return;
         }
 
-        this.pageStateToBeSavedToDatabase = {
+        this.docStateToBeSavedToDatabase = {
             cid: this.cid,
             coreInfo: this.coreInfoString,
             coreState: coreStateString,
             rendererState: rendererStateString,
-            pageNumber: this.pageNumber,
+            initializeCounters: this.initializeCounters,
+            docId: this.docId,
             attemptNumber: this.attemptNumber,
             activityId: this.activityId,
-            saveId,
-            serverSaveId: this.serverSaveId,
-            updateDataOnContentChange: this.updateDataOnContentChange,
             onSubmission,
         };
 
@@ -13045,346 +12995,19 @@ export default class Core {
             this.saveChangesToDatabase();
         }, 60000);
 
-        let pause100 = function () {
-            return new Promise((resolve, reject) => {
-                setTimeout(resolve, 100);
-            });
-        };
-
-        if (this.savingPageState) {
-            for (let i = 0; i < 100; i++) {
-                await pause100();
-
-                if (!this.savingPageState) {
-                    break;
-                }
-            }
-        }
-
-        this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
-
-        if (this.apiURLs.postMessages) {
-            postMessage({
-                messageType: "saveCreditForItem",
-                state: { ...this.pageStateToBeSavedToDatabase },
-                score: await this.document.stateValues.creditAchieved,
-            });
-            return;
-        }
-
-        let resp;
-
-        this.savingPageState = true;
-
-        try {
-            resp = await axios.post(
-                this.apiURLs.savePageState,
-                this.pageStateToBeSavedToDatabase,
-            );
-        } catch (e) {
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message: `Error. Latest changes not saved. ${resp.data.message}`,
-                    alertType: "error",
-                    id: "dataError",
-                },
-            });
-
-            this.failedToSavePageState = true;
-            this.savingPageState = false;
-
-            return;
-        }
-
-        this.savingPageState = false;
-
-        if (resp.status === null) {
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message: `Error. Latest changes not saved. Are you connected to the internet?`,
-                    alertType: "error",
-                    id: "dataError",
-                },
-            });
-
-            this.failedToSavePageState = true;
-
-            return;
-        }
-
-        let data = resp.data;
-
-        if (!data.success) {
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message: `Error. Latest changes not saved. ${data.message}`,
-                    alertType: "error",
-                    id: "dataError",
-                },
-            });
-
-            this.failedToSavePageState = true;
-
-            return;
-        }
-
-        this.failedToSavePageState = false;
-
-        this.serverSaveId = data.saveId;
-
-        if (this.flags.allowLocalState) {
-            await idb_set(
-                `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}|ServerSaveId`,
-                data.saveId,
-            );
-        }
-
-        if (data.stateOverwritten) {
-            // if a new attempt number was generated or the cid didn't change,
-            // then we reset the page to the new state
-            if (
-                this.attemptNumber !== Number(data.attemptNumber) ||
-                this.cid === data.cid
-            ) {
-                if (this.flags.allowLocalState) {
-                    await idb_set(
-                        `${this.activityId}|${this.pageNumber}|${data.attemptNumber}|${data.cid}`,
-                        {
-                            data_format_version,
-                            coreState: data.coreState,
-                            rendererState: data.rendererState,
-                            coreInfo: data.coreInfo,
-                            saveId: data.saveId,
-                        },
-                    );
-                }
-
-                postMessage({
-                    messageType: "resetPage",
-                    coreId: this.coreId,
-                    args: {
-                        changedOnDevice: data.device,
-                        newCid: data.cid,
-                        newAttemptNumber: Number(data.attemptNumber),
-                    },
-                });
-            } else {
-                // if the cid changed without the attemptNumber changing, something went wrong
-                postMessage({
-                    messageType: "inErrorState",
-                    coreId: this.coreId,
-                    args: {
-                        errMsg: "Content changed unexpectedly!",
-                    },
-                });
-            }
-        }
-        // TODO: send message so that UI can show changes have been synchronized
-
-        // console.log(">>>>recordContentInteraction data",data)
+        postMessage({
+            messageType: "reportScoreAndState",
+            state: { ...this.docStateToBeSavedToDatabase },
+            score: await this.document.stateValues.creditAchieved,
+        });
+        return;
     }
-
-    saveSubmissions({ pageCreditAchieved }) {
-        if (!this.flags.allowSaveSubmissions) {
-            return;
-        }
-
-        if (this.apiURLs.postMessages) {
-            // do nothing, saving credit is combined with saving page state in the SPLICE api
-            // that is implemented by Runestone
-            return;
-        }
-
-        const payload = {
-            activityId: this.activityId,
-            attemptNumber: this.attemptNumber,
-            credit: pageCreditAchieved,
-            itemNumber: this.itemNumber,
-        };
-
-        axios
-            .post(this.apiURLs.saveCreditForItem, payload)
-            .then((resp) => {
-                // console.log('>>>>saveCreditForItem resp', resp.data);
-
-                if (resp.status === null) {
-                    postMessage({
-                        messageType: "sendAlert",
-                        coreId: this.coreId,
-                        args: {
-                            message: `Credit not saved due to error. Are you connected to the internet?`,
-                            alertType: "error",
-                            id: "creditDataError",
-                        },
-                    });
-
-                    this.failedToSaveCreditForItem = true;
-                } else if (!resp.data.success) {
-                    postMessage({
-                        messageType: "sendAlert",
-                        coreId: this.coreId,
-                        args: {
-                            message: resp.data.message,
-                            alertType: "error",
-                            id: "creditDataError",
-                        },
-                    });
-
-                    this.failedToSaveCreditForItem = true;
-                } else {
-                    let data = resp.data;
-
-                    postMessage({
-                        messageType: "updateCreditAchieved",
-                        coreId: this.coreId,
-                        args: {
-                            creditByItem: data.creditByItem.map(Number),
-                            creditForAssignment: Number(
-                                data.creditForAssignment,
-                            ),
-                            creditForAttempt: Number(data.creditForAttempt),
-                            showCorrectness: data.showCorrectness === "1",
-                            totalPointsOrPercent: Number(
-                                data.totalPointsOrPercent,
-                            ),
-                        },
-                    });
-
-                    this.failedToSaveCreditForItem = false;
-                }
-            })
-            .catch((e) => {
-                postMessage({
-                    messageType: "sendAlert",
-                    coreId: this.coreId,
-                    args: {
-                        message: `Credit not saved due to error: ${e.message}`,
-                        alertType: "error",
-                        id: "creditDataError",
-                    },
-                });
-
-                this.failedToSaveCreditForItem = true;
-            });
-    }
-
-    // submitResponseCallBack(results) {
-
-    //   // console.log(`submit response callback`)
-    //   // console.log(results);
-    //   return;
-
-    //   if (!results.success) {
-    //     let errorMessage = "Answer not saved due to a network error. \nEither you are offline or your authentication has timed out.";
-    //     this.renderer.updateSection({
-    //       title: this.state.title,
-    //       viewedSolution: this.state.viewedSolution,
-    //       isError: true,
-    //       errorMessage,
-    //     });
-    //     alert(errorMessage);
-
-    //     this.coreFunctions.requestUpdate({
-    //       updateType: "updateRendererOnly",
-    //     });
-    //   } else if (results.viewedSolution) {
-    //     console.log(`******** Viewed solution for ${scoredComponent.componentName}`);
-    //     this.coreFunctions.requestUpdate({
-    //       updateType: "updateValue",
-    //       updateInstructions: [{
-    //         componentName: scoredComponent.componentName,
-    //         variableUpdates: {
-    //           viewedSolution: { changes: true },
-    //         }
-    //       }]
-    //     })
-    //   }
-
-    //   // if this.answersToSubmitCounter is a positive number
-    //   // that means that we have call this.submitAllAnswers and we still have
-    //   // some answers that haven't been submitted
-    //   // In this case, we will decrement this.answersToSubmitCounter
-    //   // If this.answersToSubmitCounter newly becomes zero,
-    //   // then we know that we have submitted the last one answer
-    //   if (this.answersToSubmitCounter > 0) {
-    //     this.answersToSubmitCounter -= 1;
-    //     if (this.answersToSubmitCounter === 0) {
-    //       this.externalFunctions.allAnswersSubmitted();
-    //     }
-    //   }
-    // }
-
-    // addComponents({ serializedComponents, parent }) {
-    //   //Check if
-    //   //Child logic is violated
-    //   //Parent exists
-    //   //Check composites in serializedComponents??
-    // }
-
-    // getDeferredStateVariable({ component, stateVariable, upstreamComponent, upstreamStateVariable, dependencyValues, inverseDefinition }) {
-
-    //   // console.log(`get deferred state variable ${stateVariable} of ${component.componentName}`)
-
-    //   let inverseResult = inverseDefinition({ dependencyValues, stateValues: upstreamComponent.stateValues });
-
-    //   if (!inverseResult.success) {
-    //     console.warn(`Inverse definition for deferring state variable failed. component: ${component.componentName}, stateVariable: ${stateVariable}, upstreamComponent: ${upstreamComponent.componentName}, upstreamStateVariable: ${upstreamStateVariable}`);
-    //     return undefined;
-    //   }
-
-    //   for (let newInstruction of inverseResult.instructions) {
-    //     if (newInstruction.setDependency) {
-    //       let dependencyName = newInstruction.setDependency;
-
-    //       let dep = this.dependencies.downstreamDependencies[upstreamComponent.componentName][upstreamStateVariable][dependencyName];
-
-    //       if (dep.dependencyType === "child") {
-    //         let cName = dep.downstreamComponentNames[newInstruction.childIndex];
-    //         if (!cName) {
-    //           throw Error(`Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`)
-    //         }
-    //         let varName = dep.mappedDownstreamVariableNamesByComponent[newInstruction.childIndex][newInstruction.variableIndex];
-    //         if (!varName) {
-    //           throw Error(`Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist..`)
-    //         }
-
-    //         let compNew = this._components[cName];
-
-    //         // delete before assigning value to remove any getter for the property
-    //         delete compNew.state[varName].value;
-    //         delete compNew.state[varName].deferred;
-    //         compNew.state[varName].value = newInstruction.desiredValue;
-
-    //       } else {
-    //         throw Error(`unimplemented dependency type ${dep.dependencyType} in deferred inverse definition`)
-    //       }
-
-    //     } else {
-    //       throw Error(`Unrecognized instruction deferred inverse definition of ${stateVariable} of ${component.componentName}`)
-    //     }
-    //   }
-
-    //   // if value of state variable still has a get, then it wasn't defined
-    //   // in the function called for its definition
-    //   if (Object.getOwnPropertyDescriptor(component.state[stateVariable], 'value').get) {
-    //     throw Error(`deferred inverse definition of ${stateVariable} of ${component.componentName} didn't return value of variable`);
-    //   }
-
-    //   return component.state[stateVariable].value;
-
-    // }
 
     async recordSolutionView() {
         // TODO: check if student was actually allowed to view solution.
 
-        // if not allowed to save submissions, then allow view but don't record it
-        if (!this.flags.allowSaveSubmissions) {
+        // if not allowed to save state, then allow view but don't record it
+        if (!this.flags.allowSaveState) {
             return {
                 allowView: true,
                 message: "",
@@ -13392,85 +13015,21 @@ export default class Core {
             };
         }
 
-        if (this.apiURLs.postMessages) {
-            postMessage({
-                messageType: "recordSolutionView",
-                activityId: this.activityId,
-                itemNumber: this.itemNumber,
-                pageNumber: this.pageNumber,
-                attemptNumber: this.attemptNumber,
-            });
+        postMessage({
+            messageType: "recordSolutionView",
+            activityId: this.activityId,
+            docId: this.docId,
+            attemptNumber: this.attemptNumber,
+        });
 
-            return {
-                allowView: true,
-                message: "",
-                scoredComponent: this.documentName,
-            };
-        }
-
-        try {
-            const resp = await axios.post(this.apiURLs.reportSolutionViewed, {
-                activityId: this.activityId,
-                itemNumber: this.itemNumber,
-                pageNumber: this.pageNumber,
-                attemptNumber: this.attemptNumber,
-            });
-
-            if (resp.status === null) {
-                let message = `Cannot show solution due to error.  Are you connected to the internet?`;
-                postMessage({
-                    messageType: "sendAlert",
-                    coreId: this.coreId,
-                    args: {
-                        message,
-                        alertType: "error",
-                        id: "solutionDataError",
-                    },
-                });
-                return {
-                    allowView: false,
-                    message,
-                    scoredComponent: this.documentName,
-                };
-            } else {
-                let data = resp.data;
-                if (data.success) {
-                    return {
-                        allowView: true,
-                        message: "",
-                        scoredComponent: this.documentName,
-                    };
-                } else {
-                    let message = `Cannot show solution due to error: ${data.message}`;
-                    return {
-                        allowView: false,
-                        message,
-                        scoredComponent: this.documentName,
-                    };
-                }
-            }
-        } catch (e) {
-            let message = `Cannot show solution due to error.`;
-
-            postMessage({
-                messageType: "sendAlert",
-                coreId: this.coreId,
-                args: {
-                    message,
-                    alertType: "error",
-                    id: "solutionDataError",
-                },
-            });
-
-            return {
-                allowView: false,
-                message,
-                scoredComponent: this.documentName,
-            };
-        }
+        return {
+            allowView: true,
+            message: "",
+            scoredComponent: this.documentName,
+        };
     }
 
-    get scoredItemWeights() {
+    get scoredComponentWeights() {
         return (async () =>
             (await this.document.stateValues.scoredDescendants).map(
                 (x) => x.stateValues.weight,
@@ -13569,10 +13128,6 @@ export default class Core {
         }
 
         await this.saveImmediately();
-
-        if (this.failedToSavePageState || this.failedToSaveCreditForItem) {
-            throw Error("Terminating core failed due to failure to save data.");
-        }
     }
 
     recordAnswerToAutoSubmit(componentName) {

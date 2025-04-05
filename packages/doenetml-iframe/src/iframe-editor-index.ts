@@ -2,6 +2,7 @@
 // created by DoenetEditor.
 declare const editorId: string;
 declare const doenetEditorProps: object;
+declare const haveEditorCallbacks: string[];
 interface Window {
     renderDoenetEditorToContainer: (
         container: Element,
@@ -10,32 +11,56 @@ interface Window {
     ) => void;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    let pause100 = function () {
+        return new Promise((resolve, _reject) => {
+            setTimeout(resolve, 100);
+        });
+    };
+
+    // wait up to a second window.renderDoenetViewerToContainer to be found
+    for (let i = 0; i < 10; i++) {
+        if (typeof window.renderDoenetViewerToContainer === "function") {
+            break;
+        }
+        await pause100();
+    }
+
     if (typeof window.renderDoenetEditorToContainer !== "function") {
         return messageParentFromEditor({
             error: "Invalid DoenetML version or DoenetML package not found",
         });
     }
+
+    // Callbacks have to be explicitly overridden here so that they
+    // can message the parent React component (outside the iframe).
+    const callbackOverrides: Record<
+        string,
+        ((args: unknown) => void) | undefined
+    > = {};
+    const callbackNames = [
+        "doenetmlChangeCallback",
+        "immediateDoenetmlChangeCallback",
+        "documentStructureCallback",
+    ];
+    for (const callback of callbackNames) {
+        callbackOverrides[callback] = haveEditorCallbacks.includes(callback)
+            ? (args: unknown) => {
+                  messageParentFromEditor({
+                      callback,
+                      args,
+                  });
+              }
+            : undefined;
+    }
+
     window.renderDoenetEditorToContainer(
         document.getElementById("root")!,
         undefined,
         {
             ...doenetEditorProps,
             externalVirtualKeyboardProvided: true,
-            // Callbacks have to be explicitly overridden here so that they
-            // can message the parent React component (outside the iframe).
-            doenetmlChangeCallback: (args: unknown) => {
-                messageParentFromEditor({
-                    callback: "doenetmlChangeCallback",
-                    args,
-                });
-            },
-            immediateDoenetmlChangeCallback: (args: unknown) => {
-                messageParentFromEditor({
-                    callback: "immediateDoenetmlChangeCallback",
-                    args,
-                });
-            },
+            ...callbackOverrides,
         },
     );
 });

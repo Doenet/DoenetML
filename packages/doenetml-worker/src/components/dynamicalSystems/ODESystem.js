@@ -558,7 +558,7 @@ export default class ODESystem extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                console.log(dependencyValues);
+                // console.log(dependencyValues);
                 let warnings = [];
 
                 let valid = true;

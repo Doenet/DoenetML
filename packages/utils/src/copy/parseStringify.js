@@ -12,7 +12,7 @@ export function serializedComponentsReplacer(key, value) {
     return value;
 }
 
-let nanInfinityReviver = function (key, value) {
+export function nanInfinityReviver(key, value) {
     if (value && value.objectType === "special-numeric") {
         if (value.stringValue === "NaN") {
             return NaN;
@@ -24,7 +24,7 @@ let nanInfinityReviver = function (key, value) {
     }
 
     return value;
-};
+}
 
 export function serializedComponentsReviver(key, value) {
     return me.reviver(

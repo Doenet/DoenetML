@@ -1175,6 +1175,7 @@ describe("ChoiceInput tag tests", async () => {
         let stateVariables = await returnAllStateVariables(core);
         let choiceTexts = stateVariables["/ci"].stateValues.choiceTexts;
         expect([...choiceTexts].sort()).eqls([...originalChoices].sort());
+        const order = choiceTexts.map((v) => originalChoices.indexOf(v));
 
         async function check_items(selectedIndices: number[]) {
             let selectedValues = selectedIndices.map((v) => choiceTexts[v - 1]);
@@ -1196,7 +1197,7 @@ describe("ChoiceInput tag tests", async () => {
 
             for (let i = 1; i <= 4; i++) {
                 expect(stateVariables[`/choice${i}`].stateValues.selected).eq(
-                    selectedIndices.includes(i),
+                    selectedIndices.includes(order[i - 1] + 1),
                 );
             }
         }

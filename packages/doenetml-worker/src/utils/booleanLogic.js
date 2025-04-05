@@ -3,7 +3,7 @@ import me from "math-expressions";
 import { buildSubsetFromMathExpression, deepCompare } from "@doenet/utils";
 import {
     appliedFunctionSymbolsDefault,
-    getTextToMathConverter,
+    textToMathFactory,
     numberToMathExpression,
 } from "./math";
 import { createInputStringFromChildren } from "./parseMath";
@@ -14,13 +14,13 @@ const appliedFunctionSymbolsWithBooleanOperators = [
     "isinteger",
 ];
 
-var fromTextUnsplit = getTextToMathConverter({
+var fromTextUnsplit = textToMathFactory({
     splitSymbols: false,
     appliedFunctionSymbols: appliedFunctionSymbolsWithBooleanOperators,
     parseScientificNotation: false,
 });
 
-var fromTextSplit = getTextToMathConverter({
+var fromTextSplit = textToMathFactory({
     parseScientificNotation: false,
 });
 

@@ -43,6 +43,8 @@ function App() {
                 }
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
+                activityId={"a"}
+                docId={"1"}
             />
 
             <h4>DoenetML {STANDALONE_VERSION} (locally-built copy):</h4>
@@ -57,6 +59,8 @@ function App() {
                 }
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
+                activityId={"a"}
+                docId={"2"}
             />
         </React.Fragment>
     );

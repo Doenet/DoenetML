@@ -4,7 +4,12 @@
         "outDir": "./dist/",
         "rootDir": "./src"
     },
-    "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
+    "include": [
+        "./src/**/*.ts",
+        "./src/**/*.tsx",
+        "./src/**/*.js",
+        "./src/**/*.jsx"
+    ],
     "exclude": [
         "vite.config.ts",
         "node_modules",

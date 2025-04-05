@@ -1,0 +1,18 @@
+{
+  "name": "lib-doenetml-worker-rust",
+  "collaborators": [
+    "Duane Nykamp <nykamp@umn.edu>"
+  ],
+  "description": "DoenetML core worker in rust",
+  "version": "0.9.0",
+  "files": [
+    "lib_doenetml_worker_rust_bg.wasm",
+    "lib_doenetml_worker_rust.js",
+    "lib_doenetml_worker_rust.d.ts"
+  ],
+  "module": "lib_doenetml_worker_rust.js",
+  "types": "lib_doenetml_worker_rust.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

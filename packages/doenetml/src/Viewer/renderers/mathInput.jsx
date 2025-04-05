@@ -21,7 +21,6 @@ import { MathJax } from "better-react-mathjax";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import "./mathInput.css";
-import { PageContext } from "../PageViewer";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -68,8 +67,6 @@ export default function MathInput(props) {
     const keyboardCausedBlur = useRef(false);
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
-
-    const { showAnswerTitles } = useContext(PageContext) || {};
 
     let rendererValue = useRef(SVs.rawRendererValue);
 
@@ -287,18 +284,6 @@ export default function MathInput(props) {
                         callAction({
                             action: actions.submitAnswer,
                         })
-                    }
-                    onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                            callAction({
-                                action: actions.submitAnswer,
-                            });
-                        }
-                    }}
-                    title={
-                        showAnswerTitles
-                            ? `Answer name: ${actions.submitAnswer.componentName}`
-                            : null
                     }
                 >
                     <FontAwesomeIcon

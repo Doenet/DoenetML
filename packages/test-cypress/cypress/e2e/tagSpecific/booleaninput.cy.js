@@ -149,7 +149,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#\\/atb_input")).should("not.be.checked");
         cy.get(cesc("#\\/bi_input")).should("not.be.checked");
         cy.get(cesc("#\\/v")).should("have.text", "false");
-        cy.get(cesc("#\\/atb")).should("contain.text", "It is ∫baf(x)dx");
+        cy.get(cesc("#\\/atb")).should("contain.text", "It is ∫abf(x)dx");
         cy.get(cesc("#\\/bi")).should("contain.text", "Hello ab");
 
         cy.log("Test internal values are set to the correct values");
@@ -174,7 +174,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#\\/atb_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
         //cy.get(cesc('#\\/bi_input')).should('be.checked');
-        cy.get(cesc("#\\/atb")).should("contain.text", "It is ∫baf(x)dx");
+        cy.get(cesc("#\\/atb")).should("contain.text", "It is ∫abf(x)dx");
         cy.get(cesc("#\\/bi")).should("contain.text", "Hello ab");
 
         cy.log("Test internal values are set to the correct values");
@@ -194,7 +194,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("hide labels");
         cy.get(cesc2("#/toggleLabels")).click();
 
-        cy.get(cesc("#\\/atb")).should("not.contain.text", "It is ∫baf(x)dx");
+        cy.get(cesc("#\\/atb")).should("not.contain.text", "It is ∫abf(x)dx");
         cy.get(cesc("#\\/bi")).should("not.contain.text", "Hello ab");
 
         cy.log("Test internal values are set to the correct values");
@@ -210,7 +210,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("show labels again");
         cy.get(cesc2("#/toggleLabels")).click();
 
-        cy.get(cesc("#\\/atb")).should("contain.text", "It is ∫baf(x)dx");
+        cy.get(cesc("#\\/atb")).should("contain.text", "It is ∫abf(x)dx");
         cy.get(cesc("#\\/bi")).should("contain.text", "Hello ab");
 
         cy.log("Test internal values are set to the correct values");

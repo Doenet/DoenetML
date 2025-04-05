@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment as thoughtBubble } from "@fortawesome/free-regular-svg-icons";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import styled from "styled-components";
 import { addCommasForCompositeRanges } from "./utils/composites";
 const FeedbackStyling = styled.aside`
@@ -35,21 +35,9 @@ export default React.memo(function Feedback(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -68,22 +56,17 @@ export default React.memo(function Feedback(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <>
-                <SpanStyling tabIndex="0">{icon} Feedback</SpanStyling>
-                <FeedbackStyling
-                    id={id}
-                    // tabIndex="0"
-                >
-                    <a name={id} />
+        <div ref={ref}>
+            <SpanStyling tabIndex="0">{icon} Feedback</SpanStyling>
+            <FeedbackStyling
+                id={id}
+                // tabIndex="0"
+            >
+                <a name={id} />
 
-                    {SVs.feedbackText}
-                    {children}
-                </FeedbackStyling>
-            </>
-        </VisibilitySensor>
+                {SVs.feedbackText}
+                {children}
+            </FeedbackStyling>
+        </div>
     );
 });

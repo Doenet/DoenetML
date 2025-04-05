@@ -1370,7 +1370,7 @@ function gcd(x, y, ...z) {
         return gcd(x, ...z);
     }
     if (!y) {
-        return x;
+        return Math.abs(x);
     }
     return gcd(y, x % y, ...z);
 }
@@ -1382,5 +1382,5 @@ function lcm(...z) {
 
     let g = gcd(...gcdArgs);
 
-    return prod / g;
+    return Math.abs(prod / g);
 }

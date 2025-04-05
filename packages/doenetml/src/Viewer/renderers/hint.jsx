@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLightbulb as lightOff } from "@fortawesome/free-solid-svg-icons";
 import { faLightbulb as lightOn } from "@fortawesome/free-regular-svg-icons";
 import { faCaretRight as twirlIsClosed } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 import styled from "styled-components";
 import { addCommasForCompositeRanges } from "./utils/composites";
@@ -21,21 +21,9 @@ export default React.memo(function Hint(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (!SVs.showHints) {
         return null;
@@ -126,38 +114,31 @@ export default React.memo(function Hint(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <aside id={id} key={id}>
-                <a name={id} />
+        <aside id={id} key={id} ref={ref}>
+            <a name={id} />
 
-                <SpanStyling
-                    style={{
-                        display: "block",
-                        margin: SVs.open
-                            ? "12px 4px 0px 4px"
-                            : "12px 4px 12px 4px",
-                        padding: "6px",
-                        border: "2px solid var(--canvastext)",
-                        borderTopLeftRadius: "5px",
-                        borderTopRightRadius: "5px",
-                        borderBottomLeftRadius: SVs.open ? "0px" : "5px",
-                        borderBottomRightRadius: SVs.open ? "0px" : "5px",
-                        backgroundColor: "var(--mainGray)",
-                        cursor: "pointer",
-                    }}
-                    tabIndex="0"
-                    data-test="hint-heading"
-                    onClick={onClickFunction}
-                    onKeyDown={onKeyPressFunction}
-                >
-                    {" "}
-                    {icon} {title} (click to {openCloseText})
-                </SpanStyling>
-                <span style={infoBlockStyle}>{info}</span>
-            </aside>
-        </VisibilitySensor>
+            <SpanStyling
+                style={{
+                    display: "block",
+                    margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
+                    padding: "6px",
+                    border: "2px solid var(--canvastext)",
+                    borderTopLeftRadius: "5px",
+                    borderTopRightRadius: "5px",
+                    borderBottomLeftRadius: SVs.open ? "0px" : "5px",
+                    borderBottomRightRadius: SVs.open ? "0px" : "5px",
+                    backgroundColor: "var(--mainGray)",
+                    cursor: "pointer",
+                }}
+                tabIndex="0"
+                data-test="hint-heading"
+                onClick={onClickFunction}
+                onKeyDown={onKeyPressFunction}
+            >
+                {" "}
+                {icon} {title} (click to {openCloseText})
+            </SpanStyling>
+            <span style={infoBlockStyle}>{info}</span>
+        </aside>
     );
 });

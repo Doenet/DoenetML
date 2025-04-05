@@ -1,28 +1,16 @@
 import React from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
-import { useEffect } from "react";
+import { useRef } from "react";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function P(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
         return null;
@@ -39,14 +27,9 @@ export default React.memo(function P(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <p id={id}>
-                <a name={id} />
-                {children}
-            </p>
-        </VisibilitySensor>
+        <p id={id} ref={ref}>
+            <a name={id} />
+            {children}
+        </p>
     );
 });

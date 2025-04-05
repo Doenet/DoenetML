@@ -5,7 +5,9 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [
+        dts({ rollupTypes: true, exclude: ["./src/preview-window/**/*"] }),
+    ],
     base: "./",
     build: {
         outDir: path.join(__dirname, "extension", "build", "extension"),
