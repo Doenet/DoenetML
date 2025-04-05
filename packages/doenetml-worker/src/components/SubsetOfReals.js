@@ -296,7 +296,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
             let pieces = mergeIntervals(dependencyValues.subsetValue);
 
             for (let subset of pieces) {
-                if (subset.closedInterval) {
+                if (subset.type === "closedInterval") {
                     allIntervals.push(
                         me.fromAst([
                             "interval",
@@ -304,7 +304,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                             ["tuple", true, true],
                         ]),
                     );
-                } else if (subset.openClosedInterval) {
+                } else if (subset.type === "openClosedInterval") {
                     allIntervals.push(
                         me.fromAst([
                             "interval",
@@ -312,7 +312,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                             ["tuple", false, true],
                         ]),
                     );
-                } else if (subset.closedOpenInterval) {
+                } else if (subset.type === "closedOpenInterval") {
                     allIntervals.push(
                         me.fromAst([
                             "interval",
@@ -320,7 +320,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                             ["tuple", true, false],
                         ]),
                     );
-                } else if (subset instanceof subsets.OpenInterval) {
+                } else if (subset.type === "openInterval") {
                     allIntervals.push(
                         me.fromAst([
                             "interval",
@@ -328,7 +328,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                             ["tuple", false, false],
                         ]),
                     );
-                } else if (subset instanceof subsets.RealLine) {
+                } else if (subset.type === "realLine") {
                     allIntervals.push(
                         me.fromAst([
                             "interval",
@@ -336,7 +336,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                             ["tuple", false, false],
                         ]),
                     );
-                } else if (subset instanceof subsets.Singleton) {
+                } else if (subset.type === "singleton") {
                     allIsolatedPoints.push(subset.element);
                 }
             }
@@ -454,7 +454,7 @@ export function determinePointAndIntervalsFromSubset(subset) {
             return {};
         }
 
-        if (subset instanceof subsets.Union) {
+        if (subset.type === "union") {
             let points = [];
             let intervals = [];
             for (let sub2 of subset.subsets) {
@@ -466,13 +466,13 @@ export function determinePointAndIntervalsFromSubset(subset) {
             }
 
             return { points, intervals };
-        } else if (subset instanceof subsets.RealLine) {
+        } else if (subset.type === "realLine") {
             return { intervals: [[-Infinity, Infinity]] };
-        } else if (subset instanceof subsets.Singleton) {
+        } else if (subset.type === "singleton") {
             return {
                 points: [{ value: subset.element, inSubset: true }],
             };
-        } else if (subset instanceof subsets.OpenInterval) {
+        } else if (subset.type === "openInterval") {
             let intervals = [[subset.left, subset.right]];
             let points = [];
             if (Number.isFinite(subset.left)) {
