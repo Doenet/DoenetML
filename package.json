@@ -46,6 +46,7 @@
         "@microsoft/fast-web-utilities": "^6.0.0",
         "@qualified/lsp-connection": "^0.3.0",
         "@qualified/vscode-jsonrpc-ww": "^0.3.0",
+        "@rollup/plugin-dsv": "^3.0.5",
         "@reduxjs/toolkit": "^2.2.6",
         "@rollup/pluginutils": "^5.1.0",
         "@types/esprima": "^4.0.6",
