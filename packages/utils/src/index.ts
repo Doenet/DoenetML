@@ -14,10 +14,12 @@ export * from "./components/size";
 export * from "./math/array";
 export * from "./math/math";
 export * from "./math/mathexpressions";
-export * as subsets from "./math/subset-of-reals";
 export * from "./math/subset-of-reals-operations";
 export * from "./style/style";
 export * from "./url/url";
 export * from "./version/doenetMLversion";
+
+import * as subsets from "./math/subset-of-reals";
+export { subsets };
 
 export const data_format_version = "0.7.0";
