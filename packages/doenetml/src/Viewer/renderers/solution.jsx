@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import styled from "styled-components";
 import { addCommasForCompositeRanges } from "./utils/composites";
 const SpanStyling = styled.span`
@@ -26,21 +26,10 @@ export default React.memo(function Solution(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
+
     let openCloseText = "open";
 
     if (SVs.hidden) {
@@ -115,37 +104,30 @@ export default React.memo(function Solution(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <aside id={id} style={{ margin: "12px 0" }}>
-                <a name={id} />
-                <SpanStyling
-                    style={{
-                        display: "block",
-                        margin: SVs.open
-                            ? "12px 4px 0px 4px"
-                            : "12px 4px 12px 4px",
-                        padding: "6px",
-                        border: "2px solid var(--canvastext)",
-                        borderTopLeftRadius: "5px",
-                        borderTopRightRadius: "5px",
-                        borderBottomLeftRadius: SVs.open ? "0px" : "5px",
-                        borderBottomRightRadius: SVs.open ? "0px" : "5px",
-                        backgroundColor: "var(--mainGray)",
-                        cursor: "pointer",
-                    }}
-                    tabIndex="0"
-                    id={id + "_button"}
-                    onClick={onClickFunction}
-                    onKeyDown={onKeyPressFunction}
-                >
-                    {icon} {SVs.sectionName} {SVs.message} (click to{" "}
-                    {openCloseText})
-                </SpanStyling>
-                <span style={infoBlockStyle}>{childrenToRender}</span>
-            </aside>
-        </VisibilitySensor>
+        <aside id={id} style={{ margin: "12px 0" }} ref={ref}>
+            <a name={id} />
+            <SpanStyling
+                style={{
+                    display: "block",
+                    margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
+                    padding: "6px",
+                    border: "2px solid var(--canvastext)",
+                    borderTopLeftRadius: "5px",
+                    borderTopRightRadius: "5px",
+                    borderBottomLeftRadius: SVs.open ? "0px" : "5px",
+                    borderBottomRightRadius: SVs.open ? "0px" : "5px",
+                    backgroundColor: "var(--mainGray)",
+                    cursor: "pointer",
+                }}
+                tabIndex="0"
+                id={id + "_button"}
+                onClick={onClickFunction}
+                onKeyDown={onKeyPressFunction}
+            >
+                {icon} {SVs.sectionName} {SVs.message} (click to {openCloseText}
+                )
+            </SpanStyling>
+            <span style={infoBlockStyle}>{childrenToRender}</span>
+        </aside>
     );
 });

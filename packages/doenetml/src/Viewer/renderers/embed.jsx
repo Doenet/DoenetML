@@ -1,26 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function Figure(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     useEffect(() => {
         if (SVs.encodedGeogebraContent) {
@@ -75,39 +63,29 @@ export default React.memo(function Figure(props) {
 
     if (SVs.geogebra) {
         return (
-            <VisibilitySensor
-                partialVisibility={true}
-                onChange={onChangeVisibility}
-            >
-                <div className="geogebra" id={id}>
-                    <a name={id} />
-                    <iframe
-                        scrolling="no"
-                        title=""
-                        src={`https://www.geogebra.org/material/iframe/id/${SVs.geogebra}/width/${width}/height/${height}/border/888888/sfsb/true/smb/false/stb/false/stbh/false/ai/false/asb/false/sri/false/rc/false/ld/false/sdz/false/ctl/false`}
-                        width={width}
-                        height={height}
-                        style={{ border: "0px" }}
-                    >
-                        {" "}
-                    </iframe>
-                </div>
-            </VisibilitySensor>
+            <div className="geogebra" id={id} ref={ref}>
+                <a name={id} />
+                <iframe
+                    scrolling="no"
+                    title=""
+                    src={`https://www.geogebra.org/material/iframe/id/${SVs.geogebra}/width/${width}/height/${height}/border/888888/sfsb/true/smb/false/stb/false/stbh/false/ai/false/asb/false/sri/false/rc/false/ld/false/sdz/false/ctl/false`}
+                    width={width}
+                    height={height}
+                    style={{ border: "0px" }}
+                >
+                    {" "}
+                </iframe>
+            </div>
         );
     } else if (SVs.encodedGeogebraContent) {
         return (
-            <VisibilitySensor
-                partialVisibility={true}
-                onChange={onChangeVisibility}
-            >
-                <div className="javascriptapplet" id={id}>
-                    <div
-                        className="geogebrawebapplet"
-                        id={"container_" + id}
-                        style={{ minWidth: width, minHeight: height }}
-                    />
-                </div>
-            </VisibilitySensor>
+            <div className="javascriptapplet" id={id} ref={ref}>
+                <div
+                    className="geogebrawebapplet"
+                    id={"container_" + id}
+                    style={{ minWidth: width, minHeight: height }}
+                />
+            </div>
         );
     }
 

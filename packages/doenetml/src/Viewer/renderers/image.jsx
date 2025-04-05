@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext, useRef } from "react";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import VisibilitySensor from "react-visibility-sensor-v2";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
 
 export default React.memo(function Image(props) {
@@ -45,21 +45,9 @@ export default React.memo(function Image(props) {
 
     const urlOrSource = (SVs.cid ? url : SVs.source) || "";
 
-    let onChangeVisibility = (isVisible) => {
-        callAction({
-            action: actions.recordVisibilityChange,
-            args: { isVisible },
-        });
-    };
+    const ref = useRef(null);
 
-    useEffect(() => {
-        return () => {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false },
-            });
-        };
-    }, []);
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     useEffect(() => {
         if (SVs.cid) {
@@ -567,25 +555,20 @@ export default React.memo(function Image(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <div style={outerStyle}>
-                <a name={id} />
-                {urlOrSource ? (
-                    <img
-                        id={id}
-                        src={urlOrSource}
-                        style={imageStyle}
-                        alt={SVs.description}
-                    />
-                ) : (
-                    <div id={id} style={imageStyle}>
-                        {SVs.description}
-                    </div>
-                )}
-            </div>
-        </VisibilitySensor>
+        <div style={outerStyle} ref={ref}>
+            <a name={id} />
+            {urlOrSource ? (
+                <img
+                    id={id}
+                    src={urlOrSource}
+                    style={imageStyle}
+                    alt={SVs.description}
+                />
+            ) : (
+                <div id={id} style={imageStyle}>
+                    {SVs.description}
+                </div>
+            )}
+        </div>
     );
 });

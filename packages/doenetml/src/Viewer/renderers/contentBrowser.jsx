@@ -1,9 +1,9 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import VisibilitySensor from "react-visibility-sensor-v2";
 import { DocContext } from "../DocViewer";
 import { cesc } from "@doenet/utils";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function ContentBrowser(props) {
     let { name, id, SVs, children, actions, callAction } =
@@ -14,14 +14,9 @@ export default React.memo(function ContentBrowser(props) {
     let search = location.search || "";
     let hash = location.hash || "";
 
-    let onChangeVisibility = (isVisible) => {
-        if (actions.recordVisibilityChange) {
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible },
-            });
-        }
-    };
+    const ref = useRef(null);
+
+    useRecordVisibilityChanges(ref, callAction, actions);
 
     let setSelectedItemInd = (ind) => {
         callAction({
@@ -29,17 +24,6 @@ export default React.memo(function ContentBrowser(props) {
             args: { ind },
         });
     };
-
-    useEffect(() => {
-        return () => {
-            if (actions.recordVisibilityChange) {
-                callAction({
-                    action: actions.recordVisibilityChange,
-                    args: { isVisible: false },
-                });
-            }
-        };
-    }, []);
 
     useEffect(() => {
         // Check to see if hash contains the component name of one of the items of the browser.
@@ -161,18 +145,13 @@ export default React.memo(function ContentBrowser(props) {
     }
 
     return (
-        <VisibilitySensor
-            partialVisibility={true}
-            onChange={onChangeVisibility}
-        >
-            <div id={id}>
-                <a name={id} />
-                <div style={{ display: "flex" }} data-test="initials">
-                    Filter by: {initials}
-                </div>
-                {labelPicker}
-                {children}
+        <div id={id} ref={ref}>
+            <a name={id} />
+            <div style={{ display: "flex" }} data-test="initials">
+                Filter by: {initials}
             </div>
-        </VisibilitySensor>
+            {labelPicker}
+            {children}
+        </div>
     );
 });
