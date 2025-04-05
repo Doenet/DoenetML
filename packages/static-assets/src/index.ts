@@ -3,7 +3,9 @@ import _doenetRelaxngSchema from "./generated/doenet-relaxng-schema.json";
 import _ENTITY_MAP from "./generated/entity-map.json";
 import mathAssets from "./generated/math-assets.json";
 const ENTITY_MAP: Record<string, string> = _ENTITY_MAP;
-import atomDatabase from "./data/atom-database.csv";
+//@ts-ignore
+import _atomDatabase from "./data/atom-database.csv";
+const atomDatabase = _atomDatabase as Record<string, string>[];
 
 export type SchemaProperty = {
     name: string;
