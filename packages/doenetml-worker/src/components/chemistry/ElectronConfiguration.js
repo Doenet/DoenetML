@@ -1,3 +1,4 @@
+import { superSubscriptsToUnicode } from "../../utils/math";
 import MathComponent from "../Math";
 
 export default class ElectronConfiguration extends MathComponent {
@@ -10,7 +11,7 @@ export default class ElectronConfiguration extends MathComponent {
         stateVariableDefinitions.latex = {
             public: true,
             shadowingInstructions: {
-                createComponentOfType: "text",
+                createComponentOfType: "latex",
             },
             returnDependencies: () => ({
                 valueForDisplay: {
@@ -18,7 +19,7 @@ export default class ElectronConfiguration extends MathComponent {
                     variableName: "valueForDisplay",
                 },
             }),
-            definition: function ({ dependencyValues, usedDefault }) {
+            definition: function ({ dependencyValues }) {
                 let latex;
                 try {
                     latex = dependencyValues.valueForDisplay.toLatex();
@@ -28,6 +29,32 @@ export default class ElectronConfiguration extends MathComponent {
                 latex = latex.replaceAll("\\,", "");
                 latex = latex.replaceAll("\\cdot", "~");
                 return { setValue: { latex } };
+            },
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                valueForDisplay: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueForDisplay",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let text;
+                try {
+                    text = superSubscriptsToUnicode(
+                        dependencyValues.valueForDisplay.toString(),
+                    );
+                } catch (e) {
+                    text = "\uff3f";
+                }
+                text = text.replaceAll(" ", "");
+                text = text.replaceAll("*", " ");
+                return { setValue: { text } };
             },
         };
 

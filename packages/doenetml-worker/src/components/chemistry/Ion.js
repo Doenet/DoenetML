@@ -4,6 +4,7 @@ import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
+import { getDataForAtom } from "../../utils/chemistry";
 
 export default class Ion extends InlineComponent {
     static componentType = "ion";
@@ -80,11 +81,6 @@ export default class Ion extends InlineComponent {
 
         stateVariableDefinitions.dataForAtom = {
             returnDependencies: () => ({
-                fileContents: {
-                    dependencyType: "file",
-                    cid: "bafkreibilal4glrbpo7p7oodtwtnzkfhiylfoqa2td4ij6h6iqva57kzcy",
-                    fileType: "csv",
-                },
                 symbolAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "symbol",
@@ -105,7 +101,6 @@ export default class Ion extends InlineComponent {
                     variableName: "atomicNumberShadow",
                 },
             }),
-
             definition: function ({ dependencyValues }) {
                 let symbol = null,
                     atomicNumber = null;
@@ -124,211 +119,7 @@ export default class Ion extends InlineComponent {
                     return { setValue: { dataForAtom: null } };
                 }
 
-                let allRowData = dependencyValues.fileContents
-                    .trim()
-                    .split("\n");
-
-                let rowInd;
-
-                if (atomicNumber !== null) {
-                    rowInd = atomicNumber - 1;
-                } else {
-                    rowInd = [
-                        "h",
-                        "he",
-                        "li",
-                        "be",
-                        "b",
-                        "c",
-                        "n",
-                        "o",
-                        "f",
-                        "ne",
-                        "na",
-                        "mg",
-                        "al",
-                        "si",
-                        "p",
-                        "s",
-                        "cl",
-                        "ar",
-                        "k",
-                        "ca",
-                        "sc",
-                        "ti",
-                        "v",
-                        "cr",
-                        "mn",
-                        "fe",
-                        "co",
-                        "ni",
-                        "cu",
-                        "zn",
-                        "ga",
-                        "ge",
-                        "as",
-                        "se",
-                        "br",
-                        "kr",
-                        "rb",
-                        "sr",
-                        "y",
-                        "zr",
-                        "nb",
-                        "mo",
-                        "tc",
-                        "ru",
-                        "rh",
-                        "pd",
-                        "ag",
-                        "cd",
-                        "in",
-                        "sn",
-                        "sb",
-                        "te",
-                        "i",
-                        "xe",
-                        "cs",
-                        "ba",
-                        "la",
-                        "ce",
-                        "pr",
-                        "nd",
-                        "pm",
-                        "sm",
-                        "eu",
-                        "gd",
-                        "tb",
-                        "dy",
-                        "ho",
-                        "er",
-                        "tm",
-                        "yb",
-                        "lu",
-                        "hf",
-                        "ta",
-                        "w",
-                        "re",
-                        "os",
-                        "ir",
-                        "pt",
-                        "au",
-                        "hg",
-                        "tl",
-                        "pb",
-                        "bi",
-                        "po",
-                        "at",
-                        "rn",
-                        "fr",
-                        "ra",
-                        "ac",
-                        "th",
-                        "pa",
-                        "u",
-                        "np",
-                        "pu",
-                        "am",
-                        "cm",
-                        "bk",
-                        "cf",
-                        "es",
-                        "fm",
-                        "md",
-                        "no",
-                        "lr",
-                        "rf",
-                        "db",
-                        "sg",
-                        "bh",
-                        "hs",
-                        "mt",
-                        "ds",
-                        "rg",
-                        "cn",
-                        "nh",
-                        "fl",
-                        "mc",
-                        "lv",
-                        "ts",
-                        "og",
-                    ].indexOf(symbol?.toLowerCase());
-                }
-
-                let rowData = allRowData.slice(1)[rowInd];
-                if (!rowData) {
-                    return { setValue: { dataForAtom: null } };
-                }
-
-                rowData = rowData
-                    .trim()
-                    .split(",")
-                    .map((y) => y.trim());
-
-                let columnNames = allRowData[0]
-                    .trim()
-                    .split(",")
-                    .map((y) => y.trim())
-                    .map((value) => {
-                        if (
-                            [`"`, `'`].includes(value[0]) &&
-                            value[value.length - 1] === value[0]
-                        ) {
-                            value = value.substring(1, value.length - 1).trim();
-                        }
-                        return value;
-                    });
-
-                let numColumns = columnNames.length;
-
-                let columnTypes = [
-                    "number",
-                    "string",
-                    "string",
-                    "number",
-                    "number",
-                    "string",
-                    "number",
-                    "string",
-                    "string",
-                    "number",
-                    "number",
-                    "number",
-                    "number",
-                    "number",
-                    "number",
-                    "number",
-                    "string",
-                ];
-
-                let dataForAtom = {};
-                for (let colInd = 0; colInd < numColumns; colInd++) {
-                    let colName = columnNames[colInd];
-                    let prescribedType = columnTypes[colInd];
-                    let value;
-                    if (prescribedType === "number") {
-                        value = rowData[colInd];
-                        if (value === "") {
-                            value = NaN;
-                        } else {
-                            value = Number(value);
-                        }
-                    } else {
-                        value = rowData[colInd];
-                        if (
-                            [`"`, `'`].includes(value[0]) &&
-                            value[value.length - 1] === value[0]
-                        ) {
-                            value = value.substring(1, value.length - 1);
-                        }
-                    }
-                    if (colName === "Electron Configuration") {
-                        dataForAtom[colName] = me.fromText(value);
-                    } else {
-                        dataForAtom[colName] = value;
-                    }
-                }
-
+                let dataForAtom = getDataForAtom({ symbol, atomicNumber });
                 return { setValue: { dataForAtom } };
             },
         };
@@ -626,16 +417,24 @@ export default class Ion extends InlineComponent {
                 let tree;
 
                 if (dependencyValues.symbol) {
-                    tree = ["^", dependencyValues.symbol];
+                    tree = dependencyValues.symbol;
 
                     if (dependencyValues.charge === -1) {
-                        tree.push("-");
+                        tree = ["^", tree, "-"];
                     } else if (dependencyValues.charge === 1) {
-                        tree.push("+");
+                        tree = ["^", tree, "+"];
                     } else if (dependencyValues.charge < 0) {
-                        tree.push(Math.abs(dependencyValues.charge) + "-");
+                        tree = [
+                            "^",
+                            tree,
+                            Math.abs(dependencyValues.charge) + "-",
+                        ];
                     } else if (dependencyValues.charge > 0) {
-                        tree.push(Math.abs(dependencyValues.charge) + "+");
+                        tree = [
+                            "^",
+                            tree,
+                            Math.abs(dependencyValues.charge) + "+",
+                        ];
                     }
                 } else {
                     tree = "\uff3f";
@@ -683,6 +482,45 @@ export default class Ion extends InlineComponent {
                 }
                 return {
                     setValue: { latex },
+                };
+            },
+        };
+
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                symbol: {
+                    dependencyType: "stateVariable",
+                    variableName: "symbol",
+                },
+                charge: {
+                    dependencyType: "stateVariable",
+                    variableName: "charge",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let text;
+                if (dependencyValues.symbol) {
+                    text = dependencyValues.symbol;
+                    if (dependencyValues.charge === -1) {
+                        text = text + `^-`;
+                    } else if (dependencyValues.charge === 1) {
+                        text = text + `^+`;
+                    } else if (dependencyValues.charge < 0) {
+                        text =
+                            text + `^(${Math.abs(dependencyValues.charge)}-)`;
+                    } else if (dependencyValues.charge > 0) {
+                        text =
+                            text + `^(${Math.abs(dependencyValues.charge)}+)`;
+                    }
+                } else {
+                    text = "[Invalid Chemical Symbol]";
+                }
+                return {
+                    setValue: { text },
                 };
             },
         };
