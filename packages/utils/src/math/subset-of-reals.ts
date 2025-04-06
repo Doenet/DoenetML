@@ -10,6 +10,15 @@
 //@ts-ignore
 import me from "math-expressions";
 
+/**
+ * The interface for the subset-of-reals object.
+ *
+ * The interface is implemented for these types:
+ * `invalid`, `empty`, `realLine`, `singleton`, `openInterval`, and `union`.
+ *
+ * The subsets of reals captured by `subset-of-reals` can be represented by those types,
+ * where `union` is a union of singletons and open intervals.
+ */
 export namespace Interfaces {
     export interface SubsetMethods {
         union: (that: Subset) => Subset;
@@ -71,6 +80,10 @@ export function isSubset(obj: unknown) {
     );
 }
 
+/**
+ * Helper functions for implementing methods of the interface
+ * on the majority of subset types
+ */
 const genericMethods = {
     union: function (A: Interfaces.Subset, B: Interfaces.Subset) {
         return A.complement().intersect(B.complement()).complement();
@@ -110,6 +123,10 @@ const genericMethods = {
     },
 };
 
+/**
+ * Reviver function than can be used with `JSON.parse()` to revive a subset of reals
+ * from the JSON object produced by the `.toJSON()` method.
+ */
 export function subsetReviver(_key: any, value: unknown): any {
     if (
         typeof value === "object" &&
@@ -169,6 +186,9 @@ export function subsetReviver(_key: any, value: unknown): any {
     return value;
 }
 
+/**
+ * The classes that implement the subset of real interface.
+ */
 const Constructors = {
     EmptySet: class implements Interfaces.EmptySet {
         type = "empty" as const;
@@ -619,6 +639,13 @@ const Constructors = {
         }
     },
 };
+
+//////////////////////////////////////////////////////////////////////////////
+// The functions to create new instances of subset of reals objects.
+// We provide these functions:
+// `InvalidSet`, `EmptySet`, `RealLine`, `Singleton`, `OpenInterval`, `Union`,
+// `ClosedInterval`, `OpenClosedInterval`, and `ClosedOpenInterval`.
+//////////////////////////////////////////////////////////////////////////////
 
 export function EmptySet(): Interfaces.Subset {
     return new Constructors.EmptySet();
