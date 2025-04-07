@@ -30,8 +30,9 @@ export default defineWorkspace([
             include: ["test/*.test.browser.ts"],
             browser: {
                 enabled: true,
-                name: "chrome",
                 headless: true,
+                provider: "webdriverio",
+                instances: [{ browser: "chrome" }],
             },
             testTimeout: 20000,
         },
