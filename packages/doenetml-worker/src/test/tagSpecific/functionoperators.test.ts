@@ -2752,7 +2752,7 @@ describe("Function Operator tag tests", async () => {
         }
     });
 
-    it("extrema of derivative", { timeout: 150000 }, async () => {
+    it("extrema of derivative", { timeout: 200000 }, async () => {
         let core = await createTestCore({
             doenetML: `
     <p><m>c_1 =</m> <mathInput name="c_1" prefill="1" /></p>

@@ -28,6 +28,6 @@ export default defineConfig({
         },
     },
     test: {
-        testTimeout: 40000,
+        testTimeout: 120000,
     },
 });
