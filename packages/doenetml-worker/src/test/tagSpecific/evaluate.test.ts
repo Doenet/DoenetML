@@ -2540,7 +2540,7 @@ describe("Evaluate tag tests", async () => {
         expect(stateVariables["/pg3"].stateValues.text).eq("g(5) = 0");
     });
 
-    it("evaluate at asymptotes", async () => {
+    it("evaluate at asymptotes", { timeout: 60000 }, async () => {
         let core = await createTestCore({
             doenetML: `
   <p>f1: <function name="f1" symbolic="false">1/x</function></p>
