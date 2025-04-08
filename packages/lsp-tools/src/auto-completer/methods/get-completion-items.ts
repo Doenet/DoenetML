@@ -64,7 +64,7 @@ export function getCompletionItems(
         // We're in the close tag name. Suggest the close tag name.
         return [
             {
-                label: element.name,
+                label: `/${element.name}>`,
                 kind: CompletionItemKind.Property,
             },
         ];
@@ -77,33 +77,39 @@ export function getCompletionItems(
         containingElement.node &&
         prevChar === "<"
     ) {
+        const allowedChildren = this._getAllowedChildren(
+            containingElement.node.name,
+        ).map((name) => ({
+            label: name,
+            kind: CompletionItemKind.Property,
+        }));
         if (closed) {
             // We're in the body of an element. Suggest all allowed children.
-            return this._getAllowedChildren(containingElement.node.name).map(
-                (name) => ({
-                    label: name,
-                    kind: CompletionItemKind.Property,
-                }),
-            );
+            return allowedChildren;
         }
-        // We are the child of a non-closed tag. Suggest the close tag.
+        // We are the child of a non-closed tag. Suggest the close tag or allowed children
         return [
             {
                 label: `/${element.name}>`,
                 kind: CompletionItemKind.Property,
             },
+            ...allowedChildren,
         ];
     }
+
+    // Suggest closing tag after "</"
     if (
-        cursorPosition === "body" &&
-        containingElement.node &&
         prevPrevChar === "<" &&
         prevChar === "/" &&
-        !closed
+        containingElement.node &&
+        !closed &&
+        (cursorPosition === "body" ||
+            (cursorPosition === "unknown" &&
+                this.sourceObj.source.charAt(offset).match(/(\s|\n)/)))
     ) {
         return [
             {
-                label: `${element.name}>`,
+                label: `/${element.name}>`,
                 kind: CompletionItemKind.Property,
             },
         ];
