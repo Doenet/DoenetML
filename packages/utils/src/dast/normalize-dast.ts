@@ -14,7 +14,7 @@ import { pluginConvertPretextAttributes } from "./convert-pretext-attributes";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
- * As well, remove commends and XML-valid but not-useful-for-DoenetML nodes like XML instructions and doctypes.
+ * As well, remove comments and XML-valid but not-useful-for-DoenetML nodes like XML instructions and doctypes.
  */
 export function normalizeDocumentDast(dast: DastRoot) {
     const processor = unified()

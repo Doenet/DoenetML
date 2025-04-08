@@ -1,5 +1,5 @@
 import { lezerToDast, filterPositionInfo } from "@doenet/parser";
-import { normalizeDocumentDast } from "../../src/state/redux-slices/dast/utils/normalize-dast";
+import { normalizeDocumentDast } from "@doenet/utils";
 import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker-rust";
 import * as Comlink from "comlink";
 import { doenetGlobalConfig } from "../../src/global-config";

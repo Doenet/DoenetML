@@ -5,6 +5,7 @@ import React, {
     ReactNode,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from "react";
@@ -15,14 +16,23 @@ import {
     cesc,
     data_format_version,
     cidFromText,
+    normalizeDocumentDast,
 } from "@doenet/utils";
+import { lezerToDast } from "@doenet/parser";
+
 import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get } from "idb-keyval";
-import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
+import {
+    createCoreWorker,
+    createRustCoreWorker,
+    initializeCoreWorker,
+} from "../utils/docUtils";
+import type { CoreWorker as RustCoreWorker } from "@doenet/doenetml-worker-rust";
 import { DoenetMLFlags } from "../doenetml";
 import { Icon } from "@chakra-ui/react";
+import { Remote } from "comlink";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -281,6 +291,7 @@ export function DocViewer({
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
     const [coreWorker, setCoreWorker] = useState<Worker | null>(null);
+    const rustCoreWorker = useMemo(() => createRustCoreWorker(), []);
 
     let hash = location.hash;
 
@@ -306,6 +317,20 @@ export function DocViewer({
             setCoreWorker(newCoreWorker);
 
             try {
+                const dast = normalizeDocumentDast(lezerToDast(doenetML));
+                await rustCoreWorker.setSource({
+                    source: doenetML,
+                    dast,
+                });
+
+                const normalized_root =
+                    await rustCoreWorker.returnNormalizedRoot();
+
+                console.log(
+                    "Now, initialize worker with this root:",
+                    normalized_root,
+                );
+
                 await initializeCoreWorker({
                     coreWorker: newCoreWorker,
                     doenetML,

@@ -1,9 +1,6 @@
 import { describe, expect, it, afterAll } from "vitest";
 import util from "util";
-import { lezerToDast, toXml } from "@doenet/parser";
 import { toXml as xastToXml } from "xast-util-to-xml";
-import { normalizeDocumentDast } from "../src/state/redux-slices/dast/utils/normalize-dast";
-import { ensurePretextTag } from "../src/utils/pretext/ensure-pretext-tag";
 import { FlatDastRoot } from "@doenet/doenetml-worker-rust";
 import { renderToPretext } from "../src/utils/pretext/render-to-pretext";
 import { RunThroughCore } from "./utils/run-through-core";

@@ -2,6 +2,8 @@
 //! To get to normalized form, all refs and function refs must be expanded.
 
 use serde::Serialize;
+#[cfg(feature = "web")]
+use tsify_next::Tsify;
 
 use super::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent};
 
@@ -77,6 +79,8 @@ impl NormalizedNode {
 /// These references are untagged, so the type of each node may be mutated and the reference remains valid.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct NormalizedRoot {
     pub children: Vec<UntaggedContent>,
     pub nodes: Vec<NormalizedNode>,

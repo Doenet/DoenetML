@@ -11,6 +11,7 @@ import type {
     FlatDastRoot,
     DastError,
     FlatDastElement,
+    NormalizedRoot,
 } from "lib-doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
 
@@ -98,6 +99,27 @@ export class CoreWorker {
         this.flags_set = true;
 
         resolve();
+    }
+
+    async returnNormalizedRoot(): Promise<NormalizedRoot> {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.doenetCore) {
+            throw Error("Cannot return normalized root before setting source");
+        }
+        try {
+            let normalized_root = this.doenetCore.return_normalized_dast_root();
+            return normalized_root;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
     }
 
     async returnDast(): Promise<FlatDastRootWithErrors> {

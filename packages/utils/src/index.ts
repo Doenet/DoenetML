@@ -18,6 +18,7 @@ export * from "./math/subset-of-reals-operations";
 export * from "./style/style";
 export * from "./url/url";
 export * from "./version/doenetMLversion";
+export * from "./dast/normalize-dast";
 
 import * as subsets from "./math/subset-of-reals";
 export { subsets };

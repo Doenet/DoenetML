@@ -1,10 +1,22 @@
 import { DoenetMLFlags } from "../doenetml";
 import { doenetGlobalConfig } from "../global-config";
+import * as Comlink from "comlink";
+import type { CoreWorker as RustCoreWorker } from "@doenet/doenetml-worker-rust";
 
 export function createCoreWorker() {
     return new Worker(doenetGlobalConfig.doenetWorkerUrl, {
         type: "classic",
     });
+}
+
+/**
+ * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
+ */
+export function createRustCoreWorker() {
+    const worker = new Worker(doenetGlobalConfig.doenetRustWorkerUrl, {
+        type: "classic",
+    });
+    return Comlink.wrap(worker) as Comlink.Remote<RustCoreWorker>;
 }
 
 export function initializeCoreWorker({
