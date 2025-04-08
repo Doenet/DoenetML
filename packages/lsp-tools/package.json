@@ -43,7 +43,7 @@
     },
     "devDependencies": {},
     "dependencies": {
-        "mdast-util-to-markdown": "^2.1.0",
+        "mdast-util-to-markdown": "^2.1.2",
         "mdast-util-to-string": "^4.0.0"
     }
 }

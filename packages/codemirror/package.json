@@ -46,15 +46,15 @@
     },
     "dependencies": {
         "codemirror": "6.0.1",
-        "@codemirror/commands": "^6.6.0",
+        "@codemirror/commands": "^6.8.1",
         "@codemirror/lang-xml": "^6.1.0",
-        "@codemirror/language": "^6.10.2",
+        "@codemirror/language": "^6.11.0",
         "@codemirror/state": "^6.4.1",
         "@codemirror/view": "^6.28.4",
-        "@lezer/common": "^1.2.1",
-        "@lezer/highlight": "^1.2.0",
-        "@lezer/lr": "^1.4.1",
-        "@lezer/xml": "^1.0.5"
+        "@lezer/common": "^1.2.3",
+        "@lezer/highlight": "^1.2.1",
+        "@lezer/lr": "^1.4.2",
+        "@lezer/xml": "^1.0.6"
     },
     "devDependencies": {}
 }

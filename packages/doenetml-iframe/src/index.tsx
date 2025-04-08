@@ -2,8 +2,7 @@ import React from "react";
 
 import { watchForResize } from "./resize-watcher";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { MdError } from "react-icons/md";
 import { findAllNewlines, getLineCharRange } from "@doenet/utils";
 import type { ErrorDescription, WarningDescription } from "@doenet/utils";
 import {
@@ -213,9 +212,11 @@ export function DoenetViewer({
         }
 
         let errorIcon = (
-            <span style={{ fontSize: "1em", color: "#C1292E" }}>
-                <FontAwesomeIcon icon={faExclamationCircle} />
-            </span>
+            <MdError
+                fontSize="24pt"
+                color="#C1292E"
+                style={{ verticalAlign: "middle" }}
+            />
         );
         return (
             <div
@@ -389,9 +390,11 @@ export function DoenetEditor({
         }
 
         let errorIcon = (
-            <span style={{ fontSize: "1em", color: "#C1292E" }}>
-                <FontAwesomeIcon icon={faExclamationCircle} />
-            </span>
+            <MdError
+                fontSize="24pt"
+                color="#C1292E"
+                style={{ verticalAlign: "middle", marginRight: "5px" }}
+            />
         );
         return (
             <div

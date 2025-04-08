@@ -30,8 +30,10 @@ export default defineWorkspace([
             include: ["test/*.test.browser.ts"],
             browser: {
                 enabled: true,
-                name: "chrome",
                 headless: true,
+                provider: "webdriverio",
+                name: "chrome",
+                // instances: [{ browser: "chrome" }],  (for when upgrade vitest again)
             },
             testTimeout: 20000,
         },

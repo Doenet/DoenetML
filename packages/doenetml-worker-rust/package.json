@@ -96,11 +96,11 @@
         }
     },
     "devDependencies": {
-        "@vitest/browser": "^1.6.0",
-        "node-stdlib-browser": "^1.2.0",
+        "@vitest/browser": "^1.6.1",
+        "node-stdlib-browser": "^1.3.1",
         "rollup-plugin-polyfill-node": "^0.13.0",
-        "vite": "^5.3.3",
-        "vite-plugin-static-copy": "^1.0.6",
-        "webdriverio": "^8.39.1"
+        "vite": "^5.4.17",
+        "vite-plugin-static-copy": "^2.3.0",
+        "webdriverio": "^9.12.4"
     }
 }

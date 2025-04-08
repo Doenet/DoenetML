@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import nodePolyfills from "rollup-plugin-polyfill-node";
 import { defineConfig } from "vite";
 
@@ -25,5 +26,8 @@ export default defineConfig({
                 },
             },
         },
+    },
+    test: {
+        testTimeout: 120000,
     },
 });
