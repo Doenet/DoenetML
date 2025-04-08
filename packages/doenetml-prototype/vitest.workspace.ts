@@ -32,7 +32,8 @@ export default defineWorkspace([
                 enabled: true,
                 headless: true,
                 provider: "webdriverio",
-                instances: [{ browser: "chrome" }],
+                name: "chrome",
+                // instances: [{ browser: "chrome" }],  (for when upgrade vitest again)
             },
             testTimeout: 20000,
         },
