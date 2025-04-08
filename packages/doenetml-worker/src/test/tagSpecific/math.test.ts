@@ -7508,6 +7508,20 @@ describe("Math tag tests", async () => {
         );
     });
 
+    it("simplify integer square root", async () => {
+        let core = await createTestCore({
+            doenetML: `
+          <math simplify name="e1">sqrt(40)</math>
+          `,
+        });
+
+        let stateVariables = await returnAllStateVariables(core);
+
+        expect(cleanLatex(stateVariables["/e1"].stateValues.latex)).eq(
+            "2\\sqrt{10}",
+        );
+    });
+
     it("parse scientific notation", async () => {
         let core = await createTestCore({
             doenetML: `
