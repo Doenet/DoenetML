@@ -21,17 +21,6 @@ export default defineConfig({
                     ),
                     dest: "doenetml-worker/",
                 },
-                {
-                    src: path.join(
-                        require.resolve("@doenet/doenetml-prototype"),
-                        "../fonts/*",
-                    ),
-                    dest: "fonts/",
-                },
-                {
-                    src: "./media/*",
-                    dest: "media/",
-                },
             ],
         }),
     ],

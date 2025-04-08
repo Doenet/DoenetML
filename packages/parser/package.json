@@ -41,17 +41,17 @@
         }
     },
     "dependencies": {
-        "@lezer/common": "^1.2.1",
-        "@lezer/generator": "^1.7.0",
-        "@lezer/lr": "^1.4.1",
+        "@lezer/common": "^1.2.3",
+        "@lezer/generator": "^1.7.3",
+        "@lezer/lr": "^1.4.2",
         "@types/xast": "^2.0.4",
-        "peggy": "^4.0.2",
+        "peggy": "^4.2.0",
         "prettier-plugin-pegjs": "^2.0.2",
-        "unified": "^11.0.4",
+        "unified": "^11.0.5",
         "xast-util-to-xml": "^4.0.0",
         "source-map-generator": "0.8.0"
     },
     "devDependencies": {
-        "react18-json-view": "^0.2.8"
+        "react18-json-view": "^0.2.9"
     }
 }

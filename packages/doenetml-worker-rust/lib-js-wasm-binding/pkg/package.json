@@ -1,5 +1,6 @@
 {
   "name": "lib-doenetml-worker-rust",
+  "type": "module",
   "collaborators": [
     "Duane Nykamp <nykamp@umn.edu>"
   ],
@@ -10,7 +11,7 @@
     "lib_doenetml_worker_rust.js",
     "lib_doenetml_worker_rust.d.ts"
   ],
-  "module": "lib_doenetml_worker_rust.js",
+  "main": "lib_doenetml_worker_rust.js",
   "types": "lib_doenetml_worker_rust.d.ts",
   "sideEffects": [
     "./snippets/*"

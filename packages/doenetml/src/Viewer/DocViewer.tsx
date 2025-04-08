@@ -16,13 +16,13 @@ import {
     data_format_version,
     cidFromText,
 } from "@doenet/utils";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import { DoenetMLFlags } from "../doenetml";
+import { Icon } from "@chakra-ui/react";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -1427,9 +1427,13 @@ export function DocViewer({
 
     if (errMsg !== null) {
         let errorIcon = (
-            <span style={{ fontSize: "1em", color: "#C1292E" }}>
-                <FontAwesomeIcon icon={faExclamationCircle} />
-            </span>
+            <Icon
+                fontSize="24pt"
+                color="red.800"
+                as={MdError}
+                verticalAlign="middle"
+                marginRight="5px"
+            />
         );
         return (
             <div

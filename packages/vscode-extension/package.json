@@ -79,11 +79,11 @@
         }
     },
     "devDependencies": {
-        "@types/vscode": "^1.90.0",
+        "@types/vscode": "^1.99.0",
         "@types/vscode-webview": "^1.57.5",
         "@vscode/webview-ui-toolkit": "^1.4.0",
         "vscode-languageclient": "^9.0.1",
-        "vscode-languageserver-textdocument": "^1.0.11",
-        "@vscode/test-electron": "^2.4.0"
+        "vscode-languageserver-textdocument": "^1.0.12",
+        "@vscode/test-electron": "^2.4.1"
     }
 }

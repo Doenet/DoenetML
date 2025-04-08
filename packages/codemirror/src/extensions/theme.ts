@@ -33,7 +33,7 @@ export const colorTheme = EditorView.theme({
         border: "none",
     },
     ".cm-activeLine": {
-        backgroundColor: "var(--mainGray)",
+        backgroundColor: "#50505020",
         color: "black",
     },
 });
@@ -46,10 +46,10 @@ export const readOnlyColorTheme = EditorView.theme({
     ".cm-content": {
         caretColor: "#0e9",
         borderDownColor: "var(--canvastext)",
+        backgroundColor: "#77777720",
     },
     ".cm-editor": {
         caretColor: "#0e9",
-        backgroundColor: "var(--canvas)",
     },
     "&.cm-focused .cm-cursor": {
         backgroundColor: "var(--lightBlue)",
@@ -74,7 +74,6 @@ export const readOnlyColorTheme = EditorView.theme({
         color: "black",
     },
     ".cm-line": {
-        backgroundColor: "#f0f0f0",
-        color: "#444444",
+        color: "#666666",
     },
 });
