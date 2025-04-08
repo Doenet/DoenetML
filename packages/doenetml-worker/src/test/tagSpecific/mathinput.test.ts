@@ -7018,7 +7018,7 @@ describe("MathInput tag tests", async () => {
         stateVariables = await returnAllStateVariables(core);
 
         expect(cleanLatex(stateVariables["/iv1"].stateValues.latex)).eq(
-            "(\\frac{a}{b})\\int_{a}^{b}f(x)dx",
+            "\\frac{a}{b}\\int_{a}^{b}f(x)dx",
         );
         expect(stateVariables["/pr1"].stateValues.text).eq(
             "Raw value: \\frac{a}{b} \\int_a^b f(x) dx",

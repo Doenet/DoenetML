@@ -4345,7 +4345,7 @@ describe("Math operator tests", async () => {
         expect(
             stateVariables["/numbersForceSymbolicSimplify"].stateValues.value
                 .tree,
-        ).eqls(["apply", "sqrt", 76]);
+        ).eqls(["*", 2, ["apply", "sqrt", 19]]);
         expect(
             stateVariables["/numbersForceSymbolicSimplify"].stateValues
                 .isNumber,
@@ -4368,7 +4368,7 @@ describe("Math operator tests", async () => {
         expect(
             stateVariables["/numbersWithNumberMathForceSymbolicSimplify"]
                 .stateValues.value.tree,
-        ).eqls(["apply", "sqrt", 76]);
+        ).eqls(["*", 2, ["apply", "sqrt", 19]]);
         expect(
             stateVariables["/numbersWithNumberMathForceSymbolic"].stateValues
                 .isNumber,
@@ -4392,7 +4392,7 @@ describe("Math operator tests", async () => {
         expect(
             stateVariables["/numbersWithNumericMathSimplify"].stateValues.value
                 .tree,
-        ).eqls(["apply", "sqrt", 76]);
+        ).eqls(["*", 2, ["apply", "sqrt", 19]]);
         expect(
             stateVariables["/numbersWithNumericMathSimplify"].stateValues
                 .isNumericOperator,
