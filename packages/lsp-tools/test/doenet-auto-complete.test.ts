@@ -130,13 +130,13 @@ describe("AutoCompleter", () => {
               [
                 {
                   "kind": 10,
-                  "label": "a>",
+                  "label": "/a>",
                 },
               ]
             `);
         }
     });
-    it.skip("Can suggest closing tag completion when there is no closing tag at document end", () => {
+    it("Can suggest closing tag completion when there is no closing tag at document end", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -163,13 +163,13 @@ describe("AutoCompleter", () => {
               [
                 {
                   "kind": 10,
-                  "label": "a>",
+                  "label": "/a>",
                 },
               ]
             `);
         }
     });
-    it("Can suggest completions after a `<`", () => {
+    it("Can suggest completions after a top level `<`", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -226,7 +226,7 @@ describe("AutoCompleter", () => {
             `);
         }
     });
-    it.skip("Can suggest completions for closing tags at the end of the string", () => {
+    it("Can suggest completions for closing tags at the end of the string", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 
@@ -241,11 +241,23 @@ describe("AutoCompleter", () => {
                   "kind": 10,
                   "label": "/aa>",
                 },
+                {
+                  "kind": 10,
+                  "label": "b",
+                },
+                {
+                  "kind": 10,
+                  "label": "c",
+                },
+                {
+                  "kind": 10,
+                  "label": "d",
+                },
               ]
             `);
         }
     });
-    it.skip("Closing tag suggestions are offered if there is whitespace after the `/` even if there is text", () => {
+    it("Closing tag suggestions are offered if there is whitespace after the `/` even if there is text", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
 

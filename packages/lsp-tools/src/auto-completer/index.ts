@@ -40,7 +40,9 @@ export class AutoCompleter {
         schema: ElementSchema[] = doenetSchema.elements,
     ) {
         if (source != null) {
-            this.sourceObj.setSource(source);
+            // Adding a space at the end of the source so that a final "<"
+            // will be parsed as a text "<" rather than an invalid element.
+            this.sourceObj.setSource(source + " ");
         }
         if (schema) {
             this.setSchema(schema);
@@ -149,7 +151,7 @@ export class AutoCompleter {
      * Set the DoenetML source string. All future queries will be run on this source.
      */
     setSource(source: string) {
-        this.sourceObj.setSource(source);
+        this.sourceObj.setSource(source + " ");
         return this;
     }
 
