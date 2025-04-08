@@ -40,6 +40,8 @@ export class AutoCompleter {
         schema: ElementSchema[] = doenetSchema.elements,
     ) {
         if (source != null) {
+            // Adding a space at the end of the source so that a final "<"
+            // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
         if (schema) {
