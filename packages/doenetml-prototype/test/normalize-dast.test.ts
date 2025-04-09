@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
-import { lezerToDast, toXml } from "@doenet/parser";
-import { normalizeDocumentDast } from "@doenet/utils";
+import { lezerToDast, toXml, normalizeDocumentDast } from "@doenet/parser";
 
 const origLog = console.log;
 console.log = (...args) => {

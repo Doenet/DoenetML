@@ -1,8 +1,11 @@
-import { extractDastErrors, lezerToDast } from "@doenet/parser";
+import {
+    extractDastErrors,
+    lezerToDast,
+    normalizeDocumentDast,
+} from "@doenet/parser";
 import { createLoggingAsyncThunk } from "../../hooks";
 import { _dastReducerActions } from "./slice";
 import { coreThunks, getWorker } from "../core/thunks";
-import { normalizeDocumentDast } from "@doenet/utils";
 import { DoenetMLFlags } from "../../../DoenetML";
 import { _coreReducerActions } from "../core";
 

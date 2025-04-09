@@ -1,16 +1,15 @@
-import { Plugin } from "unified";
+import { Plugin, unified } from "unified";
+import { ELEMENT_EXPANSIONS } from "./element-expansions";
+import { pluginConvertPretextAttributes } from "./convert-pretext-attributes";
 import {
     DastAttribute,
     DastElement,
     DastElementContent,
     DastRoot,
     DastRootContent,
-    isDastElement,
-    visit,
-} from "@doenet/parser";
-import { unified } from "unified";
-import { ELEMENT_EXPANSIONS } from "./element-expansions";
-import { pluginConvertPretextAttributes } from "./convert-pretext-attributes";
+} from "../types";
+import { visit } from "../pretty-printer/normalize/utils/visit";
+import { isDastElement } from "../types-util";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.

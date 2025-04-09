@@ -16,9 +16,8 @@ import {
     cesc,
     data_format_version,
     cidFromText,
-    normalizeDocumentDast,
 } from "@doenet/utils";
-import { lezerToDast } from "@doenet/parser";
+import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 
 import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";

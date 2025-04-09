@@ -1,16 +1,7 @@
 import { Plugin } from "unified";
-import {
-    DastAttribute,
-    DastElement,
-    DastElementContent,
-    DastMacro,
-    DastRoot,
-    DastRootContent,
-    isDastElement,
-    visit,
-} from "@doenet/parser";
-import { unified } from "unified";
-import { ELEMENT_EXPANSIONS } from "./element-expansions";
+import { DastMacro, DastRoot } from "../types";
+import { visit } from "../pretty-printer/normalize/utils/visit";
+import { isDastElement } from "../types-util";
 
 /**
  * PreTeXt follows some different conventions from DoenetML. For instance, it uses `xml:id` instead of `name`.
