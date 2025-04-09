@@ -1,10 +1,12 @@
 /// <reference types="vitest/config" />
 import nodePolyfills from "rollup-plugin-polyfill-node";
 import { defineConfig } from "vite";
+import { suppressLogPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
+    plugins: [suppressLogPlugin()],
     build: {
         minify: true,
         sourcemap: true,
