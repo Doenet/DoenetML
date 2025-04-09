@@ -15,13 +15,20 @@ import { isDastElement } from "../types-util";
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
  * As well, remove comments and XML-valid but not-useful-for-DoenetML nodes like XML instructions and doctypes.
  */
-export function normalizeDocumentDast(dast: DastRoot) {
-    const processor = unified()
+export function normalizeDocumentDast(
+    dast: DastRoot,
+    addCompatibilityNames = false,
+) {
+    let processor = unified()
         .use(pluginRemoveCommentsInstructionsAndDocStrings)
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
         .use(pluginExpandAliasedElements);
+    if (addCompatibilityNames) {
+        processor = processor.use(pluginAddCompatibilityNames);
+    }
+
     return processor.runSync(dast);
 }
 
@@ -121,6 +128,26 @@ const pluginExpandAliasedElements: Plugin<[], DastRoot, DastRoot> = () => {
                     node.attributes = {
                         ...node.attributes,
                         ...newAttributes,
+                    };
+                }
+            }
+        });
+    };
+};
+
+const pluginAddCompatibilityNames: Plugin<[], DastRoot, DastRoot> = () => {
+    const counts: Record<string, number> = {};
+    return (tree) => {
+        visit(tree, (node) => {
+            if (isDastElement(node)) {
+                const typeCount = (counts[node.name] =
+                    (counts[node.name] ?? 0) + 1);
+                if (!node.attributes.name) {
+                    const name = `_${node.name}${typeCount}`;
+                    node.attributes.name = {
+                        type: "attribute",
+                        name: "name",
+                        children: [{ type: "text", value: name }],
                     };
                 }
             }
