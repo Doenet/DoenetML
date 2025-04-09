@@ -7,6 +7,7 @@ import {
 } from "./utils/expandDoenetML";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import { countComponentTypes } from "@doenet/utils";
+import { dastToSerialized } from "./utils/dastToSerializedComponents";
 
 let core = null;
 
@@ -121,6 +122,7 @@ globalThis.onmessage = function (e) {
 
 async function initializeWorker({
     doenetML,
+    normalizedDast,
     flags,
     activityId,
     docId,
@@ -172,6 +174,15 @@ async function initializeWorker({
         preliminaryWarnings: expandResult.warnings,
         componentInfoObjects,
     };
+
+    console.log({
+        serializedDocument: JSON.parse(
+            JSON.stringify(coreBaseArgs.serializedDocument),
+        ),
+    });
+
+    const serializedDocument2 = dastToSerialized(normalizedDast);
+    console.log({ serializedDocument2 });
 
     initializeResult = { success: true };
 

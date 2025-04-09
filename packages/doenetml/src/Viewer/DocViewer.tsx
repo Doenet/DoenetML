@@ -322,16 +322,17 @@ export function DocViewer({
                     dast,
                 });
 
-                const normalized_root =
+                const normalizedDast =
                     await rustCoreWorker.returnNormalizedRoot();
 
                 console.log(
                     "Now, initialize worker with this root:",
-                    normalized_root,
+                    normalizedDast,
                 );
 
                 await initializeCoreWorker({
                     coreWorker: newCoreWorker,
+                    normalizedDast,
                     doenetML,
                     flags,
                     activityId,
@@ -710,8 +711,19 @@ export function DocViewer({
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
 
+        const dast = normalizeDocumentDast(lezerToDast(doenetML));
+        await rustCoreWorker.setSource({
+            source: doenetML,
+            dast,
+        });
+
+        const normalizedDast = await rustCoreWorker.returnNormalizedRoot();
+
+        console.log("Now, reinitialize worker with this root:", normalizedDast);
+
         await initializeCoreWorker({
             coreWorker: newCoreWorker,
+            normalizedDast,
             doenetML,
             flags,
             activityId,
@@ -1260,8 +1272,23 @@ export function DocViewer({
             thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
         } else if (!initialPass) {
             // otherwise, if not initial pass, then re-initialize to give it the current DoenetML
+
+            const dast = normalizeDocumentDast(lezerToDast(doenetML));
+            await rustCoreWorker.setSource({
+                source: doenetML,
+                dast,
+            });
+
+            const normalizedDast = await rustCoreWorker.returnNormalizedRoot();
+
+            console.log(
+                "Now, reinitialize worker with this root:",
+                normalizedDast,
+            );
+
             await initializeCoreWorker({
                 coreWorker: thisCoreWorker,
+                normalizedDast,
                 doenetML,
                 flags,
                 activityId,

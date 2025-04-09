@@ -10,6 +10,7 @@ use super::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent};
 /// Objects that can be stored in the main `nodes` array of a `NormalizedRoot`.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum NormalizedNode {
     Element(FlatElement),
     Error(FlatError),

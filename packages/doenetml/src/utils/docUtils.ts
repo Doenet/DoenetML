@@ -1,7 +1,10 @@
 import { DoenetMLFlags } from "../doenetml";
 import { doenetGlobalConfig } from "../global-config";
 import * as Comlink from "comlink";
-import type { CoreWorker as RustCoreWorker } from "@doenet/doenetml-worker-rust";
+import type {
+    NormalizedRoot,
+    CoreWorker as RustCoreWorker,
+} from "@doenet/doenetml-worker-rust";
 
 export function createCoreWorker() {
     return new Worker(doenetGlobalConfig.doenetWorkerUrl, {
@@ -22,6 +25,7 @@ export function createRustCoreWorker() {
 export function initializeCoreWorker({
     coreWorker,
     doenetML,
+    normalizedDast,
     flags,
     activityId,
     docId,
@@ -30,6 +34,7 @@ export function initializeCoreWorker({
 }: {
     coreWorker: Worker;
     doenetML: string;
+    normalizedDast: NormalizedRoot;
     flags: DoenetMLFlags;
     activityId: string;
     docId: string;
@@ -69,6 +74,7 @@ export function initializeCoreWorker({
         messageType: "initializeWorker",
         args: {
             doenetML,
+            normalizedDast,
             flags,
             activityId,
             docId,
