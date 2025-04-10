@@ -23,12 +23,8 @@ import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get } from "idb-keyval";
-import {
-    createCoreWorker,
-    createRustCoreWorker,
-    initializeCoreWorker,
-} from "../utils/docUtils";
-import type { CoreWorker as RustCoreWorker } from "@doenet/doenetml-worker-rust";
+import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
+import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Icon } from "@chakra-ui/react";
 import { Remote } from "comlink";
@@ -289,8 +285,7 @@ export function DocViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
-    const [coreWorker, setCoreWorker] = useState<Worker | null>(null);
-    const rustCoreWorker = useMemo(() => createRustCoreWorker(), []);
+    const coreWorker = useRef<Remote<CoreWorker> | null>(null);
 
     let hash = location.hash;
 
@@ -310,188 +305,148 @@ export function DocViewer({
             .replaceAll("\\", "")
             .replaceAll("-", "_") || "1";
 
-    useEffect(() => {
-        async function initialize() {
-            let newCoreWorker = createCoreWorker();
-            setCoreWorker(newCoreWorker);
-
-            try {
-                const dast = normalizeDocumentDast(lezerToDast(doenetML));
-                await rustCoreWorker.setSource({
-                    source: doenetML,
-                    dast,
-                });
-
-                const normalizedDast =
-                    await rustCoreWorker.returnNormalizedRoot();
-
-                console.log(
-                    "Now, initialize worker with this root:",
-                    normalizedDast,
-                );
-
-                await initializeCoreWorker({
-                    coreWorker: newCoreWorker,
-                    normalizedDast,
-                    doenetML,
-                    flags,
-                    activityId,
-                    docId,
-                    attemptNumber,
-                    requestedVariantIndex,
-                });
-            } catch (e: any) {
-                let message = "";
-                if ("message" in e) {
-                    message = e.message;
-                }
-                setErrMsg(`Error initializing activity: ${message}`);
-            }
-        }
-
-        initialize();
-    }, []);
+    console.log({ stage });
 
     useEffect(() => {
-        if (!coreWorker) {
+        if (!coreWorker.current) {
             return;
         }
-        coreWorker.onmessage = function (e) {
-            // console.log("message from core", e.data);
-            if (e.data.messageType === "updateRenderers") {
-                if (
-                    e.data.init &&
-                    coreInfo.current &&
-                    !errorInitializingRenderers.current &&
-                    !errorInsideRenderers.current &&
-                    !hidden
-                ) {
-                    // we don't initialize renderer state values if already have a coreInfo
-                    // and no errors were encountered
-                    // as we must have already gotten the renderer information before core was created.
-                    // Exception if doc is hidden,
-                    // then we still update the renderers.
-                    // This exception is important because, in this case,
-                    // the renderers have not yet been rendered, so any errors would not yet have revealed
-                    // (and for the same reason, there cannot have been any user actions queued)
-                } else {
-                    updateRenderers(e.data.args);
-                    if (errorInsideRenderers.current) {
-                        setIgnoreRendererError(true);
-                        setIsInErrorState?.(false);
-                    }
-                }
-            } else if (e.data.messageType === "requestAnimationFrame") {
-                requestAnimationFrame(e.data.args);
-            } else if (e.data.messageType === "cancelAnimationFrame") {
-                cancelAnimationFrame(e.data.args);
-            } else if (e.data.messageType === "coreCreated") {
-                coreCreated.current = true;
-                coreCreationInProgress.current = false;
-                preventMoreAnimations.current = false;
-                for (let actionArgs of actionsBeforeCoreCreated.current) {
-                    coreWorker.postMessage({
-                        messageType: "requestAction",
-                        args: actionArgs,
-                    });
-                }
-                setStage("coreCreated");
-                initializedCallback?.({ activityId, docId });
-            } else if (e.data.messageType === "initializeRenderers") {
-                if (
-                    coreInfo.current &&
-                    JSON.stringify(coreInfo.current) ===
-                        JSON.stringify(e.data.args.coreInfo) &&
-                    !errorInitializingRenderers.current &&
-                    !errorInsideRenderers.current
-                ) {
-                    // we already initialized renderers before core was created and no errors were encountered
-                    // so don't initialize them again when core sends the initializeRenderers message
-                } else {
-                    initializeRenderers(e.data.args);
-                    if (errorInsideRenderers.current) {
-                        setIgnoreRendererError(true);
-                        setIsInErrorState?.(false);
-                    }
-                }
-            } else if (e.data.messageType === "savedState") {
-                // saveStateCallback?.();
-            } else if (e.data.messageType === "sendAlert") {
-                console.log(`Sending alert message: ${e.data.args.message}`);
-                // sendAlert(e.data.args.message, e.data.args.alertType);
-            } else if (e.data.messageType === "resolveAction") {
-                resolveAction(e.data.args);
-            } else if (e.data.messageType === "returnAllStateVariables") {
-                console.log(e.data.args);
-                resolveAllStateVariables.current?.(e.data.args);
-            } else if (e.data.messageType === "returnErrorWarnings") {
-                let returnedErrorWarnings = e.data.args;
-                console.log(returnedErrorWarnings);
-                resolveErrorWarnings.current?.(returnedErrorWarnings);
-            } else if (e.data.messageType === "componentRangePieces") {
-                (window as any)["componentRangePieces" + docId] =
-                    e.data.args.componentRangePieces;
-            } else if (e.data.messageType === "inErrorState") {
-                setIsInErrorState?.(true);
-                setErrMsg(e.data.args.errMsg);
-            } else if (e.data.messageType === "setErrorWarnings") {
-                errorWarnings.current = e.data.errorWarnings;
-                setErrorsAndWarningsCallback?.(errorWarnings.current);
-            } else if (e.data.messageType === "copyToClipboard") {
-                copyToClipboard(e.data.args);
-            } else if (e.data.messageType === "navigateToTarget") {
-                navigateToTarget(e.data.args);
-            } else if (e.data.messageType === "navigateToHash") {
-                navigate(location.search + e.data.args.hash, {
-                    replace: true,
-                });
-            } else if (e.data.messageType === "reportScoreAndState") {
-                if (reportScoreAndStateCallback) {
-                    reportScoreAndStateCallback({
-                        ...e.data,
-                        activityId,
-                        docId,
-                    });
-                } else {
-                    window.postMessage({
-                        ...e.data,
-                        subject: "SPLICE.reportScoreAndState",
-                        activityId,
-                        docId,
-                    });
-                }
-            } else if (e.data.messageType === "recordSolutionView") {
-                window.postMessage({
-                    ...e.data,
-                    subject: "SPLICE.recordSolutionView",
-                    activityId,
-                    docId,
-                });
-            } else if (e.data.messageType === "sendEvent") {
-                window.postMessage({
-                    ...e.data,
-                    subject: "SPLICE.sendEvent",
-                    activityId,
-                    docId,
-                });
-            } else if (e.data.messageType === "documentStructure") {
-                documentStructureCallback?.({
-                    ...e.data,
-                    activityId,
-                    docId,
-                });
-            } else if (e.data.messageType === "terminated") {
-                reinitializeCoreAndTerminateAnimations();
-            }
-        };
+        // coreWorker.current.onmessage = function (e) {
+        //     // console.log("message from core", e.data);
+        //     if (e.data.messageType === "updateRenderers") {
+        //         if (
+        //             e.data.init &&
+        //             coreInfo.current &&
+        //             !errorInitializingRenderers.current &&
+        //             !errorInsideRenderers.current &&
+        //             !hidden
+        //         ) {
+        //             // we don't initialize renderer state values if already have a coreInfo
+        //             // and no errors were encountered
+        //             // as we must have already gotten the renderer information before core was created.
+        //             // Exception if doc is hidden,
+        //             // then we still update the renderers.
+        //             // This exception is important because, in this case,
+        //             // the renderers have not yet been rendered, so any errors would not yet have revealed
+        //             // (and for the same reason, there cannot have been any user actions queued)
+        //         } else {
+        //             updateRenderers(e.data.args);
+        //             if (errorInsideRenderers.current) {
+        //                 setIgnoreRendererError(true);
+        //                 setIsInErrorState?.(false);
+        //             }
+        //         }
+        //     } else if (e.data.messageType === "requestAnimationFrame") {
+        //         requestAnimationFrame(e.data.args);
+        //     } else if (e.data.messageType === "cancelAnimationFrame") {
+        //         cancelAnimationFrame(e.data.args);
+        //     } else if (e.data.messageType === "coreCreated") {
+        //         coreCreated.current = true;
+        //         coreCreationInProgress.current = false;
+        //         preventMoreAnimations.current = false;
+        //         for (let actionArgs of actionsBeforeCoreCreated.current) {
+        //             coreWorker.postMessage({
+        //                 messageType: "requestAction",
+        //                 args: actionArgs,
+        //             });
+        //         }
+        //         setStage("coreCreated");
+        //         initializedCallback?.({ activityId, docId });
+        //     } else if (e.data.messageType === "initializeRenderers") {
+        //         if (
+        //             coreInfo.current &&
+        //             JSON.stringify(coreInfo.current) ===
+        //                 JSON.stringify(e.data.args.coreInfo) &&
+        //             !errorInitializingRenderers.current &&
+        //             !errorInsideRenderers.current
+        //         ) {
+        //             // we already initialized renderers before core was created and no errors were encountered
+        //             // so don't initialize them again when core sends the initializeRenderers message
+        //         } else {
+        //             initializeRenderers(e.data.args);
+        //             if (errorInsideRenderers.current) {
+        //                 setIgnoreRendererError(true);
+        //                 setIsInErrorState?.(false);
+        //             }
+        //         }
+        //     } else if (e.data.messageType === "savedState") {
+        //         // saveStateCallback?.();
+        //     } else if (e.data.messageType === "sendAlert") {
+        //         console.log(`Sending alert message: ${e.data.args.message}`);
+        //         // sendAlert(e.data.args.message, e.data.args.alertType);
+        //     } else if (e.data.messageType === "resolveAction") {
+        //         resolveAction(e.data.args);
+        //     } else if (e.data.messageType === "returnAllStateVariables") {
+        //         console.log(e.data.args);
+        //         resolveAllStateVariables.current?.(e.data.args);
+        //     } else if (e.data.messageType === "returnErrorWarnings") {
+        //         let returnedErrorWarnings = e.data.args;
+        //         console.log(returnedErrorWarnings);
+        //         resolveErrorWarnings.current?.(returnedErrorWarnings);
+        //     } else if (e.data.messageType === "componentRangePieces") {
+        //         (window as any)["componentRangePieces" + docId] =
+        //             e.data.args.componentRangePieces;
+        //     } else if (e.data.messageType === "inErrorState") {
+        //         setIsInErrorState?.(true);
+        //         setErrMsg(e.data.args.errMsg);
+        //     } else if (e.data.messageType === "setErrorWarnings") {
+        //         errorWarnings.current = e.data.errorWarnings;
+        //         setErrorsAndWarningsCallback?.(errorWarnings.current);
+        //     } else if (e.data.messageType === "copyToClipboard") {
+        //         copyToClipboard(e.data.args);
+        //     } else if (e.data.messageType === "navigateToTarget") {
+        //         navigateToTarget(e.data.args);
+        //     } else if (e.data.messageType === "navigateToHash") {
+        //         navigate(location.search + e.data.args.hash, {
+        //             replace: true,
+        //         });
+        //     } else if (e.data.messageType === "reportScoreAndState") {
+        //         if (reportScoreAndStateCallback) {
+        //             reportScoreAndStateCallback({
+        //                 ...e.data,
+        //                 activityId,
+        //                 docId,
+        //             });
+        //         } else {
+        //             window.postMessage({
+        //                 ...e.data,
+        //                 subject: "SPLICE.reportScoreAndState",
+        //                 activityId,
+        //                 docId,
+        //             });
+        //         }
+        //     } else if (e.data.messageType === "recordSolutionView") {
+        //         window.postMessage({
+        //             ...e.data,
+        //             subject: "SPLICE.recordSolutionView",
+        //             activityId,
+        //             docId,
+        //         });
+        //     } else if (e.data.messageType === "sendEvent") {
+        //         window.postMessage({
+        //             ...e.data,
+        //             subject: "SPLICE.sendEvent",
+        //             activityId,
+        //             docId,
+        //         });
+        //     } else if (e.data.messageType === "documentStructure") {
+        //         documentStructureCallback?.({
+        //             ...e.data,
+        //             activityId,
+        //             docId,
+        //         });
+        //     } else if (e.data.messageType === "terminated") {
+        //         reinitializeCoreAndTerminateAnimations();
+        //     }
+        // };
     }, [coreWorker, location]);
 
     useEffect(() => {
-        return () => {
-            coreWorker?.postMessage({
-                messageType: "terminate",
-            });
-        };
+        // return () => {
+        //     coreWorker?.postMessage({
+        //         messageType: "terminate",
+        //     });
+        // };
     }, []);
 
     useEffect(() => {
@@ -528,50 +483,50 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
-        if (!coreWorker) {
+        if (!coreWorker.current) {
             return;
         }
-        if (docId !== null) {
-            (window as any)[
-                "returnAllStateVariables" + postfixForWindowFunctions
-            ] = function () {
-                coreWorker.postMessage({
-                    messageType: "returnAllStateVariables",
-                });
+        // if (docId !== null) {
+        //     (window as any)[
+        //         "returnAllStateVariables" + postfixForWindowFunctions
+        //     ] = function () {
+        //         coreWorker.current?.postMessage({
+        //             messageType: "returnAllStateVariables",
+        //         });
 
-                return new Promise((resolve, reject) => {
-                    resolveAllStateVariables.current = resolve;
-                });
-            };
+        //         return new Promise((resolve, reject) => {
+        //             resolveAllStateVariables.current = resolve;
+        //         });
+        //     };
 
-            (window as any)["returnErrorWarnings" + postfixForWindowFunctions] =
-                function () {
-                    coreWorker.postMessage({
-                        messageType: "returnErrorWarnings",
-                    });
+        //     (window as any)["returnErrorWarnings" + postfixForWindowFunctions] =
+        //         function () {
+        //             coreWorker.current?.postMessage({
+        //                 messageType: "returnErrorWarnings",
+        //             });
 
-                    return new Promise((resolve, reject) => {
-                        resolveErrorWarnings.current = resolve;
-                    });
-                };
+        //             return new Promise((resolve, reject) => {
+        //                 resolveErrorWarnings.current = resolve;
+        //             });
+        //         };
 
-            (window as any)["callAction" + postfixForWindowFunctions] =
-                async function ({
-                    actionName,
-                    componentName,
-                    args,
-                }: {
-                    actionName: string;
-                    componentName: string;
-                    args: Record<string, any>;
-                }) {
-                    return await callAction({
-                        action: { actionName, componentName },
-                        args,
-                    });
-                };
-        }
-    }, [docId, coreWorker]);
+        //     (window as any)["callAction" + postfixForWindowFunctions] =
+        //         async function ({
+        //             actionName,
+        //             componentName,
+        //             args,
+        //         }: {
+        //             actionName: string;
+        //             componentName: string;
+        //             args: Record<string, any>;
+        //         }) {
+        //             return await callAction({
+        //                 action: { actionName, componentName },
+        //                 args,
+        //             });
+        //         };
+        // }
+    }, [docId, coreWorker.current]);
 
     useEffect(() => {
         return () => {
@@ -587,29 +542,29 @@ export function DocViewer({
         if (!coreWorker) {
             return;
         }
-        document.addEventListener("visibilitychange", () => {
-            coreWorker.postMessage({
-                messageType: "visibilityChange",
-                args: {
-                    visible: document.visibilityState === "visible",
-                },
-            });
-        });
+        // document.addEventListener("visibilitychange", () => {
+        //     coreWorker.postMessage({
+        //         messageType: "visibilityChange",
+        //         args: {
+        //             visible: document.visibilityState === "visible",
+        //         },
+        //     });
+        // });
     }, [coreWorker]);
 
     useEffect(() => {
         if (hash && coreCreated.current && coreWorker) {
             let anchor = hash.slice(1);
             if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
-                coreWorker.postMessage({
-                    messageType: "navigatingToComponent",
-                    args: {
-                        componentName: anchor
-                            .substring(prefixForIds.length)
-                            .replaceAll("\\/", "/"),
-                        hash,
-                    },
-                });
+                // coreWorker.postMessage({
+                //     messageType: "navigatingToComponent",
+                //     args: {
+                //         componentName: anchor
+                //             .substring(prefixForIds.length)
+                //             .replaceAll("\\/", "/"),
+                //         hash,
+                //     },
+                // });
             }
         }
     }, [location, hash, coreCreated.current, coreWorker]);
@@ -699,9 +654,9 @@ export function DocViewer({
 
     async function reinitializeCoreAndTerminateAnimations() {
         preventMoreAnimations.current = true;
-        coreWorker?.terminate();
+        coreWorker.current?.terminate();
         const newCoreWorker = createCoreWorker();
-        setCoreWorker(newCoreWorker);
+        coreWorker.current = newCoreWorker;
 
         coreCreated.current = false;
         coreCreationInProgress.current = false;
@@ -711,24 +666,12 @@ export function DocViewer({
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
 
-        const dast = normalizeDocumentDast(lezerToDast(doenetML));
-        await rustCoreWorker.setSource({
-            source: doenetML,
-            dast,
-        });
-
-        const normalizedDast = await rustCoreWorker.returnNormalizedRoot();
-
-        console.log("Now, reinitialize worker with this root:", normalizedDast);
-
         await initializeCoreWorker({
             coreWorker: newCoreWorker,
-            normalizedDast,
             doenetML,
             flags,
             activityId,
             docId,
-            attemptNumber,
             requestedVariantIndex,
         });
 
@@ -856,10 +799,10 @@ export function DocViewer({
 
         if (coreCreated.current) {
             // Note: it is possible that core has been terminated, so we need the question mark
-            coreWorker?.postMessage({
-                messageType: "requestAction",
-                args: actionArgs,
-            });
+            // coreWorker?.postMessage({
+            //     messageType: "requestAction",
+            //     args: actionArgs,
+            // });
         } else {
             // If core has not yet been created,
             // queue the action to be sent once core is created
@@ -1074,7 +1017,7 @@ export function DocViewer({
         }
     }
 
-    async function loadStateAndInitialize(initialPass = false) {
+    async function loadStateAndInitialize() {
         const coreIdWhenCalled = coreId.current;
         let loadedState = false;
 
@@ -1173,7 +1116,7 @@ export function DocViewer({
         //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
             if (render) {
-                startCore(initialPass);
+                startCore();
             } else {
                 setStage("readyToCreateCore");
             }
@@ -1264,60 +1207,50 @@ export function DocViewer({
         initializeCounters.current = data.initializeCounters;
     }
 
-    async function startCore(initialPass = false) {
-        let thisCoreWorker = coreWorker;
+    async function startCore() {
+        let thisCoreWorker = coreWorker.current;
 
         if (coreCreated.current || !thisCoreWorker) {
             //Kill the current core if it exists
             thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
-        } else if (!initialPass) {
+        } else {
             // otherwise, if not initial pass, then re-initialize to give it the current DoenetML
 
-            const dast = normalizeDocumentDast(lezerToDast(doenetML));
-            await rustCoreWorker.setSource({
-                source: doenetML,
-                dast,
-            });
-
-            const normalizedDast = await rustCoreWorker.returnNormalizedRoot();
-
-            console.log(
-                "Now, reinitialize worker with this root:",
-                normalizedDast,
-            );
-
-            await initializeCoreWorker({
+            let initializeResult = await initializeCoreWorker({
                 coreWorker: thisCoreWorker,
-                normalizedDast,
                 doenetML,
                 flags,
                 activityId,
                 docId,
-                attemptNumber,
                 requestedVariantIndex,
             });
+
+            if (initializeResult.success === false) {
+                setErrMsg(
+                    `Error initializing activity: ${initializeResult.errMsg}`,
+                );
+                return;
+            }
         }
 
         resolveActionPromises.current = {};
 
-        // console.log(`send message to create core ${docId}`)
-        thisCoreWorker.postMessage({
-            messageType: "createCore",
-            args: {
-                coreId: coreId.current,
-                userId,
-                cid: cid.current,
-                theme: darkMode,
-                requestedVariant: initialCoreData.current?.requestedVariant,
-                stateVariableChanges: initialCoreData.current?.coreState
-                    ? JSON.stringify(
-                          initialCoreData.current.coreState,
-                          serializedComponentsReplacer,
-                      )
-                    : undefined,
-                initializeCounters: initializeCounters.current,
-            },
+        const dastResult = await thisCoreWorker.returnJavascriptDast({
+            coreId: coreId.current,
+            userId,
+            cid: cid.current,
+            theme: darkMode,
+            requestedVariant: initialCoreData.current?.requestedVariant,
+            stateVariableChanges: initialCoreData.current?.coreState
+                ? JSON.stringify(
+                      initialCoreData.current.coreState,
+                      serializedComponentsReplacer,
+                  )
+                : undefined,
+            initializeCounters: initializeCounters.current,
         });
+
+        console.log("dastResult", dastResult);
 
         setStage("waitingOnCore");
         coreCreationInProgress.current = true;
@@ -1411,10 +1344,6 @@ export function DocViewer({
         }
     }
 
-    if (!coreWorker) {
-        return null;
-    }
-
     // first, if last parameters don't match props
     // set state to props and record that that need a new core
 
@@ -1471,7 +1400,7 @@ export function DocViewer({
 
         setStage("wait");
 
-        loadStateAndInitialize(initialPass);
+        loadStateAndInitialize();
 
         return null;
     }

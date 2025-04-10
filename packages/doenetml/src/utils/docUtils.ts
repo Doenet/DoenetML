@@ -1,87 +1,46 @@
 import { DoenetMLFlags } from "../doenetml";
 import { doenetGlobalConfig } from "../global-config";
 import * as Comlink from "comlink";
-import type {
-    NormalizedRoot,
-    CoreWorker as RustCoreWorker,
-} from "@doenet/doenetml-worker-rust";
-
-export function createCoreWorker() {
-    return new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "classic",
-    });
-}
+import type { CoreWorker } from "@doenet/doenetml-worker";
+import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
  */
-export function createRustCoreWorker() {
-    const worker = new Worker(doenetGlobalConfig.doenetRustWorkerUrl, {
+export function createCoreWorker() {
+    const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
         type: "classic",
     });
-    return Comlink.wrap(worker) as Comlink.Remote<RustCoreWorker>;
+    return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
 }
 
-export function initializeCoreWorker({
+export async function initializeCoreWorker({
     coreWorker,
     doenetML,
-    normalizedDast,
     flags,
     activityId,
     docId,
-    attemptNumber,
     requestedVariantIndex,
 }: {
-    coreWorker: Worker;
+    coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
-    normalizedDast: NormalizedRoot;
     flags: DoenetMLFlags;
     activityId: string;
     docId: string;
-    attemptNumber: number;
     requestedVariantIndex: number;
 }) {
-    // Initializes core worker with the given arguments.
-    // Returns a promise.
-    // If the worker is successfully initialized, the promise is resolved
-    // If an error was encountered while initializing, the promise is rejected
+    const dast = normalizeDocumentDast(lezerToDast(doenetML));
 
-    let resolveInitializePromise: (value?: unknown) => void;
-    let rejectInitializePromise: (reason?: any) => void;
+    await coreWorker.setSource({ source: doenetML, dast });
+    await coreWorker.setFlags({ flags });
 
-    let initializePromise = new Promise((resolve, reject) => {
-        resolveInitializePromise = resolve;
-        rejectInitializePromise = reject;
+    const result = await coreWorker.initializeJavascriptCore({
+        activityId,
+        docId,
+        requestedVariantIndex,
     });
 
-    let initializeListener = function (e: MessageEvent<any>) {
-        if (e.data.messageType === "initializeResult") {
-            coreWorker.removeEventListener("message", initializeListener);
+    console.log("initialize core result", result);
 
-            let initializeResult = e.data.args;
-
-            if (initializeResult.success) {
-                resolveInitializePromise();
-            } else {
-                rejectInitializePromise(new Error(initializeResult.errMsg));
-            }
-        }
-    };
-
-    coreWorker.addEventListener("message", initializeListener);
-
-    coreWorker.postMessage({
-        messageType: "initializeWorker",
-        args: {
-            doenetML,
-            normalizedDast,
-            flags,
-            activityId,
-            docId,
-            attemptNumber,
-            requestedVariantIndex,
-        },
-    });
-
-    return initializePromise;
+    return result;
 }

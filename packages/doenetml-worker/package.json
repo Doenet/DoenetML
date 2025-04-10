@@ -63,6 +63,7 @@
             "dependencies": [
                 "../utils:build",
                 "../parser:build",
+                "../codemirror:build",
                 "build:rust"
             ]
         },
