@@ -29,7 +29,6 @@ export default React.memo(function List(props) {
     if (SVs.item) {
         return (
             <li id={id} ref={ref}>
-                <a name={id} />
                 {children}
             </li>
         );
@@ -56,7 +55,6 @@ export default React.memo(function List(props) {
         }
         return (
             <ol id={id} style={{ listStyleType: list_style }} ref={ref}>
-                <a name={id} />
                 {children}
             </ol>
         );
@@ -76,7 +74,6 @@ export default React.memo(function List(props) {
         }
         return (
             <ul id={id} style={{ listStyleType: list_style }} ref={ref}>
-                <a name={id} />
                 {children}
             </ul>
         );

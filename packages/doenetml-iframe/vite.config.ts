@@ -3,6 +3,7 @@ import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
+import { suppressLogPlugin } from "../../scripts/vite-plugins";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom"];
@@ -25,6 +26,7 @@ export default defineConfig({
                 { src: "README.md", dest: "./" },
             ],
         }),
+        suppressLogPlugin(),
     ],
     build: {
         minify: false,

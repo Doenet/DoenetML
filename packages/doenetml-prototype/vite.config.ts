@@ -6,6 +6,7 @@ import * as path from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import { version } from "./package.json";
 import { createRequire } from "module";
+import { suppressLogPlugin } from "../../scripts/vite-plugins";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
@@ -38,6 +39,7 @@ export default defineConfig({
         }),
         dts({ rollupTypes: true }),
         visualizer() as PluginOption,
+        suppressLogPlugin(),
     ],
     server: {
         port: 8012,
