@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import type { XrefPropsInText } from "@doenet/doenetml-worker-rust";
+import type { XrefPropsInText } from "@doenet/doenetml-worker";
 import { normalizeAttrs } from "../../utils/pretext/normalize-attrs";
 
 export const Xref: BasicComponentWithPassthroughChildren<{

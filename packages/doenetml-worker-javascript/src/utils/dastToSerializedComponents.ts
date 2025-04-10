@@ -4,7 +4,7 @@ import type {
     Position,
     RefResolution,
     Source,
-} from "@doenet/doenetml-worker-rust";
+} from "@doenet/doenetml-worker";
 
 type SerializedComponent = {
     componentType: string;

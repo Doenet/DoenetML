@@ -47,7 +47,6 @@
             ],
             "dependencies": [
                 "../doenetml-worker:build",
-                "../doenetml-worker-rust:build",
                 "../codemirror:build",
                 "../ui-components:build",
                 "../utils:build",

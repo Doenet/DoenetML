@@ -1,7 +1,7 @@
 import { describe, expect, it, afterAll } from "vitest";
 import util from "util";
 import { toXml as xastToXml } from "xast-util-to-xml";
-import { FlatDastRoot } from "@doenet/doenetml-worker-rust";
+import { FlatDastRoot } from "@doenet/doenetml-worker";
 import { renderToPretext } from "../src/utils/pretext/render-to-pretext";
 import { RunThroughCore } from "./utils/run-through-core";
 

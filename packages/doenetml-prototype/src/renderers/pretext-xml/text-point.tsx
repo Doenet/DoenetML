@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import { PointPropsInText } from "@doenet/doenetml-worker-rust";
+import { PointPropsInText } from "@doenet/doenetml-worker";
 
 type PointData = { props: PointPropsInText };
 

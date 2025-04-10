@@ -15,11 +15,11 @@ export default defineConfig({
                 {
                     src: path.join(
                         require.resolve(
-                            "@doenet/doenetml-worker/CoreWorker.js",
+                            "@doenet/doenetml-worker-javascript/CoreWorker.js",
                         ),
                         "../*",
                     ),
-                    dest: "doenetml-worker/",
+                    dest: "doenetml-worker-javascript/",
                 },
                 {
                     src: path.join(

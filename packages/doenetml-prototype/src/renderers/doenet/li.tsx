@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import type { LiPropsInText } from "@doenet/doenetml-worker-rust";
+import type { LiPropsInText } from "@doenet/doenetml-worker";
 import "./li.css";
 import { generateHtmlId } from "../utils";
 

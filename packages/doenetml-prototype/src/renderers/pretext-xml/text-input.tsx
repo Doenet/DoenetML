@@ -1,5 +1,5 @@
 import React from "react";
-import type { TextInputPropsInText } from "@doenet/doenetml-worker-rust";
+import type { TextInputPropsInText } from "@doenet/doenetml-worker";
 import { BasicComponent } from "../types";
 
 type TextInputData = { props: TextInputPropsInText };

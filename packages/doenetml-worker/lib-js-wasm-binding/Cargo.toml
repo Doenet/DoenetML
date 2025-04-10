@@ -1,5 +1,5 @@
 [package]
-name = "lib-doenetml-worker-rust"
+name = "lib-doenetml-worker"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }

@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import { MathPropsInText } from "@doenet/doenetml-worker-rust";
+import { MathPropsInText } from "@doenet/doenetml-worker";
 
 type MathData = { props: MathPropsInText };
 

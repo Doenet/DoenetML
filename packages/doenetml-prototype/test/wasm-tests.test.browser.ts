@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 //import { CoreWorker } from "../src";
-import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker-rust";
+import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker";
 import * as Comlink from "comlink";
 
 import { lezerToDast, filterPositionInfo } from "@doenet/parser";

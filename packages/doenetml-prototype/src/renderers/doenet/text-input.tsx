@@ -1,8 +1,5 @@
 import React from "react";
-import type {
-    Action,
-    TextInputPropsInText,
-} from "@doenet/doenetml-worker-rust";
+import type { Action, TextInputPropsInText } from "@doenet/doenetml-worker";
 import { BasicComponent } from "../types";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
