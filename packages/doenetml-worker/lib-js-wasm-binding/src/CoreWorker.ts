@@ -5,13 +5,13 @@ import init, {
     ActionsEnum,
     PublicDoenetMLCore,
     DastRoot as DastRootInCore,
-} from "lib-doenetml-worker-rust";
-export type * from "lib-doenetml-worker-rust";
+} from "lib-doenetml-worker";
+export type * from "lib-doenetml-worker";
 import type {
     FlatDastRoot,
     DastError,
     FlatDastElement,
-} from "lib-doenetml-worker-rust";
+} from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 
 /**
@@ -24,7 +24,7 @@ export interface FlatDastRootWithErrors extends Omit<FlatDastRoot, "elements"> {
 
 /**
  * Action type for use with typescript. There are errors with the type
- * exported by `lib-doenetml-worker-rust`, so use this version instead.
+ * exported by `lib-doenetml-worker`, so use this version instead.
  */
 export type Action = ActionsEnum & { componentIdx: number };
 
