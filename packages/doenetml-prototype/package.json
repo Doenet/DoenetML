@@ -41,7 +41,7 @@
                 "test/utils/dist/dast-to-flat-dast/**/*.js"
             ],
             "dependencies": [
-                "../doenetml-worker-rust:build",
+                "../doenetml-worker:build",
                 "../parser:build"
             ]
         },
@@ -73,7 +73,7 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../doenetml-worker-rust:build",
+                "../doenetml-worker:build",
                 "../parser:build",
                 "../codemirror:build"
             ]

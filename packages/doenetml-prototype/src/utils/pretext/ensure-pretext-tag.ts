@@ -2,7 +2,7 @@ import type {
     AnnotatedElementRef,
     FlatDastRoot,
     FlatDastElement,
-} from "@doenet/doenetml-worker-rust";
+} from "@doenet/doenetml-worker";
 
 /**
  * Mutate `flatDast` to ensure that the root tag is a `<pretext>` tag with a division tag immediately inside

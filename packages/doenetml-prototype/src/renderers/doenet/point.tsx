@@ -8,7 +8,7 @@ import {
     GraphListeners,
     removeStandardGraphListeners,
 } from "./jsxgraph/listeners";
-import { Action, PointPropsInGraph } from "@doenet/doenetml-worker-rust";
+import { Action, PointPropsInGraph } from "@doenet/doenetml-worker";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
 import { numberFromSerializedAst } from "../../utils/math/math-expression-utils";

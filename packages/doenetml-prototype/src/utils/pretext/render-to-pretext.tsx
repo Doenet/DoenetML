@@ -4,7 +4,7 @@ import {
     dastReducer,
 } from "../../state/redux-slices/dast";
 import * as Xast from "xast";
-import { FlatDastRoot } from "../../../../doenetml-worker-rust/dist/CoreWorker";
+import { FlatDastRoot } from "../../../../doenetml-worker/dist/CoreWorker";
 import { configureStore } from "@reduxjs/toolkit";
 import {
     _globalReducerActions,

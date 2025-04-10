@@ -1,7 +1,7 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { Element } from "../element";
-import type { DivisionPropsInText } from "@doenet/doenetml-worker-rust";
+import type { DivisionPropsInText } from "@doenet/doenetml-worker";
 import { generateHtmlId } from "../utils";
 
 export const Division: BasicComponentWithPassthroughChildren<{

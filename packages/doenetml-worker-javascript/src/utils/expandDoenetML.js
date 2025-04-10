@@ -2631,7 +2631,7 @@ function createEvaluateIfFindMatchedClosingParens({
     };
 }
 
-// TODO: this is currently code duplicated from breakstrings in commonsugar of doenetml-worker
+// TODO: this is currently code duplicated from breakstrings in commonsugar of doenetml-worker-javascript
 function breakEmbeddedStringByCommas({ childrenList }) {
     let Nparens = 0;
     let pieces = [];

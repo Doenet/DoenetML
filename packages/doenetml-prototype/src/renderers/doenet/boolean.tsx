@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import type { BooleanPropsInText } from "@doenet/doenetml-worker-rust";
+import type { BooleanPropsInText } from "@doenet/doenetml-worker";
 
 type BooleanData = { props: BooleanPropsInText };
 

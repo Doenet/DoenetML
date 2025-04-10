@@ -1,7 +1,4 @@
-import {
-    ElementRefAnnotation,
-    FlatDastElement,
-} from "@doenet/doenetml-worker-rust";
+import { ElementRefAnnotation, FlatDastElement } from "@doenet/doenetml-worker";
 import { AncestorChain } from "./utils";
 
 export type BasicComponentProps<Data = {}> = {
