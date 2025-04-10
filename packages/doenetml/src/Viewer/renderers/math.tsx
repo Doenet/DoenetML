@@ -2,34 +2,37 @@ import React, { useContext, useEffect, useRef } from "react";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
+// @ts-ignore
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { cesc } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function MathComponent(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
+    // @ts-ignore
     MathComponent.ignoreActionsWithoutCore = () => true;
 
-    let mathJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    let mathJXG = useRef<JXGObject | null>(null);
+    let anchorPointJXG = useRef<JXGObject | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef(null);
-    let pointAtDown = useRef(null);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number] | null>(null);
     let pointerIsDown = useRef(false);
     let pointerMovedSinceDown = useRef(false);
     let dragged = useRef(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
+    let lastPositionFromCore = useRef<[number, number] | null>(null);
     let previousPositionFromAnchor = useRef(null);
 
     let fixed = useRef(false);
@@ -75,7 +78,7 @@ export default React.memo(function MathComponent(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxMathAttributes = {
+        let jsxMathAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
@@ -90,7 +93,7 @@ export default React.memo(function MathComponent(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGObject;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
@@ -127,7 +130,7 @@ export default React.memo(function MathComponent(props) {
         jsxMathAttributes.anchory = anchory;
         anchorRel.current = [anchorx, anchory];
 
-        let beginDelim, endDelim;
+        let beginDelim: string, endDelim: string;
         if (SVs.renderMode === "inline") {
             beginDelim = "\\(";
             endDelim = "\\)";
@@ -146,7 +149,7 @@ export default React.memo(function MathComponent(props) {
             endDelim = "\\)";
         }
 
-        let newMathJXG = board.create(
+        let newMathJXG: JXGObject = board.create(
             "text",
             [0, 0, beginDelim + SVs.latex + endDelim],
             jsxMathAttributes,
@@ -155,7 +158,9 @@ export default React.memo(function MathComponent(props) {
 
         newMathJXG.on("down", function (e) {
             pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
+            pointAtDown.current = [
+                ...(newAnchorPointJXG.coords.scrCoords as [number, number]),
+            ];
             dragged.current = false;
             pointerIsDown.current = true;
             pointerMovedSinceDown.current = false;
@@ -168,7 +173,9 @@ export default React.memo(function MathComponent(props) {
         });
 
         newMathJXG.on("hit", function (e) {
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
+            pointAtDown.current = [
+                ...(newAnchorPointJXG.coords.scrCoords as [number, number]),
+            ];
             dragged.current = false;
             callAction({
                 action: actions.mathFocused,
@@ -214,8 +221,8 @@ export default React.memo(function MathComponent(props) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 dragged.current = true;
             }
@@ -224,8 +231,8 @@ export default React.memo(function MathComponent(props) {
             let width = newMathJXG.size[0] / board.unitX;
             let height = newMathJXG.size[1] / board.unitY;
 
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
+            let anchorx = anchorRel.current?.[0];
+            let anchory = anchorRel.current?.[1];
 
             let offsetx = 0;
             if (anchorx === "middle") {
@@ -245,7 +252,7 @@ export default React.memo(function MathComponent(props) {
             let yminAdjusted = ymin + 0.04 * (ymax - ymin) - offsety - height;
             let ymaxAdjusted = ymax - 0.04 * (ymax - ymin) - offsety;
 
-            if (viaPointer) {
+            if (viaPointer && pointAtDown.current && pointerAtDown.current) {
                 // the reason we calculate point position with this algorithm,
                 // rather than using .X() and .Y() directly
                 // is that attributes .X() and .Y() are affected by the
@@ -265,6 +272,7 @@ export default React.memo(function MathComponent(props) {
 
                 calculatedY.current =
                     (o[2] -
+                        // @ts-ignore
                         (pointAtDown.current[2] +
                             e.y -
                             pointerAtDown.current[1])) /
@@ -344,8 +352,8 @@ export default React.memo(function MathComponent(props) {
         }, 1000);
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
+    function boardMoveHandler(e: JXGEvent) {
+        if (pointerIsDown.current && pointerAtDown.current) {
             //Protect against very small unintended move
             if (
                 Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
@@ -357,6 +365,9 @@ export default React.memo(function MathComponent(props) {
     }
 
     function deleteMathJXG() {
+        if (!mathJXG.current) {
+            return;
+        }
         mathJXG.current.off("drag");
         mathJXG.current.off("down");
         mathJXG.current.off("hit");
@@ -368,7 +379,7 @@ export default React.memo(function MathComponent(props) {
     }
 
     if (board) {
-        let anchorCoords;
+        let anchorCoords: [number, number];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
@@ -388,7 +399,7 @@ export default React.memo(function MathComponent(props) {
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -485,12 +496,14 @@ export default React.memo(function MathComponent(props) {
                 mathJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            if (anchorPointJXG.current) {
+                anchorPointJXG.current.needsUpdate = true;
+                anchorPointJXG.current.update();
+            }
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return null;
     }
 
     // not in board
@@ -520,12 +533,12 @@ export default React.memo(function MathComponent(props) {
 
     let latexWithDelims = beginDelim + SVs.latex + endDelim;
 
-    let anchors = [<a name={id} key={id} />];
+    let anchors = [<a key={id} />];
     if (SVs.mrowChildNames) {
         anchors.push(
-            ...SVs.mrowChildNames.map((x) => {
+            ...SVs.mrowChildNames.map((x: string) => {
                 let rowId = cesc(x);
-                return <a name={rowId} key={rowId} id={rowId} />;
+                return <a key={rowId} id={rowId} />;
             }),
         );
     }

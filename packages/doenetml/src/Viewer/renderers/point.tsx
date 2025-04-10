@@ -11,7 +11,7 @@ import {
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
-import { JXGEvent, JXGPoint } from "./jsxgraph-distrib/types";
+import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function Point(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -24,8 +24,8 @@ export default React.memo(function Point(props) {
 
     const board = useContext(BoardContext);
 
-    let pointJXG = useRef<JXGPoint | null>(null);
-    let shadowPointJXG = useRef<JXGPoint | null>(null);
+    let pointJXG = useRef<JXGObject | null>(null);
+    let shadowPointJXG = useRef<JXGObject | null>(null);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number] | null>(null);
@@ -183,7 +183,7 @@ export default React.memo(function Point(props) {
         shadowPointAttributes.highlightFillOpacity = 0;
         shadowPointAttributes.highlightStrokeOpacity = 0;
 
-        let newShadowPointJXG: JXGPoint = board.create(
+        let newShadowPointJXG: JXGObject = board.create(
             "point",
             coords,
             shadowPointAttributes,

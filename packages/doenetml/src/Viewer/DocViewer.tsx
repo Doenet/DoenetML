@@ -953,7 +953,7 @@ export function DocViewer({
             .rendererTypesInDocument) {
             rendererClassNames.push(rendererClassName);
             let extension = "jsx";
-            const CONVERTED_TO_TSX = new Set(["point"]);
+            const CONVERTED_TO_TSX = new Set(["point", "math"]);
             if (CONVERTED_TO_TSX.has(rendererClassName)) {
                 extension = "tsx";
             }
