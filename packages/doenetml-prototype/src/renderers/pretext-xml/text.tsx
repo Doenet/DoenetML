@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import type { TextPropsInText } from "@doenet/doenetml-worker-rust";
+import type { TextPropsInText } from "@doenet/doenetml-worker";
 
 type TextData = { props: TextPropsInText };
 

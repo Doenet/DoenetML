@@ -1,4 +1,4 @@
-import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
+import type { FlatDastElement } from "@doenet/doenetml-worker";
 import {
     FALLBACK_RENDERER_KEY,
     GRAPH_MODE_COMPONENTS,

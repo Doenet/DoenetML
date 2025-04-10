@@ -46,7 +46,7 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../doenetml-worker:build",
+                "../doenetml-worker-javascript:build",
                 "../codemirror:build",
                 "../ui-components:build",
                 "../utils:build",

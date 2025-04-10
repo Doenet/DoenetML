@@ -5,7 +5,7 @@ import { DastError, DastRoot } from "@doenet/parser";
 import type {
     ActionResponse,
     FlatDastRootWithErrors,
-} from "@doenet/doenetml-worker-rust";
+} from "@doenet/doenetml-worker";
 
 type ElementUpdates = ActionResponse["payload"];
 

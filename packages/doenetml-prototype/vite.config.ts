@@ -23,9 +23,7 @@ export default defineConfig({
                     // Copy everything from the same directory as `CoreWorker.js`. This will include
                     // `CoreWorker.js.map`
                     src: path.join(
-                        require.resolve(
-                            "@doenet/doenetml-worker-rust/index.js",
-                        ),
+                        require.resolve("@doenet/doenetml-worker/index.js"),
                         "../*",
                     ),
                     dest: "doenetml-worker/",

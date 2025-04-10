@@ -12,8 +12,9 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/CoreWorker.js",
-            "require": "./dist/CoreWorker.js"
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.js"
         },
         "./*": {
             "import": "./dist/*",
@@ -22,16 +23,36 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "vitest",
-        "build": "wireit"
+        "test": "npm run test:rust && echo 'tests complete (keep this message at the end of the tests)'",
+        "test:rust": "npm run test:rust:before && cargo test --workspace --features testing",
+        "test:rust:before": "wireit",
+        "build:rust": "wireit",
+        "build:rust-wasm-test": "wireit",
+        "build:js": "wireit",
+        "build": "npm run build:rust && npm run build:js",
+        "bench": "cargo bench -p doenetml-core"
     },
     "wireit": {
-        "build": {
+        "test:rust:before": {
+            "command": "vite build -c vite.rust-tests.config.ts",
+            "files": [
+                "lib-doenetml-core/tests/**/*.ts",
+                "vite.rust-tests.config.ts"
+            ],
+            "output": [
+                "lib-doenetml-core/tests/**/*.js"
+            ],
+            "dependencies": [
+                "../parser:build"
+            ]
+        },
+        "build:js": {
             "command": "vite build",
             "files": [
-                "src/**/*.ts",
-                "src/**/*.js",
+                "lib-*/src/**/*.ts",
+                "lib-*/src/**/*.js",
                 "tsconfig.json",
+                "lib-*/tsconfig.json",
                 "vite.config.ts"
             ],
             "output": [
@@ -42,21 +63,44 @@
             "dependencies": [
                 "../utils:build",
                 "../parser:build",
-                "../codemirror:build"
+                "build:rust"
+            ]
+        },
+        "build:rust": {
+            "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-binding/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-binding/pkg/**/*.js",
+                "lib-js-wasm-binding/pkg/**/*.d.ts",
+                "lib-js-wasm-binding/pkg/**/*.wasm",
+                "lib-js-wasm-binding/pkg/**/*.json"
+            ]
+        },
+        "build:rust-wasm-test": {
+            "command": "npx wasm-pack build lib-js-wasm-test --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-test/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-test/pkg/**/*.js",
+                "lib-js-wasm-test/pkg/**/*.d.ts",
+                "lib-js-wasm-test/pkg/**/*.wasm",
+                "lib-js-wasm-test/pkg/**/*.json"
             ]
         }
     },
-    "peerDependencies": {
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
-        "styled-components": "^5.3.11"
-    },
-    "dependencies": {
-        "compromise": "^13.11.4",
-        "compromise-numbers": "^1.4.0",
-        "efrt": "2.7.0",
-        "suffix-thumb": "5.0.2",
-        "grad-school": "0.0.5"
-    },
-    "devDependencies": {}
+    "devDependencies": {
+        "@vitest/browser": "^1.6.1",
+        "node-stdlib-browser": "^1.3.1",
+        "rollup-plugin-polyfill-node": "^0.13.0",
+        "vite": "^5.4.17",
+        "vite-plugin-static-copy": "^2.3.0",
+        "webdriverio": "^9.12.4"
+    }
 }

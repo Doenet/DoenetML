@@ -3,7 +3,7 @@ import { MathJax } from "better-react-mathjax";
 import { BasicComponent } from "../types";
 import { useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
-import { MathPropsInText } from "@doenet/doenetml-worker-rust";
+import { MathPropsInText } from "@doenet/doenetml-worker";
 
 type MathData = { props: MathPropsInText };
 

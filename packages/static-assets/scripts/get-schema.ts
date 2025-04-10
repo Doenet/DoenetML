@@ -1,4 +1,4 @@
-import { createComponentInfoObjects } from "../../doenetml-worker/src/utils/componentInfoObjects";
+import { createComponentInfoObjects } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.

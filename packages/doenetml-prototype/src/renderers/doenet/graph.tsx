@@ -15,7 +15,7 @@ import { BasicComponent } from "../types";
 import "./graph.css";
 import { Toolbar, ToolbarItem } from "@ariakit/react";
 import { Element } from "../element";
-import { Action, GraphPropsInText } from "@doenet/doenetml-worker-rust";
+import { Action, GraphPropsInText } from "@doenet/doenetml-worker";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
 import { arrayEq } from "../../utils/array";

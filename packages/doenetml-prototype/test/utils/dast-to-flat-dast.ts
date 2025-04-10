@@ -1,11 +1,11 @@
 import { lezerToDast, filterPositionInfo } from "@doenet/parser";
 import { normalizeDocumentDast } from "../../src/state/redux-slices/dast/utils/normalize-dast";
-import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker-rust";
+import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker";
 import * as Comlink from "comlink";
 import { doenetGlobalConfig } from "../../src/global-config";
 
 // @ts-ignore
-import workerSource from "@doenet/doenetml-worker-rust/index.js?raw";
+import workerSource from "@doenet/doenetml-worker/index.js?raw";
 
 // We make a blob URL directly from the source code of the worker. This way we don't
 // need to load any other files

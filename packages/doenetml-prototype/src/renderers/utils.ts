@@ -1,7 +1,4 @@
-import {
-    ElementRefAnnotation,
-    FlatDastElement,
-} from "@doenet/doenetml-worker-rust";
+import { ElementRefAnnotation, FlatDastElement } from "@doenet/doenetml-worker";
 
 /**
  * A list of ancestors of a specific node, with the closest ancestor first.

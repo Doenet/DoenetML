@@ -7,7 +7,7 @@ import { VisibilitySensor } from "./visibility-sensor";
 import type {
     ElementRefAnnotation,
     FlatDastElementContent,
-} from "@doenet/doenetml-worker-rust";
+} from "@doenet/doenetml-worker";
 import { AncestorChain, extendAncestorChain } from "./utils";
 import { renderModeSelector } from "../state/redux-slices/global";
 import {

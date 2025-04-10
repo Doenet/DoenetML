@@ -1,6 +1,6 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import type { NumberPropsInText } from "@doenet/doenetml-worker-rust";
+import type { NumberPropsInText } from "@doenet/doenetml-worker";
 
 type NumberData = { props: NumberPropsInText };
 
