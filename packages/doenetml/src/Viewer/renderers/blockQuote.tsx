@@ -27,7 +27,6 @@ export default React.memo(function Container(props) {
 
     return (
         <blockquote id={id} ref={ref}>
-            <a name={id} />
             {children}
         </blockquote>
     );

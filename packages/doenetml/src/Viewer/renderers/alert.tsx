@@ -19,10 +19,5 @@ export default React.memo(function Alert(props) {
         });
     }
 
-    return (
-        <strong id={id}>
-            <a name={id} />
-            {children}
-        </strong>
-    );
+    return <strong id={id}>{children}</strong>;
 });

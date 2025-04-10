@@ -2,9 +2,11 @@ import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
+// @ts-ignore
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { cesc } from "@doenet/utils";
+import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function ButtonComponent(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(
@@ -12,23 +14,24 @@ export default React.memo(function ButtonComponent(props) {
         false,
     );
 
+    // @ts-ignore
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>
         actionName === "moveButton";
 
-    let buttonJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    let buttonJXG = useRef<JXGObject | null>(null);
+    let anchorPointJXG = useRef<JXGObject | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef(false);
-    let pointAtDown = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number] | null>(null);
     let dragged = useRef(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
+    let lastPositionFromCore = useRef<[number, number] | null>(null);
     let previousPositionFromAnchor = useRef(null);
 
     let fixed = useRef(false);
@@ -51,7 +54,7 @@ export default React.memo(function ButtonComponent(props) {
     }, []);
 
     function createButtonJXG() {
-        let jsxButtonAttributes = {
+        let jsxButtonAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             disabled: SVs.disabled,
@@ -60,7 +63,7 @@ export default React.memo(function ButtonComponent(props) {
             highlight: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGObject;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
@@ -112,17 +115,19 @@ export default React.memo(function ButtonComponent(props) {
 
         newButtonJXG.isDraggable = !fixLocation.current;
 
-        newButtonJXG.on("down", function (e) {
+        newButtonJXG.on("down", function (e: JXGEvent) {
             pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
+            pointAtDown.current = [
+                ...(newAnchorPointJXG.coords.scrCoords as [number, number]),
+            ];
             dragged.current = false;
         });
 
-        newButtonJXG.on("hit", function (e) {
+        newButtonJXG.on("hit", function (e: JXGEvent) {
             dragged.current = false;
         });
 
-        newButtonJXG.on("up", function (e) {
+        newButtonJXG.on("up", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveButton,
@@ -135,7 +140,7 @@ export default React.memo(function ButtonComponent(props) {
             }
         });
 
-        newButtonJXG.on("keyfocusout", function (e) {
+        newButtonJXG.on("keyfocusout", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveButton,
@@ -148,14 +153,14 @@ export default React.memo(function ButtonComponent(props) {
             }
         });
 
-        newButtonJXG.on("drag", function (e) {
+        newButtonJXG.on("drag", function (e: JXGEvent) {
             let viaPointer = e.type === "pointermove";
 
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 dragged.current = true;
             }
@@ -164,8 +169,8 @@ export default React.memo(function ButtonComponent(props) {
             let width = newButtonJXG.size[0] / board.unitX;
             let height = newButtonJXG.size[1] / board.unitY;
 
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
+            let anchorx = anchorRel.current![0];
+            let anchory = anchorRel.current![1];
 
             let offsetx = 0;
             if (anchorx === "middle") {
@@ -185,7 +190,7 @@ export default React.memo(function ButtonComponent(props) {
             let yminAdjusted = ymin + 0.04 * (ymax - ymin) - offsety - height;
             let ymaxAdjusted = ymax - 0.04 * (ymax - ymin) - offsety;
 
-            if (viaPointer) {
+            if (viaPointer && pointerAtDown.current && pointAtDown.current) {
                 // the reason we calculate point position with this algorithm,
                 // rather than using .X() and .Y() directly
                 // is that attributes .X() and .Y() are affected by the
@@ -206,6 +211,7 @@ export default React.memo(function ButtonComponent(props) {
 
                 calculatedY.current =
                     (o[2] -
+                        // @ts-ignore
                         (pointAtDown.current[2] +
                             e.y -
                             pointerAtDown.current[1])) /
@@ -221,11 +227,11 @@ export default React.memo(function ButtonComponent(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
+                Math.max(xminAdjusted, calculatedX.current || 0),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
+                Math.max(yminAdjusted, calculatedY.current || 0),
             );
 
             callAction({
@@ -248,7 +254,7 @@ export default React.memo(function ButtonComponent(props) {
             );
         });
 
-        newButtonJXG.on("keydown", function (e) {
+        newButtonJXG.on("keydown", function (e: JXGEvent) {
             if (e.key === "Enter") {
                 if (dragged.current) {
                     callAction({
@@ -283,6 +289,9 @@ export default React.memo(function ButtonComponent(props) {
     }
 
     function deleteButtonJXG() {
+        if (!buttonJXG.current) {
+            return;
+        }
         buttonJXG.current.off("drag");
         buttonJXG.current.off("down");
         buttonJXG.current.off("hit");
@@ -294,7 +303,7 @@ export default React.memo(function ButtonComponent(props) {
     }
 
     if (board) {
-        let anchorCoords;
+        let anchorCoords: [number, number];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
@@ -307,7 +316,7 @@ export default React.memo(function ButtonComponent(props) {
 
         lastPositionFromCore.current = anchorCoords;
 
-        if (buttonJXG.current === null) {
+        if (buttonJXG.current == null || anchorPointJXG.current == null) {
             createButtonJXG();
         } else {
             buttonJXG.current.relativeCoords.setCoordinates(
@@ -374,7 +383,7 @@ export default React.memo(function ButtonComponent(props) {
         // Note: couldn't figure out how to do it with JSXgraphs cssStyle attribute,
         // as that styled the div container rather than the button itself.
         // Instead, we're just using an inline style.
-        let containerId = buttonJXG.current.rendNode.id;
+        let containerId = buttonJXG.current?.rendNode.id || "";
         let buttonCSS = `
             #${cesc(containerId)} button {
                 background-color: ${fillColor};
@@ -387,7 +396,6 @@ export default React.memo(function ButtonComponent(props) {
         return (
             <React.Fragment>
                 <style>{buttonCSS}</style>
-                <a name={id} />
             </React.Fragment>
         );
     }
@@ -399,8 +407,7 @@ export default React.memo(function ButtonComponent(props) {
     }
 
     return (
-        <div id={id} margin="12px 0" style={{ display: "inline-block" }}>
-            <a name={id} />
+        <div id={id} style={{ margin: "12px 0", display: "inline-block" }}>
             <Button
                 id={id + "_button"}
                 onClick={() => callAction({ action: actions[SVs.clickAction] })}

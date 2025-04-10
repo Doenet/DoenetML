@@ -102,9 +102,13 @@ export type JXGObject = {
     relativeCoords: {
         usrCoords: [number, number, number];
         setCoordinates: Function;
-    }
+    };
     fullUpdate: Function;
     setText(text: string): void;
+    point1: any;
+    point2: any;
+    point3: any;
+    Value: Function;
 };
 
 export type JXGEvent = {

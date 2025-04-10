@@ -1,8 +1,10 @@
 import React, { useEffect, useContext, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
+// @ts-ignore
 import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
+import { JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function Angle(props) {
     let { name, id, SVs } = useDoenetRenderer(props);
@@ -12,8 +14,8 @@ export default React.memo(function Angle(props) {
     let point1JXG = useRef(null);
     let point2JXG = useRef(null);
     let point3JXG = useRef(null);
-    let angleJXG = useRef(null);
-    let previousWithLabel = useRef(null);
+    let angleJXG = useRef<JXGObject | null>(null);
+    let previousWithLabel = useRef<boolean | null>(null);
 
     useEffect(() => {
         //On unmount
@@ -36,16 +38,16 @@ export default React.memo(function Angle(props) {
         }
     }
 
-    function createAngleJXG() {
+    function createAngleJXG(): JXGObject | null {
         if (
             SVs.numericalPoints.length !== 3 ||
-            SVs.numericalPoints.some((x) => x.length !== 2) ||
+            SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
             !(Number.isFinite(SVs.numericalRadius) && SVs.numericalRadius > 0)
         ) {
             return null;
         }
 
-        var jsxAngleAttributes = {
+        var jsxAngleAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -120,7 +122,7 @@ export default React.memo(function Angle(props) {
             angleJXG.current = createAngleJXG();
         } else if (
             SVs.numericalPoints.length !== 3 ||
-            SVs.numericalPoints.some((x) => x.length !== 2) ||
+            SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
             !(Number.isFinite(SVs.numericalRadius) && SVs.numericalRadius > 0)
         ) {
             deleteGraphicalObject();
@@ -205,23 +207,16 @@ export default React.memo(function Angle(props) {
             board.updateRenderer();
         }
 
-        return (
-            <>
-                <a name={id} />
-            </>
-        );
+        return null;
     }
 
     let mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";
 
     return (
-        <>
-            <a name={id} />
-            <span id={id}>
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {mathJaxify}
-                </MathJax>
-            </span>
-        </>
+        <span id={id}>
+            <MathJax hideUntilTypeset={"first"} inline dynamic>
+                {mathJaxify}
+            </MathJax>
+        </span>
     );
 });
