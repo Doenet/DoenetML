@@ -15,8 +15,11 @@ import styled from "styled-components";
 import "./booleanInput.css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
+// @ts-ignore
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -44,7 +47,9 @@ export default React.memo(function BooleanInput(props) {
     let { name, id, SVs, actions, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer(props);
 
+    // @ts-ignore
     BooleanInput.baseStateVariable = "value";
+    // @ts-ignore
     BooleanInput.ignoreActionsWithoutCore = (actionName) =>
         actionName === "moveInput";
 
@@ -58,20 +63,20 @@ export default React.memo(function BooleanInput(props) {
 
     let valueWhenSetState = useRef(null);
 
-    let inputJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    let inputJXG = useRef<JXGObject | null>(null);
+    let anchorPointJXG = useRef<JXGObject | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef(false);
-    let pointAtDown = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number, number] | null>(null);
     let dragged = useRef(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
+    let lastPositionFromCore = useRef<[number, number] | null>(null);
     let previousPositionFromAnchor = useRef(null);
 
     let fixed = useRef(false);
@@ -97,7 +102,7 @@ export default React.memo(function BooleanInput(props) {
         valueWhenSetState.current = null;
     }
 
-    function onChangeHandler(e) {
+    function onChangeHandler(e: React.ChangeEvent) {
         let newValue = !rendererValueRef.current;
 
         setRendererValue(newValue);
@@ -119,7 +124,7 @@ export default React.memo(function BooleanInput(props) {
     }
 
     function createInputJXG() {
-        let jsxInputAttributes = {
+        let jsxInputAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             disabled: SVs.disabled,
@@ -131,7 +136,7 @@ export default React.memo(function BooleanInput(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGObject;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
@@ -181,17 +186,23 @@ export default React.memo(function BooleanInput(props) {
 
         newInputJXG.isDraggable = !fixLocation.current;
 
-        newInputJXG.on("down", function (e) {
+        newInputJXG.on("down", function (e: JXGEvent) {
             pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
+            pointAtDown.current = [
+                ...(newAnchorPointJXG.coords.scrCoords as [
+                    number,
+                    number,
+                    number,
+                ]),
+            ];
             dragged.current = false;
         });
 
-        newInputJXG.on("hit", function (e) {
+        newInputJXG.on("hit", function (e: JXGEvent) {
             dragged.current = false;
         });
 
-        newInputJXG.on("up", function (e) {
+        newInputJXG.on("up", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveInput,
@@ -204,7 +215,7 @@ export default React.memo(function BooleanInput(props) {
             }
         });
 
-        newInputJXG.on("keyfocusout", function (e) {
+        newInputJXG.on("keyfocusout", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveInput,
@@ -217,14 +228,14 @@ export default React.memo(function BooleanInput(props) {
             }
         });
 
-        newInputJXG.on("drag", function (e) {
+        newInputJXG.on("drag", function (e: JXGEvent) {
             let viaPointer = e.type === "pointermove";
 
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 dragged.current = true;
             }
@@ -233,8 +244,8 @@ export default React.memo(function BooleanInput(props) {
             let width = newInputJXG.size[0] / board.unitX;
             let height = newInputJXG.size[1] / board.unitY;
 
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
+            let anchorx = anchorRel.current![0];
+            let anchory = anchorRel.current![1];
 
             let offsetx = 0;
             if (anchorx === "middle") {
@@ -254,7 +265,7 @@ export default React.memo(function BooleanInput(props) {
             let yminAdjusted = ymin + 0.04 * (ymax - ymin) - offsety - height;
             let ymaxAdjusted = ymax - 0.04 * (ymax - ymin) - offsety;
 
-            if (viaPointer) {
+            if (viaPointer && pointAtDown.current && pointerAtDown.current) {
                 // the reason we calculate point position with this algorithm,
                 // rather than using .X() and .Y() directly
                 // is that attributes .X() and .Y() are affected by the
@@ -290,11 +301,11 @@ export default React.memo(function BooleanInput(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
+                Math.max(xminAdjusted, calculatedX.current || 0),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
+                Math.max(yminAdjusted, calculatedY.current || 0),
             );
 
             callAction({
@@ -317,7 +328,7 @@ export default React.memo(function BooleanInput(props) {
             );
         });
 
-        newInputJXG.on("keydown", function (e) {
+        newInputJXG.on("keydown", function (e: JXGEvent) {
             if (e.key === "Enter") {
                 if (dragged.current) {
                     callAction({
@@ -352,6 +363,10 @@ export default React.memo(function BooleanInput(props) {
     }
 
     function deleteInputJXG() {
+        if (!inputJXG.current) {
+            return;
+        }
+        // @ts-ignore
         inputJXG.current.rendNodeCheckbox.removeEventListener(
             "change",
             onChangeHandler,
@@ -367,7 +382,7 @@ export default React.memo(function BooleanInput(props) {
     }
 
     if (board) {
-        let anchorCoords;
+        let anchorCoords: [number, number];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
@@ -383,6 +398,9 @@ export default React.memo(function BooleanInput(props) {
         if (inputJXG.current === null) {
             createInputJXG();
         } else {
+            if (!anchorPointJXG.current) {
+                return;
+            }
             if (inputJXG.current.Value() !== rendererValue) {
                 inputJXG.current.setAttribute({ checked: rendererValue });
             }
@@ -448,7 +466,7 @@ export default React.memo(function BooleanInput(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return <span id={id} />;
     }
 
     // not in board
@@ -461,7 +479,7 @@ export default React.memo(function BooleanInput(props) {
 
     const inputKey = id + "_input";
 
-    let checkWorkStyle = {
+    let checkWorkStyle: React.CSSProperties = {
         cursor: "pointer",
         padding: "1px 6px 1px 6px",
     };
@@ -495,7 +513,7 @@ export default React.memo(function BooleanInput(props) {
             checkWorkButton = (
                 <Button
                     id={id + "_submit"}
-                    tabIndex={checkWorkTabIndex}
+                    tabIndex={Number(checkWorkTabIndex)}
                     disabled={disabled}
                     // ref={c => { this.target = c && ReactDOM.findDOMNode(c); }}
                     style={checkWorkStyle}
@@ -511,7 +529,7 @@ export default React.memo(function BooleanInput(props) {
                                 /*marginRight: "4px", paddingLeft: "2px"*/
                             }
                         }
-                        icon={faLevelDownAlt}
+                        icon={faLevelDownAlt as IconProp}
                         transform={{ rotate: 90 }}
                     />
                 </Button>
@@ -526,9 +544,9 @@ export default React.memo(function BooleanInput(props) {
                         <Button
                             id={id + "_correct"}
                             style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
+                            tabIndex={+checkWorkTabIndex}
                         >
-                            <FontAwesomeIcon icon={faCheck} />
+                            <FontAwesomeIcon icon={faCheck as IconProp} />
                         </Button>
                     );
                 } else if (validationState === "partialcorrect") {
@@ -543,7 +561,7 @@ export default React.memo(function BooleanInput(props) {
                         <Button
                             id={id + "_partial"}
                             style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
+                            tabIndex={+checkWorkTabIndex}
                         >
                             {partialCreditContents}
                         </Button>
@@ -557,9 +575,9 @@ export default React.memo(function BooleanInput(props) {
                         <Button
                             id={id + "_incorrect"}
                             style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
+                            tabIndex={+checkWorkTabIndex}
                         >
-                            <FontAwesomeIcon icon={faTimes} />
+                            <FontAwesomeIcon icon={faTimes as IconProp} />
                         </Button>
                     );
                 }
@@ -571,9 +589,9 @@ export default React.memo(function BooleanInput(props) {
                     <Button
                         id={id + "_saved"}
                         style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                     >
-                        <FontAwesomeIcon icon={faCloud} />
+                        <FontAwesomeIcon icon={faCloud as IconProp} />
                     </Button>
                 );
             }
@@ -652,10 +670,7 @@ export default React.memo(function BooleanInput(props) {
 
     return (
         <React.Fragment>
-            <span id={id}>
-                <a name={id} />
-                {input}
-            </span>
+            <span id={id}>{input}</span>
             {checkWorkButton}
         </React.Fragment>
     );

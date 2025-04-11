@@ -7,7 +7,7 @@ export default React.memo(function Error(props) {
     let displayedMessage = null;
 
     if (SVs.showMessage) {
-        let errorStyle = {
+        let errorStyle: React.CSSProperties = {
             backgroundColor: "#ff9999",
             textAlign: "center",
             borderWidth: 3,

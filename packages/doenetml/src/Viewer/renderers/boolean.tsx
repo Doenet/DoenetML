@@ -8,10 +8,5 @@ export default React.memo(function Boolean(props) {
         return null;
     }
 
-    return (
-        <>
-            <a name={id} />
-            <span id={id}>{SVs.text}</span>
-        </>
-    );
+    return <span id={id}>{SVs.text}</span>;
 });

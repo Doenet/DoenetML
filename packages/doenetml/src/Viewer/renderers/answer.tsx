@@ -10,6 +10,7 @@ import {
 import styled from "styled-components";
 import { DocContext } from "../DocViewer";
 import { AnswerResponseMenu } from "./utils/AnswerResponseMenu";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -67,6 +68,7 @@ export default React.memo(function Answer(props) {
                 child &&
                 typeof child !== "string" &&
                 inputChildNames.includes(
+                    // @ts-ignore
                     child.props.componentInstructions.componentName,
                 ),
         );
@@ -96,7 +98,7 @@ export default React.memo(function Answer(props) {
             }
         }
 
-        let checkWorkStyle = {
+        let checkWorkStyle: React.CSSProperties = {
             cursor: "pointer",
             padding: "1px 6px 1px 6px",
         };
@@ -118,13 +120,13 @@ export default React.memo(function Answer(props) {
         let checkworkComponent = (
             <Button
                 id={id + "_submit"}
-                tabIndex={checkWorkTabIndex}
+                tabIndex={+checkWorkTabIndex}
                 disabled={disabled}
                 style={checkWorkStyle}
                 onClick={submitAnswer}
             >
                 <FontAwesomeIcon
-                    icon={faLevelDownAlt}
+                    icon={faLevelDownAlt as IconProp}
                     transform={{ rotate: 90 }}
                 />
                 &nbsp;
@@ -141,9 +143,9 @@ export default React.memo(function Answer(props) {
                     <Button
                         id={id + "_correct"}
                         style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                     >
-                        <FontAwesomeIcon icon={faCheck} />
+                        <FontAwesomeIcon icon={faCheck as IconProp} />
                         &nbsp; Correct
                     </Button>
                 );
@@ -155,9 +157,9 @@ export default React.memo(function Answer(props) {
                     <Button
                         id={id + "_incorrect"}
                         style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                     >
-                        <FontAwesomeIcon icon={faTimes} />
+                        <FontAwesomeIcon icon={faTimes as IconProp} />
                         &nbsp; Incorrect
                     </Button>
                 );
@@ -170,7 +172,7 @@ export default React.memo(function Answer(props) {
                     <Button
                         id={id + "_partial"}
                         style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                     >
                         {partialCreditContents}
                     </Button>
@@ -184,9 +186,9 @@ export default React.memo(function Answer(props) {
                     <Button
                         id={id + "_saved"}
                         style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                     >
-                        <FontAwesomeIcon icon={faCloud} />
+                        <FontAwesomeIcon icon={faCloud as IconProp} />
                         &nbsp; Response Saved
                     </Button>
                 );
@@ -218,7 +220,6 @@ export default React.memo(function Answer(props) {
 
         return (
             <span id={id} style={{ marginBottom: "4px" }}>
-                <a name={id} />
                 {inputChildrenToRender}
                 {checkworkComponent}
                 {answerResponseMenu}
@@ -227,7 +228,6 @@ export default React.memo(function Answer(props) {
     } else {
         return (
             <span id={id} style={{ marginBottom: "4px" }}>
-                <a name={id} />
                 {inputChildrenToRender}
                 {answerResponseMenu}
             </span>
