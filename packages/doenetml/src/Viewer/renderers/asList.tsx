@@ -16,10 +16,5 @@ export default React.memo(function AsList(props) {
         .slice(1)
         .reduce((a, b) => [...a, ", ", b], [children[0]]);
 
-    return (
-        <React.Fragment key={id}>
-            <a name={id} />
-            {withCommas}
-        </React.Fragment>
-    );
+    return <React.Fragment key={id}>{withCommas}</React.Fragment>;
 });

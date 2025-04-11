@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
 // import { serializedComponentsReviver } from '@doenet/utils';
-import { renderersloadComponent } from "./DocViewer";
+import { renderersLoadComponent } from "./DocViewer";
 import { cesc } from "@doenet/utils";
 
 export const rendererState = atomFamily<
@@ -58,7 +58,7 @@ export default function useDoenetRenderer(
 
     useEffect(() => {
         if (Object.keys(renderersToLoad).length > 0) {
-            renderersloadComponent(
+            renderersLoadComponent(
                 Object.values(renderersToLoad),
                 Object.keys(renderersToLoad),
             ).then((newRendererClasses) => {

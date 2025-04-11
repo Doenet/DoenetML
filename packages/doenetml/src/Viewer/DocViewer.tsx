@@ -34,7 +34,15 @@ const rendererUpdatesToIgnore = atomFamily({
     default: {},
 });
 
-export const DocContext = createContext({});
+export const DocContext = createContext<{
+    navigate?: any;
+    location?: any;
+    linkSettings?: { viewURL: string; editURL: string };
+    scrollableContainer?: HTMLDivElement | Window;
+    darkMode?: "dark" | "light";
+    showAnswerResponseMenu?: boolean;
+    answerResponseCounts?: Record<string, number>;
+}>({});
 
 export function DocViewer({
     doenetML,
@@ -827,12 +835,30 @@ export function DocViewer({
         for (let rendererClassName of coreInfo.current
             .rendererTypesInDocument) {
             rendererClassNames.push(rendererClassName);
-            renderPromises.push(import(`./renderers/${rendererClassName}.jsx`));
+            let extension = "jsx";
+            const CONVERTED_TO_TSX = new Set([
+                "_error",
+                "angle",
+                "answer",
+                "asList",
+                "blockQuote",
+                "boolean",
+                "booleanInput",
+                "button",
+                "point",
+                "math",
+            ]);
+            if (CONVERTED_TO_TSX.has(rendererClassName)) {
+                extension = "tsx";
+            }
+            renderPromises.push(
+                import(`./renderers/${rendererClassName}.${extension}`),
+            );
         }
 
         let documentComponentInstructions = coreInfo.current.documentToRender;
 
-        renderersloadComponent(renderPromises, rendererClassNames)
+        renderersLoadComponent(renderPromises, rendererClassNames)
             .then((newRendererClasses) => {
                 rendererClasses.current = newRendererClasses;
                 let documentRendererClass =
@@ -1504,7 +1530,7 @@ export function DocViewer({
     );
 }
 
-export async function renderersloadComponent(
+export async function renderersLoadComponent(
     promises: Promise<any>[],
     rendererClassNames: string[],
 ) {
