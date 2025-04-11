@@ -28,7 +28,7 @@ export default React.memo(function Point(props) {
     let shadowPointJXG = useRef<JXGObject | null>(null);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
-    let pointAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number, number] | null>(null);
     let pointerIsDown = useRef(false);
     let pointerMovedSinceDown = useRef(false);
     let dragged = useRef(false);
@@ -195,7 +195,7 @@ export default React.memo(function Point(props) {
         newShadowPointJXG.on("down", function (e: { x: number; y: number }) {
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
-                ...(newShadowPointJXG.coords.scrCoords as [number, number]),
+                ...(newShadowPointJXG.coords.scrCoords as [number, number, number]),
             ];
             dragged.current = false;
             if (shadowPointJXG.current != null && pointJXG.current != null) {
@@ -334,8 +334,6 @@ export default React.memo(function Point(props) {
                         board.unitX;
                     calculatedY.current =
                         (o[2] -
-                            // TODO: Is this correct? What is the `[2]` doing?
-                            // @ts-ignore
                             (pointAtDown.current[2] +
                                 e.y -
                                 pointerAtDown.current[1])) /

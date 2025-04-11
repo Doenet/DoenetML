@@ -24,7 +24,7 @@ export default React.memo(function MathComponent(props) {
     const board = useContext(BoardContext);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
-    let pointAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number, number] | null>(null);
     let pointerIsDown = useRef(false);
     let pointerMovedSinceDown = useRef(false);
     let dragged = useRef(false);
@@ -159,7 +159,7 @@ export default React.memo(function MathComponent(props) {
         newMathJXG.on("down", function (e) {
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
-                ...(newAnchorPointJXG.coords.scrCoords as [number, number]),
+                ...(newAnchorPointJXG.coords.scrCoords as [number, number, number]),
             ];
             dragged.current = false;
             pointerIsDown.current = true;
@@ -174,7 +174,7 @@ export default React.memo(function MathComponent(props) {
 
         newMathJXG.on("hit", function (e) {
             pointAtDown.current = [
-                ...(newAnchorPointJXG.coords.scrCoords as [number, number]),
+                ...(newAnchorPointJXG.coords.scrCoords as [number, number, number]),
             ];
             dragged.current = false;
             callAction({
@@ -272,7 +272,6 @@ export default React.memo(function MathComponent(props) {
 
                 calculatedY.current =
                     (o[2] -
-                        // @ts-ignore
                         (pointAtDown.current[2] +
                             e.y -
                             pointerAtDown.current[1])) /
@@ -503,7 +502,7 @@ export default React.memo(function MathComponent(props) {
             board.updateRenderer();
         }
 
-        return null;
+        return <span id={id} />;
     }
 
     // not in board

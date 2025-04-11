@@ -207,7 +207,7 @@ export default React.memo(function Angle(props) {
             board.updateRenderer();
         }
 
-        return null;
+        return <span id={id} />;
     }
 
     let mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";

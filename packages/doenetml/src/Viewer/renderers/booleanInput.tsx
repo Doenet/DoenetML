@@ -70,7 +70,7 @@ export default React.memo(function BooleanInput(props) {
     const board = useContext(BoardContext);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
-    let pointAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<[number, number, number] | null>(null);
     let dragged = useRef(false);
 
     let calculatedX = useRef<number | null>(null);
@@ -189,7 +189,7 @@ export default React.memo(function BooleanInput(props) {
         newInputJXG.on("down", function (e: JXGEvent) {
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
-                ...(newAnchorPointJXG.coords.scrCoords as [number, number]),
+                ...(newAnchorPointJXG.coords.scrCoords as [number, number, number]),
             ];
             dragged.current = false;
         });
@@ -282,7 +282,6 @@ export default React.memo(function BooleanInput(props) {
 
                 calculatedY.current =
                     (o[2] -
-                        // @ts-ignore
                         (pointAtDown.current[2] +
                             e.y -
                             pointerAtDown.current[1])) /
@@ -463,7 +462,7 @@ export default React.memo(function BooleanInput(props) {
             board.updateRenderer();
         }
 
-        return null;
+        return <span id={id} />;
     }
 
     // not in board
