@@ -195,7 +195,11 @@ export default React.memo(function Point(props) {
         newShadowPointJXG.on("down", function (e: { x: number; y: number }) {
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
-                ...(newShadowPointJXG.coords.scrCoords as [number, number, number]),
+                ...(newShadowPointJXG.coords.scrCoords as [
+                    number,
+                    number,
+                    number,
+                ]),
             ];
             dragged.current = false;
             if (shadowPointJXG.current != null && pointJXG.current != null) {

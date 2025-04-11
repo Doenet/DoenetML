@@ -189,7 +189,11 @@ export default React.memo(function BooleanInput(props) {
         newInputJXG.on("down", function (e: JXGEvent) {
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
-                ...(newAnchorPointJXG.coords.scrCoords as [number, number, number]),
+                ...(newAnchorPointJXG.coords.scrCoords as [
+                    number,
+                    number,
+                    number,
+                ]),
             ];
             dragged.current = false;
         });

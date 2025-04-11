@@ -159,7 +159,11 @@ export default React.memo(function MathComponent(props) {
         newMathJXG.on("down", function (e) {
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
-                ...(newAnchorPointJXG.coords.scrCoords as [number, number, number]),
+                ...(newAnchorPointJXG.coords.scrCoords as [
+                    number,
+                    number,
+                    number,
+                ]),
             ];
             dragged.current = false;
             pointerIsDown.current = true;
@@ -174,7 +178,11 @@ export default React.memo(function MathComponent(props) {
 
         newMathJXG.on("hit", function (e) {
             pointAtDown.current = [
-                ...(newAnchorPointJXG.coords.scrCoords as [number, number, number]),
+                ...(newAnchorPointJXG.coords.scrCoords as [
+                    number,
+                    number,
+                    number,
+                ]),
             ];
             dragged.current = false;
             callAction({
