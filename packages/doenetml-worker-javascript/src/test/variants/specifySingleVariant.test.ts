@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     submitAnswer,
     updateMathInputValue,
@@ -71,7 +71,7 @@ describe("Specifying single variant tests", async () => {
             let variantName = variantNames[variantIndex - 1];
             let variantSeed = seeds[variantIndex - 1];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/n"].stateValues.value).eq(n);
             expect(
                 stateVariables["/_document1"].stateValues.generatedVariantInfo,
@@ -132,7 +132,7 @@ describe("Specifying single variant tests", async () => {
             extra: "<text>hi</text>",
         });
         let core = await createTestCore({ doenetML, requestedVariantIndex: 1 });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         nBySeed[seeds[0]] = stateVariables["/n"].stateValues.value;
         await check_variant(1, nBySeed[seeds[0]], seeds, variantNames);
 
@@ -169,7 +169,7 @@ describe("Specifying single variant tests", async () => {
 
         // Number does change for index 2
         core = await createTestCore({ doenetML, requestedVariantIndex: 2 });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         nBySeed[seeds[1]] = stateVariables["/n"].stateValues.value;
         expect(nBySeed[seeds[1]]).not.eq(nBySeed[seeds[0]]);
         await check_variant(2, nBySeed[seeds[1]], seeds, variantNames);
@@ -212,7 +212,7 @@ describe("Specifying single variant tests", async () => {
                 doenetML,
                 requestedVariantIndex: 3 + 77 * numVariants,
             });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             nBySeed[seeds[2]] = stateVariables["/n"].stateValues.value;
             expect(nBySeed[seeds[2]]).not.eq(nBySeed[seeds[0]]);
             expect(nBySeed[seeds[2]]).not.eq(nBySeed[seeds[1]]);
@@ -223,7 +223,7 @@ describe("Specifying single variant tests", async () => {
                 doenetML,
                 requestedVariantIndex: 4 + -3261 * numVariants,
             });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             nBySeed[seeds[3]] = stateVariables["/n"].stateValues.value;
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[0]]);
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[1]]);
@@ -340,7 +340,7 @@ describe("Specifying single variant tests", async () => {
             let variantName = variantNames[variantIndex - 1];
             let expectedX = variantName[0];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             let x = stateVariables["/x"].stateValues.value.tree;
             expect(x).eq(expectedX);
@@ -475,7 +475,7 @@ describe("Specifying single variant tests", async () => {
                 requestedVariantIndex: Math.round(Math.random() * 1000),
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let p = stateVariables["/p"];
 
             let variantInd = firstStringsToInd[p.activeChildren[0].trim()];
@@ -520,7 +520,7 @@ describe("Specifying single variant tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
 
             await updateTextInputValue({
@@ -529,7 +529,7 @@ describe("Specifying single variant tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
             await updateTextInputValue({
@@ -538,7 +538,7 @@ describe("Specifying single variant tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         }
     });
@@ -568,7 +568,7 @@ describe("Specifying single variant tests", async () => {
                     requestedVariantIndex: ind,
                 });
 
-                let stateVariables = await returnAllStateVariables(core);
+                let stateVariables = await core.returnAllStateVariables(true);
 
                 let variantInds: number[] = [];
                 let secondValues: (number | string)[] = [];
@@ -750,7 +750,7 @@ describe("Specifying single variant tests", async () => {
                     requestedVariantIndex: ind,
                 });
 
-                let stateVariables = await returnAllStateVariables(core);
+                let stateVariables = await core.returnAllStateVariables(true);
 
                 let valuesS1: number[] =
                     stateVariables["/s1"].stateValues.selectedValues;
@@ -824,7 +824,7 @@ describe("Specifying single variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let orderC1 = stateVariables["/c1"].stateValues.choiceOrder;
             let orderC2 = stateVariables["/c2"].stateValues.choiceOrder;
@@ -864,7 +864,7 @@ describe("Specifying single variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let m = stateVariables["/m"].stateValues.value;
             let n = stateVariables["/n"].stateValues.value;
 
@@ -873,7 +873,7 @@ describe("Specifying single variant tests", async () => {
             await updateMathInputValue({ latex: `${n}`, name: "/mi2", core });
             await submitAnswer({ name: "/ans2", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
 
@@ -882,7 +882,7 @@ describe("Specifying single variant tests", async () => {
             await updateMathInputValue({ latex: `${n}X`, name: "/mi2", core });
             await submitAnswer({ name: "/ans2", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
 
@@ -891,7 +891,7 @@ describe("Specifying single variant tests", async () => {
             await updateMathInputValue({ latex: `${n}`, name: "/mi2", core });
             await submitAnswer({ name: "/ans2", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
         }
@@ -915,7 +915,7 @@ describe("Specifying single variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let m = stateVariables["/m"].stateValues.value;
             let n = stateVariables["/n"].stateValues.value;
@@ -936,7 +936,7 @@ describe("Specifying single variant tests", async () => {
             await submitAnswer({ name: "/ans1", core });
             await submitAnswer({ name: "/ans2", core });
             await submitAnswer({ name: "/ans3", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans3"].stateValues.creditAchieved).eq(1);
@@ -951,7 +951,7 @@ describe("Specifying single variant tests", async () => {
             await submitAnswer({ name: "/ans1", core });
             await submitAnswer({ name: "/ans2", core });
             await submitAnswer({ name: "/ans3", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/ans3"].stateValues.creditAchieved).eq(0);
@@ -966,7 +966,7 @@ describe("Specifying single variant tests", async () => {
             await submitAnswer({ name: "/ans1", core });
             await submitAnswer({ name: "/ans2", core });
             await submitAnswer({ name: "/ans3", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans3"].stateValues.creditAchieved).eq(1);
@@ -998,7 +998,7 @@ describe("Specifying single variant tests", async () => {
 
             let fruit = ["apple", "orange"][(ind - 1) % 2];
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let textinputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
@@ -1020,7 +1020,7 @@ describe("Specifying single variant tests", async () => {
             });
             await submitAnswer({ name: "/ans", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans"].stateValues.submittedResponses).eqls([
                 fruit,
@@ -1033,7 +1033,7 @@ describe("Specifying single variant tests", async () => {
             });
             await submitAnswer({ name: "/ans", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/ans"].stateValues.submittedResponses).eqls([
                 fruit + "s",
@@ -1046,7 +1046,7 @@ describe("Specifying single variant tests", async () => {
             });
             await submitAnswer({ name: "/ans", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans"].stateValues.submittedResponses).eqls([
                 fruit,
@@ -1111,7 +1111,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let n = stateVariables["/n"].stateValues.value;
         let a = stateVariables["/a"].stateValues.value.tree;
 
@@ -1128,7 +1128,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(n);
         expect(stateVariables["/a"].stateValues.value.tree).eq(a);
 
@@ -1140,7 +1140,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         let n2 = stateVariables["/n"].stateValues.value;
         expect(n2).not.eq(n);
         n = n2;
@@ -1165,7 +1165,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(n);
         expect(stateVariables["/a"].stateValues.value.tree).eq(a);
         expect(stateVariables["/w1"].stateValues.value).eq(w1);
@@ -1197,7 +1197,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         values.push(stateVariables["/n"].stateValues.value);
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
             "2",
@@ -1233,7 +1233,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 5,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         values.push(stateVariables["/n"].stateValues.value);
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
             "5",
@@ -1271,7 +1271,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(values[0]);
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
             variantsFromProblem ? "1" : "2",
@@ -1306,7 +1306,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(values[1]);
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
             variantsFromProblem ? "2" : "5",
@@ -1343,7 +1343,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(values[0]);
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
             variantsFromProblem ? "1" : "2",
@@ -1382,7 +1382,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 3,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
@@ -1427,7 +1427,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(values[0]);
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(
             variantsFromProblem ? "1" : "2",
@@ -1469,7 +1469,7 @@ describe("Specifying single variant tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
         expect(stateVariables["/_document1"].sharedParameters.variantSeed).eq(

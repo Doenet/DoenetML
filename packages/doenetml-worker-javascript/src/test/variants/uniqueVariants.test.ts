@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     submitAnswer,
     updateMathInputValue,
@@ -28,7 +28,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             sampledValues.push(stateVariables["/x"].stateValues.value.tree);
             expect(
                 stateVariables["/_document1"].sharedParameters
@@ -56,7 +56,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             sampledValues.push(stateVariables["/x"].stateValues.value);
             expect(
                 stateVariables["/_document1"].sharedParameters
@@ -84,7 +84,7 @@ describe("Unique variant tests", async () => {
                 doenetML,
                 requestedVariantIndex: ind,
             });
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             sampledValues.push(stateVariables["/x"].stateValues.value);
         }
 
@@ -137,7 +137,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newW = stateVariables["/w"].stateValues.value;
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value;
@@ -166,7 +166,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newW = stateVariables["/w"].stateValues.value;
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value;
@@ -212,7 +212,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value.tree;
             let newZ = stateVariables["/z"].stateValues.value.tree;
@@ -238,7 +238,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value.tree;
             let newZ = stateVariables["/z"].stateValues.value.tree;
@@ -276,7 +276,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value.tree;
             let newZ = stateVariables["/z"].stateValues.value.tree;
@@ -302,7 +302,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value.tree;
             let newZ = stateVariables["/z"].stateValues.value.tree;
@@ -346,7 +346,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value;
             let newY = stateVariables["/y"].stateValues.value;
             let newZ = stateVariables["/z"].stateValues.value;
@@ -371,7 +371,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value;
             let newY = stateVariables["/y"].stateValues.value;
             let newZ = stateVariables["/z"].stateValues.value;
@@ -409,7 +409,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value;
             let newY = stateVariables["/y"].stateValues.value;
             let newZ = stateVariables["/z"].stateValues.value;
@@ -435,7 +435,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value;
             let newY = stateVariables["/y"].stateValues.value;
             let newZ = stateVariables["/z"].stateValues.value;
@@ -477,7 +477,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newW = stateVariables["/w"].stateValues.value;
             let newX = stateVariables["/x"].stateValues.value;
             let newY = stateVariables["/y"].stateValues.value;
@@ -507,7 +507,7 @@ describe("Unique variant tests", async () => {
             });
             // to wait for page to load
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newW = stateVariables["/w"].stateValues.value;
             let newX = stateVariables["/x"].stateValues.value;
             let newY = stateVariables["/y"].stateValues.value;
@@ -544,7 +544,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newValue = stateVariables["/x"].stateValues.value;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -562,7 +562,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newValue = stateVariables["/x"].stateValues.value;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
@@ -593,7 +593,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newValue = stateVariables["/x"].stateValues.value.tree;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -611,7 +611,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newValue = stateVariables["/x"].stateValues.value.tree;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
@@ -642,7 +642,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newValue = stateVariables["/x/n"].stateValues.value;
             if (newValue.tree !== undefined) {
                 newValue = newValue.tree;
@@ -663,7 +663,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newValue = stateVariables["/x/n"].stateValues.value;
             if (newValue.tree !== undefined) {
                 newValue = newValue.tree;
@@ -708,7 +708,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value.tree;
             let newValue = [newX, newY].join(",");
@@ -724,7 +724,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let newX = stateVariables["/x"].stateValues.value.tree;
             let newY = stateVariables["/y"].stateValues.value.tree;
             let newValue = [newX, newY].join(",");
@@ -813,7 +813,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let category = stateVariables["/p"].activeChildren[0].trim();
             expect(categories.includes(category)).eq(true);
 
@@ -877,7 +877,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let category = stateVariables["/p"].activeChildren[0].trim();
             let component =
                 stateVariables[
@@ -980,7 +980,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let textinputName =
                 stateVariables[`/problem/ans`].stateValues.inputChildren[0]
@@ -1029,7 +1029,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({ name: `/problem/ans`, core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/problem/ans"].stateValues.creditAchieved,
             ).eq(1);
@@ -1047,7 +1047,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: `/problem/ans`, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/problem/ans"].stateValues.creditAchieved,
             ).eq(0);
@@ -1065,7 +1065,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: `/problem/ans`, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/problem/ans"].stateValues.creditAchieved,
             ).eq(1);
@@ -1093,7 +1093,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let category = stateVariables["/problem"].stateValues.title;
             let component =
                 stateVariables[
@@ -1131,13 +1131,13 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             sampledValues.push(stateVariables["/x"].stateValues.value);
             expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
             expect(stateVariables["/p2"]).be.undefined;
 
             await updateMathInputValue({ latex: "3", name: "/n", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
             expect(stateVariables["/p2"].stateValues.text).eq("letter: b");
             expect(stateVariables["/p3"].stateValues.text).eq("letter: c");
@@ -1167,7 +1167,7 @@ describe("Unique variant tests", async () => {
 
             await updateMathInputValue({ latex: "4", name: "/n", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/p1"].stateValues.text).eq("letter: a");
             expect(stateVariables["/p2"].stateValues.text).eq("letter: b");
             expect(stateVariables["/p3"].stateValues.text).eq("letter: c");
@@ -1192,7 +1192,7 @@ describe("Unique variant tests", async () => {
                 doenetML,
                 requestedVariantIndex: ind,
             });
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let ciName = "/ci";
             if (insiderAnswer) {
@@ -1216,7 +1216,7 @@ describe("Unique variant tests", async () => {
                     selectedIndices: [i + 1],
                     core,
                 });
-                stateVariables = await returnAllStateVariables(core);
+                stateVariables = await core.returnAllStateVariables(true);
                 expect(stateVariables[ciName].stateValues.selectedValues).eqls([
                     choices[choiceOrder[i] - 1],
                 ]);
@@ -1228,7 +1228,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables[ciName].stateValues.selectedValues).eqls([
                 choices[choiceOrder[0] - 1],
             ]);
@@ -1241,7 +1241,7 @@ describe("Unique variant tests", async () => {
             requestedVariantIndex: ind,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let ciName = "/ci";
         if (insiderAnswer) {
             ciName =
@@ -1313,7 +1313,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
             let n = stateVariables["/n"].stateValues.value;
             let l = stateVariables["/l"].stateValues.value;
@@ -1333,7 +1333,7 @@ describe("Unique variant tests", async () => {
                     core,
                 });
 
-                stateVariables = await returnAllStateVariables(core);
+                stateVariables = await core.returnAllStateVariables(true);
                 expect(stateVariables["/ci"].stateValues.selectedValues).eqls([
                     choices[choiceOrder[i] - 1],
                 ]);
@@ -1345,7 +1345,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ci"].stateValues.selectedValues).eqls([
                 choices[choiceOrder[0] - 1],
             ]);
@@ -1357,7 +1357,7 @@ describe("Unique variant tests", async () => {
             requestedVariantIndex: ind,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
         let n = stateVariables["/n"].stateValues.value;
         let l = stateVariables["/l"].stateValues.value;
@@ -1377,7 +1377,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let componentOrder =
                 stateVariables["/sh"].stateValues.componentOrder;
             expect([...componentOrder].sort()).eqls([1, 2, 3]);
@@ -1402,7 +1402,7 @@ describe("Unique variant tests", async () => {
             requestedVariantIndex: ind,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let componentOrder = stateVariables["/sh"].stateValues.componentOrder;
         let selectedOrder = componentOrder.join(",");
         expect(selectedOrder).eq(ordersFound[0]);
@@ -1464,7 +1464,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let mathInputName =
                 stateVariables["/ans1"].stateValues.inputChildren[0]
@@ -1496,7 +1496,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: "/ans2", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
             expect(
@@ -1519,7 +1519,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: "/ans2", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(0);
 
@@ -1543,7 +1543,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: "/ans2", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
             expect(
@@ -1676,7 +1676,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             let mathInputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
@@ -1699,7 +1699,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: "/ans", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
             expect(
                 stateVariables["/ans"].stateValues.submittedResponses[0].tree,
@@ -1711,7 +1711,7 @@ describe("Unique variant tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
             expect(
                 stateVariables["/ans"].stateValues.submittedResponses[0].tree,
@@ -1724,7 +1724,7 @@ describe("Unique variant tests", async () => {
             });
             await submitAnswer({ name: "/ans", core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
             expect(
                 stateVariables["/ans"].stateValues.submittedResponses[0].tree,
@@ -1739,7 +1739,7 @@ describe("Unique variant tests", async () => {
     it("no variant control, 1 unique variant", async () => {
         let core = await createTestCore({ doenetML: "hello" });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/_document1"].sharedParameters.allPossibleVariants,
         ).eqls(["a"]);
@@ -1756,7 +1756,7 @@ describe("Unique variant tests", async () => {
                 doenetML,
                 requestedVariantIndex: ind,
             });
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             sampledValues.push(stateVariables["/x"].stateValues.value.tree);
             expect(
@@ -1787,7 +1787,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             sampledLetters.push(stateVariables["/x"].stateValues.value.tree);
             sampledNumbers.push(stateVariables["/n"].stateValues.value);
             expect(
@@ -1819,7 +1819,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             const n = stateVariables["/n"].stateValues.value;
             expect(n).gte(1).lte(100);
             if (ind <= 100) {
@@ -1848,7 +1848,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             const n = stateVariables["/n"].stateValues.value;
             expect(n).gte(1).lte(101);
             if (ind <= 100) {
@@ -1877,7 +1877,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             const n = stateVariables["/n"].stateValues.value;
             expect(n).gte(1).lte(1000);
             if (ind <= 100) {
@@ -1914,7 +1914,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             const n = stateVariables["/n"].stateValues.value;
             expect(n).gte(1).lte(100);
             if (ind <= 10) {
@@ -1959,7 +1959,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             sampledValues.push(stateVariables["/n"].stateValues.value);
 
             expect(
@@ -1975,7 +1975,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             if (ind <= 4) {
                 expect(stateVariables["/n"].stateValues.value).eq(
                     sampledValues[ind - 1],
@@ -1996,7 +1996,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/n"].stateValues.value).eq(
                 sampledValues[ind - 1],
             );
@@ -2030,7 +2030,7 @@ describe("Unique variant tests", async () => {
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let a = stateVariables["/a"].stateValues.value;
             let b = stateVariables["/b"].stateValues.value;
             let c = stateVariables["/c"].stateValues.value;
@@ -2053,7 +2053,7 @@ describe("Unique variant tests", async () => {
         <sampleRandomNumbers type="uniform" from="1" to="10" assignNames="n" />
         `,
         });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).gte(1).lte(10);
         expect(
             stateVariables["/_document1"].sharedParameters.allPossibleVariants,
@@ -2066,7 +2066,7 @@ describe("Unique variant tests", async () => {
         <selectFromSequence from="1" to="10" />
         `,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).gte(1).lte(10000);
         expect(
             stateVariables["/_document1"].sharedParameters.allPossibleVariants
@@ -2079,7 +2079,7 @@ describe("Unique variant tests", async () => {
                 <sampleRandomNumbers type="uniform" from="1" to="10" variantDeterminesSeed assignNames="n" />
                 `,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).gte(1).lte(10);
         expect(
             stateVariables["/_document1"].sharedParameters.allPossibleVariants
@@ -2091,7 +2091,7 @@ describe("Unique variant tests", async () => {
                 <samplePrimeNumbers minValue="1" maxValue="10000" variantDeterminesSeed assignNames="n" />
                 `,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).gte(1).lte(10000);
         expect(
             stateVariables["/_document1"].sharedParameters.allPossibleVariants

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveNumber,
@@ -22,7 +22,7 @@ describe("Number tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/num"].stateValues.value).eq(2);
         expect(stateVariables["/_number1"].stateValues.value).eq(2);
     });
@@ -35,7 +35,7 @@ describe("Number tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/num"].stateValues.value).eqls(NaN);
         expect(stateVariables["/_number1"].stateValues.value).eqls(NaN);
     });
@@ -48,17 +48,17 @@ describe("Number tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(5);
 
         await updateMathInputValue({ latex: "x", name: "/mi", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eqls(NaN);
 
         await updateMathInputValue({ latex: "9", name: "/mi", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(9);
     });
 
@@ -69,7 +69,7 @@ describe("Number tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/_math1"].stateValues.value.tree).eqls([
             "+",
             "x",
@@ -85,7 +85,7 @@ describe("Number tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/_math1"].stateValues.value.tree).eqls([
             "+",
             5,
@@ -105,7 +105,7 @@ describe("Number tag tests", async () => {
 
         let num = Math.log(0.5 / 0.3);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/_math1"].stateValues.value.tree).closeTo(
             num,
             1e-14,
@@ -173,7 +173,7 @@ describe("Number tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/n1"].stateValues.text).eq("234234823.34");
         expect(stateVariables["/n1a"].stateValues.text).eq("234230000");
@@ -540,7 +540,7 @@ describe("Number tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/n1"].stateValues.text).eq("22");
         expect(stateVariables["/n1a"].stateValues.text).eq("22");
@@ -718,7 +718,7 @@ describe("Number tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/n"].stateValues.text).eq("35203423.02");
         expect(stateVariables["/na"].stateValues.text).eq("35203423.024");
@@ -729,7 +729,7 @@ describe("Number tag tests", async () => {
             name: "/ndecimals",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("35200000");
 
         // more digits
@@ -738,7 +738,7 @@ describe("Number tag tests", async () => {
             name: "/ndigits",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("35203423.0235");
 
         // remove digits
@@ -747,7 +747,7 @@ describe("Number tag tests", async () => {
             name: "/ndigits",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("35203423.023523435");
 
         // Fewer digits than have
@@ -756,7 +756,7 @@ describe("Number tag tests", async () => {
             name: "/ndecimals",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("0");
 
         // add one digit
@@ -765,7 +765,7 @@ describe("Number tag tests", async () => {
             name: "/ndigits",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("40000000");
 
         // invalid precision means no rounding
@@ -779,7 +779,7 @@ describe("Number tag tests", async () => {
             name: "/ndecimals",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("35203423.023523435");
 
         // add a decimal
@@ -788,7 +788,7 @@ describe("Number tag tests", async () => {
             name: "/ndecimals",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("35203423");
 
         // negative precision, ignores display digits
@@ -802,7 +802,7 @@ describe("Number tag tests", async () => {
             name: "/ndecimals",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/na"].stateValues.text).eq("35203000");
     });
 
@@ -839,7 +839,7 @@ describe("Number tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/inf1"].stateValues.value).eq(Infinity);
         expect(stateVariables["/inf2"].stateValues.value).eq(Infinity);
         expect(stateVariables["/inf3"].stateValues.value).eq(Infinity);
@@ -899,7 +899,7 @@ describe("Number tag tests", async () => {
 
   `,
         });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/n1"].stateValues.text).eq("8.5");
         expect(stateVariables["/n1a"].stateValues.text).eq("8.5");
@@ -1009,7 +1009,7 @@ describe("Number tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/m1"].stateValues.text).eq("8.5");
         expect(stateVariables["/m1a"].stateValues.text).eq("8.5");
@@ -1156,7 +1156,7 @@ describe("Number tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/mi1"].stateValues.rawRendererValue).eq("");
         expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
@@ -1247,7 +1247,7 @@ describe("Number tag tests", async () => {
             name: "/mi4b",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/mi1"].stateValues.rawRendererValue).eq("3/4");
         expect(stateVariables["/n1"].stateValues.value).eq(0.75);
@@ -1329,7 +1329,7 @@ describe("Number tag tests", async () => {
             name: "/mi4b",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/mi1"].stateValues.rawRendererValue).eq("x");
         expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
@@ -1376,7 +1376,7 @@ describe("Number tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/if1"].stateValues.value).eqls(NaN);
         expect(stateVariables["/if2"].stateValues.value).eqls(NaN);
@@ -1432,7 +1432,7 @@ describe("Number tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/i1"].stateValues.text).eq("i");
         expect(cleanLatex(stateVariables["/i1a"].stateValues.latex)).eq("i");
@@ -1554,7 +1554,7 @@ describe("Number tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/n1"].stateValues.value).eqls(1);
         expect(stateVariables["/n2"].stateValues.value).eqls(1);
@@ -1567,7 +1567,7 @@ describe("Number tag tests", async () => {
         await updateMathInputValue({ latex: "i", name: "/mi2", core });
         await updateMathInputValue({ latex: "i", name: "/mi3", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n1"].stateValues.value).eqls({
             re: 0,
             im: 1,
@@ -1600,7 +1600,7 @@ describe("Number tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n1"].stateValues.value.re).eq(2);
         expect(stateVariables["/n1"].stateValues.value.im).eq(1);
         expect(stateVariables["/n2"].stateValues.value.re).eq(2);
@@ -1639,7 +1639,7 @@ describe("Number tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n1"].stateValues.value).eq(3);
         expect(stateVariables["/n2"].stateValues.value).eq(3);
         expect(stateVariables["/n3"].stateValues.value).eq(3);
@@ -1663,7 +1663,7 @@ describe("Number tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n1"].stateValues.value).eqls({
             re: 0,
             im: 1,
@@ -1696,7 +1696,7 @@ describe("Number tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n1"].stateValues.value.re).eq(0);
         expect(stateVariables["/n1"].stateValues.value.im).eq(-1);
         expect(stateVariables["/n2"].stateValues.value.re).eq(0);
@@ -1727,7 +1727,7 @@ describe("Number tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n1"].stateValues.value).eq(2);
         expect(stateVariables["/n2"].stateValues.value).eq(-4);
         expect(stateVariables["/n3"].stateValues.value).eq(2);

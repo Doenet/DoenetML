@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -15,7 +15,7 @@ describe("Integer tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/int"].stateValues.value).eq(2);
         expect(stateVariables["/_integer1"].stateValues.value).eq(2);
     });
@@ -28,7 +28,7 @@ describe("Integer tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/int"].stateValues.value).eqls(NaN);
         expect(stateVariables["/_integer1"].stateValues.value).eqls(NaN);
     });
@@ -41,7 +41,7 @@ describe("Integer tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eqls(NaN);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("");
 
@@ -50,7 +50,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(-6);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("-6.5");
 
@@ -59,7 +59,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eqls(NaN);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("-6.5x");
 
@@ -68,7 +68,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(10);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("9.5");
     });
@@ -81,7 +81,7 @@ describe("Integer tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(5);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("5");
 
@@ -90,7 +90,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(-6);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("-6");
 
@@ -99,7 +99,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eqls(NaN);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("NaN");
 
@@ -109,7 +109,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(3);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("3");
 
@@ -118,7 +118,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(31);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("31");
 
@@ -127,7 +127,7 @@ describe("Integer tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(32);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("32");
     });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     moveControlVector,
     movePoint,
@@ -7,7 +7,7 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 
 const Mock = vi.fn();
@@ -177,7 +177,7 @@ async function runTests({
     points = [],
     vertex,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
     points?: number[][];
     vertex?: number[];
 }) {
@@ -390,7 +390,7 @@ async function checkAllParabolaValues({
     b: number;
     c: number;
     points: number[][];
-    core: Core;
+    core: PublicDoenetMLCore;
 }) {
     for (let namePair of names) {
         await checkParabolaValues({
@@ -403,7 +403,7 @@ async function checkAllParabolaValues({
         });
     }
 
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(true);
     for (let [i, pt] of points.entries()) {
         expect(stateVariables[`/P${i + 1}`].stateValues.xs[0].tree).closeTo(
             pt[0],
@@ -429,12 +429,12 @@ async function checkParabolaValues({
     a: number;
     b: number;
     c: number;
-    core: Core;
+    core: PublicDoenetMLCore;
 }) {
     let vertex_x = -b / (2 * a);
     let vertex_y = c - b ** 2 / (4 * a);
 
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(true);
 
     if (Number.isFinite(a) && Number.isFinite(b) && Number.isFinite(c)) {
         expect(stateVariables[name].stateValues.a).closeTo(a, 1e-12);
@@ -554,7 +554,7 @@ describe("Parabola Tag Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -596,7 +596,7 @@ describe("Parabola Tag Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -633,7 +633,7 @@ describe("Parabola Tag Tests", async () => {
         let f_p = (x) => (x - 1) ** 2 + 2;
 
         async function check_items(xMin: number, xMax: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
                 (v) => v.tree,
             );
@@ -688,7 +688,7 @@ describe("Parabola Tag Tests", async () => {
         let f_p = (x) => -((x - 1) ** 2 + 2);
 
         async function check_items(xMin: number, xMax: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
                 (v) => v.tree,
             );
@@ -743,7 +743,7 @@ describe("Parabola Tag Tests", async () => {
         let f_p = (x) => 0.5 * x + 1.5;
 
         async function check_items(x: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
                 (v) => v.tree,
             );
@@ -795,7 +795,7 @@ describe("Parabola Tag Tests", async () => {
         let f_p = (x) => -100 * ((x - 1) ** 2 + 2);
 
         async function check_items(xMin: number, xMax: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             const [x1, x2] = stateVariables["/A"].stateValues.xs.map(
                 (v) => v.tree,
             );
@@ -850,7 +850,7 @@ describe("Parabola Tag Tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/g1/p0"].stateValues.a).closeTo(1, 1e-12);
         expect(stateVariables["/g1/p0"].stateValues.b).closeTo(0, 1e-12);
@@ -912,7 +912,7 @@ describe("Parabola Tag Tests", async () => {
         let t3x = -3,
             t3y = 4;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"]).eq(undefined);
         expect(stateVariables["/P2"]).eq(undefined);
         expect(stateVariables["/P3"]).eq(undefined);
@@ -920,7 +920,7 @@ describe("Parabola Tag Tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t1x,
             t1y,
@@ -931,7 +931,7 @@ describe("Parabola Tag Tests", async () => {
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
 
         await updateMathInputValue({ latex: "2", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t2x,
             t2y,
@@ -942,7 +942,7 @@ describe("Parabola Tag Tests", async () => {
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
 
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t3x,
             t3y,
@@ -953,7 +953,7 @@ describe("Parabola Tag Tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"]).eq(undefined);
         expect(stateVariables["/P2"]).eq(undefined);
         expect(stateVariables["/P3"]).eq(undefined);

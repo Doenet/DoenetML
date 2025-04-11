@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { numberToLetters } from "@doenet/utils";
 import { updateMathInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -10,7 +10,7 @@ vi.mock("hyperformula");
 
 describe("sequence and map assign name tests", async () => {
     async function test_dynamic_copied_sequence(
-        core: Core,
+        core: PublicDoenetMLCore,
         check_items: (arg: number) => Promise<void>,
     ) {
         let n = 1;
@@ -114,7 +114,7 @@ describe("sequence and map assign name tests", async () => {
                 .map((v) => numberToLetters(v + 1, true))
                 .join(", ");
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/s1"].stateValues.text).eq(allLetters);
             expect(stateVariables["/s2"].stateValues.text).eq(allLetters);
             expect(stateVariables["/s3"].stateValues.text).eq(allLetters);
@@ -285,7 +285,7 @@ describe("sequence and map assign name tests", async () => {
                 (i) => `Letter ${i + 1} is ${numberToLetters(i + 1, true)}. `,
             );
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             for (let name of ["/m1", "/m2", "/m3", "/m4"]) {
                 expect(stateVariables[name].stateValues.text).eq(
@@ -376,7 +376,7 @@ describe("sequence and map assign name tests", async () => {
                 (i) => `Letter ${i + 1} is ${numberToLetters(i + 1, true)}. `,
             );
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/m1"].stateValues.text).eq(
                 letterPhrases.join(""),
@@ -443,14 +443,14 @@ describe("sequence and map assign name tests", async () => {
         await check_items(n);
     });
 
-    async function test_copy_alias_index(core: Core) {
+    async function test_copy_alias_index(core: PublicDoenetMLCore) {
         async function check_items(n: number) {
             let letterPhrases = [...Array(n).keys()].map(
                 (i) =>
                     `Letter ${i + 1} is ${numberToLetters(i + 1, true)}. Repeat: letter ${i + 1} is ${numberToLetters(i + 1, true)}. `,
             );
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/m1"].stateValues.text).eq(
                 letterPhrases.join(""),

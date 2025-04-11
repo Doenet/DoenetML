@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -42,7 +42,7 @@ describe("Ionic Compounds tests", async () => {
             latex: string;
             math: any;
         }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let mi =
                 stateVariables[`/ans${name}`].stateValues.inputChildren[0]
                     .componentName;
@@ -54,7 +54,7 @@ describe("Ionic Compounds tests", async () => {
             for (let resp in responseCredits) {
                 await updateMathInputValue({ name: mi, latex: resp, core });
                 await submitAnswer({ name: `/ans${name}`, core });
-                stateVariables = await returnAllStateVariables(core);
+                stateVariables = await core.returnAllStateVariables(true);
                 expect(
                     stateVariables[`/ans${name}`].stateValues.creditAchieved,
                 ).eq(responseCredits[resp]);
@@ -104,7 +104,7 @@ describe("Ionic Compounds tests", async () => {
   `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(2);

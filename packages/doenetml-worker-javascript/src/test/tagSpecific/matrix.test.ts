@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveMath,
@@ -111,7 +111,7 @@ describe("Matrix tag tests", async () => {
                 ["tuple", ...matrixValue.map((row) => ["tuple", ...row])],
             ];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/A"].stateValues.matrixSize).eqls([
                 numRows,
@@ -231,7 +231,7 @@ describe("Matrix tag tests", async () => {
         // change the values until 9 inputs have been tested
         if (numRows > 0 && numColumns > 0) {
             let ind = 0;
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             // Note: changing values locks in displayed default values
             values = paddedValues(
@@ -534,7 +534,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let matrixdefAst = [
             "matrix",
             ["tuple", 2, 2],
@@ -627,7 +627,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let matrixdefAst = [
             "matrix",
             ["tuple", 2, 2],
@@ -713,7 +713,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let matrixdefAst = [
             "matrix",
             ["tuple", 2, 2],
@@ -775,7 +775,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/Adef"].stateValues.text).eqls(
             "[ [ x_＿, y_＿ ], [ a_＿, b_＿ ] ]",

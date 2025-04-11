@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -36,7 +36,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).contain("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).contain("Hello who?!");
         expect(stateVariables["/p3"].stateValues.text).contain("Hello plant!");
@@ -44,7 +44,7 @@ describe("Module tag tests", async () => {
         expect(stateVariables["/p5"].stateValues.text).contain("Hello who?!");
 
         await updateTextInputValue({ text: "rock", name: "/item2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p4"].stateValues.text).contain("Hello rock!");
         expect(stateVariables["/p1"].stateValues.text).contain("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).contain("Hello who?!");
@@ -71,7 +71,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
@@ -79,7 +79,7 @@ describe("Module tag tests", async () => {
         expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
 
         await updateTextInputValue({ text: "rock", name: "/item", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m3/p"].stateValues.text).eq("Hello rock!");
         expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
@@ -106,7 +106,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
@@ -114,7 +114,7 @@ describe("Module tag tests", async () => {
         expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
 
         await updateTextInputValue({ text: "rock", name: "/item", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m3/p"].stateValues.text).eq("Hello rock!");
         expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
@@ -141,7 +141,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/m2/p"].stateValues.text).eq("Hello plant!");
@@ -149,7 +149,7 @@ describe("Module tag tests", async () => {
         expect(stateVariables["/m4/p"].stateValues.text).eq("Hello who?!");
 
         await updateTextInputValue({ text: "rock", name: "/item", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m3/p"].stateValues.text).eq("Hello rock!");
         expect(stateVariables["/m/p"].stateValues.text).eq("Hello who?!");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello who?!");
@@ -193,7 +193,7 @@ describe("Module tag tests", async () => {
             size: string;
             ar: number;
         }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
                 widthsBySize["medium"],
@@ -323,7 +323,7 @@ describe("Module tag tests", async () => {
             n2y: number;
             n2my: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/m/p"].stateValues.xs.map((v) => v.tree),
             ).eqls([mx, my]);
@@ -405,7 +405,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m/p"].stateValues.xs.map((v) => v.tree)).eqls([
             1, 2,
         ]);
@@ -439,13 +439,13 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m/p"].stateValues.text).eq("Disabled? ");
         expect(stateVariables["/m1/p"].stateValues.text).eq("Disabled? ");
         expect(stateVariables["/m2/p"].stateValues.text).eq("Disabled? ");
         expect(stateVariables["/m3/p"].stateValues.text).eq("Disabled? ");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(4);
         for (let i = 0; i < 4; i++) {
@@ -468,7 +468,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let errorChild =
             stateVariables[
                 stateVariables["/_document1"].activeChildren[0].componentName
@@ -478,7 +478,7 @@ describe("Module tag tests", async () => {
             "Duplicate component name: duplicate.",
         );
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -516,11 +516,11 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m/p"].stateValues.text).eq("b: ");
         expect(stateVariables["/m1/p"].stateValues.text).eq("b: hello");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(9);
@@ -631,7 +631,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/md/p1"].stateValues.text).eq(
             "The first number is 1; the second number is 2.",
         );
@@ -673,7 +673,7 @@ describe("Module tag tests", async () => {
             });
         }
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         for (let [i, v] of qs.entries()) {
             expect(
                 stateVariables[`/md${i || ""}/q2`].stateValues.value.tree,
@@ -739,7 +739,7 @@ describe("Module tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/m1/m1"].stateValues.latex)).eq(
             "(3,4)",
         );
@@ -767,7 +767,7 @@ describe("Module tag tests", async () => {
         // submit answers
         await submitAnswer({ name: "/m1/ans", core });
         await submitAnswer({ name: "/m2/ans", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/sr1"].stateValues.latex)).eq(
             "(0,0)",
         );
@@ -796,7 +796,7 @@ describe("Module tag tests", async () => {
         // submit answers
         await submitAnswer({ name: "/m1/ans", core });
         await submitAnswer({ name: "/m2/ans", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/sr1"].stateValues.latex)).eq(
             "(3,4)",
         );

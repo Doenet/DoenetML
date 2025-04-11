@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -59,7 +59,7 @@ describe("Equilibriumcurve Tag Tests", async () => {
             [-3, 4],
             [-2, 6],
         ];
-        let svs = await returnAllStateVariables(core);
+        let svs = await core.returnAllStateVariables(true);
         expect(svs["/g/A"].stateValues.numericalThroughPoints).eqls(throughA);
         expect(svs["/g/B"].stateValues.numericalThroughPoints).eqls(throughB);
         expect(svs["/g/C"].stateValues.numericalThroughPoints).eqls(throughC);
@@ -74,7 +74,7 @@ describe("Equilibriumcurve Tag Tests", async () => {
         let Ds = false;
 
         async function check_stable() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/gAs"].stateValues.value).eqls(As);
             expect(stateVariables["/gBs"].stateValues.value).eqls(false);
             expect(stateVariables["/gCs"].stateValues.value).eqls(Cs);
@@ -114,7 +114,6 @@ describe("Equilibriumcurve Tag Tests", async () => {
             componentName: "/g/A",
             actionName: "switchCurve",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -124,7 +123,6 @@ describe("Equilibriumcurve Tag Tests", async () => {
             componentName: "/g2/A",
             actionName: "switchCurve",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -133,7 +131,6 @@ describe("Equilibriumcurve Tag Tests", async () => {
             componentName: "/g/B",
             actionName: "switchCurve",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -142,7 +139,6 @@ describe("Equilibriumcurve Tag Tests", async () => {
             componentName: "/g2/C",
             actionName: "switchCurve",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -152,7 +148,6 @@ describe("Equilibriumcurve Tag Tests", async () => {
             componentName: "/g2/D",
             actionName: "switchCurve",
             args: {},
-            event: null,
         });
     });
 });

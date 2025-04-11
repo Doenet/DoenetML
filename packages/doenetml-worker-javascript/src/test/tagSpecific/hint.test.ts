@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -21,7 +21,7 @@ describe("Hint tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.title).eq("Hint");
         expect(stateVariables["/hint2"].stateValues.title).eq("Hint 2");
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
@@ -31,9 +31,8 @@ describe("Hint tag tests", async () => {
             componentName: "/hint1",
             actionName: "revealHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(true);
         expect(stateVariables["/hint2"].stateValues.open).eq(false);
 
@@ -41,9 +40,8 @@ describe("Hint tag tests", async () => {
             componentName: "/hint2",
             actionName: "revealHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(true);
         expect(stateVariables["/hint2"].stateValues.open).eq(true);
 
@@ -51,9 +49,8 @@ describe("Hint tag tests", async () => {
             componentName: "/hint1",
             actionName: "closeHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
         expect(stateVariables["/hint2"].stateValues.open).eq(true);
 
@@ -61,9 +58,8 @@ describe("Hint tag tests", async () => {
             componentName: "/hint2",
             actionName: "closeHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
         expect(stateVariables["/hint2"].stateValues.open).eq(false);
     });
@@ -87,7 +83,7 @@ describe("Hint tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.title).eq("Hint 1");
         expect(stateVariables["/revised"].stateValues.title).eq("Hint 2");
         expect(stateVariables["/title1"].stateValues.value).eq("Hint 1");
@@ -99,9 +95,8 @@ describe("Hint tag tests", async () => {
             componentName: "/hint1",
             actionName: "revealHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(true);
         expect(stateVariables["/revised"].stateValues.open).eq(false);
 
@@ -109,9 +104,8 @@ describe("Hint tag tests", async () => {
             componentName: "/revised",
             actionName: "revealHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(true);
         expect(stateVariables["/revised"].stateValues.open).eq(true);
 
@@ -119,9 +113,8 @@ describe("Hint tag tests", async () => {
             componentName: "/hint1",
             actionName: "closeHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
         expect(stateVariables["/revised"].stateValues.open).eq(true);
 
@@ -129,9 +122,8 @@ describe("Hint tag tests", async () => {
             componentName: "/revised",
             actionName: "closeHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
         expect(stateVariables["/revised"].stateValues.open).eq(false);
     });
@@ -149,7 +141,7 @@ describe("Hint tag tests", async () => {
             flags: { readOnly: true },
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.title).eq("Hello");
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
 
@@ -159,18 +151,16 @@ describe("Hint tag tests", async () => {
             componentName: "/hint1",
             actionName: "revealHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(true);
 
         await core.requestAction({
             componentName: "/hint1",
             actionName: "closeHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint1"].stateValues.open).eq(false);
     });
 });

@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-async function check_solutions(core: Core, solutions: number[]) {
+async function check_solutions(core: PublicDoenetMLCore, solutions: number[]) {
     const numSolutions = solutions.length;
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(true);
     expect(stateVariables["/solve"].stateValues.numSolutions).eq(numSolutions);
     expect(stateVariables["/solve"].stateValues.solutions.length).eq(
         numSolutions,
@@ -291,7 +291,7 @@ describe("SolveEquations tag tests", async () => {
 
         await check_solutions(core, []);
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);

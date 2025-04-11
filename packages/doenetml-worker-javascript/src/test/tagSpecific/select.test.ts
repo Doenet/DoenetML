@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -33,7 +33,7 @@ describe("Select tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             const s = stateVariables[selectName ?? ""];
             for (let [ind, name] of componentNames.entries()) {
                 let value = name
@@ -85,7 +85,7 @@ describe("Select tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             let values = componentNames.map(
                 (name) => stateVariables[name].stateValues.value,
             );
@@ -110,7 +110,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p"].activeChildren.length).eq(0);
     });
 
@@ -305,7 +305,7 @@ describe("Select tag tests", async () => {
 
         let results: number[] = [];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         results.push(stateVariables["/u"].stateValues.value);
         results.push(stateVariables["/v"].stateValues.value);
@@ -342,7 +342,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let num1 = stateVariables["/n1"].stateValues.value;
         let num2 = stateVariables["/n2"].stateValues.value;
         expect(Number.isInteger(num1) && num1 >= 1 && num1 <= 7).eq(true);
@@ -419,7 +419,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let sampleReplacements = stateVariables["/sample1"].replacements!;
         expect(sampleReplacements.length).eq(5);
 
@@ -444,7 +444,7 @@ describe("Select tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         sampleReplacements = stateVariables["/sample1"].replacements!;
 
         expect(
@@ -482,7 +482,7 @@ describe("Select tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         sampleReplacements = stateVariables["/sample1"].replacements!;
 
         let sampleMaths2 = sampleReplacements.map(
@@ -520,7 +520,7 @@ describe("Select tag tests", async () => {
         });
 
         async function check_sampled_numbers(sampledNumbers: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(
                 stateVariables["/p1"].activeChildren.map(
@@ -573,7 +573,7 @@ describe("Select tag tests", async () => {
         // sample one variable
         await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
@@ -588,7 +588,7 @@ describe("Select tag tests", async () => {
         // get two more samples
         await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         let n1 = stateVariables["/a/n"].stateValues.value;
         let n2 = stateVariables["/b/n"].stateValues.value;
         let n3 = stateVariables["/c/n"].stateValues.value;
@@ -608,7 +608,7 @@ describe("Select tag tests", async () => {
         // get six total samples
         await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         n1 = stateVariables["/a/n"].stateValues.value;
         n2 = stateVariables["/b/n"].stateValues.value;
         n3 = stateVariables["/c/n"].stateValues.value;
@@ -750,7 +750,7 @@ describe("Select tag tests", async () => {
             "Option 3: ": me.fromText("5zc"),
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let q2 =
             stateVariables[stateVariables["/q2"].replacements![0].componentName]
@@ -831,7 +831,7 @@ describe("Select tag tests", async () => {
             "Option 3: ": me.fromText("5zc"),
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let q2 =
             stateVariables[stateVariables["/q2"].replacements![0].componentName]
@@ -920,7 +920,7 @@ describe("Select tag tests", async () => {
             "Option 3: ": "z",
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let q2 =
             stateVariables[stateVariables["/q2"].replacements![0].componentName]
@@ -1037,7 +1037,7 @@ describe("Select tag tests", async () => {
             "Option 3: ": "z",
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let q2 =
             stateVariables[stateVariables["/q2"].replacements![0].componentName]
@@ -1131,7 +1131,7 @@ describe("Select tag tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         // let variantName = stateVariables['/x'].sharedParameters.variantName;
         // let expectedx = variantName.substring(0, 1);
@@ -1185,7 +1185,7 @@ describe("Select tag tests", async () => {
             requestedVariantIndex: 3,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let variantMap = {
             avocado: ["d", "a", "a"],
@@ -1541,7 +1541,7 @@ describe("Select tag tests", async () => {
 
         let core = await createTestCore({ doenetML });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -1580,7 +1580,7 @@ describe("Select tag tests", async () => {
             numY = 0,
             numZ = 0;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         for (let ind = 0; ind < 200; ind++) {
             let theText =
                 stateVariables[
@@ -1622,7 +1622,7 @@ describe("Select tag tests", async () => {
             requestedVariantIndex: 0,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let numX = 0,
             numY = 0,
             numZ = 0;
@@ -1672,7 +1672,7 @@ describe("Select tag tests", async () => {
             numZ = 0,
             numUVW = 0;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         for (let ind = 0; ind < 200; ind++) {
             let theSelect =
@@ -1754,7 +1754,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let qs = stateVariables["/q"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
         );
@@ -1900,7 +1900,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let qs = stateVariables["/q"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
         );
@@ -2097,7 +2097,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let qs = stateVariables["/q"]
             .replacements!.map((x) => stateVariables[x.componentName])
             .map((x) =>
@@ -2250,7 +2250,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let qs = [
             "/q/q/q",
             "/q/q/r",
@@ -2359,7 +2359,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let qs = [
             "/a/q/q/q",
             "/a/q/q/r",
@@ -2484,7 +2484,7 @@ describe("Select tag tests", async () => {
             },
         ];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let chosenChildren = stateVariables[
             stateVariables["/_select1"].replacements![0].componentName
@@ -2580,7 +2580,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let theList1 = stateVariables["/list1"].activeChildren.map((x) =>
             me
@@ -2663,7 +2663,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let theList1 = stateVariables["/list1"].activeChildren.map((x) =>
             me
@@ -2717,7 +2717,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let c = await stateVariables["/c"].stateValues.value;
         let d = await stateVariables["/d"].stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
@@ -2763,7 +2763,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let a = stateVariables["/a"].stateValues.value;
         let b = stateVariables["/b"].stateValues.value;
         let c = stateVariables["/c"].stateValues.value;
@@ -2817,7 +2817,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let a = stateVariables["/a"].stateValues.value;
         let b = stateVariables["/b"].stateValues.value;
         let c = stateVariables["/c"].stateValues.value;
@@ -2864,13 +2864,13 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let c = await stateVariables["/c"].stateValues.value;
         let d = await stateVariables["/d"].stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
 
@@ -2885,7 +2885,7 @@ describe("Select tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`, ${d}`);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
 
@@ -2900,7 +2900,7 @@ describe("Select tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
     });
@@ -2942,7 +2942,7 @@ describe("Select tag tests", async () => {
             },
         ];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let option =
             options[
@@ -2997,7 +2997,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let replacements =
             stateVariables[
@@ -3025,7 +3025,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3051,7 +3051,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3078,7 +3078,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3104,7 +3104,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3143,7 +3143,7 @@ describe("Select tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let n1 = stateVariables["/n1"].stateValues.value;
         let n2 = stateVariables["/n2"].stateValues.value;
         let n3 = stateVariables["/n3"].stateValues.value;
@@ -3231,7 +3231,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let q = stateVariables["/q"].stateValues.value.tree;
 
@@ -3255,7 +3255,7 @@ describe("Select tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let pNames1 = stateVariables["/_select1"].replacements!.map(
             (x) =>

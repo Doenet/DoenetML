@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveInput,
@@ -26,7 +26,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/v1"].stateValues.value).eq(false);
         expect(stateVariables["/v2"].stateValues.value).eq(false);
@@ -38,7 +38,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/v1"].stateValues.value).eq(true);
         expect(stateVariables["/v2"].stateValues.value).eq(true);
@@ -49,7 +49,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/v1"].stateValues.value).eq(false);
         expect(stateVariables["/v2"].stateValues.value).eq(false);
@@ -63,7 +63,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/v1"].stateValues.value).eq(true);
 
@@ -73,7 +73,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/v1"].stateValues.value).eq(false);
 
@@ -83,7 +83,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/v1"].stateValues.value).eq(true);
     });
@@ -104,7 +104,7 @@ describe("BooleanInput tag tests", async () => {
         });
 
         async function check_items(bi1: boolean, bi2: boolean) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/bi1"].stateValues.value).eq(bi1);
             expect(stateVariables["/bi1a"].stateValues.value).eq(bi1);
             expect(stateVariables["/v1"].stateValues.value).eq(bi1);
@@ -173,7 +173,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/b1"].stateValues.value).eq(true);
         expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -186,7 +186,7 @@ describe("BooleanInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
         expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -202,7 +202,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/b1"].stateValues.value).eq(true);
         expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -213,7 +213,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
         expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -227,7 +227,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
 
@@ -238,7 +238,7 @@ describe("BooleanInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
     });
@@ -253,7 +253,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/b1"].stateValues.value).eq(true);
         expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -266,7 +266,7 @@ describe("BooleanInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
         expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -282,7 +282,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/b1"].stateValues.value).eq(true);
         expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -293,7 +293,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
         expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -307,7 +307,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
 
@@ -318,7 +318,7 @@ describe("BooleanInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
     });
@@ -334,7 +334,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(true);
         expect(stateVariables["/b1"].stateValues.value).eq(true);
         expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -348,7 +348,7 @@ describe("BooleanInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi1"].stateValues.value).eq(false);
         expect(stateVariables["/b1"].stateValues.value).eq(false);
         expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -365,7 +365,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await updateBooleanInputValue({
@@ -373,7 +373,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await updateBooleanInputValue({
@@ -381,7 +381,7 @@ describe("BooleanInput tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(3);
     });
 
@@ -394,19 +394,19 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.label).eq(
             "It is \\(\\int_a^b f(x)\\,dx\\)",
         );
 
         // hide label
         await updateValue({ name: "/toggleLabel", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.label).eq("");
 
         // show label again
         await updateValue({ name: "/toggleLabel", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.label).eq(
             "It is \\(\\int_a^b f(x)\\,dx\\)",
         );
@@ -420,7 +420,7 @@ describe("BooleanInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/AnInput"].stateValues.label).eq("An Input");
     });
 
@@ -454,7 +454,7 @@ describe("BooleanInput tag tests", async () => {
                 bi4changed: boolean,
             ],
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/bi1"].stateValues.value).eq(bi1);
             expect(stateVariables["/bi2"].stateValues.value).eq(bi2);
             expect(stateVariables["/bi3"].stateValues.value).eq(bi1);
@@ -483,7 +483,7 @@ describe("BooleanInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let bi1 = false,
             bi2 = true;

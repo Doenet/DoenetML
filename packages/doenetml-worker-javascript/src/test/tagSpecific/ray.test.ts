@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import Core from "../../Core";
+import { createTestCore } from "../utils/test-core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import {
     movePoint,
     moveRay,
@@ -99,7 +99,7 @@ describe("Ray Tag Tests", function () {
         let directionx = throughx - endpointx;
         let directiony = throughy - endpointy;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         check_ray_htd({
             name: rayName,
             h: [throughx, throughy],
@@ -136,7 +136,7 @@ describe("Ray Tag Tests", function () {
         checkLabel = false,
         pointMovesEntireRay = "endpoint",
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         initialEndpointX?: number;
         initialEndpointY?: number;
         initialThroughX?: number;
@@ -152,7 +152,7 @@ describe("Ray Tag Tests", function () {
         let directionEndpointShifty = 0;
 
         if (checkLabel) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ray1"].stateValues.label).eq(
                 "\\(\\vec{v}\\)",
             );
@@ -515,7 +515,7 @@ describe("Ray Tag Tests", function () {
         let v3hy = 6;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             const ray1s = ["/g1/ray1", "/g2/ray1", "/g3/ray1", "/ray1"];
             const ray2s = ["/g1/ray2", "/g2/ray2", "/g3/ray2", "/ray2"];
             const ray3s = ["/g1/ray3", "/g2/ray3", "/g3/ray3", "/ray3"];
@@ -706,7 +706,7 @@ describe("Ray Tag Tests", function () {
             let dhead_xs = dtail_xs.map((x) => x + direction_x);
             let dhead_ys = dtail_ys.map((y) => y + direction_y);
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             for (let name of rays) {
                 expect(
@@ -815,7 +815,7 @@ describe("Ray Tag Tests", function () {
         let py = 2;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([tx, ty]);
@@ -919,7 +919,7 @@ describe("Ray Tag Tests", function () {
         let py = 2;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([tx, ty]);
@@ -1037,7 +1037,7 @@ describe("Ray Tag Tests", function () {
         });
 
         // test initial state
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).greaterThan(0);
@@ -1051,7 +1051,7 @@ describe("Ray Tag Tests", function () {
             x: -100,
             y: 0.05,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).lessThan(0.05);
@@ -1066,7 +1066,7 @@ describe("Ray Tag Tests", function () {
             x: -100,
             y: 0.1,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).eq(0.05);
@@ -1096,7 +1096,7 @@ describe("Ray Tag Tests", function () {
         let mhy = 6;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/original"].stateValues.endpoint.map(
                     (v) => v.tree,
@@ -1175,7 +1175,7 @@ describe("Ray Tag Tests", function () {
         // check initial values
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/u"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([...uEndpoint]);
@@ -1278,7 +1278,7 @@ describe("Ray Tag Tests", function () {
         // initial positions
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/v"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([tx, ty]);
@@ -1469,7 +1469,7 @@ describe("Ray Tag Tests", function () {
         // Initial configuration
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             function check_vec_coords(name: string, coords: number[]) {
                 expect(
                     stateVariables[name].stateValues.coords.simplify().tree,
@@ -2141,7 +2141,7 @@ $ray3.endpoint{assignNames="v3t"}
         let y3 = 4;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([x1, y1]);
@@ -2246,7 +2246,7 @@ $ray3.endpoint{assignNames="v3t"}
         let directiony = throughy - endpointy;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([endpointx, endpointy]);
@@ -2292,7 +2292,7 @@ $ray1{name="v1a"}
         let directiony = throughy - endpointy;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([endpointx, endpointy]);
@@ -2338,7 +2338,7 @@ $ray1{name="v1a"}
         let directiony = throughy - endpointy;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/ray1"].stateValues.endpoint.map((v) => v.tree),
             ).eqls([endpointx, endpointy]);
@@ -2401,7 +2401,7 @@ $ray1{name="v1a"}
             stateVariables?: any,
         ) {
             let stateVars =
-                stateVariables || (await returnAllStateVariables(core));
+                stateVariables || (await core.returnAllStateVariables(true));
             const ZEROS = [0, 0];
             check_ray_htd({
                 name,
@@ -2418,7 +2418,7 @@ $ray1{name="v1a"}
             stateVariables?: any,
         ) {
             let stateVars =
-                stateVariables || (await returnAllStateVariables(core));
+                stateVariables || (await core.returnAllStateVariables(true));
             const ZEROS = [0, 0];
             check_ray_htd({
                 name,
@@ -2435,7 +2435,7 @@ $ray1{name="v1a"}
             stateVariables?: any,
         ) {
             let stateVars =
-                stateVariables || (await returnAllStateVariables(core));
+                stateVariables || (await core.returnAllStateVariables(true));
             check_ray_htd({
                 name,
                 h: val.map((v) => 2 * v),
@@ -2446,7 +2446,7 @@ $ray1{name="v1a"}
         }
 
         // initial values
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         await check_matching_through_endpoint("/v1", [3, 4], stateVariables);
         await check_matching_through_endpoint("/v3", [3, 4], stateVariables);
         await check_matching_through_disp("/v2", [3, 4], stateVariables);
@@ -2554,7 +2554,7 @@ $ray1{name="v1a"}
         ]);
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             for (let i = 0; i < 7; i++) {
                 for (let j = 0; j < 2; j++) {
@@ -2857,7 +2857,7 @@ $ray1{name="v1a"}
         let d = [1, 0];
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             check_ray_htd({ name: "/v", h, t, d, stateVariables });
             check_ray_htd({ name: "/v2", h, t, d, stateVariables });
         }
@@ -3290,7 +3290,7 @@ $ray1{name="v1a"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1d"].stateValues.text).eqls("( 2.64, 113 )");
         expect(stateVariables["/p1t"].stateValues.text).eqls(
             "( 2.58, 510.52 )",
@@ -3326,7 +3326,7 @@ $ray1{name="v1a"}
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(4);
@@ -3377,7 +3377,7 @@ $ray1{name="v1a"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ray1"]).not.eq(undefined);
     });
 
@@ -3406,7 +3406,7 @@ $ray1{name="v1a"}
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Ray A is thick ${AColor}.`,

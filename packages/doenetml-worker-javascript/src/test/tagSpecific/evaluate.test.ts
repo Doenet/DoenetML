@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -63,7 +63,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -106,7 +106,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -149,7 +149,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -192,7 +192,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -243,7 +243,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/result"].stateValues.latex)).eq(
             "f(u)=f(3v)=3av",
         );
@@ -255,7 +255,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/result"].stateValues.latex)).eq(
             "f(u)=f(3v)=9bv^{2}",
         );
@@ -267,7 +267,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/result"].stateValues.latex)).eq(
             "f(u)=f(cq^{2})=bc^{2}q^{4}",
         );
@@ -279,7 +279,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/result"].stateValues.latex)).eq(
             "f(u)=f(cq^{2})=bx^{2}",
         );
@@ -291,7 +291,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(cleanLatex(stateVariables["/result"].stateValues.latex)).eq(
             "f(u)=f(cq^{2})=acq^{2}+bc^{2}q^{4}",
         );
@@ -315,7 +315,7 @@ describe("Evaluate tag tests", async () => {
 
         // initial state
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/eval"].stateValues.value.tree).eq("＿");
 
         // submit answer
@@ -326,7 +326,7 @@ describe("Evaluate tag tests", async () => {
         });
         await submitAnswer({ name: "/ans1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/eval"].stateValues.value.tree).eqls([
             "+",
             1,
@@ -401,7 +401,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/ef1"].stateValues.latex)).eq(
             "84.147",
@@ -529,7 +529,7 @@ describe("Evaluate tag tests", async () => {
             name: "/input",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             cleanLatex(stateVariables["/ef1"].stateValues.latex).slice(0, 5),
@@ -710,7 +710,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/ef1"].stateValues.latex)).eq(
             "84.147",
@@ -886,7 +886,7 @@ describe("Evaluate tag tests", async () => {
             name: "/input",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             cleanLatex(stateVariables["/ef1"].stateValues.latex).slice(0, 6),
@@ -1129,7 +1129,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/ef1"].stateValues.latex)).eq(
             "84.147",
@@ -1257,7 +1257,7 @@ describe("Evaluate tag tests", async () => {
             name: "/input",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             cleanLatex(stateVariables["/ef1"].stateValues.latex).slice(0, 5),
@@ -1400,7 +1400,7 @@ describe("Evaluate tag tests", async () => {
 
         // initial state
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -1442,7 +1442,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -1484,7 +1484,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -1521,7 +1521,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "apply",
             "sin",
@@ -1572,7 +1572,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls(0);
         let result2Name =
             stateVariables["/result2"].activeChildren[0].componentName;
@@ -1586,7 +1586,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls(-1);
         expect(stateVariables[result2Name].stateValues.value.tree).eqls(-1);
         expect(stateVariables["/result3"].stateValues.value.tree).eqls(-1);
@@ -1598,7 +1598,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls("＿");
         expect(stateVariables[result2Name].stateValues.value.tree).eqls("＿");
         expect(stateVariables["/result3"].stateValues.value.tree).eqls("＿");
@@ -1610,7 +1610,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls(-1);
         expect(stateVariables[result2Name].stateValues.value.tree).eqls(-1);
         expect(stateVariables["/result3"].stateValues.value.tree).eqls(-1);
@@ -1622,7 +1622,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls(-3);
         expect(stateVariables[result2Name].stateValues.value.tree).eqls(-3);
         expect(stateVariables["/result3"].stateValues.value.tree).eqls(-3);
@@ -1634,7 +1634,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
             "*",
             3,
@@ -1658,7 +1658,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls("＿");
         expect(stateVariables[result2Name].stateValues.value.tree).eqls("＿");
         expect(stateVariables["/result3"].stateValues.value.tree).eqls("＿");
@@ -1670,7 +1670,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
             "/",
             -3,
@@ -1756,7 +1756,7 @@ describe("Evaluate tag tests", async () => {
 
         // initial state
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1a"].stateValues.value.tree).eqls([
             "/",
             4,
@@ -1883,7 +1883,7 @@ describe("Evaluate tag tests", async () => {
         await movePoint({ name: "/A", x: -3, y: 7, core });
         await movePoint({ name: "/B", x: 5, y: -9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1a"].stateValues.value.tree).eqls([
             "/",
             9,
@@ -1994,7 +1994,7 @@ describe("Evaluate tag tests", async () => {
         });
 
         // initial state
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "vector",
             ["apply", "sin", 0],
@@ -2044,7 +2044,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "vector",
             ["apply", "sin", ["+", "pi", ["*", 2, "pi"]]],
@@ -2109,7 +2109,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "vector",
             ["apply", "sin", ["+", "x", "y"]],
@@ -2171,7 +2171,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result_symbolic"].stateValues.value.tree).eqls([
             "vector",
             ["apply", "sin", ["+", "pi", ["*", 2, "pi"]]],
@@ -2246,7 +2246,7 @@ describe("Evaluate tag tests", async () => {
         });
 
         // initial state
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(2);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
@@ -2274,7 +2274,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(2);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
@@ -2300,7 +2300,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls("＿");
@@ -2314,7 +2314,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
@@ -2340,7 +2340,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
@@ -2366,7 +2366,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(3);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
@@ -2395,7 +2395,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(4);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
@@ -2427,7 +2427,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls("＿");
         expect(stateVariables[result2Name].stateValues.value.tree).eqls("＿");
         expect(stateVariables["/result3"].stateValues.value.tree).eqls("＿");
@@ -2439,7 +2439,7 @@ describe("Evaluate tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result1"].stateValues.value.tree).eqls([
             "vector",
             17,
@@ -2478,7 +2478,7 @@ describe("Evaluate tag tests", async () => {
         });
 
         // initial state
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/pf1"].stateValues.text).eq(
             "f(u, v+w) = u v² + 2 u v w + u w²",
@@ -2507,7 +2507,7 @@ describe("Evaluate tag tests", async () => {
         });
 
         // initial state
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/pf"].stateValues.text).eq("f(2, -3) = 18");
         expect(stateVariables["/pg"].stateValues.text).eq("g(2, -3) = -12");
@@ -2530,7 +2530,7 @@ describe("Evaluate tag tests", async () => {
         });
 
         // initial state
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/pf1"].stateValues.text).eq("f(3) = 4");
         expect(stateVariables["/pf2"].stateValues.text).eq("f(4) = 3");
@@ -2601,7 +2601,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f10n"].stateValues.text).eq("∞");
         expect(stateVariables["/f10s"].stateValues.text).eq("∞");
@@ -2678,7 +2678,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1pn"].stateValues.text).eq("0");
         expect(stateVariables["/f1ps"].stateValues.text).eq("0");
@@ -2729,7 +2729,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1pn"].stateValues.text).eq("2");
         expect(stateVariables["/f1mn"].stateValues.text).eq("2");
@@ -2770,7 +2770,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1l"].stateValues.text).eq("NaN");
         expect(stateVariables["/f1r"].stateValues.text).eq("NaN");
@@ -2786,10 +2786,10 @@ describe("Evaluate tag tests", async () => {
         expect(stateVariables["/f4m"].stateValues.text).eq("0");
 
         // test functions
-        let f1 = (await core.components!["/f1"].stateValues.fs)[0];
-        let f2 = (await core.components!["/f2"].stateValues.fs)[0];
-        let f3 = (await core.components!["/f3"].stateValues.fs)[0];
-        let f4 = (await core.components!["/f4"].stateValues.fs)[0];
+        let f1 = (await core.core!.components!["/f1"].stateValues.fs)[0];
+        let f2 = (await core.core!.components!["/f2"].stateValues.fs)[0];
+        let f3 = (await core.core!.components!["/f3"].stateValues.fs)[0];
+        let f4 = (await core.core!.components!["/f4"].stateValues.fs)[0];
 
         expect(f1(-Math.PI)).eqls(NaN);
         expect(f1(0)).eqls(0);
@@ -2836,7 +2836,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1l"].stateValues.text).eq("\uff3f");
         expect(stateVariables["/f1r"].stateValues.text).eq("\uff3f");
@@ -2908,7 +2908,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1ll"].stateValues.text).eq("NaN");
         expect(stateVariables["/f1lr"].stateValues.text).eq("NaN");
@@ -2948,10 +2948,10 @@ describe("Evaluate tag tests", async () => {
         expect(stateVariables["/f4mm"].stateValues.text).eq("0");
 
         // test functions
-        let f1 = (await core.components!["/f1"].stateValues.fs)[0];
-        let f2 = (await core.components!["/f2"].stateValues.fs)[0];
-        let f3 = (await core.components!["/f3"].stateValues.fs)[0];
-        let f4 = (await core.components!["/f4"].stateValues.fs)[0];
+        let f1 = (await core.core!.components!["/f1"].stateValues.fs)[0];
+        let f2 = (await core.core!.components!["/f2"].stateValues.fs)[0];
+        let f3 = (await core.core!.components!["/f3"].stateValues.fs)[0];
+        let f4 = (await core.core!.components!["/f4"].stateValues.fs)[0];
 
         expect(f1(-Math.PI, -Math.PI)).eqls(NaN);
         expect(f1(-Math.PI, 0)).eqls(NaN);
@@ -3074,7 +3074,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1ll"].stateValues.text).eq("\uff3f");
         expect(stateVariables["/f1lr"].stateValues.text).eq("\uff3f");
@@ -3169,7 +3169,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1l"].stateValues.text).eq("NaN");
         expect(stateVariables["/f1r"].stateValues.text).eq("NaN");
@@ -3241,7 +3241,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f0"].stateValues.text).eq("\uff3f");
         expect(stateVariables["/f1"].stateValues.text).eq("1");
@@ -3333,7 +3333,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f0"].stateValues.text).eq("NaN");
         expect(stateVariables["/f1"].stateValues.text).eq("1");
@@ -3475,7 +3475,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f0"].stateValues.text).eq("NaN");
         expect(stateVariables["/f1"].stateValues.text).eq("1");
@@ -3567,7 +3567,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f0"].stateValues.text).eq("\uff3f");
         expect(stateVariables["/f1"].stateValues.text).eq("1");
@@ -3670,7 +3670,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/f"].stateValues.latex)).eq("2x");
         expect(cleanLatex(stateVariables["/fx"].stateValues.latex)).eq("NaN");
@@ -3732,7 +3732,7 @@ describe("Evaluate tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f0"].stateValues.text).eq("0");
         expect(stateVariables["/f1"].stateValues.text).eq("3");

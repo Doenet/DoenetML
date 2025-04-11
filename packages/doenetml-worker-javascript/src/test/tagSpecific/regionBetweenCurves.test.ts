@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -27,7 +27,7 @@ describe("RegionBetweenCurves tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/t"].stateValues.value).eq("a");
 
         // Not sure what to test until can test jsxgraph output
@@ -53,7 +53,7 @@ describe("RegionBetweenCurves tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/t"].stateValues.value).eq("a");
 
         // Not sure what to test until can test jsxgraph output
@@ -78,14 +78,14 @@ describe("RegionBetweenCurves tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls([
             0, 1,
         ]);
 
         // move point below
         await movePoint({ name: `/P`, x: -2, y: -6, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         let px = stateVariables["/P"].stateValues.xs[0].tree;
         let py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -94,7 +94,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to upper left
         await movePoint({ name: `/P`, x: -9, y: 3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -103,7 +103,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to lower left
         await movePoint({ name: `/P`, x: -8, y: -6, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -112,7 +112,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to left
         await movePoint({ name: `/P`, x: -10, y: 0.4, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -121,7 +121,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to right
         await movePoint({ name: `/P`, x: 10, y: -0.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -130,7 +130,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to upper right
         await movePoint({ name: `/P`, x: 5, y: 4, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -139,7 +139,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to lower right
         await movePoint({ name: `/P`, x: 6, y: -9, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -149,7 +149,7 @@ describe("RegionBetweenCurves tag tests", async () => {
         // change boundaries
         await updateMathInputValue({ latex: "-8", name: "/a", core });
         await updateMathInputValue({ latex: "-2", name: "/b", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -158,7 +158,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to upper right
         await movePoint({ name: `/P`, x: 5, y: 4, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -167,7 +167,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to middle
         await movePoint({ name: `/P`, x: -5.2, y: 0.1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -176,7 +176,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to top
         await movePoint({ name: `/P`, x: -6, y: 3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -185,7 +185,7 @@ describe("RegionBetweenCurves tag tests", async () => {
 
         // move point to left
         await movePoint({ name: `/P`, x: -9.2, y: 0.6, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;

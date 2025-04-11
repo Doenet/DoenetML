@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -119,7 +119,7 @@ describe("Ion tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/H/H"].stateValues.latex).eq("\\text{H}^+");
         expect(stateVariables["/H/H"].stateValues.text).eq("H^+");
@@ -378,7 +378,7 @@ describe("Ion tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/Hminusname"].stateValues.value).eq("Hydride");
         expect(stateVariables["/Cminusname"].stateValues.value).eq("Carbide");
         expect(stateVariables["/Nminusname"].stateValues.value).eq("Nitride");
@@ -533,7 +533,7 @@ describe("Ion tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/Scname"].stateValues.value).eq("Scandium (I)");
         expect(stateVariables["/Tiname"].stateValues.value).eq("Titanium (II)");
         expect(stateVariables["/Vname"].stateValues.value).eq("Vanadium (III)");
@@ -596,7 +596,7 @@ describe("Ion tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let mathinputClName =
             stateVariables["/ansCl"].stateValues.inputChildren[0].componentName;
 
@@ -618,7 +618,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansCl", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansCl"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({
@@ -627,7 +627,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansCl", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansCl"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({
@@ -636,7 +636,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansH", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansH"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({
@@ -645,7 +645,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansH", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansH"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({
@@ -654,7 +654,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansMg", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansMg"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({
@@ -663,7 +663,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansMg", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansMg"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({
@@ -672,7 +672,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansP", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansP"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({
@@ -681,7 +681,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansP", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansP"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({
@@ -690,7 +690,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansS", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansS"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({
@@ -699,7 +699,7 @@ describe("Ion tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ansS", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ansS"].stateValues.creditAchieved).eq(1);
     });
 });

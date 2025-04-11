@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 
 const Mock = vi.fn();
@@ -19,7 +19,7 @@ describe("SubsetOfReals tag tests", async () => {
         repeat = [],
         includeNe = false,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         repeat?: string[];
         includeNe?: boolean;
     }) {
@@ -47,7 +47,7 @@ describe("SubsetOfReals tag tests", async () => {
         };
         let allPre = ["/o", "/c", "/oc", "/co"];
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         for (let ind in limits) {
             let lim = limits[ind];
@@ -184,7 +184,7 @@ describe("SubsetOfReals tag tests", async () => {
     });
 
     async function test_display_as_inequality(
-        core: Core,
+        core: PublicDoenetMLCore,
         variable: string = "x",
     ) {
         const limits = [
@@ -207,7 +207,7 @@ describe("SubsetOfReals tag tests", async () => {
         };
         let allPre = ["/o", "/c", "/oc", "/co"];
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         for (let [ind, lim] of limits.entries()) {
             if (typeof lim[0] === "string" || typeof lim[1] === "string") {
@@ -585,7 +585,7 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/e1"].stateValues.value.tree).eqls(["set", 5]);
         expect(stateVariables["/e2"].stateValues.value.tree).eq("emptyset");
@@ -593,7 +593,7 @@ describe("SubsetOfReals tag tests", async () => {
         expect(stateVariables["/e4"].stateValues.value.tree).eq("\uff3f");
     });
 
-    async function test_union_interactions(core: Core) {
+    async function test_union_interactions(core: PublicDoenetMLCore) {
         const res = {
             "/u1": ["union", createInterval("(4,5)"), createInterval("(6,7)")],
             "/u2": ["union", createInterval("(4,5)"), createInterval("(5,6)")],
@@ -633,7 +633,7 @@ describe("SubsetOfReals tag tests", async () => {
             "/i18": ["set", -4],
         };
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         for (let name in res) {
             expect(stateVariables[name].stateValues.value.tree).eqls(res[name]);
@@ -1005,7 +1005,7 @@ describe("SubsetOfReals tag tests", async () => {
             ],
         };
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         for (let name in res) {
             expect(stateVariables[name].stateValues.value.tree).eqls(res[name]);
@@ -1060,7 +1060,7 @@ describe("SubsetOfReals tag tests", async () => {
             ],
         };
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         for (let name in res) {
             expect(stateVariables[name].stateValues.value.tree).eqls(res[name]);
@@ -1083,7 +1083,7 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("( 1, ∞ )");
 
         await updateSelectedIndices({
@@ -1091,15 +1091,15 @@ describe("SubsetOfReals tag tests", async () => {
             selectedIndices: [2],
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("x > 1");
 
         await updateMathInputValue({ latex: "y", name: "/variable", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("＿");
 
         await updateMathInputValue({ latex: "y>1", name: "/input", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("y > 1");
 
         await updateSelectedIndices({
@@ -1107,11 +1107,11 @@ describe("SubsetOfReals tag tests", async () => {
             selectedIndices: [1],
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("( 1, ∞ )");
 
         await updateMathInputValue({ latex: "y \\ne 1", name: "/input", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq(
             "( -∞, 1 ) ∪ ( 1, ∞ )",
         );
@@ -1121,7 +1121,7 @@ describe("SubsetOfReals tag tests", async () => {
             name: "/input",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("( 1, 3 )");
 
         await updateSelectedIndices({
@@ -1129,7 +1129,7 @@ describe("SubsetOfReals tag tests", async () => {
             selectedIndices: [2],
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq("1 < y < 3");
 
         await updateMathInputValue({
@@ -1137,7 +1137,7 @@ describe("SubsetOfReals tag tests", async () => {
             name: "/input",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq(
             "(1 < y < 3) or (y > 6)",
         );
@@ -1147,7 +1147,7 @@ describe("SubsetOfReals tag tests", async () => {
             selectedIndices: [1],
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/result"].stateValues.text).eq(
             "( 1, 3 ) ∪ ( 6, ∞ )",
         );
@@ -1184,7 +1184,7 @@ describe("SubsetOfReals tag tests", async () => {
                 str0 = str;
             }
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             for (let i = 1; i <= 9; i++) {
                 expect(
@@ -1295,7 +1295,7 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/S"].stateValues.text).eq(
             "( -9, -6 ) ∪ ( -1, 8 )",
         );
@@ -1342,7 +1342,7 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/emptyPoints"].stateValues.text).eq(
             "empty points: ",
         );
