@@ -14,6 +14,7 @@ import type {
     NormalizedRoot,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
+import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "@doenet/doenetml-worker-javascript";
 
 /**
  * The correct type of `FlatDastRoot`. **This should be used instead of
@@ -48,11 +49,18 @@ if (typeof globalThis !== "undefined" && !globalThis.document) {
 }
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
+    javascriptCore?: PublicDoenetMLCoreJavascript;
     wasm_initialized = false;
+    javascript_initialized = false;
     source_set = false;
     flags_set = false;
+    core_type: "rust" | "javascript" = "rust";
 
     isProcessingPromise = Promise.resolve();
+
+    setCoreType(core_type: "rust" | "javascript") {
+        this.core_type = core_type;
+    }
 
     async setSource(args: { source: string; dast: DastRoot }) {
         const isProcessingPromise = this.isProcessingPromise;
@@ -68,6 +76,12 @@ export class CoreWorker {
 
         if (!this.doenetCore) {
             this.doenetCore = PublicDoenetMLCore.new();
+        }
+        if (this.core_type === "javascript") {
+            if (!this.javascriptCore) {
+                this.javascriptCore = new PublicDoenetMLCoreJavascript();
+            }
+            this.javascriptCore.setSource(args.source);
         }
 
         // We need to cast `args.dast` to `DastRootInCore` because
@@ -93,6 +107,12 @@ export class CoreWorker {
 
         if (!this.doenetCore) {
             this.doenetCore = PublicDoenetMLCore.new();
+        }
+        if (this.core_type === "javascript") {
+            if (!this.javascriptCore) {
+                this.javascriptCore = new PublicDoenetMLCoreJavascript();
+            }
+            this.javascriptCore.setFlags(args.flags);
         }
 
         this.doenetCore.set_flags(JSON.stringify(args.flags));
@@ -122,6 +142,96 @@ export class CoreWorker {
         }
     }
 
+    async initializeJavascriptCore({
+        activityId,
+        docId,
+        requestedVariantIndex,
+    }: {
+        activityId: string;
+        docId: string;
+        requestedVariantIndex: number;
+    }) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.javascriptCore) {
+            throw Error(
+                "Cannot initialize javascript core before setting source and flags",
+            );
+        }
+
+        try {
+            const initializedResult =
+                await this.javascriptCore.initializeWorker({
+                    activityId,
+                    docId,
+                    requestedVariantIndex,
+                });
+            this.javascript_initialized = true;
+            return initializedResult;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
+    }
+
+    async returnJavascriptDast(
+        args: {
+            coreId: string;
+            userId?: string;
+            cid: string | null;
+            theme?: "dark" | "light";
+            requestedVariant?: Record<string, any>;
+            stateVariableChanges?: string;
+            initializeCounters: Record<string, number>;
+        },
+        updateRenderersCallback: ({
+            updateInstructions,
+            actionId,
+            errorWarnings,
+            init,
+        }: {
+            updateInstructions: Record<string, any>[];
+            actionId?: string;
+            errorWarnings?: {
+                errors: any[];
+                warnings: any[];
+            };
+            init?: boolean;
+        }) => void,
+        reportScoreAndStateCallback: (data: unknown) => void,
+    ) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.javascript_initialized || !this.javascriptCore) {
+            throw Error(
+                "Cannot return javascript dast before initializing javascript core",
+            );
+        }
+
+        try {
+            return await this.javascriptCore?.createCoreReturnDast(
+                args,
+                updateRenderersCallback,
+                reportScoreAndStateCallback,
+            );
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
+    }
+
     async returnDast(): Promise<FlatDastRootWithErrors> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -136,6 +246,33 @@ export class CoreWorker {
         try {
             let flat_dast = this.doenetCore.return_dast();
             return flat_dast;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
+    }
+
+    async dispatchActionJavascript(actionArgs: {
+        actionName: string;
+        componentName: string | undefined;
+        args: Record<string, any>;
+    }) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.javascriptCore) {
+            throw Error("Cannot handle action before setting source and flags");
+        }
+
+        // TODO: handle case if dispatchAction is called before returnDast
+
+        try {
+            return await this.javascriptCore.requestAction(actionArgs);
         } catch (err) {
             console.error(err);
             throw err;
@@ -188,7 +325,26 @@ export class CoreWorker {
         this.source_set = false;
         this.flags_set = false;
 
-        resolve();
+        if (this.javascriptCore) {
+            try {
+                await this.javascriptCore.terminate();
+            } catch (err) {
+                console.error(err);
+                throw err;
+            } finally {
+                resolve();
+            }
+        } else {
+            resolve();
+        }
+    }
+
+    async returnAllStateVariables() {
+        if (this.javascriptCore) {
+            return this.javascriptCore.returnAllStateVariables();
+        } else {
+            return {};
+        }
     }
 
     async _getTests() {

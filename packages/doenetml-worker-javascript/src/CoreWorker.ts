@@ -6,12 +6,10 @@ import {
     expandDoenetMLsToFullSerializedComponents,
 } from "./utils/expandDoenetML";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
-// import { countComponentTypes } from "@doenet/utils";
 // import { dastToSerialized } from "./utils/dastToSerializedComponents";
 
 export class PublicDoenetMLCore {
-    core?: Core;
-    queuedRequestActions = [];
+    core: Core | null = null;
     coreBaseArgs?: {
         doenetML: string;
         flags: Record<string, unknown>;
@@ -85,12 +83,6 @@ export class PublicDoenetMLCore {
             componentInfoObjects,
         };
 
-        console.log({
-            serializedDocument: JSON.parse(
-                JSON.stringify(this.coreBaseArgs.serializedDocument),
-            ),
-        });
-
         // const serializedDocument2 = dastToSerialized(normalizedDast);
         // console.log({ serializedDocument2 });
 
@@ -120,15 +112,32 @@ export class PublicDoenetMLCore {
         };
     }
 
-    async createCore(args: {
-        coreId: string;
-        userId?: string;
-        cid: string | null;
-        theme?: "dark" | "light";
-        requestedVariant?: Record<string, any>;
-        stateVariableChanges?: string;
-        initializeCounters: Record<string, number>;
-    }) {
+    async createCoreReturnDast(
+        args: {
+            coreId: string;
+            userId?: string;
+            cid: string | null;
+            theme?: "dark" | "light";
+            requestedVariant?: Record<string, any>;
+            stateVariableChanges?: string;
+            initializeCounters: Record<string, number>;
+        },
+        updateRenderersCallback: ({
+            updateInstructions,
+            actionId,
+            errorWarnings,
+            init,
+        }: {
+            updateInstructions: Record<string, any>[];
+            actionId?: string;
+            errorWarnings?: {
+                errors: any[];
+                warnings: any[];
+            };
+            init?: boolean;
+        }) => void,
+        reportScoreAndStateCallback: (data: unknown) => void,
+    ) {
         // Wait for `initializeWorker()` for up to around 2 seconds before failing.
         // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
         // could take time if it needs to retrieve external content.)
@@ -147,24 +156,23 @@ export class PublicDoenetMLCore {
             }
         }
 
-        let coreArgs = { ...this.coreBaseArgs!, ...args };
+        let coreArgs = {
+            ...this.coreBaseArgs!,
+            ...args,
+            updateRenderersCallback,
+            reportScoreAndStateCallback,
+        };
 
         if (this.initializeResult?.success) {
             //@ts-ignore
             this.core = new Core(coreArgs);
-
             try {
-                await this.core.getInitializedPromise();
-                // console.log('actions to process', this.queuedRequestActions)
-                for (let action of this.queuedRequestActions) {
-                    this.core.requestAction(action);
-                }
-                this.queuedRequestActions = [];
+                const result = await this.core.getDast();
+                return { success: true as const, ...result };
             } catch (e) {
                 // throw e;
                 return {
-                    inErrorState: true,
-                    coreId: coreArgs.coreId,
+                    success: false as const,
                     errMsg:
                         typeof e === "object" &&
                         e &&
@@ -177,177 +185,125 @@ export class PublicDoenetMLCore {
         } else {
             let errMsg =
                 this.initializeResult?.success === false
-                    ? this.initializeResult?.errMsg
+                    ? this.initializeResult?.errMsg ?? "Error initializing core"
                     : "Internal error. Cannot create document. Core not initialized.";
 
             return {
-                inErrorState: true,
+                success: false as const,
                 coreId: coreArgs.coreId,
                 errMsg,
             };
         }
     }
+    async requestAction(actionArgs: {
+        actionName: string;
+        componentName: string | undefined;
+        args: Record<string, any>;
+    }) {
+        if (!this.core) {
+            return {
+                success: false,
+                errMsg: "Cannot request action before core is created",
+            };
+        }
+        return await this.core.requestAction(actionArgs);
+    }
 
-    // async returnAllStateVariables(core) {
-    //     if (!core.components) {
-    //         return {};
-    //     }
+    async returnAllStateVariables(dontRemoveFunctionsMath = false) {
+        if (!this.core?.components) {
+            return {};
+        }
 
-    //     let componentsObj = {};
-    //     for (let componentName in core.components) {
-    //         let component = core.components[componentName];
-    //         let compObj = (componentsObj[componentName] = {
-    //             componentName,
-    //             componentType: component.componentType,
-    //             stateValues: {},
-    //         });
-    //         for (let vName in component.state) {
-    //             if (
-    //                 [
-    //                     "replacements",
-    //                     "recursiveReplacements",
-    //                     "fullRecursiveReplacements",
-    //                 ].includes(vName) &&
-    //                 core.componentInfoObjects.isCompositeComponent({
-    //                     componentType: component.componentType,
-    //                 }) &&
-    //                 !component.isExpanded
-    //             ) {
-    //                 // don't expand a composite to get these replacement state variables
-    //                 continue;
-    //             }
-    //             compObj.stateValues[vName] = removeFunctionsMathExpressionClass(
-    //                 await component.state[vName].value,
-    //             );
-    //         }
-    //         compObj.activeChildren = component.activeChildren.map((x) =>
-    //             x.componentName
-    //                 ? {
-    //                       componentName: x.componentName,
-    //                       componentType: x.componentType,
-    //                   }
-    //                 : x,
-    //         );
-    //         if (component.replacements) {
-    //             compObj.replacements = component.replacements.map((x) =>
-    //                 x.componentName
-    //                     ? {
-    //                           componentName: x.componentName,
-    //                           componentType: x.componentType,
-    //                       }
-    //                     : x,
-    //             );
-    //             if (component.replacementsToWithhold !== undefined) {
-    //                 compObj.replacementsToWithhold =
-    //                     component.replacementsToWithhold;
-    //             }
-    //         }
-    //         if (component.replacementOf) {
-    //             compObj.replacementOf = component.replacementOf.componentName;
-    //         }
-    //         compObj.sharedParameters = removeFunctionsMathExpressionClass(
-    //             component.sharedParameters,
-    //         );
-    //     }
+        const componentsObj: Record<
+            string,
+            {
+                componentName: string;
+                componentType: string;
+                stateValues: Record<string, any>;
+                activeChildren: any[];
+                replacements?: any[];
+                replacementsToWithhold?: number;
+                replacementOf?: string;
+                sharedParameters: any;
+            }
+        > = {};
+        const components = this.core.components as Record<string, any>;
+        for (let componentName in components) {
+            let component = components[componentName];
+            componentsObj[componentName] = {
+                componentName,
+                componentType: component.componentType,
+                stateValues: {},
+                activeChildren: [],
+                sharedParameters: null,
+            };
+            let compObj = componentsObj[componentName];
+            for (let vName in component.state) {
+                if (
+                    [
+                        "replacements",
+                        "recursiveReplacements",
+                        "fullRecursiveReplacements",
+                    ].includes(vName) &&
+                    this.core.componentInfoObjects.isCompositeComponent({
+                        componentType: component.componentType,
+                    }) &&
+                    !component.isExpanded
+                ) {
+                    // don't expand a composite to get these replacement state variables
+                    continue;
+                }
+                const value = await component.state[vName].value;
+                compObj.stateValues[vName] = dontRemoveFunctionsMath
+                    ? value
+                    : removeFunctionsMathExpressionClass(value);
+            }
+            compObj.activeChildren = component.activeChildren.map((x: any) =>
+                x.componentName
+                    ? {
+                          componentName: x.componentName,
+                          componentType: x.componentType,
+                      }
+                    : x,
+            );
+            if (component.replacements) {
+                compObj.replacements = component.replacements.map((x: any) =>
+                    x.componentName
+                        ? {
+                              componentName: x.componentName,
+                              componentType: x.componentType,
+                          }
+                        : x,
+                );
+                if (component.replacementsToWithhold !== undefined) {
+                    compObj.replacementsToWithhold =
+                        component.replacementsToWithhold;
+                }
+            }
+            if (component.replacementOf) {
+                compObj.replacementOf = component.replacementOf.componentName;
+            }
+            compObj.sharedParameters = removeFunctionsMathExpressionClass(
+                component.sharedParameters,
+            );
+        }
 
-    //     return componentsObj;
-    // }
+        return componentsObj;
+    }
+
+    async terminate() {
+        if (this.core) {
+            await this.core.terminate();
+            this.core = null;
+        }
+    }
 }
 
 // globalThis.onmessage = function (e) {
-//     if (e.data.messageType === "requestAction") {
-//         if (core?.initialized) {
-//             // setTimeout(() => core.requestAction(e.data.args), 1000)
-//             core.requestAction(e.data.args);
-//         } else {
-//             this.queuedRequestActions.push(e.data.args);
-//         }
-//     } else if (e.data.messageType === "visibilityChange") {
+//     if (e.data.messageType === "visibilityChange") {
 //         core?.handleVisibilityChange(e.data.args);
 //     } else if (e.data.messageType === "navigatingToComponent") {
 //         core?.handleNavigatingToComponent(e.data.args);
-//     } else if (e.data.messageType === "initializeWorker") {
-//         initializeWorker(e.data.args);
-//     } else if (e.data.messageType === "createCore") {
-//         createCore(e.data.args);
-//     } else if (e.data.messageType === "returnAllPossibleVariants") {
-//         if (this.initializeResult.success) {
-//             returnAllPossibleVariants(
-//                 this.coreBaseArgs.serializedDocument,
-//                 this.coreBaseArgs.componentInfoObjects,
-//             ).then((allPossibleVariants) => {
-//                 postMessage({
-//                     messageType: "allPossibleVariants",
-//                     args: { success: true, allPossibleVariants },
-//                 });
-//             });
-//         } else {
-//             postMessage({
-//                 messageType: "allPossibleVariants",
-//                 args: { success: false },
-//             });
-//         }
-//     } else if (e.data.messageType === "returnComponentCounts") {
-//         if (this.initializeResult.success) {
-//             let documentChildren =
-//                 this.coreBaseArgs.serializedDocument.children;
-//             let componentTypeCounts = countComponentTypes(documentChildren);
-
-//             postMessage({
-//                 messageType: "componentTypeCounts",
-//                 args: { success: true, componentTypeCounts },
-//             });
-//         } else {
-//             postMessage({
-//                 messageType: "componentTypeCounts",
-//                 args: { success: false },
-//             });
-//         }
-//     } else if (e.data.messageType === "returnAllStateVariables") {
-//         if (core) {
-//             console.log("all components");
-//             console.log(core._components);
-//             returnAllStateVariables(core).then((componentsObj) => {
-//                 postMessage({
-//                     messageType: "returnAllStateVariables",
-//                     args: componentsObj,
-//                 });
-//             });
-//         } else {
-//             console.log("Cannot return state variables as core is not created");
-//             postMessage({
-//                 messageType: "returnAllStateVariables",
-//                 args: {},
-//             });
-//         }
-//     } else if (e.data.messageType === "returnErrorWarnings") {
-//         if (core) {
-//             postMessage({
-//                 messageType: "returnErrorWarnings",
-//                 args: core.errorWarnings,
-//             });
-//         } else {
-//             console.log(
-//                 "Cannot return errors and warnings as core is not created",
-//             );
-//             postMessage({
-//                 messageType: "returnErrorWarnings",
-//                 args: {},
-//             });
-//         }
-//     } else if (e.data.messageType === "terminate") {
-//         if (core) {
-//             core.terminate()
-//                 .then(() => {
-//                     core = null;
-//                     postMessage({ messageType: "terminated" });
-//                 })
-//                 .catch(() => {
-//                     postMessage({ messageType: "terminateFailed" });
-//                 });
-//         } else {
-//             postMessage({ messageType: "terminated" });
-//         }
 //     } else if (e.data.messageType === "submitAllAnswers") {
 //         core?.requestAction({
 //             componentName: core.documentName,

@@ -31,6 +31,7 @@ export async function initializeCoreWorker({
 }) {
     const dast = normalizeDocumentDast(lezerToDast(doenetML));
 
+    await coreWorker.setCoreType("javascript");
     await coreWorker.setSource({ source: doenetML, dast });
     await coreWorker.setFlags({ flags });
 
@@ -39,8 +40,6 @@ export async function initializeCoreWorker({
         docId,
         requestedVariantIndex,
     });
-
-    console.log("initialize core result", result);
 
     return result;
 }

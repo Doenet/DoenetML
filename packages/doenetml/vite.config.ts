@@ -27,7 +27,7 @@ export default defineConfig({
                         require.resolve("@doenet/doenetml-worker/index.js"),
                         "../*",
                     ),
-                    dest: "doenetml-worker-javascript/",
+                    dest: "doenetml-worker/",
                 },
                 {
                     src: "package.json",
