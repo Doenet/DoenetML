@@ -12,6 +12,7 @@ import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import "./choiceInput.css";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -48,11 +49,12 @@ export default React.memo(function ChoiceInput(props) {
         callAction,
     } = useDoenetRenderer(props);
 
+    // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
 
-    const [rendererSelectedIndices, setRendererSelectedIndices] = useState(
-        SVs.selectedIndices,
-    );
+    const [rendererSelectedIndices, setRendererSelectedIndices] = useState<
+        number[]
+    >(SVs.selectedIndices);
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
 
@@ -80,13 +82,16 @@ export default React.memo(function ChoiceInput(props) {
         }
     }
 
-    function onChangeHandler(e) {
-        let newSelectedIndices = [];
+    function onChangeHandler(
+        e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
+    ) {
+        let newSelectedIndices: number[] = [];
 
         if (SVs.inline) {
             if (e.target.value) {
                 newSelectedIndices = Array.from(
-                    e.target.selectedOptions,
+                    (e as React.ChangeEvent<HTMLSelectElement>).target
+                        .selectedOptions,
                     (option) => Number(option.value),
                 );
             }
@@ -94,7 +99,7 @@ export default React.memo(function ChoiceInput(props) {
             if (SVs.selectMultiple) {
                 newSelectedIndices = [...rendererSelectedIndices];
                 let index = Number(e.target.value);
-                if (e.target.checked) {
+                if ((e as React.ChangeEvent<HTMLInputElement>).target.checked) {
                     if (!newSelectedIndices.includes(index)) {
                         newSelectedIndices.push(index);
                         newSelectedIndices.sort((a, b) => a - b);
@@ -149,14 +154,14 @@ export default React.memo(function ChoiceInput(props) {
     }
 
     if (SVs.inline) {
-        let checkWorkStyle = {
+        let checkWorkStyle: React.CSSProperties = {
             cursor: "pointer",
             padding: "1px 6px 1px 6px",
             width: "24px",
         };
         let checkWorkTabIndex = "0";
 
-        let selectStyle = {};
+        let selectStyle: React.CSSProperties = {};
 
         if (disabled) {
             // Disable the checkWorkButton
@@ -185,7 +190,7 @@ export default React.memo(function ChoiceInput(props) {
                     <Button
                         id={id + "_submit"}
                         disabled={disabled}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                         // ref={c => { this.target = c && ReactDOM.findDOMNode(c); }}
                         style={checkWorkStyle}
                         onClick={() =>
@@ -200,7 +205,7 @@ export default React.memo(function ChoiceInput(props) {
                                     /*marginRight: "4px", paddingLeft: "2px"*/
                                 }
                             }
-                            icon={faLevelDownAlt}
+                            icon={faLevelDownAlt as IconProp}
                             transform={{ rotate: 90 }}
                         />
                     </Button>
@@ -215,9 +220,9 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_correct"}
                                 style={checkWorkStyle}
-                                tabIndex={checkWorkTabIndex}
+                                tabIndex={+checkWorkTabIndex}
                             >
-                                <FontAwesomeIcon icon={faCheck} />
+                                <FontAwesomeIcon icon={faCheck as IconProp} />
                             </Button>
                         );
                     } else if (validationState === "partialcorrect") {
@@ -232,7 +237,7 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_partial"}
                                 style={checkWorkStyle}
-                                tabIndex={checkWorkTabIndex}
+                                tabIndex={+checkWorkTabIndex}
                             >
                                 {partialCreditContents}
                             </Button>
@@ -246,9 +251,9 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_incorrect"}
                                 style={checkWorkStyle}
-                                tabIndex={checkWorkTabIndex}
+                                tabIndex={+checkWorkTabIndex}
                             >
-                                <FontAwesomeIcon icon={faTimes} />
+                                <FontAwesomeIcon icon={faTimes as IconProp} />
                             </Button>
                         );
                     }
@@ -260,9 +265,9 @@ export default React.memo(function ChoiceInput(props) {
                         <Button
                             id={id + "_saved"}
                             style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
+                            tabIndex={+checkWorkTabIndex}
                         >
-                            <FontAwesomeIcon icon={faCloud} />
+                            <FontAwesomeIcon icon={faCloud as IconProp} />
                         </Button>
                     );
                 }
@@ -293,7 +298,7 @@ export default React.memo(function ChoiceInput(props) {
         }
 
         let svData = SVs;
-        let optionsList = SVs.choiceTexts.map(function (s, i) {
+        let optionsList = SVs.choiceTexts.map(function (s: number, i: number) {
             if (svData.choicesHidden[i]) {
                 return null;
             }
@@ -308,20 +313,16 @@ export default React.memo(function ChoiceInput(props) {
             );
         });
 
-        let value = rendererSelectedIndices;
-        if (value === undefined) {
-            value = "";
-        } else if (!SVs.selectMultiple) {
-            value = value[0];
-            if (value === undefined) {
-                value = "";
-            }
-        }
+        let selectValue =
+            rendererSelectedIndices === undefined
+                ? ""
+                : !SVs.selectMultiple
+                  ? (rendererSelectedIndices[0] ?? "")
+                  : rendererSelectedIndices;
 
         // inline="true"
         return (
             <React.Fragment>
-                <a name={id} />
                 <label
                     style={{ display: "inline-flex", maxWidth: "100%" }}
                     id={id + "-label"}
@@ -331,7 +332,7 @@ export default React.memo(function ChoiceInput(props) {
                         className="custom-select"
                         id={id}
                         onChange={onChangeHandler}
-                        value={value}
+                        value={"" + selectValue}
                         disabled={disabled}
                         multiple={SVs.selectMultiple}
                         style={selectStyle}
@@ -346,7 +347,7 @@ export default React.memo(function ChoiceInput(props) {
             </React.Fragment>
         );
     } else {
-        let checkWorkStyle = {
+        let checkWorkStyle: React.CSSProperties = {
             height: "24px",
             display: "inline-block",
             padding: "1px 6px 1px 6px",
@@ -381,7 +382,7 @@ export default React.memo(function ChoiceInput(props) {
                 checkworkComponent = (
                     <Button
                         id={id + "_submit"}
-                        tabIndex={checkWorkTabIndex}
+                        tabIndex={+checkWorkTabIndex}
                         disabled={disabled}
                         style={checkWorkStyle}
                         onClick={() =>
@@ -396,7 +397,7 @@ export default React.memo(function ChoiceInput(props) {
                                     /*marginRight: "4px", paddingLeft: "2px"*/
                                 }
                             }
-                            icon={faLevelDownAlt}
+                            icon={faLevelDownAlt as IconProp}
                             transform={{ rotate: 90 }}
                         />
                         &nbsp;
@@ -413,9 +414,9 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_correct"}
                                 style={checkWorkStyle}
-                                tabIndex={checkWorkTabIndex}
+                                tabIndex={+checkWorkTabIndex}
                             >
-                                <FontAwesomeIcon icon={faCheck} />
+                                <FontAwesomeIcon icon={faCheck as IconProp} />
                                 &nbsp; Correct
                             </Button>
                         );
@@ -427,9 +428,9 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_incorrect"}
                                 style={checkWorkStyle}
-                                tabIndex={checkWorkTabIndex}
+                                tabIndex={+checkWorkTabIndex}
                             >
-                                <FontAwesomeIcon icon={faTimes} />
+                                <FontAwesomeIcon icon={faTimes as IconProp} />
                                 &nbsp; Incorrect
                             </Button>
                         );
@@ -442,7 +443,7 @@ export default React.memo(function ChoiceInput(props) {
                             <Button
                                 id={id + "_partial"}
                                 style={checkWorkStyle}
-                                tabIndex={checkWorkTabIndex}
+                                tabIndex={+checkWorkTabIndex}
                             >
                                 {partialCreditContents}
                             </Button>
@@ -454,9 +455,9 @@ export default React.memo(function ChoiceInput(props) {
                         <Button
                             id={id + "_saved"}
                             style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
+                            tabIndex={+checkWorkTabIndex}
                         >
-                            <FontAwesomeIcon icon={faCloud} />
+                            <FontAwesomeIcon icon={faCloud as IconProp} />
                             &nbsp; Response Saved
                         </Button>
                     );
@@ -500,7 +501,7 @@ export default React.memo(function ChoiceInput(props) {
 
         let svData = SVs;
 
-        let choiceDoenetTags = SVs.choiceOrder
+        let choiceDoenetTags = (SVs.choiceOrder as number[])
             .map((v) => children[v - 1])
             .map(function (child, i) {
                 if (svData.choicesHidden[i]) {
@@ -582,7 +583,6 @@ export default React.memo(function ChoiceInput(props) {
             <div id={inputKey + "-label"}>
                 {label}
                 <ol id={inputKey} style={listStyle}>
-                    <a name={id} />
                     {choiceDoenetTags}
                 </ol>
                 {checkworkComponent}

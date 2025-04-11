@@ -138,7 +138,7 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
-    setErrorsAndWarningsCallback?: Function;
+    setErrorsAndWarningsCallback?: (errorsAndWarnings: unknown) => void;
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;

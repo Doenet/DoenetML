@@ -6,6 +6,7 @@ import {
     characterizeOffGraphPoint,
 } from "./utils/offGraphIndicators";
 import {
+    LabelPosition,
     adjustPointLabelPosition,
     calculatePointLabelAnchor,
     getEffectiveBoundingBox,
@@ -14,37 +15,39 @@ import {
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
+import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
 export default React.memo(function Circle(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(props);
 
+    // @ts-ignore
     Circle.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let circleJXG = useRef(null);
-    let indicatorJXG = useRef(null);
+    let circleJXG = useRef<JXGObject | null>(null);
+    let indicatorJXG = useRef<JXGObject | null>(null);
 
     let dragged = useRef(false);
-    let pointerAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointerIsDown = useRef<boolean | null>(false);
     let pointerMovedSinceDown = useRef(false);
-    let centerAtDown = useRef(null);
-    let radiusAtDown = useRef(null);
-    let throughAnglesAtDown = useRef(null);
-    let previousWithLabel = useRef(null);
-    let previousPointLabelPosition = useRef(null);
-    let centerCoords = useRef(null);
+    let centerAtDown = useRef<[number, number, number] | null>(null);
+    let radiusAtDown = useRef<number | null>(null);
+    let throughAnglesAtDown = useRef<[number, number] | null>(null);
+    let previousWithLabel = useRef<boolean | null>(null);
+    let previousPointLabelPosition = useRef<LabelPosition | null>(null);
+    let centerCoords = useRef<[number, number] | null>(null);
 
-    let lastCenterFromCore = useRef(null);
+    let lastCenterFromCore = useRef<number[] | null>(null);
     let throughAnglesFromCore = useRef(null);
     let fixed = useRef(false);
     let fixLocation = useRef(false);
 
     // for each coordinate, will be -1 or 1 if moved off graph in that direction
     let displayOffGraphIndicator = useRef(false);
-    let offGraphIndicatorOrientation = useRef([0, 0]);
-    let offGraphIndicatorCoords = useRef([0, 0]);
+    let offGraphIndicatorOrientation = useRef<[number, number] | null>([0, 0]);
+    let offGraphIndicatorCoords = useRef<[number, number] | null>([0, 0]);
     let offGraphIndicatorOffsetAtDown = useRef([0, 0]);
 
     lastCenterFromCore.current = SVs.numericalCenter;
@@ -101,7 +104,7 @@ export default React.memo(function Circle(props) {
 
         let withlabel = SVs.labelForGraph !== "";
 
-        var jsxCircleAttributes = {
+        var jsxCircleAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withlabel,
@@ -146,9 +149,9 @@ export default React.memo(function Circle(props) {
             jsxCircleAttributes,
         );
 
-        circleJXG.current.isDraggable = !fixLocation.current;
+        circleJXG.current!.isDraggable = !fixLocation.current;
 
-        let jsxPointAttributes = {
+        let jsxPointAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden && displayOffGraphIndicator.current,
             withlabel,
@@ -166,7 +169,7 @@ export default React.memo(function Circle(props) {
             ),
             face: normalizePointStyle(
                 SVs.selectedStyle.markerStyle,
-                offGraphIndicatorOrientation.current,
+                offGraphIndicatorOrientation.current!,
             ),
             highlight: !fixLocation.current,
             showinfobox: false,
@@ -175,7 +178,7 @@ export default React.memo(function Circle(props) {
         if (withlabel) {
             let labelPosition = adjustPointLabelPosition(
                 "upperright",
-                offGraphIndicatorOrientation.current,
+                offGraphIndicatorOrientation.current!,
             );
             previousPointLabelPosition.current = labelPosition;
 
@@ -208,11 +211,15 @@ export default React.memo(function Circle(props) {
 
         indicatorJXG.current = board.create(
             "point",
-            [...offGraphIndicatorCoords.current],
+            [...offGraphIndicatorCoords.current!],
             jsxPointAttributes,
         );
 
-        indicatorJXG.isDraggable = !fixLocation.current;
+        if (!indicatorJXG.current || !circleJXG.current) {
+            return;
+        }
+
+        indicatorJXG.current.isDraggable = !fixLocation.current;
 
         circleJXG.current.on("drag", function (e) {
             let viaPointer = e.type === "pointermove";
@@ -220,8 +227,8 @@ export default React.memo(function Circle(props) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 dragged.current = true;
             }
@@ -237,22 +244,25 @@ export default React.memo(function Circle(props) {
 
                 var o = board.origin.scrCoords;
                 let calculatedX =
-                    (centerAtDown.current[1] +
+                    (centerAtDown.current![1] +
                         e.x -
-                        pointerAtDown.current[0] -
+                        pointerAtDown.current![0] -
                         o[1]) /
                     board.unitX;
                 let calculatedY =
                     (o[2] -
-                        (centerAtDown.current[2] +
+                        (centerAtDown.current![2] +
                             e.y -
-                            pointerAtDown.current[1])) /
+                            pointerAtDown.current![1])) /
                     board.unitY;
-                centerCoords.current = [calculatedX, calculatedY];
+                centerCoords.current = [calculatedX, calculatedY] as [
+                    number,
+                    number,
+                ];
             } else {
                 centerCoords.current = [
-                    circleJXG.current.center.X(),
-                    circleJXG.current.center.Y(),
+                    circleJXG.current!.center.X(),
+                    circleJXG.current!.center.Y(),
                 ];
             }
 
@@ -267,9 +277,10 @@ export default React.memo(function Circle(props) {
                 },
             });
 
-            circleJXG.current.center.coords.setCoordinates(JXG.COORDS_BY_USER, [
-                ...lastCenterFromCore.current,
-            ]);
+            circleJXG.current!.center.coords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                [...lastCenterFromCore.current!],
+            );
         });
 
         circleJXG.current.on("up", function (e) {
@@ -310,10 +321,10 @@ export default React.memo(function Circle(props) {
             dragged.current = false;
             pointerAtDown.current = [e.x, e.y];
             centerAtDown.current = [
-                ...circleJXG.current.center.coords.scrCoords,
+                ...circleJXG.current!.center.coords.scrCoords,
             ];
-            radiusAtDown.current = circleJXG.current.radius;
-            throughAnglesAtDown.current = [...throughAnglesFromCore.current];
+            radiusAtDown.current = circleJXG.current!.radius;
+            throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
             pointerIsDown.current = true;
             pointerMovedSinceDown.current = false;
             if (!fixed.current) {
@@ -328,10 +339,10 @@ export default React.memo(function Circle(props) {
         circleJXG.current.on("hit", function (e) {
             dragged.current = false;
             centerAtDown.current = [
-                ...circleJXG.current.center.coords.scrCoords,
+                ...circleJXG.current!.center.coords.scrCoords,
             ];
-            radiusAtDown.current = circleJXG.current.radius;
-            throughAnglesAtDown.current = [...throughAnglesFromCore.current];
+            radiusAtDown.current = circleJXG.current!.radius;
+            throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
             callAction({
                 action: actions.circleFocused,
                 args: { name }, // send name so get original name if adapted
@@ -364,16 +375,16 @@ export default React.memo(function Circle(props) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 dragged.current = true;
             }
 
             centerCoords.current = [
-                indicatorJXG.current.X() +
+                indicatorJXG.current!.X() +
                     offGraphIndicatorOffsetAtDown.current[0],
-                indicatorJXG.current.Y() +
+                indicatorJXG.current!.Y() +
                     offGraphIndicatorOffsetAtDown.current[1],
             ];
 
@@ -424,13 +435,21 @@ export default React.memo(function Circle(props) {
         });
 
         indicatorJXG.current.on("down", function (e) {
+            if (
+                !centerAtDown.current ||
+                !offGraphIndicatorOrientation.current ||
+                !radiusAtDown.current ||
+                !circleJXG.current
+            ) {
+                return;
+            }
             dragged.current = false;
             pointerAtDown.current = [e.x, e.y];
             centerAtDown.current = [
                 ...circleJXG.current.center.coords.scrCoords,
             ];
             radiusAtDown.current = circleJXG.current.radius;
-            throughAnglesAtDown.current = [...throughAnglesFromCore.current];
+            throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
 
             let { flippedX, flippedY } = getEffectiveBoundingBox(board);
 
@@ -475,10 +494,12 @@ export default React.memo(function Circle(props) {
         indicatorJXG.current.on("hit", function (e) {
             dragged.current = false;
             centerAtDown.current = [
-                ...circleJXG.current.center.coords.scrCoords,
+                ...circleJXG.current!.center.coords.scrCoords,
             ];
-            radiusAtDown.current = circleJXG.current.radius;
-            throughAnglesAtDown.current = [...throughAnglesFromCore.current];
+            radiusAtDown.current = circleJXG.current!.radius;
+            throughAnglesAtDown.current = [
+                ...throughAnglesFromCore.current!,
+            ] as [number, number];
             callAction({
                 action: actions.circleFocused,
                 args: { name }, // send name so get original name if adapted
@@ -510,12 +531,12 @@ export default React.memo(function Circle(props) {
         return circleJXG.current;
     }
 
-    function boardMoveHandler(e) {
+    function boardMoveHandler(e: JXGEvent) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
+                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
             ) {
                 pointerMovedSinceDown.current = true;
             }
@@ -523,6 +544,9 @@ export default React.memo(function Circle(props) {
     }
 
     function deleteCircleJXG() {
+        if (!circleJXG.current || !indicatorJXG.current) {
+            return;
+        }
         indicatorJXG.current.off("drag");
         indicatorJXG.current.off("down");
         indicatorJXG.current.off("up");
@@ -557,6 +581,12 @@ export default React.memo(function Circle(props) {
 
             if (centerOffResults.needIndicator) {
                 // center is off graph
+                if (
+                    !offGraphIndicatorCoords.current ||
+                    !lastCenterFromCore.current
+                ) {
+                    return;
+                }
 
                 let centerSides = centerOffResults.indicatorSides;
                 let { flippedX, flippedY } = getEffectiveBoundingBox(board);
@@ -594,9 +624,9 @@ export default React.memo(function Circle(props) {
                             if (arcResults.needIndicator) {
                                 displayOffGraphIndicator.current = true;
                                 offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides;
+                                    arcResults.indicatorSides!;
                                 offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords;
+                                    arcResults.indicatorCoords!;
                             }
                         }
                     } else if (centerSides[1] === -1) {
@@ -629,9 +659,9 @@ export default React.memo(function Circle(props) {
                             if (arcResults.needIndicator) {
                                 displayOffGraphIndicator.current = true;
                                 offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides;
+                                    arcResults.indicatorSides!;
                                 offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords;
+                                    arcResults.indicatorCoords!;
                             }
                         }
                     } else {
@@ -683,9 +713,9 @@ export default React.memo(function Circle(props) {
                             if (arcResults.needIndicator) {
                                 displayOffGraphIndicator.current = true;
                                 offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides;
+                                    arcResults.indicatorSides!;
                                 offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords;
+                                    arcResults.indicatorCoords!;
                             }
                         }
                     } else if (centerSides[1] === -1) {
@@ -718,9 +748,9 @@ export default React.memo(function Circle(props) {
                             if (arcResults.needIndicator) {
                                 displayOffGraphIndicator.current = true;
                                 offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides;
+                                    arcResults.indicatorSides!;
                                 offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords;
+                                    arcResults.indicatorCoords!;
                             }
                         }
                     } else {
@@ -735,7 +765,7 @@ export default React.memo(function Circle(props) {
 
                         if (rightOffResults.needIndicator) {
                             displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current =
+                            offGraphIndicatorOrientation.current! =
                                 rightOffResults.indicatorSides;
                             offGraphIndicatorCoords.current =
                                 rightOffResults.indicatorCoords;
@@ -753,7 +783,7 @@ export default React.memo(function Circle(props) {
 
                     if (bottomOffResults.needIndicator) {
                         displayOffGraphIndicator.current = true;
-                        offGraphIndicatorOrientation.current =
+                        offGraphIndicatorOrientation.current! =
                             bottomOffResults.indicatorSides;
                         offGraphIndicatorCoords.current =
                             bottomOffResults.indicatorCoords;
@@ -770,7 +800,7 @@ export default React.memo(function Circle(props) {
 
                     if (topOffResults.needIndicator) {
                         displayOffGraphIndicator.current = true;
-                        offGraphIndicatorOrientation.current =
+                        offGraphIndicatorOrientation.current! =
                             topOffResults.indicatorSides;
                         offGraphIndicatorCoords.current =
                             topOffResults.indicatorCoords;
@@ -793,7 +823,7 @@ export default React.memo(function Circle(props) {
             // can't render circle
 
             deleteCircleJXG();
-        } else {
+        } else if (indicatorJXG.current) {
             if (board.updateQuality === board.BOARD_QUALITY_LOW) {
                 board.itemsRenderedLowQuality[id] = circleJXG.current;
             }
@@ -912,7 +942,7 @@ export default React.memo(function Circle(props) {
             indicatorJXG.current.visProp["visible"] = showIndicator;
             indicatorJXG.current.visPropCalc["visible"] = showIndicator;
 
-            if (showIndicator) {
+            if (showIndicator && indicatorJXG.current) {
                 indicatorJXG.current.coords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     offGraphIndicatorCoords.current,
@@ -1011,10 +1041,10 @@ export default React.memo(function Circle(props) {
         return null;
     }
 
-    return <a name={id} />;
+    return <span id={id} />;
 });
 
-function styleToDash(style) {
+function styleToDash(style: string) {
     if (style === "solid") {
         return 0;
     } else if (style === "dashed") {
