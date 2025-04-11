@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -18,13 +18,13 @@ describe("NumberList tag tests", async () => {
         text,
         numbers,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         name?: string;
         pName?: string;
         text?: string;
         numbers?: number[];
     }) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -143,7 +143,7 @@ describe("NumberList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: Core) {
+    async function test_nested_and_inverse(core: PublicDoenetMLCore) {
         await test_numberList({
             core,
             name: "/nl1",
@@ -551,7 +551,7 @@ describe("NumberList tag tests", async () => {
                 text: vals.join(", "),
             });
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/p2"].stateValues.text).eq(
                 `Third number: ${vals[2]}`,
@@ -600,7 +600,7 @@ describe("NumberList tag tests", async () => {
             text: vals.slice(0, 3).join(", "),
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             `Copied math: ${vals.join(", ")}`,
@@ -712,7 +712,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -725,7 +725,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("1, 2, 3");
         expect(stateVariables["/p2"].stateValues.text).eq("1, 2, 3");
@@ -1059,7 +1059,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m"].stateValues.value.tree).eqls([
             "list",
             1,
@@ -1092,7 +1092,7 @@ describe("NumberList tag tests", async () => {
                 text,
             });
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/p2"].stateValues.text).eq(text);
         }
 
@@ -1131,7 +1131,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/pText"].stateValues.text).eq("Text: 7, -8");
         expect(stateVariables["/pLatex"].stateValues.text).eq("Latex: 7, -8");
     });
@@ -1148,7 +1148,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         let n1 = -5,
             n2 = 8;

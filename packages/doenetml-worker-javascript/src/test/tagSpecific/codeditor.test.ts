@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateTextInputImmediateValue,
     updateTextInputValueToImmediateValue,
@@ -20,7 +20,7 @@ describe("Code Editor tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("");
         expect(stateVariables["/p2"].stateValues.text).eq("");
         expect(stateVariables["/editor"].stateValues.immediateValue).eq("");
@@ -31,7 +31,7 @@ describe("Code Editor tag tests", async () => {
             name: "/editor",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hello");
         expect(stateVariables["/p2"].stateValues.text).eq("");
         expect(stateVariables["/editor"].stateValues.immediateValue).eq(
@@ -42,7 +42,7 @@ describe("Code Editor tag tests", async () => {
         // No debouncing since that is initiated by the renderer.
         // Have to explicitly call update value
         await updateTextInputValueToImmediateValue({ name: "/editor", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hello");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello");
         expect(stateVariables["/editor"].stateValues.immediateValue).eq(
@@ -56,7 +56,7 @@ describe("Code Editor tag tests", async () => {
             name: "/editor",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hello\nMore here.");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello");
         expect(stateVariables["/editor"].stateValues.immediateValue).eq(
@@ -66,7 +66,7 @@ describe("Code Editor tag tests", async () => {
 
         // update value again
         await updateTextInputValueToImmediateValue({ name: "/editor", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hello\nMore here.");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello\nMore here.");
         expect(stateVariables["/editor"].stateValues.immediateValue).eq(
@@ -91,7 +91,7 @@ describe("Code Editor tag tests", async () => {
           `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             "immediate value: Hello!",
         );
@@ -106,7 +106,7 @@ describe("Code Editor tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             "immediate value: Hello!",
         );
@@ -117,7 +117,7 @@ describe("Code Editor tag tests", async () => {
         expect(stateVariables["/pv2"].stateValues.text).eq("value: Hello!");
 
         await updateTextInputValueToImmediateValue({ name: "/ti", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             "immediate value: Hello!\nSelam!",
         );
@@ -136,7 +136,7 @@ describe("Code Editor tag tests", async () => {
             name: "/ce",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             "immediate value: Hello!\nSelam!\nKaixo!",
         );
@@ -151,7 +151,7 @@ describe("Code Editor tag tests", async () => {
         );
 
         await updateTextInputValueToImmediateValue({ name: "/ce", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             "immediate value: Hello!\nSelam!\nKaixo!",
         );
@@ -179,7 +179,7 @@ describe("Code Editor tag tests", async () => {
           `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             'immediate value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">More</p>\n',
         );
@@ -195,7 +195,7 @@ describe("Code Editor tag tests", async () => {
             name: "/ce",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             'immediate value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">Change</p>\n',
         );
@@ -204,7 +204,7 @@ describe("Code Editor tag tests", async () => {
         );
 
         await updateTextInputValueToImmediateValue({ name: "/ce", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/piv"].stateValues.text).eq(
             'immediate value: <text name="t1">hello</text> <text>there</text>\n<p name="p1">Change</p>\n',
         );
@@ -248,7 +248,7 @@ describe("Code Editor tag tests", async () => {
                 ce4ivchanged: boolean,
             ],
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ce1"].stateValues.value).eq(ce1);
             expect(stateVariables["/ce2"].stateValues.value).eq(ce2);
             expect(stateVariables["/ce3"].stateValues.value).eq(ce3);
@@ -542,7 +542,7 @@ describe("Code Editor tag tests", async () => {
         });
 
         // Have only one variant despite selectFromSequence child
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/_document1"].sharedParameters.allPossibleVariants,

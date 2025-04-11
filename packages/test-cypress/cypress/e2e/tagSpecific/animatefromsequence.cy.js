@@ -3111,7 +3111,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.get(cesc2("#/b")).should("have.text", "true");
 
         cy.window().then(async (win) => {
-            let errorWarnings = await win.returnErrorWarnings1();
+            let errorWarnings = win.returnErrorWarnings1();
 
             expect(errorWarnings.errors.length).eq(0);
             expect(errorWarnings.warnings.length).eq(3);

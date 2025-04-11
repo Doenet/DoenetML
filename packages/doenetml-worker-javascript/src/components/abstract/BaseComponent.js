@@ -1684,6 +1684,7 @@ export default class BaseComponent {
         return { success: true, desiredVariant };
     }
 
+    // TODO: not functioning properly, but also not called anywhere
     async copyDoenetMLToClipboard({ actionId }) {
         let doenetML = await this.stateValues.doenetML;
 

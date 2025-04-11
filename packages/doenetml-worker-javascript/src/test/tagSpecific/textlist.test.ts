@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -15,13 +15,13 @@ describe("TextList tag tests", async () => {
         text,
         texts,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         name?: string;
         pName?: string;
         text?: string;
         texts?: string[];
     }) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -101,7 +101,7 @@ describe("TextList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: Core) {
+    async function test_nested_and_inverse(core: PublicDoenetMLCore) {
         await test_textList({
             core,
             name: "/tl1",
@@ -586,7 +586,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -599,7 +599,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("cat, dog, monkey");
         expect(stateVariables["/p2"].stateValues.text).eq("cat, dog, monkey");
@@ -619,7 +619,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m"].stateValues.value.tree).eqls([
             "list",
             1,
@@ -639,7 +639,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/pText"].stateValues.text).eq(
             "Text: apple, banana",
         );

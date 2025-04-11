@@ -1,7 +1,10 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::dast::{
-    flat_dast::FlatRoot, ref_expand::Expander, ref_resolve::Resolver, DastRoot, FlatDastRoot,
+    flat_dast::{FlatRoot, NormalizedRoot},
+    ref_expand::Expander,
+    ref_resolve::Resolver,
+    DastRoot, FlatDastRoot,
 };
 
 use super::{
@@ -32,19 +35,26 @@ impl Core {
         }
     }
 
+    /// Create a `NormalizedRoot` from `dast_root`, which involves creating a `FlatDast`
+    /// and expanding all references to elements (or errors).
+    pub fn normalized_root_from_dast_root(dast_root: &DastRoot) -> (NormalizedRoot, Resolver) {
+        let mut flat_root = FlatRoot::from_dast(dast_root);
+        let resolver = Expander::expand(&mut flat_root);
+        flat_root.compactify();
+        let normalized_flat_root = flat_root.into_normalized_root();
+        (normalized_flat_root, resolver)
+    }
+
     /// Initialize `structure_graph`, `state_graph`, and other data
     /// from `dast`.
     ///
     /// This function relies upon the fact that `dast.nodes` will be the same length as `self.components`
     /// and exactly mirror it's structure (i.e., `dast.nodes[i].idx == self.components[i].idx`).
     ///
-    /// A [`Resolver`] is returned. I most cases the resolver is not needed, but it can be used
+    /// A [`Resolver`] is returned. In most cases the resolver is not needed, but it can be used
     /// to look up a `ComponentIdx` by name (useful for testing).
     pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) -> Resolver {
-        let mut flat_root = FlatRoot::from_dast(dast_root);
-        let resolver = Expander::expand(&mut flat_root);
-        flat_root.compactify();
-        let normalized_flat_root = flat_root.into_normalized_root();
+        let (normalized_flat_root, resolver) = Self::normalized_root_from_dast_root(dast_root);
 
         // If we are initializing, we need to make sure that pre-existing data doesn't mess things up.
         // The easiest way is to recreate ourself.

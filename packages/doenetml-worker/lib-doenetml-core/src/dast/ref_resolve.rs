@@ -14,6 +14,7 @@ use super::{
 };
 use serde::Serialize;
 use thiserror::Error;
+use tsify_next::Tsify;
 
 #[derive(Clone, Debug, Error, PartialEq)]
 pub enum ResolutionError {
@@ -25,6 +26,7 @@ pub enum ResolutionError {
 
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct RefResolution {
     pub node_idx: Index,
     pub unresolved_path: Option<Vec<PathPart>>,

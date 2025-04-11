@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -14,7 +14,7 @@ describe("P tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("Hello, paragraph 1");
         expect(stateVariables["/p2"].stateValues.text).eq("Bye, paragraph 2");
@@ -27,7 +27,7 @@ describe("P tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p"].stateValues.text).eq(
             "math in paragraph: 2 x",
         );
@@ -40,7 +40,7 @@ describe("P tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p"].stateValues.text).eq("Hello x");
     });
 });

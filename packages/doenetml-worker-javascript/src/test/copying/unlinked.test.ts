@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
-import Core from "../../Core";
+import { createTestCore } from "../utils/test-core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import { callAction, movePoint, updateValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -11,13 +11,13 @@ async function test_no_overwritten_attributes({
     core,
     namespaceInsideGraph = false,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
     namespaceInsideGraph?: boolean;
 }) {
     const namespaceName = namespaceInsideGraph ? "/gr" : "/g";
     const graphNamePostfix = namespaceInsideGraph ? "/g" : "";
 
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(true);
     expect(
         stateVariables[`${namespaceName}${graphNamePostfix}`].stateValues.xmax,
     ).eq(5);
@@ -58,9 +58,9 @@ async function test_no_overwritten_attributes({
 async function test_linked_copy_overwrites_attributes({
     core,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
 }) {
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(true);
     expect(stateVariables["/g"].stateValues.xmin).eq(-10);
     expect(stateVariables["/g"].stateValues.xmax).eq(5);
     expect(stateVariables["/g/A"].stateValues.xs.map((v) => v.tree)).eqls([
@@ -98,10 +98,10 @@ async function test_linked_copy_overwrites_attributes({
 async function test_unlinked_copy_overwrites_attributes({
     core,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
 }) {
     // TODO: overwriting attributes of unlinked copy of linked copy isn't working as we'd like.
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(true);
     expect(stateVariables["/g"].stateValues.xmin).eq(-10);
     expect(stateVariables["/g"].stateValues.xmax).eq(5);
     expect(stateVariables["/g"].stateValues.ymax).eq(10);
@@ -280,7 +280,7 @@ describe("Unlinked Copying Tests", async () => {
         point_p_initialVal = [0, 0],
         point_q_initialVal = [0, 0],
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         snapshotType: "updateValue" | "callAction";
         point_p_initialVal?: number[];
         point_q_initialVal?: number[];
@@ -291,7 +291,7 @@ describe("Unlinked Copying Tests", async () => {
         let q2 = [NaN, NaN];
 
         async function check_snapshot() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls(
                 p,

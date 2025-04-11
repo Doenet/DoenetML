@@ -8,3 +8,4 @@ export { lezerToDast, stringToLezer } from "./lezer-to-dast/lezer-to-dast";
 export { lezerToDastV6 } from "./lezer-to-dast";
 export { prettyPrint } from "./pretty-printer";
 export { filterPositionInfo } from "./dast-to-xml/utils";
+export { normalizeDocumentDast } from "./dast-normalize/normalize-dast";

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveCircle,
@@ -15,7 +15,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import me from "math-expressions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -43,7 +43,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/math1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/a"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/b"].stateValues.modifyIndirectly).eq(false);
@@ -70,7 +70,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/math1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/a"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/b"].stateValues.modifyIndirectly).eq(false);
@@ -106,7 +106,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/math1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r2"].stateValues.modifyIndirectly).eq(true);
@@ -171,7 +171,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/math1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r2"].stateValues.modifyIndirectly).eq(true);
@@ -227,7 +227,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/math1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r2"].stateValues.modifyIndirectly).eq(true);
@@ -253,7 +253,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/math1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r1"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/r2"].stateValues.modifyIndirectly).eq(true);
@@ -265,7 +265,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function check_copy_props(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/x"].stateValues.modifyIndirectly).eq(false);
         expect(stateVariables["/x"].stateValues.hidden).eq(true);
         // modifyIndirectly attribute is copied (as it has propagateToProps=true)
@@ -369,7 +369,7 @@ describe("Copy tag tests", async () => {
 
     async function test_copy_prop_updatable(core) {
         async function check_items(x, y) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/p1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/p1"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/p2"].stateValues.xs[0].tree).eq(x);
@@ -456,7 +456,7 @@ describe("Copy tag tests", async () => {
         let v_head = displacement.map((x, i) => x + v_tail[i]);
         let d_head = displacement.map((x, i) => x + d_tail[i]);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/vector1"].stateValues.tail.map((x) => x.tree),
         ).eqls(v_tail);
@@ -501,7 +501,7 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/vector1"].stateValues.tail.map((x) => x.tree),
         ).eqls(v_tail);
@@ -546,7 +546,7 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/vector1"].stateValues.tail.map((x) => x.tree),
         ).eqls(v_tail);
@@ -591,7 +591,7 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/vector1"].stateValues.tail.map((x) => x.tree),
         ).eqls(v_tail);
@@ -636,7 +636,7 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/vector1"].stateValues.tail.map((x) => x.tree),
         ).eqls(v_tail);
@@ -714,7 +714,7 @@ describe("Copy tag tests", async () => {
 
     async function test_property_children_replacement_changes(core) {
         async function check_items(list: string) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/p1"].stateValues.text.trim()).eq(list);
             expect(stateVariables["/p2"].stateValues.text.trim()).eq(list);
@@ -805,7 +805,7 @@ describe("Copy tag tests", async () => {
         });
 
         async function check_items(a, b, c) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let polyLatex = `${a}x^{2}+${b}x+${c}`;
 
             expect(cleanLatex(stateVariables["/orig"].stateValues.latex)).eq(
@@ -849,7 +849,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "hi, $$t, $ bye,\n    hi, $$u, bye",
         );
@@ -862,7 +862,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_not_ignore_hide(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hidden text: ");
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Hidden by default: ",
@@ -904,7 +904,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_hidden_children(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/theP"].stateValues.text).eq("Hidden text: ");
         expect(stateVariables["/pHidden"].stateValues.text).eq("Hidden: ");
         expect(stateVariables["/pReveal"].stateValues.text).eq(
@@ -971,7 +971,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_hides_dynamically(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/c1"].stateValues.text).eq("copy 1: hello");
         expect(stateVariables["/c2"].stateValues.text).eq("copy 2: ");
 
@@ -985,7 +985,7 @@ describe("Copy tag tests", async () => {
             name: "/h2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/c1"].stateValues.text).eq("copy 1: ");
         expect(stateVariables["/c2"].stateValues.text).eq("copy 2: hello");
@@ -1000,7 +1000,7 @@ describe("Copy tag tests", async () => {
             name: "/h2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/c1"].stateValues.text).eq("copy 1: hello");
         expect(stateVariables["/c2"].stateValues.text).eq("copy 2: ");
@@ -1047,7 +1047,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_change_away_copy(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/forVerb"].stateValues.text).eq("jump");
         expect(stateVariables["/verb2"].stateValues.text).eq("jump");
 
@@ -1056,7 +1056,7 @@ describe("Copy tag tests", async () => {
             name: "/b",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/forVerb"].stateValues.text).eq("skip");
         expect(stateVariables["/verb2"].stateValues.text).eq("skip");
 
@@ -1065,7 +1065,7 @@ describe("Copy tag tests", async () => {
             name: "/b",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/forVerb"].stateValues.text).eq("jump");
         expect(stateVariables["/verb2"].stateValues.text).eq("jump");
 
@@ -1074,7 +1074,7 @@ describe("Copy tag tests", async () => {
             name: "/b",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/forVerb"].stateValues.text).eq("skip");
         expect(stateVariables["/verb2"].stateValues.text).eq("skip");
     }
@@ -1133,7 +1133,7 @@ describe("Copy tag tests", async () => {
 `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "We can't see  in paragraph or  in text.",
         );
@@ -1171,13 +1171,13 @@ describe("Copy tag tests", async () => {
         });
 
         async function check_maths(m, m2, m3) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/m"].stateValues.value.tree).eqls(m);
             expect(stateVariables["/m2"].stateValues.value.tree).eqls(m2);
             expect(stateVariables["/m3"].stateValues.value.tree).eqls(m3);
         }
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let copy1Name = stateVariables["/m2"].replacementOf;
         let copy2Name = stateVariables["/m3"].replacementOf;
         expect(stateVariables[copy1Name].stateValues.link).eq(false);
@@ -1244,7 +1244,7 @@ describe("Copy tag tests", async () => {
             gB,
             Ax,
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/A"].stateValues.xs.map((x) => x.tree)).eqls(
                 A,
@@ -1307,7 +1307,7 @@ describe("Copy tag tests", async () => {
             gB = [3, 4],
             Ax = 1;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let copyForA2 = stateVariables["/A2"].replacementOf;
         let copyForl2 = stateVariables["/l2"].replacementOf;
@@ -1495,7 +1495,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hello");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello");
     });
@@ -1508,7 +1508,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hello");
         expect(stateVariables["/p2"].stateValues.text).eq("Hello");
     });
@@ -1522,7 +1522,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("hello hello");
         expect(stateVariables["/p2"].stateValues.text).eq("hello hello");
     });
@@ -1536,13 +1536,13 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("hello hello");
         expect(stateVariables["/p2"].stateValues.text).eq("hello hello");
     });
 
     async function test_copy_group_copies_no_link(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         const names = [
             "",
@@ -1641,7 +1641,7 @@ describe("Copy tag tests", async () => {
             const threeNone = ["+", "x", "x", "x"];
             const threeSimp = ["*", 3, "x"];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/twox"].stateValues.value.tree).eqls(
                 twoNone,
@@ -1766,13 +1766,13 @@ describe("Copy tag tests", async () => {
         });
 
         // just testing that page loads, i.e., that bug is removed so that don't get error
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/text1"].stateValues.text).eq("a");
     });
 
     async function test_no_link_outside_component_from_attribute(core) {
         async function check_items(text1: string, text2: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/g/w"].stateValues.text).eq(text1);
             expect(stateVariables["/g/Plabel"].stateValues.text).eq(text1);
             expect(stateVariables["/g/P"].stateValues.label).eq(text1);
@@ -1833,7 +1833,7 @@ describe("Copy tag tests", async () => {
 
     async function test_no_link_copy_internal_copy_source_alias(core) {
         async function check_items(text1: string, text2: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/g/a/w"].stateValues.text).eq(text1);
             expect(stateVariables["/g/a/Plabel"].stateValues.text).eq(text1);
             expect(stateVariables["/g/a/P"].stateValues.label).eq(text1);
@@ -1912,7 +1912,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_no_link_external_absolute_source(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/n"].stateValues.value).eq(2);
         expect(stateVariables["/m"].stateValues.value).eq(4);
         expect(stateVariables["/g/m1"].stateValues.value).eq(4);
@@ -1968,7 +1968,7 @@ describe("Copy tag tests", async () => {
             n3: number,
             n4: number,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             if ((n1) => 1) {
                 expect(stateVariables["/section1/p1"].stateValues.text).eq(
                     "i=1, v=11",
@@ -2118,7 +2118,7 @@ describe("Copy tag tests", async () => {
             }
         }
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/section1"].stateValues.title).eq("Section 1");
         expect(stateVariables["/section2"].stateValues.title).eq("Section 2");
         expect(stateVariables["/section3"].stateValues.title).eq("Section 3");
@@ -2272,7 +2272,7 @@ describe("Copy tag tests", async () => {
             E?: number[],
             F?: number[],
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             if (A) {
                 expect(
@@ -2360,21 +2360,21 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/x"].stateValues.value.tree).eq("x");
         expect(stateVariables["/xval"].stateValues.value.tree).eq("x");
         expect(stateVariables["/xvalnl"].stateValues.value.tree).eq("x");
 
         await updateMathInputValue({ latex: "y", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/x"].stateValues.value.tree).eq("y");
         expect(stateVariables["/xval"].stateValues.value.tree).eq("y");
         expect(stateVariables["/xvalnl"].stateValues.value.tree).eq("x");
 
         await updateMathInputValue({ latex: "z", name: "/mi2", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/x"].stateValues.value.tree).eq("y");
         expect(stateVariables["/xval"].stateValues.value.tree).eq("y");
         expect(stateVariables["/xvalnl"].stateValues.value.tree).eq("z");
@@ -2413,7 +2413,7 @@ describe("Copy tag tests", async () => {
             v2nl: number[];
             v3nl: number[];
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(
                 stateVariables["/v1"].stateValues.xs.map((x) => x.tree),
             ).eqls(v1);
@@ -2477,7 +2477,7 @@ describe("Copy tag tests", async () => {
         });
 
         async function check_items(A1latex: string, A2latex: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(cleanLatex(stateVariables["/m1"].stateValues.latex)).eq(
                 `A_1=${A1latex}`,
             );
@@ -2538,13 +2538,13 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hi"].stateValues.text).eq("Hello");
         expect(stateVariables["/p1"].stateValues.text).eq("Hello there");
     });
 
     async function test_copy_group_with_numbers(core, name_prefix = "") {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables[`${name_prefix}/n1`].stateValues.value).eq(1);
         expect(stateVariables[`${name_prefix}/n2`].stateValues.value).eq(2);
@@ -2857,7 +2857,7 @@ describe("Copy tag tests", async () => {
             n2: number,
             n3: number,
         ) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables[`${name_prefix}/n1`].stateValues.value).eq(
                 n1,
@@ -2949,7 +2949,7 @@ describe("Copy tag tests", async () => {
         // Change to invalid index for thegrp
         await updateMathInputValue({ latex: "3", name: "/n", core });
 
-        let stateVariable = await returnAllStateVariables(core);
+        let stateVariable = await core.returnAllStateVariables(true);
 
         expect(stateVariable["/thegrp"]).eq(undefined);
 
@@ -2974,7 +2974,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/grp/num1"].stateValues.value).eq(1);
         expect(stateVariables["/grp/num2"].stateValues.value).eq(2);
@@ -3019,7 +3019,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3038,7 +3038,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3056,7 +3056,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -3067,7 +3067,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_component_index(
-        core: Core,
+        core: PublicDoenetMLCore,
         force_values: boolean,
     ) {
         async function check_items({
@@ -3083,7 +3083,7 @@ describe("Copy tag tests", async () => {
             y2: number;
             comp?: number;
         }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/A"].stateValues.xs.map((x) => x.tree)).eqls(
                 [x1, y1],
@@ -3214,7 +3214,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_prop_component_index(
-        core: Core,
+        core: PublicDoenetMLCore,
         force_values: boolean,
     ) {
         async function check_items({
@@ -3232,7 +3232,7 @@ describe("Copy tag tests", async () => {
             propIndex?: number;
             componentIndex?: number;
         }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/A"].stateValues.xs.map((x) => x.tree)).eqls(
                 [x1, y1],
             );
@@ -3448,7 +3448,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("The text: ");
         expect(stateVariables["/p2"].stateValues.text).eq("The text: ");
         expect(stateVariables["/p4"].stateValues.text).eq(
@@ -3511,7 +3511,7 @@ describe("Copy tag tests", async () => {
         let P1 = [1, 2];
         let P2 = [3, 4];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
         let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
         let g13PName = stateVariables["/g13"].activeChildren[0].componentName;
@@ -3611,7 +3611,7 @@ describe("Copy tag tests", async () => {
 
         await movePoint({ name: "/P", x: P1[0], y: P1[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -3703,7 +3703,7 @@ describe("Copy tag tests", async () => {
         P2 = [7, 0];
         await movePoint({ name: "/g2/P", x: P2[0], y: P2[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -3796,7 +3796,7 @@ describe("Copy tag tests", async () => {
 
         await movePoint({ name: "/Pa", x: P1[0], y: P1[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -3888,7 +3888,7 @@ describe("Copy tag tests", async () => {
         P2 = [8, 6];
         await movePoint({ name: "/g4/Pa", x: P2[0], y: P2[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4028,7 +4028,7 @@ describe("Copy tag tests", async () => {
         let P1 = [1, 2];
         let P2 = [3, 4];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
         let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
         let g13PName = stateVariables["/g13"].activeChildren[0].componentName;
@@ -4128,7 +4128,7 @@ describe("Copy tag tests", async () => {
 
         await movePoint({ name: "/P", x: P1[0], y: P1[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4221,7 +4221,7 @@ describe("Copy tag tests", async () => {
         P2 = [7, 0];
         await movePoint({ name: "/g2/P", x: P2[0], y: P2[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4315,7 +4315,7 @@ describe("Copy tag tests", async () => {
 
         await movePoint({ name: "/Pa", x: P1[0], y: P1[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4408,7 +4408,7 @@ describe("Copy tag tests", async () => {
         P2 = [8, 6];
         await movePoint({ name: "/g4/Pa", x: P2[0], y: P2[1], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(P1);
         expect(stateVariables["/g2/P"].stateValues.xs.map((x) => x.tree)).eqls(
@@ -4498,7 +4498,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_copy_newNamespace_reference_parent(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let mathinputoutsideName =
             stateVariables["/answer1"].stateValues.inputChildren[0]
@@ -4542,7 +4542,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/answer1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
@@ -4564,7 +4564,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/answer2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
@@ -4616,7 +4616,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/p2/answer1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
@@ -4670,7 +4670,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/p3/answer2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
@@ -4724,7 +4724,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/p4/answer1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/answer1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
@@ -4778,7 +4778,7 @@ describe("Copy tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq("q");
         expect(stateVariables["/p2/m"].stateValues.value.tree).eq("q");
@@ -4858,7 +4858,7 @@ describe("Copy tag tests", async () => {
             y?: string;
             z?: string;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/n2"].stateValues.value.tree).eq(n);
             expect(stateVariables["/n3"].stateValues.value).eq(n);
 
@@ -5032,7 +5032,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m1"].stateValues.value.tree).eq(2);
         expect(stateVariables["/m2"].stateValues.value.tree).eq(2);
 
@@ -5084,7 +5084,7 @@ describe("Copy tag tests", async () => {
         // enter a
         await updateMathInputValue({ latex: "a", name: "/mi", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/m1"].stateValues.value.tree).eq("a");
         expect(stateVariables["/m2"].stateValues.value.tree).eq("a");
 
@@ -5109,7 +5109,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].activeChildren.length).eq(1);
         expect(stateVariables["/g"].activeChildren[0].componentName).eq("/P");
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -5140,7 +5140,7 @@ describe("Copy tag tests", async () => {
         await movePoint({ name: "/P", x: 3, y: 5, core });
         await movePoint({ name: "/g2/P", x: 7, y: 6, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls([
             3, 5,
         ]);
@@ -5216,7 +5216,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g1"].activeChildren.length).eq(1);
         expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/P1");
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -5365,7 +5365,7 @@ describe("Copy tag tests", async () => {
         await movePoint({ name: "/g4/P4", x: 0, y: 3, core });
         await moveVector({ name: "/v4", headcoords: [7, 2], core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             3, 5,
         ]);
@@ -5472,7 +5472,7 @@ describe("Copy tag tests", async () => {
         await movePoint({ name: "/g3a/P3", x: 9, y: 7, core });
         await movePoint({ name: "/g4a/P4", x: 7, y: 6, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             2, 1,
         ]);
@@ -5619,7 +5619,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         const coordsNames = [
             "/P1coords",
@@ -5856,7 +5856,7 @@ describe("Copy tag tests", async () => {
             vH: number[];
             c0: number[];
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             const coordsNames = [
                 "/P1coords",
@@ -6256,7 +6256,7 @@ describe("Copy tag tests", async () => {
         });
 
         async function check_items(P: number[], Q: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
                 "/g1/P",
@@ -6313,7 +6313,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_assign_names_group_map(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/a"].stateValues.value).eq("hi 1");
         expect(stateVariables["/b"].stateValues.value).eq("hi 2");
@@ -6374,7 +6374,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_assign_names_group_map_new_namespace(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/map1/a/t"].stateValues.value).eq("hi 1");
         expect(stateVariables["/map1/b/t"].stateValues.value).eq("hi 2");
@@ -6435,7 +6435,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_composite_replacement_skips_assign_names(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/a"].stateValues.value).eq("hi");
         expect(stateVariables["/b"].stateValues.value).eq("bye");
         expect(stateVariables["/c"].stateValues.value).eq("hi");
@@ -6512,7 +6512,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/t1"].stateValues.value).eq("hi");
         expect(stateVariables["/t2"].stateValues.value).eq("hi");
         expect(stateVariables["/t3"].stateValues.value).eq("hi");
@@ -6540,7 +6540,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/t1"].stateValues.value).eq("hi");
         expect(stateVariables["/t2"].stateValues.value).eq("hi");
         expect(stateVariables["/_copy1"]).eq(undefined);
@@ -6562,7 +6562,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p"].stateValues.xs.map((x) => x.tree)).eqls([
             3, 4,
         ]);
@@ -6604,7 +6604,7 @@ describe("Copy tag tests", async () => {
         });
 
         async function check_items(ind: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             if (ind === 1) {
                 expect(stateVariables["/Pa"].stateValues.coords.tree).eqls([
@@ -6712,7 +6712,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("P: ( 2, 3 )");
         expect(stateVariables["/p2"].stateValues.text).eq("P: ( 2, 3 )");
@@ -6828,7 +6828,7 @@ describe("Copy tag tests", async () => {
             P22: string;
             P11latex?: string;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/p1"].stateValues.text).eq(
                 `( ${P11}, ${P12} ), ( ${P21}, ${P22} )`,
@@ -7024,7 +7024,7 @@ describe("Copy tag tests", async () => {
         let P21Dec4 = round({ val: P21, decimals: 4 });
         let P22Dec4 = round({ val: P22, decimals: 4 });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq(
             `( ${P11Dig2}, ${P12Dig2} ), ( ${P21Dig2}, ${P22Dig2} )`,
@@ -7131,7 +7131,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("2.93521");
         expect(stateVariables["/p2"].stateValues.text).eq("2.93521");
@@ -7143,7 +7143,7 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("8.48273");
         expect(stateVariables["/p2"].stateValues.text).eq("8.48273");
@@ -7155,7 +7155,7 @@ describe("Copy tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("8.483");
         expect(stateVariables["/p2"].stateValues.text).eq("8.483");
@@ -7254,7 +7254,7 @@ describe("Copy tag tests", async () => {
             P21string?: string;
             P22string?: string;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/p1"].stateValues.text).eq(
                 `( ${P11string || P11}, ${P12string || P12} ), ( ${P21string || P21}, ${P22string || P22} )`,
@@ -7406,7 +7406,7 @@ describe("Copy tag tests", async () => {
             pn: number;
             cn: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             let values = [
                 [
@@ -7487,7 +7487,7 @@ describe("Copy tag tests", async () => {
         let Qys = [0, 1, 2, 3, 4];
 
         async function check_items(n, tn, pn, cn) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             if (!(n >= 1 && tn <= n)) {
                 // we have nothing
@@ -7639,7 +7639,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("the math: x");
         expect(stateVariables["/p2"].stateValues.text).eq("a blank: ");
@@ -7684,7 +7684,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let macrom1Name =
             stateVariables["/pmacro1"].activeChildren[0].componentName;
         let macrom2Name =
@@ -7737,7 +7737,7 @@ describe("Copy tag tests", async () => {
     });
 
     async function test_implicit_prop_sampe_component_type_attributes(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         const simplifiedNames = [
             "/mimplicit1",
@@ -7904,7 +7904,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let [macromi1Name, macromi2Name] = stateVariables[
             "/pmacro"
         ].activeChildren.map((x) => x.componentName);
@@ -7960,7 +7960,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let [macromi1Name, macromi2Name] = stateVariables[
             "/pmacro"
         ].activeChildren.map((x) => x.componentName);
@@ -8024,7 +8024,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let mi3Name = stateVariables["/p2"].activeChildren[0].componentName;
         let m2Name = stateVariables["/p2"].activeChildren[2].componentName;
@@ -8039,7 +8039,7 @@ describe("Copy tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/mi2"].stateValues.rawRendererValue).eq("x");
         expect(stateVariables[mi3Name].stateValues.rawRendererValue).eq("x");
@@ -8052,7 +8052,7 @@ describe("Copy tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq("x");
         expect(stateVariables[m2Name].stateValues.value.tree).eq("x");
@@ -8064,7 +8064,7 @@ describe("Copy tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("y");
         expect(stateVariables[mi3Name].stateValues.rawRendererValue).eq("y");
@@ -8077,7 +8077,7 @@ describe("Copy tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq("y");
         expect(stateVariables[m2Name].stateValues.value.tree).eq("y");
@@ -8089,7 +8089,7 @@ describe("Copy tag tests", async () => {
             name: mi3Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("z");
         expect(stateVariables["/mi2"].stateValues.rawRendererValue).eq("z");
@@ -8102,7 +8102,7 @@ describe("Copy tag tests", async () => {
             name: mi3Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq("z");
         expect(stateVariables[m2Name].stateValues.value.tree).eq("z");
@@ -8127,7 +8127,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/default"].stateValues.text).eq(
             "Default: yes, no, maybe",
         );
@@ -8162,7 +8162,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/default"].stateValues.text).eq("Default: 1, 3");
         expect(stateVariables["/nocommas"].stateValues.text).eq(
             "No commas: 13",
@@ -8196,7 +8196,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Override no commas: yes, no, maybe",
         );
@@ -8213,7 +8213,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         const tiName =
             stateVariables["/ans"].stateValues.inputChildren[0].componentName;
 
@@ -8221,7 +8221,7 @@ describe("Copy tag tests", async () => {
 
         await updateMathInputValue({ latex: "4", name: tiName, core });
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/num"].stateValues.value).eq(4);
 
         await updateMathInputValue({
@@ -8230,7 +8230,7 @@ describe("Copy tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/num"].stateValues.value).eq(47);
     });
 
@@ -8253,7 +8253,7 @@ describe("Copy tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/orig"].componentType).eq("group");
         expect(stateVariables["/t"].stateValues.value).eq("hello");
 

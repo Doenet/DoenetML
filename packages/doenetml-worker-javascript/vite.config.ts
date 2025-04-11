@@ -1,32 +1,20 @@
 /// <reference types="vitest/config" />
-import nodePolyfills from "rollup-plugin-polyfill-node";
+import dts from "vite-plugin-dts";
 import { defineConfig } from "vite";
 import { suppressLogPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [suppressLogPlugin()],
+    plugins: [suppressLogPlugin(), dts({ rollupTypes: true })],
     build: {
-        minify: true,
+        minify: false,
         sourcemap: true,
         lib: {
-            entry: "src/index.ts",
-            fileName: (_format, _entryName) => "CoreWorker.js",
-            formats: ["iife"],
-            name: "doenetmlWorker",
-        },
-        rollupOptions: {
-            // @ts-ignore
-            plugins: [nodePolyfills()],
-            external: ["react", "react-dom", "styled-components"],
-            output: {
-                globals: {
-                    react: "react",
-                    "react-dom": "react-dom",
-                    "styled-components": "styled-components",
-                },
+            entry: {
+                index: "./src/index.ts",
             },
+            formats: ["es"],
         },
     },
     test: {

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -21,7 +21,7 @@ describe("Boolean Operator tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.value).eq(false);
         expect(stateVariables["/bv"].stateValues.value).eq(false);
         expect(stateVariables["/op1"].stateValues.value).eq(true);
@@ -33,7 +33,7 @@ describe("Boolean Operator tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.value).eq(true);
         expect(stateVariables["/bv"].stateValues.value).eq(true);
         expect(stateVariables["/op1"].stateValues.value).eq(false);
@@ -47,31 +47,31 @@ describe("Boolean Operator tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/mi"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/mv"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/op"].stateValues.value).eq(true);
 
         await updateMathInputValue({ latex: "2", name: "/mi", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/mi"].stateValues.value.tree).eq(2);
         expect(stateVariables["/mv"].stateValues.value.tree).eq(2);
         expect(stateVariables["/op"].stateValues.value).eq(false);
 
         await updateMathInputValue({ latex: "1", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/mi"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mv"].stateValues.value.tree).eq(1);
         expect(stateVariables["/op"].stateValues.value).eq(true);
     });
 
     async function test_three_operators(
-        core: Core,
+        core: PublicDoenetMLCore,
         operator: (args: boolean[]) => boolean,
     ) {
         async function check_items(booleans: boolean[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/bi1"].stateValues.value).eq(booleans[0]);
             expect(stateVariables["/bi2"].stateValues.value).eq(booleans[1]);
             expect(stateVariables["/bi3"].stateValues.value).eq(booleans[2]);
@@ -250,7 +250,7 @@ describe("Boolean Operator tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.value).eq(false);
         expect(stateVariables["/P"].stateValues.hide).eq(true);
 
@@ -259,7 +259,7 @@ describe("Boolean Operator tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/bi"].stateValues.value).eq(true);
         expect(stateVariables["/P"].stateValues.hide).eq(false);
     });

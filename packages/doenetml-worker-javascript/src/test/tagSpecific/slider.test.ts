@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -14,13 +14,12 @@ async function changeValue({
 }: {
     value: number | string;
     name: string;
-    core: Core;
+    core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
         actionName: "changeValue",
         componentName: name,
         args: { value },
-        event: null,
     });
 }
 
@@ -36,7 +35,7 @@ describe("Slider tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.type).eqls("number");
         expect(stateVariables["/s"].stateValues.items).eqls([1, 2]);
         expect(stateVariables["/s"].stateValues.firstItem).eqls(1);
@@ -46,25 +45,25 @@ describe("Slider tag tests", async () => {
 
         // less than halfway, stays at 1
         await changeValue({ value: 1.49, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(0);
         expect(stateVariables["/s"].stateValues.value).eq(1);
 
         // more than halfway, goes to 2
         await changeValue({ value: 1.51, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(1);
         expect(stateVariables["/s"].stateValues.value).eq(2);
 
         // below one, goes to 1
         await changeValue({ value: -5, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(0);
         expect(stateVariables["/s"].stateValues.value).eq(1);
 
         // above 2, goes to 2
         await changeValue({ value: 9, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(1);
         expect(stateVariables["/s"].stateValues.value).eq(2);
     });
@@ -79,7 +78,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.type).eqls("number");
         expect(stateVariables["/s"].stateValues.items).eqls([]);
         expect(stateVariables["/s"].stateValues.from).eq(0);
@@ -93,42 +92,42 @@ describe("Slider tag tests", async () => {
 
         // change to 1
         await changeValue({ value: 1.4, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(1);
         expect(stateVariables["/s"].stateValues.value).eq(1);
         expect(stateVariables["/sv"].stateValues.value).eq(1);
 
         // change to 9
         await changeValue({ value: 8.6, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(9);
         expect(stateVariables["/s"].stateValues.value).eq(9);
         expect(stateVariables["/sv"].stateValues.value).eq(9);
 
         // enter 2.5
         await updateMathInputValue({ latex: "2.5", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(3);
         expect(stateVariables["/s"].stateValues.value).eq(3);
         expect(stateVariables["/sv"].stateValues.value).eq(3);
 
         // enter -103.9
         await updateMathInputValue({ latex: "-103.9", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(0);
         expect(stateVariables["/s"].stateValues.value).eq(0);
         expect(stateVariables["/sv"].stateValues.value).eq(0);
 
         // enter x, ignored
         await updateMathInputValue({ latex: "x", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(0);
         expect(stateVariables["/s"].stateValues.value).eq(0);
         expect(stateVariables["/sv"].stateValues.value).eq(0);
 
         // set to maximum
         await changeValue({ value: 20, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(10);
         expect(stateVariables["/s"].stateValues.value).eq(10);
         expect(stateVariables["/sv"].stateValues.value).eq(10);
@@ -141,7 +140,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.type).eqls("number");
         expect(stateVariables["/s"].stateValues.items).eqls([]);
         expect(stateVariables["/s"].stateValues.from).eq(0);
@@ -154,13 +153,13 @@ describe("Slider tag tests", async () => {
 
         // change to 1.4
         await changeValue({ value: 1.44, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(14);
         expect(stateVariables["/s"].stateValues.value).closeTo(1.4, 1e-12);
 
         // change to 9.3
         await changeValue({ value: 9.26, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(93);
         expect(stateVariables["/s"].stateValues.value).closeTo(9.3, 1e-12);
     });
@@ -172,7 +171,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.type).eqls("number");
         expect(stateVariables["/s"].stateValues.items).eqls([]);
         expect(stateVariables["/s"].stateValues.from).eq(100);
@@ -185,13 +184,13 @@ describe("Slider tag tests", async () => {
 
         // change to 137
         await changeValue({ value: 136.8, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(37);
         expect(stateVariables["/s"].stateValues.value).eq(137);
 
         // change to 199
         await changeValue({ value: 199.1, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(99);
         expect(stateVariables["/s"].stateValues.value).eq(199);
     });
@@ -203,7 +202,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.type).eqls("number");
         expect(stateVariables["/s"].stateValues.items).eqls([]);
         expect(stateVariables["/s"].stateValues.from).eq(0);
@@ -216,7 +215,7 @@ describe("Slider tag tests", async () => {
 
         // change to 3
         await changeValue({ value: 2.8, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(3);
         expect(stateVariables["/s"].stateValues.value).eq(3);
     });
@@ -230,7 +229,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.type).eqls("number");
         expect(stateVariables["/s"].stateValues.items).eqls([]);
         expect(stateVariables["/s"].stateValues.from).eq(0);
@@ -245,7 +244,7 @@ describe("Slider tag tests", async () => {
 
         // change to 3
         await changeValue({ value: 2.8, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(3);
         expect(stateVariables["/s"].stateValues.value).eq(3);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq(3);
@@ -253,7 +252,7 @@ describe("Slider tag tests", async () => {
 
         // enter 4.2 in post math input
         await updateMathInputValue({ latex: "4.2", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(4);
         expect(stateVariables["/s"].stateValues.value).eq(4);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq(4);
@@ -261,7 +260,7 @@ describe("Slider tag tests", async () => {
 
         // enter 8.7 in pre math input
         await updateMathInputValue({ latex: "8.7", name: "/mi0", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(9);
         expect(stateVariables["/s"].stateValues.value).eq(9);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq(8.7);
@@ -269,7 +268,7 @@ describe("Slider tag tests", async () => {
 
         // enter x in pre math input
         await updateMathInputValue({ latex: "x", name: "/mi0", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(0);
         expect(stateVariables["/s"].stateValues.value).eq(0);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq("x");
@@ -277,7 +276,7 @@ describe("Slider tag tests", async () => {
 
         // change to 5
         await changeValue({ value: 5.3, name: "/s", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(5);
         expect(stateVariables["/s"].stateValues.value).eq(5);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq(5);
@@ -285,7 +284,7 @@ describe("Slider tag tests", async () => {
 
         // enter y in post math input, ignored
         await updateMathInputValue({ latex: "y", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(5);
         expect(stateVariables["/s"].stateValues.value).eq(5);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq(5);
@@ -293,7 +292,7 @@ describe("Slider tag tests", async () => {
 
         // enter 9999 in pre math input
         await updateMathInputValue({ latex: "999", name: "/mi0", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.index).eq(10);
         expect(stateVariables["/s"].stateValues.value).eq(10);
         expect(stateVariables["/mi0"].stateValues.value.tree).eq(999);
@@ -307,7 +306,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/s"].stateValues.value).eq(0);
         expect(stateVariables["/s"].stateValues.label).eq("Hello \\(x^2\\)");
     });
@@ -319,7 +318,7 @@ describe("Slider tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/mySlider"].stateValues.value).eq(0);
         expect(stateVariables["/mySlider"].stateValues.label).eq("my slider");
     });

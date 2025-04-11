@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -9,14 +9,14 @@ vi.mock("hyperformula");
 
 describe("Sectioning tag tests", async () => {
     async function test_section_credit(
-        core: Core,
+        core: PublicDoenetMLCore,
         check_items: (arg: number[]) => Promise<void>,
     ) {
         let ansCredits = Array(9).fill(0);
 
         await check_items(ansCredits);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let mathinput1Name =
             stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
@@ -149,7 +149,7 @@ describe("Sectioning tag tests", async () => {
         ];
 
         async function check_items(ansCredits: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
@@ -290,7 +290,7 @@ describe("Sectioning tag tests", async () => {
                     sectionCredits[2]) /
                 (weight[0] + 2);
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
@@ -429,7 +429,7 @@ describe("Sectioning tag tests", async () => {
                     sectionCredits[2] * sectionWeight[2]) /
                 (weight[0] + sectionWeight[1] + sectionWeight[2]);
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
@@ -467,10 +467,10 @@ describe("Sectioning tag tests", async () => {
 
         await updateMathInputValue({ latex: "x", name: "/mi", core });
         await submitAnswer({ name: "/ans", core });
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -498,7 +498,7 @@ describe("Sectioning tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ps"].stateValues.title).eq("Some paragraphs");
         let pNames = stateVariables["/ps"].activeChildren.map(
             (v) => v.componentName,
@@ -529,7 +529,7 @@ describe("Sectioning tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/sec"].stateValues.title).eq("A title");
         expect(stateVariables["/sec"].stateValues.titlePrefix).eq(
@@ -570,7 +570,7 @@ describe("Sectioning tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/sec"].stateValues.title).eq("A title");
         expect(stateVariables["/sec"].stateValues.titlePrefix).eq(
@@ -728,7 +728,7 @@ describe("Sectioning tag tests", async () => {
                 : {},
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         let prefixStart = !customTitles || includeAutoName ? "Section" : "";
 
@@ -845,7 +845,7 @@ describe("Sectioning tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/sec1"].stateValues.title).eq("Section 1");
         expect(stateVariables["/prob11"].stateValues.title).eq("Problem 1");
@@ -907,7 +907,7 @@ describe("Sectioning tag tests", async () => {
             flags: { readOnly: true },
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside1"].stateValues.open).eq(false);
         expect(stateVariables["/ti"].stateValues.disabled).eq(true);
 
@@ -915,18 +915,16 @@ describe("Sectioning tag tests", async () => {
             actionName: "revealSection",
             componentName: "/aside1",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside1"].stateValues.open).eq(true);
 
         await core.requestAction({
             actionName: "closeSection",
             componentName: "/aside1",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside1"].stateValues.open).eq(false);
     });
 
@@ -939,7 +937,7 @@ describe("Sectioning tag tests", async () => {
       </aside>
       `,
         });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside"].stateValues.title).eq("My aside"); // title is created before opening
         expect(stateVariables["/asideText"]).be.undefined;
 
@@ -947,9 +945,8 @@ describe("Sectioning tag tests", async () => {
             actionName: "revealSection",
             componentName: "/aside",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside"].stateValues.title).eq("My aside");
         expect(stateVariables["/asideText"].stateValues.text).eq(
             "This is the text of the aside.",
@@ -965,7 +962,7 @@ describe("Sectioning tag tests", async () => {
       </aside>
       `,
         });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside"].stateValues.title).eq("My aside");
         expect(stateVariables["/asideText"].stateValues.text).eq(
             "This is the text of the aside.",
@@ -975,9 +972,8 @@ describe("Sectioning tag tests", async () => {
             actionName: "revealSection",
             componentName: "/aside",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/aside"].stateValues.title).eq("My aside");
         expect(stateVariables["/asideText"].stateValues.text).eq(
             "This is the text of the aside.",
@@ -993,7 +989,7 @@ describe("Sectioning tag tests", async () => {
       </proof>
       `,
         });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/proof"].stateValues.title).eq("My proof"); // title is created before opening
         expect(stateVariables["/proofText"]).be.undefined;
 
@@ -1001,9 +997,8 @@ describe("Sectioning tag tests", async () => {
             actionName: "revealSection",
             componentName: "/proof",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/proof"].stateValues.title).eq("My proof");
         expect(stateVariables["/proofText"].stateValues.text).eq(
             "This is the text of the proof.",
@@ -1019,7 +1014,7 @@ describe("Sectioning tag tests", async () => {
       </proof>
       `,
         });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/proof"].stateValues.title).eq("My proof");
         expect(stateVariables["/proofText"].stateValues.text).eq(
             "This is the text of the proof.",
@@ -1029,9 +1024,8 @@ describe("Sectioning tag tests", async () => {
             actionName: "revealSection",
             componentName: "/proof",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/proof"].stateValues.title).eq("My proof");
         expect(stateVariables["/proofText"].stateValues.text).eq(
             "This is the text of the proof.",
@@ -1059,7 +1053,7 @@ describe("Sectioning tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/title"].stateValues.value).eq("An exercise");
         expect(stateVariables["/statement"].activeChildren).eqls([
             "The exercise",
@@ -1076,9 +1070,8 @@ describe("Sectioning tag tests", async () => {
             componentName: "/hint",
             actionName: "revealHint",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/hint"].stateValues.open).eq(true);
         expect(stateVariables["/pGivenAns"]).be.undefined;
         expect(stateVariables["/pSol"]).be.undefined;
@@ -1087,9 +1080,8 @@ describe("Sectioning tag tests", async () => {
             componentName: "/givenAnswer",
             actionName: "revealSolution",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/pGivenAns"].stateValues.text).eq(
             "The correct answer",
         );
@@ -1099,9 +1091,8 @@ describe("Sectioning tag tests", async () => {
             componentName: "/solution",
             actionName: "revealSolution",
             args: {},
-            event: null,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/pSol"].stateValues.text).eq(
             "Here's how you do it.",
         );

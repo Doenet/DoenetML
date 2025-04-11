@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -32,7 +32,7 @@ describe("SelectFromSequence tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             for (let [ind, name] of componentNames.entries()) {
                 let value = stateVariables[name].stateValues.value;
                 expect(
@@ -78,7 +78,7 @@ describe("SelectFromSequence tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             let values = componentNames.map(
                 (name) => stateVariables[name].stateValues.value,
             );
@@ -364,7 +364,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -471,7 +471,7 @@ describe("SelectFromSequence tag tests", async () => {
 
         let results: number[] = [];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         results.push(stateVariables["/u"].stateValues.value);
         results.push(stateVariables["/v"].stateValues.value);
@@ -508,7 +508,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let num1 = stateVariables["/n1"].stateValues.value;
         let num2 = stateVariables["/n2"].stateValues.value;
         expect(Number.isInteger(num1) && num1 >= 1 && num1 <= 100).eq(true);
@@ -574,7 +574,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let sample1replacements = stateVariables["/sample1"].replacements!;
         let sample2replacements = stateVariables["/sample2"].replacements!;
         expect(sample1replacements.length).eq(5);
@@ -615,7 +615,7 @@ describe("SelectFromSequence tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         sample1replacements = stateVariables["/sample1"].replacements!;
         sample2replacements = stateVariables["/sample2"].replacements!;
 
@@ -653,7 +653,7 @@ describe("SelectFromSequence tag tests", async () => {
         });
 
         async function check_sampled_numbers(sampledNumbers: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(
                 stateVariables["/p1"].activeChildren.map(
@@ -706,7 +706,7 @@ describe("SelectFromSequence tag tests", async () => {
         // sample one variable
         await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
@@ -721,7 +721,7 @@ describe("SelectFromSequence tag tests", async () => {
         // get two more samples
         await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         let n1 = stateVariables["/a/n"].stateValues.value;
         let n2 = stateVariables["/b/n"].stateValues.value;
         let n3 = stateVariables["/c/n"].stateValues.value;
@@ -741,7 +741,7 @@ describe("SelectFromSequence tag tests", async () => {
         // get six total samples
         await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         n1 = stateVariables["/a/n"].stateValues.value;
         n2 = stateVariables["/b/n"].stateValues.value;
         n3 = stateVariables["/c/n"].stateValues.value;
@@ -827,7 +827,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let c = await stateVariables["/c"].stateValues.value;
         let d = await stateVariables["/d"].stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
@@ -1004,7 +1004,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let originalNumbers = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -1028,7 +1028,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let originalNumbers = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -1075,13 +1075,13 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let c = await stateVariables["/c"].stateValues.value;
         let d = await stateVariables["/d"].stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
 
@@ -1096,7 +1096,7 @@ describe("SelectFromSequence tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`, ${d}`);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
 
@@ -1111,7 +1111,7 @@ describe("SelectFromSequence tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
     });
@@ -1158,7 +1158,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let a = stateVariables["/a"].stateValues.value;
         let b = stateVariables["/b"].stateValues.value;
         let c = stateVariables["/c"].stateValues.value;
@@ -1180,7 +1180,7 @@ describe("SelectFromSequence tag tests", async () => {
         await updateTextInputValue({ text: "f", name: "/a3", core });
         await updateTextInputValue({ text: "g", name: "/b3", core });
         await updateTextInputValue({ text: "h", name: "/c3", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/a"].stateValues.value).eq(a);
         expect(stateVariables["/b"].stateValues.value).eq("g");
@@ -1192,7 +1192,7 @@ describe("SelectFromSequence tag tests", async () => {
         await updateTextInputValue({ text: "i", name: "/a4", core });
         await updateTextInputValue({ text: "j", name: "/b4", core });
         await updateTextInputValue({ text: "k", name: "/c4", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/a"].stateValues.value).eq(a);
         expect(stateVariables["/b"].stateValues.value).eq("j");
@@ -1211,7 +1211,7 @@ describe("SelectFromSequence tag tests", async () => {
             name: "/f2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/af"].stateValues.value).eq(true);
         expect(stateVariables["/bf"].stateValues.value).eq(true);
@@ -1223,7 +1223,7 @@ describe("SelectFromSequence tag tests", async () => {
         await updateTextInputValue({ text: "l", name: "/a3", core });
         await updateTextInputValue({ text: "m", name: "/b3", core });
         await updateTextInputValue({ text: "n", name: "/c3", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/a"].stateValues.value).eq(a);
         expect(stateVariables["/b"].stateValues.value).eq("j");
@@ -1235,7 +1235,7 @@ describe("SelectFromSequence tag tests", async () => {
         await updateTextInputValue({ text: "o", name: "/a4", core });
         await updateTextInputValue({ text: "p", name: "/b4", core });
         await updateTextInputValue({ text: "q", name: "/c4", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/a"].stateValues.value).eq(a);
         expect(stateVariables["/b"].stateValues.value).eq("j");
@@ -1270,7 +1270,7 @@ describe("SelectFromSequence tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let n1 = stateVariables["/n1"].stateValues.value;
         let n2 = stateVariables["/n2"].stateValues.value;
         let n3 = stateVariables["/n3"].stateValues.value;
@@ -1346,7 +1346,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let n1 = stateVariables["/n1"].stateValues.value;
         let n2 = stateVariables["/n2"].stateValues.value;
@@ -1383,7 +1383,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -1409,7 +1409,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let n = stateVariables["/n"].stateValues.value;
 
@@ -1431,7 +1431,7 @@ describe("SelectFromSequence tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let n = stateVariables["/n"].stateValues.value;
 

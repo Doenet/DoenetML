@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -52,7 +52,7 @@ describe("Function Operator tag tests", async () => {
         // -2, -1.6, -1.2, ..., 2
         let xs = [...Array(11).keys()].map((v) => 0.4 * (v - 5));
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         let map1Names: string[] = stateVariables["/map1"].replacements!.map(
             (template) =>
                 stateVariables[template.componentName].replacements![0]
@@ -219,7 +219,7 @@ describe("Function Operator tag tests", async () => {
             let y1 = fFunExpect(x1);
             let y2 = fpFunExpect(x2);
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/pf"].stateValues.text).eq(
                 `f(${x}) = ${fString}`,
             );
@@ -303,8 +303,8 @@ describe("Function Operator tag tests", async () => {
         await check_items({ a, b, c, x, x1, x2 });
     });
 
-    async function check_list(core: Core) {
-        const stateVariables = await returnAllStateVariables(core);
+    async function check_list(core: PublicDoenetMLCore) {
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/d1"].stateValues.formula.equals(me.fromText("2x")),
         ).eq(true);
@@ -494,7 +494,7 @@ describe("Function Operator tag tests", async () => {
 
         await check_list(core);
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/d1"].stateValues.label).eq("d1");
         expect(stateVariables["/d2"].stateValues.label).eq("d2");
@@ -533,7 +533,7 @@ describe("Function Operator tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/d1"].stateValues.formula.equals(
                 me.fromText("2 sin(x) cos(x)"),
@@ -599,7 +599,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/d11"].stateValues.formula.equals(
@@ -1050,7 +1050,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/d1"].stateValues.formula.equals(
@@ -1472,7 +1472,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/df1"].stateValues.formula.equals(
@@ -1591,7 +1591,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/df1"].stateValues.formula.equals(
@@ -1902,7 +1902,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/d1"].stateValues.formula.equals(me.fromText("2x")),
@@ -1954,7 +1954,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(
             stateVariables["/d1"].stateValues.formula.equals(
                 me.fromText("(2x,3x^2)"),
@@ -2146,7 +2146,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq("Let f(x) = sin(x).");
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Then f'(x) = cos(x).",
@@ -2168,7 +2168,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let f1 = stateVariables["/f"].stateValues.numericalfs[0];
         let d1 = stateVariables["/d1"].stateValues.numericalfs[0];
@@ -2202,7 +2202,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let dx = 0.0001;
 
@@ -2248,7 +2248,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("f(3) = NaN");
         expect(stateVariables["/p2"].stateValues.text).eq("f'(3) = NaN");
@@ -2292,7 +2292,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let dx = 0.0001;
 
@@ -2449,7 +2449,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let dx = 0.0001;
 
@@ -2677,7 +2677,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let dx = 0.0001;
 
@@ -2856,7 +2856,7 @@ describe("Function Operator tag tests", async () => {
             let maxima = fpMaxima(c1, c2, c3, c4, c5);
             let nMaxima = maxima.length;
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/nMinima"].stateValues.value).eq(nMinima);
             expect(stateVariables["/nMinima2"].stateValues.value).eq(nMinima);
@@ -3050,7 +3050,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         let fp = stateVariables["/fp"].stateValues.numericalfs[0];
 
@@ -3097,7 +3097,7 @@ describe("Function Operator tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("\uff3f");
         expect(stateVariables["/p2"].stateValues.text).eq("\uff3f");

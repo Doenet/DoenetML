@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import me from "math-expressions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -23,7 +23,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(0, 1e-12);
@@ -39,7 +39,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(1)).closeTo(2 + 1, 1e-12);
@@ -55,7 +55,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(1)).closeTo(2 + 1, 1e-12);
@@ -71,7 +71,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(1)).closeTo(2 + 1, 1e-12);
@@ -87,7 +87,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(3)).closeTo(2 + 1, 1e-12);
@@ -103,7 +103,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(3)).closeTo(2 + 1 * 5, 1e-12);
@@ -119,7 +119,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(3, 1e-12);
         expect(f(1)).closeTo(3 - 1, 1e-12);
@@ -135,7 +135,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(3, 1e-12);
         expect(f(3)).closeTo(3 - 1, 1e-12);
@@ -151,7 +151,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(3, 1e-12);
         expect(f(3)).closeTo(3 - 1 * 5, 1e-12);
@@ -167,7 +167,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(4, 1e-12);
         expect(f(1)).closeTo(1, 1e-12);
@@ -183,7 +183,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(4, 1e-12);
         expect(f(1)).closeTo(1, 1e-12);
@@ -199,7 +199,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(4 - 3, 1e-12);
         expect(f(1)).closeTo(1 - 3, 1e-12);
@@ -215,7 +215,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(4 - 3, 1e-12);
         expect(f(1)).closeTo(1 - 3, 1e-12);
@@ -231,7 +231,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(-4 - 3, 1e-12);
         expect(f(1)).closeTo(-1 - 3, 1e-12);
@@ -247,7 +247,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(1, 1e-12);
@@ -269,7 +269,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(1, 1e-12);
@@ -291,7 +291,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(1, 1e-12);
@@ -313,7 +313,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(0, 1e-12);
@@ -335,7 +335,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(2, 1e-12);
@@ -357,7 +357,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(0, 1e-12);
         expect(f(1)).closeTo(-2, 1e-12);
@@ -379,7 +379,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
         expect(f(2)).closeTo(1, 1e-12);
@@ -401,7 +401,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
         expect(f(2)).closeTo(1, 1e-12);
@@ -423,7 +423,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
         expect(f(2)).closeTo(1, 1e-12);
@@ -445,7 +445,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
         expect(f(-3)).closeTo(0, 1e-12);
@@ -465,7 +465,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(1, 1e-12);
         expect(f(-3)).closeTo(0, 1e-12);
@@ -482,7 +482,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(3, 1e-12);
         expect(f(-3)).closeTo(4, 1e-12);
@@ -502,7 +502,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(3, 1e-12);
         expect(f(-3)).closeTo(4, 1e-12);
@@ -519,7 +519,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(3, 1e-12);
         expect(f(-3)).closeTo(2, 1e-12);
@@ -543,7 +543,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(3)).closeTo(-2, 1e-12);
         expect(f(5)).closeTo(-2, 1e-12);
@@ -552,7 +552,7 @@ describe("Function tag tests", async () => {
         expect(f(4)).closeTo(-3, 1e-12);
         expect(f(6)).closeTo(-3, 1e-12);
 
-        let g = await core.components!["/g"].state.numericalf.value;
+        let g = await core.core!.components!["/g"].state.numericalf.value;
 
         expect(g(3)).closeTo(2, 1e-12);
         expect(g(5)).closeTo(-2, 1e-12);
@@ -571,7 +571,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(2)).closeTo(3, 1e-12);
         expect(f(4)).closeTo(4, 1e-12);
@@ -580,7 +580,7 @@ describe("Function tag tests", async () => {
         expect(f(3)).closeTo(3.5, 1e-12);
         expect(f(5)).closeTo(3, 1e-12);
 
-        let g = await core.components!["/g"].state.numericalf.value;
+        let g = await core.core!.components!["/g"].state.numericalf.value;
 
         expect(g(0)).closeTo(4, 1e-12);
         expect(g(2)).closeTo(3, 1e-12);
@@ -589,7 +589,7 @@ describe("Function tag tests", async () => {
         expect(g(1)).closeTo(3.5, 1e-12);
         expect(g(3)).closeTo(4, 1e-12);
 
-        let h = await core.components!["/h"].state.numericalf.value;
+        let h = await core.core!.components!["/h"].state.numericalf.value;
 
         expect(h(4)).closeTo(4, 1e-12);
         expect(h(6)).closeTo(3, 1e-12);
@@ -606,7 +606,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-2)).closeTo(2, 1e-12);
         expect(f(-5)).closeTo(0, 1e-12);
@@ -632,7 +632,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1, 1e-12);
@@ -647,7 +647,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 + 3 * (-2 + 6), 1e-12);
@@ -663,7 +663,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 + 0 * (-2 + 6), 1e-12);
@@ -671,7 +671,7 @@ describe("Function tag tests", async () => {
         expect(f(12)).closeTo(-1 + 0 * (12 + 6), 1e-12);
 
         await updateMathInputValue({ latex: "2", name: "/mi", core });
-        f = await core.components!["/f"].state.numericalf.value;
+        f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 + 2 * (-2 + 6), 1e-12);
@@ -679,7 +679,7 @@ describe("Function tag tests", async () => {
         expect(f(12)).closeTo(-1 + 2 * (12 + 6), 1e-12);
 
         await updateMathInputValue({ latex: "-3", name: "/mi", core });
-        f = await core.components!["/f"].state.numericalf.value;
+        f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 - 3 * (-2 + 6), 1e-12);
@@ -687,7 +687,7 @@ describe("Function tag tests", async () => {
         expect(f(12)).closeTo(-1 - 3 * (12 + 6), 1e-12);
 
         await updateMathInputValue({ latex: "", name: "/mi", core });
-        f = await core.components!["/f"].state.numericalf.value;
+        f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 + 0 * (-2 + 6), 1e-12);
@@ -705,7 +705,7 @@ describe("Function tag tests", async () => {
 
         // with undefined slope, get line through points
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 + 1 * (-2 + 6), 1e-12);
@@ -713,7 +713,7 @@ describe("Function tag tests", async () => {
         expect(f(12)).closeTo(-1 + 1 * (12 + 6), 1e-12);
 
         await updateMathInputValue({ latex: "2", name: "/mi", core });
-        f = await core.components!["/f"].state.numericalf.value;
+        f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6 - 0.01)).closeTo(-1 - 0.01 * 2, 1e-3);
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -728,7 +728,7 @@ describe("Function tag tests", async () => {
         expect(f(3 + 3)).closeTo(8 + 3 * 2, 1e-12);
 
         await updateMathInputValue({ latex: "-3", name: "/mi", core });
-        f = await core.components!["/f"].state.numericalf.value;
+        f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6 - 0.01)).closeTo(-1 - 0.01 * -3, 1e-3);
         expect(f(-6)).closeTo(-1, 1e-12);
@@ -743,7 +743,7 @@ describe("Function tag tests", async () => {
         expect(f(3 + 3)).closeTo(8 + 3 * -3, 1e-12);
 
         await updateMathInputValue({ latex: "", name: "/mi", core });
-        f = await core.components!["/f"].state.numericalf.value;
+        f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-6)).closeTo(-1, 1e-12);
         expect(f(-2)).closeTo(-1 + 1 * (-2 + 6), 1e-12);
@@ -758,7 +758,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(2)).closeTo(1, 1e-12);
@@ -784,7 +784,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).closeTo(2, 1e-12);
         expect(f(2)).closeTo(1, 1e-12);
@@ -799,7 +799,7 @@ describe("Function tag tests", async () => {
         expect(f(-3)).closeTo(2 - slope * 3, 1e-12);
         expect(f(-4)).closeTo(2 - slope * 4, 1e-12);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.label).eq("\\(\\int f\\)");
     });
 
@@ -811,7 +811,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(-0.01)).closeTo(2 - 0.01 * 0.5, 1e-3);
         expect(f(0)).closeTo(2, 1e-12);
@@ -843,16 +843,14 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         expect(f(0)).eqls(NaN);
         expect(f(1)).eqls(NaN);
         expect(f(2)).eqls(NaN);
 
         // calculate line/char begin on all warnings
-        core.postErrorWarnings();
-
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -874,7 +872,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         let fleft = (x) => 6 - (x - 5) ** 2 / 4;
         let fright = (x) => 6 - (x - 5) ** 2;
@@ -884,9 +882,7 @@ describe("Function tag tests", async () => {
         expect(f(7)).closeTo(fright(7), 1e-12);
 
         // calculate line/char begin on all warnings
-        core.postErrorWarnings();
-
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(5);
@@ -944,7 +940,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         let factual = (x) => (x - 4) ** 2;
         expect(f(4)).closeTo(0, 1e-12);
@@ -952,9 +948,8 @@ describe("Function tag tests", async () => {
         expect(f(7)).closeTo(factual(7), 1e-12);
 
         // calculate line/char begin on all warnings
-        core.postErrorWarnings();
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -978,7 +973,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let f = createFunctionFromDefinition(
             stateVariables["/f"].stateValues.fDefinitions[0],
         );
@@ -1037,7 +1032,7 @@ describe("Function tag tests", async () => {
    `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         for (let x = -5; x <= 6; x += 0.1) {
             expect(f(x - 0.1)).lessThan(f(x));
@@ -1068,7 +1063,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1079,7 +1074,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1092,7 +1087,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1119,7 +1114,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1131,7 +1126,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -2, y: 2, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1153,7 +1148,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1165,7 +1160,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1177,7 +1172,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 6, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1189,7 +1184,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1214,7 +1209,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1226,7 +1221,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1239,7 +1234,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 6, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1251,7 +1246,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1266,7 +1261,7 @@ describe("Function tag tests", async () => {
     async function test_point_constrained_function_implicit_domain(core) {
         let f = (x) => Math.sqrt(x) * Math.sqrt(5 - x);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
         expect(constantFromAst(p.stateValues.xs[0])).closeTo(1, 1e-6);
@@ -1274,7 +1269,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1285,7 +1280,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 6, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1296,7 +1291,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1307,7 +1302,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -6, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1354,13 +1349,14 @@ describe("Function tag tests", async () => {
     });
 
     async function test_function_3_over_exp(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f"].stateValues.numInputs).eq(1);
 
-        const numericalf = await core.components!["/f"].state.numericalf.value;
+        const numericalf =
+            await core.core!.components!["/f"].state.numericalf.value;
         const symbolicf = (
-            await core.components!["/f"].state.symbolicfs.value
+            await core.core!.components!["/f"].state.symbolicfs.value
         )[0];
 
         expect(numericalf(-5)).closeTo(3 / (1 + Math.exp(5 / 2)), 1e-12);
@@ -1411,7 +1407,7 @@ describe("Function tag tests", async () => {
 
         await test_function_3_over_exp(core);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f"].stateValues.label).eq(
             "Hello \\(\\frac{3}{1 + e^{-\\frac{x}{2}}}\\)",
@@ -1474,7 +1470,7 @@ describe("Function tag tests", async () => {
 
         await test_function_3_over_exp(core);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f"].stateValues.label).eq(
             "Hello \\(\\frac{3}{1 + e^{-\\frac{x}{2}}}\\)",
@@ -1498,9 +1494,10 @@ describe("Function tag tests", async () => {
     });
 
     async function test_function_squared_time_sin(core) {
-        const numericalf = await core.components!["/f"].state.numericalf.value;
+        const numericalf =
+            await core.core!.components!["/f"].state.numericalf.value;
         const symbolicf = (
-            await core.components!["/f"].state.symbolicfs.value
+            await core.core!.components!["/f"].state.symbolicfs.value
         )[0];
 
         expect(numericalf(-5)).closeTo(
@@ -1605,7 +1602,7 @@ describe("Function tag tests", async () => {
 
         await test_function_squared_time_sin(core);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/f"].stateValues.label
@@ -1622,7 +1619,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(2);
@@ -1661,7 +1658,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1672,7 +1669,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1683,7 +1680,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -8, y: -8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1709,7 +1706,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1722,7 +1719,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 6, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1734,7 +1731,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1746,7 +1743,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -8, y: -8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1774,7 +1771,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let p = stateVariables["/P"];
 
@@ -1786,7 +1783,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 6, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1798,7 +1795,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: 8, y: 8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1811,7 +1808,7 @@ describe("Function tag tests", async () => {
 
         await movePoint({ name: "/P", x: -8, y: -8, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         p = stateVariables["/P"];
 
@@ -1836,7 +1833,7 @@ describe("Function tag tests", async () => {
         globalinfLocation,
         fName = "/f",
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         maxima: number[][];
         minima: number[][];
         haveGlobalMax?: boolean;
@@ -1851,7 +1848,7 @@ describe("Function tag tests", async () => {
     }) {
         const extrema = [...maxima, ...minima].sort((a, b) => a[0] - b[0]);
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         const fState = stateVariables[fName].stateValues;
 
         expect(fState.numMaxima).eq(maxima.length);
@@ -2671,7 +2668,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         // values of extrema computed in Sage
         let minimumLocations = [-2.29152990292159];
@@ -2704,7 +2701,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f4 = await core.components!["/f4"].state.numericalf.value;
+        let f4 = await core.core!.components!["/f4"].state.numericalf.value;
 
         await check_extrema({
             core,
@@ -2785,10 +2782,10 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f = await core.components!["/f"].state.numericalf.value;
+        let f = await core.core!.components!["/f"].state.numericalf.value;
 
         let calculatedMinLocation = (
-            await core.components!["/f"].state.globalMinimum.value
+            await core.core!.components!["/f"].state.globalMinimum.value
         )[0];
 
         await check_extrema({
@@ -2812,8 +2809,8 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f1 = await core.components!["/f1"].state.numericalf.value;
-        let f2 = await core.components!["/f2"].state.numericalf.value;
+        let f1 = await core.core!.components!["/f1"].state.numericalf.value;
+        let f2 = await core.core!.components!["/f2"].state.numericalf.value;
 
         await check_extrema({
             core,
@@ -2866,7 +2863,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let f1 = await core.components!["/f1"].state.numericalf.value;
+        let f1 = await core.core!.components!["/f1"].state.numericalf.value;
 
         await check_extrema({
             core,
@@ -2878,10 +2875,9 @@ describe("Function tag tests", async () => {
             globalinfLocation: -100,
             fName: "/f1",
         });
-        expect(core.components!["/f1"].stateValues.globalMaximum[0]).within(
-            0.0131,
-            2.0131,
-        );
+        expect(
+            core.core!.components!["/f1"].stateValues.globalMaximum[0],
+        ).within(0.0131, 2.0131);
 
         await check_extrema({
             core,
@@ -2892,10 +2888,9 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
             fName: "/f2",
         });
-        expect(core.components!["/f2"].stateValues.globalMinimum[0]).within(
-            -Math.PI - 1,
-            -Math.PI + 1,
-        );
+        expect(
+            core.core!.components!["/f2"].stateValues.globalMinimum[0],
+        ).within(-Math.PI - 1, -Math.PI + 1);
         await check_extrema({
             core,
             maxima: [],
@@ -2906,14 +2901,12 @@ describe("Function tag tests", async () => {
             haveGlobalMin: true,
             fName: "/f3",
         });
-        expect(core.components!["/f3"].stateValues.globalMaximum[0]).within(
-            1,
-            Math.PI / 3,
-        );
-        expect(core.components!["/f3"].stateValues.globalMinimum[0]).within(
-            Math.PI / 3,
-            (2 * Math.PI) / 3,
-        );
+        expect(
+            core.core!.components!["/f3"].stateValues.globalMaximum[0],
+        ).within(1, Math.PI / 3);
+        expect(
+            core.core!.components!["/f3"].stateValues.globalMinimum[0],
+        ).within(Math.PI / 3, (2 * Math.PI) / 3);
     });
 
     it("extrema at domain endpoints, function from formula", async () => {
@@ -3163,7 +3156,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/f1e1"].stateValues.latex)).eq(
             "(0,1)",
@@ -3339,7 +3332,7 @@ describe("Function tag tests", async () => {
             numMinf2: number;
             maxf1: number[];
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             let f1 = stateVariables["/f1"].stateValues;
             let f2 = stateVariables["/f2"].stateValues;
@@ -3386,7 +3379,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("NaN");
         expect(stateVariables["/p2"].stateValues.text).eq("NaN");
@@ -3397,7 +3390,7 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({ latex: "1", name: "/mi1", core });
         await updateMathInputValue({ latex: "2", name: "/mi2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("1");
         expect(stateVariables["/p2"].stateValues.text).eq("1");
@@ -3413,7 +3406,7 @@ describe("Function tag tests", async () => {
 
         await updateMathInputValue({ latex: "3", name: "/mi1", core });
         await updateMathInputValue({ latex: "4", name: "/mi2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("3");
         expect(stateVariables["/p2"].stateValues.text).eq("3");
@@ -3577,7 +3570,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f"].stateValues.variables[0].tree).eq("t");
         expect(stateVariables["/f2"].stateValues.variables[0].tree).eq("t");
@@ -3692,7 +3685,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f"].stateValues.variables[0].tree).eq("x");
         expect(stateVariables["/f2"].stateValues.variables[0].tree).eq("x");
@@ -3765,7 +3758,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = core.components!;
+        let stateVariables = core.core!.components!;
 
         expect(stateVariables["/f"].state.formula.isResolved).eq(true);
         expect(stateVariables["/f"].state.symbolicfs.isResolved).eq(false);
@@ -3858,7 +3851,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_function_two_var_exp(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(2);
 
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
@@ -3919,7 +3912,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(2);
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
             [
@@ -3937,7 +3930,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_function_three_var_exp(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
             [
@@ -3992,7 +3985,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(3);
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
             [
@@ -4011,7 +4004,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_function_four_var_exp(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(4);
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
             [
@@ -4071,7 +4064,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(4);
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
             [
@@ -4089,7 +4082,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_2d_vector_function_single_var(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(1);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
 
@@ -4153,7 +4146,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_3d_vector_function_single_var(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(1);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(3);
 
@@ -4226,7 +4219,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(2);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(2);
 
@@ -4292,7 +4285,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_3d_vector_function_two_vars(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/f"].stateValues.numInputs).eq(2);
         expect(stateVariables["/f"].stateValues.numOutputs).eq(3);
 
@@ -4365,7 +4358,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1"].stateValues.symbolic).eq(false);
         expect(stateVariables["/f2"].stateValues.symbolic).eq(true);
@@ -4405,7 +4398,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/domainf1"].stateValues.latex)).eq(
             "(3,4)",
@@ -4439,7 +4432,7 @@ describe("Function tag tests", async () => {
             "g5 domain: ( 3, 4 ), ( 5, 6 )",
         );
 
-        let errorWarnings = await core.errorWarnings;
+        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(7);
@@ -4521,7 +4514,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1"].stateValues.numInputs).eq(1);
         expect(stateVariables["/f2"].stateValues.numInputs).eq(2);
@@ -4561,7 +4554,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1"].stateValues.numInputs).eq(1);
         expect(stateVariables["/f2"].stateValues.numInputs).eq(2);
@@ -4597,7 +4590,7 @@ describe("Function tag tests", async () => {
     });
 
     async function test_prop_index(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/mn1"].stateValues.latex)).eq(
             "(2,1)",
@@ -4623,7 +4616,7 @@ describe("Function tag tests", async () => {
 
         // set propIndex to 1
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/mn1"].stateValues.latex)).eq(
             "(-7,-5)",
@@ -4787,7 +4780,7 @@ describe("Function tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(cleanLatex(stateVariables["/f1"].stateValues.latex)).eq(
             "255.03\\sin(0.53x)+3",
@@ -5007,7 +5000,7 @@ describe("Function tag tests", async () => {
         });
 
         // page loads
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/t1"].stateValues.value).eq("a");
     });
@@ -5026,7 +5019,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/max"].stateValues.styleNumber).eq(2);
         expect(stateVariables["/min"].stateValues.styleNumber).eq(2);
@@ -5049,7 +5042,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/max1"].stateValues.xs.map((x) => x.tree)).eqls([
             1, -1,
@@ -5073,7 +5066,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/max"]).eq(undefined);
         expect(stateVariables["/min"]).eq(undefined);
@@ -5094,7 +5087,7 @@ describe("Function tag tests", async () => {
 
         let f100 = 100 ** 4 - 8 * 100 ** 2 + 8;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f"].stateValues.domain.map((x) => x.tree)).eqls(
             [
@@ -5156,7 +5149,7 @@ describe("Function tag tests", async () => {
 
         let f198 = 198 ** 4 - 8 * 198 ** 2 + 8;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(
             stateVariables["/f1"].stateValues.domain.map((x) => x.tree),
@@ -5272,7 +5265,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1min"].stateValues.xs.map((x) => x.tree)).eqls(
             [-Math.PI / 2, -1],
@@ -5350,7 +5343,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1min"].stateValues.xs[0].tree).within(
             -1e-6,
@@ -5434,7 +5427,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         expect(stateVariables["/f1min"]).eq(undefined);
         expect(
@@ -5508,7 +5501,7 @@ describe("Function tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let f1 = stateVariables["/f1"];
         let f2 = stateVariables["/f2"];
@@ -5611,7 +5604,7 @@ describe("Function tag tests", async () => {
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Function A is thick ${AColor}.`,

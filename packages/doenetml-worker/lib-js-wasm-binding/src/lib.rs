@@ -11,7 +11,7 @@ use wasm_bindgen::prelude::*;
 use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
-    dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
+    dast::{flat_dast::NormalizedRoot, DastRoot, FlatDastElementUpdate, FlatDastRoot},
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -71,6 +71,19 @@ impl PublicDoenetMLCore {
     pub fn set_flags(&mut self, flags: &str) {
         self.flags_json = Some(flags.to_string());
         self.initialized = false;
+    }
+
+    pub fn return_normalized_dast_root(&self) -> Result<NormalizedRoot, String> {
+        let dast_root = match &self.dast_root {
+            Some(d) => d,
+            None => {
+                return Err("Cannot create normalized dast root before source is set.".to_string())
+            }
+        };
+
+        let (normalized_root, _resolver) = Core::normalized_root_from_dast_root(dast_root);
+
+        Ok(normalized_root)
     }
 
     pub fn return_dast(&mut self) -> Result<FlatDastRoot, String> {

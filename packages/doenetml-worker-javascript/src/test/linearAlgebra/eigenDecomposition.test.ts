@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import me from "math-expressions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -62,7 +62,7 @@ describe("EigenDecomposition Tag Tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/pAevs"].stateValues.text).eqls(
             "Eigenvalues of A: -1, 3",
         );
@@ -249,7 +249,7 @@ describe("EigenDecomposition Tag Tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/pAevs"].stateValues.text).eqls(
             "Eigenvalues of A: -1, 3",
         );
@@ -403,7 +403,7 @@ describe("EigenDecomposition Tag Tests", async () => {
         `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         const eigvals = stateVariables["/eig"].stateValues.eigenvalues;
         const eigvecs = stateVariables["/eig"].stateValues.eigenvectors;
         expect(eigvals[0]).closeTo(0, 1e-14);
@@ -436,10 +436,10 @@ describe("EigenDecomposition Tag Tests", async () => {
     }: {
         evecs: any[][];
         evals: any[];
-        core: Core;
+        core: PublicDoenetMLCore;
         decompositionName: string;
     }) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(true);
         const actualEvals =
             stateVariables[decompositionName].stateValues.eigenvalues.map(
                 reviveComplex,

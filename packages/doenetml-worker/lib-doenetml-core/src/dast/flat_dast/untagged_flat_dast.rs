@@ -3,6 +3,7 @@
 //! `UntaggedFlatDast` allows elements to change type without having to find all places where they are referenced.
 
 use serde::Serialize;
+use tsify_next::{declare, Tsify};
 
 use super::{
     super::{ref_resolve::RefResolution, PathPart, Position},
@@ -11,10 +12,12 @@ use super::{
 
 pub use super::parent_iterator::ParentIterator;
 
+#[declare]
 pub type Index = usize;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum UntaggedContent {
     Text(String),
     Ref(Index),
@@ -24,6 +27,7 @@ pub enum UntaggedContent {
 /// was from inside the `extend` attribute
 /// or was from a direct reference that was not inside the `extend` attribute.
 #[derive(Clone, Debug, Serialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum Source<T> {
     Attribute(T),
     Ref(T),
@@ -81,6 +85,7 @@ impl Source<RefResolution> {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatElement {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -96,6 +101,7 @@ pub struct FlatElement {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatAttribute {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,6 +112,7 @@ pub struct FlatAttribute {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatError {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,

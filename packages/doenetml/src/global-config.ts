@@ -20,12 +20,12 @@ export const doenetGlobalConfig = {
 function getWorkerUrl() {
     try {
         return new URL(
-            "/doenetml-worker-javascript/CoreWorker.js",
+            "/doenetml-worker/index.js",
             window?.location?.href || "https://doenet.org",
         ).href;
     } catch (e) {
         // `window.location.href` may not be a valid URL. For example, in an iframe it
         // could be `about:srcdoc`.
-        return "https://doenet.org/doenetml-worker-javascript/CoreWorker.js";
+        return "https://doenet.org/doenetml-worker/index.js";
     }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     submitAnswer,
     updateBooleanInputValue,
@@ -9,7 +9,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -26,7 +26,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let curve1Name = stateVariables["/g"].activeChildren[0].componentName;
         let curve2Name = stateVariables["/g"].activeChildren[1].componentName;
 
@@ -82,7 +82,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.xlabel).eq("x");
         expect(stateVariables["/g"].stateValues.xlabelPosition).eq("right");
         expect(stateVariables["/g"].stateValues.ylabel).eq("y");
@@ -116,7 +116,7 @@ describe("Graph tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.xlabel).eq("hello");
         expect(stateVariables["/g"].stateValues.xlabelPosition).eq("left");
         expect(stateVariables["/g"].stateValues.ylabel).eq("bye");
@@ -134,14 +134,14 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.xlabel).eq("");
         expect(stateVariables["/g"].stateValues.ylabel).eq("");
 
         await updateValue({ name: "/uvx", core });
         await updateValue({ name: "/uvy", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.xlabel).eq("s");
         expect(stateVariables["/g"].stateValues.ylabel).eq("t");
     });
@@ -155,10 +155,10 @@ describe("Graph tag tests", async () => {
         };
 
         async function checkLimits(
-            core: Core,
+            core: PublicDoenetMLCore,
             { xmin, xmax, ymin, ymax }: AxisLimits,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/g"].stateValues.xmin).eq(xmin);
             expect(stateVariables["/g"].stateValues.xmax).eq(xmax);
             expect(stateVariables["/g"].stateValues.ymin).eq(ymin);
@@ -304,7 +304,7 @@ describe("Graph tag tests", async () => {
         });
 
         async function checkLimits(xmin, xmax, ymin, ymax) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/g"].stateValues.xmin).eq(xmin);
             expect(stateVariables["/g"].stateValues.xmax).eq(xmax);
             expect(stateVariables["/g"].stateValues.ymin).eq(ymin);
@@ -368,7 +368,7 @@ describe("Graph tag tests", async () => {
 
         // not sure what to test as don't know how to check renderer...
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg1"].stateValues.value).eq("none");
         expect(stateVariables["/sg2"].stateValues.value).eq("none");
         expect(stateVariables["/sg3"].stateValues.value).eq("medium");
@@ -382,7 +382,7 @@ describe("Graph tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg6"].stateValues.value).eq("medium");
 
         await updateTextInputValue({
@@ -390,7 +390,7 @@ describe("Graph tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg7"].stateValues.value).eq("medium");
 
         await updateTextInputValue({
@@ -398,7 +398,7 @@ describe("Graph tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg7"].stateValues.value).eq("none");
 
         await updateTextInputValue({
@@ -406,7 +406,7 @@ describe("Graph tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg7"].stateValues.value).eq("dense");
 
         await updateTextInputValue({
@@ -414,7 +414,7 @@ describe("Graph tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg7"].stateValues.value).eq("none");
 
         await updateTextInputValue({
@@ -422,7 +422,7 @@ describe("Graph tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg7"].stateValues.value).eq("medium");
 
         await updateTextInputValue({
@@ -430,7 +430,7 @@ describe("Graph tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg7"].stateValues.value).eq("none");
     });
 
@@ -464,7 +464,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg1"].stateValues.numbers).eqls([
             1,
             Math.PI / 2,
@@ -480,7 +480,7 @@ describe("Graph tag tests", async () => {
             name: "/g2y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg2"].stateValues.numbers).eqls([3, 1.5]);
 
         await updateMathInputValue({ latex: "3", name: "/g3x", core });
@@ -489,7 +489,7 @@ describe("Graph tag tests", async () => {
             name: "/g3y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg3"].stateValues.numbers).eqls([3, 1.5]);
 
         await updateMathInputValue({ latex: "3", name: "/g4x", core });
@@ -498,7 +498,7 @@ describe("Graph tag tests", async () => {
             name: "/g4y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg4"].stateValues.numbers).eqls([
             3 * 2,
             1.5 * 3,
@@ -510,7 +510,7 @@ describe("Graph tag tests", async () => {
             name: "/g5y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg5"].stateValues.numbers).eqls([
             3 * 2,
             1.5 * 3,
@@ -526,7 +526,7 @@ describe("Graph tag tests", async () => {
             name: "/g2y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg2"].stateValues.numbers).eqls([
             (3 * Math.E) / 2,
             1.5 * Math.PI,
@@ -542,7 +542,7 @@ describe("Graph tag tests", async () => {
             name: "/g3y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg3"].stateValues.numbers).eqls([
             (3 * Math.E) / 2,
             1.5 * Math.PI,
@@ -558,7 +558,7 @@ describe("Graph tag tests", async () => {
             name: "/g4y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg4"].stateValues.numbers).eqls([
             ((3 * Math.PI) / 5) * 2,
             ((1.5 * Math.E) / 6) * 3,
@@ -574,7 +574,7 @@ describe("Graph tag tests", async () => {
             name: "/g5y",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/sg5"].stateValues.numbers).eqls([
             ((3 * Math.PI) / 5) * 2,
             ((1.5 * Math.E) / 6) * 3,
@@ -596,7 +596,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/gr"].stateValues.numbers).eqls([1, 2]);
         expect(stateVariables["/gr2a"].stateValues.value).eq(1);
         expect(stateVariables["/gr2b"].stateValues.value).eq(2);
@@ -623,7 +623,7 @@ describe("Graph tag tests", async () => {
         // not sure what to test as don't know how to check renderer...
         // but main thing is that don't have an error
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/graph1"].stateValues.xlabel).eq("\\(\uff3f\\)");
 
         let mathinputName =
@@ -636,7 +636,7 @@ describe("Graph tag tests", async () => {
         });
         await submitAnswer({ name: "/x", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/graph1"].stateValues.xlabel).eq("\\(x\\)");
     });
 
@@ -652,7 +652,7 @@ describe("Graph tag tests", async () => {
         });
 
         // not sure what to test as don't know how to check renderer...
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
             false,
         );
@@ -665,7 +665,7 @@ describe("Graph tag tests", async () => {
             name: "/b1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
             true,
         );
@@ -678,7 +678,7 @@ describe("Graph tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
             true,
         );
@@ -691,7 +691,7 @@ describe("Graph tag tests", async () => {
             name: "/b1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
             false,
         );
@@ -704,7 +704,7 @@ describe("Graph tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxisTickLabels).eq(
             false,
         );
@@ -789,7 +789,7 @@ describe("Graph tag tests", async () => {
             gbadwidth: "medium",
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         for (let name in expectedSizes) {
             expect(stateVariables["/" + name].stateValues.size).eq(
                 expectedSizes[name],
@@ -812,7 +812,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.horizontalAlign).eq("center");
         expect(stateVariables["/gleft"].stateValues.horizontalAlign).eq("left");
         expect(stateVariables["/gright"].stateValues.horizontalAlign).eq(
@@ -837,7 +837,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayMode).eq("block");
         expect(stateVariables["/ginline"].stateValues.displayMode).eq("inline");
         expect(stateVariables["/gblock"].stateValues.displayMode).eq("block");
@@ -856,7 +856,7 @@ describe("Graph tag tests", async () => {
         });
 
         // not sure what to test as don't know how to check renderer...
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxis).eq(false);
         expect(stateVariables["/g"].stateValues.displayYAxis).eq(true);
 
@@ -866,7 +866,7 @@ describe("Graph tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxis).eq(true);
         expect(stateVariables["/g"].stateValues.displayYAxis).eq(true);
 
@@ -876,7 +876,7 @@ describe("Graph tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxis).eq(true);
         expect(stateVariables["/g"].stateValues.displayYAxis).eq(false);
 
@@ -885,7 +885,7 @@ describe("Graph tag tests", async () => {
             name: "/b1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxis).eq(false);
         expect(stateVariables["/g"].stateValues.displayYAxis).eq(false);
 
@@ -895,7 +895,7 @@ describe("Graph tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.displayXAxis).eq(false);
         expect(stateVariables["/g"].stateValues.displayYAxis).eq(true);
     });
@@ -910,7 +910,7 @@ describe("Graph tag tests", async () => {
         });
 
         // not sure what to test as don't know how to check renderer...
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.showNavigation).eq(false);
 
         await updateBooleanInputValue({
@@ -919,7 +919,7 @@ describe("Graph tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.showNavigation).eq(true);
 
         await updateBooleanInputValue({
@@ -928,7 +928,7 @@ describe("Graph tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g"].stateValues.showNavigation).eq(false);
     });
 
@@ -960,7 +960,7 @@ describe("Graph tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p"].stateValues.text).eq(
             "-45.03, 8.29, -5.58, 7.84",
         );
@@ -1005,7 +1005,7 @@ describe("Graph tag tests", async () => {
         });
 
         // not sure what to test as don't know how to check renderer...
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/_pegboard1"].stateValues.dx).eq(1);
         expect(stateVariables["/_pegboard1"].stateValues.dy).eq(1);
         expect(stateVariables["/_pegboard1"].stateValues.xoffset).eq(0);
@@ -1028,7 +1028,7 @@ describe("Graph tag tests", async () => {
         });
 
         // not sure what to test as don't know how to check renderer...
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/_graph1"].stateValues.showBorder).eq(true);
         expect(stateVariables["/_graph2"].stateValues.showBorder).eq(true);
         expect(stateVariables["/_graph3"].stateValues.showBorder).eq(false);
@@ -1058,7 +1058,7 @@ describe("Graph tag tests", async () => {
 
         // Not sure what to test as the interesting part is the graph renderer
         // The only new part from core is that the inner graph ignores its xmin, etc. attributes
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/g1inner"].stateValues.xmin).eq(-10);
         expect(stateVariables["/g1inner"].stateValues.xmax).eq(10);
         expect(stateVariables["/g1inner"].stateValues.ymin).eq(-10);

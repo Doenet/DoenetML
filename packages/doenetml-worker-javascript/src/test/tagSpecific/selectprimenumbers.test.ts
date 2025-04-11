@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -30,7 +30,7 @@ describe("selectPrimeNumbers tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             for (let [ind, name] of componentNames.entries()) {
                 let value = stateVariables[name].stateValues.value;
                 expect(
@@ -76,7 +76,7 @@ describe("selectPrimeNumbers tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
             let values = componentNames.map(
                 (name) => stateVariables[name].stateValues.value,
             );
@@ -340,7 +340,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -443,7 +443,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         for (let ind = 0; ind < 100; ind++) {
             let num =
                 stateVariables[
@@ -476,7 +476,7 @@ describe("selectPrimeNumbers tag tests", async () => {
 
         let results: number[] = [];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         results.push(stateVariables["/u"].stateValues.value);
         results.push(stateVariables["/v"].stateValues.value);
@@ -513,7 +513,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let num1 = stateVariables["/n1"].stateValues.value;
         let num2 = stateVariables["/n2"].stateValues.value;
         expect(Number.isInteger(num1) && num1 >= 2 && num1 <= 100).eq(true);
@@ -587,7 +587,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let sample1replacements = stateVariables["/sample1"].replacements!;
         let sample2replacements = stateVariables["/sample2"].replacements!;
         expect(sample1replacements.length).eq(5);
@@ -628,7 +628,7 @@ describe("selectPrimeNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         sample1replacements = stateVariables["/sample1"].replacements!;
         sample2replacements = stateVariables["/sample2"].replacements!;
 
@@ -666,7 +666,7 @@ describe("selectPrimeNumbers tag tests", async () => {
         });
 
         async function check_sampled_numbers(sampledNumbers: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(true);
 
             expect(
                 stateVariables["/p1"].activeChildren.map(
@@ -719,7 +719,7 @@ describe("selectPrimeNumbers tag tests", async () => {
         // sample one variable
         await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
@@ -734,7 +734,7 @@ describe("selectPrimeNumbers tag tests", async () => {
         // get two more samples
         await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         let n1 = stateVariables["/a/n"].stateValues.value;
         let n2 = stateVariables["/b/n"].stateValues.value;
         let n3 = stateVariables["/c/n"].stateValues.value;
@@ -754,7 +754,7 @@ describe("selectPrimeNumbers tag tests", async () => {
         // get six total samples
         await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         n1 = stateVariables["/a/n"].stateValues.value;
         n2 = stateVariables["/b/n"].stateValues.value;
         n3 = stateVariables["/c/n"].stateValues.value;
@@ -787,7 +787,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let originalNumbers = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -816,7 +816,7 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
 
         let originalNumbers = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -849,13 +849,13 @@ describe("selectPrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let c = await stateVariables["/c"].stateValues.value;
         let d = await stateVariables["/d"].stateValues.value;
         expect([2, 3, 5, 7].includes(c)).eq(true);
         expect([2, 3, 5, 7].includes(d)).eq(true);
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
 
@@ -870,7 +870,7 @@ describe("selectPrimeNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`, ${d}`);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
 
@@ -885,7 +885,7 @@ describe("selectPrimeNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/p1"].stateValues.text).eq(`${c}, `);
         expect(stateVariables["/p2"].stateValues.text).eq(`${c}, ${d}`);
     });
@@ -915,7 +915,7 @@ describe("selectPrimeNumbers tag tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let n1 = stateVariables["/n1"].stateValues.value;
         let n2 = stateVariables["/n2"].stateValues.value;
         let n3 = stateVariables["/n3"].stateValues.value;

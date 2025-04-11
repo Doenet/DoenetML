@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { widthsBySize } from "@doenet/utils";
 
 const Mock = vi.fn();
@@ -83,7 +83,7 @@ describe("Video tag tests", async () => {
             vbadwidth: "full",
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         for (let name in expectedSizes) {
             expect(stateVariables["/" + name].stateValues.size).eq(
                 expectedSizes[name],
@@ -105,7 +105,7 @@ describe("Video tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/v"].stateValues.horizontalAlign).eq("center");
         expect(stateVariables["/vleft"].stateValues.horizontalAlign).eq("left");
         expect(stateVariables["/vright"].stateValues.horizontalAlign).eq(
@@ -130,7 +130,7 @@ describe("Video tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/v"].stateValues.displayMode).eq("block");
         expect(stateVariables["/vinline"].stateValues.displayMode).eq("inline");
         expect(stateVariables["/vblock"].stateValues.displayMode).eq("block");

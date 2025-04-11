@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import {
     movePoint,
@@ -46,7 +46,7 @@ $tol.value{assignNames="tol2"}
         let expectedF = (x) => ic * Math.exp(a * x);
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/tol2"].stateValues.value.tree).eqls(tol);
             expect(stateVariables["/ode"].stateValues.latex).eqls(
                 `\\frac{dx}{dt} &=  ${a === 1 ? "" : a + " "}x\\notag\\\\x(0) &= ${ic}\\notag`,
@@ -139,7 +139,7 @@ $tol.value{assignNames="tol2"}
         }: {
             solverSuccess: boolean;
         }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/T"].stateValues.value.tree).eqls(T);
             expect(stateVariables["/tol"].stateValues.value.tree).eqls(tol);
             expect(stateVariables["/maxIter"].stateValues.value.tree).eqls(
@@ -256,7 +256,7 @@ $tol.value{assignNames="tol2"}
         let expectedF = (x) => Math.exp(x);
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
 
             expect(stateVariables["/ode"].stateValues.latex).eqls(
                 `\\frac{d${dVar}}{d${iVar}} &=  ${dVar}\\notag\\\\${dVar}(0) &= 1\\notag`,
@@ -362,7 +362,7 @@ $tol.value{assignNames="tol2"}
         let ic = "9.87654322";
 
         async function check_items({ a, ic }: { a: string; ic: string }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ode"].stateValues.latex).eqls(
                 `\\frac{dx}{dt} &=  ${a} x\\notag\\\\x(0) &= ${ic}\\notag`,
             );
@@ -404,7 +404,7 @@ $tol.value{assignNames="tol2"}
         let tf = 10;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ode"].stateValues.latex).eqls(
                 `\\frac{dx}{dt} &=  x\\notag\\\\x(${t0}) &= 1\\notag`,
             );
@@ -456,7 +456,7 @@ $tol.value{assignNames="tol2"}
 `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ode"].stateValues.latex).eqls(
             `\\frac{dx}{dt} &=  x\\notag\\\\x(0) &= 1\\notag`,
         );
@@ -467,14 +467,14 @@ $tol.value{assignNames="tol2"}
             boolean: false,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ode"].stateValues.latex).eqls(
             `\\frac{dx}{dt} &=  x\\notag`,
         );
 
         // display initial conditions again
         await updateBooleanInputValue({ name: "/showic", boolean: true, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(true);
         expect(stateVariables["/ode"].stateValues.latex).eqls(
             `\\frac{dx}{dt} &=  x\\notag\\\\x(0) &= 1\\notag`,
         );
@@ -513,7 +513,7 @@ $tol.value{assignNames="tol2"}
         let expectedFy = (t) => -4 * Math.exp(0.1 * t) + 7 * Math.exp(0.2 * t);
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             let ode = stateVariables["/ode"];
             expect(ode.stateValues.latex).eqls(
                 `\\frac{dx}{dt} &=  -0.2 y\\notag\\\\\\frac{dy}{dt} &=  0.1 x + 0.3 y\\notag\\\\x(0) &= ${ic1}\\notag\\\\y(0) &= ${ic2}\\notag`,
@@ -620,7 +620,7 @@ $tol.value{assignNames="tol2"}
             odeLatex = odeLatex.substring(0, odeLatex.length - 2); // remove ending "\\"
 
             let core = await createTestCore({ doenetML });
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(true);
             expect(stateVariables["/ode"].stateValues.latex).eqls(odeLatex);
         }
 
@@ -699,7 +699,7 @@ $tol.value{assignNames="tol2"}
 `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(true);
         let rhs1tree = ["+", ["*", "a", "x", "y"], "z"];
         let rhs2tree = ["/", "x", "y"];
 
@@ -764,7 +764,7 @@ $tol.value{assignNames="tol2"}
 `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(4);
