@@ -17,6 +17,7 @@ export default React.memo(function ContentPicker(props) {
         callAction,
     } = useDoenetRenderer(props);
 
+    // @ts-ignore
     ContentPicker.baseStateVariable = "selectedIndices";
 
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState(
@@ -41,8 +42,8 @@ export default React.memo(function ContentPicker(props) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    function onChangeHandler(e) {
-        let newSelectedIndices = [];
+    function onChangeHandler(e: React.ChangeEvent<HTMLSelectElement>) {
+        let newSelectedIndices: number[] = [];
 
         if (e.target.value) {
             newSelectedIndices = Array.from(
@@ -84,7 +85,7 @@ export default React.memo(function ContentPicker(props) {
         for (let topic in SVs.childrenByTopic) {
             let childIndices = SVs.childrenByTopic[topic];
 
-            let optionsList = childIndices.map(function (ind) {
+            let optionsList = childIndices.map(function (ind: number) {
                 return (
                     <option key={ind + 1} value={ind + 1}>
                         {SVs.childInfo[ind].title}
@@ -127,7 +128,7 @@ export default React.memo(function ContentPicker(props) {
                 <select
                     className="custom-select"
                     id={id + "-select"}
-                    onChange={(e) => onChangeHandler(e)}
+                    onChange={onChangeHandler}
                     value={value}
                     disabled={SVs.disabled}
                 >
@@ -149,7 +150,6 @@ export default React.memo(function ContentPicker(props) {
 
     return (
         <section id={id} ref={ref}>
-            <a name={id} />
             {picker}
             {children}
         </section>

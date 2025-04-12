@@ -18,7 +18,7 @@ export default React.memo(function ContentBrowser(props) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    let setSelectedItemInd = (ind) => {
+    let setSelectedItemInd = (ind: unknown) => {
         callAction({
             action: actions.setSelectedItemInd,
             args: { ind },
@@ -146,7 +146,6 @@ export default React.memo(function ContentBrowser(props) {
 
     return (
         <div id={id} ref={ref}>
-            <a name={id} />
             <div style={{ display: "flex" }} data-test="initials">
                 Filter by: {initials}
             </div>

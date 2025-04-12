@@ -26,7 +26,7 @@ export default function VariantSelect({
     size: string;
     menuWidth: string;
     array: string[];
-    onChange: Function;
+    onChange: (index: number) => void;
     syncIndex?: number;
 }) {
     const [index, setIndex] = useState(0);

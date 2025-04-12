@@ -17,6 +17,7 @@ export type JXGObject = {
     coords: {
         board: object;
         usrCoords: [number, number, number];
+        scrCoords: [number, number, number];
         emitter: boolean;
         setCoordinates: Function;
         [key: string]: unknown;
@@ -109,6 +110,10 @@ export type JXGObject = {
     point2: any;
     point3: any;
     Value: Function;
+    getBoundingBox: () => [number, number, number, number];
+    center: JXGObject;
+    setRadius: (radius: number) => void;
+    radius: number;
 };
 
 export type JXGEvent = {

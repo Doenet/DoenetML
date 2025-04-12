@@ -33,7 +33,7 @@ export default React.memo(function CodeViewer(props) {
     let viewerWidth = { ...SVs.width };
     viewerWidth.size = viewerWidth.size - 4;
 
-    let surroundingBoxStyle = {
+    let surroundingBoxStyle: React.CSSProperties = {
         width: sizeToCSS(SVs.width),
         maxWidth: "100%",
     };
@@ -73,7 +73,7 @@ export default React.memo(function CodeViewer(props) {
                                             fontSize="18px"
                                         />
                                     ) : (
-                                        ""
+                                        <></>
                                     )
                                 }
                                 isDisabled={!SVs.codeChanged}
@@ -153,7 +153,6 @@ export default React.memo(function CodeViewer(props) {
 
     return (
         <div style={outerStyle} ref={ref}>
-            <a name={id} />
             <div
                 style={surroundingBoxStyle}
                 className="codeViewerSurroundingBox"

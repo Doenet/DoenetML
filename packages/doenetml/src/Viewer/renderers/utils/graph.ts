@@ -1,4 +1,17 @@
-export function getEffectiveBoundingBox(board) {
+import { JXGObject } from "../jsxgraph-distrib/types";
+
+export type LabelPosition =
+    | "upperright"
+    | "upperleft"
+    | "lowerright"
+    | "lowerleft"
+    | "top"
+    | "bottom"
+    | "left"
+    | "right"
+    | "center";
+
+export function getEffectiveBoundingBox(board: JXGObject) {
     let flippedX = false;
     let flippedY = false;
 
@@ -16,7 +29,11 @@ export function getEffectiveBoundingBox(board) {
     return { flippedX, flippedY, xmin, xmax, ymin, ymax };
 }
 
-export function getGraphCornerWithBuffer(board, direction, buffer = 0.01) {
+export function getGraphCornerWithBuffer(
+    board: JXGObject,
+    direction: [number, number],
+    buffer = 0.01,
+): [number, number] {
     let { flippedX, flippedY, xmin, xmax, ymin, ymax } =
         getEffectiveBoundingBox(board);
 
@@ -37,7 +54,10 @@ export function getGraphCornerWithBuffer(board, direction, buffer = 0.01) {
     return [x, y];
 }
 
-export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
+export function adjustPointLabelPosition(
+    labelPosition: string,
+    nearEdgeOfGraph: [number, number],
+): LabelPosition {
     if (nearEdgeOfGraph[0] === -1) {
         if (
             labelPosition.substring(
@@ -69,7 +89,7 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
     }
 
     if (nearEdgeOfGraph[1] === -1) {
-        if (labelPosition.substring(0, 5, labelPosition.length) === "lower") {
+        if (labelPosition.substring(0, 5) === "lower") {
             labelPosition =
                 "upper" + labelPosition.substring(5, labelPosition.length);
         } else if (labelPosition === "left") {
@@ -78,7 +98,7 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
             labelPosition = "upperright";
         }
     } else if (nearEdgeOfGraph[1] === 1) {
-        if (labelPosition.substring(0, 5, labelPosition.length) === "upper") {
+        if (labelPosition.substring(0, 5) === "upper") {
             labelPosition =
                 "lower" + labelPosition.substring(5, labelPosition.length);
         } else if (labelPosition === "left") {
@@ -88,10 +108,10 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
         }
     }
 
-    return labelPosition;
+    return labelPosition as LabelPosition;
 }
 
-export function calculatePointLabelAnchor(labelPosition) {
+export function calculatePointLabelAnchor(labelPosition: LabelPosition) {
     let anchorx, anchory, offset;
     if (labelPosition === "upperright") {
         offset = [5, 5];
@@ -130,7 +150,10 @@ export function calculatePointLabelAnchor(labelPosition) {
     return { offset, anchorx, anchory };
 }
 
-export function normalizePointSize(size, style) {
+export function normalizePointSize(
+    size: number,
+    style: "diamond" | "plus" | "square" | "triangle" | string,
+) {
     if (style === "diamond") {
         return size * 1.4;
     } else if (style === "plus") {
@@ -142,7 +165,15 @@ export function normalizePointSize(size, style) {
     } else return size;
 }
 
-export function normalizePointStyle(style, offGraphIndicatorSides) {
+export function normalizePointStyle(
+    style:
+        | "triangledown"
+        | "triangleup"
+        | "triangleleft"
+        | "triangleright"
+        | string,
+    offGraphIndicatorSides: [number, number],
+) {
     if (offGraphIndicatorSides[1] === -1) {
         return "triangledown";
     } else if (offGraphIndicatorSides[1] === 1) {
@@ -158,7 +189,9 @@ export function normalizePointStyle(style, offGraphIndicatorSides) {
     }
 }
 
-export function getPositionFromAnchorByCoordinate(positionFromAnchor) {
+export function getPositionFromAnchorByCoordinate(
+    positionFromAnchor: LabelPosition,
+) {
     let anchorx, anchory;
     if (positionFromAnchor === "center") {
         anchorx = "middle";

@@ -955,6 +955,7 @@ export function DocViewer({
             let extension = "jsx";
             const CONVERTED_TO_TSX = new Set([
                 "_error",
+                "alert",
                 "angle",
                 "answer",
                 "asList",
@@ -964,6 +965,18 @@ export function DocViewer({
                 "button",
                 "point",
                 "math",
+                "c",
+                "cell",
+                "choiceInput",
+                "circle",
+                "cobwebPolyline",
+                "codeEditor",
+                "codeViewer",
+                "containerBlock",
+                "containerInline",
+                "contentBrowser",
+                "contentPicker",
+                "curve",
             ]);
             if (CONVERTED_TO_TSX.has(rendererClassName)) {
                 extension = "tsx";

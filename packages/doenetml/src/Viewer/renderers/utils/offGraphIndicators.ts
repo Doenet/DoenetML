@@ -1,6 +1,7 @@
+import { JXGObject } from "../jsxgraph-distrib/types";
 import { getEffectiveBoundingBox } from "./graph";
 
-export function characterizeOffGraphPoint(coords, board) {
+export function characterizeOffGraphPoint(coords: number[], board: JXGObject) {
     let { flippedX, flippedY, xmin, xmax, ymin, ymax } =
         getEffectiveBoundingBox(board);
 
@@ -12,8 +13,8 @@ export function characterizeOffGraphPoint(coords, board) {
     let yminAdjusted = ymin + yscale * 0.01;
     let ymaxAdjusted = ymax - yscale * 0.01;
 
-    let indicatorCoords = [...coords];
-    let indicatorSides = [0, 0];
+    let indicatorCoords = [...coords] as [number, number];
+    let indicatorSides: [number, number] = [0, 0];
 
     let needIndicator = false;
 
@@ -51,6 +52,11 @@ export function characterizeOffGraphCircleArc({
     radius,
     directionToCheck,
     board,
+}: {
+    center: [number, number];
+    radius: number;
+    directionToCheck: [number, number];
+    board: JXGObject;
 }) {
     // check to see if the arc of the circle (determine by directionToCheck)
     // intersects the edge of the graph (adjusted inward by a buffer)
@@ -85,7 +91,7 @@ export function characterizeOffGraphCircleArc({
         return {
             needIndicator: true,
             indicatorSides: directionToCheck,
-            indicatorCoords: [xToCheck, yToCheck],
+            indicatorCoords: [xToCheck, yToCheck] as [number, number],
         };
     }
 

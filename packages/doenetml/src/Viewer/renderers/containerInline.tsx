@@ -1,15 +1,9 @@
-import React, { useRef } from "react";
+import React from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
-import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-export default React.memo(function Container(props) {
-    let { name, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
-
-    const ref = useRef(null);
-
-    useRecordVisibilityChanges(ref, callAction, actions);
+export default React.memo(function ContainerInline(props) {
+    let { name, id, SVs, children } = useDoenetRenderer(props);
 
     if (SVs.hidden) {
         return null;
@@ -25,10 +19,5 @@ export default React.memo(function Container(props) {
         });
     }
 
-    return (
-        <div id={id} ref={ref}>
-            <a name={id} />
-            {children}
-        </div>
-    );
+    return <span id={id}>{children}</span>;
 });

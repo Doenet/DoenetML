@@ -1,3 +1,5 @@
+// TODO: remove this when revising components
+// @ts-nocheck
 import React, { useContext, useEffect, useRef } from "react";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import useDoenetRenderer from "../useDoenetRenderer";
@@ -1122,11 +1124,7 @@ export default React.memo(function Curve(props) {
     }
 
     // don't think we want to return anything if not in board
-    return (
-        <>
-            <a name={id} />
-        </>
-    );
+    return <span id={id} />;
 });
 
 function styleToDash(style, dash) {
