@@ -20,8 +20,8 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    // Copy everything from the same directory as `CoreWorker.js`. This will include
-                    // `CoreWorker.js.map`
+                    // Copy everything from the same directory as `index.js`. This will include
+                    // `index.js.map`
                     src: path.join(
                         require.resolve("@doenet/doenetml-worker/index.js"),
                         "../*",
