@@ -955,6 +955,7 @@ export function DocViewer({
             let extension = "jsx";
             const CONVERTED_TO_TSX = new Set([
                 "_error",
+                "alert",
                 "angle",
                 "answer",
                 "asList",
