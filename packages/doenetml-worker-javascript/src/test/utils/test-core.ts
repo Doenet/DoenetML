@@ -54,7 +54,7 @@ export async function createTestCore({
         requestedVariantIndex,
     });
 
-    const dastResult = await core.createCoreReturnDast(
+    const dastResult = await core.createCoreGenerateDast(
         {
             coreId: "",
             cid: "",

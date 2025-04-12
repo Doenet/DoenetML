@@ -112,7 +112,7 @@ export class PublicDoenetMLCore {
         };
     }
 
-    async createCoreReturnDast(
+    async createCoreGenerateDast(
         args: {
             coreId: string;
             userId?: string;
@@ -167,7 +167,7 @@ export class PublicDoenetMLCore {
             //@ts-ignore
             this.core = new Core(coreArgs);
             try {
-                const result = await this.core.getDast();
+                const result = await this.core.generateDast();
                 return { success: true as const, ...result };
             } catch (e) {
                 // throw e;

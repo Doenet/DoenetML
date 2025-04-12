@@ -180,7 +180,7 @@ export class CoreWorker {
         }
     }
 
-    async returnJavascriptDast(
+    async generateJavascriptDast(
         args: {
             coreId: string;
             userId?: string;
@@ -219,7 +219,7 @@ export class CoreWorker {
         }
 
         try {
-            return await this.javascriptCore?.createCoreReturnDast(
+            return await this.javascriptCore?.createCoreGenerateDast(
                 args,
                 updateRenderersCallback,
                 reportScoreAndStateCallback,

@@ -1225,7 +1225,7 @@ export function DocViewer({
 
         coreCreationInProgress.current = true;
 
-        const dastResult = await thisCoreWorker.returnJavascriptDast(
+        const dastResult = await thisCoreWorker.generateJavascriptDast(
             {
                 coreId: coreId.current,
                 userId,

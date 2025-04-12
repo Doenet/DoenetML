@@ -90,7 +90,7 @@ export default class Core {
         this.flags = flags;
         this.theme = theme;
 
-        this.getDast = this.getDast.bind(this);
+        this.getDast = this.generateDast.bind(this);
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
@@ -186,7 +186,7 @@ export default class Core {
         this.parameterStack.parameters.prerender = prerender;
     }
 
-    async getDast() {
+    async generateDast() {
         this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
         let serializedComponents = [deepClone(this.serializedDocument)];
@@ -373,10 +373,38 @@ export default class Core {
         );
 
         if (!this.receivedStateVariableChanges) {
-            setTimeout(() => this.saveState(), 0);
+            // TODO: find a way to delay this until after send the result on
+            this.saveState();
         }
 
-        return this.messageViewerReady();
+        let { rangePieces } = extractRangeIndexPieces({
+            componentArray: this.componentIndexArray,
+        });
+
+        const returnResult = {
+            coreInfo: this.coreInfo,
+            componentRangePieces: rangePieces,
+        };
+
+        // warning if there are any children that are unmatched
+        if (Object.keys(this.unmatchedChildren).length > 0) {
+            for (let componentName in this.unmatchedChildren) {
+                let parent = this._components[componentName];
+                this.errorWarnings.warnings.push({
+                    message: this.unmatchedChildren[componentName].message,
+                    level: 1,
+                    doenetMLrange: parent.doenetMLrange,
+                });
+                this.newErrorWarning = true;
+            }
+        }
+
+        let errorWarnings = undefined;
+        if (this.newErrorWarning) {
+            errorWarnings = this.getErrorWarnings().errorWarnings;
+        }
+
+        return { ...returnResult, errorWarnings };
     }
 
     async onDocumentFirstVisible() {
@@ -411,37 +439,6 @@ export default class Core {
             this.sendVisibilityChangedEvents.bind(this),
             this.visibilityInfo.saveDelay,
         );
-    }
-
-    async messageViewerReady() {
-        let { rangePieces } = extractRangeIndexPieces({
-            componentArray: this.componentIndexArray,
-        });
-
-        const args = {
-            coreInfo: this.coreInfo,
-            componentRangePieces: rangePieces,
-        };
-
-        // warning if there are any children that are unmatched
-        if (Object.keys(this.unmatchedChildren).length > 0) {
-            for (let componentName in this.unmatchedChildren) {
-                let parent = this._components[componentName];
-                this.errorWarnings.warnings.push({
-                    message: this.unmatchedChildren[componentName].message,
-                    level: 1,
-                    doenetMLrange: parent.doenetMLrange,
-                });
-                this.newErrorWarning = true;
-            }
-        }
-
-        let errorWarnings = undefined;
-        if (this.newErrorWarning) {
-            errorWarnings = this.getErrorWarnings().errorWarnings;
-        }
-
-        return { ...args, errorWarnings };
     }
 
     async callUpdateRenderers(args, init = false) {
