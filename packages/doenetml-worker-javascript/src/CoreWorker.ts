@@ -185,7 +185,8 @@ export class PublicDoenetMLCore {
         } else {
             let errMsg =
                 this.initializeResult?.success === false
-                    ? this.initializeResult?.errMsg ?? "Error initializing core"
+                    ? (this.initializeResult?.errMsg ??
+                      "Error initializing core")
                     : "Internal error. Cannot create document. Core not initialized.";
 
             return {
