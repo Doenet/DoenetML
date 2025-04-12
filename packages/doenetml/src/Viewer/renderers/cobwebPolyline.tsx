@@ -1,3 +1,5 @@
+// TODO: remove this when revising components
+// @ts-nocheck
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";

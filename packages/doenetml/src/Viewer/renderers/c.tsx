@@ -21,7 +21,6 @@ export default React.memo(function C(props) {
 
     return (
         <code id={id} style={{ margin: "12px 0" }}>
-            <a name={id} />
             {children}
         </code>
     );
