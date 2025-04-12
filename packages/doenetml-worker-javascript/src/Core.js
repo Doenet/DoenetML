@@ -67,6 +67,7 @@ export default class Core {
         reportScoreAndStateCallback,
         requestAnimationFrame,
         cancelAnimationFrame,
+        copyToClipboard,
     }) {
         // console.time('core');
 
@@ -81,6 +82,7 @@ export default class Core {
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
         this.requestAnimationFrame = requestAnimationFrame;
         this.cancelAnimationFrame = cancelAnimationFrame;
+        this.copyToClipboard = copyToClipboard;
 
         this.cid = cid;
 
@@ -13125,15 +13127,6 @@ export default class Core {
         }
 
         return componentDoenetML;
-    }
-
-    // TODO: not functioning properly but not currently called anywhere
-    copyToClipboard(text, actionId) {
-        if (typeof text !== "string") {
-            return { actionId };
-        } else {
-            return { text, actionId };
-        }
     }
 
     navigateToTarget(args) {

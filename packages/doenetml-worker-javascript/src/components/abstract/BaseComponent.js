@@ -1689,7 +1689,7 @@ export default class BaseComponent {
         let doenetML = await this.stateValues.doenetML;
 
         if (doenetML) {
-            this.coreFunctions.copyToClipboard(doenetML, actionId);
+            this.coreFunctions.copyToClipboard({ text: doenetML, actionId });
         }
     }
 }

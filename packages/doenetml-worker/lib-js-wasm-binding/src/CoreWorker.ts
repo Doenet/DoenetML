@@ -190,36 +190,21 @@ export class CoreWorker {
             stateVariableChanges?: string;
             initializeCounters: Record<string, number>;
         },
-        updateRenderersCallback: ({
-            updateInstructions,
-            actionId,
-            errorWarnings,
-            init,
-        }: {
+        updateRenderersCallback: (arg: {
             updateInstructions: Record<string, any>[];
             actionId?: string;
-            errorWarnings?: {
-                errors: any[];
-                warnings: any[];
-            };
+            errorWarnings?: { errors: any[]; warnings: any[] };
             init?: boolean;
         }) => void,
         reportScoreAndStateCallback: (data: unknown) => void,
-        requestAnimationFrame: ({
-            action,
-            actionArgs,
-            delay,
-            animationId,
-        }: {
-            action: {
-                actionName: string;
-                componentName?: string;
-            };
+        requestAnimationFrame: (args: {
+            action: { actionName: string; componentName?: string };
             actionArgs: Record<string, any>;
             delay?: number;
             animationId: string;
         }) => void,
         cancelAnimationFrame: (animationId: string) => void,
+        copyToClipboard: (args: { text: string; actionId?: string }) => void,
     ) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -240,6 +225,7 @@ export class CoreWorker {
                 reportScoreAndStateCallback,
                 requestAnimationFrame,
                 cancelAnimationFrame,
+                copyToClipboard,
             );
         } catch (err) {
             console.error(err);

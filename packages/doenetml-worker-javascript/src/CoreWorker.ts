@@ -122,36 +122,21 @@ export class PublicDoenetMLCore {
             stateVariableChanges?: string;
             initializeCounters: Record<string, number>;
         },
-        updateRenderersCallback: ({
-            updateInstructions,
-            actionId,
-            errorWarnings,
-            init,
-        }: {
+        updateRenderersCallback: (arg: {
             updateInstructions: Record<string, any>[];
             actionId?: string;
-            errorWarnings?: {
-                errors: any[];
-                warnings: any[];
-            };
+            errorWarnings?: { errors: any[]; warnings: any[] };
             init?: boolean;
         }) => void,
         reportScoreAndStateCallback: (data: unknown) => void,
-        requestAnimationFrame: ({
-            action,
-            actionArgs,
-            delay,
-            animationId,
-        }: {
-            action: {
-                actionName: string;
-                componentName?: string;
-            };
+        requestAnimationFrame: (args: {
+            action: { actionName: string; componentName?: string };
             actionArgs: Record<string, any>;
             delay?: number;
             animationId: string;
         }) => void,
         cancelAnimationFrame: (animationId: string) => void,
+        copyToClipboard: (args: { text: string; actionId?: string }) => void,
     ) {
         // Wait for `initializeWorker()` for up to around 2 seconds before failing.
         // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
@@ -178,6 +163,7 @@ export class PublicDoenetMLCore {
             reportScoreAndStateCallback,
             requestAnimationFrame,
             cancelAnimationFrame,
+            copyToClipboard,
         };
 
         if (this.initializeResult?.success) {

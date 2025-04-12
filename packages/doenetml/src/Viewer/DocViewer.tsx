@@ -319,12 +319,7 @@ export function DocViewer({
         }
         // coreWorker.current.onmessage = function (e) {
         //     // console.log("message from core", e.data);
-        //  if (e.data.messageType === "sendAlert") {
-        //         console.log(`Sending alert message: ${e.data.args.message}`);
-        //         // sendAlert(e.data.args.message, e.data.args.alertType);
-        //     } lse if (e.data.messageType === "copyToClipboard") {
-        //         copyToClipboard(e.data.args);
-        //     } else if (e.data.messageType === "navigateToTarget") {
+        // if (e.data.messageType === "navigateToTarget") {
         //         navigateToTarget(e.data.args);
         //     } else if (e.data.messageType === "navigateToHash") {
         //         navigate(location.search + e.data.args.hash, {
@@ -1250,6 +1245,7 @@ export function DocViewer({
             Comlink.proxy(reportScoreAndStateCallback),
             Comlink.proxy(requestAnimationFrame),
             Comlink.proxy(cancelAnimationFrame),
+            Comlink.proxy(copyToClipboard),
         );
 
         if (dastResult.success) {
@@ -1363,7 +1359,6 @@ export function DocViewer({
         delete animationInfo.current[animationId];
     }
 
-    // TODO: not functioning properly but not currently called anywhere
     async function copyToClipboard({
         text,
         actionId,
@@ -1371,7 +1366,9 @@ export function DocViewer({
         text: string;
         actionId?: string;
     }) {
-        await navigator.clipboard.writeText(text);
+        if (typeof text === "string") {
+            await navigator.clipboard.writeText(text);
+        }
 
         resolveAction({ actionId });
     }
