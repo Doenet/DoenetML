@@ -319,11 +319,7 @@ export function DocViewer({
         }
         // coreWorker.current.onmessage = function (e) {
         //     // console.log("message from core", e.data);
-        // if (e.data.messageType === "requestAnimationFrame") {
-        //         requestAnimationFrame(e.data.args);
-        //     } else if (e.data.messageType === "cancelAnimationFrame") {
-        //         cancelAnimationFrame(e.data.args);
-        //     } else if (e.data.messageType === "sendAlert") {
+        //  if (e.data.messageType === "sendAlert") {
         //         console.log(`Sending alert message: ${e.data.args.message}`);
         //         // sendAlert(e.data.args.message, e.data.args.alertType);
         //     } lse if (e.data.messageType === "copyToClipboard") {
@@ -566,14 +562,21 @@ export function DocViewer({
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
 
-        await initializeCoreWorker({
+        const initializeResult = await initializeCoreWorker({
             coreWorker: newCoreWorker,
             doenetML,
             flags,
             activityId,
             docId,
             requestedVariantIndex,
+            documentStructureCallback,
         });
+
+        if (initializeResult.success === false) {
+            setErrMsg(
+                `Error initializing activity: ${initializeResult.errMsg}`,
+            );
+        }
 
         return newCoreWorker;
     }
@@ -1191,7 +1194,7 @@ export function DocViewer({
             //Kill the current core if it exists
             thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
         } else {
-            // otherwise, if not initial pass, then re-initialize to give it the current DoenetML
+            // otherwise, initialize core worker to give it the current DoenetML
 
             let initializeResult = await initializeCoreWorker({
                 coreWorker: thisCoreWorker,
@@ -1200,6 +1203,7 @@ export function DocViewer({
                 activityId,
                 docId,
                 requestedVariantIndex,
+                documentStructureCallback,
             });
 
             if (initializeResult.success === false) {
@@ -1207,17 +1211,6 @@ export function DocViewer({
                     `Error initializing activity: ${initializeResult.errMsg}`,
                 );
                 return;
-            } else {
-                documentStructureCallback?.({
-                    activityId,
-                    docId,
-                    args: {
-                        allPossibleVariants:
-                            initializeResult.allPossibleVariants,
-                        baseComponentCounts:
-                            initializeResult.baseComponentCounts,
-                    },
-                });
             }
         }
 
@@ -1242,6 +1235,8 @@ export function DocViewer({
             },
             Comlink.proxy(updateRenderers),
             Comlink.proxy(reportScoreAndStateCallback),
+            Comlink.proxy(requestAnimationFrame),
+            Comlink.proxy(cancelAnimationFrame),
         );
 
         if (dastResult.success) {
@@ -1384,8 +1379,20 @@ export function DocViewer({
     const initialPass = lastDoenetML.current === null;
 
     // if we are just starting and the document isn't being rendered,
-    // don't do anything more
+    // then just initialize the core worker so that can return document structure
+    // but core itself won't actually start
     if (initialPass && !render) {
+        let newCoreWorker = createCoreWorker();
+        coreWorker.current = newCoreWorker;
+        initializeCoreWorker({
+            coreWorker: newCoreWorker,
+            doenetML,
+            flags,
+            activityId,
+            docId,
+            requestedVariantIndex,
+            documentStructureCallback,
+        });
         return null;
     }
 

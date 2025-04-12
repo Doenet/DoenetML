@@ -65,6 +65,8 @@ export default class Core {
         coreId,
         updateRenderersCallback,
         reportScoreAndStateCallback,
+        requestAnimationFrame,
+        cancelAnimationFrame,
     }) {
         // console.time('core');
 
@@ -77,6 +79,8 @@ export default class Core {
         this.serializedDocument = serializedDocument;
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
+        this.requestAnimationFrame = requestAnimationFrame;
+        this.cancelAnimationFrame = cancelAnimationFrame;
 
         this.cid = cid;
 
@@ -12935,23 +12939,6 @@ export default class Core {
             (await this.document.stateValues.scoredDescendants).map(
                 (x) => x.stateValues.weight,
             ))();
-    }
-
-    requestAnimationFrame(args) {
-        let animateMessage = {
-            messageType: "requestAnimationFrame",
-            coreId: this.coreId,
-            args,
-        };
-        postMessage(animateMessage);
-    }
-
-    cancelAnimationFrame(args) {
-        postMessage({
-            messageType: "cancelAnimationFrame",
-            coreId: this.coreId,
-            args,
-        });
     }
 
     handleVisibilityChange({ visible }) {

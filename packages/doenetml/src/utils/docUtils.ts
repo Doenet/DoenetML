@@ -21,6 +21,7 @@ export async function initializeCoreWorker({
     activityId,
     docId,
     requestedVariantIndex,
+    documentStructureCallback,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -28,6 +29,7 @@ export async function initializeCoreWorker({
     activityId: string;
     docId: string;
     requestedVariantIndex: number;
+    documentStructureCallback?: Function;
 }) {
     const dast = normalizeDocumentDast(lezerToDast(doenetML));
 
@@ -40,6 +42,17 @@ export async function initializeCoreWorker({
         docId,
         requestedVariantIndex,
     });
+
+    if (result.success) {
+        documentStructureCallback?.({
+            activityId,
+            docId,
+            args: {
+                allPossibleVariants: result.allPossibleVariants,
+                baseComponentCounts: result.baseComponentCounts,
+            },
+        });
+    }
 
     return result;
 }

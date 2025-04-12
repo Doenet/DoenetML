@@ -137,6 +137,21 @@ export class PublicDoenetMLCore {
             init?: boolean;
         }) => void,
         reportScoreAndStateCallback: (data: unknown) => void,
+        requestAnimationFrame: ({
+            action,
+            actionArgs,
+            delay,
+            animationId,
+        }: {
+            action: {
+                actionName: string;
+                componentName?: string;
+            };
+            actionArgs: Record<string, any>;
+            delay?: number;
+            animationId: string;
+        }) => void,
+        cancelAnimationFrame: (animationId: string) => void,
     ) {
         // Wait for `initializeWorker()` for up to around 2 seconds before failing.
         // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
@@ -161,6 +176,8 @@ export class PublicDoenetMLCore {
             ...args,
             updateRenderersCallback,
             reportScoreAndStateCallback,
+            requestAnimationFrame,
+            cancelAnimationFrame,
         };
 
         if (this.initializeResult?.success) {
@@ -185,8 +202,7 @@ export class PublicDoenetMLCore {
         } else {
             let errMsg =
                 this.initializeResult?.success === false
-                    ? (this.initializeResult?.errMsg ??
-                      "Error initializing core")
+                    ? this.initializeResult?.errMsg ?? "Error initializing core"
                     : "Internal error. Cannot create document. Core not initialized.";
 
             return {

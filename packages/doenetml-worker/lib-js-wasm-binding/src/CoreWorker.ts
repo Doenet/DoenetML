@@ -205,6 +205,21 @@ export class CoreWorker {
             init?: boolean;
         }) => void,
         reportScoreAndStateCallback: (data: unknown) => void,
+        requestAnimationFrame: ({
+            action,
+            actionArgs,
+            delay,
+            animationId,
+        }: {
+            action: {
+                actionName: string;
+                componentName?: string;
+            };
+            actionArgs: Record<string, any>;
+            delay?: number;
+            animationId: string;
+        }) => void,
+        cancelAnimationFrame: (animationId: string) => void,
     ) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -223,6 +238,8 @@ export class CoreWorker {
                 args,
                 updateRenderersCallback,
                 reportScoreAndStateCallback,
+                requestAnimationFrame,
+                cancelAnimationFrame,
             );
         } catch (err) {
             console.error(err);
