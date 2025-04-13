@@ -63,6 +63,9 @@ export async function createTestCore({
         },
         () => null,
         () => null,
+        () => null,
+        () => null,
+        () => null,
     );
 
     if (!dastResult.success) {
