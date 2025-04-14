@@ -113,8 +113,6 @@ export function DoenetViewer({
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    location,
-    navigate,
     linkSettings,
     scrollableContainer,
     darkMode = "light",
@@ -145,8 +143,6 @@ export function DoenetViewer({
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    location?: any;
-    navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -264,8 +260,6 @@ export function DoenetViewer({
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckwork={forceUnsuppressCheckwork}
-            location={location}
-            navigate={navigate}
             linkSettings={linkSettings}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
@@ -305,8 +299,6 @@ export function DoenetEditor({
     prefixForIds = "",
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    location,
-    navigate,
     linkSettings,
     darkMode = "light",
     showAnswerResponseMenu = false,
@@ -333,8 +325,6 @@ export function DoenetEditor({
     prefixForIds?: string;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    location?: any;
-    navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
@@ -366,8 +356,6 @@ export function DoenetEditor({
         <EditorViewer
             doenetML={doenetML}
             activityId={activityId}
-            location={location}
-            navigate={navigate}
             prefixForIds={prefixForIds}
             linkSettings={linkSettings}
             darkMode={darkMode}

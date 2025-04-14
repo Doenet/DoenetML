@@ -35,8 +35,6 @@ const rendererUpdatesToIgnore = atomFamily({
 });
 
 export const DocContext = createContext<{
-    navigate?: any;
-    location?: any;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -66,8 +64,6 @@ export function DocViewer({
     initializedCallback,
     setIsInErrorState,
     prefixForIds = "",
-    location = {},
-    navigate,
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
     scrollableContainer,
     darkMode,
@@ -96,8 +92,6 @@ export function DocViewer({
     initializedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
-    location?: any;
-    navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -295,11 +289,7 @@ export function DocViewer({
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
 
-    let hash = location.hash;
-
     const contextForRenderers = {
-        navigate,
-        location,
         linkSettings,
         scrollableContainer,
         darkMode,
@@ -319,13 +309,7 @@ export function DocViewer({
         }
         // coreWorker.current.onmessage = function (e) {
         //     // console.log("message from core", e.data);
-        // if (e.data.messageType === "navigateToTarget") {
-        //         navigateToTarget(e.data.args);
-        //     } else if (e.data.messageType === "navigateToHash") {
-        //         navigate(location.search + e.data.args.hash, {
-        //             replace: true,
-        //         });
-        //     } else if (e.data.messageType === "recordSolutionView") {
+        // if (e.data.messageType === "recordSolutionView") {
         //         window.postMessage({
         //             ...e.data,
         //             subject: "SPLICE.recordSolutionView",
@@ -341,7 +325,7 @@ export function DocViewer({
         //         });
         //     }
         // };
-    }, [coreWorker, location]);
+    }, [coreWorker]);
 
     useEffect(() => {
         return () => {
@@ -446,104 +430,11 @@ export function DocViewer({
     }, [coreWorker]);
 
     useEffect(() => {
-        if (hash && coreCreated.current && coreWorker) {
-            let anchor = hash.slice(1);
-            if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
-                // coreWorker.postMessage({
-                //     messageType: "navigatingToComponent",
-                //     args: {
-                //         componentName: anchor
-                //             .substring(prefixForIds.length)
-                //             .replaceAll("\\/", "/"),
-                //         hash,
-                //     },
-                // });
-            }
-        }
-    }, [location, hash, coreCreated.current, coreWorker]);
-
-    useEffect(() => {
-        if (hash && documentRenderer && render) {
-            let anchor = hash.slice(1);
-            if (
-                (!previousLocationKeys.current.includes(location.key) ||
-                    location.key === "default") &&
-                anchor.length > prefixForIds.length &&
-                anchor.substring(0, prefixForIds.length) === prefixForIds
-            ) {
-                document.getElementById(anchor)?.scrollIntoView();
-            }
-            previousLocationKeys.current.push(location.key);
-        }
-    }, [location, hash, documentRenderer, render]);
-
-    useEffect(() => {
         callAction({
             action: { actionName: "setTheme" },
             args: { theme: darkMode, doNotIgnore: true },
         });
     }, [darkMode]);
-
-    // TODO: fix this function as it uses conventions that are no longer valid
-    const navigateToTarget = useCallback(
-        async ({
-            cid,
-            activityId,
-            variantIndex,
-            edit,
-            hash,
-            uri,
-            targetName,
-            actionId,
-            componentName,
-            effectiveName,
-        }: {
-            cid?: string;
-            activityId?: string;
-            variantIndex?: number;
-            edit?: boolean;
-            hash?: string;
-            uri?: string;
-            targetName?: string;
-            actionId?: string;
-            componentName?: string;
-            effectiveName: string;
-        }) => {
-            let id = prefixForIds + cesc(effectiveName);
-            let { targetForATag, url, haveValidTarget, externalUri } =
-                getURLFromRef({
-                    cid,
-                    activityId,
-                    variantIndex,
-                    edit,
-                    hash,
-                    givenUri: uri,
-                    targetName,
-                    linkSettings,
-                    search: location.search,
-                    id,
-                });
-
-            if (haveValidTarget) {
-                if (targetForATag === "_blank") {
-                    window.open(url, targetForATag);
-                } else {
-                    // TODO: when fix regular ref navigation to scroll back to previous scroll position
-                    // when click the back button
-                    // add that ability to this navigation as well
-
-                    // let scrollAttribute = scrollableContainer === window ? "scrollY" : "scrollTop";
-                    // let stateObj = { fromLink: true }
-                    // Object.defineProperty(stateObj, 'previousScrollPosition', { get: () => scrollableContainer?.[scrollAttribute], enumerable: true });
-
-                    navigate?.(url);
-                }
-            }
-
-            resolveAction({ actionId });
-        },
-        [location],
-    );
 
     async function reinitializeCoreAndTerminateAnimations() {
         if (coreWorker.current !== null) {
@@ -894,8 +785,6 @@ export function DocViewer({
                         docId,
                         activityId,
                         callAction,
-                        navigate,
-                        location,
                         linkSettings,
                         scrollableContainer,
                     }),
