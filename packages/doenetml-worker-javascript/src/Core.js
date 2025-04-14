@@ -196,6 +196,15 @@ export default class Core {
         this.parameterStack.parameters.prerender = prerender;
     }
 
+    /**
+     * Construct core from the DoenetML in order to generate the Dast that can be used
+     * to render the document.
+     *
+     * Creates all components and resolves all dependencies necessary to determine
+     * state variables that are marked `forRenderer`.
+     *
+     * The dast is communicated back to the renderer via calls to `updateRenderersCallback`.
+     */
     async generateDast() {
         this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
@@ -12960,8 +12969,8 @@ export default class Core {
             ))();
     }
 
-    handleVisibilityChange({ visible }) {
-        if (visible) {
+    handleVisibilityChange(documentIsVisible) {
+        if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
             this.suspendVisibilityMeasuring();

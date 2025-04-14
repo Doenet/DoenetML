@@ -3,9 +3,7 @@ import React, {
     ErrorInfo,
     ReactElement,
     ReactNode,
-    useCallback,
     useEffect,
-    useMemo,
     useRef,
     useState,
 } from "react";
@@ -21,7 +19,7 @@ import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";
-import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
+import { atomFamily, useRecoilCallback } from "recoil";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import type { CoreWorker } from "@doenet/doenetml-worker";
@@ -239,12 +237,6 @@ export function DocViewer({
         warnings: any[];
     }>({ errors: [], warnings: [] });
 
-    const resolveAllStateVariables = useRef<((value: unknown) => void) | null>(
-        null,
-    );
-    const resolveErrorWarnings = useRef<((value: unknown) => void) | null>(
-        null,
-    );
     const actionsBeforeCoreCreated = useRef<
         {
             actionName: string;
@@ -280,8 +272,6 @@ export function DocViewer({
         >
     >({});
 
-    const previousLocationKeys = useRef<any[]>([]);
-
     const errorInitializingRenderers = useRef(false);
     const errorInsideRenderers = useRef(false);
 
@@ -302,23 +292,6 @@ export function DocViewer({
             .replaceAll("/", "")
             .replaceAll("\\", "")
             .replaceAll("-", "_") || "1";
-
-    useEffect(() => {
-        if (!coreWorker.current) {
-            return;
-        }
-        // coreWorker.current.onmessage = function (e) {
-        //     // console.log("message from core", e.data);
-        // if (e.data.messageType === "recordSolutionView") {
-        //         window.postMessage({
-        //             ...e.data,
-        //             subject: "SPLICE.recordSolutionView",
-        //             activityId,
-        //             docId,
-        //         });
-        //     }
-        // };
-    }, [coreWorker]);
 
     useEffect(() => {
         return () => {

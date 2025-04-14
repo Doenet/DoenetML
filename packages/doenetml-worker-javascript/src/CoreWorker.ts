@@ -6,7 +6,6 @@ import {
     expandDoenetMLsToFullSerializedComponents,
 } from "./utils/expandDoenetML";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
-// import { dastToSerialized } from "./utils/dastToSerializedComponents";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -29,8 +28,17 @@ export type CopyToClipboard = (args: {
 }) => void;
 export type SendEvent = (data: any) => void;
 
+/**
+ * A wrapper around `Core` that contains the arguments for constructing
+ * core that are determined from the initial call to `initializeWorker`.
+ *
+ * TODO: add real types to the pieces that won't be soon obsoleted
+ */
 export class PublicDoenetMLCore {
     core: Core | null = null;
+    // The argument with which to call the Core constructor.
+    // TODO: determine which of these are likely to stick around
+    // and better document those
     coreBaseArgs?: {
         doenetML: string;
         flags: Record<string, unknown>;
@@ -44,6 +52,7 @@ export class PublicDoenetMLCore {
         preliminaryWarnings: any;
         componentInfoObjects: any;
     };
+    // The result from calling `initializeWorker`
     initializeResult?: { success: boolean; errMsg?: string };
     doenetML = "";
     flags: Record<string, unknown> = {};
@@ -134,6 +143,14 @@ export class PublicDoenetMLCore {
         };
     }
 
+    /**
+     * Create the Javascript core, create all the components and resolve all the state variables
+     * need to generated the dast for the renderer.
+     *
+     * Note: the return type for this function is currently in flux as it is a work in progress.
+     *
+     * TODO: clean up this function
+     */
     async createCoreGenerateDast(
         args: {
             coreId: string;
@@ -151,24 +168,6 @@ export class PublicDoenetMLCore {
         copyToClipboard: CopyToClipboard,
         sendEvent: SendEvent,
     ) {
-        // Wait for `initializeWorker()` for up to around 2 seconds before failing.
-        // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
-        // could take time if it needs to retrieve external content.)
-        const maxIters = 20;
-        let i = 0;
-        while (this.initializeResult?.success === undefined) {
-            const pause100 = function () {
-                return new Promise((resolve, reject) => {
-                    setTimeout(resolve, 100);
-                });
-            };
-            await pause100();
-            i++;
-            if (i > maxIters) {
-                break;
-            }
-        }
-
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
@@ -213,6 +212,10 @@ export class PublicDoenetMLCore {
             };
         }
     }
+
+    /**
+     * Add the action `actionName` of `componentName` to the queue to be executed.
+     */
     async requestAction(actionArgs: {
         actionName: string;
         componentName: string | undefined;
@@ -241,6 +244,14 @@ export class PublicDoenetMLCore {
         }
     }
 
+    /**
+     * A debugging function that returns a list of all components in the document,
+     * all their states variables, and additional information about their children,
+     * replacements, and shared parameters.
+     *
+     * Unless `dontRemoveFunctionsMath` is set, clean state variables that can't be conveniently serialized,
+     * i.e., remove functions and replace math-expressions with their tree.
+     */
     async returnAllStateVariables(dontRemoveFunctionsMath = false) {
         if (!this.core?.components) {
             return {};
@@ -260,6 +271,11 @@ export class PublicDoenetMLCore {
             }
         > = {};
         const components = this.core.components as Record<string, any>;
+
+        // console.log the entire components tree so that, when called from the console,
+        // one can examine the actual components without serialization, if desired.
+        console.log(components);
+
         for (let componentName in components) {
             let component = components[componentName];
             componentsObj[componentName] = {
@@ -315,34 +331,55 @@ export class PublicDoenetMLCore {
             if (component.replacementOf) {
                 compObj.replacementOf = component.replacementOf.componentName;
             }
-            compObj.sharedParameters = removeFunctionsMathExpressionClass(
-                component.sharedParameters,
-            );
+            compObj.sharedParameters = dontRemoveFunctionsMath
+                ? component.sharedParameters
+                : removeFunctionsMathExpressionClass(
+                      component.sharedParameters,
+                  );
         }
 
         return componentsObj;
     }
-
+    /**
+     * Submit any answers that are waiting to auto-submitted and save all state
+     * so that the worker can be terminate without losing data
+     */
     async terminate() {
         if (this.core) {
             await this.core.terminate();
             this.core = null;
         }
     }
-}
 
-// globalThis.onmessage = function (e) {
-//     if (e.data.messageType === "visibilityChange") {
-//         core?.handleVisibilityChange(e.data.args);
-//     } else if (e.data.messageType === "navigatingToComponent") {
-//         core?.handleNavigatingToComponent(e.data.args);
-//     } else if (e.data.messageType === "submitAllAnswers") {
-//         core?.requestAction({
-//             componentName: core.documentName,
-//             actionName: "submitAllAnswers",
-//             args: e.data.args,
-//         });
-//     } else if (e.data.messageType === "saveImmediately") {
-//         core.saveImmediately();
-//     }
-// };
+    // Turn on or off recording of the visibility of document components,
+    // depending if the document itself is visible
+    handleVisibilityChange(documentIsVisible: boolean) {
+        this.core?.handleVisibilityChange(documentIsVisible);
+    }
+
+    // TODO: restore functionality that opens collapsible sections
+    // when navigating to them or to items inside them
+    navigatingToComponent(componentName: string, hash: string) {
+        // This function no longer works
+        this.core?.handleNavigatingToComponent({ componentName, hash });
+    }
+
+    /**
+     * Call submitAnswer on all answers in the document
+     */
+    async submitAllAnswer() {
+        return await this.core?.requestAction({
+            componentName: this.core.documentName,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+    }
+
+    /**
+     * Immediately save all document state to the database,
+     * ignoring any timeouts
+     */
+    async saveImmediately() {
+        await this.core?.saveImmediately();
+    }
+}

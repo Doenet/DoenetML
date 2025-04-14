@@ -39,16 +39,16 @@ export function dastToSerialized(
             extending: dastNode.extending,
         };
         return component;
-    } else {
-        // Error
-        const errorComponent = {
-            componentType: "_error",
-            position: dastNode.position,
-            idx,
-            parent: dastNode.parent,
-            children: [],
-            message: dastNode.message,
-        };
-        return errorComponent;
     }
+
+    // Error
+    const errorComponent = {
+        componentType: "_error",
+        position: dastNode.position,
+        idx,
+        parent: dastNode.parent,
+        children: [],
+        message: dastNode.message,
+    };
+    return errorComponent;
 }

@@ -129,6 +129,11 @@ export class CoreWorker {
         resolve();
     }
 
+    /**
+     * Return the dast of the DoenetML source
+     * where all references that have matched a target have been expanded
+     * to components that extend those targets
+     */
     async returnNormalizedRoot(): Promise<NormalizedRoot> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -260,6 +265,10 @@ export class CoreWorker {
         }
     }
 
+    /**
+     * Dispatch the action `actionName` of `componentName` to the Javascript core,
+     * which will execute that action and return the result.
+     */
     async dispatchActionJavascript(actionArgs: {
         actionName: string;
         componentName: string | undefined;
