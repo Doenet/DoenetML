@@ -271,6 +271,15 @@ export function DocViewer({
             }
         >
     >({});
+    const requestSolutionViewPromises = useRef<
+        Record<
+            string,
+            {
+                resolve: (value: { allowView: boolean }) => void;
+                reject: (value: unknown) => void;
+            }
+        >
+    >({});
 
     const errorInitializingRenderers = useRef(false);
     const errorInsideRenderers = useRef(false);
@@ -324,6 +333,16 @@ export function DocViewer({
                 } else {
                     promiseInfo.reject(e.data);
                 }
+            } else if (
+                e.data.subject === "SPLICE.requestSolutionView.response"
+            ) {
+                let promiseInfo =
+                    requestSolutionViewPromises.current[e.data.messageId];
+                if (!promiseInfo) {
+                    return;
+                }
+
+                promiseInfo.resolve({ allowView: e.data.allowView === true });
             }
         };
 
@@ -1119,6 +1138,7 @@ export function DocViewer({
             Comlink.proxy(cancelAnimationFrame),
             Comlink.proxy(copyToClipboard),
             Comlink.proxy(sendEvent),
+            Comlink.proxy(requestSolutionView),
         );
 
         if (dastResult.success) {
@@ -1236,6 +1256,37 @@ export function DocViewer({
             activityId,
             docId,
         });
+    }
+
+    function requestSolutionView(componentName: string) {
+        let messageId = nanoid();
+        let requestSolutionPromiseResolve: (value: {
+                allowView: boolean;
+            }) => void,
+            requestSolutionPromiseReject: (value: unknown) => void;
+
+        const requestSolutionViewPromise = new Promise<{ allowView: boolean }>(
+            (resolve, reject) => {
+                requestSolutionPromiseResolve = resolve;
+                requestSolutionPromiseReject = reject;
+                window.postMessage({
+                    subject: "SPLICE.requestSolutionView",
+                    messageId,
+                    activityId,
+                    docId,
+                    attemptNumber,
+                    userId,
+                    componentName,
+                });
+            },
+        );
+
+        requestSolutionViewPromises.current[messageId] = {
+            resolve: requestSolutionPromiseResolve!,
+            reject: requestSolutionPromiseReject!,
+        };
+
+        return requestSolutionViewPromise;
     }
 
     async function copyToClipboard({

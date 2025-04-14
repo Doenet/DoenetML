@@ -234,38 +234,14 @@ export class Solution extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.displayMode === "button") {
+                if (
+                    dependencyValues.displayMode === "button" ||
+                    dependencyValues.displayMode === "buttonRequirePermission"
+                ) {
                     return { setValue: { canBeClosed: true } };
                 } else {
                     return { setValue: { canBeClosed: false } };
                 }
-            },
-        };
-
-        stateVariableDefinitions.message = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            forRenderer: true,
-            defaultValue: "",
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    message: true,
-                },
-            }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "message",
-                            value: desiredStateVariableValues.message,
-                        },
-                    ],
-                };
             },
         };
 
@@ -283,8 +259,16 @@ export class Solution extends BlockComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let { allowView, message, scoredComponent } =
-            await this.coreFunctions.recordSolutionView();
+        const displayMode = this.flags.solutionDisplayMode;
+
+        let allowView = true;
+
+        if (displayMode === "buttonRequirePermission") {
+            const requestResult = await this.coreFunctions.requestSolutionView(
+                this.componentName,
+            );
+            allowView = requestResult.allowView;
+        }
 
         let updateInstructions = [
             {
@@ -293,24 +277,11 @@ export class Solution extends BlockComponent {
                 stateVariable: "open",
                 value: allowView,
             },
-            {
-                updateType: "updateValue",
-                componentName: this.componentName,
-                stateVariable: "message",
-                value: message,
-            },
         ];
 
         let event;
 
         if (allowView) {
-            updateInstructions.push({
-                updateType: "updateValue",
-                componentName: scoredComponent,
-                stateVariable: "viewedSolution",
-                value: true,
-            });
-
             event = {
                 verb: "viewed",
                 object: {

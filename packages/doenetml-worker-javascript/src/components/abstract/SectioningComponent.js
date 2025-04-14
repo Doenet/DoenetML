@@ -517,28 +517,6 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.viewedSolution = {
-            defaultValue: false,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    viewedSolution: true,
-                },
-            }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "viewedSolution",
-                            value: desiredStateVariableValues.viewedSolution,
-                        },
-                    ],
-                };
-            },
-        };
-
         stateVariableDefinitions.scoredDescendants = {
             returnDependencies: () => ({
                 scoredDescendants: {

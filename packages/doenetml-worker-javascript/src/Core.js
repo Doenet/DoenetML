@@ -69,6 +69,7 @@ export default class Core {
         cancelAnimationFrame,
         copyToClipboard,
         sendEvent,
+        requestSolutionView,
     }) {
         // console.time('core');
 
@@ -85,6 +86,7 @@ export default class Core {
         this.cancelAnimationFrame = cancelAnimationFrame;
         this.copyToClipboard = copyToClipboard;
         this.sendEvent = sendEvent;
+        this.requestSolutionViewCallback = requestSolutionView;
 
         this.cid = cid;
 
@@ -134,7 +136,7 @@ export default class Core {
             requestRecordEvent: this.requestRecordEvent.bind(this),
             requestAnimationFrame: this.requestAnimationFrame.bind(this),
             cancelAnimationFrame: this.cancelAnimationFrame.bind(this),
-            recordSolutionView: this.recordSolutionView.bind(this),
+            requestSolutionView: this.requestSolutionView.bind(this),
             requestComponentDoenetML: this.requestComponentDoenetML.bind(this),
             copyToClipboard: this.copyToClipboard.bind(this),
             navigateToTarget: this.navigateToTarget.bind(this),
@@ -12934,29 +12936,12 @@ export default class Core {
         return;
     }
 
-    async recordSolutionView() {
-        // TODO: check if student was actually allowed to view solution.
-
-        // if not allowed to save state, then allow view but don't record it
-        if (!this.flags.allowSaveState) {
-            return {
-                allowView: true,
-                message: "",
-                scoredComponent: this.documentName,
-            };
-        }
-
-        postMessage({
-            messageType: "recordSolutionView",
-            activityId: this.activityId,
-            docId: this.docId,
-            attemptNumber: this.attemptNumber,
-        });
+    async requestSolutionView(componentName) {
+        const requestResult =
+            await this.requestSolutionViewCallback(componentName);
 
         return {
-            allowView: true,
-            message: "",
-            scoredComponent: this.documentName,
+            allowView: requestResult.allowView,
         };
     }
 

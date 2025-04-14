@@ -27,6 +27,9 @@ export type CopyToClipboard = (args: {
     actionId?: string;
 }) => void;
 export type SendEvent = (data: any) => void;
+export type RequestSolutionView = (componentName: string) => Promise<{
+    allowView: boolean;
+}>;
 
 /**
  * A wrapper around `Core` that contains the arguments for constructing
@@ -167,6 +170,7 @@ export class PublicDoenetMLCore {
         cancelAnimationFrame: CancelAnimationFrame,
         copyToClipboard: CopyToClipboard,
         sendEvent: SendEvent,
+        requestSolutionView: RequestSolutionView,
     ) {
         let coreArgs = {
             ...this.coreBaseArgs!,
@@ -177,6 +181,7 @@ export class PublicDoenetMLCore {
             cancelAnimationFrame,
             copyToClipboard,
             sendEvent,
+            requestSolutionView,
         };
 
         if (this.initializeResult?.success) {
