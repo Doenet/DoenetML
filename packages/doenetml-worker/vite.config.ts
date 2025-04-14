@@ -9,7 +9,7 @@ export default defineConfig({
     plugins: [dts(), suppressLogPlugin()],
     base: "./",
     build: {
-        minify: false,
+        minify: true,
         sourcemap: true,
         lib: {
             entry: "lib-js-wasm-binding/src/index.ts",
