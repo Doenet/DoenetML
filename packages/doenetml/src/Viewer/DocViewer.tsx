@@ -254,7 +254,7 @@ export function DocViewer({
     const actionsBeforeCoreCreated = useRef<
         {
             actionName: string;
-            componentName?: string;
+            componentName: string | undefined;
             args: Record<string, any>;
         }[]
     >([]);
@@ -346,6 +346,8 @@ export function DocViewer({
     useEffect(() => {
         return () => {
             coreWorker.current?.terminate();
+            coreWorker.current = null;
+            coreCreated.current = false;
         };
     }, []);
 
@@ -545,17 +547,20 @@ export function DocViewer({
 
     async function reinitializeCoreAndTerminateAnimations() {
         preventMoreAnimations.current = true;
-        await coreWorker.current?.terminate();
+        if (coreWorker.current !== null) {
+            await coreWorker.current.terminate();
+            actionsBeforeCoreCreated.current = [];
+            for (let id in animationInfo.current) {
+                cancelAnimationFrame(id);
+            }
+            animationInfo.current = {};
+        }
+
         const newCoreWorker = createCoreWorker();
         coreWorker.current = newCoreWorker;
 
         coreCreated.current = false;
         coreCreationInProgress.current = false;
-        for (let id in animationInfo.current) {
-            cancelAnimationFrame(id);
-        }
-        animationInfo.current = {};
-        actionsBeforeCoreCreated.current = [];
 
         const initializeResult = await initializeCoreWorker({
             coreWorker: newCoreWorker,
@@ -564,6 +569,7 @@ export function DocViewer({
             activityId,
             docId,
             requestedVariantIndex,
+            attemptNumber,
             documentStructureCallback,
         });
 
@@ -903,7 +909,6 @@ export function DocViewer({
             });
     }
 
-    //offscreen then postpone that one
     function updateRenderers({
         updateInstructions,
         actionId,
@@ -1211,6 +1216,7 @@ export function DocViewer({
                 activityId,
                 docId,
                 requestedVariantIndex,
+                attemptNumber,
                 documentStructureCallback,
             });
 
@@ -1281,12 +1287,9 @@ export function DocViewer({
         coreCreated.current = true;
         coreCreationInProgress.current = false;
         preventMoreAnimations.current = false;
-        // for (let actionArgs of actionsBeforeCoreCreated.current) {
-        //     coreWorker.postMessage({
-        //         messageType: "requestAction",
-        //         args: actionArgs,
-        //     });
-        // }
+        for (let actionArgs of actionsBeforeCoreCreated.current) {
+            executeAction(actionArgs);
+        }
         setStage("coreCreated");
         initializedCallback?.({ activityId, docId });
     }
@@ -1401,6 +1404,7 @@ export function DocViewer({
             activityId,
             docId,
             requestedVariantIndex,
+            attemptNumber,
             documentStructureCallback,
         });
         return null;

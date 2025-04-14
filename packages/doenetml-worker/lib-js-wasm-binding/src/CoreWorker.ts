@@ -146,10 +146,12 @@ export class CoreWorker {
         activityId,
         docId,
         requestedVariantIndex,
+        attemptNumber,
     }: {
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
+        attemptNumber: number;
     }) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -169,6 +171,7 @@ export class CoreWorker {
                     activityId,
                     docId,
                     requestedVariantIndex,
+                    attemptNumber,
                 });
             this.javascript_initialized = true;
             return initializedResult;

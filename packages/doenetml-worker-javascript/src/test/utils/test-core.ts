@@ -52,6 +52,7 @@ export async function createTestCore({
         activityId: "",
         docId: "1",
         requestedVariantIndex,
+        attemptNumber: 1,
     });
 
     const dastResult = await core.createCoreGenerateDast(

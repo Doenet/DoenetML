@@ -10681,7 +10681,7 @@ export default class Core {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
             // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
-            return await this.performUpdate({
+            await this.performUpdate({
                 updateInstructions: [
                     {
                         updateType: "updateValue",
@@ -10693,6 +10693,7 @@ export default class Core {
                 actionId: args.actionId,
                 doNotSave: true, // this isn't an interaction, so don't save doc state
             });
+            return { actionId: args.actionId };
         }
 
         let component = this.components[componentName];
@@ -10716,11 +10717,7 @@ export default class Core {
                     args = {};
                 }
                 await action(args);
-                if (args.actionId) {
-                    return { actionId: args.actionId };
-                } else {
-                    return;
-                }
+                return { actionId: args.actionId };
             }
         }
 
@@ -10751,6 +10748,8 @@ export default class Core {
             });
             this.newErrorWarning = true;
         }
+
+        return {};
     }
 
     async triggerChainedActions({

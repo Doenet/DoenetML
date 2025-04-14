@@ -16,6 +16,7 @@ export class PublicDoenetMLCore {
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
+        attemptNumber: number;
         serializedDocument: any;
         allDoenetMLs: any;
         preliminaryErrors: any;
@@ -38,10 +39,12 @@ export class PublicDoenetMLCore {
         activityId,
         docId,
         requestedVariantIndex,
+        attemptNumber,
     }: {
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
+        attemptNumber: number;
     }) {
         let componentInfoObjects = createComponentInfoObjects();
 
@@ -74,6 +77,7 @@ export class PublicDoenetMLCore {
             activityId,
             docId,
             requestedVariantIndex,
+            attemptNumber,
             serializedDocument: addDocumentIfItsMissing(
                 expandResult.fullSerializedComponents[0],
             )[0],
