@@ -546,8 +546,8 @@ export function DocViewer({
     );
 
     async function reinitializeCoreAndTerminateAnimations() {
-        preventMoreAnimations.current = true;
         if (coreWorker.current !== null) {
+            preventMoreAnimations.current = true;
             await coreWorker.current.terminate();
             actionsBeforeCoreCreated.current = [];
             for (let id in animationInfo.current) {
