@@ -133,30 +133,25 @@ export function subsetReviver(_key: any, value: unknown): any {
         value !== null &&
         "objectType" in value &&
         value.objectType === "subset" &&
-        "subsetType" in value &&
-        value.subsetType !== undefined
+        "data" in value &&
+        typeof value.data === "object" &&
+        value.data !== null &&
+        "type" in value.data &&
+        value.data.type !== undefined
     ) {
-        if (value.subsetType === "emptySet") {
+        if (value.data.type === "empty") {
             return EmptySet();
-        } else if (value.subsetType === "realLine") {
+        } else if (value.data.type === "realLine") {
             return RealLine();
-        } else if (value.subsetType === "singleton") {
+        } else if (value.data.type === "singleton") {
             if (
-                "data" in value &&
-                value.data !== null &&
-                typeof value.data == "object" &&
-                value.data !== null &&
                 "element" in value.data &&
                 typeof value.data.element === "number"
             ) {
                 return Singleton(value.data.element);
             }
-        } else if (value.subsetType === "union") {
+        } else if (value.data.type === "union") {
             if (
-                "data" in value &&
-                value.data !== null &&
-                typeof value.data == "object" &&
-                value.data !== null &&
                 "subsets" in value.data &&
                 Array.isArray(value.data.subsets) &&
                 value.data.subsets.every(
@@ -167,12 +162,8 @@ export function subsetReviver(_key: any, value: unknown): any {
             ) {
                 return Union(value.data.subsets);
             }
-        } else if (value.subsetType === "openInterval") {
+        } else if (value.data.type === "openInterval") {
             if (
-                "data" in value &&
-                value.data !== null &&
-                typeof value.data == "object" &&
-                value.data !== null &&
                 "left" in value.data &&
                 typeof value.data.left === "number" &&
                 "right" in value.data &&
