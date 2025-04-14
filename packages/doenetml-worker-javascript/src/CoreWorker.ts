@@ -214,7 +214,21 @@ export class PublicDoenetMLCore {
                 errMsg: "Cannot request action before core is created",
             };
         }
-        return await this.core.requestAction(actionArgs);
+
+        try {
+            return await this.core.requestAction(actionArgs);
+        } catch (e) {
+            return {
+                success: false,
+                errMsg:
+                    typeof e === "object" &&
+                    e &&
+                    "message" in e &&
+                    typeof e.message === "string"
+                        ? e.message
+                        : "",
+            };
+        }
     }
 
     async returnAllStateVariables(dontRemoveFunctionsMath = false) {

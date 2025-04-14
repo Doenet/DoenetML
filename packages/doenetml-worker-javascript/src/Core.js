@@ -10573,30 +10573,47 @@ export default class Core {
         while (this.processQueue.length > 0) {
             let nextUpdateInfo = this.processQueue.splice(0, 1)[0];
             let result;
-            if (nextUpdateInfo.type === "update") {
-                if (!nextUpdateInfo.skippable || this.processQueue.length < 2) {
-                    result = await this.performUpdate(nextUpdateInfo);
+            try {
+                if (nextUpdateInfo.type === "update") {
+                    if (
+                        !nextUpdateInfo.skippable ||
+                        this.processQueue.length < 2
+                    ) {
+                        result = await this.performUpdate(nextUpdateInfo);
+                    }
+
+                    // TODO: if skip an update, presumably we should call reject???
+
+                    // } else if (nextUpdateInfo.type === "getStateVariableValues") {
+                    //   result = await this.performGetStateVariableValues(nextUpdateInfo);
+                } else if (nextUpdateInfo.type === "action") {
+                    if (
+                        !nextUpdateInfo.skippable ||
+                        this.processQueue.length < 2
+                    ) {
+                        result = await this.performAction(nextUpdateInfo);
+                    }
+
+                    // TODO: if skip an update, presumably we should call reject???
+                } else if (nextUpdateInfo.type === "recordEvent") {
+                    result = await this.performRecordEvent(nextUpdateInfo);
+                } else {
+                    throw Error(
+                        `Unrecognized process type: ${nextUpdateInfo.type}`,
+                    );
                 }
 
-                // TODO: if skip an update, presumably we should call reject???
-
-                // } else if (nextUpdateInfo.type === "getStateVariableValues") {
-                //   result = await this.performGetStateVariableValues(nextUpdateInfo);
-            } else if (nextUpdateInfo.type === "action") {
-                if (!nextUpdateInfo.skippable || this.processQueue.length < 2) {
-                    result = await this.performAction(nextUpdateInfo);
-                }
-
-                // TODO: if skip an update, presumably we should call reject???
-            } else if (nextUpdateInfo.type === "recordEvent") {
-                result = await this.performRecordEvent(nextUpdateInfo);
-            } else {
-                throw Error(
-                    `Unrecognized process type: ${nextUpdateInfo.type}`,
+                nextUpdateInfo.resolve(result);
+            } catch (e) {
+                nextUpdateInfo.reject(
+                    typeof e === "object" &&
+                        e &&
+                        "message" in e &&
+                        typeof e.message === "string"
+                        ? e.message
+                        : "Error in core",
                 );
             }
-
-            nextUpdateInfo.resolve(result);
         }
 
         this.processing = false;
