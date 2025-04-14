@@ -68,6 +68,7 @@ export default class Core {
         requestAnimationFrame,
         cancelAnimationFrame,
         copyToClipboard,
+        sendEvent,
     }) {
         // console.time('core');
 
@@ -83,6 +84,9 @@ export default class Core {
         this.requestAnimationFrame = requestAnimationFrame;
         this.cancelAnimationFrame = cancelAnimationFrame;
         this.copyToClipboard = copyToClipboard;
+        this.sendEvent = sendEvent;
+
+        console.log({ sendEvent });
 
         this.cid = cid;
 
@@ -11301,10 +11305,7 @@ export default class Core {
             version: "0.1.1",
         };
 
-        postMessage({
-            messageType: "sendEvent",
-            data: payload,
-        });
+        this.sendEvent(payload);
     }
 
     processVisibilityChangedEvent(event) {

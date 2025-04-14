@@ -316,13 +316,6 @@ export function DocViewer({
         //             activityId,
         //             docId,
         //         });
-        //     } else if (e.data.messageType === "sendEvent") {
-        //         window.postMessage({
-        //             ...e.data,
-        //             subject: "SPLICE.sendEvent",
-        //             activityId,
-        //             docId,
-        //         });
         //     }
         // };
     }, [coreWorker]);
@@ -414,20 +407,6 @@ export function DocViewer({
             animationInfo.current = {};
         };
     }, []);
-
-    useEffect(() => {
-        if (!coreWorker) {
-            return;
-        }
-        // document.addEventListener("visibilitychange", () => {
-        //     coreWorker.postMessage({
-        //         messageType: "visibilityChange",
-        //         args: {
-        //             visible: document.visibilityState === "visible",
-        //         },
-        //     });
-        // });
-    }, [coreWorker]);
 
     useEffect(() => {
         callAction({
@@ -1140,6 +1119,7 @@ export function DocViewer({
             Comlink.proxy(requestAnimationFrame),
             Comlink.proxy(cancelAnimationFrame),
             Comlink.proxy(copyToClipboard),
+            Comlink.proxy(sendEvent),
         );
 
         if (dastResult.success) {
@@ -1248,6 +1228,15 @@ export function DocViewer({
             window.cancelAnimationFrame(animationFrameID);
         }
         delete animationInfo.current[animationId];
+    }
+
+    function sendEvent(data: any) {
+        window.postMessage({
+            ...data,
+            subject: "SPLICE.sendEvent",
+            activityId,
+            docId,
+        });
     }
 
     async function copyToClipboard({

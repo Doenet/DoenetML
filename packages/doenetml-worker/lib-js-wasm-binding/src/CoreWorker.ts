@@ -14,7 +14,15 @@ import type {
     NormalizedRoot,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
-import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "@doenet/doenetml-worker-javascript";
+import {
+    CancelAnimationFrame,
+    CopyToClipboard,
+    PublicDoenetMLCore as PublicDoenetMLCoreJavascript,
+    ReportScoreAndStateCallback,
+    RequestAnimationFrame,
+    SendEvent,
+    UpdateRenderersCallback,
+} from "@doenet/doenetml-worker-javascript";
 
 /**
  * The correct type of `FlatDastRoot`. **This should be used instead of
@@ -193,21 +201,12 @@ export class CoreWorker {
             stateVariableChanges?: string;
             initializeCounters: Record<string, number>;
         },
-        updateRenderersCallback: (arg: {
-            updateInstructions: Record<string, any>[];
-            actionId?: string;
-            errorWarnings?: { errors: any[]; warnings: any[] };
-            init?: boolean;
-        }) => void,
-        reportScoreAndStateCallback: (data: unknown) => void,
-        requestAnimationFrame: (args: {
-            action: { actionName: string; componentName?: string };
-            actionArgs: Record<string, any>;
-            delay?: number;
-            animationId: string;
-        }) => void,
-        cancelAnimationFrame: (animationId: string) => void,
-        copyToClipboard: (args: { text: string; actionId?: string }) => void,
+        updateRenderersCallback: UpdateRenderersCallback,
+        reportScoreAndStateCallback: ReportScoreAndStateCallback,
+        requestAnimationFrame: RequestAnimationFrame,
+        cancelAnimationFrame: CancelAnimationFrame,
+        copyToClipboard: CopyToClipboard,
+        sendEvent: SendEvent,
     ) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -229,6 +228,7 @@ export class CoreWorker {
                 requestAnimationFrame,
                 cancelAnimationFrame,
                 copyToClipboard,
+                sendEvent,
             );
         } catch (err) {
             console.error(err);

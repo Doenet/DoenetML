@@ -8,6 +8,27 @@ import {
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 // import { dastToSerialized } from "./utils/dastToSerializedComponents";
 
+// Type signatures for callbacks
+export type UpdateRenderersCallback = (arg: {
+    updateInstructions: Record<string, any>[];
+    actionId?: string;
+    errorWarnings?: { errors: any[]; warnings: any[] };
+    init?: boolean;
+}) => void;
+export type ReportScoreAndStateCallback = (data: unknown) => void;
+export type RequestAnimationFrame = (args: {
+    action: { actionName: string; componentName?: string };
+    actionArgs: Record<string, any>;
+    delay?: number;
+    animationId: string;
+}) => void;
+export type CancelAnimationFrame = (animationId: string) => void;
+export type CopyToClipboard = (args: {
+    text: string;
+    actionId?: string;
+}) => void;
+export type SendEvent = (data: any) => void;
+
 export class PublicDoenetMLCore {
     core: Core | null = null;
     coreBaseArgs?: {
@@ -87,9 +108,6 @@ export class PublicDoenetMLCore {
             componentInfoObjects,
         };
 
-        // const serializedDocument2 = dastToSerialized(normalizedDast);
-        // console.log({ serializedDocument2 });
-
         this.initializeResult = { success: true as const };
 
         let allPossibleVariants = await returnAllPossibleVariants(
@@ -126,21 +144,12 @@ export class PublicDoenetMLCore {
             stateVariableChanges?: string;
             initializeCounters: Record<string, number>;
         },
-        updateRenderersCallback: (arg: {
-            updateInstructions: Record<string, any>[];
-            actionId?: string;
-            errorWarnings?: { errors: any[]; warnings: any[] };
-            init?: boolean;
-        }) => void,
-        reportScoreAndStateCallback: (data: unknown) => void,
-        requestAnimationFrame: (args: {
-            action: { actionName: string; componentName?: string };
-            actionArgs: Record<string, any>;
-            delay?: number;
-            animationId: string;
-        }) => void,
-        cancelAnimationFrame: (animationId: string) => void,
-        copyToClipboard: (args: { text: string; actionId?: string }) => void,
+        updateRenderersCallback: UpdateRenderersCallback,
+        reportScoreAndStateCallback: ReportScoreAndStateCallback,
+        requestAnimationFrame: RequestAnimationFrame,
+        cancelAnimationFrame: CancelAnimationFrame,
+        copyToClipboard: CopyToClipboard,
+        sendEvent: SendEvent,
     ) {
         // Wait for `initializeWorker()` for up to around 2 seconds before failing.
         // (It is possible that its call to `expandDoenetMLsToFullSerializedComponents()`
@@ -168,6 +177,7 @@ export class PublicDoenetMLCore {
             requestAnimationFrame,
             cancelAnimationFrame,
             copyToClipboard,
+            sendEvent,
         };
 
         if (this.initializeResult?.success) {
