@@ -861,7 +861,6 @@ export function DocViewer({
                 "codeViewer",
                 "containerBlock",
                 "containerInline",
-                "contentBrowser",
                 "contentPicker",
                 "curve",
             ]);
