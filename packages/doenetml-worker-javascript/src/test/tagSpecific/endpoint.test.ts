@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -32,7 +32,10 @@ describe("Endpoint tag tests", async () => {
             COpen: boolean,
             DOpen: boolean,
         ) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/g/A"].stateValues.open).eq(AOpen);
             expect(stateVariables["/g/B"].stateValues.open).eq(BOpen);
@@ -46,7 +49,7 @@ describe("Endpoint tag tests", async () => {
         }
 
         // check positions
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/A"].stateValues.xs.map((v) => v.tree)).eqls([
             4, 0,
         ]);
@@ -94,7 +97,6 @@ describe("Endpoint tag tests", async () => {
             actionName: "switchPoint",
             componentName: "/g/A",
             args: {},
-            event: null,
         });
         AOpen = false;
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -104,7 +106,6 @@ describe("Endpoint tag tests", async () => {
             actionName: "switchPoint",
             componentName: "/g2/A",
             args: {},
-            event: null,
         });
         AOpen = true;
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -114,7 +115,6 @@ describe("Endpoint tag tests", async () => {
             actionName: "switchPoint",
             componentName: "/g/B",
             args: {},
-            event: null,
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
 
@@ -123,7 +123,6 @@ describe("Endpoint tag tests", async () => {
             actionName: "switchPoint",
             componentName: "/g2/C",
             args: {},
-            event: null,
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
 
@@ -132,7 +131,6 @@ describe("Endpoint tag tests", async () => {
             actionName: "switchPoint",
             componentName: "/g2/D",
             args: {},
-            event: null,
         });
         DOpen = false;
         await check_items(AOpen, BOpen, COpen, DOpen);

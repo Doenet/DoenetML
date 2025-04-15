@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
     submitAnswer,
@@ -41,11 +41,11 @@ async function run_tests({
                 await movePoint({ name, ...resp, core });
             }
         }
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/ans`].stateValues.justSubmitted).eq(false);
 
         await submitAnswer({ name: `/ans`, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/ans`].stateValues.creditAchieved).eq(
             credit,
             `credit for response ${JSON.stringify(responses)}`,

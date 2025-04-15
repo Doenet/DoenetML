@@ -495,7 +495,12 @@ export function CypressTest() {
                 attemptNumber={attemptNumber}
                 requestedVariantIndex={requestedVariantIndex.current}
                 documentStructureCallback={(args: unknown) => {
-                    window.postMessage(args);
+                    if (typeof args === "object" && args !== null) {
+                        window.postMessage({
+                            ...args,
+                            messageType: "documentStructure",
+                        });
+                    }
                 }}
                 activityId="activityIdFromCypress"
                 render={render}

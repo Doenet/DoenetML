@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveLabel,
@@ -32,7 +32,7 @@ describe("Label tag tests", async () => {
             `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         let l1 = "Hello";
         let l2 = "Hello";
         let l3Latex = "\\left(x_2 y_{2.1},\\frac{y^2}{z^{2.1}}\\right)";
@@ -110,7 +110,10 @@ describe("Label tag tests", async () => {
         });
 
         async function check_items(text: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/l1"].stateValues.value).eq(text);
             expect(stateVariables["/l1"].stateValues.text).eq(text);
             expect(stateVariables["/l1"].stateValues.latex).eq(text);
@@ -171,7 +174,10 @@ describe("Label tag tests", async () => {
         });
 
         async function check_items(value: string, text: string, latex: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/l1"].stateValues.value).eq(value);
             expect(stateVariables["/l1"].stateValues.text).eq(text);
             expect(stateVariables["/l1"].stateValues.latex).eq(latex);
@@ -254,7 +260,10 @@ describe("Label tag tests", async () => {
         });
 
         async function check_items(value: string, text: string, latex: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/l1"].stateValues.value).eq(value);
             expect(stateVariables["/l1"].stateValues.text).eq(text);
             expect(stateVariables["/l1"].stateValues.latex).eq(latex);
@@ -336,7 +345,10 @@ describe("Label tag tests", async () => {
         });
 
         async function check_items(value: string, text: string, latex: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/l1"].stateValues.value).eq(value);
             expect(stateVariables["/l1"].stateValues.text).eq(text);
             expect(stateVariables["/l1"].stateValues.latex).eq(latex);
@@ -418,7 +430,7 @@ describe("Label tag tests", async () => {
             `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/label1anchor"].stateValues.latex),
@@ -431,7 +443,7 @@ describe("Label tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/label1anchor"].stateValues.latex),
@@ -444,7 +456,7 @@ describe("Label tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/label1anchor"].stateValues.latex),
@@ -476,7 +488,7 @@ describe("Label tag tests", async () => {
             `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_no_style"].stateValues.text).eq("black");
         expect(stateVariables["/tc_no_style"].stateValues.text).eq("black");
@@ -497,7 +509,7 @@ describe("Label tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "2", name: "/sn", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "green",
@@ -518,7 +530,7 @@ describe("Label tag tests", async () => {
         expect(stateVariables["/bc_fixed_style"].stateValues.text).eq("none");
 
         await updateMathInputValue({ latex: "3", name: "/sn", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "red with a blue background",
@@ -576,7 +588,7 @@ describe("Label tag tests", async () => {
             `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m1"].stateValues.value).eq("one: \\(x^2\\)");
         expect(stateVariables["/m1a"].stateValues.value).eq("one: \\(x^2\\)");
@@ -623,7 +635,7 @@ describe("Label tag tests", async () => {
         // move first labels
         await moveLabel({ name: "/m1", x: -2, y: 3, core });
         await moveLabel({ name: "/m2", x: 4, y: -5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/m1coords"].stateValues.latex)).eq(
             "(-2,3)",
@@ -647,7 +659,7 @@ describe("Label tag tests", async () => {
         // move second labels
         await moveLabel({ name: "/m1a", x: 7, y: 1, core });
         await moveLabel({ name: "/m2a", x: -8, y: 2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/m1coords"].stateValues.latex)).eq(
             "(7,1)",
@@ -671,7 +683,7 @@ describe("Label tag tests", async () => {
         // move third labels
         await moveLabel({ name: "/m1b", x: -6, y: 3, core });
         await moveLabel({ name: "/m2b", x: -5, y: -4, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/m1coords"].stateValues.latex)).eq(
             "(7,1)",
@@ -768,7 +780,10 @@ describe("Label tag tests", async () => {
                 .round_numbers_to_precision_plus_decimals(Sy, 2, 0)
                 .toLatex();
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let PLabel = `We have \\(x^{ ${PxLatex} } + y^{ ${PyLatex} }\\)`;
             let PLabelText = `We have ${latexToText(`x^{ ${PxLatex} } + y^{ ${PyLatex} }`)}`;
@@ -868,7 +883,10 @@ describe("Label tag tests", async () => {
                 .round_numbers_to_precision_plus_decimals(y, 3, 0)
                 .toLatex({ padToDigits: 3 });
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let PLabel = `We have \\(x^{ ${PxLatex} } + y^{ ${PyLatex} }\\)`;
             let PLabelText = `We have ${latexToText(`x^{ ${PxLatex} } + y^{ ${PyLatex} }`)}`;
@@ -954,7 +972,10 @@ describe("Label tag tests", async () => {
             P3: string,
             P4: string,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P1"].stateValues.label).eq(P1);
             expect(stateVariables["/P1"].stateValues.labelHasLatex).eq(false);

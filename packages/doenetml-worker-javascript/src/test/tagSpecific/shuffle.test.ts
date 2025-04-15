@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -28,7 +28,7 @@ describe("Shuffle tag tests", async () => {
         let m = 1,
             n = 6;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect([...componentOrder].sort((a, b) => a - b)).eqls(
@@ -51,7 +51,7 @@ describe("Shuffle tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect([...componentOrder].sort((a, b) => a - b)).eqls(
@@ -74,7 +74,7 @@ describe("Shuffle tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect(componentOrder).eqls(orders[`${1},${6}`]);
@@ -95,7 +95,7 @@ describe("Shuffle tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect(componentOrder).eqls(orders[`${1},${8}`]);
@@ -118,7 +118,7 @@ describe("Shuffle tag tests", async () => {
         m = 1;
         n = 6;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect(componentOrder).not.eqls(orders[`${m},${n}`]);
@@ -143,7 +143,7 @@ describe("Shuffle tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect(componentOrder).not.eqls(orders[`${m},${n}`]);
@@ -168,7 +168,7 @@ describe("Shuffle tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect(componentOrder).eqls(orders[`${1},${6}`]);
@@ -189,7 +189,7 @@ describe("Shuffle tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         componentOrder = stateVariables["/sh"].stateValues.componentOrder;
 
         expect(componentOrder).eqls(orders[`${1},${8}`]);
@@ -214,7 +214,7 @@ describe("Shuffle tag tests", async () => {
         must_be_reordered: string[][];
         replacements_all_of_type?: string;
     }) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const componentOrder: number[] =
             stateVariables["/sh"].stateValues.componentOrder;
 
@@ -457,7 +457,7 @@ describe("Shuffle tag tests", async () => {
             must_be_reordered: [],
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pList"].stateValues.text).eq(
             orderedOptions.join(", "),
         );
@@ -482,7 +482,7 @@ describe("Shuffle tag tests", async () => {
 
         let options = ["x", "y", "z", "a", "b", "c", "d", "q", 1, 2, 3, 4];
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             [...Array(12).keys()]

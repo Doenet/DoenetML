@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -16,7 +16,10 @@ describe("Conditional content tag tests", async () => {
 
     async function check_inline_sign_number(core) {
         async function check_text(description: string) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/p"].stateValues.text
@@ -121,7 +124,10 @@ describe("Conditional content tag tests", async () => {
             "something else",
         ];
         async function check_text(index: number) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let i = 1; i <= 4; i++) {
                 expect(stateVariables[`/section${i}`].activeChildren.length).eq(
@@ -171,7 +177,7 @@ describe("Conditional content tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq("");
 
@@ -181,7 +187,7 @@ describe("Conditional content tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq("The fox jumps.");
     });
@@ -212,7 +218,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_text(names: string[]) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/p1"].stateValues.text).contain(
                 names.join(" "),
@@ -258,7 +267,7 @@ describe("Conditional content tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(
             "Greeting is hidden: false. Greeting: Hello!",
@@ -271,7 +280,7 @@ describe("Conditional content tag tests", async () => {
             name: "/hide",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(
             "Greeting is hidden: true. Greeting: ",
@@ -284,7 +293,7 @@ describe("Conditional content tag tests", async () => {
             name: "/show_copy",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Greeting is hidden: true. Greeting: ",
@@ -295,7 +304,7 @@ describe("Conditional content tag tests", async () => {
             name: "/hide",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(
             "Greeting is hidden: false. Greeting: Hello!",
@@ -327,7 +336,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_text(name: string) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/pa"].stateValues.text).eq(`a: ${name}`);
             expect(stateVariables["/pa1"].stateValues.text).eq(`a1: ${name}`);
@@ -380,7 +392,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_text(name: string) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/pa"].stateValues.text).eq(`a: ${name}`);
             expect(stateVariables["/pa1"].stateValues.text).eq(`a1: ${name}`);
@@ -415,7 +430,10 @@ describe("Conditional content tag tests", async () => {
 
     async function check_test_math_optional(core, namespaces = ["", "", ""]) {
         async function check_items(text: string, math: any, optional?: string) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables[`${namespaces[0]}/a`].stateValues.text).eq(
                 text,
@@ -580,7 +598,7 @@ describe("Conditional content tag tests", async () => {
         skipSingletons = false,
         calcNegativeFromContainers,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         namePrefixes: string[];
         skipSingletons?: boolean;
         calcNegativeFromContainers?: string[];
@@ -602,7 +620,10 @@ describe("Conditional content tag tests", async () => {
         }) {
             const p = ["*", num, a, x];
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (calcFromContainers) {
                 // special case where didn't add a namespace and didn't name sub-components.
@@ -977,7 +998,7 @@ describe("Conditional content tag tests", async () => {
         namePrefixes,
         inputName,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         namePrefixes: string[];
         inputName: string;
     }) {
@@ -990,7 +1011,10 @@ describe("Conditional content tag tests", async () => {
             comeback: string;
             response: string;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables[`${namePrefixes[0]}question`].stateValues.text,
@@ -1160,7 +1184,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_items(item1: string, item2: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables[`/p1`].stateValues.text).eq(item1);
             expect(stateVariables[`/p3`].stateValues.text).eq(item1);
@@ -1207,7 +1234,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_items(item1: string, item2: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables[`/p1`].stateValues.text).eq(item1);
             expect(stateVariables[`/p3`].stateValues.text).eq(item1);
@@ -1256,7 +1286,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_items(item: string, hidden: string[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables[`/pa`].stateValues.text).eq(
                 `a: ${hidden.includes("a") ? "" : item}`,
@@ -1331,7 +1364,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_items(animal: string, verb: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/pa"].stateValues.text).eq(
                 `a: The ${animal} ${verb}.`,
@@ -1386,7 +1422,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/s"].activeChildren).eqls([
             "\n  ",
@@ -1424,7 +1460,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_items(num_winners: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (num_winners > 0) {
                 expect(stateVariables["/winner1"].stateValues.text).eq(
@@ -1522,7 +1561,10 @@ describe("Conditional content tag tests", async () => {
         });
 
         async function check_items(h: boolean) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let phrase = h
                 ? "We have bananas, pineapples, and mangos."

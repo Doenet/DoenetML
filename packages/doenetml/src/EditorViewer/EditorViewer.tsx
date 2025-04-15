@@ -39,8 +39,6 @@ import { ResizableCollapsiblePanelPair } from "./ResizableCollapsiblePanelPair";
 export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
-    location = {},
-    navigate,
     prefixForIds = "",
     linkSettings,
     darkMode = "light",
@@ -65,8 +63,6 @@ export function EditorViewer({
 }: {
     doenetML: string;
     activityId?: string;
-    location?: any;
-    navigate?: any;
     prefixForIds?: string;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: "dark" | "light";
@@ -619,8 +615,6 @@ export function EditorViewer({
                         documentStructureCallback={
                             documentStructureThenChangeCallback
                         }
-                        location={location}
-                        navigate={navigate}
                         linkSettings={linkSettings}
                         scrollableContainer={
                             scrollableContainer.current ?? undefined

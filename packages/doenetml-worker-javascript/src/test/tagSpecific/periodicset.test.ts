@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -25,7 +25,7 @@ async function check_periodic_set({
     lim2 = Infinity,
     redundantOffsets = false,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
     name: string;
     offsets?: Offset[];
     period?: Period;
@@ -33,7 +33,7 @@ async function check_periodic_set({
     lim2?: number;
     redundantOffsets?: boolean;
 }) {
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     if (offsets === undefined || period === undefined) {
         expect(stateVariables[name].stateValues.value.tree).eq("\uff3f");
     } else {
@@ -88,14 +88,14 @@ describe("PeriodicSet tag tests", async () => {
 
         await check_periodic_set({ core, name: "/s2", offsets, period });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // Type in an offset and submit
         await updateMathInputValue({ latex: "-\\pi/4", name: "/o", core });
         await submitAnswer({ name: "/ans", core });
         await check_periodic_set({ core, name: "/s1" });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // Type in a period and submit
@@ -104,7 +104,7 @@ describe("PeriodicSet tag tests", async () => {
         period = ["/", "pi", 2];
         offsets = [["-", ["/", "pi", 4]]];
         await check_periodic_set({ core, name: "/s1", offsets, period });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
 
         // Change period to be irrational factor of other period
@@ -112,7 +112,7 @@ describe("PeriodicSet tag tests", async () => {
         await submitAnswer({ name: "/ans", core });
         period = 1;
         await check_periodic_set({ core, name: "/s1", offsets, period });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // Change period
@@ -120,7 +120,7 @@ describe("PeriodicSet tag tests", async () => {
         await submitAnswer({ name: "/ans", core });
         period = "pi";
         await check_periodic_set({ core, name: "/s1", offsets, period });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // add offset
@@ -132,7 +132,7 @@ describe("PeriodicSet tag tests", async () => {
         await submitAnswer({ name: "/ans", core });
         offsets.push(["/", ["*", 5, "pi"], 4]);
         await check_periodic_set({ core, name: "/s1", offsets, period });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
 
         // add redundant offset
@@ -150,7 +150,7 @@ describe("PeriodicSet tag tests", async () => {
             period,
             redundantOffsets: true,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
 
         // add incorrect offset
@@ -168,7 +168,7 @@ describe("PeriodicSet tag tests", async () => {
             period,
             redundantOffsets: true,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         // add invalid math
@@ -179,7 +179,7 @@ describe("PeriodicSet tag tests", async () => {
         });
         await submitAnswer({ name: "/ans", core });
         await check_periodic_set({ core, name: "/s1" });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
     });
 
@@ -211,7 +211,7 @@ describe("PeriodicSet tag tests", async () => {
         await check_periodic_set({ core, name: "/b" });
         await check_periodic_set({ core, name: "/a2" });
         await check_periodic_set({ core, name: "/b2" });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: false, false, false, false",
@@ -236,7 +236,7 @@ describe("PeriodicSet tag tests", async () => {
         await check_periodic_set({ core, name: "/b" });
         await check_periodic_set({ core, name: "/a2" });
         await check_periodic_set({ core, name: "/b2" });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: false, false, false, false",
@@ -280,7 +280,7 @@ describe("PeriodicSet tag tests", async () => {
             offsets: offsets2,
             period: period2,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: false, false, false, false",
@@ -324,7 +324,7 @@ describe("PeriodicSet tag tests", async () => {
             offsets: offsets2,
             period: period2,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: false, false, false, false",
@@ -364,7 +364,7 @@ describe("PeriodicSet tag tests", async () => {
             offsets: offsets2,
             period: period2,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: true, false, true, false",
@@ -406,7 +406,7 @@ describe("PeriodicSet tag tests", async () => {
             period: period2,
             redundantOffsets: true,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: true, true, true, true",
@@ -448,7 +448,7 @@ describe("PeriodicSet tag tests", async () => {
             period: period2,
             redundantOffsets: true,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/pR"].stateValues.text).eq(
             "Redundancies: true, true, true, true",
@@ -546,7 +546,7 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/period", core });
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/period"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({
@@ -555,7 +555,7 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             1,
         );
@@ -565,12 +565,12 @@ describe("PeriodicSet tag tests", async () => {
         await updateMathInputValue({ latex: "210", name: "/mi3", core });
         await updateMathInputValue({ latex: "211", name: "/mi4", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.75);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.75,
         );
@@ -578,12 +578,12 @@ describe("PeriodicSet tag tests", async () => {
         // correct answer
         await updateMathInputValue({ latex: "-30", name: "/mi4", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             1,
         );
@@ -595,18 +595,18 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             1,
         );
 
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.4);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.4,
         );
@@ -614,12 +614,12 @@ describe("PeriodicSet tag tests", async () => {
         // add in a duplicate
         await updateMathInputValue({ latex: "330", name: "/mi5", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.4,
         );
@@ -631,12 +631,12 @@ describe("PeriodicSet tag tests", async () => {
         await updateMathInputValue({ latex: "330", name: "/mi9", core });
         await updateMathInputValue({ latex: "330", name: "/mi10", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.8,
         );
@@ -648,30 +648,30 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             0,
         );
 
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.75);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.75,
         );
 
         await updateMathInputValue({ latex: "100", name: "/mi3", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.5,
         );
@@ -683,19 +683,19 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             0,
         );
 
         await updateMathInputValue({ latex: "100", name: "/mi3", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.5,
         );
@@ -707,22 +707,22 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/period", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/period"].stateValues.creditAchieved).eq(1);
 
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             1,
         );
 
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             1,
         );
@@ -734,30 +734,30 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             1,
         );
 
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(2 / 3);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             2 / 3,
         );
 
         await updateMathInputValue({ latex: "330", name: "/mi3", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(1);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.8,
         );
@@ -769,46 +769,46 @@ describe("PeriodicSet tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/period", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/period"].stateValues.creditAchieved).eq(0);
 
         await submitAnswer({ name: "/number_offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/number_offsets"].stateValues.creditAchieved).eq(
             1,
         );
 
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.4,
         );
 
         await updateMathInputValue({ latex: "100", name: "/mi3", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(1 / 3);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             1 / 3,
         );
 
         await updateMathInputValue({ latex: "150", name: "/mi3", core });
         await submitAnswer({ name: "/answerNoPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/answerNoPenalty"].stateValues.creditAchieved,
         ).eq(0.5);
         await submitAnswer({ name: "/answerPenalty", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answerPenalty"].stateValues.creditAchieved).eq(
             0.4,
         );
@@ -833,7 +833,7 @@ describe("PeriodicSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq("As list: ");
         expect(stateVariables["/pL2"].stateValues.text).eq(
             "As list with specified min/max: ",
@@ -842,7 +842,7 @@ describe("PeriodicSet tag tests", async () => {
         await updateMathInputValue({ latex: "7", name: "/period", core });
         await updateMathInputValue({ latex: "1", name: "/offsets", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, 1, 8, ...",
         );
@@ -851,7 +851,7 @@ describe("PeriodicSet tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "3", name: "/minIndex", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, 1, 8, ...",
         );
@@ -860,7 +860,7 @@ describe("PeriodicSet tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "6", name: "/maxIndex", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, 1, 8, ...",
         );
@@ -869,7 +869,7 @@ describe("PeriodicSet tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "1,3", name: "/offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, -4, 1, 3, 8, 10, ...",
         );
@@ -878,7 +878,7 @@ describe("PeriodicSet tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "3,1", name: "/offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, -4, 1, 3, 8, 10, ...",
         );
@@ -887,7 +887,7 @@ describe("PeriodicSet tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "3,1,8", name: "/offsets", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, -4, 1, 3, 8, 10, ...",
         );
@@ -900,7 +900,7 @@ describe("PeriodicSet tag tests", async () => {
             name: "/offsets",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pL1"].stateValues.text).eq(
             "As list: ..., -6, -5, -4, 1, 2, 3, 8, 9, 10, ...",
         );

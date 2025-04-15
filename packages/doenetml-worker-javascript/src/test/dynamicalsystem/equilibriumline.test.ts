@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -44,7 +44,7 @@ describe("Equilibriumline Tag Tests", async () => {
         const equationB = ["=", "y", 7];
         const equationC = ["=", "y", -9];
         const equationD = ["=", "y", -3];
-        let svs = await returnAllStateVariables(core);
+        let svs = await core.returnAllStateVariables(false, true);
         expect(svs["/g/A"].stateValues.equation.tree).eqls(equationA);
         expect(svs["/g/B"].stateValues.equation.tree).eqls(equationB);
         expect(svs["/g/C"].stateValues.equation.tree).eqls(equationC);
@@ -59,7 +59,10 @@ describe("Equilibriumline Tag Tests", async () => {
         let Ds = false;
 
         async function check_stable() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/gAs"].stateValues.value).eqls(As);
             expect(stateVariables["/gBs"].stateValues.value).eqls(false);
             expect(stateVariables["/gCs"].stateValues.value).eqls(Cs);
@@ -96,7 +99,6 @@ describe("Equilibriumline Tag Tests", async () => {
             componentName: "/g/A",
             actionName: "switchLine",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -106,7 +108,6 @@ describe("Equilibriumline Tag Tests", async () => {
             componentName: "/g2/A",
             actionName: "switchLine",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -115,7 +116,6 @@ describe("Equilibriumline Tag Tests", async () => {
             componentName: "/g/B",
             actionName: "switchLine",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -124,7 +124,6 @@ describe("Equilibriumline Tag Tests", async () => {
             componentName: "/g2/C",
             actionName: "switchLine",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -134,7 +133,6 @@ describe("Equilibriumline Tag Tests", async () => {
             componentName: "/g2/D",
             actionName: "switchLine",
             args: {},
-            event: null,
         });
     });
 });

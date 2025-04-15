@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     clickPoint,
     focusPoint,
@@ -9,7 +9,7 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";
 
@@ -18,7 +18,10 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Point tag tests", async () => {
-    async function test_points_copy_y(core: Core, labels: string[] = ["", ""]) {
+    async function test_points_copy_y(
+        core: PublicDoenetMLCore,
+        labels: string[] = ["", ""],
+    ) {
         async function check_items({
             x1,
             y1,
@@ -30,7 +33,10 @@ describe("Point tag tests", async () => {
             x2: number;
             labels?: string[];
         }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/P1"].stateValues.xs.map((v) => v.tree),
             ).eqls([x1, y1]);
@@ -137,7 +143,7 @@ describe("Point tag tests", async () => {
         });
 
         // Labels are P and P'
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             5, 6,
         ]);
@@ -148,9 +154,12 @@ describe("Point tag tests", async () => {
         expect(stateVariables["/P2"].stateValues.label).eq(`P'`);
     });
 
-    async function test_point_from_math_input_copied(core: Core) {
+    async function test_point_from_math_input_copied(core: PublicDoenetMLCore) {
         async function check_values(xs: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let P of ["/P", "/Q"]) {
                 if (xs.length === 0) {
                     expect(
@@ -302,9 +311,12 @@ describe("Point tag tests", async () => {
         await test_point_from_math_input_copied(core);
     });
 
-    async function test_invertible(core: Core, x_fixed = false) {
+    async function test_invertible(core: PublicDoenetMLCore, x_fixed = false) {
         async function check_items(x, y) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).closeTo(
                 x,
                 1e-12,
@@ -383,7 +395,10 @@ describe("Point tag tests", async () => {
 
     async function test_2d_from_3d(core) {
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).closeTo(
                 x,
                 1e-12,
@@ -495,7 +510,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/g1/P"].stateValues.xs.map((v) => v.tree),
             ).eqls([x, y]);
@@ -542,7 +560,10 @@ $g1{name="g2"}
         });
 
         async function check_items(y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eqls(
                 me.fromText(`(${y})^2/10`).simplify().tree,
             );
@@ -572,7 +593,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eqls([
                 "apply",
@@ -604,7 +628,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P2"].stateValues.xs[0].tree).eq(y);
@@ -631,13 +658,14 @@ $g1{name="g2"}
   `,
         });
 
-        let P = (await returnAllStateVariables(core))["/P"].stateValues;
+        let P = (await core.returnAllStateVariables(false, true))["/P"]
+            .stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([1, 2]);
 
         // attempt to move point to (-9,6), but doesn't change
         await movePoint({ name: "/P", x: -9, y: 6, core });
 
-        P = (await returnAllStateVariables(core))["/P"].stateValues;
+        P = (await core.returnAllStateVariables(false, true))["/P"].stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([1, 2]);
     });
 
@@ -651,12 +679,13 @@ $g1{name="g2"}
   `,
         });
 
-        let P = (await returnAllStateVariables(core))["/P"].stateValues;
+        let P = (await core.returnAllStateVariables(false, true))["/P"]
+            .stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([5, -2]);
 
         // move point to (8,8)
         await movePoint({ name: "/P", x: 8, y: 8, core });
-        P = (await returnAllStateVariables(core))["/P"].stateValues;
+        P = (await core.returnAllStateVariables(false, true))["/P"].stateValues;
         expect(P.xs.map((v) => v.tree)).eqls([8, -5]);
     });
 
@@ -673,7 +702,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P2"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P2"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(y);
@@ -719,7 +751,10 @@ $g1{name="g2"}
             const a = b + 1;
             const P1 = [P2[1], a];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P1"].stateValues.xs[0].tree).closeTo(
                 P1[0],
@@ -808,7 +843,10 @@ $g1{name="g2"}
         let core = await createTestCore({ doenetML: doenetML1 });
 
         async function check_items(a, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const P1 = stateVariables["/P1"].stateValues;
             const P2 = stateVariables["/P2"].stateValues;
             expect(P1.xs[0].tree).closeTo(a, 1e-12);
@@ -858,11 +896,18 @@ $g1{name="g2"}
         await check_items(0, 0);
     });
 
-    async function test_constrained_to_grid(core: Core, dx = 1, dy = 1) {
+    async function test_constrained_to_grid(
+        core: PublicDoenetMLCore,
+        dx = 1,
+        dy = 1,
+    ) {
         async function check_items(x, y) {
             const x2 = Math.round(x / dx) * dx;
             const y2 = Math.round(y / dy) * dy;
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x2);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y2);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(true);
@@ -968,7 +1013,10 @@ $g1{name="g2"}
             const x2 = Math.round(x);
             const y2 = Math.round(y);
             const z2 = Math.round(z);
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x2);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y2);
             expect(stateVariables["/P"].stateValues.xs[2].tree).eq(z2);
@@ -1012,7 +1060,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(true);
@@ -1049,7 +1100,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(true);
@@ -1062,7 +1116,10 @@ $g1{name="g2"}
         await check_items(9, 0);
     });
 
-    async function test_constrained_to_graph(core: Core, buffer: number) {
+    async function test_constrained_to_graph(
+        core: PublicDoenetMLCore,
+        buffer: number,
+    ) {
         const buffer1 = 2 * 10 * buffer;
         const buffer2 = 2 * 20 * buffer;
 
@@ -1070,7 +1127,10 @@ $g1{name="g2"}
             if (xs2 === undefined) {
                 xs2 = xs1;
             }
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/A"].stateValues.xs.map((v) => v.tree)).eqls(
                 xs1,
             );
@@ -1174,7 +1234,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x, y) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/original"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/original"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/original"].stateValues.constraintUsed).eq(
@@ -1266,7 +1329,10 @@ $g1{name="g2"}
                 y2 = Math.round((y2 - yoffset) / dy) * dy + yoffset;
             }
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/original"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/original"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/original"].stateValues.constraintUsed).eq(
@@ -1346,13 +1412,16 @@ $g1{name="g2"}
         await check_items({ x, y, dx, dy, xoffset, yoffset });
     });
 
-    async function test_attract_to_grid(core: Core) {
+    async function test_attract_to_grid(core: PublicDoenetMLCore) {
         async function check_items(
             x: number,
             y: number,
             constraintUsed: boolean,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(
@@ -1431,7 +1500,10 @@ $g1{name="g2"}
             z: number,
             constraintUsed: boolean,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.xs[2].tree).eq(z);
@@ -1480,7 +1552,10 @@ $g1{name="g2"}
             y: number,
             constraintUsed: boolean,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(
@@ -1529,7 +1604,10 @@ $g1{name="g2"}
             y: number,
             constraintUsed: boolean,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(
@@ -1581,7 +1659,10 @@ $g1{name="g2"}
             y: number,
             constraintUsed: boolean,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P"].stateValues.constraintUsed).eq(
@@ -1641,7 +1722,7 @@ $g1{name="g2"}
         });
 
         // point is on line
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1651,7 +1732,7 @@ $g1{name="g2"}
         // move point
         await movePoint({ name: "/A", x: 9, y: -3, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1660,7 +1741,7 @@ $g1{name="g2"}
 
         // change line
         await movePoint({ name: "/P1", x: 3, y: 1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1669,7 +1750,7 @@ $g1{name="g2"}
 
         // move point
         await movePoint({ name: "/A", x: 9, y: -3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1694,14 +1775,14 @@ $g1{name="g2"}
         });
 
         // point is not on line
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).eq(-1);
         expect(stateVariables["/A"].stateValues.xs[1].tree).eq(-5);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
 
         // move point near line
         await movePoint({ name: "/A", x: 9.1, y: -6.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1710,7 +1791,7 @@ $g1{name="g2"}
 
         // change line, point not on line
         await movePoint({ name: "/P1", x: 3, y: 1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1719,7 +1800,7 @@ $g1{name="g2"}
 
         // move point
         await movePoint({ name: "/A", x: -5.1, y: -6.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1751,7 +1832,7 @@ $g1{name="g2"}
         });
 
         // point is on line
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P1"].stateValues.xs[1].tree -
                 stateVariables["/P1"].stateValues.xs[0].tree,
@@ -1760,7 +1841,7 @@ $g1{name="g2"}
 
         // move point to lower right
         await movePoint({ name: "/P1", x: 9, y: -5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P1"].stateValues.xs[1].tree -
                 stateVariables["/P1"].stateValues.xs[0].tree,
@@ -1769,14 +1850,14 @@ $g1{name="g2"}
 
         // move point near points
         await movePoint({ name: "/P1", x: 3.5, y: 5.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(3);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(5);
         expect(stateVariables["/P1"].stateValues.constraintUsed).eq(true);
 
         // move point to upper left
         await movePoint({ name: "/P1", x: -9, y: 8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P1"].stateValues.xs[1].tree -
                 stateVariables["/P1"].stateValues.xs[0].tree,
@@ -1808,14 +1889,14 @@ $g1{name="g2"}
 
         // point is in original location
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(3);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(2);
         expect(stateVariables["/P1"].stateValues.constraintUsed).eq(false);
 
         // point is on line
         await movePoint({ name: "/P1", x: 3.1, y: 0.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P1"].stateValues.xs[1].tree -
                 stateVariables["/P1"].stateValues.xs[0].tree,
@@ -1824,28 +1905,28 @@ $g1{name="g2"}
 
         // move point to lower right
         await movePoint({ name: "/P1", x: 9, y: -5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(9);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(-5);
         expect(stateVariables["/P1"].stateValues.constraintUsed).eq(false);
 
         // move point near points
         await movePoint({ name: "/P1", x: 3.1, y: 5.1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(3);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(5);
         expect(stateVariables["/P1"].stateValues.constraintUsed).eq(true);
 
         // move point to upper left
         await movePoint({ name: "/P1", x: -9, y: 8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(-9);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(8);
         expect(stateVariables["/P1"].stateValues.constraintUsed).eq(false);
 
         // move point near upper line
         await movePoint({ name: "/P1", x: -8.8, y: -2.3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P1"].stateValues.xs[1].tree -
                 stateVariables["/P1"].stateValues.xs[0].tree,
@@ -1876,14 +1957,14 @@ $g1{name="g2"}
         });
 
         // point on grid
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(4, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near line x+y=0
         await movePoint({ name: "/A", x: -7.1, y: 8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1892,7 +1973,7 @@ $g1{name="g2"}
 
         // move near line x=y
         await movePoint({ name: "/A", x: 7.1, y: 8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1901,7 +1982,7 @@ $g1{name="g2"}
 
         // move near line x=2y+8
         await movePoint({ name: "/A", x: 3.5, y: -2.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -1910,7 +1991,7 @@ $g1{name="g2"}
 
         // move near line x=-2y-8
         await movePoint({ name: "/A", x: -3.5, y: -2.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -1943,21 +2024,21 @@ $g1{name="g2"}
         });
 
         // point in original location
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(7, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(3, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
 
         // move point near grid
         await movePoint({ name: "/A", x: 0.2, y: -1.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-2, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move not close enough to line x+y=0
         await movePoint({ name: "/A", x: -7.1, y: 8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             -7.1,
             1e-12,
@@ -1967,7 +2048,7 @@ $g1{name="g2"}
 
         // move close enough to line x+y=0
         await movePoint({ name: "/A", x: -7.5, y: 7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1976,14 +2057,14 @@ $g1{name="g2"}
 
         // move not close enough to line x=y
         await movePoint({ name: "/A", x: 7.1, y: 8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(7.1, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(8.2, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
 
         // move close enough to line x=y
         await movePoint({ name: "/A", x: 7.5, y: 7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -1992,7 +2073,7 @@ $g1{name="g2"}
 
         // move near line x=2y+8
         await movePoint({ name: "/A", x: 3.5, y: -2.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2001,7 +2082,7 @@ $g1{name="g2"}
 
         // move near line x=-2y-8
         await movePoint({ name: "/A", x: -3.5, y: -2.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2035,14 +2116,14 @@ $g1{name="g2"}
         });
 
         // point in original location
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(7, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(3, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
 
         // move not close enough to line x+y=0
         await movePoint({ name: "/A", x: -7.1, y: 8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             -7.1,
             1e-12,
@@ -2052,7 +2133,7 @@ $g1{name="g2"}
 
         // move close enough to line x+y=0
         await movePoint({ name: "/A", x: -7.5, y: 7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -2061,14 +2142,14 @@ $g1{name="g2"}
 
         // move not close enough to line x=y
         await movePoint({ name: "/A", x: 7.1, y: 8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(7.1, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(8.2, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
 
         // move close enough to line x=y
         await movePoint({ name: "/A", x: 7.5, y: 7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -2077,7 +2158,7 @@ $g1{name="g2"}
 
         // move near line x=2y+8
         await movePoint({ name: "/A", x: 3.5, y: -2.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2086,7 +2167,7 @@ $g1{name="g2"}
 
         // move near line x=-2y-8
         await movePoint({ name: "/A", x: -3.5, y: -2.5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2095,14 +2176,14 @@ $g1{name="g2"}
 
         // move near intersection of x+y=0 and x=y
         await movePoint({ name: "/A", x: -0.2, y: 0.1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x+y=0 and x=2y+8
         await movePoint({ name: "/A", x: 2.6, y: -2.7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             8 / 3,
             1e-12,
@@ -2115,21 +2196,21 @@ $g1{name="g2"}
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({ name: "/A", x: 7.9, y: -8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x=y and x=2y+8
         await movePoint({ name: "/A", x: -8.1, y: -7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({ name: "/A", x: -2.5, y: -2.7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             -8 / 3,
             1e-12,
@@ -2142,7 +2223,7 @@ $g1{name="g2"}
 
         // move near intersection of x=2y+8 and x=-2y-8
         await movePoint({ name: "/A", x: 0.2, y: -3.9, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-4, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
@@ -2174,7 +2255,7 @@ $g1{name="g2"}
         });
 
         // on x=y
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -2183,7 +2264,7 @@ $g1{name="g2"}
 
         // attract to line x+y=0
         await movePoint({ name: "/A", x: -7.1, y: 10, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -2192,7 +2273,7 @@ $g1{name="g2"}
 
         // move near line x=2y+8
         await movePoint({ name: "/A", x: 10, y: -3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2201,7 +2282,7 @@ $g1{name="g2"}
 
         // move near line x=-2y-8
         await movePoint({ name: "/A", x: -10, y: -3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2210,14 +2291,14 @@ $g1{name="g2"}
 
         // move near intersection of x+y=0 and x=y
         await movePoint({ name: "/A", x: -0.2, y: 0.1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x+y=0 and x=2y+8
         await movePoint({ name: "/A", x: 2.6, y: -2.7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             8 / 3,
             1e-12,
@@ -2230,21 +2311,21 @@ $g1{name="g2"}
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({ name: "/A", x: 7.9, y: -8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x=y and x=2y+8
         await movePoint({ name: "/A", x: -8.1, y: -7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x=y and x=-2y-8
         await movePoint({ name: "/A", x: -2.5, y: -2.7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             -8 / 3,
             1e-12,
@@ -2257,7 +2338,7 @@ $g1{name="g2"}
 
         // move near intersection of x=2y+8 and x=-2y-8
         await movePoint({ name: "/A", x: 0.2, y: -3.9, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-4, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
@@ -2289,7 +2370,7 @@ $g1{name="g2"}
         });
 
         // on x=y
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -2298,7 +2379,7 @@ $g1{name="g2"}
 
         // attract to line x+y=0
         await movePoint({ name: "/A", x: -7.1, y: 10, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 stateVariables["/A"].stateValues.xs[1].tree,
@@ -2307,7 +2388,7 @@ $g1{name="g2"}
 
         // move near line x=2y+8
         await movePoint({ name: "/A", x: 10, y: -3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree -
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2316,7 +2397,7 @@ $g1{name="g2"}
 
         // move near line x=-2y-8
         await movePoint({ name: "/A", x: -10, y: -3, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/A"].stateValues.xs[0].tree +
                 2 * stateVariables["/A"].stateValues.xs[1].tree,
@@ -2325,14 +2406,14 @@ $g1{name="g2"}
 
         // move near intersection of x+y=0 and x=y
         await movePoint({ name: "/A", x: -0.2, y: 0.1, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x+y=0 and x=2y+8
         await movePoint({ name: "/A", x: 2.6, y: -2.7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             8 / 3,
             1e-12,
@@ -2345,21 +2426,21 @@ $g1{name="g2"}
 
         // move near intersection of x+y=0 and x=-2y-8
         await movePoint({ name: "/A", x: 7.9, y: -8.2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x=y and x=2y+8
         await movePoint({ name: "/A", x: -8.1, y: -7.8, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-8, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
 
         // move near intersection of x=y and x=-2y-8
         await movePoint({ name: "/A", x: -2.5, y: -2.7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(
             -8 / 3,
             1e-12,
@@ -2372,7 +2453,7 @@ $g1{name="g2"}
 
         // move near intersection of x=2y+8 and x=-2y-8
         await movePoint({ name: "/A", x: 0.2, y: -3.9, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.xs[0].tree).closeTo(0, 1e-12);
         expect(stateVariables["/A"].stateValues.xs[1].tree).closeTo(-4, 1e-12);
         expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
@@ -2390,9 +2471,10 @@ $g1{name="g2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x1 =
-            core.components!["/P"].attributes.xs.component.activeChildren[0];
+            core.core!.components!["/P"].attributes.xs.component
+                .activeChildren[0];
         let math1 = x1.definingChildren[0];
         let math1Name = math1.componentName;
         let math2 = x1.definingChildren[2];
@@ -2412,7 +2494,7 @@ $g1{name="g2"}
 
         await updateMathInputValue({ latex: "2", name: "/n", core });
 
-        let math3 = core.components!["/seq"].replacements[0].adapterUsed;
+        let math3 = core.core!.components!["/seq"].replacements[0].adapterUsed;
         let math3Name = math3.componentName;
         expect(x1.definingChildren.map((x) => x.componentName)).eqls([
             math1Name,
@@ -2428,9 +2510,12 @@ $g1{name="g2"}
         expect(stateVariables["/P"].stateValues.xs[1].tree).eq(4);
     });
 
-    async function test_reciprocal_points(core: Core) {
+    async function test_reciprocal_points(core: PublicDoenetMLCore) {
         async function check_items(x: number, y: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y);
 
@@ -2495,7 +2580,7 @@ $g1{name="g2"}
 
         // initial positions
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = 1;
         let y = 2;
         for (let point of points) {
@@ -2510,7 +2595,10 @@ $g1{name="g2"}
 
             await movePoint({ name: points[i], x, y, core });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let point of points) {
                 expect(stateVariables[point].stateValues.xs[0].tree).eq(x);
                 expect(stateVariables[point].stateValues.xs[1].tree).eq(y);
@@ -2550,7 +2638,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x: number, y: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/p1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/p1"].stateValues.xs[1].tree).eq(y);
 
@@ -2596,7 +2687,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x: number, y: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/p1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/p1"].stateValues.xs[1].tree).eq(y);
 
@@ -2723,7 +2817,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x1: number, y2: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const y1 = 2 * x1 + 1;
             const x2 = 2 * y2 + 1;
 
@@ -2766,7 +2863,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x1: number, y2: number) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x1);
             expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(10);
@@ -2790,7 +2890,7 @@ $g1{name="g2"}
     });
 
     async function test_label_points_other_coords(
-        core: Core,
+        core: PublicDoenetMLCore,
         math_in_labels?: boolean,
     ) {
         async function check_items(
@@ -2814,7 +2914,10 @@ $g1{name="g2"}
                 label2 = `${y1round}, ${y2round}`;
             }
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x1);
             expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y1);
@@ -2917,7 +3020,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x: number, y: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y);
             expect(stateVariables["/P3"].stateValues.xs[0].tree).eq(x);
@@ -3050,7 +3156,10 @@ $g1{name="g2"}
                 coordsString = `( ${coordsString} )`;
             }
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let i = 1; i <= 3; i++) {
                 let point = stateVariables[`/point${i}`].stateValues;
@@ -3301,7 +3410,10 @@ $g1{name="g2"}
         async function check_items(xs: any[]) {
             let nDim = xs.length;
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let i = 1; i <= 3; i++) {
                 let point = stateVariables[`/point${i}`].stateValues;
@@ -3373,7 +3485,10 @@ $g1{name="g2"}
         });
 
         async function check_items(label: string, position: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.label).eq(label);
             expect(stateVariables["/P"].stateValues.labelPosition).eq(
                 position.toLowerCase(),
@@ -3444,7 +3559,10 @@ $g1{name="g2"}
             let C1x = 2 * n - 1;
             let C2y = 2 * n - 2;
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/A"].stateValues.xs.map((v) => v.tree)).eqls(
                 [Ax, Ay],
             );
@@ -3657,7 +3775,10 @@ $g1{name="g2"}
             P2x: number;
             P4y: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/g1/P"].stateValues.xs.map((v) => v.tree),
             ).eqls([P1x, P1y]);
@@ -3750,7 +3871,7 @@ $g1{name="g2"}
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             1,
         ]);
@@ -3816,7 +3937,7 @@ $g1{name="g2"}
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pP"].stateValues.text).eq("( 32, 0.067, 5 )");
         expect(stateVariables["/pQ"].stateValues.text).eq("( 32.25, 0.07, 5 )");
         expect(stateVariables["/pR"].stateValues.text).eq(
@@ -3890,7 +4011,7 @@ $g1{name="g2"}
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pp1"].stateValues.text).eq(
             "( 34.24502348, 245.238234 )",
@@ -3933,7 +4054,7 @@ $g1{name="g2"}
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(3);
@@ -3993,7 +4114,10 @@ $g1{name="g2"}
             Cy: number;
             Dy: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/A"].stateValues.xs.map((v) => v.tree)).eqls(
                 [Ax, Ay],
@@ -4070,7 +4194,7 @@ $g1{name="g2"}
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/oneDa"].stateValues.numDimensions).eq(1);
         expect(stateVariables["/oneDb"].stateValues.numDimensions).eq(1);
@@ -4103,7 +4227,7 @@ $g1{name="g2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls([
             5, 2,
@@ -4114,7 +4238,7 @@ $g1{name="g2"}
 
         await movePoint({ name: "/P", x: 1, y: 4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls([
             1, 4,
         ]);
@@ -4124,7 +4248,7 @@ $g1{name="g2"}
 
         await movePoint({ name: "/Q", x: -9, y: 9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls([
             7, -1,
         ]);
@@ -4143,11 +4267,11 @@ $g1{name="g2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P"].stateValues.layer).eq(0);
 
         await updateMathInputValue({ latex: "1", name: "/l", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P"].stateValues.layer).eq(1);
     });
 
@@ -4176,7 +4300,7 @@ $g1{name="g2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_no_style"].stateValues.text).eq("black");
         expect(stateVariables["/tc_no_style"].stateValues.text).eq("black");
@@ -4197,7 +4321,7 @@ $g1{name="g2"}
         );
 
         await updateMathInputValue({ latex: "2", name: "/sn", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "green",
@@ -4218,7 +4342,7 @@ $g1{name="g2"}
         expect(stateVariables["/bc_fixed_style"].stateValues.text).eq("none");
 
         await updateMathInputValue({ latex: "3", name: "/sn", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "red with a blue background",
@@ -4272,7 +4396,10 @@ $g1{name="g2"}
             x: number;
             y: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls(
                 [x, y],
@@ -4450,7 +4577,10 @@ $g1{name="g2"}
         ) {
             let M = P.map((v, i) => (v + Q[i]) / 2);
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls(
                 P,
@@ -4551,7 +4681,7 @@ $g1{name="g2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.hideOffGraphIndicator).eq(
             false,
@@ -4602,7 +4732,10 @@ $g1{name="g2"}
             let Qx = 3 * Px - Py;
             let Qy = Px + 2 * Py;
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls(
                 [Px, Py],
             );
@@ -4634,7 +4767,7 @@ $g1{name="g2"}
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P"].stateValues.numericalXs).eqls([NaN]);
     });
 
@@ -4653,7 +4786,10 @@ $g1{name="g2"}
         });
 
         async function check_items(x1, y1, x2, y2) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/C1"].stateValues.xs[0].tree).eqls(x1);
             expect(stateVariables["/C1"].stateValues.xs[1].tree).eqls(y1);
             expect(stateVariables["/C2"].stateValues.xs[0].tree).eqls(x2);
@@ -4716,7 +4852,10 @@ $g1{name="g2"}
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Point A is ${AColor}.`,

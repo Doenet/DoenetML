@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
     moveVector,
@@ -54,7 +54,7 @@ describe("Collect tag tests", async () => {
 
         let xs = [x1, x2, x1, x3, y2];
         let ys = [y1, y2, y1, y3, x2];
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
                 xs[i],
@@ -97,7 +97,7 @@ describe("Collect tag tests", async () => {
 
         await movePoint({ name: "/_point1", x: x1, y: y1, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
@@ -141,7 +141,7 @@ describe("Collect tag tests", async () => {
 
         await movePoint({ name: "/p1a", x: x1, y: y1, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
                 xs[i],
@@ -184,7 +184,7 @@ describe("Collect tag tests", async () => {
 
         await movePoint({ name: "/_point2", x: x2, y: y2, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
@@ -228,7 +228,7 @@ describe("Collect tag tests", async () => {
 
         await movePoint({ name: "/_point4", x: y2, y: x2, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
@@ -272,7 +272,7 @@ describe("Collect tag tests", async () => {
 
         await movePoint({ name: "/_point3", x: x3, y: y3, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
@@ -341,7 +341,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(3);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -395,7 +395,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -449,7 +449,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -503,7 +503,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(1);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -557,7 +557,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -611,7 +611,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(6);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -692,7 +692,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(3);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -746,7 +746,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -800,7 +800,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -854,7 +854,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(1);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -908,7 +908,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -962,7 +962,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(6);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1047,7 +1047,7 @@ describe("Collect tag tests", async () => {
         let x2 = -7,
             y2 = 4;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
             "vector",
             x1,
@@ -1133,7 +1133,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
             "vector",
             x1,
@@ -1219,7 +1219,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
             "vector",
             x1,
@@ -1327,7 +1327,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1381,7 +1381,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1433,7 +1433,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1487,7 +1487,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1541,7 +1541,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(1);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1595,7 +1595,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1649,7 +1649,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
         expect(
             stateVariables["/_collect1"].stateValues.collectedComponents.length,
@@ -1803,7 +1803,10 @@ describe("Collect tag tests", async () => {
                 });
             }
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             const listText = values.join(", ");
 
@@ -1912,7 +1915,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let group1Replacements = stateVariables["/sec"].activeChildren.slice(
             1,
             14,
@@ -2131,7 +2134,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).contain("public");
         expect(stateVariables["/p1"].stateValues.text).not.contain("secret");
@@ -2158,7 +2161,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/theP1"].stateValues.text).eq("Hidden text: ");
         expect(stateVariables["/theP2"].stateValues.text).eq("Hidden text: ");
@@ -2192,7 +2195,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/theP1"].stateValues.hidden).eq(true);
         expect(stateVariables["/theP2"].stateValues.hidden).eq(true);
@@ -2235,7 +2238,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! ",
@@ -2243,7 +2246,7 @@ describe("Collect tag tests", async () => {
         expect(stateVariables["/c2"].stateValues.text).eq("collect 2: ");
 
         await updateMathInputValue({ latex: "6", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! ",
@@ -2260,7 +2263,7 @@ describe("Collect tag tests", async () => {
             name: "/h2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq("collect 1: ");
         expect(stateVariables["/c2"].stateValues.text).eq(
@@ -2268,7 +2271,7 @@ describe("Collect tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "8", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq("collect 1: ");
         expect(stateVariables["/c2"].stateValues.text).eq(
@@ -2285,7 +2288,7 @@ describe("Collect tag tests", async () => {
             name: "/h2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! ",
@@ -2293,7 +2296,7 @@ describe("Collect tag tests", async () => {
         expect(stateVariables["/c2"].stateValues.text).eq("collect 2: ");
 
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! ",
@@ -2310,7 +2313,7 @@ describe("Collect tag tests", async () => {
             name: "/h2",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq("collect 1: ");
         expect(stateVariables["/c2"].stateValues.text).eq(
@@ -2318,7 +2321,7 @@ describe("Collect tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/c1"].stateValues.text).eq("collect 1: ");
         expect(stateVariables["/c2"].stateValues.text).eq(
@@ -2337,7 +2340,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pdefault"].stateValues.text).eq(
             "apple, banana, cherry",
         );
@@ -2355,7 +2358,7 @@ describe("Collect tag tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(2);
@@ -2400,8 +2403,11 @@ describe("Collect tag tests", async () => {
         });
 
         async function checkAllChildren() {
-            let stateVariables = await returnAllStateVariables(core);
-            let components: {} = core.components!;
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            let components: {} = core.core!.components!;
 
             let p1AllChildren: string[] = [];
             p1AllChildren.push("/A");
@@ -2477,7 +2483,10 @@ describe("Collect tag tests", async () => {
         });
 
         async function check_items(bool: boolean) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/A"].stateValues.fixed).eq(false);
             expect(stateVariables["/B"].stateValues.fixed).eq(false);
             expect(stateVariables["/A2"].stateValues.fixed).eq(bool);
@@ -2543,7 +2552,10 @@ describe("Collect tag tests", async () => {
             y2: number;
             index?: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/A"].stateValues.xs.map((x) => x.tree)).eqls(
                 [x1, y1],
@@ -2645,7 +2657,10 @@ describe("Collect tag tests", async () => {
             componentIndex?: number;
             propIndex?: number;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/A"].stateValues.xs.map((x) => x.tree)).eqls(
                 [x1, y1],
             );
@@ -2787,7 +2802,7 @@ describe("Collect tag tests", async () => {
 
         let xs = [x1, x2, x1, x3, y2];
         let ys = [y1, y2, y1, y3, x2];
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 5; i++) {
             expect(stateVariables[`/q${i + 1}`].stateValues.xs[0].tree).eq(
                 xs[i],
@@ -2844,7 +2859,7 @@ describe("Collect tag tests", async () => {
             core,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             1, 2,

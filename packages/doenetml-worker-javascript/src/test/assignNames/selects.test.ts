@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { numberToLetters } from "@doenet/utils";
 
 const Mock = vi.fn();
@@ -40,7 +40,7 @@ describe("selects assign name tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let selectedIndices =
             stateVariables["/select1"].stateValues.selectedIndices;

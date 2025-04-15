@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateMathInputValue,
     updateTextInputValue,
@@ -30,7 +30,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(7);
@@ -111,7 +111,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -140,7 +140,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(2);
@@ -173,7 +173,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -238,7 +238,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m2"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m3"].stateValues.text).eq("sin(x)");
@@ -248,7 +248,7 @@ describe("Warning Tests", async () => {
         expect(stateVariables["/m7"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m8"].stateValues.text).eq("s i n x");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(5);
@@ -308,7 +308,7 @@ describe("Warning Tests", async () => {
         await updateTextInputValue({ text: "try7", name: "/ti7", core });
         await updateTextInputValue({ text: "try8", name: "/ti8", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m2"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m3"].stateValues.text).eq("sin(x)");
@@ -391,7 +391,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(0);
@@ -426,7 +426,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(3);
@@ -475,7 +475,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -504,7 +504,7 @@ describe("Warning Tests", async () => {
         `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(0);

@@ -7,9 +7,9 @@ import {
     DastAttribute,
     DastMacroPathPart,
     filterPositionInfo,
+    normalizeDocumentDast,
 } from "../../../parser/dist";
 import fs from "node:fs";
-import { normalizeDocumentDast } from "../../../doenetml-prototype/src/state/redux-slices/dast/utils/normalize-dast";
 import yargs from "yargs";
 
 function toDast(source: string) {

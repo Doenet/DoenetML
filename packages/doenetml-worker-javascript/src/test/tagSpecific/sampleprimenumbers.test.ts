@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { callAction, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -29,7 +29,10 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const s = stateVariables[compositeName ?? ""];
             for (let [ind, name] of componentNames.entries()) {
                 let value = name
@@ -79,7 +82,10 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let values = componentNames.map(
                 (name) => stateVariables[name].stateValues.value,
             );
@@ -130,7 +136,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             doenetML: `<samplePrimeNumbers name="s" numSamples="50" minValue="10000" maxValue="100000" />`,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables["/s"].replacements!.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -197,7 +203,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements = stateVariables["/sample1"].replacements!;
         let sample2replacements = stateVariables["/sample2"].replacements!;
         expect(sample1replacements.length).eq(50);
@@ -230,7 +236,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersb = stateVariables["/sample1"].replacements!.map(
             (x) => stateVariables[x.componentName].stateValues.value,
         );
@@ -273,7 +279,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersc = stateVariables["/sample1"].replacements!.map(
             (x) => stateVariables[x.componentName].stateValues.value,
         );
@@ -325,7 +331,10 @@ describe("SamplePrimeNumbers tag tests", async () => {
         });
 
         async function check_sampled_numbers(sampledNumbers: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/p1"].activeChildren.map(
@@ -378,7 +387,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // sample one variable
         await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
@@ -393,7 +402,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get two more samples
         await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let n1 = stateVariables["/a/n"].stateValues.value;
         let n2 = stateVariables["/b/n"].stateValues.value;
         let n3 = stateVariables["/c/n"].stateValues.value;
@@ -413,7 +422,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get six total samples
         await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         n1 = stateVariables["/a/n"].stateValues.value;
         n2 = stateVariables["/b/n"].stateValues.value;
         n3 = stateVariables["/c/n"].stateValues.value;
@@ -447,7 +456,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         let results: number[] = [];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(stateVariables["/u"].stateValues.value);
         results.push(stateVariables["/v"].stateValues.value);
@@ -476,7 +485,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -498,7 +507,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples2 = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -511,7 +520,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         samples2 = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -549,7 +558,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         let pn1, pn2, pn3;
         let pn1b, pn2b, pn3b;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         pn1 = stateVariables["/pn1"].stateValues.value;
         pn2 = stateVariables["/pn2"].stateValues.value;
@@ -563,7 +572,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         await callAction({ name: "/resamp1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pn1b = stateVariables["/pn1"].stateValues.value;
         pn2b = stateVariables["/pn2"].stateValues.value;
@@ -581,7 +590,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         await callAction({ name: "/resamp2", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let pn1c = stateVariables["/pn1"].stateValues.value;
         let pn2c = stateVariables["/pn2"].stateValues.value;

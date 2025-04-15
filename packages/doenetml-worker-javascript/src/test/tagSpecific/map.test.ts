@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
@@ -25,7 +25,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let replacements = stateVariables["/map1"].replacements!;
         let mathr1Name =
@@ -61,7 +61,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let replacements = stateVariables["/map1"].replacements!;
         let textr1Name =
@@ -94,7 +94,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let replacements = stateVariables["/map1"].replacements!;
         let mathrNames = replacements.map(
             (x) =>
@@ -143,12 +143,12 @@ describe("Map tag tests", async () => {
             .map((v, i) => `( ${v.join(", ")} ): ( ${indices[i].join(", ")} )`)
             .join(", ");
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(pText);
 
         // Have warning that ignored extra iterates
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
 
@@ -193,7 +193,7 @@ describe("Map tag tests", async () => {
             .map((v, i) => `( ${v.join(", ")} ): ( ${indices[i].join(", ")} )`)
             .join(", ");
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(pText);
     });
@@ -208,10 +208,10 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -254,7 +254,7 @@ describe("Map tag tests", async () => {
 
         let pText = values1.map((v, i) => `${v} and ${values2[i]}`).join(", ");
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(pText);
     });
@@ -296,7 +296,7 @@ describe("Map tag tests", async () => {
             }
         }
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         function checkMap(mapName: string) {
             let graphNames = stateVariables[mapName].replacements!.map(
@@ -390,7 +390,7 @@ describe("Map tag tests", async () => {
             }
         }
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             stateVariables["/u/graph1"].stateValues.graphicalDescendants.length,
@@ -453,7 +453,7 @@ describe("Map tag tests", async () => {
             }
         }
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let graphNames = stateVariables["/map1"].replacements!.map(
             (x) =>
@@ -509,7 +509,7 @@ describe("Map tag tests", async () => {
 
         let pText = texts.join(", ");
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq(pText);
         expect(stateVariables["/p2"].stateValues.text).eq(pText);
@@ -552,7 +552,7 @@ describe("Map tag tests", async () => {
 
         let pText = textForLength(1);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(pText);
         expect(stateVariables["/p2"].stateValues.text).eq(pText);
         expect(stateVariables["/p3"].stateValues.text).eq(pText);
@@ -561,7 +561,7 @@ describe("Map tag tests", async () => {
         await updateValue({ name: "/uv", core });
 
         pText = textForLength(2);
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(pText);
         expect(stateVariables["/p2"].stateValues.text).eq(pText);
         expect(stateVariables["/p3"].stateValues.text).eq(pText);
@@ -570,7 +570,7 @@ describe("Map tag tests", async () => {
         await updateValue({ name: "/uv", core });
 
         pText = textForLength(4);
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(pText);
         expect(stateVariables["/p2"].stateValues.text).eq(pText);
         expect(stateVariables["/p3"].stateValues.text).eq(pText);
@@ -611,7 +611,7 @@ describe("Map tag tests", async () => {
         let pText1 = sinTextFromVars(["x", "y"]);
         let pText2 = sinTextFromVars(["q", "p"]);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq(pText1);
         expect(stateVariables["/p2"].stateValues.text).eq(pText2);
@@ -632,7 +632,7 @@ describe("Map tag tests", async () => {
 
         let pText = sinTextFromVars(["x", "y"]);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(pText);
         expect(stateVariables["/p2"].stateValues.text).eq(pText);
     });
@@ -661,7 +661,7 @@ describe("Map tag tests", async () => {
             }
         }
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let replacementNames = stateVariables["/hi/map1"].replacements!.map(
             (x) =>
                 stateVariables[x.componentName].replacements![0].componentName,
@@ -721,7 +721,7 @@ describe("Map tag tests", async () => {
         let names1 = ["/u/math", "/v/math", "/w/math"];
         let names2 = ["/c/math", "/d/math", "/e/math"];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 0; i < 3; i++) {
             expect(stateVariables[names1[i]].stateValues.text).eq(maths1[i]);
@@ -752,7 +752,7 @@ describe("Map tag tests", async () => {
 
         let pText = texts.join(", ");
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(pText);
     });
 
@@ -791,7 +791,10 @@ describe("Map tag tests", async () => {
 
             let pText = maths.join(", ");
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let i = 1; i <= 6; i++) {
                 expect(stateVariables[`/p${i}`].stateValues.text).eq(pText);
             }
@@ -923,7 +926,10 @@ describe("Map tag tests", async () => {
 
             let nameSpaces = ["/a", "/b", "/c"];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let [ind, ns] of nameSpaces.entries()) {
                 expect(
@@ -1069,7 +1075,10 @@ describe("Map tag tests", async () => {
             let ns1Prefixes = ["", "/copyMap1", "/copyMap1b", "/g4"];
             let ns2Prefixes = ["", "/copyMap2", "/copyMap2b", "/g4"];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/g1"].stateValues.graphicalDescendants.length,
@@ -1198,7 +1207,10 @@ describe("Map tag tests", async () => {
                 numPoints = 0;
             }
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/math1"].activeChildren.length).eq(
                 numPoints,
             );
@@ -1355,7 +1367,10 @@ describe("Map tag tests", async () => {
                 ["/q3a", "/q3b"],
             ];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let n = 0; n < 3; n++) {
                 for (let i = 0; i < 2; i++) {
                     expect(stateVariables[pNames1[n][i]].stateValues.text).eq(
@@ -1441,7 +1456,10 @@ describe("Map tag tests", async () => {
         });
 
         async function check_items(a: number, b: number, c: number, d: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/a/ind"].stateValues.value).eqls(a);
             expect(stateVariables["/b/ind"].stateValues.value).eqls(b);
             expect(stateVariables["/c/ind"].stateValues.value).eqls(c);
@@ -1512,7 +1530,10 @@ describe("Map tag tests", async () => {
             n1: number,
             n2: number,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (h1) {
                 expect(stateVariables["/m1"].stateValues.text).eq("map 1: ");
@@ -1673,7 +1694,7 @@ describe("Map tag tests", async () => {
             "/pnocommas6a",
         ];
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let name of commaNames) {
             // Note: we do not remove whitespace that has a following commas,
@@ -1754,7 +1775,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "( 1, 1 ), ( 2, 4 ), ( 3, 9 )",
         );
@@ -1784,7 +1805,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         // Note: filter out strings by only including replacements
         // with a component type
         let n1a = stateVariables[
@@ -1812,7 +1833,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("hi 1");
         expect(stateVariables["/p2"].stateValues.text).eq("hi 2");
@@ -1855,7 +1876,7 @@ describe("Map tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m1"].stateValues.value.tree).eqls([
             "*",

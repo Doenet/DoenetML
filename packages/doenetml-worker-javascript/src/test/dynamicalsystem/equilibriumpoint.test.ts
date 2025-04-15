@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -44,7 +44,7 @@ describe("Equilibriumpoint Tag Tests", async () => {
         const pointB = [7, 0];
         const pointC = [-9, 0];
         const pointD = [-3, 0];
-        let svs = await returnAllStateVariables(core);
+        let svs = await core.returnAllStateVariables(false, true);
         expect(svs["/g/A"].stateValues.xs.map((v) => v.tree)).eqls(pointA);
         expect(svs["/g/B"].stateValues.xs.map((v) => v.tree)).eqls(pointB);
         expect(svs["/g/C"].stateValues.xs.map((v) => v.tree)).eqls(pointC);
@@ -59,7 +59,10 @@ describe("Equilibriumpoint Tag Tests", async () => {
         let Ds = false;
 
         async function check_stable() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/gAs"].stateValues.value).eqls(As);
             expect(stateVariables["/gBs"].stateValues.value).eqls(false);
             expect(stateVariables["/gCs"].stateValues.value).eqls(Cs);
@@ -96,7 +99,6 @@ describe("Equilibriumpoint Tag Tests", async () => {
             componentName: "/g/A",
             actionName: "switchPoint",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -106,7 +108,6 @@ describe("Equilibriumpoint Tag Tests", async () => {
             componentName: "/g2/A",
             actionName: "switchPoint",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -115,7 +116,6 @@ describe("Equilibriumpoint Tag Tests", async () => {
             componentName: "/g/B",
             actionName: "switchPoint",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -124,7 +124,6 @@ describe("Equilibriumpoint Tag Tests", async () => {
             componentName: "/g2/C",
             actionName: "switchPoint",
             args: {},
-            event: null,
         });
         await check_stable();
 
@@ -134,7 +133,6 @@ describe("Equilibriumpoint Tag Tests", async () => {
             componentName: "/g2/D",
             actionName: "switchPoint",
             args: {},
-            event: null,
         });
     });
 });

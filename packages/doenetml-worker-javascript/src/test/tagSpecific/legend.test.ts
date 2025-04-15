@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -43,12 +43,12 @@ async function check_legend({
     legendItems,
     position,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
     legendName?: string;
     legendItems: LegendItem[];
     position?: string;
 }) {
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(false, true);
 
     if (position) {
         expect(stateVariables[legendName].stateValues.position).eq(position);

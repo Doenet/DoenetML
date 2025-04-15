@@ -3,7 +3,6 @@ import React, {
     ErrorInfo,
     ReactElement,
     ReactNode,
-    useCallback,
     useEffect,
     useRef,
     useState,
@@ -16,13 +15,17 @@ import {
     data_format_version,
     cidFromText,
 } from "@doenet/utils";
+import * as Comlink from "comlink";
+
 import { MdError } from "react-icons/md";
 import { rendererState } from "./useDoenetRenderer";
-import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
+import { atomFamily, useRecoilCallback } from "recoil";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
+import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Icon } from "@chakra-ui/react";
+import { Remote } from "comlink";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -30,8 +33,6 @@ const rendererUpdatesToIgnore = atomFamily({
 });
 
 export const DocContext = createContext<{
-    navigate?: any;
-    location?: any;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -56,13 +57,11 @@ export function DocViewer({
     requestedVariantIndex,
     initialState,
     setErrorsAndWarningsCallback,
-    reportScoreAndStateCallback,
+    reportScoreAndStateCallback: specifiedReportScoreAndStateCallback,
     documentStructureCallback,
     initializedCallback,
     setIsInErrorState,
     prefixForIds = "",
-    location = {},
-    navigate,
     linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
     scrollableContainer,
     darkMode,
@@ -91,8 +90,6 @@ export function DocViewer({
     initializedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
-    location?: any;
-    navigate?: any;
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
@@ -240,16 +237,10 @@ export function DocViewer({
         warnings: any[];
     }>({ errors: [], warnings: [] });
 
-    const resolveAllStateVariables = useRef<((value: unknown) => void) | null>(
-        null,
-    );
-    const resolveErrorWarnings = useRef<((value: unknown) => void) | null>(
-        null,
-    );
     const actionsBeforeCoreCreated = useRef<
         {
             actionName: string;
-            componentName?: string;
+            componentName: string | undefined;
             args: Record<string, any>;
         }[]
     >([]);
@@ -281,20 +272,14 @@ export function DocViewer({
         >
     >({});
 
-    const previousLocationKeys = useRef<any[]>([]);
-
     const errorInitializingRenderers = useRef(false);
     const errorInsideRenderers = useRef(false);
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
-    const [coreWorker, setCoreWorker] = useState<Worker | null>(null);
-
-    let hash = location.hash;
+    const coreWorker = useRef<Remote<CoreWorker> | null>(null);
 
     const contextForRenderers = {
-        navigate,
-        location,
         linkSettings,
         scrollableContainer,
         darkMode,
@@ -309,171 +294,10 @@ export function DocViewer({
             .replaceAll("-", "_") || "1";
 
     useEffect(() => {
-        async function initialize() {
-            let newCoreWorker = createCoreWorker();
-            setCoreWorker(newCoreWorker);
-
-            try {
-                await initializeCoreWorker({
-                    coreWorker: newCoreWorker,
-                    doenetML,
-                    flags,
-                    activityId,
-                    docId,
-                    attemptNumber,
-                    requestedVariantIndex,
-                });
-            } catch (e: any) {
-                let message = "";
-                if ("message" in e) {
-                    message = e.message;
-                }
-                setErrMsg(`Error initializing activity: ${message}`);
-            }
-        }
-
-        initialize();
-    }, []);
-
-    useEffect(() => {
-        if (!coreWorker) {
-            return;
-        }
-        coreWorker.onmessage = function (e) {
-            // console.log("message from core", e.data);
-            if (e.data.messageType === "updateRenderers") {
-                if (
-                    e.data.init &&
-                    coreInfo.current &&
-                    !errorInitializingRenderers.current &&
-                    !errorInsideRenderers.current &&
-                    !hidden
-                ) {
-                    // we don't initialize renderer state values if already have a coreInfo
-                    // and no errors were encountered
-                    // as we must have already gotten the renderer information before core was created.
-                    // Exception if doc is hidden,
-                    // then we still update the renderers.
-                    // This exception is important because, in this case,
-                    // the renderers have not yet been rendered, so any errors would not yet have revealed
-                    // (and for the same reason, there cannot have been any user actions queued)
-                } else {
-                    updateRenderers(e.data.args);
-                    if (errorInsideRenderers.current) {
-                        setIgnoreRendererError(true);
-                        setIsInErrorState?.(false);
-                    }
-                }
-            } else if (e.data.messageType === "requestAnimationFrame") {
-                requestAnimationFrame(e.data.args);
-            } else if (e.data.messageType === "cancelAnimationFrame") {
-                cancelAnimationFrame(e.data.args);
-            } else if (e.data.messageType === "coreCreated") {
-                coreCreated.current = true;
-                coreCreationInProgress.current = false;
-                preventMoreAnimations.current = false;
-                for (let actionArgs of actionsBeforeCoreCreated.current) {
-                    coreWorker.postMessage({
-                        messageType: "requestAction",
-                        args: actionArgs,
-                    });
-                }
-                setStage("coreCreated");
-                initializedCallback?.({ activityId, docId });
-            } else if (e.data.messageType === "initializeRenderers") {
-                if (
-                    coreInfo.current &&
-                    JSON.stringify(coreInfo.current) ===
-                        JSON.stringify(e.data.args.coreInfo) &&
-                    !errorInitializingRenderers.current &&
-                    !errorInsideRenderers.current
-                ) {
-                    // we already initialized renderers before core was created and no errors were encountered
-                    // so don't initialize them again when core sends the initializeRenderers message
-                } else {
-                    initializeRenderers(e.data.args);
-                    if (errorInsideRenderers.current) {
-                        setIgnoreRendererError(true);
-                        setIsInErrorState?.(false);
-                    }
-                }
-            } else if (e.data.messageType === "savedState") {
-                // saveStateCallback?.();
-            } else if (e.data.messageType === "sendAlert") {
-                console.log(`Sending alert message: ${e.data.args.message}`);
-                // sendAlert(e.data.args.message, e.data.args.alertType);
-            } else if (e.data.messageType === "resolveAction") {
-                resolveAction(e.data.args);
-            } else if (e.data.messageType === "returnAllStateVariables") {
-                console.log(e.data.args);
-                resolveAllStateVariables.current?.(e.data.args);
-            } else if (e.data.messageType === "returnErrorWarnings") {
-                let returnedErrorWarnings = e.data.args;
-                console.log(returnedErrorWarnings);
-                resolveErrorWarnings.current?.(returnedErrorWarnings);
-            } else if (e.data.messageType === "componentRangePieces") {
-                (window as any)["componentRangePieces" + docId] =
-                    e.data.args.componentRangePieces;
-            } else if (e.data.messageType === "inErrorState") {
-                setIsInErrorState?.(true);
-                setErrMsg(e.data.args.errMsg);
-            } else if (e.data.messageType === "setErrorWarnings") {
-                errorWarnings.current = e.data.errorWarnings;
-                setErrorsAndWarningsCallback?.(errorWarnings.current);
-            } else if (e.data.messageType === "copyToClipboard") {
-                copyToClipboard(e.data.args);
-            } else if (e.data.messageType === "navigateToTarget") {
-                navigateToTarget(e.data.args);
-            } else if (e.data.messageType === "navigateToHash") {
-                navigate(location.search + e.data.args.hash, {
-                    replace: true,
-                });
-            } else if (e.data.messageType === "reportScoreAndState") {
-                if (reportScoreAndStateCallback) {
-                    reportScoreAndStateCallback({
-                        ...e.data,
-                        activityId,
-                        docId,
-                    });
-                } else {
-                    window.postMessage({
-                        ...e.data,
-                        subject: "SPLICE.reportScoreAndState",
-                        activityId,
-                        docId,
-                    });
-                }
-            } else if (e.data.messageType === "recordSolutionView") {
-                window.postMessage({
-                    ...e.data,
-                    subject: "SPLICE.recordSolutionView",
-                    activityId,
-                    docId,
-                });
-            } else if (e.data.messageType === "sendEvent") {
-                window.postMessage({
-                    ...e.data,
-                    subject: "SPLICE.sendEvent",
-                    activityId,
-                    docId,
-                });
-            } else if (e.data.messageType === "documentStructure") {
-                documentStructureCallback?.({
-                    ...e.data,
-                    activityId,
-                    docId,
-                });
-            } else if (e.data.messageType === "terminated") {
-                reinitializeCoreAndTerminateAnimations();
-            }
-        };
-    }, [coreWorker, location]);
-
-    useEffect(() => {
         return () => {
-            coreWorker?.postMessage({
-                messageType: "terminate",
-            });
+            coreWorker.current?.terminate();
+            coreWorker.current = null;
+            coreCreated.current = false;
         };
     }, []);
 
@@ -511,31 +335,22 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
-        if (!coreWorker) {
+        if (!coreWorker.current) {
             return;
         }
         if (docId !== null) {
             (window as any)[
                 "returnAllStateVariables" + postfixForWindowFunctions
-            ] = function () {
-                coreWorker.postMessage({
-                    messageType: "returnAllStateVariables",
-                });
-
-                return new Promise((resolve, reject) => {
-                    resolveAllStateVariables.current = resolve;
-                });
+            ] = async function () {
+                const allStateVariables =
+                    await coreWorker.current?.returnAllStateVariables(true);
+                console.log(allStateVariables);
+                return allStateVariables;
             };
 
             (window as any)["returnErrorWarnings" + postfixForWindowFunctions] =
                 function () {
-                    coreWorker.postMessage({
-                        messageType: "returnErrorWarnings",
-                    });
-
-                    return new Promise((resolve, reject) => {
-                        resolveErrorWarnings.current = resolve;
-                    });
+                    return errorWarnings.current;
                 };
 
             (window as any)["callAction" + postfixForWindowFunctions] =
@@ -554,7 +369,7 @@ export function DocViewer({
                     });
                 };
         }
-    }, [docId, coreWorker]);
+    }, [docId, coreWorker.current]);
 
     useEffect(() => {
         return () => {
@@ -567,50 +382,30 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
-        if (!coreWorker) {
+        if (!coreWorker.current) {
             return;
         }
-        document.addEventListener("visibilitychange", () => {
-            coreWorker.postMessage({
-                messageType: "visibilityChange",
-                args: {
-                    visible: document.visibilityState === "visible",
-                },
-            });
-        });
-    }, [coreWorker]);
 
-    useEffect(() => {
-        if (hash && coreCreated.current && coreWorker) {
-            let anchor = hash.slice(1);
-            if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
-                coreWorker.postMessage({
-                    messageType: "navigatingToComponent",
-                    args: {
-                        componentName: anchor
-                            .substring(prefixForIds.length)
-                            .replaceAll("\\/", "/"),
-                        hash,
-                    },
-                });
-            }
+        // Based on the "visibilityChange" event from the browser,
+        // start or stop the tracking of the visibility of DoenetML components
+        function documentVisibilityListener() {
+            coreWorker.current?.handleVisibilityChange(
+                document.visibilityState === "visible",
+            );
         }
-    }, [location, hash, coreCreated.current, coreWorker]);
 
-    useEffect(() => {
-        if (hash && documentRenderer && render) {
-            let anchor = hash.slice(1);
-            if (
-                (!previousLocationKeys.current.includes(location.key) ||
-                    location.key === "default") &&
-                anchor.length > prefixForIds.length &&
-                anchor.substring(0, prefixForIds.length) === prefixForIds
-            ) {
-                document.getElementById(anchor)?.scrollIntoView();
-            }
-            previousLocationKeys.current.push(location.key);
-        }
-    }, [location, hash, documentRenderer, render]);
+        document.addEventListener(
+            "visibilitychange",
+            documentVisibilityListener,
+        );
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                documentVisibilityListener,
+            );
+        };
+    }, [coreWorker.current]);
 
     useEffect(() => {
         callAction({
@@ -619,95 +414,44 @@ export function DocViewer({
         });
     }, [darkMode]);
 
-    // TODO: fix this function as it uses conventions that are no longer valid
-    const navigateToTarget = useCallback(
-        async ({
-            cid,
-            activityId,
-            variantIndex,
-            edit,
-            hash,
-            uri,
-            targetName,
-            actionId,
-            componentName,
-            effectiveName,
-        }: {
-            cid?: string;
-            activityId?: string;
-            variantIndex?: number;
-            edit?: boolean;
-            hash?: string;
-            uri?: string;
-            targetName?: string;
-            actionId?: string;
-            componentName?: string;
-            effectiveName: string;
-        }) => {
-            let id = prefixForIds + cesc(effectiveName);
-            let { targetForATag, url, haveValidTarget, externalUri } =
-                getURLFromRef({
-                    cid,
-                    activityId,
-                    variantIndex,
-                    edit,
-                    hash,
-                    givenUri: uri,
-                    targetName,
-                    linkSettings,
-                    search: location.search,
-                    id,
-                });
-
-            if (haveValidTarget) {
-                if (targetForATag === "_blank") {
-                    window.open(url, targetForATag);
-                } else {
-                    // TODO: when fix regular ref navigation to scroll back to previous scroll position
-                    // when click the back button
-                    // add that ability to this navigation as well
-
-                    // let scrollAttribute = scrollableContainer === window ? "scrollY" : "scrollTop";
-                    // let stateObj = { fromLink: true }
-                    // Object.defineProperty(stateObj, 'previousScrollPosition', { get: () => scrollableContainer?.[scrollAttribute], enumerable: true });
-
-                    navigate?.(url);
-                }
-            }
-
-            resolveAction({ actionId });
-        },
-        [location],
-    );
-
     async function reinitializeCoreAndTerminateAnimations() {
-        preventMoreAnimations.current = true;
-        coreWorker?.terminate();
+        if (coreWorker.current !== null) {
+            preventMoreAnimations.current = true;
+            await coreWorker.current.terminate();
+            actionsBeforeCoreCreated.current = [];
+            for (let id in animationInfo.current) {
+                cancelAnimationFrame(id);
+            }
+            animationInfo.current = {};
+        }
+
         const newCoreWorker = createCoreWorker();
-        setCoreWorker(newCoreWorker);
+        coreWorker.current = newCoreWorker;
 
         coreCreated.current = false;
         coreCreationInProgress.current = false;
-        for (let id in animationInfo.current) {
-            cancelAnimationFrame(id);
-        }
-        animationInfo.current = {};
-        actionsBeforeCoreCreated.current = [];
 
-        await initializeCoreWorker({
+        const initializeResult = await initializeCoreWorker({
             coreWorker: newCoreWorker,
             doenetML,
             flags,
             activityId,
             docId,
-            attemptNumber,
             requestedVariantIndex,
+            attemptNumber,
+            documentStructureCallback,
         });
+
+        if (initializeResult.success === false) {
+            setErrMsg(
+                `Error initializing activity: ${initializeResult.errMsg}`,
+            );
+        }
 
         return newCoreWorker;
     }
 
-    async function callAction({
+    function callAction({
         action,
         args,
         baseVariableValue,
@@ -773,7 +517,7 @@ export function DocViewer({
                 // If the currently running action is resolved while this action
                 // is still the last skipped action, then this action might be executed.
 
-                // If promiseResolve is undefined, then it's the original call of thise action.
+                // If promiseResolve is undefined, then it's the original call of this action.
                 // Create a promise that will be returned.
                 // It will be resolved with false when this action is definitely skipped,
                 // or it will be resolved with true if this action ends up being executed.
@@ -805,12 +549,15 @@ export function DocViewer({
             }
         }
 
+        // If we made it here, then we're definitely going to call the action
+        // (though if core isn't created yet, we might queue it to be called once core is created)
+
         let actionId = nanoid();
         args = { ...args };
         args.actionId = actionId;
 
         if (baseVariableValue !== undefined && componentName) {
-            // Update the bookkeping variables for the optimistic UI that will tell the renderer
+            // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
             updateRendererUpdatesToIgnore({
                 coreId: coreId.current,
@@ -826,17 +573,7 @@ export function DocViewer({
             args,
         };
 
-        if (coreCreated.current) {
-            // Note: it is possible that core has been terminated, so we need the question mark
-            coreWorker?.postMessage({
-                messageType: "requestAction",
-                args: actionArgs,
-            });
-        } else {
-            // If core has not yet been created,
-            // queue the action to be sent once core is created
-            actionsBeforeCoreCreated.current.push(actionArgs);
-        }
+        executeAction(actionArgs);
 
         if (promiseResolve) {
             // If we were sent promiseResolve as an argument,
@@ -851,6 +588,25 @@ export function DocViewer({
                 resolveActionPromises.current[actionId] = resolve;
             });
         }
+    }
+
+    async function executeAction(actionArgs: {
+        actionName: string;
+        componentName: string | undefined;
+        args: Record<string, any>;
+    }) {
+        if (!coreCreated.current) {
+            // If core has not yet been created,
+            // queue the action to be sent once core is created
+            actionsBeforeCoreCreated.current.push(actionArgs);
+            return;
+        }
+
+        // Note: it is possible that core has been terminated, so we need the question mark
+        const actionResult =
+            await coreWorker.current?.dispatchActionJavascript(actionArgs);
+
+        resolveAction(actionResult);
     }
 
     function forceRendererState({
@@ -974,7 +730,6 @@ export function DocViewer({
                 "codeViewer",
                 "containerBlock",
                 "containerInline",
-                "contentBrowser",
                 "contentPicker",
                 "curve",
             ]);
@@ -1008,8 +763,6 @@ export function DocViewer({
                         docId,
                         activityId,
                         callAction,
-                        navigate,
-                        location,
                         linkSettings,
                         scrollableContainer,
                     }),
@@ -1022,14 +775,43 @@ export function DocViewer({
             });
     }
 
-    //offscreen then postpone that one
     function updateRenderers({
         updateInstructions,
         actionId,
+        errorWarnings: newErrorWarnings,
+        init = false,
     }: {
         updateInstructions: Record<string, any>[];
         actionId?: string;
+        errorWarnings?: {
+            errors: any[];
+            warnings: any[];
+        };
+        init?: boolean;
     }) {
+        if (newErrorWarnings) {
+            errorWarnings.current = newErrorWarnings;
+            setErrorsAndWarningsCallback?.(errorWarnings.current);
+        }
+
+        if (
+            init &&
+            coreInfo.current &&
+            !errorInitializingRenderers.current &&
+            !errorInsideRenderers.current &&
+            !hidden
+        ) {
+            // we don't update renderer state values if already have a coreInfo
+            // and no errors were encountered
+            // as we must have already gotten the renderer information before core was created.
+            // Exception if doc is hidden,
+            // then we still update the renderers.
+            // This exception is important because, in this case,
+            // the renderers have not yet been rendered, so any errors would not yet have revealed
+            // (and for the same reason, there cannot have been any user actions queued)
+            return;
+        }
+
         for (let instruction of updateInstructions) {
             if (instruction.instructionType === "updateRendererStates") {
                 for (let {
@@ -1077,7 +859,24 @@ export function DocViewer({
         }
     }
 
-    async function loadStateAndInitialize(initialPass = false) {
+    function reportScoreAndStateCallback(data: unknown) {
+        if (specifiedReportScoreAndStateCallback) {
+            specifiedReportScoreAndStateCallback({
+                data,
+                activityId,
+                docId,
+            });
+        } else {
+            window.postMessage({
+                data,
+                subject: "SPLICE.reportScoreAndState",
+                activityId,
+                docId,
+            });
+        }
+    }
+
+    async function loadStateAndInitialize() {
         const coreIdWhenCalled = coreId.current;
         let loadedState = false;
 
@@ -1176,7 +975,7 @@ export function DocViewer({
         //Guard against the possibility that parameters changed while waiting
         if (coreIdWhenCalled === coreId.current) {
             if (render) {
-                startCore(initialPass);
+                startCore();
             } else {
                 setStage("readyToCreateCore");
             }
@@ -1267,31 +1066,40 @@ export function DocViewer({
         initializeCounters.current = data.initializeCounters;
     }
 
-    async function startCore(initialPass = false) {
-        let thisCoreWorker = coreWorker;
+    async function startCore() {
+        let thisCoreWorker = coreWorker.current;
 
         if (coreCreated.current || !thisCoreWorker) {
             //Kill the current core if it exists
             thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
-        } else if (!initialPass) {
-            // otherwise, if not initial pass, then re-initialize to give it the current DoenetML
-            await initializeCoreWorker({
+        } else {
+            // otherwise, initialize core worker to give it the current DoenetML
+
+            let initializeResult = await initializeCoreWorker({
                 coreWorker: thisCoreWorker,
                 doenetML,
                 flags,
                 activityId,
                 docId,
-                attemptNumber,
                 requestedVariantIndex,
+                attemptNumber,
+                documentStructureCallback,
             });
+
+            if (initializeResult.success === false) {
+                setErrMsg(
+                    `Error initializing activity: ${initializeResult.errMsg}`,
+                );
+                return;
+            }
         }
 
         resolveActionPromises.current = {};
 
-        // console.log(`send message to create core ${docId}`)
-        thisCoreWorker.postMessage({
-            messageType: "createCore",
-            args: {
+        coreCreationInProgress.current = true;
+
+        const dastResult = await thisCoreWorker.generateJavascriptDast(
+            {
                 coreId: coreId.current,
                 userId,
                 cid: cid.current,
@@ -1305,10 +1113,52 @@ export function DocViewer({
                     : undefined,
                 initializeCounters: initializeCounters.current,
             },
-        });
+            Comlink.proxy(updateRenderers),
+            Comlink.proxy(reportScoreAndStateCallback),
+            Comlink.proxy(requestAnimationFrame),
+            Comlink.proxy(cancelAnimationFrame),
+            Comlink.proxy(copyToClipboard),
+            Comlink.proxy(sendEvent),
+        );
 
-        setStage("waitingOnCore");
-        coreCreationInProgress.current = true;
+        if (dastResult.success) {
+            if (
+                coreInfo.current &&
+                JSON.stringify(coreInfo.current) ===
+                    JSON.stringify(dastResult.coreInfo) &&
+                !errorInitializingRenderers.current &&
+                !errorInsideRenderers.current
+            ) {
+                // we already initialized renderers before core was created and no errors were encountered
+                // so don't initialize them again when core sends the initializeRenderers message
+            } else {
+                initializeRenderers({ coreInfo: dastResult.coreInfo });
+                if (errorInsideRenderers.current) {
+                    setIgnoreRendererError(true);
+                    setIsInErrorState?.(false);
+                }
+            }
+
+            if (dastResult.errorWarnings) {
+                errorWarnings.current = dastResult.errorWarnings;
+                setErrorsAndWarningsCallback?.(errorWarnings.current);
+            }
+
+            (window as any)["componentRangePieces" + docId] =
+                dastResult.componentRangePieces;
+        } else {
+            setIsInErrorState?.(true);
+            setErrMsg(dastResult.errMsg);
+        }
+
+        coreCreated.current = true;
+        coreCreationInProgress.current = false;
+        preventMoreAnimations.current = false;
+        for (let actionArgs of actionsBeforeCoreCreated.current) {
+            executeAction(actionArgs);
+        }
+        setStage("coreCreated");
+        initializedCallback?.({ activityId, docId });
     }
 
     function requestAnimationFrame({
@@ -1379,6 +1229,15 @@ export function DocViewer({
         delete animationInfo.current[animationId];
     }
 
+    function sendEvent(data: any) {
+        window.postMessage({
+            ...data,
+            subject: "SPLICE.sendEvent",
+            activityId,
+            docId,
+        });
+    }
+
     async function copyToClipboard({
         text,
         actionId,
@@ -1386,7 +1245,9 @@ export function DocViewer({
         text: string;
         actionId?: string;
     }) {
-        await navigator.clipboard.writeText(text);
+        if (typeof text === "string") {
+            await navigator.clipboard.writeText(text);
+        }
 
         resolveAction({ actionId });
     }
@@ -1399,10 +1260,6 @@ export function DocViewer({
         }
     }
 
-    if (!coreWorker) {
-        return null;
-    }
-
     // first, if last parameters don't match props
     // set state to props and record that that need a new core
 
@@ -1411,8 +1268,21 @@ export function DocViewer({
     const initialPass = lastDoenetML.current === null;
 
     // if we are just starting and the document isn't being rendered,
-    // don't do anything more
+    // then just initialize the core worker so that can return document structure
+    // but core itself won't actually start
     if (initialPass && !render) {
+        let newCoreWorker = createCoreWorker();
+        coreWorker.current = newCoreWorker;
+        initializeCoreWorker({
+            coreWorker: newCoreWorker,
+            doenetML,
+            flags,
+            activityId,
+            docId,
+            requestedVariantIndex,
+            attemptNumber,
+            documentStructureCallback,
+        });
         return null;
     }
 
@@ -1459,7 +1329,7 @@ export function DocViewer({
 
         setStage("wait");
 
-        loadStateAndInitialize(initialPass);
+        loadStateAndInitialize();
 
         return null;
     }

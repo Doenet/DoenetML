@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -23,7 +23,7 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("one dog");
         expect(stateVariables["/p2"].stateValues.text).eq("two dogs");
         expect(stateVariables["/p3"].stateValues.text).eq("zero dogs");
@@ -48,7 +48,7 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("dogs");
         expect(stateVariables["/p2"].stateValues.text).eq("mice");
         expect(stateVariables["/p3"].stateValues.text).eq("buses");
@@ -73,7 +73,7 @@ describe("Pluralize tag tests", async () => {
       `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("one dog");
         expect(stateVariables["/p2"].stateValues.text).eq("two cheetahs");
         expect(stateVariables["/p3"].stateValues.text).eq("zero cheetahs");
@@ -100,7 +100,7 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("cheetahs");
         expect(stateVariables["/p2"].stateValues.text).eq("cheetahs");
         expect(stateVariables["/p3"].stateValues.text).eq("cheetahs");
@@ -125,7 +125,7 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("one dogs");
         expect(stateVariables["/p2"].stateValues.text).eq("two dog");
         expect(stateVariables["/p3"].stateValues.text).eq("zero dogs");
@@ -156,7 +156,7 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("dogs");
         expect(stateVariables["/p2"].stateValues.text).eq("dog");
         expect(stateVariables["/p3"].stateValues.text).eq("mice");
@@ -179,7 +179,7 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "one dog three cats two squirrels or 1 cat plus 7 geese",
         );
@@ -198,25 +198,25 @@ describe("Pluralize tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have 1 goose even if one doesn't have 1 tooth",
         );
 
         await updateTextInputValue({ name: "/nGeese", text: "three", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have three geese even if one doesn't have 1 tooth",
         );
 
         await updateTextInputValue({ name: "/nTeeth", text: "0", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have three geese even if one doesn't have 0 teeth",
         );
 
         await updateTextInputValue({ name: "/nTeeth", text: "one", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have three geese even if one doesn't have one tooth",
         );
@@ -226,19 +226,19 @@ describe("Pluralize tag tests", async () => {
             text: "one thousand",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have three geese even if one doesn't have one thousand teeth",
         );
 
         await updateTextInputValue({ name: "/nGeese", text: "-1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have -1 geese even if one doesn't have one thousand teeth",
         );
 
         await updateTextInputValue({ name: "/nGeese", text: "-2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p3"].stateValues.text).eq(
             "I have -2 geese even if one doesn't have one thousand teeth",
         );

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
 import { test_in_graph } from "../utils/in-graph";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 import { cleanLatex } from "../utils/math";
 
 const Mock = vi.fn();
@@ -19,13 +19,12 @@ export async function moveImage({
     name: string;
     x: number;
     y: number;
-    core: Core;
+    core: PublicDoenetMLCore;
 }) {
     await core.requestAction({
         componentName: name,
         actionName: "moveImage",
         args: { x, y },
-        event: null,
     });
 }
 
@@ -106,7 +105,7 @@ describe("Image tag tests", async () => {
             ibadwidth: "medium",
         };
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let name in expectedSizes) {
             expect(stateVariables["/" + name].stateValues.size).eq(
                 expectedSizes[name],
@@ -129,7 +128,7 @@ describe("Image tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i"].stateValues.horizontalAlign).eq("center");
         expect(stateVariables["/ileft"].stateValues.horizontalAlign).eq("left");
         expect(stateVariables["/iright"].stateValues.horizontalAlign).eq(
@@ -156,7 +155,7 @@ describe("Image tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i"].stateValues.displayMode).eq("block");
         expect(stateVariables["/iinline"].stateValues.displayMode).eq("inline");
         expect(stateVariables["/iblock"].stateValues.displayMode).eq("block");
@@ -191,7 +190,7 @@ describe("Image tag tests", async () => {
 
         // Is there a way to test the rotation of the image in the graph?
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/image1"].stateValues.rotate).eq(Math.PI / 4);
 
         await updateMathInputValue({
@@ -199,7 +198,7 @@ describe("Image tag tests", async () => {
             name: "/rotate1",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/image1"].stateValues.rotate).eq(
             (3 * Math.PI) / 4,
         );
@@ -209,7 +208,7 @@ describe("Image tag tests", async () => {
             name: "/rotate1a",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/image1"].stateValues.rotate).eq(-Math.PI);
     });
 
@@ -228,7 +227,7 @@ describe("Image tag tests", async () => {
             `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
@@ -241,7 +240,7 @@ describe("Image tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
@@ -254,7 +253,7 @@ describe("Image tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/image1anchor"].stateValues.latex),

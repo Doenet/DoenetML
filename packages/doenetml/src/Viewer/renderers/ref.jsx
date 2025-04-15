@@ -44,12 +44,7 @@ const RefButton = styled.button`
 export default React.memo(function Ref(props) {
     let { name, id, SVs, children } = useDoenetRenderer(props);
 
-    let {
-        location = {},
-        navigate,
-        linkSettings,
-        scrollableContainer,
-    } = useContext(DocContext) || {};
+    let { location = {}, linkSettings } = useContext(DocContext) || {};
 
     let search = location.search || "";
 
@@ -95,7 +90,9 @@ export default React.memo(function Ref(props) {
                     <a name={id} />
                     <RefButton
                         id={id + "_button"}
-                        onClick={() => navigate(url)}
+                        onClick={() => {
+                            window.location.href = url;
+                        }}
                         disabled={SVs.disabled}
                     >
                         {SVs.linkText}

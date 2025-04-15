@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -16,7 +16,7 @@ describe("Error Tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/good"].stateValues.value.tree).eqls([
             "+",
@@ -29,7 +29,7 @@ describe("Error Tests", async () => {
             "b",
         ]);
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -55,7 +55,7 @@ describe("Error Tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/good"].stateValues.value.tree).eqls([
             "+",
@@ -71,7 +71,7 @@ describe("Error Tests", async () => {
         // confirm tag after section survives
         expect(stateVariables["/m"].stateValues.value.tree).eq("x");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -108,13 +108,13 @@ describe("Error Tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m1"].stateValues.value.tree).eq("y");
         expect(stateVariables["/sec"].stateValues.title).eq("Section 1");
         expect(stateVariables["/_p3"].stateValues.text).eq("Hello there!");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(8);
         expect(errorWarnings.warnings.length).eq(0);
@@ -198,7 +198,7 @@ a />
   `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(7);
         expect(errorWarnings.warnings.length).eq(0);
@@ -274,7 +274,7 @@ a />
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(4);
         expect(errorWarnings.warnings.length).eq(0);
@@ -321,7 +321,7 @@ a />
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
@@ -351,7 +351,7 @@ a />
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -379,7 +379,7 @@ a />
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(6);
         expect(errorWarnings.warnings.length).eq(0);
@@ -442,7 +442,7 @@ a />
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -468,7 +468,7 @@ a />
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
@@ -516,13 +516,13 @@ a />
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/e2"].stateValues.value.tree).eq("＿");
         expect(stateVariables["/e3"].stateValues.value.tree).eq("＿");
         expect(stateVariables["/e4"].stateValues.value.tree).eq("＿");
         expect(stateVariables["/e5"].stateValues.value.tree).eq("＿");
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(4);
         expect(errorWarnings.warnings.length).eq(0);
@@ -627,7 +627,7 @@ $A{assignNames="a" assignnames="b"}
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(7);
         expect(errorWarnings.warnings.length).eq(0);
@@ -709,7 +709,7 @@ $A{assignNames="a" assignnames="b"}
     it("Get line/char numbers with no linebreaks", async () => {
         let core = await createTestCore({ doenetML: `<bad>` });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(2);
         expect(errorWarnings.warnings.length).eq(0);
@@ -740,7 +740,7 @@ $A{assignNames="a" assignnames="b"}
 `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -765,7 +765,7 @@ $A{assignNames="a" assignnames="b"}
 `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/f"].stateValues.formula.tree).eqls([
             "+",
             "x",
@@ -777,7 +777,7 @@ $A{assignNames="a" assignnames="b"}
             "y",
         ]);
 
-        const errorWarnings = core.errorWarnings;
+        const errorWarnings = core.core!.getErrorWarnings().errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
@@ -811,7 +811,7 @@ $A{assignNames="a" assignnames="b"}
 `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/f"].stateValues.formula.tree).eqls([
             "+",
             "x",
@@ -833,7 +833,7 @@ $A{assignNames="a" assignnames="b"}
             "y",
         ]);
 
-        const errorWarnings = core.errorWarnings;
+        const errorWarnings = core.core!.getErrorWarnings().errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);

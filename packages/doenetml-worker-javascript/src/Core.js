@@ -63,6 +63,12 @@ export default class Core {
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
+        updateRenderersCallback,
+        reportScoreAndStateCallback,
+        requestAnimationFrame,
+        cancelAnimationFrame,
+        copyToClipboard,
+        sendEvent,
     }) {
         // console.time('core');
 
@@ -73,6 +79,12 @@ export default class Core {
         this.doenetML = doenetML;
         this.allDoenetMLs = allDoenetMLs;
         this.serializedDocument = serializedDocument;
+        this.updateRenderersCallback = updateRenderersCallback;
+        this.reportScoreAndStateCallback = reportScoreAndStateCallback;
+        this.requestAnimationFrame = requestAnimationFrame;
+        this.cancelAnimationFrame = cancelAnimationFrame;
+        this.copyToClipboard = copyToClipboard;
+        this.sendEvent = sendEvent;
 
         this.cid = cid;
 
@@ -86,7 +98,7 @@ export default class Core {
         this.flags = flags;
         this.theme = theme;
 
-        this.finishCoreConstruction = this.finishCoreConstruction.bind(this);
+        this.getDast = this.generateDast.bind(this);
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
@@ -117,7 +129,6 @@ export default class Core {
             performUpdate: this.performUpdate.bind(this),
             requestAction: this.requestAction.bind(this),
             performAction: this.performAction.bind(this),
-            resolveAction: this.resolveAction.bind(this),
             triggerChainedActions: this.triggerChainedActions.bind(this),
             updateRenderers: this.updateRenderers.bind(this),
             requestRecordEvent: this.requestRecordEvent.bind(this),
@@ -181,44 +192,18 @@ export default class Core {
 
         this.parameterStack.parameters.rngClass = seedrandom.alea;
         this.parameterStack.parameters.prerender = prerender;
-
-        this.initialized = false;
-        this.initializedPromiseResolveRejects = [];
-        this.postInitializedMessages = [];
-        this.resolveInitialized = () => {
-            this.initializedPromiseResolveRejects.forEach(({ resolve }) =>
-                resolve(true),
-            );
-            this.initialized = true;
-            for (let message of this.postInitializedMessages) {
-                postMessage(message);
-            }
-            this.postInitializedMessages = [];
-        };
-        this.rejectInitialized = (e) => {
-            this.initializedPromiseResolveRejects.forEach(({ reject }) =>
-                reject(e),
-            );
-        };
-        this.getInitializedPromise = () => {
-            if (this.initialized) {
-                return Promise.resolve(true);
-            } else {
-                return new Promise((resolve, reject) => {
-                    this.initializedPromiseResolveRejects.push({
-                        resolve,
-                        reject,
-                    });
-                });
-            }
-        };
-
-        this.finishCoreConstruction().catch((e) => {
-            this.rejectInitialized(e);
-        });
     }
 
-    async finishCoreConstruction() {
+    /**
+     * Construct core from the DoenetML in order to generate the Dast that can be used
+     * to render the document.
+     *
+     * Creates all components and resolves all dependencies necessary to determine
+     * state variables that are marked `forRenderer`.
+     *
+     * The dast is communicated back to the renderer via calls to `updateRenderersCallback`.
+     */
+    async generateDast() {
         this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
         let serializedComponents = [deepClone(this.serializedDocument)];
@@ -237,20 +222,6 @@ export default class Core {
 
         this.componentIndexArray =
             extractComponentNamesAndIndices(serializedComponents);
-
-        let { rangePieces } = extractRangeIndexPieces({
-            componentArray: this.componentIndexArray,
-        });
-
-        this.componentRangePieces = rangePieces;
-
-        postMessage({
-            messageType: "componentRangePieces",
-            coreId: this.coreId,
-            args: {
-                componentRangePieces: this.componentRangePieces,
-            },
-        });
 
         this.documentName = serializedComponents[0].componentName;
 
@@ -418,13 +389,39 @@ export default class Core {
             serializedComponentsReplacer,
         );
 
-        this.messageViewerReady();
-
-        this.resolveInitialized();
-
         if (!this.receivedStateVariableChanges) {
+            // TODO: find a way to delay this until after send the result on
             this.saveState();
         }
+
+        let { rangePieces } = extractRangeIndexPieces({
+            componentArray: this.componentIndexArray,
+        });
+
+        const returnResult = {
+            coreInfo: this.coreInfo,
+            componentRangePieces: rangePieces,
+        };
+
+        // warning if there are any children that are unmatched
+        if (Object.keys(this.unmatchedChildren).length > 0) {
+            for (let componentName in this.unmatchedChildren) {
+                let parent = this._components[componentName];
+                this.errorWarnings.warnings.push({
+                    message: this.unmatchedChildren[componentName].message,
+                    level: 1,
+                    doenetMLrange: parent.doenetMLrange,
+                });
+                this.newErrorWarning = true;
+            }
+        }
+
+        let errorWarnings = undefined;
+        if (this.newErrorWarning) {
+            errorWarnings = this.getErrorWarnings().errorWarnings;
+        }
+
+        return { ...returnResult, errorWarnings };
     }
 
     async onDocumentFirstVisible() {
@@ -461,52 +458,16 @@ export default class Core {
         );
     }
 
-    async messageViewerReady() {
-        postMessage({
-            messageType: "initializeRenderers",
-            coreId: this.coreId,
-            args: {
-                coreInfo: this.coreInfo,
-            },
-        });
-
-        // warning if there are any children that are unmatched
-        if (Object.keys(this.unmatchedChildren).length > 0) {
-            for (let componentName in this.unmatchedChildren) {
-                let parent = this._components[componentName];
-                this.errorWarnings.warnings.push({
-                    message: this.unmatchedChildren[componentName].message,
-                    level: 1,
-                    doenetMLrange: parent.doenetMLrange,
-                });
-                this.newErrorWarning = true;
-            }
-        }
-
-        postMessage({
-            messageType: "coreCreated",
-            coreId: this.coreId,
-        });
-
+    async callUpdateRenderers(args, init = false) {
+        let errorWarnings = undefined;
         if (this.newErrorWarning) {
-            this.postErrorWarnings();
+            errorWarnings = this.getErrorWarnings().errorWarnings;
         }
+
+        this.updateRenderersCallback({ ...args, init, errorWarnings });
     }
 
-    async postUpdateRenderers(args, init = false) {
-        postMessage({
-            messageType: "updateRenderers",
-            coreId: this.coreId,
-            args,
-            init,
-        });
-
-        if (this.newErrorWarning) {
-            this.postErrorWarnings();
-        }
-    }
-
-    postErrorWarnings() {
+    getErrorWarnings() {
         // keep only the last warnings
         let warningLimit = 1000;
         this.errorWarnings.warnings =
@@ -530,10 +491,7 @@ export default class Core {
 
         this.newErrorWarning = false;
 
-        postMessage({
-            messageType: "setErrorWarnings",
-            errorWarnings: this.errorWarnings,
-        });
+        return { errorWarnings: this.errorWarnings };
     }
 
     async addComponents({
@@ -664,7 +622,7 @@ export default class Core {
                 },
             ];
 
-            this.postUpdateRenderers({ updateInstructions }, true);
+            this.callUpdateRenderers({ updateInstructions }, true);
 
             // if have some states to force update
             // then post these updates without setting init to true
@@ -676,7 +634,7 @@ export default class Core {
                             results.rendererStatesToForceUpdate,
                     },
                 ];
-                this.postUpdateRenderers({ updateInstructions });
+                this.callUpdateRenderers({ updateInstructions });
             }
 
             await this.processStateVariableTriggers(true);
@@ -969,7 +927,7 @@ export default class Core {
             updateInstructions.splice(0, 0, instruction);
         }
 
-        this.postUpdateRenderers({ updateInstructions, actionId });
+        this.callUpdateRenderers({ updateInstructions, actionId });
     }
 
     async initializeRenderedComponentInstruction(
@@ -10626,30 +10584,47 @@ export default class Core {
         while (this.processQueue.length > 0) {
             let nextUpdateInfo = this.processQueue.splice(0, 1)[0];
             let result;
-            if (nextUpdateInfo.type === "update") {
-                if (!nextUpdateInfo.skippable || this.processQueue.length < 2) {
-                    result = await this.performUpdate(nextUpdateInfo);
+            try {
+                if (nextUpdateInfo.type === "update") {
+                    if (
+                        !nextUpdateInfo.skippable ||
+                        this.processQueue.length < 2
+                    ) {
+                        result = await this.performUpdate(nextUpdateInfo);
+                    }
+
+                    // TODO: if skip an update, presumably we should call reject???
+
+                    // } else if (nextUpdateInfo.type === "getStateVariableValues") {
+                    //   result = await this.performGetStateVariableValues(nextUpdateInfo);
+                } else if (nextUpdateInfo.type === "action") {
+                    if (
+                        !nextUpdateInfo.skippable ||
+                        this.processQueue.length < 2
+                    ) {
+                        result = await this.performAction(nextUpdateInfo);
+                    }
+
+                    // TODO: if skip an update, presumably we should call reject???
+                } else if (nextUpdateInfo.type === "recordEvent") {
+                    result = await this.performRecordEvent(nextUpdateInfo);
+                } else {
+                    throw Error(
+                        `Unrecognized process type: ${nextUpdateInfo.type}`,
+                    );
                 }
 
-                // TODO: if skip an update, presumably we should call reject???
-
-                // } else if (nextUpdateInfo.type === "getStateVariableValues") {
-                //   result = await this.performGetStateVariableValues(nextUpdateInfo);
-            } else if (nextUpdateInfo.type === "action") {
-                if (!nextUpdateInfo.skippable || this.processQueue.length < 2) {
-                    result = await this.performAction(nextUpdateInfo);
-                }
-
-                // TODO: if skip an update, presumably we should call reject???
-            } else if (nextUpdateInfo.type === "recordEvent") {
-                result = await this.performRecordEvent(nextUpdateInfo);
-            } else {
-                throw Error(
-                    `Unrecognized process type: ${nextUpdateInfo.type}`,
+                nextUpdateInfo.resolve(result);
+            } catch (e) {
+                nextUpdateInfo.reject(
+                    typeof e === "object" &&
+                        e &&
+                        "message" in e &&
+                        typeof e.message === "string"
+                        ? e.message
+                        : "Error in core",
                 );
             }
-
-            nextUpdateInfo.resolve(result);
         }
 
         this.processing = false;
@@ -10702,7 +10677,7 @@ export default class Core {
     //   return Promise.resolve({ success, retrievedValues });
     // }
 
-    requestAction({ componentName, actionName, args, event }) {
+    requestAction({ componentName, actionName, args }) {
         return new Promise((resolve, reject) => {
             let skippable = args?.skippable;
 
@@ -10712,7 +10687,6 @@ export default class Core {
                 actionName,
                 args,
                 skippable,
-                event,
                 resolve,
                 reject,
             });
@@ -10721,28 +10695,6 @@ export default class Core {
                 this.processing = true;
                 this.executeProcesses();
             }
-
-            // if (this.processing) {
-            //   this.processQueue.push({
-            //     type: "action", componentName, actionName, args, skippable, event, resolve, reject
-            //   })
-            // } else {
-            //   this.processing = true;
-
-            //   // Note: execute this process synchronously
-            //   // so that UI doesn't update until after finished.
-
-            //   this.performAction({ componentName, actionName, args, event }).then(resolve);
-
-            //   // execute asynchronously any remaining processes
-            //   // (that got added while performAction was running)
-
-            //   if (this.processQueue.length > 0) {
-            //     setTimeout(this.executeProcesses, 0);
-            //   } else {
-            //     this.processing = false;
-            //   }
-            // }
         });
     }
 
@@ -10757,7 +10709,7 @@ export default class Core {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
             // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
-            return await this.performUpdate({
+            await this.performUpdate({
                 updateInstructions: [
                     {
                         updateType: "updateValue",
@@ -10769,6 +10721,7 @@ export default class Core {
                 actionId: args.actionId,
                 doNotSave: true, // this isn't an interaction, so don't save doc state
             });
+            return { actionId: args.actionId };
         }
 
         let component = this.components[componentName];
@@ -10792,13 +10745,7 @@ export default class Core {
                     args = {};
                 }
                 await action(args);
-                if (args.actionId) {
-                    // Note: we no longer rely on the component to make sure resolve action is always called
-                    // but always explicitly call resolve action after an action.
-                    return this.resolveAction({ actionId: args.actionId });
-                } else {
-                    return;
-                }
+                return { actionId: args.actionId };
             }
         }
 
@@ -10818,7 +10765,7 @@ export default class Core {
                 },
                 result: { isVisible: false },
             });
-            return this.resolveAction({ actionId: args.actionId });
+            return { actionId: args.actionId };
         }
 
         if (component) {
@@ -10829,16 +10776,8 @@ export default class Core {
             });
             this.newErrorWarning = true;
         }
-    }
 
-    resolveAction({ actionId }) {
-        if (actionId) {
-            postMessage({
-                messageType: "resolveAction",
-                coreId: this.coreId,
-                args: { actionId },
-            });
-        }
+        return {};
     }
 
     async triggerChainedActions({
@@ -11373,10 +11312,7 @@ export default class Core {
             version: "0.1.1",
         };
 
-        postMessage({
-            messageType: "sendEvent",
-            data: payload,
-        });
+        this.sendEvent(payload);
     }
 
     processVisibilityChangedEvent(event) {
@@ -12943,11 +12879,6 @@ export default class Core {
             );
         }
 
-        postMessage({
-            messageType: "savedState",
-            coreId: this.coreId,
-        });
-
         if (!this.flags.allowSaveState) {
             return;
         }
@@ -12995,11 +12926,11 @@ export default class Core {
             this.saveChangesToDatabase();
         }, 60000);
 
-        postMessage({
-            messageType: "reportScoreAndState",
+        this.reportScoreAndStateCallback({
             state: { ...this.docStateToBeSavedToDatabase },
             score: await this.document.stateValues.creditAchieved,
         });
+
         return;
     }
 
@@ -13036,29 +12967,8 @@ export default class Core {
             ))();
     }
 
-    requestAnimationFrame(args) {
-        let animateMessage = {
-            messageType: "requestAnimationFrame",
-            coreId: this.coreId,
-            args,
-        };
-        if (this.initialized) {
-            postMessage(animateMessage);
-        } else {
-            this.postInitializedMessages.push(animateMessage);
-        }
-    }
-
-    cancelAnimationFrame(args) {
-        postMessage({
-            messageType: "cancelAnimationFrame",
-            coreId: this.coreId,
-            args,
-        });
-    }
-
-    handleVisibilityChange({ visible }) {
-        if (visible) {
+    handleVisibilityChange(documentIsVisible) {
+        if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
             this.suspendVisibilityMeasuring();
@@ -13241,18 +13151,6 @@ export default class Core {
         }
 
         return componentDoenetML;
-    }
-
-    copyToClipboard(text, actionId) {
-        if (typeof text !== "string") {
-            this.resolveAction({ actionId });
-        } else {
-            postMessage({
-                messageType: "copyToClipboard",
-                coreId: this.coreId,
-                args: { text, actionId },
-            });
-        }
     }
 
     navigateToTarget(args) {

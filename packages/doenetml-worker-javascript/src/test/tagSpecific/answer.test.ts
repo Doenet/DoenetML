@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     submitAnswer,
@@ -11,7 +11,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -48,7 +48,7 @@ async function test_math_answer({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     mathInputName =
         mathInputName ||
         stateVariables[answerName].stateValues.inputChildren[0].componentName;
@@ -117,7 +117,7 @@ async function test_math_answer({
             name: mathInputName,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
@@ -152,7 +152,7 @@ async function test_math_answer({
         }
         submittedCredit = credit;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -194,7 +194,7 @@ async function test_text_answer({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     textInputName =
         textInputName ||
         stateVariables[answerName].stateValues.inputChildren[0].componentName;
@@ -227,7 +227,7 @@ async function test_text_answer({
             name: textInputName,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
@@ -251,7 +251,7 @@ async function test_text_answer({
         submittedCredit = credit;
         numSubmissions++;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -289,7 +289,7 @@ async function test_boolean_answer({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     booleanInputName =
         booleanInputName ||
         stateVariables[answerName].stateValues.inputChildren[0].componentName;
@@ -322,7 +322,7 @@ async function test_boolean_answer({
             name: booleanInputName,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
@@ -346,7 +346,7 @@ async function test_boolean_answer({
         submittedCredit = credit;
         numSubmissions++;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -400,7 +400,7 @@ async function test_choice_answer({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     choiceInputName =
         choiceInputName ||
         stateVariables[answerName].stateValues.inputChildren[0].componentName;
@@ -445,7 +445,7 @@ async function test_choice_answer({
         submittedCredit = 0;
         numSubmissions++;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${selectedValues} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -484,7 +484,10 @@ async function test_choice_answer({
             }
 
             if (response.preAction.recomputeIndices) {
-                stateVariables = await returnAllStateVariables(core);
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
                 indexByName = {};
                 for (let [ind, val] of stateVariables[
                     choiceInputName
@@ -506,7 +509,7 @@ async function test_choice_answer({
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
@@ -533,7 +536,7 @@ async function test_choice_answer({
         submittedCredit = credit;
         numSubmissions++;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${selectedValues} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -587,7 +590,7 @@ async function test_matrix_answer({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     matrixInputName =
         matrixInputName ||
         stateVariables[answerName].stateValues.inputChildren[0].componentName;
@@ -654,7 +657,7 @@ async function test_matrix_answer({
             });
         }
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
@@ -689,7 +692,7 @@ async function test_matrix_answer({
         }
         submittedCredit = credit;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${currentResponse} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -741,7 +744,7 @@ async function test_action_answer({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables[answerName].stateValues.creditAchieved).eq(
         submittedCredit,
@@ -783,10 +786,9 @@ async function test_action_answer({
             componentName: response.actionComponentName,
             actionName: response.actionName,
             args: response.actionArgs,
-            event: null,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
@@ -806,7 +808,7 @@ async function test_action_answer({
         submittedResponses = currentResponses;
         submittedCredit = credit;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).eq(
             submittedCredit,
             `Expected response ${currentResponses} to have credit ${submittedCredit}, got credit ${stateVariables[answerName].stateValues.creditAchieved}`,
@@ -862,7 +864,7 @@ async function test_answer_multiple_inputs({
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     let inputNames: string[] = inputs.map((input, i) => {
         let name =
             input.name ||
@@ -971,7 +973,7 @@ async function test_answer_multiple_inputs({
             }
         }
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[answerName].stateValues.creditAchieved).closeTo(
             submittedCredit,
@@ -999,7 +1001,7 @@ async function test_answer_multiple_inputs({
         submittedResponses = currentResponses;
         submittedCredit = credit;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerName].stateValues.creditAchieved).closeTo(
             submittedCredit,
             1e-14,
@@ -1266,7 +1268,7 @@ describe("Answer tag tests", async () => {
 
         let core = await createTestCore({ doenetML });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let textInputName =
             stateVariables["/answer1"].stateValues.inputChildren[0]
                 .componentName;
@@ -1280,7 +1282,7 @@ describe("Answer tag tests", async () => {
         // submit
         await submitAnswer({ name: "/answer1", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sr1"].stateValues.value).eq(" hello there ");
 
         await test_text_answer({
@@ -1371,7 +1373,7 @@ describe("Answer tag tests", async () => {
   `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -1385,7 +1387,7 @@ describe("Answer tag tests", async () => {
         expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(2);
         expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(49);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
             stateVariables["/answer1"].stateValues.inputChildren[0]
                 .componentName;
@@ -1396,7 +1398,7 @@ describe("Answer tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/answer1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/answer1"].stateValues.creditAchieved).eq(1);
     });
 
@@ -1425,10 +1427,10 @@ describe("Answer tag tests", async () => {
         ];
 
         async function check_award_based_on_submitted_response(
-            core: Core,
+            core: PublicDoenetMLCore,
             eventually_correct = true,
         ) {
-            let errorWarnings = core.errorWarnings;
+            let errorWarnings = core.core!.errorWarnings;
 
             expect(errorWarnings.errors.length).eq(0);
             expect(errorWarnings.warnings.length).eq(1);
@@ -1442,7 +1444,10 @@ describe("Answer tag tests", async () => {
             expect(errorWarnings.warnings[0].doenetMLrange.lineEnd).eq(5);
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(13);
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let mathInputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
                     .componentName;
@@ -1454,7 +1459,7 @@ describe("Answer tag tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             // answer is not correct because the submitted response was initially blank
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
@@ -1463,7 +1468,7 @@ describe("Answer tag tests", async () => {
             expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
 
             await submitAnswer({ name: "/ans", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             // if `eventually correct` is set to `true`, then
             // the second time, the answer is marked correct and justSubmitted stays true
@@ -3153,7 +3158,10 @@ Enter any letter:
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let indexByName = {};
             for (let [ind, val] of stateVariables[
@@ -3172,7 +3180,10 @@ Enter any letter:
 
                 await submitAnswer({ name: "/ans", core });
 
-                stateVariables = await returnAllStateVariables(core);
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
 
                 if (ind2 === ind) {
                     expect(
@@ -3221,7 +3232,10 @@ Enter any letter:
                 requestedVariantIndex: ind,
             });
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let textInputName =
                 stateVariables["/ans"].stateValues.inputChildren[0]
@@ -3236,7 +3250,10 @@ Enter any letter:
 
                 await submitAnswer({ name: "/ans", core });
 
-                stateVariables = await returnAllStateVariables(core);
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
 
                 if (ind2 === ind) {
                     expect(
@@ -3956,7 +3973,7 @@ Enter any letter:
         // submit
         await submitAnswer({ name: "/a", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
@@ -3973,7 +3990,7 @@ Enter any letter:
    `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/cond"].replacements).eqls([]);
         expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
@@ -3981,7 +3998,7 @@ Enter any letter:
         // submit
         await submitAnswer({ name: "/ans", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/cond"].replacements).eqls([
             { componentName: "/just", componentType: "p" },
@@ -3995,7 +4012,7 @@ Enter any letter:
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({ latex: "1", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/cond"].replacementsToWithhold).eq(1);
         expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
@@ -4003,7 +4020,7 @@ Enter any letter:
         // submit
         await submitAnswer({ name: "/ans", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/cond"].replacementsToWithhold).eq(0);
         expect(stateVariables["/cond"].replacements).eqls([
@@ -4025,7 +4042,7 @@ Enter any letter:
             name: "/mi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/cond"].replacementsToWithhold).eq(1);
         expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
@@ -4069,7 +4086,7 @@ Enter any letter:
         await submitAnswer({ name: "/ans3", core });
         await submitAnswer({ name: "/ans4", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/ans2"].stateValues.creditAchieved).eq(1);
@@ -4090,7 +4107,7 @@ Enter any letter:
    `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/cr"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/sr"]).eq(undefined);
@@ -4106,7 +4123,7 @@ Enter any letter:
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/cr"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/sr"]).eq(undefined);
 
@@ -4114,7 +4131,7 @@ Enter any letter:
         await updateMathInputValue({ latex: "x", name: "/mia", core });
         await submitAnswer({ name: "/a", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/cr"].stateValues.value.tree).eq("x");
         expect(stateVariables["/sr"].stateValues.value.tree).eq("x");
 
@@ -4131,7 +4148,7 @@ Enter any letter:
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/cr"].stateValues.value.tree).eq("x");
         expect(stateVariables["/sr"].stateValues.value.tree).eq("x");
     });
@@ -4207,7 +4224,7 @@ Enter any letter:
 
         let core = await createTestCore({ doenetML });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathInput1Name =
             stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
@@ -4238,7 +4255,7 @@ Enter any letter:
             name: mathInput1Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
@@ -4259,7 +4276,7 @@ Enter any letter:
 
         // submit second answer
         await submitAnswer({ name: "/ans2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4292,7 +4309,7 @@ Enter any letter:
             name: mathInput2Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4321,7 +4338,7 @@ Enter any letter:
 
         // submit first answer
         await submitAnswer({ name: "/ans1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
@@ -4357,7 +4374,7 @@ Enter any letter:
 
         let core = await createTestCore({ doenetML });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathInput1Name =
             stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
@@ -4388,7 +4405,7 @@ Enter any letter:
             name: mathInput1Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
@@ -4409,7 +4426,7 @@ Enter any letter:
 
         // submit first answer
         await submitAnswer({ name: "/ans1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4438,7 +4455,7 @@ Enter any letter:
             name: mathInput2Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4463,7 +4480,7 @@ Enter any letter:
 
         // submit second answer
         await submitAnswer({ name: "/ans2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4496,7 +4513,7 @@ Enter any letter:
             name: mathInput2Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4525,7 +4542,7 @@ Enter any letter:
 
         // submit second answer
         await submitAnswer({ name: "/ans2", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4558,7 +4575,7 @@ Enter any letter:
             name: mathInput1Name,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(false);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(1);
@@ -4587,7 +4604,7 @@ Enter any letter:
 
         // submit first answer
         await submitAnswer({ name: "/ans1", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans1"].stateValues.justSubmitted).eq(true);
         expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(0);
@@ -4636,7 +4653,7 @@ Enter any letter:
             ).eq(have_getter);
         }
 
-        let components = core.components || {};
+        let components = core.core!.components || {};
 
         let mathInputName =
             components["/ans"].stateValues.inputChildren[0].componentName;
@@ -5090,19 +5107,19 @@ What is the derivative of <function name="f">x^2</function>?
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/xsr"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/xcr"].stateValues.value.tree).eq("\uff3f");
 
         await updateMathInputValue({ latex: "x", name: "/mi", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/xsr"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/xcr"].stateValues.value.tree).eq("x");
 
         await submitAnswer({ name: "/x", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/xsr"].stateValues.value.tree).eq("x");
         expect(stateVariables["/xcr"].stateValues.value.tree).eq("x");
 
@@ -5114,13 +5131,13 @@ What is the derivative of <function name="f">x^2</function>?
             name: "/ti",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/hellosr"].stateValues.value).eq("");
         expect(stateVariables["/hellocr"].stateValues.value).eq("hello");
 
         await submitAnswer({ name: "/hello", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/hellosr"].stateValues.value).eq("hello");
         expect(stateVariables["/hellocr"].stateValues.value).eq("hello");
@@ -5133,13 +5150,13 @@ What is the derivative of <function name="f">x^2</function>?
             name: "/bi",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/bsr"].stateValues.value).eq(false);
         expect(stateVariables["/bcr"].stateValues.value).eq(true);
 
         await submitAnswer({ name: "/b", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/bsr"].stateValues.value).eq(true);
         expect(stateVariables["/bcr"].stateValues.value).eq(true);
@@ -5490,7 +5507,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await submitAnswer({ name: "/long", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             stateVariables["/default_credit"].stateValues.valueForDisplay,
@@ -5533,7 +5550,7 @@ What is the derivative of <function name="f">x^2</function>?
             core,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             stateVariables["/default_cr"].stateValues.valueForDisplay.tree,
@@ -5552,7 +5569,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await submitAnswer({ name: "/short", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             stateVariables["/default_cr"].stateValues.valueForDisplay.tree,
@@ -5601,7 +5618,7 @@ What is the derivative of <function name="f">x^2</function>?
             core,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/default_cr"].stateValues.valueForDisplay).eq(
             1.23456789,
@@ -5620,7 +5637,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await submitAnswer({ name: "/short", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/default_cr"].stateValues.valueForDisplay).eq(
             1.23456789,
@@ -5661,7 +5678,7 @@ What is the derivative of <function name="f">x^2</function>?
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let indexByName = {};
         for (let [ind, val] of stateVariables[
@@ -5680,18 +5697,18 @@ What is the derivative of <function name="f">x^2</function>?
         }
 
         await submit_selection("stable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
         await submit_selection("unstable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({ latex: "3", name: "/m", core });
         await submit_selection("stable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
         await submit_selection("unstable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({
@@ -5700,18 +5717,18 @@ What is the derivative of <function name="f">x^2</function>?
             core,
         });
         await submit_selection("stable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
         await submit_selection("unstable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({ latex: "1/3", name: "/m", core });
         await submit_selection("stable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
         await submit_selection("unstable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
 
         await updateMathInputValue({
@@ -5720,18 +5737,18 @@ What is the derivative of <function name="f">x^2</function>?
             core,
         });
         await submit_selection("stable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
         await submit_selection("unstable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({ latex: "1", name: "/m", core });
         await submit_selection("stable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
         await submit_selection("unstable");
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(0);
     });
 
@@ -5810,7 +5827,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await submitAnswer({ name: "/ans", core });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
     });
 });

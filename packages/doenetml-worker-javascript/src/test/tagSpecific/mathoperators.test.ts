@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import me from "math-expressions";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 
@@ -29,7 +29,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(21);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -213,7 +213,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(21);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -509,7 +509,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -670,7 +670,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(21);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -843,7 +843,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(51);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -1027,7 +1027,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(51);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -1319,7 +1319,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -1471,7 +1471,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(51);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -1655,7 +1655,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/_clampnumber1"].stateValues.value.tree).eq(1);
         expect(stateVariables["/_clampnumber2"].stateValues.value.tree).eq(0);
@@ -1789,7 +1789,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             stateVariables["/_wrapnumberperiodic1"].stateValues.value.tree,
@@ -1997,7 +1997,7 @@ describe("Math operator tests", async () => {
         let clamp = (x) => Math.min(5, Math.max(-2, x));
         let wrap = (x) => -2 + me.math.mod(x + 2, 7);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = 6,
             y = 7;
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
@@ -2021,7 +2021,7 @@ describe("Math operator tests", async () => {
         x = -5;
         y = 0;
         await movePoint({ name: "/P1", x, y, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y);
         expect(stateVariables["/P2"].stateValues.xs[0].tree).eq(clamp(x));
@@ -2044,7 +2044,7 @@ describe("Math operator tests", async () => {
         y = -3;
         await movePoint({ name: "/P2", x, y, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(clamp(x));
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(wrap(y));
         expect(stateVariables["/P2"].stateValues.xs[0].tree).eq(clamp(x));
@@ -2067,7 +2067,7 @@ describe("Math operator tests", async () => {
         y = 8;
         await movePoint({ name: "/P3", x: y, y: x, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(clamp(x));
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(wrap(y));
         expect(stateVariables["/P2"].stateValues.xs[0].tree).eq(clamp(x));
@@ -2096,7 +2096,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(x);
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(y);
         expect(stateVariables["/P2"].stateValues.xs[0].tree).eq(clamp(x));
@@ -2125,7 +2125,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(clamp(x));
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(wrap(y));
@@ -2155,7 +2155,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.xs[0].tree).eq(clamp(x));
         expect(stateVariables["/P1"].stateValues.xs[1].tree).eq(wrap(y));
@@ -2202,7 +2202,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/_round1"].stateValues.value.tree).eq(55);
         expect(stateVariables["/_round2"].stateValues.value.tree).eq(3);
@@ -2264,7 +2264,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/_round1"].stateValues.value.tree).eqls(55.3252);
 
@@ -2324,7 +2324,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/_math1"].stateValues.value.tree).eqls([
             "set",
@@ -2414,7 +2414,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let p = await stateVariables["/p"].stateValues.value;
         expect(
             stateVariables["/_convertsettolist1"].stateValues.value.tree,
@@ -2454,7 +2454,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/_floor1"].stateValues.value.tree).eq(55);
         expect(stateVariables["/_ceil1"].stateValues.value.tree).eq(4);
@@ -2503,7 +2503,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/floor1"].stateValues.value.tree).eqls([
             "apply",
             "floor",
@@ -2546,7 +2546,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_abs1"].stateValues.value.tree).eq(5.3);
         expect(stateVariables["/_abs2"].stateValues.value.tree).eqls([
             "apply",
@@ -2564,28 +2564,28 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a1"].stateValues.value.tree).eq(9);
         expect(stateVariables["/a2"].stateValues.value.tree).eq(9);
         expect(stateVariables["/a3"].stateValues.value.tree).eq(9);
 
         await updateMathInputValue({ name: "/a2", latex: "-3", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a1"].stateValues.value.tree).eq(0);
         expect(stateVariables["/a2"].stateValues.value.tree).eq(0);
         expect(stateVariables["/a3"].stateValues.value.tree).eq(0);
 
         await updateMathInputValue({ name: "/a2", latex: "7", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a1"].stateValues.value.tree).eq(7);
         expect(stateVariables["/a2"].stateValues.value.tree).eq(7);
         expect(stateVariables["/a3"].stateValues.value.tree).eq(7);
 
         await updateMathInputValue({ name: "/a2", latex: "x", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a1"].stateValues.value.tree).eqls([
             "apply",
             "abs",
@@ -2604,7 +2604,7 @@ describe("Math operator tests", async () => {
 
         await updateMathInputValue({ name: "/a2", latex: "y", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a1"].stateValues.value.tree).eqls([
             "apply",
             "abs",
@@ -2644,13 +2644,16 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let g2ChildrenNames = stateVariables["/g2"].activeChildren.map(
             (x) => x.componentName,
         );
 
         let checkPoints = async function (x, y) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/_point1"].stateValues.xs[0].tree).eq(x);
             expect(stateVariables["/_point1"].stateValues.xs[1].tree).eq(y);
@@ -2783,7 +2786,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_sign1"].stateValues.value.tree).eq(-1);
         expect(stateVariables["/_sign2"].stateValues.value.tree).eq(1);
         expect(stateVariables["/_sign3"].stateValues.value.tree).eq(0);
@@ -2810,7 +2813,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(7);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -2985,7 +2988,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(7);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -3264,7 +3267,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -3408,7 +3411,7 @@ describe("Math operator tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/meanPrime"].stateValues.value.tree).eq(4.25);
         expect(stateVariables["/meanPrimeb"].stateValues.value.tree).eq(4.25);
@@ -3435,7 +3438,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(3);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -3478,7 +3481,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let theVariance = me.math.variance([3, 17, 1]);
         let theVarianceString = theVariance.toString();
@@ -3648,7 +3651,7 @@ describe("Math operator tests", async () => {
         let theVariance = me.math.variance([3, 17, 1]);
         let theVarianceString = theVariance.toString();
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(
             theVariance,
@@ -3911,7 +3914,7 @@ describe("Math operator tests", async () => {
         let theVariance = me.math.variance([3, 17, 1]);
         let theVariance2 = me.math.variance([3, 17, 1, 3, 17, 13]);
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -4062,7 +4065,7 @@ describe("Math operator tests", async () => {
             Array.from({ length: 100 }, (_, i) => i + 1),
         );
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/variancePrime"].stateValues.value.tree).closeTo(
             variancePrimes,
             1e-12,
@@ -4112,7 +4115,7 @@ describe("Math operator tests", async () => {
         `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let theVariance = me.math.variance([4, 16, 1], "uncorrected");
 
@@ -4268,7 +4271,7 @@ describe("Math operator tests", async () => {
             "uncorrected",
         );
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/variancePrime"].stateValues.value.tree).closeTo(
             variancePrimes,
             1e-12,
@@ -4318,7 +4321,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let theStandardDeviation = me.math.std([3, 17, 1]);
 
@@ -4504,7 +4507,7 @@ describe("Math operator tests", async () => {
         let theStd = me.math.std([13, 25, 1]);
         let theStdString = theStd.toString();
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -4614,7 +4617,7 @@ describe("Math operator tests", async () => {
         let stdPrimes = me.math.std(2, 3, 5, 7);
         let std100 = me.math.std(Array.from({ length: 100 }, (_, i) => i + 1));
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/standarddeviationPrime"].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
@@ -4661,7 +4664,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let theStandardDeviation = me.math.std([4, 16, 1], "uncorrected");
 
@@ -4824,7 +4827,7 @@ describe("Math operator tests", async () => {
             "uncorrected",
         );
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/standarddeviationPrime"].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
@@ -4870,7 +4873,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(3);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -5033,7 +5036,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(3);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -5302,7 +5305,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -5458,7 +5461,7 @@ describe("Math operator tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/countPrime"].stateValues.value.tree).eq(4);
         expect(stateVariables["/countPrimeb"].stateValues.value.tree).eq(4);
@@ -5497,7 +5500,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(1);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -5672,7 +5675,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(1);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -5955,7 +5958,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -6107,7 +6110,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(17);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -6282,7 +6285,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(17);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -6569,7 +6572,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -6727,7 +6730,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eq(6);
@@ -6780,7 +6783,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eq(9);
@@ -6833,7 +6836,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eq(6);
@@ -6886,7 +6889,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eq(6);
@@ -6939,7 +6942,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eqls(NaN);
@@ -7000,7 +7003,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eqls(NaN);
@@ -7061,7 +7064,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers00"].stateValues.value.tree).eq(6);
         expect(stateVariables["/numbers01"].stateValues.value.tree).eq(7);
@@ -7090,7 +7093,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(2);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -7226,7 +7229,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numbers"].stateValues.value.tree).eq(2);
         expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
@@ -7436,7 +7439,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/numberString"].stateValues.value.tree).eqls([
             "apply",
@@ -7498,7 +7501,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/gcd1"].stateValues.value.tree).eq(27);
         expect(stateVariables["/gcd2"].stateValues.value.tree).eq(9);
@@ -7523,7 +7526,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/gcd1a"].stateValues.value.tree).eq(27);
         expect(stateVariables["/gcd1b"].stateValues.value.tree).eq(27);
@@ -7544,7 +7547,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/lcm1"].stateValues.value.tree).eq(405);
         expect(stateVariables["/lcm2"].stateValues.value.tree).eq(2835);
@@ -7569,7 +7572,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/lcm1a"].stateValues.value.tree).eq(405);
         expect(stateVariables["/lcm1b"].stateValues.value.tree).eq(405);
@@ -7615,7 +7618,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/operator"].stateValues.value).eq("+");
         expect(stateVariables["/numOperands"].stateValues.value.tree).eq(3);
@@ -7671,7 +7674,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/argumentN"].stateValues.value.tree).eqls("＿");
 
         await updateMathInputValue({
@@ -7680,7 +7683,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/operandN"].stateValues.value.tree).eqls([
             "apply",
             "g",
@@ -7695,7 +7698,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/argumentN"].stateValues.value.tree).eqls("＿");
 
         await updateMathInputValue({
@@ -7704,7 +7707,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/argumentN"].stateValues.value.tree).eqls("y");
 
         await updateMathInputValue({
@@ -7713,7 +7716,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/operandN"].stateValues.value.tree).eqls([
             "*",
             "h",
@@ -7728,7 +7731,7 @@ describe("Math operator tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/operandN"].stateValues.value.tree).eqls("＿");
         expect(stateVariables["/functionN"].stateValues.value.tree).eqls("＿");
         expect(stateVariables["/argumentN"].stateValues.value.tree).eqls("＿");
@@ -7742,7 +7745,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -7766,7 +7769,7 @@ describe("Math operator tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/min02"].stateValues.value.tree).eq(0);
         expect(stateVariables["/abs"].stateValues.value.tree).eqls([
             "apply",

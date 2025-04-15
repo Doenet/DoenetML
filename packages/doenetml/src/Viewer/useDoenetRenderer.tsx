@@ -137,8 +137,6 @@ export default function useDoenetRenderer(
         rendererName,
         initializeChildren: () => {},
         callAction,
-        navigate: props.navigate,
-        location: props.location,
         linkSettings: props.linkSettings,
         scrollableContainer: props.scrollableContainer,
     };

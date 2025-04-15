@@ -1684,11 +1684,16 @@ export default class BaseComponent {
         return { success: true, desiredVariant };
     }
 
+    // An action that can be called from DoenetML with a `<callAction>`
+    // that will copy the DoenetML of the targeted component to the clipboard
+    // (assuming the component was in the original source file).
+    // TODO: add test
+    // TODO: add documentation
     async copyDoenetMLToClipboard({ actionId }) {
         let doenetML = await this.stateValues.doenetML;
 
         if (doenetML) {
-            this.coreFunctions.copyToClipboard(doenetML, actionId);
+            this.coreFunctions.copyToClipboard({ text: doenetML, actionId });
         }
     }
 }

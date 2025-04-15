@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -103,7 +103,7 @@ async function run_tests({
         response,
         creditAchieved,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         response: string;
         creditAchieved: number;
     }) {
@@ -113,7 +113,7 @@ async function run_tests({
             core,
         });
         await submitAnswer({ name: `/check`, core });
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/check`].stateValues.creditAchieved).eq(
             creditAchieved,
             `credit for response ${response}`,

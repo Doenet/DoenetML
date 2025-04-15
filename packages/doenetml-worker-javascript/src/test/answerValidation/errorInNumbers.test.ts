@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -15,7 +15,7 @@ async function run_single_response_tests({
     responseCredits: Record<string, number>;
 }) {
     const core = await createTestCore({ doenetML });
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     const mathInputName =
         stateVariables["/ans"].stateValues.inputChildren[0].componentName;
 
@@ -34,7 +34,7 @@ async function run_single_response_tests({
         creditAchieved,
         mathInputName,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         response: string;
         creditAchieved: number;
         mathInputName: string;
@@ -45,7 +45,7 @@ async function run_single_response_tests({
             core,
         });
         await submitAnswer({ name: "/ans", core });
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
             creditAchieved,
             `For response ${response}`,
@@ -75,7 +75,7 @@ async function run_two_response_tests({
         response,
         creditAchieved,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         response: string;
         creditAchieved: number;
     }) {
@@ -91,7 +91,7 @@ async function run_two_response_tests({
             core,
         });
         await submitAnswer({ name: "/ans", core });
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
             creditAchieved,
             `For response ${response}`,

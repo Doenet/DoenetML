@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -14,10 +14,10 @@ vi.mock("hyperformula");
 
 describe("Base component property tests", async () => {
     async function test_change_fixed_attribute(
-        core: Core,
+        core: PublicDoenetMLCore,
         start_fixed = false,
     ) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pCoords"].stateValues.text).eq(
             "Coordinates of P: ( 0, 0 )",
@@ -30,14 +30,14 @@ describe("Base component property tests", async () => {
 
             // point does not move
             await movePoint({ name: "/P", x: -10, y: -0, core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
             expect(stateVariables["/pCoords"].stateValues.text).eq(
                 "Coordinates of P: ( 0, 0 )",
             );
 
             // make point not fixed
             await updateValue({ name: "/makeNotFixed", core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
         }
 
         expect(stateVariables["/pIsFixed"].stateValues.text).eq(
@@ -45,35 +45,35 @@ describe("Base component property tests", async () => {
         );
 
         await movePoint({ name: "/P", x: 1, y: 2, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pCoords"].stateValues.text).eq(
             "Coordinates of P: ( 1, 2 )",
         );
 
         // have point fixed
         await updateValue({ name: "/makeFixed", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pIsFixed"].stateValues.text).eq(
             "Is fixed? true",
         );
 
         // point does not move
         await movePoint({ name: "/P", x: 3, y: 4, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pCoords"].stateValues.text).eq(
             "Coordinates of P: ( 1, 2 )",
         );
 
         // have point not fixed
         await updateValue({ name: "/makeNotFixed", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pIsFixed"].stateValues.text).eq(
             "Is fixed? false",
         );
 
         // point does moves
         await movePoint({ name: "/P", x: 5, y: 6, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pCoords"].stateValues.text).eq(
             "Coordinates of P: ( 5, 6 )",
         );
@@ -169,7 +169,10 @@ describe("Base component property tests", async () => {
             B: number[];
             C: number[];
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pgIsFixed"].stateValues.text).eq(
                 `Is g fixed? ${gFixed}`,
             );
@@ -326,7 +329,10 @@ describe("Base component property tests", async () => {
             C: number[];
             D: number[];
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pAIsFixed"].stateValues.text).eq(
                 `Is A fixed? ${AFixed}`,
             );
@@ -471,7 +477,10 @@ describe("Base component property tests", async () => {
         });
 
         async function check_items(disabled: boolean, text: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pIsDisabled"].stateValues.text).eq(
                 `Is disabled? ${disabled}`,
             );
@@ -547,7 +556,10 @@ describe("Base component property tests", async () => {
             t2: string;
             t3: string;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pti1IsDisabled"].stateValues.text).eq(
                 `Is ti1 disabled? ${ti1Disabled}`,
             );
@@ -732,7 +744,10 @@ describe("Base component property tests", async () => {
             ti2Disabled: boolean;
             ti3Disabled: boolean;
         }) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pti1IsDisabled"].stateValues.text).eq(
                 `Is ti1 disabled? ${ti1Disabled}`,
             );
@@ -803,7 +818,10 @@ describe("Base component property tests", async () => {
         });
 
         async function check_items(hidden: boolean, text: string) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pIsHidden"].stateValues.text).eq(
                 `Is hidden? ${hidden}`,
             );
@@ -842,7 +860,7 @@ describe("Base component property tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq("Hi");
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Permids: s, p, pids",

@@ -12,12 +12,11 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/CoreWorker.js",
-            "require": "./dist/CoreWorker.js"
+            "import": "./dist/index.js"
         },
-        "./*": {
-            "import": "./dist/*",
-            "require": "./dist/*"
+        "./index.js": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
         }
     },
     "scripts": {

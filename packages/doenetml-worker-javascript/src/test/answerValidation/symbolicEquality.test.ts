@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -39,7 +39,7 @@ async function run_tests({
         for (let code in credits) {
             await submitAnswer({ name: `/ans${code}`, core });
         }
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         for (let code in credits) {
             expect(stateVariables[`/ans${code}`].stateValues.creditAchieved).eq(
                 credits[code],

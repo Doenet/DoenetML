@@ -387,7 +387,7 @@ export function mathExpressionFromSubsetValue({
 }: {
     subsetValue: Interfaces.Subset;
     variable: string;
-    displayMode: "intervals" | "inequalities";
+    displayMode?: "intervals" | "inequalities";
 }) {
     // displayMode is either "intervals" or "inequalities"
 

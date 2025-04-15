@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
     movePolygon,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -71,7 +71,7 @@ async function runRegularPolygonTests({
     conservedWhenChangeNumVertices = "radius",
     abbreviated = false,
 }: {
-    core: Core;
+    core: PublicDoenetMLCore;
     center: number[];
     vertex1: number[];
     numVertices: number;
@@ -139,7 +139,7 @@ async function runRegularPolygonTests({
 
     if (!abbreviated) {
         // move polygon points together
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let dx = 3,
             dy = -2;
@@ -263,7 +263,7 @@ async function runRegularPolygonTests({
     }
 
     // polygonCopy vertices together
-    let stateVariables = await returnAllStateVariables(core);
+    let stateVariables = await core.returnAllStateVariables(false, true);
 
     let dx = -2,
         dy = -4;
@@ -327,7 +327,7 @@ async function runRegularPolygonTests({
         let dx = 1,
             dy = -3;
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let currentVertices = stateVariables[
             polygonCopyName
         ].stateValues.vertices.map((v) => v.map((x) => x.tree));
@@ -352,7 +352,7 @@ async function runRegularPolygonTests({
     }
 
     // Change circumradius
-    stateVariables = await returnAllStateVariables(core);
+    stateVariables = await core.returnAllStateVariables(false, true);
     let oldCr = stateVariables[polygonName].stateValues.circumradius;
 
     let circumradius = 1;
@@ -373,7 +373,7 @@ async function runRegularPolygonTests({
     if (!abbreviated) {
         // Change radius
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let oldR = stateVariables[polygonName].stateValues.circumradius;
 
         let radius = 3;
@@ -392,7 +392,7 @@ async function runRegularPolygonTests({
         );
 
         // Change inradius
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let oldIr = stateVariables[polygonName].stateValues.inradius;
 
         let inradius = 5;
@@ -419,7 +419,7 @@ async function runRegularPolygonTests({
         );
 
         // Change apothem
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let oldAp = stateVariables[polygonName].stateValues.inradius;
 
         let apothem = 4;
@@ -442,7 +442,7 @@ async function runRegularPolygonTests({
         );
 
         // Change sideLength
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let oldSl = stateVariables[polygonName].stateValues.sideLength;
 
         let sideLength = 2;
@@ -465,7 +465,7 @@ async function runRegularPolygonTests({
         );
 
         // Change perimeter
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         oldSl = stateVariables[polygonName].stateValues.perimeter;
 
         let perimeter = 9;
@@ -488,7 +488,7 @@ async function runRegularPolygonTests({
         );
 
         // Change area
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let oldAr = stateVariables[polygonName].stateValues.area;
 
         let area = 13;
@@ -661,7 +661,7 @@ async function checkPolygonValues(
         center,
         vertex1,
     }: { numVertices: number; center: number[]; vertex1: number[] },
-    core: Core,
+    core: PublicDoenetMLCore,
 ) {
     let vertexCoords = [vertex1];
 
@@ -689,7 +689,7 @@ async function checkPolygonValues(
         ]);
     }
 
-    const stateVariables = await returnAllStateVariables(core);
+    const stateVariables = await core.returnAllStateVariables(false, true);
 
     for (let polygonName of polygonNames) {
         let polygon = stateVariables[polygonName];
@@ -1291,7 +1291,10 @@ describe("Regular Polygon  tag tests", async () => {
             draggable: boolean,
             verticesDraggable: boolean,
         ) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let ind in vertices) {
                 for (let dim = 0; dim < 2; dim++) {
                     expect(
@@ -1370,7 +1373,7 @@ describe("Regular Polygon  tag tests", async () => {
         await check_items(vertices, draggable, verticesDraggable);
 
         // can move all vertices
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         vertices = stateVariables["/p"].stateValues.vertices.map((v) =>
             v.map((x) => x.tree),
         ) as number[][];
@@ -1426,7 +1429,7 @@ describe("Regular Polygon  tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
@@ -1449,7 +1452,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
@@ -1477,7 +1480,7 @@ describe("Regular Polygon  tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
@@ -1500,7 +1503,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13 + 0, // to convert -0 to 0
@@ -1528,7 +1531,7 @@ describe("Regular Polygon  tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
@@ -1552,7 +1555,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
@@ -1580,7 +1583,7 @@ describe("Regular Polygon  tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
@@ -1604,7 +1607,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,

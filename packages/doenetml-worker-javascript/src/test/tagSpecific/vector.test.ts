@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
     moveVector,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 /**
  * Note: Many of these tests are closely mirrored in the <ray> tests.
@@ -59,7 +59,7 @@ describe("Vector Tag Tests", function () {
         let displacementx = headx - tailx;
         let displacementy = heady - taily;
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         check_vec_htd({
             name: vectorName,
             h: [headx, heady],
@@ -96,7 +96,7 @@ describe("Vector Tag Tests", function () {
         checkLabel = false,
         pointMovesEntireVector = "tail",
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         initialTailX?: number;
         initialTailY?: number;
         initialHeadX?: number;
@@ -112,7 +112,10 @@ describe("Vector Tag Tests", function () {
         let displacementTailShifty = 0;
 
         if (checkLabel) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/vector1"].stateValues.label).eq(
                 "\\(\\vec{v}\\)",
             );
@@ -1048,7 +1051,10 @@ describe("Vector Tag Tests", function () {
         let v3hy = 6;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const vector1s = [
                 "/g1/vector1",
                 "/g2/vector1",
@@ -1248,7 +1254,10 @@ describe("Vector Tag Tests", function () {
             let dhead_xs = dtail_xs.map((x) => x + displacement_x);
             let dhead_ys = dtail_ys.map((y) => y + displacement_y);
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let name of vectors) {
                 expect(
@@ -1357,7 +1366,10 @@ describe("Vector Tag Tests", function () {
         let py = 2;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([tx, ty]);
@@ -1463,7 +1475,10 @@ describe("Vector Tag Tests", function () {
         let py = 2;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([tx, ty]);
@@ -1582,7 +1597,7 @@ describe("Vector Tag Tests", function () {
         });
 
         // test initial state
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).greaterThan(0);
@@ -1596,7 +1611,7 @@ describe("Vector Tag Tests", function () {
             x: -100,
             y: 0.05,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).lessThan(0.05);
@@ -1611,7 +1626,7 @@ describe("Vector Tag Tests", function () {
             x: -100,
             y: 0.1,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).eq(0.05);
@@ -1641,7 +1656,10 @@ describe("Vector Tag Tests", function () {
         let mhy = 6;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/original"].stateValues.tail.map((v) => v.tree),
             ).eqls([0, 0]);
@@ -1716,7 +1734,10 @@ describe("Vector Tag Tests", function () {
         // check initial values
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/u"].stateValues.tail.map((v) => v.tree),
             ).eqls([...uTail]);
@@ -1833,7 +1854,7 @@ describe("Vector Tag Tests", function () {
         let vHead = [-3, 10, 8];
         let v = [vHead[0] - vTail[0], vHead[1] - vTail[1], vHead[2] - vTail[2]];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/u"].stateValues.tail.map((v) => v.tree)).eqls([
             ...uTail,
@@ -1891,7 +1912,10 @@ $v1{name="v1a"}
         // initial positions
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/v1"].stateValues.tail.map((v) => v.tree),
@@ -2053,7 +2077,10 @@ $v1{name="v1a"}
         // initial positions
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/v1"].stateValues.tail.map((v) => v.tree),
@@ -2198,7 +2225,10 @@ $v1{name="v1a"}
         // initial positions
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/v"].stateValues.tail.map((v) => v.tree),
             ).eqls([tx, ty]);
@@ -2390,7 +2420,10 @@ $v1{name="v1a"}
         // Initial configuration
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             function check_vec_coords(name: string, coords: number[]) {
                 expect(
                     stateVariables[name].stateValues.coords.simplify().tree,
@@ -3048,7 +3081,10 @@ $v1{name="v1a"}
         });
 
         async function check_items({ dx, dy }: { dx: number; dy: number }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.displacement.map(
                     (v) => v.tree,
@@ -3096,7 +3132,10 @@ $vector3.tail{assignNames="v3t"}
         let y3 = 4;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([x1, y1]);
@@ -3203,7 +3242,10 @@ $vector3.tail{assignNames="v3t"}
         let dy = 4 - b;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([3, b]);
@@ -3248,7 +3290,10 @@ $vector3.tail{assignNames="v3t"}
         let displacementy = heady - taily;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([tailx, taily]);
@@ -3294,7 +3339,10 @@ $vector1{name="v1a"}
         let displacementy = heady - taily;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([tailx, taily]);
@@ -3341,7 +3389,10 @@ $vector1{name="v1a"}
         let displacementy = heady - taily;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/vector1"].stateValues.tail.map((v) => v.tree),
             ).eqls([tailx, taily]);
@@ -3557,7 +3608,7 @@ $vector1.displacement{assignNames="displacement2"}
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         check_vec_htd({
             name: "/vector1",
             h: [1],
@@ -3613,7 +3664,8 @@ $vector1.displacement{assignNames="displacement2"}
             stateVariables?: any,
         ) {
             let stateVars =
-                stateVariables || (await returnAllStateVariables(core));
+                stateVariables ||
+                (await core.returnAllStateVariables(false, true));
             const ZEROS = [0, 0];
             check_vec_htd({
                 name,
@@ -3630,7 +3682,8 @@ $vector1.displacement{assignNames="displacement2"}
             stateVariables?: any,
         ) {
             let stateVars =
-                stateVariables || (await returnAllStateVariables(core));
+                stateVariables ||
+                (await core.returnAllStateVariables(false, true));
             const ZEROS = [0, 0];
             check_vec_htd({
                 name,
@@ -3647,7 +3700,8 @@ $vector1.displacement{assignNames="displacement2"}
             stateVariables?: any,
         ) {
             let stateVars =
-                stateVariables || (await returnAllStateVariables(core));
+                stateVariables ||
+                (await core.returnAllStateVariables(false, true));
             check_vec_htd({
                 name,
                 h: val.map((v) => 2 * v),
@@ -3658,7 +3712,7 @@ $vector1.displacement{assignNames="displacement2"}
         }
 
         // initial values
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         await check_matching_head_tail("/v1", [3, 4], stateVariables);
         await check_matching_head_tail("/v3", [3, 4], stateVariables);
         await check_matching_head_disp("/v2", [3, 4], stateVariables);
@@ -3766,7 +3820,10 @@ $vector1.displacement{assignNames="displacement2"}
         ]);
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let i = 0; i < 7; i++) {
                 for (let j = 0; j < 2; j++) {
@@ -4064,7 +4121,10 @@ $vector1.displacement{assignNames="displacement2"}
 
         // check state vars related to draggable
         {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/g0/vdrag"].stateValues.draggable).eq(true);
             expect(stateVariables["/g0/vdrag"].stateValues.headDraggable).eq(
                 true,
@@ -4233,7 +4293,10 @@ $vector1.displacement{assignNames="displacement2"}
         let vnodragheadtaildrag_h = [1, 8];
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             function check(name, tail, head) {
                 expect(
                     stateVariables[name].stateValues.tail.map((v) => v.tree),
@@ -4615,7 +4678,10 @@ $vector1.displacement{assignNames="displacement2"}
         let w = [2 * 6 - 3 * v[0], 2 * 3 - 3 * v[1]];
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/v"].stateValues.displacement.map(
                     (v) => v.tree,
@@ -4660,7 +4726,7 @@ $vector1.displacement{assignNames="displacement2"}
         let hdx = 5;
         let hdy = 4;
         let len = Math.hypot(tly - hdy, tlx - hdx);
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/v"].stateValues.magnitude.tree).eq(len);
 
         // move point A
@@ -4673,7 +4739,7 @@ $vector1.displacement{assignNames="displacement2"}
             x: tlx,
             y: tly,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/v"].stateValues.magnitude.tree).eq(len);
 
         // change bound math input
@@ -4683,12 +4749,12 @@ $vector1.displacement{assignNames="displacement2"}
             core,
         });
         len = 5 * Math.sqrt(2);
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/v"].stateValues.magnitude.tree).eq(len);
 
         // ignore requested negative magnitude
         await updateMathInputValue({ name: "/mimagnitude", latex: "-3", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/v"].stateValues.magnitude.tree).eq(len);
 
         // move point B
@@ -4701,7 +4767,7 @@ $vector1.displacement{assignNames="displacement2"}
             x: hdx,
             y: hdy,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/v"].stateValues.magnitude.tree).eq(len);
     });
 
@@ -4731,7 +4797,10 @@ $vector1.displacement{assignNames="displacement2"}
         let d = [1, 0];
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_vec_htd({ name: "/v", h, t, d, stateVariables });
             check_vec_htd({ name: "/v2", h, t, d, stateVariables });
         }
@@ -4867,7 +4936,10 @@ $vector1.displacement{assignNames="displacement2"}
             let parens3 = `( ${x3}, ${y3} )`;
             let brackets3 = `⟨ ${x3}, ${y3} ⟩`;
 
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/p1"].stateValues.text).eqls(parens1);
             expect(stateVariables["/p2"].stateValues.text).eqls(brackets2);
             expect(stateVariables["/p3"].stateValues.text).eqls(
@@ -4944,7 +5016,10 @@ $vector1.displacement{assignNames="displacement2"}
         let variableBackgroundColor = "none";
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/tsd_no_style"].stateValues.value).toContain(
                 "black",
             );
@@ -5329,7 +5404,7 @@ $vector1.displacement{assignNames="displacement2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1v"].stateValues.text).eqls("( 2.64, 113 )");
         expect(stateVariables["/p1d"].stateValues.text).eqls("( 2.64, 113 )");
         expect(stateVariables["/p1t"].stateValues.text).eqls(
@@ -5370,7 +5445,7 @@ $vector1.displacement{assignNames="displacement2"}
     `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(4);
@@ -5421,7 +5496,7 @@ $vector1.displacement{assignNames="displacement2"}
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/vector1"]).not.eq(undefined);
     });
 
@@ -5450,7 +5525,10 @@ $vector1.displacement{assignNames="displacement2"}
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Vector A is thick ${AColor}.`,

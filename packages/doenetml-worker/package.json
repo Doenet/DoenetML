@@ -29,10 +29,19 @@
         "build:rust": "wireit",
         "build:rust-wasm-test": "wireit",
         "build:js": "wireit",
-        "build": "npm run build:rust && npm run build:js",
+        "build": "wireit",
         "bench": "cargo bench -p doenetml-core"
     },
     "wireit": {
+        "build": {
+            "command": "echo \"Building rust and js\"",
+            "files": [],
+            "output": [],
+            "dependencies": [
+                "build:rust",
+                "build:js"
+            ]
+        },
         "test:rust:before": {
             "command": "vite build -c vite.rust-tests.config.ts",
             "files": [
@@ -63,6 +72,8 @@
             "dependencies": [
                 "../utils:build",
                 "../parser:build",
+                "../codemirror:build",
+                "../doenetml-worker-javascript:build",
                 "build:rust"
             ]
         },

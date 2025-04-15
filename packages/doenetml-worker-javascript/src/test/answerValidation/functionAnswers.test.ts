@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -46,7 +46,10 @@ describe("function answer validation tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/ans"].stateValues.creditAchieved).closeTo(
                 responseCredits[response],
                 1e-12,
@@ -122,8 +125,10 @@ describe("function answer validation tests", async () => {
                             core,
                         });
                         await submitAnswer({ name: "/ans", core });
-                        let stateVariables =
-                            await returnAllStateVariables(core);
+                        let stateVariables = await core.returnAllStateVariables(
+                            false,
+                            true,
+                        );
                         expect(
                             stateVariables["/ans"].stateValues.creditAchieved,
                         ).closeTo(

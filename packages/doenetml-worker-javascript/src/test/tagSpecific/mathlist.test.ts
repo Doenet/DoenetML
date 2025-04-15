@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -18,13 +18,13 @@ describe("MathList tag tests", async () => {
         text,
         maths,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         name?: string;
         pName?: string;
         text?: string;
         maths?: any[];
     }) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -94,7 +94,7 @@ describe("MathList tag tests", async () => {
             ["/", ["+", "x", 7], ["*", 33, "y"]],
         ];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P"].stateValues.xs.map((x) => x.tree)).eqls(
             maths,
@@ -186,7 +186,7 @@ describe("MathList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: Core) {
+    async function test_nested_and_inverse(core: PublicDoenetMLCore) {
         await test_mathList({
             core,
             name: "/ml1",
@@ -657,7 +657,10 @@ describe("MathList tag tests", async () => {
                 text: texts.join(", "),
             });
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/p2"].stateValues.text).eq(
                 `Third math: ${texts[2]}`,
@@ -737,7 +740,10 @@ describe("MathList tag tests", async () => {
                 text: vals.join(", "),
             });
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/p2"].stateValues.text).eq(
                 `Third math: ${vals[2]}`,
@@ -786,7 +792,7 @@ describe("MathList tag tests", async () => {
             text: vals.slice(0, 3).join(", "),
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             `Copied math: ${vals.join(", ")}`,
@@ -1026,7 +1032,7 @@ describe("MathList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -1039,7 +1045,7 @@ describe("MathList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("x, y, z");
         expect(stateVariables["/p2"].stateValues.text).eq("x, y, z");
@@ -1191,7 +1197,7 @@ describe("MathList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pDefault"].stateValues.text).eq(
             "1 E - 12, 3 E2",
         );
@@ -1513,7 +1519,7 @@ describe("MathList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eqls([
             "list",
             "a",
@@ -1546,7 +1552,10 @@ describe("MathList tag tests", async () => {
                 text,
             });
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/p2"].stateValues.text).eq(text);
         }
 
@@ -1585,7 +1594,7 @@ describe("MathList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pText"].stateValues.text).eq("Text: x/y, a^b");
         expect(stateVariables["/pLatex"].stateValues.text).eq(
             "Latex: \\frac{x}{y}, a^{b}",
@@ -1605,7 +1614,7 @@ describe("MathList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         let x1 = "a",
             x2 = "b";

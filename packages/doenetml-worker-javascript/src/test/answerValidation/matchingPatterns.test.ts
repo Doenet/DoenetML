@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -174,7 +174,10 @@ describe("matching patterns answer tests", async () => {
                     core,
                 });
                 await submitAnswer({ name: "/ans", core });
-                let stateVariables = await returnAllStateVariables(core);
+                let stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
 
                 let res = resultsForVar[expr];
 

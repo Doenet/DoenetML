@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { atomDatabase } from "@doenet/static-assets";
 //@ts-ignore
@@ -48,7 +48,10 @@ describe("Atom tests", async () => {
         async function check_atom(atomicNumber: number) {
             const data = atomDatabase[atomicNumber - 1];
 
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const symbol = data["Symbol"];
             expect(stateVariables["/atom"].stateValues.latex).eq(
                 `\\text{${symbol}}`,
@@ -149,7 +152,7 @@ describe("Atom tests", async () => {
   `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pAn"].stateValues.text).eq(
             "Sort by atomic number: He, C, O, As",
         );

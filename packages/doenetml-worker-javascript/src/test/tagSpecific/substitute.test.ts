@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
@@ -14,7 +14,7 @@ vi.mock("hyperformula");
 
 describe("Substitute tag tests", async () => {
     async function test_sub_alpha_x2(core) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "+",
             "alpha",
@@ -98,7 +98,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "+",
             "y",
@@ -117,7 +117,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "*",
             2,
@@ -136,7 +136,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "+",
             "y",
@@ -160,7 +160,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "+",
             ["^", "b", 2],
@@ -189,7 +189,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "+",
             "y",
@@ -208,7 +208,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "/",
             "q",
@@ -227,7 +227,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "/",
             "q",
@@ -246,7 +246,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "/",
             "b",
@@ -265,7 +265,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "/",
             ["^", "m", 2],
@@ -291,7 +291,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.tree).eqls([
             "+",
             "x",
@@ -331,7 +331,7 @@ describe("Substitute tag tests", async () => {
         let s1 = "Big banana cHerAtes brown cHerry.";
         let s2 = "Big banana chideSbrown cHerry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value.trim()).eq(s1);
         expect(stateVariables["/one"].stateValues.value.trim()).eq(s1);
         expect(stateVariables["/s_two"].stateValues.value.trim()).eq(s2);
@@ -355,7 +355,7 @@ describe("Substitute tag tests", async () => {
         let s1 = "Big banana cHerAtes brown cHerry.";
         let s2 = "Big banana chideSbrown cHerry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
         expect(stateVariables["/s_two"].stateValues.value).eq(s2);
@@ -377,7 +377,7 @@ describe("Substitute tag tests", async () => {
         let s1 = "Big banana cHerAtes brown bErry.";
         let s2 = "Big banana BerAtes brown cHerry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
         expect(stateVariables["/s_two"].stateValues.value).eq(s2);
@@ -403,7 +403,7 @@ describe("Substitute tag tests", async () => {
         let s2 = "A new NEW NEW nEW NEW.";
         let s3 = "A new NEW NeW neW NeW.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
         expect(stateVariables["/s_two"].stateValues.value).eq(s2);
@@ -427,7 +427,7 @@ describe("Substitute tag tests", async () => {
         let s1 = "Big banana BerAtes brown bErry.";
         let s2 = "Big banana chideS brown bErry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
         expect(stateVariables["/s_two"].stateValues.value).eq(s2);
@@ -449,7 +449,7 @@ describe("Substitute tag tests", async () => {
         let s1 = "Big banana BerAtes brown bErry.";
         let s2 = "Big bananachideSbrown bErry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
         expect(stateVariables["/s_two"].stateValues.value).eq(s2);
@@ -468,7 +468,7 @@ describe("Substitute tag tests", async () => {
 
         let s1 = "cig cacana cerAtes crown cErry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
     });
@@ -489,7 +489,7 @@ describe("Substitute tag tests", async () => {
 
         let s1 = "Big banana cHerAtes brown cHerry.";
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s1);
         expect(stateVariables["/one"].stateValues.value).eq(s1);
 
@@ -501,7 +501,7 @@ describe("Substitute tag tests", async () => {
         });
         let s2 = "The bicycle cHelongs to me.";
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s2);
         expect(stateVariables["/one"].stateValues.value).eq(s2);
 
@@ -513,7 +513,7 @@ describe("Substitute tag tests", async () => {
         });
         let s3 = "The bicycle belongs to me.";
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s3);
         expect(stateVariables["/one"].stateValues.value).eq(s3);
 
@@ -525,7 +525,7 @@ describe("Substitute tag tests", async () => {
         });
         let s4 = "ThcHeicyclcHeelongs to me.";
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s4);
         expect(stateVariables["/one"].stateValues.value).eq(s4);
 
@@ -542,7 +542,7 @@ describe("Substitute tag tests", async () => {
         });
         let s5 = "The scooter belongs to me.";
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/s_one"].stateValues.value).eq(s5);
         expect(stateVariables["/one"].stateValues.value).eq(s5);
     });
@@ -564,7 +564,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let origExpr = me.fromText("x^2+2x+3y").tree;
         let subbedExpr = me.fromText("b^2+2b+3y").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -583,7 +583,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^2+2x+3x").tree;
         subbedExpr = me.fromText("b^2+2b+3b").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -602,7 +602,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^2+2x+3v/x").tree;
         subbedExpr = me.fromText("b^2+2b+3v/b").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -621,7 +621,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^2+2x+3v/x").tree;
         subbedExpr = me.fromText("v^2+2v+3v/v").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -640,7 +640,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^2+2x+3v/x").tree;
         subbedExpr = me.fromText("v^2+2v+3v/v").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -659,7 +659,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^2+2x+3u/x").tree;
         subbedExpr = me.fromText("v^2+2v+3u/v").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -678,7 +678,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^5+2x+3u/x").tree;
         subbedExpr = me.fromText("v^5+2v+3u/v").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -697,7 +697,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^5+2x+3u/x").tree;
         subbedExpr = me.fromText("(v+1)^5+2(v+1)+3u/(v+1)").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -716,7 +716,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^5+2x+3u/x").tree;
         subbedExpr = me.fromText("(v+1)^5+2(v+1)+3u/(v+1)").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -735,7 +735,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("x^5+2x+3u/x").tree;
         subbedExpr = me.fromText("v_3^5+2v_3+3u/v_3").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -754,7 +754,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("v_9^5+2x+3u/x").tree;
         subbedExpr = me.fromText("v_9^5+2v_3+3u/v_3").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -773,7 +773,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("v_9^5+2x+3u/x").tree;
         subbedExpr = me.fromText("v_3^5+2x+3u/x").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -792,7 +792,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("v_9^5+2x+3u/v_9").tree;
         subbedExpr = me.fromText("v_3^5+2x+3u/v_3").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -811,7 +811,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         origExpr = me.fromText("v_9^5+2x+3u/v_9").tree;
         subbedExpr = me.fromText("v_3^5+2x+3u/v_3").tree;
         expect(stateVariables["/orig"].stateValues.value.tree).eqls(origExpr);
@@ -844,7 +844,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq("hello there");
         expect(stateVariables["/orig2"].stateValues.value).eq("hello there");
         expect(stateVariables["/subbed"].stateValues.value).eq("bye there");
@@ -857,7 +857,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thereHello",
         );
@@ -874,7 +874,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello therehellohello",
         );
@@ -895,7 +895,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello therehellohello",
         );
@@ -916,7 +916,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello therehellohello",
         );
@@ -937,7 +937,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhellohello",
         );
@@ -958,7 +958,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhelloThe",
         );
@@ -979,7 +979,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhelloThe",
         );
@@ -999,7 +999,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhelloThe",
         );
@@ -1020,7 +1020,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhelloThe",
         );
@@ -1041,7 +1041,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhelloThere",
         );
@@ -1062,7 +1062,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello thenhelloThere",
         );
@@ -1083,7 +1083,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello then helloThere",
         );
@@ -1104,7 +1104,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello then helloThere",
         );
@@ -1125,7 +1125,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello then helloThere",
         );
@@ -1146,7 +1146,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello then helloThere Hello",
         );
@@ -1167,7 +1167,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "hello then helloThere Hello",
         );
@@ -1188,7 +1188,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "then hello helloThere Hello",
         );
@@ -1209,7 +1209,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "then hello helloThere Hello",
         );
@@ -1230,7 +1230,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "then hello helloThere Hello",
         );
@@ -1251,7 +1251,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "then hello helloThere Hello",
         );
@@ -1272,7 +1272,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "Hello HELLO THEN helloThere Hello",
         );
@@ -1293,7 +1293,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "Hello HELLO THEN helloThere Hello",
         );
@@ -1314,7 +1314,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "Hello HELLO THEN helloThere Hello",
         );
@@ -1335,7 +1335,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "Hello HELLO Then helloThere Hello",
         );
@@ -1356,7 +1356,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "Hello HELLO Then helloThere HELLO",
         );
@@ -1377,7 +1377,7 @@ describe("Substitute tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/orig"].stateValues.value).eq(
             "Hello HELLO Then helloThere HELLO",
         );
@@ -1404,7 +1404,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m1"].stateValues.value.tree).eqls([
             "+",
@@ -1507,7 +1507,7 @@ describe("Substitute tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/e1"]);
 
         expect(cleanLatex(stateVariables["/e1"].stateValues.latex)).eq(

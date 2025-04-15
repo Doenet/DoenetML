@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -23,28 +23,28 @@ describe("When tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/v"].stateValues.value).eq(false);
         expect(stateVariables["/cs"].stateValues.value).eq(false);
         expect(stateVariables["/fs"].stateValues.value).eq(0);
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/v"].stateValues.value).eq(false);
         expect(stateVariables["/cs"].stateValues.value).eq(false);
         expect(stateVariables["/fs"].stateValues.value).eq(0.5);
 
         await updateMathInputValue({ latex: "11", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/v"].stateValues.value).eq(true);
         expect(stateVariables["/cs"].stateValues.value).eq(true);
         expect(stateVariables["/fs"].stateValues.value).eq(1);
 
         await updateMathInputValue({ latex: "-11", name: "/n", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/v"].stateValues.value).eq(false);
         expect(stateVariables["/cs"].stateValues.value).eq(false);
@@ -96,7 +96,7 @@ describe("When tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/fsAA"].stateValues.value).eq(1);
         expect(stateVariables["/fsAB"].stateValues.value).eq(0);
@@ -164,7 +164,7 @@ describe("When tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/fsAA"].stateValues.value).eq(1);
         expect(stateVariables["/fsAB"].stateValues.value).eq(0.5);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -976,7 +976,7 @@ describe("Math expressions equality tests", async () => {
 
         let core = await createTestCore({ doenetML });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let [ind, info] of equivalences.entries()) {
             expect(

@@ -3,8 +3,11 @@ import { describe, it, expect } from "vitest";
 import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker";
 import * as Comlink from "comlink";
 
-import { lezerToDast, filterPositionInfo } from "@doenet/parser";
-import { normalizeDocumentDast } from "../src/state/redux-slices/dast/utils/normalize-dast";
+import {
+    lezerToDast,
+    filterPositionInfo,
+    normalizeDocumentDast,
+} from "@doenet/parser";
 import { doenetGlobalConfig } from "../src/global-config";
 
 /**

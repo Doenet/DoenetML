@@ -1725,6 +1725,15 @@ describe("Paginator Tag Tests", function () {
 
         for (let attemptNumber = 1; attemptNumber <= 6; attemptNumber++) {
             if (attemptNumber > 1) {
+                cy.window().then(async (win) => {
+                    win.postMessage(
+                        {
+                            requestedVariantIndex: attemptNumber,
+                        },
+                        "*",
+                    );
+                });
+
                 cy.get("#testRunner_toggleControls").click();
                 cy.get("#testRunner_newAttempt").click();
                 cy.get("#testRunner_toggleControls").click();

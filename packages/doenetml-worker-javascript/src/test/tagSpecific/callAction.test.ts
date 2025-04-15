@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     callAction,
@@ -21,7 +21,7 @@ vi.mock("hyperformula");
 
 describe("callAction tag tests", async () => {
     async function test_resample(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let sum = 0;
         let numbers = stateVariables["/nums"].stateValues.text
@@ -38,7 +38,7 @@ describe("callAction tag tests", async () => {
         expect(stateVariables["/sum"].stateValues.value).eq(sum);
 
         await callAction({ name: "/rs", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/sum"].stateValues.value).not.eq(sum);
 
@@ -99,7 +99,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p1"].stateValues.latex)).eq("(1,2)");
 
@@ -114,7 +114,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/addPoint", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -143,7 +143,7 @@ describe("callAction tag tests", async () => {
             y: 5,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(-2,5)",
@@ -165,7 +165,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/addPoint", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(3,4)");
 
@@ -198,7 +198,7 @@ describe("callAction tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq(
             "(7,-9)",
@@ -220,7 +220,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/deletePoint", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p3"]).eq(undefined);
 
@@ -250,7 +250,7 @@ describe("callAction tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(1,0)");
 
@@ -270,7 +270,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/deletePoint", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"]).eq(undefined);
 
@@ -291,7 +291,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/deletePoint", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p1"].stateValues.latex)).eq("(1,2)");
 
@@ -312,7 +312,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/addPoint", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -337,7 +337,7 @@ describe("callAction tag tests", async () => {
     });
 
     async function test_chained_actions(core) {
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
 
         expect(stateVariables["/g"].stateValues.graphicalDescendants.length).eq(
@@ -355,7 +355,7 @@ describe("callAction tag tests", async () => {
         }
 
         await callAction({ name: "/rs", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -372,7 +372,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(-2,5)",
         );
@@ -475,7 +475,10 @@ describe("callAction tag tests", async () => {
         });
 
         for (let ind = 1; ind <= 2; ind++) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables[`/set${ind}/addPoint`].stateValues.hidden).eq(
                 true,
@@ -497,7 +500,7 @@ describe("callAction tag tests", async () => {
             }
 
             await callAction({ name: `/set${ind}/rs`, core });
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(
                 cleanLatex(stateVariables[`/set${ind}/p2`].stateValues.latex),
@@ -516,7 +519,7 @@ describe("callAction tag tests", async () => {
 
             await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(
                 cleanLatex(stateVariables[`/set${ind}/p2`].stateValues.latex),
@@ -570,7 +573,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
 
         expect(stateVariables["/g"].stateValues.graphicalDescendants.length).eq(
@@ -590,7 +593,7 @@ describe("callAction tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await callAction({ name: "/rs", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -606,7 +609,7 @@ describe("callAction tag tests", async () => {
         ).eqls([3, 4]);
 
         await movePoint({ name: pointNames[1], x: -2, y: 5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(-2,5)",
@@ -634,7 +637,7 @@ describe("callAction tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await updateValue({ name: "/in", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(3,4)");
 
@@ -654,7 +657,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: pointNames[2], x: 7, y: -9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq(
             "(7,-9)",
@@ -685,7 +688,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
 
@@ -705,7 +708,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-1,-7)",
@@ -719,7 +722,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(3,-4)",
@@ -733,7 +736,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(1,7)");
 
@@ -752,7 +755,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(5,9)");
 
@@ -764,7 +767,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -3, y: 4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-3,4)",
@@ -778,7 +781,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-6,5)",
@@ -792,7 +795,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(4,2)");
 
@@ -811,7 +814,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(9,7)");
 
@@ -837,7 +840,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
 
@@ -857,7 +860,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(3,-4)",
@@ -871,7 +874,7 @@ describe("callAction tag tests", async () => {
 
         await clickPoint({ name: "/P", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
@@ -888,7 +891,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(5,9)");
 
@@ -900,7 +903,7 @@ describe("callAction tag tests", async () => {
 
         await clickPoint({ name: "/P", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
@@ -917,7 +920,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(9,7)");
 
@@ -947,7 +950,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let ind = 0; ind < 2; ind++) {
             let templateName =
@@ -979,7 +982,7 @@ describe("callAction tag tests", async () => {
 
             await movePoint({ name: PName, x: 3, y: -4, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(cleanLatex(stateVariables[P2Name].stateValues.latex)).eq(
                 "(3,-4)",
@@ -993,7 +996,7 @@ describe("callAction tag tests", async () => {
 
             await clickPoint({ name: PName, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             numbers2 = stateVariables[numsName].stateValues.text
                 .split(",")
@@ -1010,7 +1013,7 @@ describe("callAction tag tests", async () => {
 
             await movePoint({ name: PName, x: 5, y: 9, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(cleanLatex(stateVariables[P2Name].stateValues.latex)).eq(
                 "(5,9)",
@@ -1024,7 +1027,7 @@ describe("callAction tag tests", async () => {
 
             await clickPoint({ name: PName, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             numbers2 = stateVariables[numsName].stateValues.text
                 .split(",")
@@ -1041,7 +1044,7 @@ describe("callAction tag tests", async () => {
 
             await movePoint({ name: PName, x: 9, y: 7, core });
 
-            stateVariables = await returnAllStateVariables(core);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(cleanLatex(stateVariables[P2Name].stateValues.latex)).eq(
                 "(9,7)",
@@ -1070,7 +1073,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
 
@@ -1090,7 +1093,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(3,-4)",
@@ -1104,7 +1107,7 @@ describe("callAction tag tests", async () => {
 
         await focusPoint({ name: "/P", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
@@ -1121,7 +1124,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(5,9)");
 
@@ -1133,7 +1136,7 @@ describe("callAction tag tests", async () => {
 
         await focusPoint({ name: "/P", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         numbers2 = stateVariables["/nums"].stateValues.text
             .split(",")
@@ -1150,7 +1153,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(9,7)");
 
@@ -1182,7 +1185,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
@@ -1205,7 +1208,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-1,-7)",
@@ -1222,7 +1225,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(3,-4)",
@@ -1239,7 +1242,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(1,7)");
 
@@ -1262,7 +1265,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(5,9)");
 
@@ -1276,7 +1279,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).eqls(numbers);
 
         await movePoint({ name: "/P", x: -3, y: 4, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-3,4)",
@@ -1292,7 +1295,7 @@ describe("callAction tag tests", async () => {
         expect(numbers2).eqls(numbers);
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-6,5)",
@@ -1309,7 +1312,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(4,2)");
 
@@ -1331,7 +1334,7 @@ describe("callAction tag tests", async () => {
         numbers = numbers2;
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(9,7)");
 
@@ -1366,7 +1369,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
@@ -1389,7 +1392,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-1,-7)",
@@ -1413,7 +1416,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(3,-4)",
@@ -1430,7 +1433,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(1,7)");
 
@@ -1445,7 +1448,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(5,9)");
 
@@ -1460,7 +1463,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-3,-4)",
@@ -1484,7 +1487,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq(
             "(-6,-5)",
@@ -1501,7 +1504,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(4,2)");
 
@@ -1516,7 +1519,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/P2"].stateValues.latex)).eq("(9,7)");
 
@@ -1554,7 +1557,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
@@ -1575,7 +1578,7 @@ describe("callAction tag tests", async () => {
 
         await triggerActions({ name: "/tset", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -1592,7 +1595,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(-2,5)",
@@ -1646,7 +1649,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/rs"].stateValues.hidden).eq(true);
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
@@ -1660,7 +1663,7 @@ describe("callAction tag tests", async () => {
             name: mathInputName,
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ans"].stateValues.justSubmitted).eq(false);
 
@@ -1680,7 +1683,7 @@ describe("callAction tag tests", async () => {
 
         await triggerActions({ name: "/tset", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -1697,7 +1700,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(-2,5)",
@@ -1751,7 +1754,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/addPoint"].stateValues.hidden).eq(true);
 
@@ -1772,7 +1775,7 @@ describe("callAction tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await callAction({ name: "/rs", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(3,4)");
 
@@ -1789,7 +1792,7 @@ describe("callAction tag tests", async () => {
 
         await movePoint({ name: pointNames[1], x: -2, y: 5, core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(-2,5)",
@@ -1824,7 +1827,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/rs"].stateValues.label).eq(
             "Hi \\(\\sum_{i=1}^5x_i\\)",
         );
@@ -1838,7 +1841,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/resample_numbers"].stateValues.label).eq(
             "resample numbers",
         );
@@ -1894,7 +1897,7 @@ describe("callAction tag tests", async () => {
     `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ca1"].stateValues.selectedStyle.fillColor).eq(
             "green",
         );

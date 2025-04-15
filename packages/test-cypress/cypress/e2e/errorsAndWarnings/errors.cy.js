@@ -64,7 +64,7 @@ describe("Error Tests", function () {
         cy.get(cesc2("#/_text3")).should("have.text", "afterwards");
 
         cy.window().then(async (win) => {
-            let errorWarnings = await win.returnErrorWarnings1();
+            let errorWarnings = win.returnErrorWarnings1();
 
             expect(errorWarnings.errors.length).eq(4);
             expect(errorWarnings.warnings.length).eq(0);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     movePolyline,
     submitAnswer,
@@ -87,7 +87,10 @@ describe("CobwebPolyline Tag Tests", async () => {
         let cobwebJustSubmitted = false;
 
         async function check_items() {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             // check <answer> scores
             expect(
                 stateVariables["/check_initial"].stateValues.creditAchieved,
@@ -139,7 +142,10 @@ describe("CobwebPolyline Tag Tests", async () => {
         await check_items();
         // Also check can't remove line
         {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/deleteline"].stateValues.hidden).eqls(true);
         }
 
@@ -376,7 +382,7 @@ describe("CobwebPolyline Tag Tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let vertices = stateVariables["/cobweb"].stateValues.vertices;
         expect(vertices.length).eqls(100);
         expect(vertices[0].map((v) => v.tree)).eqls(["＿", 0]);
@@ -385,7 +391,7 @@ describe("CobwebPolyline Tag Tests", async () => {
         }
 
         await updateMathInputValue({ name: "/x0", latex: "0.9", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         vertices = stateVariables["/cobweb"].stateValues.vertices;
         expect(vertices.length).eqls(100);
         expect(vertices[0].map((v) => v.tree)).eqls([0.9, 0]);
@@ -394,7 +400,7 @@ describe("CobwebPolyline Tag Tests", async () => {
         expect(vertices[99].map((v) => v.tree)).eqls([0, 0]);
 
         await updateMathInputValue({ name: "/x0", latex: "(1.1,3)", core });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         vertices = stateVariables["/cobweb"].stateValues.vertices;
         expect(vertices.length).eqls(100);
         expect(vertices[0][0].tree).closeTo(1.1, 1e-14);

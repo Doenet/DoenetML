@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
@@ -31,7 +31,7 @@ describe("FunctionIterates tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = 3 a v");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = 3 v a²");
         expect(stateVariables["/l3"].stateValues.text).eq("f³(u) = 3 v a³");
@@ -45,7 +45,7 @@ describe("FunctionIterates tag tests", async () => {
         await updateMathInputValue({ latex: "4", name: "/n", core });
         await updateMathInputValue({ latex: "w", name: "/u", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = b w²");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = b³ w⁴");
         expect(stateVariables["/l3"].stateValues.text).eq("f³(u) = b⁷ w⁸");
@@ -54,7 +54,7 @@ describe("FunctionIterates tag tests", async () => {
         // change variable
         await updateMathInputValue({ latex: "y", name: "/x", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = b x²");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = b x²");
         expect(stateVariables["/l3"].stateValues.text).eq("f³(u) = b x²");
@@ -68,7 +68,7 @@ describe("FunctionIterates tag tests", async () => {
         });
         await updateMathInputValue({ latex: "5", name: "/n", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = q + w");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = 2 q + w");
         expect(stateVariables["/l3"].stateValues.text).eq("f³(u) = 3 q + w");
@@ -96,7 +96,7 @@ describe("FunctionIterates tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = 6");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = 18");
         expect(stateVariables["/l3"].stateValues.text).eq("f³(u) = 54");
@@ -110,7 +110,7 @@ describe("FunctionIterates tag tests", async () => {
         await updateMathInputValue({ latex: "4", name: "/n", core });
         await updateMathInputValue({ latex: "1/4", name: "/u", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = 0.125");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = 0.03125");
         expect(stateVariables["/l3"].stateValues.text).eq(
@@ -123,7 +123,7 @@ describe("FunctionIterates tag tests", async () => {
         // change variable
         await updateMathInputValue({ latex: "y", name: "/x", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         // Ideally wouldn't have spaces in N a N, but get it from
         // parsing the latex of the `<m>` and converting to text
@@ -140,7 +140,7 @@ describe("FunctionIterates tag tests", async () => {
         });
         await updateMathInputValue({ latex: "5", name: "/n", core });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l1"].stateValues.text).eq("f¹(u) = 5.25");
         expect(stateVariables["/l2"].stateValues.text).eq("f²(u) = 10.25");
         expect(stateVariables["/l3"].stateValues.text).eq("f³(u) = 15.25");
@@ -150,7 +150,10 @@ describe("FunctionIterates tag tests", async () => {
 
     async function test_2d_linear(core) {
         async function checkIterates({ a, b, c, d, u1, u2, n }) {
-            let stateVariables = await returnAllStateVariables(core);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let A = me.math.matrix([
                 [a, b],
@@ -235,7 +238,7 @@ describe("FunctionIterates tag tests", async () => {
   `,
         });
 
-        let errorWarnings = core.errorWarnings;
+        let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(1);
@@ -264,7 +267,7 @@ describe("FunctionIterates tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -287,7 +290,7 @@ describe("FunctionIterates tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -311,7 +314,7 @@ describe("FunctionIterates tag tests", async () => {
             core,
         });
 
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -334,7 +337,7 @@ describe("FunctionIterates tag tests", async () => {
             name: "/u",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -365,7 +368,7 @@ describe("FunctionIterates tag tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -388,7 +391,7 @@ describe("FunctionIterates tag tests", async () => {
             name: "/u",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -417,7 +420,7 @@ describe("FunctionIterates tag tests", async () => {
             name: "/fformula",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -440,7 +443,7 @@ describe("FunctionIterates tag tests", async () => {
             name: "/vars",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,
@@ -463,7 +466,7 @@ describe("FunctionIterates tag tests", async () => {
             name: "/u",
             core,
         });
-        stateVariables = await returnAllStateVariables(core);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         iterNames = stateVariables["/iterates"].replacements!.map(
             (x) => x.componentName,

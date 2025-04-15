@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import Core from "../../Core";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -18,13 +18,13 @@ describe("BooleanList tag tests", async () => {
         text,
         booleans,
     }: {
-        core: Core;
+        core: PublicDoenetMLCore;
         name?: string;
         pName?: string;
         text?: string;
         booleans?: boolean[];
     }) {
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -104,7 +104,7 @@ describe("BooleanList tag tests", async () => {
         });
     });
 
-    async function test_nested_and_inverse(core: Core) {
+    async function test_nested_and_inverse(core: PublicDoenetMLCore) {
         await test_booleanList({
             core,
             name: "/bl1",
@@ -546,7 +546,7 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -559,7 +559,7 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("true, true, false");
         expect(stateVariables["/p2"].stateValues.text).eq("true, true, false");
@@ -578,7 +578,7 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await returnAllStateVariables(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pText"].stateValues.text).eq(
             "Text: true, true, false",
         );

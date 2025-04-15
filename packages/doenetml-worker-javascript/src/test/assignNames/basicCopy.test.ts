@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, returnAllStateVariables } from "../utils/test-core";
+import { createTestCore } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -24,7 +24,7 @@ describe("Basic copy assign name tests", async () => {
       `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value).eq("hello");
         expect(stateVariables["/b"].stateValues.value).eq("hello");
@@ -60,7 +60,7 @@ describe("Basic copy assign name tests", async () => {
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/math1"].stateValues.value.tree).eqls([
             "+",
@@ -113,7 +113,10 @@ describe("Basic copy assign name tests", async () => {
         });
 
         async function check_items(b: number[], c: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/b"].stateValues.xs.map((v) => v.tree)).eqls(
                 b,
             );
@@ -209,7 +212,10 @@ describe("Basic copy assign name tests", async () => {
         });
 
         async function check_items(b: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/b"].stateValues.xs.map((v) => v.tree)).eqls(
                 b,
             );
@@ -271,7 +277,10 @@ describe("Basic copy assign name tests", async () => {
         });
 
         async function check_items(b: number[], c: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/b"].stateValues.xs.map((v) => v.tree)).eqls(
                 b,
             );
@@ -339,7 +348,10 @@ describe("Basic copy assign name tests", async () => {
         });
 
         async function check_items(p1: number[], p2: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let point1 = stateVariables["/pts"].replacements![0].componentName;
             let point2 = stateVariables["/pts"].replacements![1].componentName;
             let point1a =
@@ -468,7 +480,10 @@ describe("Basic copy assign name tests", async () => {
         });
 
         async function check_items(p1: number[], p2: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let point1 =
                 stateVariables["/hello/pts"].replacements![0].componentName;
             let point2 =
@@ -672,7 +687,10 @@ describe("Basic copy assign name tests", async () => {
         ];
 
         async function check_items(p1: number[], p2: number[]) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let p1Name of p1Names) {
                 expect(
@@ -774,7 +792,10 @@ describe("Basic copy assign name tests", async () => {
         ];
 
         async function check_items(p: number[] | undefined) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             if (p) {
                 for (let x1Name of x1Names) {
                     expect(stateVariables[x1Name].stateValues.value.tree).eq(
@@ -891,7 +912,10 @@ describe("Basic copy assign name tests", async () => {
         ];
 
         async function check_items(ps: number[][], n: number) {
-            const stateVariables = await returnAllStateVariables(core);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let pt = ps[n - 1];
             if (pt) {
@@ -997,7 +1021,7 @@ $(b/p1/person) $(b/person)</p>
 
         let names = ["/section1", "/a", "/b"];
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of names) {
             expect(stateVariables[`${name}/p1`].stateValues.text).eq(
                 "Hello, Jesse!",
@@ -1034,7 +1058,7 @@ $(b/p1/person) $(b/person)</p>
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/hello/p1"].stateValues.text).eq(
             "Hello, Jesse!",
@@ -1075,7 +1099,7 @@ $(b/p1/person) $(b/person)</p>
   `,
         });
 
-        let stateVariables = await returnAllStateVariables(core);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pOriginal/expression"].stateValues.text).eq(
             "x + y",
