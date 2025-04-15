@@ -355,15 +355,13 @@ export class PublicDoenetMLCore {
     }
     /**
      * Submit any answers that are waiting to auto-submitted and save all state
-     * so that the worker can be terminate without losing data.
-     * Then close the worker.
+     * so that the worker can be terminated without losing data.
      */
     async terminate() {
         if (this.core) {
             await this.core.terminate();
             this.core = null;
         }
-        close();
     }
 
     // Turn on or off recording of the visibility of document components,

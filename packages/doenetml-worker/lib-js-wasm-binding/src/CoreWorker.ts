@@ -355,6 +355,8 @@ export class CoreWorker {
         } else {
             resolve();
         }
+
+        close(); // Terminate the worker itself
     }
 
     async returnAllStateVariables(consoleLogComponents = false) {
