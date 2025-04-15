@@ -41,11 +41,11 @@ async function run_tests({
                 await movePoint({ name, ...resp, core });
             }
         }
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/ans`].stateValues.justSubmitted).eq(false);
 
         await submitAnswer({ name: `/ans`, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/ans`].stateValues.creditAchieved).eq(
             credit,
             `credit for response ${JSON.stringify(responses)}`,

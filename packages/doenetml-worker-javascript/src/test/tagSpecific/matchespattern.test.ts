@@ -181,7 +181,10 @@ describe("MatchesPattern tag tests", async () => {
                 name: "/expr",
                 core,
             });
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let dResults = desiredResults[expr];
 
@@ -338,7 +341,10 @@ describe("MatchesPattern tag tests", async () => {
                 name: "/expr",
                 core,
             });
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let dResults = desiredResults[expr];
 
@@ -489,7 +495,10 @@ describe("MatchesPattern tag tests", async () => {
                 name: "/expr",
                 core,
             });
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let dResults = desiredResults[expr];
 
@@ -546,7 +555,7 @@ describe("MatchesPattern tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/mp`].stateValues.value).to.be.false;
     });
@@ -563,7 +572,7 @@ describe("MatchesPattern tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/mps`].stateValues.value).to.be.true;
         expect(cleanLatex(stateVariables[`/mpsm1`].stateValues.latex)).eq("e");
@@ -654,7 +663,10 @@ describe("MatchesPattern tag tests", async () => {
                 core,
             });
 
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let dResults = desiredResults[expr];
 
@@ -679,7 +691,7 @@ describe("MatchesPattern tag tests", async () => {
                 core,
             });
 
-            stateVariables = await core.returnAllStateVariables(true);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             dResults = desiredResults[expr];
 

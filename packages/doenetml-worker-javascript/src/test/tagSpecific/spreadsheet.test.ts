@@ -39,26 +39,26 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         // check have spreadsheet cells
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             Array.isArray(stateVariables["/spreadsheet1"].stateValues.cells),
         ).eq(true);
 
         // enter text in B3
         await changeSpreadsheetText({ row: 3, column: 2, text: "hello", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq(
             "hello",
         );
 
         // delete text in B3
         await changeSpreadsheetText({ row: 3, column: 2, text: "", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[2][1]).eq("");
 
         // enter text in A1
         await changeSpreadsheetText({ row: 1, column: 1, text: "first", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
             "first",
         );
@@ -66,7 +66,7 @@ describe("Spreadsheet tag tests", async () => {
 
         // enter text in D2
         await changeSpreadsheetText({ row: 2, column: 4, text: "right", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
             "first",
         );
@@ -90,7 +90,10 @@ describe("Spreadsheet tag tests", async () => {
         });
 
         async function check_items(A1: string, C1: string, C3: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
                 A1,
             );
@@ -217,7 +220,10 @@ describe("Spreadsheet tag tests", async () => {
         };
 
         async function check_items(cellValues: Record<string, string>) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let cellNum in cellNames) {
                 for (let ind in cellNames[cellNum]) {
                     expect(
@@ -365,7 +371,10 @@ describe("Spreadsheet tag tests", async () => {
         };
 
         async function check_items(cellValues: Record<string, string>) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let cellNum in cellNames) {
                 for (let ind in cellNames[cellNum]) {
                     expect(
@@ -459,7 +468,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(7);
         expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(6);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
@@ -512,7 +521,7 @@ describe("Spreadsheet tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 7; ind++) {
             expect(
                 stateVariables["/spreadsheet1"].stateValues.cells[ind - 1][0],
@@ -536,7 +545,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(6);
         expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(7);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][0]).eq(
@@ -588,7 +597,7 @@ describe("Spreadsheet tag tests", async () => {
                 core,
             });
         }
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 7; ind++) {
             expect(
                 stateVariables["/spreadsheet1"].stateValues.cells[0][ind - 1],
@@ -624,7 +633,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(6);
         expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(8);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[2][2]).eq(
@@ -685,7 +694,7 @@ describe("Spreadsheet tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 8; ind++) {
             expect(
                 stateVariables["/spreadsheet1"].stateValues.cells[4][ind - 1],
@@ -719,7 +728,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(4);
         expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(4);
         expect(stateVariables["/spreadsheet2"].stateValues.numRows).eq(4);
@@ -771,7 +780,7 @@ describe("Spreadsheet tag tests", async () => {
                 core,
             });
         }
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
             expect(
                 stateVariables["/spreadsheet1"].stateValues.cells[2][ind - 1],
@@ -801,7 +810,7 @@ describe("Spreadsheet tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
             expect(
                 stateVariables["/spreadsheet2"].stateValues.cells[ind - 1][1],
@@ -844,7 +853,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(4);
         expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(4);
         expect(stateVariables["/spreadsheet2"].stateValues.numRows).eq(4);
@@ -894,7 +903,7 @@ describe("Spreadsheet tag tests", async () => {
                 core,
             });
         }
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
             expect(
                 stateVariables["/spreadsheet1"].stateValues.cells[1][ind - 1],
@@ -933,7 +942,7 @@ describe("Spreadsheet tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 4; ind++) {
             expect(
                 stateVariables["/spreadsheet2"].stateValues.cells[ind - 1][4],
@@ -979,7 +988,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.numRows).eq(3);
         expect(stateVariables["/spreadsheet1"].stateValues.numColumns).eq(3);
         expect(stateVariables["/spreadsheet2"].stateValues.numRows).eq(5);
@@ -1014,7 +1023,7 @@ describe("Spreadsheet tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 3; ind++) {
             expect(
                 stateVariables["/spreadsheet1"].stateValues.cells[1][ind - 1],
@@ -1037,7 +1046,7 @@ describe("Spreadsheet tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 1; ind <= 5; ind++) {
             expect(
                 stateVariables["/spreadsheet2"].stateValues.cells[ind - 1][3],
@@ -1079,7 +1088,7 @@ describe("Spreadsheet tag tests", async () => {
             [2, 3],
         ];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq(
             "alpha",
         );
@@ -1135,7 +1144,7 @@ describe("Spreadsheet tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq("a");
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][5]).eq("b");
         expect(stateVariables["/spreadsheet1"].stateValues.cells[1][4]).eq("c");
@@ -1189,7 +1198,7 @@ describe("Spreadsheet tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/spreadsheet1"].stateValues.cells[0][4]).eq(
             "first",
         );
@@ -1241,7 +1250,7 @@ describe("Spreadsheet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.latex).eq("x^{2}");
         expect(stateVariables["/t1"].stateValues.value).eq("hello");
         expect(stateVariables["/n1"].stateValues.value).eq(5);
@@ -1287,7 +1296,7 @@ describe("Spreadsheet tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.latex).eq("x^{2}");
         expect(stateVariables["/t1"].stateValues.value).eq("hello");
         expect(stateVariables["/n1"].stateValues.value).eq(5);
@@ -1345,7 +1354,10 @@ describe("Spreadsheet tag tests", async () => {
             }
             let m1 = me.fromAst(["+", A1tree, 1]);
             let m2 = me.fromAst(["+", A1tree, A2tree]);
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/p1"].stateValues.text).eq(`${A1} A`);
             expect(stateVariables["/math1"].stateValues.value.tree).eqls(
                 m1.simplify().tree,
@@ -1479,7 +1491,10 @@ $s.cellA1{assignNames="c2"}
         });
 
         async function check_items(A1 = "", B1 = "", B2 = "") {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/row1"].activeChildren.map(
                     (v) => v.componentName,
@@ -1535,17 +1550,17 @@ $s.cellA1{assignNames="c2"}
     });
 
     async function test_merge_coordinates(core: PublicDoenetMLCore) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/coords"].stateValues.text).eq("( 1, 2 )");
         expect(stateVariables["/t1"].stateValues.value).eq("( 1, 2 )");
 
         await updateMathInputValue({ latex: "3", name: "/x1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/coords"].stateValues.text).eq("( 3, 2 )");
         expect(stateVariables["/t1"].stateValues.value).eq("( 3, 2 )");
 
         await updateMathInputValue({ latex: "4", name: "/x2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/coords"].stateValues.text).eq("( 3, 4 )");
         expect(stateVariables["/t1"].stateValues.value).eq("( 3, 4 )");
     }
@@ -1589,7 +1604,7 @@ $s.cellA1{assignNames="c2"}
         let row = ["A", "B", "C"];
         let column = ["B", "E", "H"];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"]).be.undefined;
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;
@@ -1598,7 +1613,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"]).be.undefined;
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"].stateValues.value).eq(row[0]);
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;
@@ -1607,7 +1622,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"]).be.undefined;
 
         await updateMathInputValue({ latex: "2", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"].stateValues.value).eq(row[1]);
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;
@@ -1616,7 +1631,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"]).be.undefined;
 
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"].stateValues.value).eq(row[2]);
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;
@@ -1625,7 +1640,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"]).be.undefined;
 
         await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"]).be.undefined;
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;
@@ -1769,7 +1784,7 @@ $s.cellA1{assignNames="c2"}
             ["C", "F", "I"],
         ];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"]).be.undefined;
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;
@@ -1778,7 +1793,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"]).be.undefined;
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"].stateValues.value).eq(rows[0][0]);
         expect(stateVariables["/R2"].stateValues.value).eq(rows[0][1]);
         expect(stateVariables["/R3"].stateValues.value).eq(rows[0][2]);
@@ -1787,7 +1802,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"].stateValues.value).eq(columns[0][2]);
 
         await updateMathInputValue({ latex: "2", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"].stateValues.value).eq(rows[1][0]);
         expect(stateVariables["/R2"].stateValues.value).eq(rows[1][1]);
         expect(stateVariables["/R3"].stateValues.value).eq(rows[1][2]);
@@ -1796,7 +1811,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"].stateValues.value).eq(columns[1][2]);
 
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"].stateValues.value).eq(rows[2][0]);
         expect(stateVariables["/R2"].stateValues.value).eq(rows[2][1]);
         expect(stateVariables["/R3"].stateValues.value).eq(rows[2][2]);
@@ -1805,7 +1820,7 @@ $s.cellA1{assignNames="c2"}
         expect(stateVariables["/C3"].stateValues.value).eq(columns[2][2]);
 
         await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/R1"]).be.undefined;
         expect(stateVariables["/R2"]).be.undefined;
         expect(stateVariables["/R3"]).be.undefined;

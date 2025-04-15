@@ -48,7 +48,10 @@ describe("Atom tests", async () => {
         async function check_atom(atomicNumber: number) {
             const data = atomDatabase[atomicNumber - 1];
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const symbol = data["Symbol"];
             expect(stateVariables["/atom"].stateValues.latex).eq(
                 `\\text{${symbol}}`,
@@ -149,7 +152,7 @@ describe("Atom tests", async () => {
   `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pAn"].stateValues.text).eq(
             "Sort by atomic number: He, C, O, As",
         );

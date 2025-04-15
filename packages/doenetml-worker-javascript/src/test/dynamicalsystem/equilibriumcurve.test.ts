@@ -59,7 +59,7 @@ describe("Equilibriumcurve Tag Tests", async () => {
             [-3, 4],
             [-2, 6],
         ];
-        let svs = await core.returnAllStateVariables(true);
+        let svs = await core.returnAllStateVariables(false, true);
         expect(svs["/g/A"].stateValues.numericalThroughPoints).eqls(throughA);
         expect(svs["/g/B"].stateValues.numericalThroughPoints).eqls(throughB);
         expect(svs["/g/C"].stateValues.numericalThroughPoints).eqls(throughC);
@@ -74,7 +74,10 @@ describe("Equilibriumcurve Tag Tests", async () => {
         let Ds = false;
 
         async function check_stable() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/gAs"].stateValues.value).eqls(As);
             expect(stateVariables["/gBs"].stateValues.value).eqls(false);
             expect(stateVariables["/gCs"].stateValues.value).eqls(Cs);

@@ -30,7 +30,10 @@ describe("MathInput tag tests", async () => {
                 immediateValue = value;
             }
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/mi1"].stateValues.immediateValue.tree).eqls(
                 immediateValue,
             );
@@ -234,7 +237,7 @@ describe("MathInput tag tests", async () => {
         await check_items(matrixValue);
 
         // change values
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         await updateMatrixInputValue({
             latex: "g",
             rowInd: 0,
@@ -300,7 +303,10 @@ describe("MathInput tag tests", async () => {
         defaultEntry?: string | number;
     }) {
         async function check_items(ast: any, boundValueFormat?: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/mi1"].stateValues.value.tree).eqls(ast);
             expect(stateVariables["/m1"].stateValues.value.tree).eqls(ast);
             if (boundValueName) {
@@ -600,7 +606,7 @@ describe("MathInput tag tests", async () => {
         values[1][0] = "g";
         values[1][1] = "h";
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 0; i < 2; i++) {
             for (let j = 0; j < 2; j++) {
@@ -641,7 +647,7 @@ describe("MathInput tag tests", async () => {
                 core,
             });
 
-            stateVariables = await core.returnAllStateVariables(true);
+            stateVariables = await core.returnAllStateVariables(false, true);
             expect(stateVariables[numRowsName].stateValues.value.tree).eq(
                 ignoredNumRows,
             );
@@ -1260,7 +1266,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/varWithNum"].stateValues.value.tree).eq("x2");
         expect(stateVariables["/varWithNum2"].stateValues.value.tree).eqls([
             "matrix",
@@ -1299,7 +1305,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/varWithNum"].stateValues.value.tree).eqls([
             "matrix",
             ["tuple", 1, 1],
@@ -1455,7 +1461,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pMatrix"].stateValues.text).eq(
             "Matrix: [ [ a, b ], [ c, d ] ]",
@@ -1465,7 +1471,7 @@ describe("MathInput tag tests", async () => {
 
         // pick second row
         await updateMathInputValue({ latex: "2", name: "/rNum", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pRow"].stateValues.text).eq(
             "Row: [ [ c, d ] ]",
         );
@@ -1473,12 +1479,12 @@ describe("MathInput tag tests", async () => {
 
         // pick first column
         await updateMathInputValue({ latex: "1", name: "/cNum", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: c");
 
         // change entry from bound value
         await updateMathInputValue({ latex: "x", name: "/mi_entry", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pMatrix"].stateValues.text).eq(
             "Matrix: [ [ a, b ], [ x, d ] ]",
         );
@@ -1489,7 +1495,7 @@ describe("MathInput tag tests", async () => {
 
         // change row
         await updateMathInputValue({ latex: "1", name: "/rNum", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pRow"].stateValues.text).eq(
             "Row: [ [ a, b ] ]",
         );
@@ -1504,7 +1510,7 @@ describe("MathInput tag tests", async () => {
             core,
             stateVariables,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pMatrix"].stateValues.text).eq(
             "Matrix: [ [ y, b ], [ x, d ] ]",
         );
@@ -1515,12 +1521,12 @@ describe("MathInput tag tests", async () => {
 
         // change column
         await updateMathInputValue({ latex: "2", name: "/cNum", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pEntry"].stateValues.text).eq("Entry: b");
 
         // change entry from bound value
         await updateMathInputValue({ latex: "z", name: "/mi_entry", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pMatrix"].stateValues.text).eq(
             "Matrix: [ [ y, z ], [ x, d ] ]",
         );
@@ -1539,7 +1545,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let entryName1 = stateVariables["/mi1"].activeChildren[0].componentName;
         let entryName2 = stateVariables["/mi2"].activeChildren[0].componentName;
 
@@ -1564,7 +1570,7 @@ describe("MathInput tag tests", async () => {
             core,
             stateVariables,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi1"].stateValues.text).eq(
             "[ [ 2 x - 3 E + 2 ] ]",
@@ -1585,7 +1591,7 @@ describe("MathInput tag tests", async () => {
             core,
             stateVariables,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi2"].stateValues.text).eq("[ [ 2 x - 300 ] ]");
         expect(stateVariables["/m2"].stateValues.text).eq("[ [ 2 x - 300 ] ]");
@@ -1605,7 +1611,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let entry11OriginalName =
             stateVariables["/original"].activeChildren[0].componentName;
         let entry11ResultName =
@@ -1616,7 +1622,7 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(0);
 
         await updateMathInputValue({ latex: "100", name: "/mcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(100);
 
         await updateMatrixInputNumRows({ numRows: 2, name: "/original", core });
@@ -1631,7 +1637,7 @@ describe("MathInput tag tests", async () => {
             name: "/result",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let entry12OriginalName =
             stateVariables["/original"].activeChildren[1].componentName;
@@ -1656,21 +1662,21 @@ describe("MathInput tag tests", async () => {
         expect(stateVariables[entry22ResultName].stateValues.minWidth).eq(100);
 
         await updateMathInputValue({ latex: "100x", name: "/mcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry12ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry21ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry22ResultName].stateValues.minWidth).eq(0);
 
         await updateMathInputValue({ latex: "17", name: "/mcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(17);
         expect(stateVariables[entry12ResultName].stateValues.minWidth).eq(17);
         expect(stateVariables[entry21ResultName].stateValues.minWidth).eq(17);
         expect(stateVariables[entry22ResultName].stateValues.minWidth).eq(17);
 
         await updateMathInputValue({ latex: "-20", name: "/mcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[entry11ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry12ResultName].stateValues.minWidth).eq(0);
         expect(stateVariables[entry21ResultName].stateValues.minWidth).eq(0);
@@ -1712,7 +1718,10 @@ describe("MathInput tag tests", async () => {
                 mi4ivchanged: boolean,
             ],
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/mi1"].stateValues.text).eq(mi1);
             expect(stateVariables["/mi2"].stateValues.text).eq(mi2);
             expect(stateVariables["/mi3"].stateValues.text).eq(mi3);

@@ -976,7 +976,7 @@ describe("Math expressions equality tests", async () => {
 
         let core = await createTestCore({ doenetML });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let [ind, info] of equivalences.entries()) {
             expect(

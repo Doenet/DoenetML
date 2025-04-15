@@ -10,7 +10,7 @@ vi.mock("hyperformula");
 
 async function check_solutions(core: PublicDoenetMLCore, solutions: number[]) {
     const numSolutions = solutions.length;
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables["/solve"].stateValues.numSolutions).eq(numSolutions);
     expect(stateVariables["/solve"].stateValues.solutions.length).eq(
         numSolutions,

@@ -24,7 +24,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("Hello there!");
         expect(stateVariables["/p2"].stateValues.text).eq("We could be there.");
@@ -39,7 +39,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/text1"].stateValues.value).eq("true");
         expect(stateVariables["/text2"].stateValues.value).eq("3");
@@ -65,7 +65,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/n1"].stateValues.value).eq(2);
         expect(stateVariables["/n2"].stateValues.value).eq(2);
@@ -109,7 +109,7 @@ describe("Text tag tests", async () => {
 
         let theText = `"Hello," said the cow.  'Bye,' came the reply.  The text attribute of <text> or <text/> (or </text>?) doesn't do much.`;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/orig"].stateValues.text).eq(theText);
         expect(stateVariables["/textOnly"].stateValues.text).eq(theText);
@@ -132,7 +132,7 @@ describe("Text tag tests", async () => {
 
         const theText = "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…";
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/orig"].stateValues.text).eq(theText);
         expect(stateVariables["/textOnly"].stateValues.text).eq(theText);
@@ -152,7 +152,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/b"].stateValues.value).to.be.true;
     });
@@ -183,7 +183,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/text1anchor"].stateValues.latex)).eq(
             "x",
@@ -196,7 +196,7 @@ describe("Text tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/text1anchor"].stateValues.latex)).eq(
             "(6,7)",
@@ -209,7 +209,7 @@ describe("Text tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/text1anchor"].stateValues.latex)).eq(
             "(6,7)",
@@ -222,7 +222,7 @@ describe("Text tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/text1anchor"].stateValues.latex)).eq(
             "q",
@@ -254,7 +254,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_no_style"].stateValues.text).eq("black");
         expect(stateVariables["/tc_no_style"].stateValues.text).eq("black");
@@ -275,7 +275,7 @@ describe("Text tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "2", name: "/sn", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "green",
@@ -296,7 +296,7 @@ describe("Text tag tests", async () => {
         expect(stateVariables["/bc_fixed_style"].stateValues.text).eq("none");
 
         await updateMathInputValue({ latex: "3", name: "/sn", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "red with a blue background",
@@ -354,7 +354,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/t1"].stateValues.value).eq("One");
         expect(stateVariables["/t1a"].stateValues.value).eq("One");
@@ -401,7 +401,7 @@ describe("Text tag tests", async () => {
         // move first texts
         await moveText({ name: "/t1", x: -2, y: 3, core });
         await moveText({ name: "/t2", x: 4, y: -5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/t1coords"].stateValues.latex)).eq(
             "(-2,3)",
@@ -425,7 +425,7 @@ describe("Text tag tests", async () => {
         // move second texts
         await moveText({ name: "/t1a", x: 7, y: 1, core });
         await moveText({ name: "/t2a", x: -8, y: 2, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/t1coords"].stateValues.latex)).eq(
             "(7,1)",
@@ -449,7 +449,7 @@ describe("Text tag tests", async () => {
         // move third texts
         await moveText({ name: "/t1b", x: -6, y: 3, core });
         await moveText({ name: "/t2b", x: -5, y: -4, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/t1coords"].stateValues.latex)).eq(
             "(7,1)",
@@ -481,7 +481,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Number of characters is 11.",
@@ -516,7 +516,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Number of words is 3.",
@@ -544,7 +544,7 @@ describe("Text tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             "Number of list items is 2.",

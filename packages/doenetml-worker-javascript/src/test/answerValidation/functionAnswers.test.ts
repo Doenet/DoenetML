@@ -46,7 +46,10 @@ describe("function answer validation tests", async () => {
                 core,
             });
             await submitAnswer({ name: "/ans", core });
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/ans"].stateValues.creditAchieved).closeTo(
                 responseCredits[response],
                 1e-12,
@@ -122,8 +125,10 @@ describe("function answer validation tests", async () => {
                             core,
                         });
                         await submitAnswer({ name: "/ans", core });
-                        let stateVariables =
-                            await core.returnAllStateVariables(true);
+                        let stateVariables = await core.returnAllStateVariables(
+                            false,
+                            true,
+                        );
                         expect(
                             stateVariables["/ans"].stateValues.creditAchieved,
                         ).closeTo(

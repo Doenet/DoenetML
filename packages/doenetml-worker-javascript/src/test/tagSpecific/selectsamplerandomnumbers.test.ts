@@ -51,7 +51,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
                 doenetML,
                 requestedVariantIndex: i,
             });
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             samples.push(
                 ...stateVariables[name].replacements!.map(
                     (x) => stateVariables[x.componentName].stateValues.value,
@@ -603,7 +606,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let results: number[] = [];
         let results2: number[] = [];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(stateVariables["/u"].stateValues.value);
         results.push(stateVariables["/v"].stateValues.value);
@@ -656,7 +659,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements = stateVariables["/sample1"].replacements!;
         let sample2replacements = stateVariables["/sample2"].replacements!;
         expect(sample1replacements.length).eq(20);
@@ -698,7 +701,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         sample1replacements = stateVariables["/sample1"].replacements!;
         sample2replacements = stateVariables["/sample2"].replacements!;
 
@@ -731,7 +734,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements = stateVariables["/sample1"].replacements!;
         let sample2replacements = stateVariables["/sample2"].replacements!;
         expect(sample1replacements.length).eq(50);
@@ -769,7 +772,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersb = stateVariables["/sample1"].replacements!.map(
             (x) => stateVariables[x.componentName].stateValues.value,
         );
@@ -816,7 +819,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersc = stateVariables["/sample1"].replacements!.map(
             (x) => stateVariables[x.componentName].stateValues.value,
         );
@@ -856,7 +859,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
     async function test_no_resample(core) {
         async function check_sampled_numbers(sampledNumbers: number[]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/p1"].activeChildren.map(
@@ -909,7 +915,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // sample one variable
         await updateMathInputValue({ latex: "1", name: "/mi1", core });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(stateVariables["/a/n"].stateValues.value);
         await check_sampled_numbers(sampledNumbers);
 
@@ -924,7 +930,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get two more samples
         await updateMathInputValue({ latex: "3", name: "/mi1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         let n1 = stateVariables["/a/n"].stateValues.value;
         let n2 = stateVariables["/b/n"].stateValues.value;
         let n3 = stateVariables["/c/n"].stateValues.value;
@@ -944,7 +950,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         // get six total samples
         await updateMathInputValue({ latex: "6", name: "/mi1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         n1 = stateVariables["/a/n"].stateValues.value;
         n2 = stateVariables["/b/n"].stateValues.value;
         n3 = stateVariables["/c/n"].stateValues.value;
@@ -1038,7 +1044,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
             let options = [3, 10];
 
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let u = stateVariables["/u"];
             let u2 = stateVariables["/u2"];
@@ -1083,7 +1092,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
             let results: number[] = [];
 
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let s = stateVariables["/s"];
             expect(s.replacements!.length).eq(6);
             for (let ind = 0; ind < 6; ind++) {
@@ -1137,7 +1149,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
             let results: number[] = [];
 
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let s = stateVariables["/s"];
             expect(s.replacements!.length).eq(6);
             for (let ind = 0; ind < 6; ind++) {
@@ -1191,7 +1206,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
       `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let n1 = stateVariables["/n1"].stateValues.value;
         let n2 = stateVariables["/n2"].stateValues.value;
         let n3 = stateVariables["/n3"].stateValues.value;
@@ -1287,7 +1302,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let n1 = stateVariables["/n1"].stateValues.value;
         let n2 = stateVariables["/n2"].stateValues.value;
@@ -1511,7 +1526,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let specifiedStep = 1;
 
         // initial values
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1535,7 +1550,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1566,7 +1581,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1592,7 +1607,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1630,7 +1645,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1656,7 +1671,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1688,7 +1703,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1713,7 +1728,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1738,7 +1753,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         checkSamples({
             numSamples,
@@ -1770,7 +1785,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -1788,7 +1803,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples2 = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -1801,7 +1816,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         samples2 = stateVariables["/p1"].activeChildren.map(
             (x) => stateVariables[x.componentName].stateValues.value,
@@ -1834,7 +1849,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         let rn1, rn2, rn3;
         let rn1b, rn2b, rn3b;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         rn1 = stateVariables["/rn1"].stateValues.value;
         rn2 = stateVariables["/rn2"].stateValues.value;
@@ -1852,7 +1867,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         await callAction({ name: "/resamp1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         rn1b = stateVariables["/rn1"].stateValues.value;
         rn2b = stateVariables["/rn2"].stateValues.value;
@@ -1874,7 +1889,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
         await callAction({ name: "/resamp2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let rn1c = stateVariables["/rn1"].stateValues.value;
         let rn2c = stateVariables["/rn2"].stateValues.value;

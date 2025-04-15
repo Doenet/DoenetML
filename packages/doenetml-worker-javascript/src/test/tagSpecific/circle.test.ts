@@ -97,7 +97,10 @@ describe("Circle tag tests", async () => {
         }) {
             const actualRadius = Math.max(0, radius);
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             // center and radius of original circle
             expect(
                 stateVariables["/circle1"].stateValues.center.map(
@@ -386,7 +389,10 @@ describe("Circle tag tests", async () => {
         }) {
             const actualRadius = Math.max(0, radius);
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({
                 cx,
                 cy,
@@ -522,7 +528,10 @@ describe("Circle tag tests", async () => {
         let r = Math.hypot(tx - cx, ty - cy);
 
         const test_items = async function () {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({ cx, cy, r, stateVariables });
             check_point_approx({
                 name: "/point1",
@@ -695,7 +704,10 @@ describe("Circle tag tests", async () => {
             t2y: number;
             core: PublicDoenetMLCore;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({ cx, cy, r, stateVariables });
             check_point_approx({
                 name: "/point1",
@@ -847,7 +859,7 @@ describe("Circle tag tests", async () => {
             }
         }
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expectCloseTo(
             stateVariables["/circle1"].stateValues.center[0].tree,
             cx,
@@ -919,7 +931,7 @@ describe("Circle tag tests", async () => {
     }
 
     async function getCircle1CenterAndRadiusFromStateVar({ core }) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         // calculate center and radius from circle itself
         let cx: number =
             stateVariables["/circle1"].stateValues.numericalCenter[0];
@@ -1538,7 +1550,7 @@ describe("Circle tag tests", async () => {
         diameter?: number;
         core: PublicDoenetMLCore;
     }) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/circle1"].stateValues.center.map((v) => v.tree),
         ).eqls([cx, cy]);
@@ -1894,7 +1906,10 @@ describe("Circle tag tests", async () => {
 
         async function test_items() {
             let r = Math.hypot(t1x - t2x, t1y - t2y) / 2;
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({
                 cx,
                 cy,
@@ -2009,7 +2024,7 @@ describe("Circle tag tests", async () => {
                 stateVariables,
             });
         };
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         check_through_points(stateVariables);
 
         // move circle
@@ -2022,7 +2037,7 @@ describe("Circle tag tests", async () => {
         cx += dx;
         cy += dy;
         await moveCircle({ name: "/circle1", cx, cy, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         check_through_points(stateVariables);
         check_circle1_and_copies_approx({
             cx,
@@ -2042,7 +2057,7 @@ describe("Circle tag tests", async () => {
         cx += dx;
         cy += dy;
         await movePoint({ name: "/centerCopy", x: cx, y: cy, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         check_through_points(stateVariables);
         check_circle1_and_copies_approx({
             cx,
@@ -2056,7 +2071,7 @@ describe("Circle tag tests", async () => {
         t1x = 6;
         t1y = 3;
         await movePoint({ name: "/TP1", x: t1x, y: t1y, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         check_through_points(stateVariables);
 
         // move second through point so x difference between through points is too small for radius
@@ -2065,7 +2080,7 @@ describe("Circle tag tests", async () => {
         cx = NaN;
         cy = NaN;
         await movePoint({ name: "/TP2", x: t2x, y: t2y, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         check_through_points(stateVariables);
         let svCenter = stateVariables["/circle1"].stateValues.numericalCenter;
         expect(Number.isFinite(svCenter[0])).false;
@@ -2074,7 +2089,7 @@ describe("Circle tag tests", async () => {
         // move second through point close enough to circle
         t2y = 1.5;
         await movePoint({ name: "/TP2", x: t2x, y: t2y, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         check_through_points(stateVariables);
         svCenter = stateVariables["/circle1"].stateValues.numericalCenter;
         expect(Number.isFinite(svCenter[0])).true;
@@ -2105,7 +2120,10 @@ describe("Circle tag tests", async () => {
         let finiteCenter = true;
 
         async function check_items() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let circle1 = stateVariables["/circle1"].stateValues;
             expect(circle1.radius.tree).closeTo(r, 1e-12);
             expect(circle1.numericalThroughPoints[0][0]).closeTo(t1x, 1e-12);
@@ -2207,7 +2225,10 @@ describe("Circle tag tests", async () => {
         let [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({ core });
 
         async function check_items() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({
                 cx,
                 cy,
@@ -2370,7 +2391,7 @@ describe("Circle tag tests", async () => {
 
     // ====== Circle And Constraints ========
     async function getPoint3CenterBasedOnStateVars({ core }) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let px = stateVariables["/point3"].stateValues.xs[0].tree;
         let py = stateVariables["/point3"].stateValues.xs[1].tree;
         return [px, py];
@@ -2399,7 +2420,7 @@ describe("Circle tag tests", async () => {
         } else {
             expect(dist).closeTo(r, 1e-12);
         }
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         check_circle1_and_copies_approx({
             cx,
             cy,
@@ -2659,7 +2680,7 @@ describe("Circle tag tests", async () => {
     }
 
     async function check_circle_attr_constrained({ cx, cy, r, tx, ty, core }) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         check_circle1_and_copies_approx({ cx, cy, r, stateVariables });
         check_point_approx({ name: "/point1", x: cx, y: cy, stateVariables });
         check_point_approx({ name: "/point2", x: tx, y: ty, stateVariables });
@@ -2938,7 +2959,10 @@ describe("Circle tag tests", async () => {
     `,
         });
         async function check_items({ cx, cy, r, t1x, t1y, t2x, t2y }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/circle1"].stateValues.center[0].tree,
             ).closeTo(cx, 1e-12);
@@ -3196,7 +3220,10 @@ describe("Circle tag tests", async () => {
             t3x,
             t3y,
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({ cx, cy, r, stateVariables });
             check_point_approx({
                 name: "/point1",
@@ -3337,7 +3364,10 @@ describe("Circle tag tests", async () => {
         let [cx, cy, r] = await getCircle1CenterAndRadiusFromStateVar({ core });
 
         const test_items = async function () {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({ cx, cy, r, stateVariables });
             check_point_approx({
                 name: "/point1",
@@ -3465,7 +3495,10 @@ describe("Circle tag tests", async () => {
         let t3y = 2;
 
         async function check_items() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let cx = stateVariables["/c"].stateValues.numericalCenter[0];
             let cy = stateVariables["/c"].stateValues.numericalCenter[1];
             let r = stateVariables["/c"].stateValues.numericalRadius;
@@ -3521,7 +3554,7 @@ describe("Circle tag tests", async () => {
         await check_items();
 
         // move circle via center
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let cx = stateVariables["/c"].stateValues.numericalCenter[0];
         let cy = stateVariables["/c"].stateValues.numericalCenter[1];
         let r = stateVariables["/c"].stateValues.numericalRadius;
@@ -3616,14 +3649,14 @@ describe("Circle tag tests", async () => {
         const t3x = -3;
         const t3y = 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"]).is.undefined;
         expect(stateVariables["/P2"]).is.undefined;
         expect(stateVariables["/P3"]).is.undefined;
         expect(stateVariables["/x"]).is.undefined;
 
         await updateMathInputValue({ name: "/n", latex: "1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t1x,
             t1y,
@@ -3633,7 +3666,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eqls(t2x);
 
         await updateMathInputValue({ name: "/n", latex: "2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t2x,
             t2y,
@@ -3643,7 +3676,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/x"].stateValues.value.tree).eqls(t2y);
 
         await updateMathInputValue({ name: "/n", latex: "3", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t3x,
             t3y,
@@ -3653,7 +3686,7 @@ describe("Circle tag tests", async () => {
         expect(stateVariables["/x"]).is.undefined;
 
         await updateMathInputValue({ name: "/n", latex: "4", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"]).is.undefined;
         expect(stateVariables["/P2"]).is.undefined;
         expect(stateVariables["/P3"]).is.undefined;
@@ -3688,7 +3721,10 @@ describe("Circle tag tests", async () => {
         let r = Math.hypot(tx - cx, ty - cy);
 
         async function check_items() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             check_circle1_and_copies_approx({
                 cx,
                 cy,
@@ -3817,7 +3853,10 @@ describe("Circle tag tests", async () => {
             cy: number;
             core: PublicDoenetMLCore;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/circle1"].stateValues.numericalRadius).eq(
                 1,
             );
@@ -3882,7 +3921,10 @@ describe("Circle tag tests", async () => {
             cy: number;
             core: PublicDoenetMLCore;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/circ"].stateValues.numericalCenter).eqls([
                 cx,
                 cy,
@@ -4022,7 +4064,10 @@ describe("Circle tag tests", async () => {
             q: { x: number; y: number };
             core: PublicDoenetMLCore;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/c"].stateValues.radius.tree).eqls(c.r);
             expect(
@@ -4311,7 +4356,7 @@ $c7.radius
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/circle1"]).not.eq(undefined);
     });
 
@@ -4340,7 +4385,10 @@ $c7.radius
             circ: any;
             circ2: number;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/area"].stateValues.value.tree).eqls(area);
             expect(stateVariables["/area2"].stateValues.value).eqls(area2);
             expect(
@@ -4420,7 +4468,7 @@ $c7.radius
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c1r"].stateValues.text).eqls("1234.57");
         expect(stateVariables["/c1d"].stateValues.text).eqls("2469.14");
         expect(stateVariables["/c1c"].stateValues.text).eqls(
@@ -4521,7 +4569,7 @@ $c7.radius
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/st1"].stateValues.value).toContain("blue");
         expect(stateVariables["/stn1"].stateValues.value).toContain(
@@ -4635,7 +4683,7 @@ $c7.radius
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1h"].stateValues.value).eqls(false);
         expect(stateVariables["/Q1h"].stateValues.value).eqls(true);
         expect(stateVariables["/R1h"].stateValues.value).eqls(false);
@@ -4678,7 +4726,10 @@ $c7.radius
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Circle A is filled ${AColor} with thick border.`,

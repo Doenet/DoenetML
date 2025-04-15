@@ -43,7 +43,7 @@ describe("Graph Reference Test", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let graphB = stateVariables["/graphB"];
         let graphC = stateVariables["/graphC"];
         let graphD = stateVariables["/graphD"];
@@ -148,7 +148,10 @@ describe("Graph Reference Test", async () => {
             xinterceptB: number;
             yinterceptB: number;
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let point of pointsA) {
                 expect(stateVariables[point].stateValues.xs[0].tree).closeTo(
                     pointAx,
@@ -254,7 +257,7 @@ describe("Graph Reference Test", async () => {
         });
 
         // move points and line in first graph
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pointAx = -3;
         pointAy = 6;
@@ -312,7 +315,7 @@ describe("Graph Reference Test", async () => {
         await movePoint({ name: pointsD[1], x: pointDx, y: pointDy, core });
         await movePoint({ name: pointsA[3], x: pointDx, y: pointCy, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pointAx = pointDx;
         pointAy = pointCy;
@@ -357,7 +360,7 @@ describe("Graph Reference Test", async () => {
         });
 
         // move both shadow lines in third graph
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveUp = -4;
         let lineA5points = stateVariables[linesA[5]].stateValues.points.map(
@@ -373,7 +376,7 @@ describe("Graph Reference Test", async () => {
             point2coords: point2coords,
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         xinterceptA -= moveUp;
         yinterceptA += moveUp;
@@ -396,7 +399,7 @@ describe("Graph Reference Test", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pointAx += moveX;
         pointAy += moveY;
@@ -432,7 +435,7 @@ describe("Graph Reference Test", async () => {
         await movePoint({ name: pointsA[7], x: pointDx, y: pointCy, core });
         await movePoint({ name: pointsD[3], x: pointDx, y: pointDy, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pointAx = pointDx;
         pointAy = pointCy;
@@ -453,7 +456,7 @@ describe("Graph Reference Test", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         xinterceptA -= moveUp;
         yinterceptA += moveUp;
@@ -486,7 +489,7 @@ describe("Graph Reference Test", async () => {
         await movePoint({ name: pointsA[8], x: pointAx, y: pointAy, core });
         await movePoint({ name: pointsB[4], x: pointBx, y: pointBy, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveUp = -3;
         let lineA8points = stateVariables[linesA[8]].stateValues.points.map(
@@ -503,7 +506,7 @@ describe("Graph Reference Test", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         xinterceptA -= moveUp;
         yinterceptA += moveUp;
@@ -529,7 +532,7 @@ describe("Graph Reference Test", async () => {
         });
 
         // move both shadow lines in sixth graph
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveUp = -2;
         let lineA11points = stateVariables[linesA[11]].stateValues.points.map(
@@ -546,7 +549,7 @@ describe("Graph Reference Test", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         xinterceptA -= moveUp;
         yinterceptA += moveUp;
@@ -569,7 +572,7 @@ describe("Graph Reference Test", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pointAx += moveX;
         pointAy += moveY;
@@ -650,7 +653,7 @@ describe("Graph Reference Test", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         // let originalVectors = [0, 2, 6]
         // let displacementsA = [1, 4];
@@ -873,7 +876,10 @@ describe("Graph Reference Test", async () => {
             d3_t: number[];
             d3_h: number[];
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let vector of vectors) {
                 expect(

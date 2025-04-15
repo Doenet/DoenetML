@@ -12,7 +12,7 @@ async function test_triangle(
     initial_vertices: number[][],
 ) {
     async function check_items(vertices: number[][]) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             stateVariables["/triangle"].stateValues.vertices.map((v) =>
@@ -192,7 +192,10 @@ describe("Triangle tag tests", async () => {
             vertices3: number[][];
             vertices4: number[][];
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let allVertices2 = [vertex2_1, ...vertices1.slice(1)];
             let allVertices3 = [...vertices3, vertices1[2]];
@@ -389,7 +392,10 @@ describe("Triangle tag tests", async () => {
         });
 
         async function check_items(x: number, y: number) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).closeTo(
                 x,
                 1e-14,
@@ -436,7 +442,10 @@ describe("Triangle tag tests", async () => {
         initial_vertices: number[][],
     ) {
         async function check_items(vertices1: number[][]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             const vertices2 = vertices1.map((v) => [v[1], v[0]]);
 
@@ -529,7 +538,10 @@ describe("Triangle tag tests", async () => {
         initial_vertex3: number[],
     ) {
         async function check_items(vertex2: number[], vertex3: number[]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             const vertices = [[vertex2[1], vertex2[0]], vertex2, vertex3];
 
@@ -628,7 +640,7 @@ describe("Triangle tag tests", async () => {
         let area = 0.5;
         let perimeter = 2 + Math.sqrt(2);
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
@@ -641,7 +653,7 @@ describe("Triangle tag tests", async () => {
         area = 10 / 2 - 1 / 2;
         perimeter = 9 + Math.sqrt(100 + 1) + Math.sqrt(2);
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
     });
@@ -659,7 +671,10 @@ describe("Triangle tag tests", async () => {
         });
 
         async function check_items(vertices: number[][]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables["/triangle"].stateValues.vertices.map((v) =>

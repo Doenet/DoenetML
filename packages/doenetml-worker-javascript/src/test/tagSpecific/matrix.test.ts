@@ -111,7 +111,10 @@ describe("Matrix tag tests", async () => {
                 ["tuple", ...matrixValue.map((row) => ["tuple", ...row])],
             ];
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/A"].stateValues.matrixSize).eqls([
                 numRows,
@@ -231,7 +234,10 @@ describe("Matrix tag tests", async () => {
         // change the values until 9 inputs have been tested
         if (numRows > 0 && numColumns > 0) {
             let ind = 0;
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             // Note: changing values locks in displayed default values
             values = paddedValues(
@@ -534,7 +540,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let matrixdefAst = [
             "matrix",
             ["tuple", 2, 2],
@@ -627,7 +633,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let matrixdefAst = [
             "matrix",
             ["tuple", 2, 2],
@@ -713,7 +719,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let matrixdefAst = [
             "matrix",
             ["tuple", 2, 2],
@@ -775,7 +781,7 @@ describe("Matrix tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/Adef"].stateValues.text).eqls(
             "[ [ x_＿, y_＿ ], [ a_＿, b_＿ ] ]",

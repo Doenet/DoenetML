@@ -96,7 +96,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 37,
             nFalses = 31;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,
@@ -122,15 +122,15 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b`].stateValues.value).to.be.false;
 
         await updateMathInputValue({ latex: "3", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b`].stateValues.value).to.be.true;
 
         await updateMathInputValue({ latex: "2x", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b`].stateValues.value).to.be.false;
 
         await updateMathInputValue({
@@ -138,7 +138,7 @@ describe("Boolean tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b`].stateValues.value).to.be.false;
     });
 
@@ -172,7 +172,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 9,
             nFalses = 9;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,
@@ -200,28 +200,28 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.true;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
         expect(stateVariables[`/b3`].stateValues.value).to.be.false;
         expect(stateVariables[`/b4`].stateValues.value).to.be.false;
 
         await updateMathInputValue({ latex: "4", name: "/i", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.false;
         expect(stateVariables[`/b3`].stateValues.value).to.be.true;
         expect(stateVariables[`/b4`].stateValues.value).to.be.true;
 
         await updateMathInputValue({ latex: "-7", name: "/i", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.true;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
         expect(stateVariables[`/b3`].stateValues.value).to.be.false;
         expect(stateVariables[`/b4`].stateValues.value).to.be.false;
 
         await updateMathInputValue({ latex: "0", name: "/i", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.false;
         expect(stateVariables[`/b3`].stateValues.value).to.be.true;
@@ -288,7 +288,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 22,
             nFalses = 25;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,
@@ -753,7 +753,7 @@ describe("Boolean tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let [ind, info] of elements.entries()) {
             expect(
@@ -1117,7 +1117,7 @@ describe("Boolean tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let [ind, info] of elements.entries()) {
             expect(
@@ -1181,7 +1181,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 11,
             nFalses = 5;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,
@@ -1215,7 +1215,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 4,
             nFalses = 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,
@@ -1247,7 +1247,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
         expect(stateVariables[`/two`].stateValues.value).to.be.false;
@@ -1255,7 +1255,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
         await updateSelectedIndices({ name: "/c", selectedIndices: [1], core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.true;
         expect(stateVariables[`/two`].stateValues.value).to.be.false;
@@ -1263,7 +1263,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
         await updateSelectedIndices({ name: "/c", selectedIndices: [2], core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
         expect(stateVariables[`/two`].stateValues.value).to.be.true;
@@ -1271,7 +1271,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
         await updateSelectedIndices({ name: "/c", selectedIndices: [3], core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
         expect(stateVariables[`/two`].stateValues.value).to.be.false;
@@ -1279,7 +1279,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/four`].stateValues.value).to.be.false;
 
         await updateSelectedIndices({ name: "/c", selectedIndices: [4], core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/one`].stateValues.value).to.be.false;
         expect(stateVariables[`/two`].stateValues.value).to.be.false;
@@ -1296,7 +1296,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. false",
@@ -1308,7 +1308,7 @@ describe("Boolean tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. true",
@@ -1320,7 +1320,7 @@ describe("Boolean tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. false",
@@ -1332,7 +1332,7 @@ describe("Boolean tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. true",
@@ -1340,7 +1340,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
         await updateTextInputValue({ text: "0", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. true",
@@ -1348,7 +1348,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
         await updateTextInputValue({ text: "1=0", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. true",
@@ -1356,7 +1356,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/ti`].stateValues.value).eq("true");
 
         await updateTextInputValue({ text: "f", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. true",
@@ -1368,7 +1368,7 @@ describe("Boolean tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. false",
@@ -1376,7 +1376,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/ti`].stateValues.value).eq("false");
 
         await updateTextInputValue({ text: "1", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. false",
@@ -1384,7 +1384,7 @@ describe("Boolean tag tests", async () => {
         expect(stateVariables[`/ti`].stateValues.value).eq("false");
 
         await updateTextInputValue({ text: "t", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. false",
@@ -1396,7 +1396,7 @@ describe("Boolean tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. true",
@@ -1408,7 +1408,7 @@ describe("Boolean tag tests", async () => {
             name: "/bi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[`/t`].stateValues.value).eq(
             "You are hungry. false",
@@ -1424,7 +1424,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.true;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
     });
@@ -1444,7 +1444,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b`].stateValues.value).to.be.true;
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
@@ -1466,7 +1466,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.true;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
     });
@@ -1483,7 +1483,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
         expect(stateVariables[`/b3`].stateValues.value).to.be.false;
@@ -1506,7 +1506,7 @@ describe("Boolean tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[`/b1`].stateValues.value).to.be.false;
         expect(stateVariables[`/b2`].stateValues.value).to.be.true;
         expect(stateVariables[`/b3`].stateValues.value).to.be.false;
@@ -1550,7 +1550,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 4,
             nFalses = 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,
@@ -1622,7 +1622,7 @@ describe("Boolean tag tests", async () => {
         let nTrues = 16,
             nFalses = 15;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[`/t${i}`].stateValues.value,

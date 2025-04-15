@@ -86,7 +86,10 @@ describe("Collection assign name tests", async () => {
             "/v4Shadow",
         ];
         async function check_items(p1: number[], p2: number[]) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let name of p1s) {
                 expect(
                     stateVariables[name].stateValues.xs.map((v) => v.tree),
@@ -232,7 +235,10 @@ describe("Collection assign name tests", async () => {
         const extras = ["c", "c1", "w", "w1", "w3", "w4", "x1", "x3", "x4"];
 
         async function check_items(p1: number[], p2: number[]) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let name of p1s) {
                 expect(
                     stateVariables[name].stateValues.xs.map((v) => v.tree),
@@ -353,7 +359,10 @@ describe("Collection assign name tests", async () => {
         });
 
         async function check_items(ps: number[][]) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let [i, v] of ["/a", "/b", "/c", "/d"].entries()) {
                 expect(
                     stateVariables[v].stateValues.xs.map((v) => v.tree),
@@ -503,7 +512,10 @@ describe("Collection assign name tests", async () => {
         });
 
         async function check_items(ps: number[][]) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let i = 1; i <= 4; i++) {
                 if (i <= ps.length) {
                     expect(
@@ -786,7 +798,10 @@ describe("Collection assign name tests", async () => {
         });
 
         async function check_items(points1: number[][], points2: number[][]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let allPoints = [...points1, ...points2];
 
             let allXs = flattenDeep(allPoints);

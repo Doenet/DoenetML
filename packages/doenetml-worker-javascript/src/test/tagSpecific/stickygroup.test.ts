@@ -39,7 +39,7 @@ async function testScene({
     graph3Name?: string;
     graph4Name?: string;
 }) {
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[graph1Name + stickyGroupName + polygon1Name].stateValues
             .numVertices,
@@ -747,7 +747,7 @@ describe("StickyGroup tag tests", async () => {
 
         let desired_slope = 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
         let actual_slope = (pg1[1][1] - pg1[0][1]) / (pg1[1][0] - pg1[0][0]);
@@ -755,7 +755,7 @@ describe("StickyGroup tag tests", async () => {
         expect(actual_slope).closeTo(desired_slope, 1e-12);
 
         // if move polygon 1 further away, slope does not attract to polygon 2 edge
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let moveX = -1;
         let moveY = 1;
@@ -786,7 +786,7 @@ describe("StickyGroup tag tests", async () => {
 
         desired_slope = 2;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
         actual_slope = (pg1[1][1] - pg1[0][1]) / (pg1[1][0] - pg1[0][0]);
@@ -802,7 +802,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
 
@@ -818,7 +818,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
 
@@ -826,7 +826,7 @@ describe("StickyGroup tag tests", async () => {
         expect(pg1[2][1]).closeTo(pg1[1][1], 1e-12);
 
         // move polygon 1 and rotate so vertex is very close to polygon 2 vertex to attract
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveX = 7;
         moveY = -6.5;
@@ -851,7 +851,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
 
@@ -868,7 +868,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
 
@@ -885,7 +885,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveX = -7;
         moveY = 0.5;
@@ -902,7 +902,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
 
@@ -916,7 +916,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
         let pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
@@ -941,7 +941,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertex did not attract
@@ -960,7 +960,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
@@ -985,7 +985,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertex did not attract
@@ -1004,7 +1004,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertex did attract
@@ -1024,7 +1024,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertex did attract
@@ -1044,7 +1044,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertex did not attract
@@ -1063,7 +1063,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg1 = stateVariables["/pg1"].stateValues.numericalVertices;
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
@@ -1093,7 +1093,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertex did attract
@@ -1117,7 +1117,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg2 = stateVariables["/pg2"].stateValues.numericalVertices;
 
         // vertices did not move
@@ -1157,7 +1157,7 @@ describe("StickyGroup tag tests", async () => {
 
         let desired_slope = 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let pl = stateVariables["/pl"].stateValues.numericalVertices;
         let actual_slope = (pl[1][1] - pl[2][1]) / (pl[1][0] - pl[2][0]);
@@ -1165,7 +1165,7 @@ describe("StickyGroup tag tests", async () => {
         expect(actual_slope).closeTo(desired_slope, 1e-12);
 
         // if move polyline further away, slope does not attract to polygon edge
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let moveX = -1;
         let moveY = 1;
@@ -1196,7 +1196,7 @@ describe("StickyGroup tag tests", async () => {
 
         desired_slope = 2;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
         actual_slope = (pl[1][1] - pl[2][1]) / (pl[1][0] - pl[2][0]);
@@ -1205,7 +1205,7 @@ describe("StickyGroup tag tests", async () => {
         expect(actual_slope).not.closeTo(desired_slope, 0.001);
 
         // missing edge of polyline does not attract to slope of polygon edge
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveX = 3.5;
         moveY = 0;
@@ -1232,7 +1232,7 @@ describe("StickyGroup tag tests", async () => {
 
         desired_slope = 2;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
         actual_slope = (pl[0][1] - pl[2][1]) / (pl[0][0] - pl[2][0]);
@@ -1249,7 +1249,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         moveX = -0.13;
         moveY = 0;
@@ -1266,7 +1266,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
 
@@ -1287,7 +1287,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
 
@@ -1303,7 +1303,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
 
@@ -1318,7 +1318,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
         let pg = stateVariables["/pg"].stateValues.numericalVertices;
@@ -1340,7 +1340,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg = stateVariables["/pg"].stateValues.numericalVertices;
 
         // vertex did not attract
@@ -1354,7 +1354,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         pg = stateVariables["/pg"].stateValues.numericalVertices;
 
         // vertex did not attract
@@ -1368,7 +1368,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
         pg = stateVariables["/pg"].stateValues.numericalVertices;
@@ -1386,7 +1386,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         pl = stateVariables["/pl"].stateValues.numericalVertices;
         pg = stateVariables["/pg"].stateValues.numericalVertices;
@@ -1422,7 +1422,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
 
@@ -1436,7 +1436,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
 
@@ -1450,7 +1450,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
 
@@ -1466,7 +1466,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
 
@@ -1476,7 +1476,7 @@ describe("StickyGroup tag tests", async () => {
         // extension of edge of segment 1 does not attract to endpoint of segment 2
         await moveLineSegment({ name: "/ls1", point1coords: [0, 2.45], core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
 
@@ -1490,7 +1490,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls1 = stateVariables["/ls1"].stateValues.numericalEndpoints;
 
@@ -1507,7 +1507,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
 
@@ -1526,7 +1526,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
 
@@ -1545,7 +1545,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
 
@@ -1564,7 +1564,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
 
@@ -1583,7 +1583,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
 
@@ -1602,7 +1602,7 @@ describe("StickyGroup tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         ls2 = stateVariables["/ls2"].stateValues.numericalEndpoints;
 

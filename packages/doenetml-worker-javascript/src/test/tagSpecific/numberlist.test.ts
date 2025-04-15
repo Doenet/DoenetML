@@ -24,7 +24,7 @@ describe("NumberList tag tests", async () => {
         text?: string;
         numbers?: number[];
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -551,7 +551,10 @@ describe("NumberList tag tests", async () => {
                 text: vals.join(", "),
             });
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/p2"].stateValues.text).eq(
                 `Third number: ${vals[2]}`,
@@ -600,7 +603,7 @@ describe("NumberList tag tests", async () => {
             text: vals.slice(0, 3).join(", "),
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p2"].stateValues.text).eq(
             `Copied math: ${vals.join(", ")}`,
@@ -712,7 +715,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -725,7 +728,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("1, 2, 3");
         expect(stateVariables["/p2"].stateValues.text).eq("1, 2, 3");
@@ -1059,7 +1062,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eqls([
             "list",
             1,
@@ -1092,7 +1095,10 @@ describe("NumberList tag tests", async () => {
                 text,
             });
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/p2"].stateValues.text).eq(text);
         }
 
@@ -1131,7 +1137,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pText"].stateValues.text).eq("Text: 7, -8");
         expect(stateVariables["/pLatex"].stateValues.text).eq("Latex: 7, -8");
     });
@@ -1148,7 +1154,7 @@ describe("NumberList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         let n1 = -5,
             n2 = 8;

@@ -44,7 +44,7 @@ describe("UpdateValue tag tests", async () => {
 
         let left = -10;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let count = 2;
         let step = 20 / count;
@@ -89,7 +89,7 @@ describe("UpdateValue tag tests", async () => {
 
         // double number
         await updateValue({ name: "/uv", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         count = 4;
         step = 20 / count;
@@ -135,7 +135,7 @@ describe("UpdateValue tag tests", async () => {
         // double number a second time
         await updateValue({ name: "/uv", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         count = 8;
         step = 20 / count;
@@ -180,7 +180,7 @@ describe("UpdateValue tag tests", async () => {
 
         // double number a third time
         await updateValue({ name: "/uv", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         count = 16;
         step = 20 / count;
@@ -234,16 +234,16 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
 
         await updateValue({ name: "/uv", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/b"].stateValues.value).eq(true);
 
         await updateValue({ name: "/uv", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/b"].stateValues.value).eq(false);
     });
@@ -263,27 +263,27 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
 
         await updateValue({ name: "/setTrue", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
 
         await updateValue({ name: "/setTrue", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
 
         await updateValue({ name: "/setFalse", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
 
         await updateValue({ name: "/setFalse", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
 
         await updateValue({ name: "/setTrue", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -297,11 +297,11 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await updateValue({ name: "/setToSum", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/n"].stateValues.value).eq(2);
     });
@@ -320,48 +320,48 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(1,2)");
 
         await updateValue({ name: "/uv1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(2,2)");
 
         await updateValue({ name: "/uv2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(4,2)");
     });
 
     async function test_update_component_index_points(core) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(3,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(1,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(7,0)");
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(3,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(6,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(7,0)");
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(3,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(6,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(7,0)");
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(3,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(6,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(6,0)");
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(3,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(6,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(6,0)");
@@ -421,7 +421,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Number 1 and point ( 3, 2 ).",
         );
@@ -431,7 +431,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Number 3 and point ( 3, 2 ).",
         );
@@ -441,7 +441,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Number 3 and point ( 3, 5 ).",
         );
@@ -451,7 +451,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/uv3", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Number 3 and point ( 3, 5 ).",
         );
@@ -461,7 +461,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/uv4", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Number 3 and point ( 3, 5 ).",
         );
@@ -482,35 +482,35 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq(
             "(3,2,1)",
         );
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq(
             "(3,6,1)",
         );
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq(
             "(3,6,1)",
         );
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq(
             "(3,6,6)",
         );
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq(
             "(3,6,6)",
         );
@@ -532,21 +532,21 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(3,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(1,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(7,0)");
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(6,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq("(6,5)");
         expect(cleanLatex(stateVariables["/p3"].stateValues.latex)).eq("(6,0)");
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/p"].stateValues.latex)).eq("(12,2)");
         expect(cleanLatex(stateVariables["/p2"].stateValues.latex)).eq(
             "(12,5)",
@@ -575,32 +575,32 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(1,2)");
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(2,2)");
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(4,2)");
 
         await updateValue({ name: "/uv3", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(3,7)");
 
         await updateValue({ name: "/uv1", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(6,7)");
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/P"].stateValues.latex)).eq("(12,7)");
     });
 
@@ -617,20 +617,20 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
         expect(stateVariables["/quad"].stateValues.hidden).eq(true);
 
         await updateValue({ name: "/trip", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await updateValue({ name: "/trip", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
     });
@@ -652,7 +652,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
         expect(cleanLatex(stateVariables["/z"].stateValues.latex)).eq("z");
@@ -660,7 +660,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/trip", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
@@ -668,7 +668,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/doub", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
@@ -676,7 +676,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: "/trip", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("64y");
@@ -700,28 +700,28 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n"].stateValues.value).eq(1);
         expect(stateVariables["/m1"].stateValues.value).eq(1);
         expect(stateVariables["/m2"].stateValues.value).eq(1);
 
         await updateValue({ name: "/uv", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n"].stateValues.value).eq(2);
         expect(stateVariables["/m1"].stateValues.value).eq(2);
         expect(stateVariables["/m2"].stateValues.value).eq(1);
 
         await updateValue({ name: "/uv2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n"].stateValues.value).eq(3);
         expect(stateVariables["/m1"].stateValues.value).eq(2);
         expect(stateVariables["/m2"].stateValues.value).eq(2);
 
         await updateValue({ name: "/uv3", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n"].stateValues.value).eq(4);
         expect(stateVariables["/m1"].stateValues.value).eq(2);
         expect(stateVariables["/m2"].stateValues.value).eq(2);
@@ -733,7 +733,7 @@ describe("UpdateValue tag tests", async () => {
 
         await updateValue({ name: macroName, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n"].stateValues.value).eq(5);
         expect(stateVariables["/m1"].stateValues.value).eq(3);
         expect(stateVariables["/m2"].stateValues.value).eq(2);
@@ -751,48 +751,48 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await movePoint({ name: "/P", x: -4, y: 4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
     });
 
@@ -808,33 +808,33 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
 
         await clickPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await clickPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
     });
 
@@ -850,33 +850,33 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
 
         await focusPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         await focusPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
     });
 
@@ -903,7 +903,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let PcopyName =
             stateVariables["/graph1"].activeChildren[0].componentName;
 
@@ -914,25 +914,25 @@ describe("UpdateValue tag tests", async () => {
 
         await clickPoint({ name: PcopyName, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         // clicking copy with an assignNames does not trigger update
         await clickPoint({ name: "/P2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         // clicking point with copySource does not trigger update
         await clickPoint({ name: "/point2", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
 
         // clicking unnamed copy triggers update again
         await clickPoint({ name: PcopyName, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
     });
 
@@ -950,7 +950,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
@@ -958,49 +958,49 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -3, y: 4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
     });
@@ -1018,49 +1018,49 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
         expect(stateVariables["/quad"].stateValues.hidden).eq(true);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("12x");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("12x");
 
         await movePoint({ name: "/P", x: -3, y: 4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("12x");
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("12x");
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("144x");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("144x");
     });
 
@@ -1078,7 +1078,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
@@ -1086,76 +1086,76 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
     });
 
     async function test_trigger_set(core) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await triggerActions({ name: "/ts", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await triggerActions({ name: "/ts", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
 
         await triggerActions({ name: "/ts", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(
             " hello hello hello",
@@ -1228,7 +1228,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
@@ -1237,7 +1237,7 @@ describe("UpdateValue tag tests", async () => {
 
         await triggerActions({ name: "/ts", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1245,7 +1245,7 @@ describe("UpdateValue tag tests", async () => {
 
         await triggerActions({ name: "/ts", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1253,7 +1253,7 @@ describe("UpdateValue tag tests", async () => {
 
         await triggerActions({ name: "/ts", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(
             " hello hello hello",
@@ -1278,7 +1278,7 @@ describe("UpdateValue tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
@@ -1286,49 +1286,49 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -3, y: 4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
     });
@@ -1360,7 +1360,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
@@ -1370,7 +1370,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1378,7 +1378,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1386,7 +1386,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1394,7 +1394,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1402,7 +1402,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1410,7 +1410,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1418,7 +1418,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1426,7 +1426,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1454,56 +1454,56 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1533,7 +1533,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
@@ -1543,7 +1543,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
@@ -1551,7 +1551,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(1);
@@ -1559,7 +1559,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1567,7 +1567,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1575,7 +1575,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1583,7 +1583,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -1591,7 +1591,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1599,7 +1599,7 @@ describe("UpdateValue tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -1617,12 +1617,12 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/t"].stateValues.text).eq("something");
 
         await updateValue({ name: "/toBlank", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/t"].stateValues.text).eq("");
     });
 
@@ -1686,7 +1686,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/update"].stateValues.label).eq(
             "we have \\(\\prod_{i=1}^3 y_i\\)",
         );
@@ -1700,7 +1700,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/SwapIt"].stateValues.label).eq("Swap It");
     });
 
@@ -1711,12 +1711,12 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/uv"].stateValues.label).eq("");
 
         await updateValue({ name: "/uv", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/uv"].stateValues.label).eq("Hello!");
     });
 
@@ -1734,19 +1734,19 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/uv1"].stateValues.label).eq("Move tail");
         expect(stateVariables["/ts1"].stateValues.label).eq("Move both");
         expect(cleanLatex(stateVariables["/vh"].stateValues.latex)).eq("(1,0)");
         expect(cleanLatex(stateVariables["/vt"].stateValues.latex)).eq("(0,0)");
 
         await updateValue({ name: "/uv1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/vh"].stateValues.latex)).eq("(4,4)");
         expect(cleanLatex(stateVariables["/vt"].stateValues.latex)).eq("(3,4)");
 
         await triggerActions({ name: "/ts1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/vh"].stateValues.latex)).eq("(9,4)");
         expect(cleanLatex(stateVariables["/vt"].stateValues.latex)).eq("(7,2)");
     });
@@ -1787,7 +1787,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/grp2/p"].stateValues.text).eq("true");
         expect(
             stateVariables["/sec"].activeChildren.filter((x) => x.componentName)
@@ -1795,7 +1795,7 @@ describe("UpdateValue tag tests", async () => {
         ).eq(3);
 
         await updateValue({ name: "/grp2/uv", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/grp2/p"].stateValues.text).eq("false");
         expect(
@@ -1819,7 +1819,7 @@ describe("UpdateValue tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/uv1"].stateValues.selectedStyle.fillColor).eq(
             "green",
         );

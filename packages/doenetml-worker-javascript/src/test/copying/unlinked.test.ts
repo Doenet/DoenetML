@@ -17,7 +17,7 @@ async function test_no_overwritten_attributes({
     const namespaceName = namespaceInsideGraph ? "/gr" : "/g";
     const graphNamePostfix = namespaceInsideGraph ? "/g" : "";
 
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[`${namespaceName}${graphNamePostfix}`].stateValues.xmax,
     ).eq(5);
@@ -60,7 +60,7 @@ async function test_linked_copy_overwrites_attributes({
 }: {
     core: PublicDoenetMLCore;
 }) {
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables["/g"].stateValues.xmin).eq(-10);
     expect(stateVariables["/g"].stateValues.xmax).eq(5);
     expect(stateVariables["/g/A"].stateValues.xs.map((v) => v.tree)).eqls([
@@ -101,7 +101,7 @@ async function test_unlinked_copy_overwrites_attributes({
     core: PublicDoenetMLCore;
 }) {
     // TODO: overwriting attributes of unlinked copy of linked copy isn't working as we'd like.
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables["/g"].stateValues.xmin).eq(-10);
     expect(stateVariables["/g"].stateValues.xmax).eq(5);
     expect(stateVariables["/g"].stateValues.ymax).eq(10);
@@ -291,7 +291,10 @@ describe("Unlinked Copying Tests", async () => {
         let q2 = [NaN, NaN];
 
         async function check_snapshot() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/P"].stateValues.xs.map((v) => v.tree)).eqls(
                 p,

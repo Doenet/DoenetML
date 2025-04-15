@@ -22,7 +22,7 @@ describe("Problem tag tests", async () => {
 
         await check_items(ansCredits);
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mathinput1Name =
             stateVariables["/ans1"].stateValues.inputChildren[0].componentName;
@@ -193,7 +193,10 @@ describe("Problem tag tests", async () => {
                     sectionCredits[2]) /
                 (weight[0] + 2);
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
@@ -332,7 +335,10 @@ describe("Problem tag tests", async () => {
                     sectionCredits[2] * sectionWeight[2]) /
                 (weight[0] + sectionWeight[1] + sectionWeight[2]);
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let [i, credit] of ansCredits.entries()) {
                 expect(
@@ -363,7 +369,7 @@ describe("Problem tag tests", async () => {
         core: PublicDoenetMLCore,
         sectionName = "/theProblem",
     ) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let answerNames = ["/twox", "/hello", "/fruit", "/sum3"];
         for (let name of answerNames) {
             let ansVars = stateVariables[name].stateValues;
@@ -379,7 +385,7 @@ describe("Problem tag tests", async () => {
             stateVariables["/twox"].stateValues.inputChildren[0].componentName;
         await updateMathInputValue({ latex: "2x", name: twoxInputName, core });
         await submitAnswer({ name: "/twox", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/twox"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.25);
 
@@ -391,7 +397,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/hello", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/hello"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.5);
         const bananaInd =
@@ -405,21 +411,21 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/fruit", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fruit"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.75);
 
         await updateMathInputValue({ latex: "2", name: "/n1", core });
         await updateMathInputValue({ latex: "1", name: "/n2", core });
         await submitAnswer({ name: "/sum3", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sum3"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(1);
 
         // switch to section wide checkWork
 
         await updateBooleanInputValue({ boolean: true, name: "/swcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of answerNames) {
             let ansVars = stateVariables[name].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(true);
@@ -433,7 +439,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({ latex: "y", name: twoxInputName, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
@@ -441,7 +447,7 @@ describe("Problem tag tests", async () => {
             actionName: "submitAllAnswers",
             args: {},
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(true);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.75);
 
@@ -450,7 +456,7 @@ describe("Problem tag tests", async () => {
             name: helloInputName,
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
@@ -458,13 +464,13 @@ describe("Problem tag tests", async () => {
             actionName: "submitAllAnswers",
             args: {},
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(true);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(0.5);
 
         // turn off section wide checkWork
         await updateBooleanInputValue({ boolean: false, name: "/swcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of answerNames) {
             let ansVars = stateVariables[name].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(false);
@@ -586,7 +592,7 @@ describe("Problem tag tests", async () => {
         core: PublicDoenetMLCore,
         sectionName = "/theProblem",
     ) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let answerNames1 = ["/twox", "/hello"];
         let answerNames2 = ["/fruit", "/sum3"];
         for (let name of answerNames1) {
@@ -612,7 +618,7 @@ describe("Problem tag tests", async () => {
             stateVariables["/twox"].stateValues.inputChildren[0].componentName;
         await updateMathInputValue({ latex: "2x", name: twoxInputName, core });
         await submitAnswer({ name: "/twox", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/twox"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(
             1 / 3,
@@ -626,7 +632,7 @@ describe("Problem tag tests", async () => {
             core,
         });
         await submitAnswer({ name: "/hello", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/hello"].stateValues.creditAchieved).eq(1);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(
             2 / 3,
@@ -652,7 +658,7 @@ describe("Problem tag tests", async () => {
             actionName: "submitAllAnswers",
             args: {},
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fruit"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/subProblem"].stateValues.justSubmitted).eq(
             true,
@@ -672,7 +678,7 @@ describe("Problem tag tests", async () => {
             args: {},
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sum3"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/subProblem"].stateValues.justSubmitted).eq(
             true,
@@ -683,7 +689,7 @@ describe("Problem tag tests", async () => {
         // switch to section wide checkWork
 
         await updateBooleanInputValue({ boolean: true, name: "/swcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of [...answerNames1, ...answerNames2]) {
             let ansVars = stateVariables[name].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(true);
@@ -700,7 +706,7 @@ describe("Problem tag tests", async () => {
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(1);
 
         await updateMathInputValue({ latex: "y", name: twoxInputName, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
@@ -708,7 +714,7 @@ describe("Problem tag tests", async () => {
             actionName: "submitAllAnswers",
             args: {},
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(true);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(
             2 / 3,
@@ -719,7 +725,7 @@ describe("Problem tag tests", async () => {
             name: helloInputName,
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(false);
 
         await core.requestAction({
@@ -727,7 +733,7 @@ describe("Problem tag tests", async () => {
             actionName: "submitAllAnswers",
             args: {},
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[sectionName].stateValues.justSubmitted).eq(true);
         expect(stateVariables[sectionName].stateValues.creditAchieved).eq(
             1 / 3,
@@ -735,7 +741,7 @@ describe("Problem tag tests", async () => {
 
         // turn off section wide checkWork
         await updateBooleanInputValue({ boolean: false, name: "/swcw", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let name of answerNames1) {
             let ansVars = stateVariables[name].stateValues;
             expect(ansVars.delegateCheckWorkToAncestor).eq(false);
@@ -856,7 +862,7 @@ describe("Problem tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/prob1"].stateValues.submitLabel).eq(
             "Check Work",
         );
@@ -888,7 +894,7 @@ describe("Problem tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/doc"].stateValues.submitLabel).eq("Hit it!");
         expect(stateVariables["/doc"].stateValues.submitLabelNoCorrectness).eq(
             "Guess",

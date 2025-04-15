@@ -41,7 +41,10 @@ describe("Boolean Operator tag tests", async () => {
             isInteger: boolean,
             isEven: boolean,
         ) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/int1"].stateValues.value).eq(isInteger);
             expect(stateVariables["/int2"].stateValues.value).eq(isInteger);
             expect(stateVariables["/int3"].stateValues.value).eq(isInteger);
@@ -200,7 +203,10 @@ describe("Boolean Operator tag tests", async () => {
             let isBetween = strict
                 ? xMin < x && x < xMax
                 : xMin <= x && x <= xMax;
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/ib"].stateValues.value).eq(isBetween);
         }
 

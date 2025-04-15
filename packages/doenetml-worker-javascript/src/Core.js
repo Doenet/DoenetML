@@ -86,8 +86,6 @@ export default class Core {
         this.copyToClipboard = copyToClipboard;
         this.sendEvent = sendEvent;
 
-        console.log({ sendEvent });
-
         this.cid = cid;
 
         this.errorWarnings = {

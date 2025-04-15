@@ -62,7 +62,7 @@ describe("EigenDecomposition Tag Tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pAevs"].stateValues.text).eqls(
             "Eigenvalues of A: -1, 3",
         );
@@ -249,7 +249,7 @@ describe("EigenDecomposition Tag Tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pAevs"].stateValues.text).eqls(
             "Eigenvalues of A: -1, 3",
         );
@@ -403,7 +403,7 @@ describe("EigenDecomposition Tag Tests", async () => {
         `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const eigvals = stateVariables["/eig"].stateValues.eigenvalues;
         const eigvecs = stateVariables["/eig"].stateValues.eigenvectors;
         expect(eigvals[0]).closeTo(0, 1e-14);
@@ -439,7 +439,7 @@ describe("EigenDecomposition Tag Tests", async () => {
         core: PublicDoenetMLCore;
         decompositionName: string;
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const actualEvals =
             stateVariables[decompositionName].stateValues.eigenvalues.map(
                 reviveComplex,

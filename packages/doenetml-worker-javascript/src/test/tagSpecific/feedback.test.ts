@@ -23,7 +23,10 @@ describe("Feedback tag tests", async () => {
             currentResponse: string,
             submittedResponse?: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/pfc"].stateValues.text).eq(
                 "You got full credit!",
             );
@@ -59,7 +62,7 @@ describe("Feedback tag tests", async () => {
             expect(stateVariables["/pba"].stateValues.hidden).eq(show2);
         }
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
             stateVariables["/ans"].stateValues.inputChildren[0].componentName;
 
@@ -241,7 +244,10 @@ describe("Feedback tag tests", async () => {
                 }
             }
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ca"].stateValues.value).eq(creditAchieved);
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
@@ -376,7 +382,10 @@ describe("Feedback tag tests", async () => {
                 award4 = true;
             }
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ans1"].stateValues.creditAchieved).eq(
                 credit1,
@@ -473,7 +482,10 @@ describe("Feedback tag tests", async () => {
                 credit = 0.1;
             }
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ca"].stateValues.value).eq(credit);
 
@@ -484,7 +496,7 @@ describe("Feedback tag tests", async () => {
             }
         }
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
             stateVariables["/ci"].stateValues.choiceTexts;
 
@@ -683,7 +695,10 @@ describe("Feedback tag tests", async () => {
                 credit2 = 0.1;
             }
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ca1"].stateValues.value).eq(credit1);
             expect(stateVariables["/ca2"].stateValues.value).eq(credit2);
@@ -698,7 +713,7 @@ describe("Feedback tag tests", async () => {
             }
         }
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts1: string[] =
             stateVariables["/ci1"].stateValues.choiceTexts;
         const choiceTexts2: string[] =
@@ -784,7 +799,10 @@ describe("Feedback tag tests", async () => {
         });
 
         async function check_items(response?: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let credit = response === "hello there" ? 1 : 0;
             let hidden = response === undefined || response === "hello there";
@@ -802,7 +820,7 @@ describe("Feedback tag tests", async () => {
             }
         }
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let tiName =
             stateVariables["/ans"].stateValues.inputChildren[0].componentName;
 
@@ -838,7 +856,10 @@ describe("Feedback tag tests", async () => {
         wrongCosCode?: boolean,
     ) {
         async function check_items(submittedLatex?: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             if (submittedLatex === "\\sin(\\pi x)") {
                 if (stateVariables["/ans"].stateValues.justSubmitted) {
                     expect(
@@ -1084,7 +1105,10 @@ describe("Feedback tag tests", async () => {
         feedbacks: Record<string, string[]>,
     ) {
         async function check_items(response?: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (response === "cat") {
                 if (stateVariables["/ans"].stateValues.justSubmitted) {
@@ -1128,7 +1152,7 @@ describe("Feedback tag tests", async () => {
             }
         }
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
             stateVariables["/ci"].stateValues.choiceTexts;
 
@@ -1265,24 +1289,24 @@ describe("Feedback tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
         await updateMathInputValue({ latex: "y", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback"].stateValues.hidden).eq(false);
 
         await updateMathInputValue({ latex: "x", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(false);
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
@@ -1291,24 +1315,24 @@ describe("Feedback tag tests", async () => {
             flags: { showFeedback: false },
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
         await updateMathInputValue({ latex: "y", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
         await updateMathInputValue({ latex: "x", name: "/mi", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
     });
@@ -1344,7 +1368,7 @@ describe("Feedback tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(true);
@@ -1354,7 +1378,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"]).eq(undefined);
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(true);
@@ -1364,7 +1388,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"].stateValues.value.tree).eq("\uff3f");
 
         await updateMathInputValue({ latex: "y", name: "/m2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(true);
@@ -1374,7 +1398,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"].stateValues.value.tree).eq("\uff3f");
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(false);
@@ -1384,7 +1408,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"].stateValues.value.tree).eq("y");
 
         await updateMathInputValue({ latex: "x", name: "/m1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(false);
@@ -1394,7 +1418,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"].stateValues.value.tree).eq("y");
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(true);
@@ -1404,7 +1428,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"].stateValues.value.tree).eq("y");
 
         await updateMathInputValue({ latex: "", name: "/m2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(true);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(true);
@@ -1414,7 +1438,7 @@ describe("Feedback tag tests", async () => {
         expect(stateVariables["/r2"].stateValues.value.tree).eq("y");
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/fback1"].stateValues.hidden).eq(false);
         expect(stateVariables["/fback2"].stateValues.hidden).eq(true);
@@ -1468,7 +1492,10 @@ describe("Feedback tag tests", async () => {
             justSubmitted: boolean,
             feedbacksChosen: string[] = [],
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/ans"].stateValues.creditAchieved).eq(
                 credit,
             );
@@ -1546,7 +1573,7 @@ describe("Feedback tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(false);
 
         core = await createTestCore({
@@ -1554,7 +1581,7 @@ describe("Feedback tag tests", async () => {
             flags: { showFeedback: false },
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fback"].stateValues.hidden).eq(true);
     });
 
@@ -1579,18 +1606,18 @@ describe("Feedback tag tests", async () => {
         `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/fb"].stateValues.hidden).eq(true);
 
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("\uff3f");
         expect(stateVariables["/fb"].stateValues.hidden).eq(true);
 
         await updateMathInputValue({ latex: "y", name: "/mi", core });
         await submitAnswer({ name: "/ans", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("y");
         expect(stateVariables["/fb"].stateValues.hidden).eq(false);
     });
@@ -1605,7 +1632,7 @@ describe("Feedback tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputName =
             stateVariables["/ans"].stateValues.inputChildren[0].componentName;
 
@@ -1614,21 +1641,21 @@ describe("Feedback tag tests", async () => {
         // Submit first time
         await updateMathInputValue({ latex: "x", name: mathInputName, core });
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/pSub"].stateValues.hidden).eq(true);
 
         // Submit second time
         await updateMathInputValue({ latex: "y", name: mathInputName, core });
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(0);
         expect(stateVariables["/pSub"].stateValues.hidden).eq(false);
 
         // Submit third time
         await updateMathInputValue({ latex: "x", name: mathInputName, core });
         await submitAnswer({ name: "/ans", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ans"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/pSub"].stateValues.hidden).eq(false);
     });

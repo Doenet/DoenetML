@@ -25,7 +25,7 @@ describe("Tabular tag tests", async () => {
 `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Top: inHeader = true",
         );

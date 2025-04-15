@@ -16,7 +16,7 @@ describe("Error Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/good"].stateValues.value.tree).eqls([
             "+",
@@ -55,7 +55,7 @@ describe("Error Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/good"].stateValues.value.tree).eqls([
             "+",
@@ -108,7 +108,7 @@ describe("Error Tests", async () => {
   `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m1"].stateValues.value.tree).eq("y");
         expect(stateVariables["/sec"].stateValues.title).eq("Section 1");
@@ -516,7 +516,7 @@ a />
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/e2"].stateValues.value.tree).eq("＿");
         expect(stateVariables["/e3"].stateValues.value.tree).eq("＿");
         expect(stateVariables["/e4"].stateValues.value.tree).eq("＿");
@@ -765,7 +765,7 @@ $A{assignNames="a" assignnames="b"}
 `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/f"].stateValues.formula.tree).eqls([
             "+",
             "x",
@@ -811,7 +811,7 @@ $A{assignNames="a" assignnames="b"}
 `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/f"].stateValues.formula.tree).eqls([
             "+",
             "x",

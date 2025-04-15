@@ -43,7 +43,7 @@ describe("lorem tag tests", async () => {
 
         let names = ["a", "b", "c", "d", "e", "f"];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let nParagraphs = 3,
             nSentences = 3,
@@ -110,7 +110,7 @@ describe("lorem tag tests", async () => {
             name: "/words/numWords",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/paragraphs/lPars"].replacements!.length).eq(
             nParagraphs,
@@ -164,7 +164,7 @@ describe("lorem tag tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         const n1 = stateVariables["/n"].stateValues.value;
 
@@ -185,7 +185,7 @@ describe("lorem tag tests", async () => {
             requestedVariantIndex: 1,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/n"].stateValues.value).eq(n1);
         expect(stateVariables["/lPars"].replacements!.length).eq(1);
@@ -206,7 +206,7 @@ describe("lorem tag tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         const n2 = stateVariables["/n"].stateValues.value;
         expect(n2).eq(3 - n1);
@@ -229,7 +229,7 @@ describe("lorem tag tests", async () => {
             requestedVariantIndex: 2,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/n"].stateValues.value).eq(n2);
         expect(stateVariables["/lPars"].replacements!.length).eq(1);

@@ -367,7 +367,7 @@ async function checkCurve({
     directions?: Direction[];
     controlVectors?: (number[] | null)[][];
 }) {
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     const curve = stateVariables[curveName];
     if (throughPoints) {
         expect(
@@ -735,7 +735,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         let core = await createTestCore({ doenetML });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/dira"].stateValues.value).eq("symmetric");
         expect(stateVariables["/dirb"].stateValues.value).eq("symmetric");
         expect(stateVariables["/cvs"].stateValues.direction).eq("symmetric");
@@ -747,7 +747,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await updateTextInputValue({ text: "both", name: "/dira", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/dira"].stateValues.value).eq("both");
         expect(stateVariables["/dirb"].stateValues.value).eq("both");
         expect(stateVariables["/cvs"].stateValues.direction).eq("both");
@@ -759,7 +759,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         core = await createTestCore({ doenetML });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/dira"].stateValues.value).eq("symmetric");
         expect(stateVariables["/dirb"].stateValues.value).eq("symmetric");
         expect(stateVariables["/cvs"].stateValues.direction).eq("symmetric");
@@ -771,7 +771,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         await updateTextInputValue({ text: "none", name: "/dirb", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/dira"].stateValues.value).eq("none");
         expect(stateVariables["/dirb"].stateValues.value).eq("none");
         expect(stateVariables["/cvs"].stateValues.direction).eq("none");
@@ -1603,7 +1603,10 @@ describe("Curve Tag Bezier Tests", async () => {
 
         if (thirdUnspecified) {
             directions[2] = "none";
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let cv3 = stateVariables["/c"].stateValues.controlVectors[2][0];
 
             controlVectors[2][0][0] = cv3[0].tree + 0;
@@ -2041,7 +2044,7 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pt"].stateValues.text).eq("( 3, 4 )");
         expect(stateVariables["/px"].stateValues.text).eq("( -4, 7 )");
@@ -2059,7 +2062,7 @@ describe("Curve Tag Bezier Tests", async () => {
         // set propIndex to 1
         await updateMathInputValue({ latex: "1", name: "/n", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pt"].stateValues.text).eq("( 1, 2 )");
         expect(stateVariables["/px"].stateValues.text).eq("( 3, 4 )");
         expect(stateVariables["/py"].stateValues.text).eq("( 1, 2 )");
@@ -2076,7 +2079,7 @@ describe("Curve Tag Bezier Tests", async () => {
         // erase propIndex
         await updateMathInputValue({ latex: "", name: "/n", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pt"].stateValues.text).eq("");
         expect(stateVariables["/px"].stateValues.text).eq("");
         expect(stateVariables["/py"].stateValues.text).eq("");
@@ -2093,7 +2096,7 @@ describe("Curve Tag Bezier Tests", async () => {
         // set propIndex to 4
         await updateMathInputValue({ latex: "4", name: "/n", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pt"].stateValues.text).eq("( -4, 7 )");
         expect(stateVariables["/px"].stateValues.text).eq("");
         expect(stateVariables["/py"].stateValues.text).eq("( 6, 5 )");
@@ -2173,7 +2176,7 @@ describe("Curve Tag Bezier Tests", async () => {
             ),
         );
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pV"].stateValues.text).eq("");
         expect(stateVariables["/pP"].stateValues.text).eq("");
@@ -2182,7 +2185,7 @@ describe("Curve Tag Bezier Tests", async () => {
 
         for (let m = 1; m <= 5; m++) {
             await updateMathInputValue({ latex: `${m}`, name: "/m", core });
-            stateVariables = await core.returnAllStateVariables(true);
+            stateVariables = await core.returnAllStateVariables(false, true);
 
             expect(stateVariables["/pVb"].stateValues.text).eq(
                 desiredControlVectors[m - 1]
@@ -2197,7 +2200,10 @@ describe("Curve Tag Bezier Tests", async () => {
 
             for (let n = 1; n <= 2; n++) {
                 await updateMathInputValue({ latex: `${n}`, name: "/n", core });
-                stateVariables = await core.returnAllStateVariables(true);
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
 
                 expect(stateVariables["/pV"].stateValues.text).eq(
                     `( ${desiredControlVectors[m - 1][n - 1].join(", ")} )`,
@@ -2227,7 +2233,7 @@ describe("Curve Tag Bezier Tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pcv"].stateValues.text).eq(
             "( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -1, 0 ), ( 1, 0 ), ( -1, 0 )",
         );
@@ -2257,7 +2263,7 @@ describe("Curve Tag Bezier Tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pcv"].stateValues.text).eq(
             "( -2, -1 ), ( 2, 1 ), ( 3, -5 ), ( 2, -4 ), ( -2, -6 ), ( 2, 6 )",
         );
@@ -2277,7 +2283,10 @@ describe("Curve Tag Bezier Tests", async () => {
         });
 
         async function check_items(cvs: number[][][]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/c"].stateValues.controlVectors.map((x) =>
                     x.map((y) => y.map((z) => z.tree + 0)),
@@ -2395,7 +2404,10 @@ describe("Curve Tag Bezier Tests", async () => {
         });
 
         async function check_items(cvs: number[][][]) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/c"].stateValues.controlVectors.map((x) =>
                     x.map((y) => y.map((z) => z.tree + 0)),
@@ -2492,7 +2504,7 @@ describe("Curve Tag Bezier Tests", async () => {
         });
 
         // page loads
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/t1"].stateValues.value).eq("a");
     });

@@ -190,7 +190,7 @@ export async function updateMatrixInputValue({
     stateVariables?: any;
 }) {
     if (stateVariables === undefined) {
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
     }
 
     let matrixInput = stateVariables[name];
@@ -207,7 +207,7 @@ export async function updateMatrixInputValue({
             args: { rawRendererValue: latex },
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         await core.requestAction({
             componentName: matrixInputCellName,
@@ -215,7 +215,7 @@ export async function updateMatrixInputValue({
             args: {},
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
     }
 }
 
@@ -235,7 +235,7 @@ export async function updateMatrixInputImmediateValue({
     stateVariables?: any;
 }) {
     if (stateVariables === undefined) {
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
     }
 
     let matrixInput = stateVariables[name];
@@ -268,7 +268,7 @@ export async function updateMatrixInputValueToImmediateValue({
     stateVariables?: any;
 }) {
     if (stateVariables === undefined) {
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
     }
 
     let matrixInput = stateVariables[name];

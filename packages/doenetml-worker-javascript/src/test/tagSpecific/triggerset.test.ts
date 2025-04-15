@@ -21,7 +21,7 @@ vi.mock("hyperformula");
 
 describe("TriggerSet tag tests", async () => {
     async function test_5_triggered_actions(core) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/flip"].stateValues.hidden).eq(true);
         expect(stateVariables["/addHello"].stateValues.hidden).eq(true);
@@ -46,7 +46,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await triggerActions({ name: "/tset", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
 
@@ -62,7 +62,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(2);
 
         await triggerActions({ name: "/tset", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(3);
 
@@ -78,7 +78,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(3);
 
         await triggerActions({ name: "/tset", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(4);
 
@@ -237,12 +237,12 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n2"].stateValues.value).eq(1);
 
         await test_5_triggered_actions(core);
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n2"].stateValues.value).eq(1);
         let numbers = stateVariables["/nums"].stateValues.text
             .split(",")
@@ -256,7 +256,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(4);
 
         await updateValue({ name: "/in", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/n2"].stateValues.value).eq(2);
 
         expect(stateVariables["/g"].activeChildren.length).eq(5);
@@ -290,7 +290,7 @@ describe("TriggerSet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
         expect(stateVariables["/quad"].stateValues.hidden).eq(true);
@@ -299,43 +299,43 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -3, y: 4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: -6, y: 5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
@@ -358,7 +358,7 @@ describe("TriggerSet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
         expect(stateVariables["/quad"].stateValues.hidden).eq(true);
@@ -367,31 +367,31 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await clickPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await clickPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
     });
@@ -412,7 +412,7 @@ describe("TriggerSet tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/trip"].stateValues.hidden).eq(true);
         expect(stateVariables["/quad"].stateValues.hidden).eq(true);
@@ -421,31 +421,31 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("y");
 
         await focusPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("3x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("4y");
 
         await focusPoint({ name: "/P", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(cleanLatex(stateVariables["/x"].stateValues.latex)).eq("9x");
         expect(cleanLatex(stateVariables["/y"].stateValues.latex)).eq("16y");
     });
@@ -477,7 +477,7 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ts1"].stateValues.hidden).eq(true);
         expect(stateVariables["/ts2"].stateValues.hidden).eq(true);
@@ -489,7 +489,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -497,7 +497,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq("");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -505,7 +505,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -513,7 +513,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(2);
@@ -521,7 +521,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -529,7 +529,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -537,7 +537,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -545,7 +545,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(false);
         expect(stateVariables["/hello"].stateValues.value).eq(" hello hello");
         expect(stateVariables["/n"].stateValues.value).eq(3);
@@ -583,7 +583,7 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/flip"].stateValues.hidden).eq(true);
         expect(stateVariables["/addHello"].stateValues.hidden).eq(true);
@@ -608,7 +608,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(1);
 
@@ -622,7 +622,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(1);
 
@@ -636,7 +636,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/n"].stateValues.value).eq(1);
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
 
@@ -652,7 +652,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
 
@@ -667,7 +667,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
 
@@ -682,7 +682,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
 
@@ -693,7 +693,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(3);
 
@@ -709,7 +709,7 @@ describe("TriggerSet tag tests", async () => {
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(3);
 
@@ -751,7 +751,7 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/ts"].stateValues.hidden).eq(true);
         expect(stateVariables["/uv"].stateValues.hidden).eq(true);
@@ -763,7 +763,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(5);
 
         await movePoint({ name: "/P", x: -1, y: -7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(1);
         expect(stateVariables["/b"].stateValues.value).eq(false);
@@ -772,7 +772,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(4);
 
         await movePoint({ name: "/P", x: 3, y: -4, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(1);
         expect(stateVariables["/b"].stateValues.value).eq(false);
@@ -781,7 +781,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(4);
 
         await movePoint({ name: "/P", x: 1, y: 7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
         expect(stateVariables["/b"].stateValues.value).eq(true);
@@ -790,7 +790,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(4);
 
         await movePoint({ name: "/P", x: 5, y: 9, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
         expect(stateVariables["/b"].stateValues.value).eq(true);
@@ -799,7 +799,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(4);
 
         await movePoint({ name: "/P", x: -3, y: -4, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
         expect(stateVariables["/b"].stateValues.value).eq(true);
@@ -808,7 +808,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(3);
 
         await movePoint({ name: "/P", x: -6, y: -5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(2);
         expect(stateVariables["/b"].stateValues.value).eq(true);
@@ -817,7 +817,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(3);
 
         await movePoint({ name: "/P", x: 4, y: 2, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(3);
         expect(stateVariables["/b"].stateValues.value).eq(false);
@@ -826,7 +826,7 @@ describe("TriggerSet tag tests", async () => {
         expect(stateVariables["/m"].stateValues.value).eq(3);
 
         await movePoint({ name: "/P", x: 9, y: 7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/g"].activeChildren.length).eq(3);
         expect(stateVariables["/b"].stateValues.value).eq(false);
@@ -847,7 +847,7 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/tset"].stateValues.label).eq(
             "It is \\(\\frac{ \\partial f }{ \\partial x }\\)",
         );
@@ -864,7 +864,7 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/trigger-me"].stateValues.label).eq(
             "trigger me",
         );
@@ -910,7 +910,7 @@ describe("TriggerSet tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ts1"].stateValues.selectedStyle.fillColor).eq(
             "green",
         );

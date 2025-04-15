@@ -105,7 +105,7 @@ describe("Image tag tests", async () => {
             ibadwidth: "medium",
         };
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let name in expectedSizes) {
             expect(stateVariables["/" + name].stateValues.size).eq(
                 expectedSizes[name],
@@ -128,7 +128,7 @@ describe("Image tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i"].stateValues.horizontalAlign).eq("center");
         expect(stateVariables["/ileft"].stateValues.horizontalAlign).eq("left");
         expect(stateVariables["/iright"].stateValues.horizontalAlign).eq(
@@ -155,7 +155,7 @@ describe("Image tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i"].stateValues.displayMode).eq("block");
         expect(stateVariables["/iinline"].stateValues.displayMode).eq("inline");
         expect(stateVariables["/iblock"].stateValues.displayMode).eq("block");
@@ -190,7 +190,7 @@ describe("Image tag tests", async () => {
 
         // Is there a way to test the rotation of the image in the graph?
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/image1"].stateValues.rotate).eq(Math.PI / 4);
 
         await updateMathInputValue({
@@ -198,7 +198,7 @@ describe("Image tag tests", async () => {
             name: "/rotate1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/image1"].stateValues.rotate).eq(
             (3 * Math.PI) / 4,
         );
@@ -208,7 +208,7 @@ describe("Image tag tests", async () => {
             name: "/rotate1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/image1"].stateValues.rotate).eq(-Math.PI);
     });
 
@@ -227,7 +227,7 @@ describe("Image tag tests", async () => {
             `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
@@ -240,7 +240,7 @@ describe("Image tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/image1anchor"].stateValues.latex),
@@ -253,7 +253,7 @@ describe("Image tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/image1anchor"].stateValues.latex),

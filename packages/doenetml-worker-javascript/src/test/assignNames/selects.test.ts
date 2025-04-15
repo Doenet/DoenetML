@@ -40,7 +40,7 @@ describe("selects assign name tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let selectedIndices =
             stateVariables["/select1"].stateValues.selectedIndices;

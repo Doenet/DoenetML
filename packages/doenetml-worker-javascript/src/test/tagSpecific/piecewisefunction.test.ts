@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Piecewise Function Tag Tests", async () => {
     async function check_heaviside(core: PublicDoenetMLCore) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
     1 & \\text{if } x > 0\\\\
@@ -241,7 +241,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(t)= \\begin{cases}
     t & \\text{if } t > 0\\\\
@@ -407,7 +407,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
     x^{2} & \\text{if } x > 0\\\\
@@ -770,7 +770,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/f"].stateValues.minima).eqls([[0, 0]]);
         expect(stateVariables["/f"].stateValues.maxima).eqls([]);
         expect(stateVariables["/f2"].stateValues.minima).eqls([[0, 0]]);
@@ -980,7 +980,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
@@ -1035,7 +1035,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
@@ -1085,7 +1085,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
@@ -1151,7 +1151,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
@@ -1182,7 +1182,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mef"].stateValues.latex)
             .eq(`f(x)= \\begin{cases}
@@ -1239,7 +1239,7 @@ describe("Piecewise Function Tag Tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let f2 = stateVariables["/f2"].stateValues.numericalfs[0];
 

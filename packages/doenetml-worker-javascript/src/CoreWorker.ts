@@ -249,10 +249,16 @@ export class PublicDoenetMLCore {
      * all their states variables, and additional information about their children,
      * replacements, and shared parameters.
      *
+     * If `consoleLogComponents` is `true`, then console.log the entire component tree,
+     * which can be useful when debugging in the console.
+     *
      * Unless `dontRemoveFunctionsMath` is set, clean state variables that can't be conveniently serialized,
      * i.e., remove functions and replace math-expressions with their tree.
      */
-    async returnAllStateVariables(dontRemoveFunctionsMath = false) {
+    async returnAllStateVariables(
+        consoleLogComponents = false,
+        dontRemoveFunctionsMath = false,
+    ) {
         if (!this.core?.components) {
             return {};
         }
@@ -272,9 +278,11 @@ export class PublicDoenetMLCore {
         > = {};
         const components = this.core.components as Record<string, any>;
 
-        // console.log the entire components tree so that, when called from the console,
-        // one can examine the actual components without serialization, if desired.
-        console.log(components);
+        if (consoleLogComponents) {
+            // console.log the entire components tree so that, when called from the console,
+            // one can examine the actual components without serialization, if desired.
+            console.log(components);
+        }
 
         for (let componentName in components) {
             let component = components[componentName];

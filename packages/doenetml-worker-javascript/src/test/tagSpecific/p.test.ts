@@ -14,7 +14,7 @@ describe("P tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("Hello, paragraph 1");
         expect(stateVariables["/p2"].stateValues.text).eq("Bye, paragraph 2");
@@ -27,7 +27,7 @@ describe("P tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             "math in paragraph: 2 x",
         );
@@ -40,7 +40,7 @@ describe("P tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Hello x");
     });
 });

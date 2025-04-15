@@ -28,7 +28,7 @@ describe("Curve tag tests", async () => {
         splineForm?: "centripetal" | "uniform";
         splineTension?: number;
     }) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.curveType).eq("bezier");
         expect(stateVariables["/c"].stateValues.numThroughPoints).eq(4);
         expect(stateVariables["/c"].stateValues.splineForm).eq(splineForm);
@@ -49,7 +49,7 @@ describe("Curve tag tests", async () => {
 
         await updateMathInputValue({ latex: "4", name: "/mi", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.curveType).eq("bezier");
         expect(stateVariables["/c"].stateValues.numThroughPoints).eq(4);
         if (hasLabel) {
@@ -66,7 +66,10 @@ describe("Curve tag tests", async () => {
 
         if (hasPoints) {
             await movePoint({ name: "/P2", x: 5, y: 7, core });
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             f1 = stateVariables["/c"].stateValues.fs[0];
             f2 = stateVariables["/c"].stateValues.fs[1];
             expect(f1(1)).eq(5);
@@ -165,7 +168,7 @@ describe("Curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.curveType).eq("bezier");
         expect(stateVariables["/c"].stateValues.numThroughPoints).eq(4);
         expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
@@ -177,7 +180,7 @@ describe("Curve tag tests", async () => {
         expect(y).closeTo(6.1, 0.1);
 
         await updateTextInputValue({ text: "uniform", name: "/form", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("uniform");
         expect(stateVariables["/c"].stateValues.splineTension).eq(0.8);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -190,7 +193,7 @@ describe("Curve tag tests", async () => {
             name: "/form",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
         expect(stateVariables["/c"].stateValues.splineTension).eq(0.8);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -199,14 +202,14 @@ describe("Curve tag tests", async () => {
         expect(y).closeTo(6.1, 0.1);
 
         await movePoint({ name: "/P5", x: 10, y: 2, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
         y = stateVariables["/P5"].stateValues.xs[1].tree;
         expect(x).closeTo(5.5, 0.1);
         expect(y).closeTo(0.2, 0.1);
 
         await updateMathInputValue({ latex: "0.1", name: "/tension", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
         expect(stateVariables["/c"].stateValues.splineTension).eq(0.1);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -219,7 +222,7 @@ describe("Curve tag tests", async () => {
         await movePoint({ name: "/P3", x: 6, y: -8, core });
         await movePoint({ name: "/P4", x: 9, y: 9, core });
         await movePoint({ name: "/P5", x: 10, y: -7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
         expect(stateVariables["/c"].stateValues.splineTension).eq(0.1);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -229,7 +232,7 @@ describe("Curve tag tests", async () => {
 
         await updateTextInputValue({ text: "uniform", name: "/form", core });
         await movePoint({ name: "/P5", x: 10, y: -7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("uniform");
         expect(stateVariables["/c"].stateValues.splineTension).eq(0.1);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -239,7 +242,7 @@ describe("Curve tag tests", async () => {
 
         await updateMathInputValue({ latex: "1", name: "/tension", core });
         await movePoint({ name: "/P5", x: 10, y: -7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("uniform");
         expect(stateVariables["/c"].stateValues.splineTension).eq(1);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -249,7 +252,7 @@ describe("Curve tag tests", async () => {
 
         await updateTextInputValue({ text: "", name: "/form", core });
         await movePoint({ name: "/P5", x: 10, y: -7, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.splineForm).eq("centripetal");
         expect(stateVariables["/c"].stateValues.splineTension).eq(1);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
@@ -289,7 +292,7 @@ describe("Curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let x = stateVariables["/P5"].stateValues.xs[0].tree;
         let y = stateVariables["/P5"].stateValues.xs[1].tree;
@@ -313,7 +316,7 @@ describe("Curve tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
         y = stateVariables["/P5"].stateValues.xs[1].tree;
         expect(x).closeTo(9.1, 0.1);
@@ -346,7 +349,7 @@ describe("Curve tag tests", async () => {
             controlVector: [1, 2],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         x = stateVariables["/P5"].stateValues.xs[0].tree;
         y = stateVariables["/P5"].stateValues.xs[1].tree;
@@ -371,14 +374,14 @@ describe("Curve tag tests", async () => {
         });
 
         await movePoint({ name: "/P5", x: 9, y: -3, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P5"].stateValues.xs[0].tree;
         y = stateVariables["/P5"].stateValues.xs[1].tree;
         expect(x).closeTo(7.2, 0.1);
         expect(y).closeTo(-3, 0.1);
 
         await movePoint({ name: "/P6", x: -9, y: -3, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P6"].stateValues.xs[0].tree;
         y = stateVariables["/P6"].stateValues.xs[1].tree;
         expect(x).closeTo(-7.2, 0.1);
@@ -413,7 +416,7 @@ describe("Curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let x = stateVariables["/P1"].stateValues.xs[0].tree;
         let y = stateVariables["/P1"].stateValues.xs[1].tree;
@@ -438,7 +441,7 @@ describe("Curve tag tests", async () => {
             controlVector: [-0.01, -0.01],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
@@ -454,7 +457,7 @@ describe("Curve tag tests", async () => {
         await updateMathInputValue({ latex: "1000", name: "/xMax", core });
         await updateMathInputValue({ latex: "-1000", name: "/yMin", core });
         await updateMathInputValue({ latex: "1000", name: "/yMax", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
@@ -471,7 +474,7 @@ describe("Curve tag tests", async () => {
         await movePoint({ name: "/P1", x: 1001, y: 999, core });
         await movePoint({ name: "/P2", x: -1001, y: -999, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 1e-5);
@@ -489,7 +492,7 @@ describe("Curve tag tests", async () => {
             controlVector: [-0.01, -0.012],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(10, 10);
@@ -507,7 +510,7 @@ describe("Curve tag tests", async () => {
             controlVector: [-0.012, -0.01],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
@@ -528,7 +531,7 @@ describe("Curve tag tests", async () => {
 
         await movePoint({ name: "/P2", x: -1000, y: 1000, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 10);
@@ -549,7 +552,7 @@ describe("Curve tag tests", async () => {
 
         await movePoint({ name: "/P2", x: 1000, y: -1000, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(10, 10);
@@ -567,7 +570,7 @@ describe("Curve tag tests", async () => {
             controlVector: [-0.01, 0],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1000, 1e-5);
@@ -585,7 +588,7 @@ describe("Curve tag tests", async () => {
             controlVector: [0, -0.01],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
@@ -605,7 +608,7 @@ describe("Curve tag tests", async () => {
         });
         await movePoint({ name: "/P2", x: -1000, y: -1000, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
@@ -627,7 +630,7 @@ describe("Curve tag tests", async () => {
 
         await movePoint({ name: "/P2", x: -1000, y: -1000, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P1"].stateValues.xs[0].tree;
         y = stateVariables["/P1"].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-5);
@@ -659,7 +662,10 @@ describe("Curve tag tests", async () => {
         });
 
         async function check_items(ebm: string, efm: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/c"].stateValues.extrapolateBackwardMode).eq(
                 ebm,
             );
@@ -742,7 +748,10 @@ describe("Curve tag tests", async () => {
             numPoints: number;
             step: number;
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             const c = stateVariables["/c"].stateValues;
 
@@ -821,7 +830,10 @@ describe("Curve tag tests", async () => {
                 i % 2 === 0 ? v : [v[1], v[0]],
             );
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let c1ps = stateVariables["/c1"].stateValues.throughPoints;
             let c2ps = stateVariables["/c2"].stateValues.throughPoints;
             expect(c1ps.map((v) => v.map((x) => x.tree))).eqls(ps);
@@ -896,7 +908,10 @@ describe("Curve tag tests", async () => {
         });
 
         async function check_items(x: number, y: number) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/c"].stateValues.throughPoints[0].map(
                     (v) => v.tree,
@@ -964,7 +979,10 @@ describe("Curve tag tests", async () => {
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Curve A is thick ${AColor}.`,

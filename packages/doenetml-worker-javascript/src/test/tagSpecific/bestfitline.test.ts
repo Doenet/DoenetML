@@ -30,7 +30,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("y=-0.5x+4.5").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -42,7 +42,7 @@ describe("BestFitLine tag tests", async () => {
         await movePoint({ name: "/P3", x: -5, y: -10, core });
         await movePoint({ name: "/P4", x: 3, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("y=2x+1").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -60,7 +60,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l"].stateValues.equation.tree).eqls("＿");
         expect(stateVariables["/eq"].stateValues.value.tree).eqls("＿");
     });
@@ -80,7 +80,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l"].stateValues.equation.tree).eqls("＿");
         expect(stateVariables["/eq"].stateValues.value.tree).eqls("＿");
     });
@@ -101,7 +101,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l"].stateValues.equation.tree).eqls([
             "=",
             "y",
@@ -116,7 +116,7 @@ describe("BestFitLine tag tests", async () => {
         // move point
         await movePoint({ name: "/P1", x: -5, y: -8, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/l"].stateValues.equation.tree).eqls([
             "=",
             "y",
@@ -146,7 +146,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("z=0.5t+2.5").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -154,14 +154,14 @@ describe("BestFitLine tag tests", async () => {
         // move points to be vertical
         await movePoint({ name: "/P1", x: -5, y: -8, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("z=-4").tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
 
         // move points
         await movePoint({ name: "/P2", x: -4, y: -6, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("z=2t+2").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -188,7 +188,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("y=-0.5x+4.5").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -200,7 +200,7 @@ describe("BestFitLine tag tests", async () => {
         await movePoint({ name: "/P3", x: -5, y: -10, core });
         await movePoint({ name: "/P4", x: 3, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("y=2x+1").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -231,7 +231,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("y=-0.5x+4.5").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -243,7 +243,7 @@ describe("BestFitLine tag tests", async () => {
         await movePoint({ name: "/P6", x: -5, y: -10, core });
         await movePoint({ name: "/P8", x: 3, y: 9, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("y=2x+1").simplify().tree;
         expect(stateVariables["/l"].stateValues.equation.tree).eqls(eqTree);
         expect(stateVariables["/eq"].stateValues.value.tree).eqls(eqTree);
@@ -275,7 +275,7 @@ describe("BestFitLine tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/eq"].stateValues.text).eq(
             "y = -0.519 x + 5.21",
         );

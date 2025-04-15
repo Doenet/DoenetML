@@ -32,7 +32,10 @@ describe("Endpoint tag tests", async () => {
             COpen: boolean,
             DOpen: boolean,
         ) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/g/A"].stateValues.open).eq(AOpen);
             expect(stateVariables["/g/B"].stateValues.open).eq(BOpen);
@@ -46,7 +49,7 @@ describe("Endpoint tag tests", async () => {
         }
 
         // check positions
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/A"].stateValues.xs.map((v) => v.tree)).eqls([
             4, 0,
         ]);

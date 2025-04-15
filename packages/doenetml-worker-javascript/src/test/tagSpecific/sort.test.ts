@@ -18,7 +18,7 @@ describe("Sort tag tests", async () => {
         pName?: string;
         replacements_all_of_type?: string;
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         const pText = sorted_result.join(", ");
         expect(stateVariables[pName].stateValues.text).eq(pText);
@@ -661,7 +661,7 @@ describe("Sort tag tests", async () => {
 
         const sorted_result = ["a", "b", "c", "x", "y", "z"];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pList"].stateValues.text).eq(
             sorted_result.join(", "),
         );
@@ -699,7 +699,7 @@ describe("Sort tag tests", async () => {
             "z",
         ];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             [...Array(12).keys()]

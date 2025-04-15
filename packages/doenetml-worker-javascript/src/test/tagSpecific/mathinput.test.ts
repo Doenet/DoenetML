@@ -33,7 +33,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
         ).eq("x+1");
@@ -75,7 +75,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -123,7 +123,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -164,7 +164,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -217,7 +217,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -259,7 +259,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -307,7 +307,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -351,7 +351,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -415,7 +415,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -465,7 +465,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -519,7 +519,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -544,7 +544,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -614,7 +614,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -673,7 +673,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -728,7 +728,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -787,7 +787,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -837,7 +837,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -878,7 +878,7 @@ describe("MathInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -906,7 +906,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -939,7 +939,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -965,7 +965,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1000,7 +1000,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1046,7 +1046,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1072,7 +1072,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1118,7 +1118,7 @@ describe("MathInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1146,7 +1146,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1170,7 +1170,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1196,7 +1196,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1232,7 +1232,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1271,7 +1271,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1305,7 +1305,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1344,7 +1344,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1394,7 +1394,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1433,7 +1433,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1473,7 +1473,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1518,7 +1518,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1562,7 +1562,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1607,7 +1607,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1653,7 +1653,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1702,7 +1702,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1752,7 +1752,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1791,7 +1791,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1831,7 +1831,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1876,7 +1876,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1920,7 +1920,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1943,7 +1943,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1970,7 +1970,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -1987,7 +1987,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2014,7 +2014,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2059,7 +2059,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2105,7 +2105,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2155,7 +2155,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2196,7 +2196,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2236,7 +2236,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2278,7 +2278,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2319,7 +2319,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2364,7 +2364,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2385,7 +2385,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2404,7 +2404,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2425,7 +2425,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2444,7 +2444,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2467,7 +2467,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2502,7 +2502,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2536,7 +2536,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2571,7 +2571,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2606,7 +2606,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2645,7 +2645,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2680,7 +2680,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2714,7 +2714,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2749,7 +2749,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2784,7 +2784,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -2826,7 +2826,7 @@ describe("MathInput tag tests", async () => {
 
         // verify fixed bug where didn't reduce size of a vector
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("");
@@ -2836,7 +2836,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "(1,2,3)",
@@ -2847,7 +2847,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq("(2,3)");
     });
@@ -2863,7 +2863,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a2"].stateValues.value.tree).eqls("\uff3f");
         expect(stateVariables["/b2"].stateValues.value.tree).eqls("\uff3f");
@@ -2879,7 +2879,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "apply",
@@ -2913,7 +2913,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "apply",
@@ -2947,7 +2947,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -2981,7 +2981,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -3024,7 +3024,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("\\sin(2x)");
@@ -3171,7 +3171,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3199,7 +3199,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3240,7 +3240,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "2.047529345e^{0.000007301304831y}",
@@ -3373,7 +3373,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3447,7 +3447,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3521,7 +3521,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "2.047529345e^{0.000007301304831y}",
@@ -3602,7 +3602,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "6.05e^{0.0000073y}",
@@ -3694,7 +3694,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3790,7 +3790,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3811,7 +3811,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3840,7 +3840,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "2.047529345e^{0.000007301304831y}",
@@ -3927,7 +3927,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -3975,7 +3975,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -4023,7 +4023,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "2.047529345e^{0.000007301304831y}",
@@ -4078,7 +4078,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/b"].stateValues.latex)).eq(
             "6.04752934e^{0.0000073y}",
@@ -4154,7 +4154,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("\\sin(2x)");
@@ -4350,7 +4350,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("\\sin(4.7295\\cdot10^{-16}x)");
@@ -4546,7 +4546,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -4749,7 +4749,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("123.4567891");
@@ -4771,7 +4771,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("98765.43219");
@@ -4801,7 +4801,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
         ).eq("123.4567891");
@@ -4823,7 +4823,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -4852,7 +4852,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(3);
         expect(stateVariables["/a"].stateValues.valueForDisplay.tree).eq(3);
         expect(stateVariables["/p"].stateValues.xs[0].tree).eq(3);
@@ -4872,7 +4872,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eq(2.4295639461593);
         expect(stateVariables["/a"].stateValues.valueForDisplay.tree).eq(
@@ -4896,7 +4896,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(7.936497798143);
         expect(stateVariables["/a"].stateValues.valueForDisplay.tree).eq(
             7.9365,
@@ -4925,7 +4925,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(3);
         expect(stateVariables["/a"].stateValues.valueForDisplay.tree).eq(3);
         expect(stateVariables["/p"].stateValues.xs[0].tree).eq(3);
@@ -4945,7 +4945,7 @@ describe("MathInput tag tests", async () => {
             name: "/b2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eq(2.4295639461593);
         expect(stateVariables["/a"].stateValues.valueForDisplay.tree).eq(
@@ -4969,7 +4969,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eq(7.936497798143);
         expect(stateVariables["/a"].stateValues.valueForDisplay.tree).eq(
@@ -4994,7 +4994,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a2"].stateValues.value.tree).eq("\uff3f");
 
@@ -5004,7 +5004,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5026,7 +5026,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5061,7 +5061,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5091,7 +5091,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5121,7 +5121,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5151,7 +5151,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5181,7 +5181,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5211,7 +5211,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5241,7 +5241,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5275,7 +5275,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5309,7 +5309,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5331,7 +5331,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5349,7 +5349,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5367,7 +5367,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/a"].stateValues.rawRendererValue),
@@ -5397,7 +5397,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/a2"].stateValues.value.tree)).eq(
             "\uff3f",
@@ -5408,7 +5408,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5427,7 +5427,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls(["^", 3, 25]);
         expect(stateVariables["/a2"].stateValues.value.tree).eqls(["^", 3, 25]);
@@ -5438,7 +5438,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "^",
@@ -5461,7 +5461,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5484,7 +5484,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "^",
@@ -5507,7 +5507,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5530,7 +5530,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5553,7 +5553,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5581,7 +5581,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a2"].stateValues.value.tree).eqls("\uff3f");
 
         await updateMathInputValue({
@@ -5589,7 +5589,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5612,7 +5612,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls(["_", 3, 25]);
         expect(stateVariables["/a2"].stateValues.value.tree).eqls(["_", 3, 25]);
@@ -5623,7 +5623,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "_",
@@ -5646,7 +5646,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5669,7 +5669,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "_",
@@ -5692,7 +5692,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5715,7 +5715,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5738,7 +5738,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/a"].stateValues.value.tree).eqls([
             "*",
@@ -5778,7 +5778,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("1");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq(1);
@@ -5795,7 +5795,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("-7");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq(-7);
@@ -5811,7 +5811,7 @@ describe("MathInput tag tests", async () => {
 
         await movePoint({ name: "/A", x: 3.9, y: -8.4, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("4");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq(4);
@@ -5826,7 +5826,7 @@ describe("MathInput tag tests", async () => {
         // move point B
 
         await movePoint({ name: "/B", x: 5.1, y: 1.3, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eq("5");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq(5);
@@ -5849,7 +5849,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/x"].stateValues.value.tree).eq("x");
 
@@ -5858,7 +5858,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq("y");
         expect(stateVariables["/x"].stateValues.value.tree).eq("x");
@@ -5873,7 +5873,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq("x");
         expect(stateVariables["/x"].stateValues.value.tree).eq("x");
@@ -5882,7 +5882,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eq("x");
         expect(stateVariables["/x"].stateValues.value.tree).eqls(["*", 2, "x"]);
@@ -5897,7 +5897,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eq("y");
         expect(stateVariables["/x"].stateValues.value.tree).eqls(["*", 2, "x"]);
@@ -5907,7 +5907,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls([
             "+",
@@ -5920,7 +5920,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "+",
@@ -5945,7 +5945,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mns"].stateValues.value.tree).eq("\uff3f");
 
@@ -5959,7 +5959,7 @@ describe("MathInput tag tests", async () => {
             name: "/mis",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mins"].stateValues.value.tree).eqls("xy");
         expect(stateVariables["/mis"].stateValues.value.tree).eqls([
@@ -5984,7 +5984,7 @@ describe("MathInput tag tests", async () => {
             name: "/mis",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mins"].stateValues.value.tree).eqls("xy0");
         expect(stateVariables["/mis"].stateValues.value.tree).eqls("xy0");
@@ -6001,7 +6001,7 @@ describe("MathInput tag tests", async () => {
             name: "/mis",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mins"].stateValues.value.tree).eqls([
             "_",
@@ -6034,7 +6034,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eq("\uff3f");
 
         // use periods, no commas
@@ -6044,7 +6044,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
             ["ldots"],
@@ -6069,7 +6069,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6095,7 +6095,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6121,7 +6121,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6147,7 +6147,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6173,7 +6173,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6199,7 +6199,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6225,7 +6225,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "list",
@@ -6257,7 +6257,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/varWithNum"].stateValues.value.tree).eq("x2");
         expect(stateVariables["/varWithNum2"].stateValues.value.tree).eq("x2");
         expect(stateVariables["/varWithNum3"].stateValues.value.tree).eq("x2");
@@ -6275,7 +6275,7 @@ describe("MathInput tag tests", async () => {
             name: "/noSplit2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/varWithNum"].stateValues.value.tree).eq("xu9j");
         expect(stateVariables["/varWithNum2"].stateValues.value.tree).eq(
@@ -6318,7 +6318,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/union1"].stateValues.value.tree).eqls([
             "union",
             "A",
@@ -6421,7 +6421,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/splits1"].stateValues.value.tree).eqls("xy");
         expect(stateVariables["/splits2"].stateValues.value.tree).eqls("xy");
         expect(stateVariables["/splits3"].stateValues.value.tree).eqls([
@@ -6511,7 +6511,7 @@ describe("MathInput tag tests", async () => {
             name: "/splits8",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/splits1"].stateValues.value.tree).eqls([
             "*",
@@ -6601,7 +6601,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
@@ -6790,7 +6790,7 @@ describe("MathInput tag tests", async () => {
             name: "/hFunction8",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
@@ -6961,7 +6961,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/input1"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/input1"].stateValues.immediateValue.tree).eq(
             "\uff3f",
@@ -7015,7 +7015,7 @@ describe("MathInput tag tests", async () => {
             name: "/input1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/iv1"].stateValues.latex)).eq(
             "\\frac{a}{b}\\int_{a}^{b}f(x)dx",
@@ -7035,7 +7035,7 @@ describe("MathInput tag tests", async () => {
             name: "/input2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/iv2"].stateValues.latex)).eq(
             "helloab",
@@ -7073,7 +7073,7 @@ describe("MathInput tag tests", async () => {
             name: "/input3",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/iv3"].stateValues.latex)).eq(
             "\uff3f",
@@ -7095,7 +7095,7 @@ describe("MathInput tag tests", async () => {
             name: "/input3",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(cleanLatex(stateVariables["/iv3"].stateValues.latex)).eq("ab");
         expect(stateVariables["/pr3"].stateValues.text).eq("Raw value: (a)(b)");
@@ -7124,7 +7124,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eq("\uff3f");
 
         // equalities with or
@@ -7134,7 +7134,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "or",
@@ -7153,7 +7153,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "and",
@@ -7172,7 +7172,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "*",
@@ -7203,7 +7203,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "or",
@@ -7227,7 +7227,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eq("\uff3f");
 
         // A U C without unionFromU
@@ -7237,7 +7237,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "*",
@@ -7264,7 +7264,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "union",
@@ -7284,7 +7284,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "*",
@@ -7306,7 +7306,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "union",
@@ -7332,7 +7332,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/coords"].stateValues.rawRendererValue),
         ).eq("(1,2)");
@@ -7342,7 +7342,7 @@ describe("MathInput tag tests", async () => {
             name: "/x1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/coords"].stateValues.rawRendererValue),
@@ -7353,7 +7353,7 @@ describe("MathInput tag tests", async () => {
             name: "/x2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/coords"].stateValues.rawRendererValue),
@@ -7372,7 +7372,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/coords"].stateValues.rawRendererValue),
         ).eq("(1,2)");
@@ -7382,7 +7382,7 @@ describe("MathInput tag tests", async () => {
             name: "/x1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/coords"].stateValues.rawRendererValue),
@@ -7393,7 +7393,7 @@ describe("MathInput tag tests", async () => {
             name: "/x2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/coords"].stateValues.rawRendererValue),
@@ -7410,7 +7410,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pf"].stateValues.value.tree).eqls([
             "tuple",
             1,
@@ -7444,7 +7444,7 @@ describe("MathInput tag tests", async () => {
             name: "/mipf",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pf"].stateValues.value.tree).eqls([
             "tuple",
@@ -7479,7 +7479,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pf"].stateValues.value.tree).eqls([
             "tuple",
@@ -7514,7 +7514,7 @@ describe("MathInput tag tests", async () => {
             name: "/mipf",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/pf"].stateValues.value.tree).eqls([
             "tuple",
@@ -7552,7 +7552,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls("");
@@ -7566,7 +7566,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -7580,7 +7580,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -7595,7 +7595,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls("pi");
@@ -7611,7 +7611,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(Math.PI);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7635,7 +7635,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(Math.PI);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7652,7 +7652,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(NaN);
@@ -7667,7 +7667,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(["/", 2, 3]);
@@ -7685,7 +7685,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(2 / 3);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7713,7 +7713,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls("NaN");
@@ -7727,7 +7727,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -7741,7 +7741,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -7756,7 +7756,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls("pi");
@@ -7772,7 +7772,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(Math.PI);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7796,7 +7796,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(Math.PI);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7813,7 +7813,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(NaN);
@@ -7828,7 +7828,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(["/", 2, 3]);
@@ -7846,7 +7846,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(2 / 3);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7874,7 +7874,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(0);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(0);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls("0");
@@ -7888,7 +7888,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(0);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -7902,7 +7902,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -7917,7 +7917,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls("pi");
@@ -7933,7 +7933,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(Math.PI);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7957,7 +7957,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(Math.PI);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -7974,7 +7974,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(0);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(0);
@@ -7989,7 +7989,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(0);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(["/", 2, 3]);
@@ -8007,7 +8007,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(2 / 3);
         expect(stateVariables["/mv"].stateValues.valueForDisplay.tree).eqls(
@@ -8037,7 +8037,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls("");
@@ -8051,7 +8051,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -8065,7 +8065,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(5);
@@ -8080,7 +8080,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(5);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls("pi");
@@ -8096,7 +8096,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(3);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(3);
@@ -8110,7 +8110,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(3);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls("x");
@@ -8124,7 +8124,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(NaN);
@@ -8139,7 +8139,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(NaN);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(["/", 2, 3]);
@@ -8157,7 +8157,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mv"].stateValues.value.tree).eqls(1);
         expect(stateVariables["/miv"].stateValues.value.tree).eqls(1);
@@ -8174,7 +8174,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mi"].stateValues.value.tree).eqls("\uff3f");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls(
             "\uff3f",
@@ -8188,7 +8188,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls("a");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls("a");
@@ -8202,7 +8202,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "^",
@@ -8226,7 +8226,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "^",
@@ -8250,7 +8250,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "^",
@@ -8274,7 +8274,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "+",
@@ -8298,7 +8298,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "+",
@@ -8324,7 +8324,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mi"].stateValues.value.tree).eqls("\uff3f");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls(
             "\uff3f",
@@ -8338,7 +8338,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls("a");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls("a");
@@ -8352,7 +8352,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls("\uff3f");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls(
@@ -8368,7 +8368,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls("\uff3f");
         expect(stateVariables["/mi"].stateValues.immediateValue.tree).eqls(
@@ -8384,7 +8384,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "+",
@@ -8409,7 +8409,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
         ).eq("5E+1");
@@ -8434,7 +8434,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi1"].stateValues.rawRendererValue),
@@ -8457,7 +8457,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(stateVariables["/mi2"].stateValues.rawRendererValue),
@@ -8483,7 +8483,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi1"].stateValues.value.tree).eqls("\uff3f");
         expect(stateVariables["/mi2"].stateValues.value.tree).eqls("\uff3f");
@@ -8504,7 +8504,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi3",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(12345);
         expect(stateVariables["/mi2"].stateValues.value.tree).eqls([
@@ -8529,7 +8529,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi3",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi1"].stateValues.value.tree).eqls([
             "unit",
@@ -8554,7 +8554,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi3",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi1"].stateValues.value.tree).eqls([
             "unit",
@@ -8579,7 +8579,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi3",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi1"].stateValues.value.tree).eqls([
             "unit",
@@ -8604,7 +8604,7 @@ describe("MathInput tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eqls("x");
 
         await updateMathInputValue({
@@ -8612,7 +8612,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/mi"].stateValues.value.tree).eqls([
             "apply",
@@ -8661,7 +8661,10 @@ describe("MathInput tag tests", async () => {
                 mi4ivchanged: boolean,
             ],
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/mi1"].stateValues.value.tree).eq(mi1);
             expect(stateVariables["/mi2"].stateValues.value.tree).eq(mi2);
             expect(stateVariables["/mi3"].stateValues.value.tree).eq(mi3);
@@ -8961,7 +8964,7 @@ describe("MathInput tag tests", async () => {
      `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/mi1"].stateValues.label).eq("Type something");
         expect(stateVariables["/mi2"].stateValues.label).eq(
             "Hello \\(\\frac{a}{b}\\)",
@@ -8985,7 +8988,7 @@ describe("MathInput tag tests", async () => {
      `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.immediateValue.tree).eq(1);
@@ -9004,7 +9007,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9026,7 +9029,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9047,7 +9050,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9067,7 +9070,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9088,7 +9091,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9110,7 +9113,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9131,7 +9134,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9151,7 +9154,7 @@ describe("MathInput tag tests", async () => {
             name: "/mi2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/m"].stateValues.value.tree).eq(1);
         expect(stateVariables["/mi1"].stateValues.value.tree).eq(1);
@@ -9180,7 +9183,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(1);
         expect(stateVariables["/y"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(1);
@@ -9189,7 +9192,7 @@ describe("MathInput tag tests", async () => {
         // Enter -3 for x
         await updateMathInputValue({ latex: "-3", name: "/x", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-3);
         expect(stateVariables["/y"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
@@ -9198,7 +9201,7 @@ describe("MathInput tag tests", async () => {
         // Enter -4 for y
         await updateMathInputValue({ latex: "-4", name: "/y", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-3);
         expect(stateVariables["/y"].stateValues.value.tree).eq(-4);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
@@ -9207,7 +9210,7 @@ describe("MathInput tag tests", async () => {
         // move point to (5,-6)
         await movePoint({ name: "/P", x: 5, y: -6, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(5);
         expect(stateVariables["/y"].stateValues.value.tree).eq(-6);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(5);
@@ -9229,7 +9232,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(3);
         expect(stateVariables["/y"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(9);
@@ -9242,7 +9245,7 @@ describe("MathInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-1.2);
         expect(stateVariables["/y"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(1.44);
@@ -9251,7 +9254,7 @@ describe("MathInput tag tests", async () => {
         // try to move point to (5,6), only y changes
         await movePoint({ name: "/P", x: 5, y: 6, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.value.tree).eq(-1.2);
         expect(stateVariables["/y"].stateValues.value.tree).eq(6);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(1.44);
@@ -9274,7 +9277,7 @@ describe("MathInput tag tests", async () => {
    `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(-3);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-6);
@@ -9286,7 +9289,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
@@ -9294,7 +9297,7 @@ describe("MathInput tag tests", async () => {
 
         // try to move point to (5,6), only y changes
         await movePoint({ name: "/P", x: 5, y: 6, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
@@ -9317,7 +9320,7 @@ describe("MathInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(-3);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-6);
@@ -9329,7 +9332,7 @@ describe("MathInput tag tests", async () => {
             name: "/a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eq(-1.5);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(-3);
@@ -9337,7 +9340,7 @@ describe("MathInput tag tests", async () => {
 
         // try to move point to (5,6)
         await movePoint({ name: "/P", x: 5, y: 6, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.value.tree).eqls(["/", 5, 2]);
         expect(stateVariables["/b"].stateValues.value.tree).eq(2);
         expect(stateVariables["/P"].stateValues.xs[0].tree).eq(5);
@@ -9375,7 +9378,10 @@ describe("MathInput tag tests", async () => {
         });
 
         async function check_items(math: any, ind: number) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let mathTree = math.tree;
 
             let numDimensions = ["vector", "list"].includes(mathTree[0])

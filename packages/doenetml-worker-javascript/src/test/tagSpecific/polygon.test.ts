@@ -28,7 +28,7 @@ async function testPolygonCopiedTwice({
     graph2Name?: string;
     graph3Name?: string;
 }) {
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[graph1Name + polygonName].stateValues.numVertices,
     ).eqls(vertices.length);
@@ -559,7 +559,7 @@ describe("Polygon tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let ps = [
             [-3, -1],
             [1, 2],
@@ -599,7 +599,7 @@ describe("Polygon tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 4; i++) {
             expect(stateVariables[`/v${i + 1}`].stateValues.xs[0].tree).eq(
                 ps[i][0],
@@ -632,7 +632,7 @@ describe("Polygon tag tests", async () => {
             });
         }
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 0; i < 4; i++) {
             expect(stateVariables[`/v${i + 1}`].stateValues.xs[0].tree).eq(
                 ps[i][0],
@@ -740,7 +740,10 @@ describe("Polygon tag tests", async () => {
         async function testPolygons({ vertices, transX, transY }) {
             let vertices2 = vertices.map((v) => [v[0] + transX, v[1] + transY]);
 
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/_polygon1"].stateValues.numVertices).eqls(
                 vertices.length,
             );
@@ -875,7 +878,7 @@ describe("Polygon tag tests", async () => {
         let C = [-5, 6];
         let D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/parallelogram"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -907,7 +910,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/parallelogram"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -938,7 +941,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/parallelogram"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -970,7 +973,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/parallelogram"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1002,7 +1005,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/parallelogram"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1042,7 +1045,10 @@ describe("Polygon tag tests", async () => {
             vertices2[1] = [vertices2[1][1], vertices2[1][0]];
             vertices2[3] = [vertices2[3][1], vertices2[3][0]];
 
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/_polygon1"].stateValues.numVertices).eqls(
                 vertices.length,
             );
@@ -1161,7 +1167,7 @@ describe("Polygon tag tests", async () => {
         let C = [-5, 6];
         let D = [C[0] + B[0] - A[0], C[1] + B[1] - A[1]];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1189,7 +1195,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1217,7 +1223,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1245,7 +1251,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1273,7 +1279,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 3: D }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1309,7 +1315,7 @@ describe("Polygon tag tests", async () => {
         let B = [3, 4];
         let C = [-5, 6];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_polygon1"].stateValues.numVertices).eq(4);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
@@ -1337,7 +1343,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1364,7 +1370,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1391,7 +1397,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1417,7 +1423,7 @@ describe("Polygon tag tests", async () => {
         A = [7, 0];
         await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1454,7 +1460,7 @@ describe("Polygon tag tests", async () => {
         let B = [3, 4];
         let C = [-5, 6];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_polygon1"].stateValues.numVertices).eq(4);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
@@ -1482,7 +1488,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1509,7 +1515,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1536,7 +1542,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1563,7 +1569,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1603,7 +1609,7 @@ describe("Polygon tag tests", async () => {
         let C = [-5, 6];
         let D = [A[0] + 1, 2];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1636,7 +1642,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 0: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1668,7 +1674,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 1: B }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1700,7 +1706,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 2: C }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1733,7 +1739,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 3: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1766,7 +1772,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/_polygon1", pointCoords: { 4: D }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/_polygon1"].stateValues.vertices[0].map(
                 (x) => x.tree,
@@ -1812,7 +1818,7 @@ describe("Polygon tag tests", async () => {
         let F = [3, 1];
         let G = [5, 0];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -1849,7 +1855,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 0: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -1886,7 +1892,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 1: B }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -1923,7 +1929,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 2: C }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -1960,7 +1966,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 3: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -1997,7 +2003,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 4: D }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -2034,7 +2040,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 5: E }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -2071,7 +2077,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 6: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -2108,7 +2114,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 7: F }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -2145,7 +2151,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 8: G }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -2182,7 +2188,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 9: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A);
@@ -2238,7 +2244,7 @@ describe("Polygon tag tests", async () => {
         let A2 = [A[0] + 2, A[1] + 2];
         let A3 = [A[0] + 3, A[1] + 3];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2278,7 +2284,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 0: A3 }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2315,7 +2321,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 1: B }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2352,7 +2358,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 2: C }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2392,7 +2398,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 3: A2 }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2429,7 +2435,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 4: D }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2466,7 +2472,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 5: E }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2506,7 +2512,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 6: A1 }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2543,7 +2549,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 7: F }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2580,7 +2586,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 8: G }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2620,7 +2626,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/P", pointCoords: { 9: A }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/P"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls(A3);
@@ -2676,7 +2682,7 @@ describe("Polygon tag tests", async () => {
 
         // point originally not attracted
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
             "vector",
             7,
@@ -2690,7 +2696,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let px = stateVariables["/_point1"].stateValues.xs[0].tree;
         let py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -2704,7 +2710,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2717,7 +2723,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2729,7 +2735,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2743,7 +2749,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2756,7 +2762,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2769,7 +2775,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2783,7 +2789,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2796,7 +2802,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2824,7 +2830,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2845,7 +2851,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -2878,7 +2884,7 @@ describe("Polygon tag tests", async () => {
 
         // point originally constrained
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
             "vector",
             x1,
@@ -2892,7 +2898,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let px = stateVariables["/_point1"].stateValues.xs[0].tree;
         let py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -2906,7 +2912,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2920,7 +2926,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
         expect(py).closeTo(mseg3 * (px - x3) + y3, 1e-6);
@@ -2932,7 +2938,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2947,7 +2953,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2959,7 +2965,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2973,7 +2979,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -2988,7 +2994,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3001,7 +3007,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3030,7 +3036,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3052,7 +3058,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -3087,7 +3093,7 @@ describe("Polygon tag tests", async () => {
 
         // point originally on segment 3
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let mseg3 = (y4 - y3) / (x4 - x3);
 
@@ -3102,7 +3108,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/A`, x: -20, y: 0.02, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/A"].stateValues.xs[0].tree;
         py = stateVariables["/A"].stateValues.xs[1].tree;
 
@@ -3114,7 +3120,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/A`, x: 0, y: 0.04, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/A"].stateValues.xs[0].tree;
         py = stateVariables["/A"].stateValues.xs[1].tree;
 
@@ -3126,7 +3132,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/A`, x: -10, y: 0.02, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/A"].stateValues.xs[0].tree;
         py = stateVariables["/A"].stateValues.xs[1].tree;
 
@@ -3154,7 +3160,7 @@ describe("Polygon tag tests", async () => {
             y2 = -1,
             y3 = 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_point1"].stateValues.coords.tree).eqls([
             "vector",
             x1,
@@ -3169,7 +3175,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let px = stateVariables["/_point1"].stateValues.xs[0].tree;
         let py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -3183,7 +3189,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3198,7 +3204,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3211,7 +3217,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3226,7 +3232,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3239,7 +3245,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3253,7 +3259,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3268,7 +3274,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3284,7 +3290,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/_point1`, x, y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3317,7 +3323,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
 
@@ -3339,7 +3345,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -3359,7 +3365,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         px = stateVariables["/_point1"].stateValues.xs[0].tree;
         py = stateVariables["/_point1"].stateValues.xs[1].tree;
@@ -3385,7 +3391,7 @@ describe("Polygon tag tests", async () => {
 
         // point originally in interior
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let px = stateVariables["/P"].stateValues.xs[0].tree;
         let py = stateVariables["/P"].stateValues.xs[1].tree;
         expect(px).closeTo(7, 1e-12);
@@ -3395,7 +3401,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/P`, x: 3, y: 10, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
@@ -3406,7 +3412,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/P`, x: 3, y: 5, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
         expect(px).closeTo(3, 1e-12);
@@ -3416,7 +3422,7 @@ describe("Polygon tag tests", async () => {
 
         await movePoint({ name: `/P`, x: 4.9, y: 3, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         px = stateVariables["/P"].stateValues.xs[0].tree;
         py = stateVariables["/P"].stateValues.xs[1].tree;
         expect(px).closeTo(4, 1e-12);
@@ -3432,7 +3438,7 @@ describe("Polygon tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
@@ -3456,7 +3462,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
@@ -3493,7 +3499,7 @@ describe("Polygon tag tests", async () => {
         let t3x = -3,
             t3y = 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"]).eq(undefined);
         expect(stateVariables["/P2"]).eq(undefined);
@@ -3502,7 +3508,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             t1x,
@@ -3514,7 +3520,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
 
         await updateMathInputValue({ latex: "2", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             t2x,
@@ -3526,7 +3532,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
 
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"].stateValues.xs.map((x) => x.tree)).eqls([
             t3x,
@@ -3538,7 +3544,7 @@ describe("Polygon tag tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P1"]).eq(undefined);
         expect(stateVariables["/P2"]).eq(undefined);
@@ -3560,7 +3566,7 @@ describe("Polygon tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3577,7 +3583,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3594,7 +3600,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3611,7 +3617,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3639,7 +3645,7 @@ describe("Polygon tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3656,7 +3662,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3673,7 +3679,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3690,7 +3696,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/polygon"].stateValues.vertices.map((x) =>
                 x.map((y) => y.tree),
@@ -3759,7 +3765,7 @@ describe("Polygon tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/st1"].stateValues.text).eq("blue");
         expect(stateVariables["/stn1"].stateValues.text).eq("blue polygon");
@@ -3831,7 +3837,7 @@ describe("Polygon tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
@@ -3848,7 +3854,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords: { 0: [4, 7] }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
@@ -3873,7 +3879,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([1, 3]);
@@ -3898,7 +3904,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords: { 0: [4, 7] }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
@@ -3923,7 +3929,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
@@ -3948,7 +3954,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords: { 1: [-3, 2] }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([4, 7]);
@@ -3973,7 +3979,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([3, 8]);
@@ -3998,7 +4004,7 @@ describe("Polygon tag tests", async () => {
 
         await movePolygon({ name: "/p", pointCoords: { 2: [9, 3] }, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([3, 8]);
@@ -4023,7 +4029,7 @@ describe("Polygon tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((x) => x.tree),
         ).eqls([-4, 1]);
@@ -4379,7 +4385,7 @@ describe("Polygon tag tests", async () => {
         });
 
         // document is created
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pl"]).not.eq(undefined);
     });
 
@@ -4397,7 +4403,7 @@ describe("Polygon tag tests", async () => {
         let area = 5 * 2 + 1 + (8 * 5) / 2;
         let perimeter = 5 + 2 * Math.sqrt(2) + Math.sqrt(25 + 64) + 10;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
@@ -4407,7 +4413,7 @@ describe("Polygon tag tests", async () => {
         area = 2 * 8 + (4 * 8) / 2 - (5 * 8) / 2;
         perimeter = 13 + 6 + Math.sqrt(16 + 64) + 10 + Math.sqrt(25 + 64);
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
@@ -4416,7 +4422,7 @@ describe("Polygon tag tests", async () => {
         area = 0;
         perimeter = 16 + 6 + Math.sqrt(16 + 64) + 10 + Math.sqrt(64 + 64);
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
@@ -4425,7 +4431,7 @@ describe("Polygon tag tests", async () => {
         area = (8 * 8) / 2 - (8 * 6) / 2;
         perimeter = 16 + 6 + Math.sqrt(36 + 64) + 8 + Math.sqrt(64 + 64);
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
     });
@@ -5927,7 +5933,10 @@ describe("Polygon tag tests", async () => {
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Polygon A is filled ${AColor} with thick border.`,

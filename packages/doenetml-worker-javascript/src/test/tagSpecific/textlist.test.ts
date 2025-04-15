@@ -21,7 +21,7 @@ describe("TextList tag tests", async () => {
         text?: string;
         texts?: string[];
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -586,7 +586,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -599,7 +599,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("cat, dog, monkey");
         expect(stateVariables["/p2"].stateValues.text).eq("cat, dog, monkey");
@@ -619,7 +619,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m"].stateValues.value.tree).eqls([
             "list",
             1,
@@ -639,7 +639,7 @@ describe("TextList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pText"].stateValues.text).eq(
             "Text: apple, banana",
         );

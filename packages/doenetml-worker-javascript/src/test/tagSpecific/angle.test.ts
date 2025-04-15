@@ -33,7 +33,10 @@ describe("Angle tag tests", async () => {
         });
 
         async function check_items(angle: number, ps: number[][]) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/angle1"].stateValues.radians.tree).closeTo(
                 angle,
@@ -103,7 +106,10 @@ describe("Angle tag tests", async () => {
         });
 
         async function check_items(angle: number) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/angle1"].stateValues.radians.tree).closeTo(
                 angle,
@@ -219,7 +225,10 @@ describe("Angle tag tests", async () => {
         });
 
         async function check_items(angle: number | string) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (typeof angle === "number") {
                 expect(
@@ -269,7 +278,10 @@ describe("Angle tag tests", async () => {
         });
 
         async function check_items(angle: number, radius: number | string) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/angle1"].stateValues.radians.tree).closeTo(
                 angle,
@@ -315,7 +327,10 @@ describe("Angle tag tests", async () => {
         });
 
         async function check_items(angle: number | string) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (typeof angle === "number") {
                 expect(
@@ -376,7 +391,7 @@ describe("Angle tag tests", async () => {
         core: PublicDoenetMLCore,
         numerical: boolean = false,
     ) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/angle1"].stateValues.radians.tree).eqls(
             numerical ? Math.PI / 2 : ["/", "pi", 2],
         );
@@ -467,7 +482,7 @@ describe("Angle tag tests", async () => {
     });
 
     async function check_alphaangle(core: PublicDoenetMLCore) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/angle1"].stateValues.radians.tree).eq("alpha");
         expect(stateVariables["/angle1"].stateValues.degrees.tree).eqls([
             "/",
@@ -536,7 +551,7 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/angle1"].stateValues.radians.tree).eqls([
             "/",
             ["*", "alpha", "pi"],
@@ -614,21 +629,21 @@ describe("Angle tag tests", async () => {
 
         // should now be > pi if no modifications
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("never");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points, -1),
         );
 
         await updateTextInputValue({ text: "allowed", name: "/ra", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("allowed");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points),
         );
 
         await updateTextInputValue({ text: "always", name: "/ra", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("always");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points),
@@ -639,21 +654,21 @@ describe("Angle tag tests", async () => {
         points[0] = [1, -3];
         // should now be < pi if no modifications
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("always");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points, 1),
         );
 
         await updateTextInputValue({ text: "never", name: "/ra", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("never");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points),
         );
 
         await updateTextInputValue({ text: "allowed", name: "/ra", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("allowed");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points),
@@ -664,21 +679,21 @@ describe("Angle tag tests", async () => {
         points[2] = [-1, -5];
         // should now be > pi if no modifications
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("allowed");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points),
         );
 
         await updateTextInputValue({ text: "never", name: "/ra", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("never");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points, -1),
         );
 
         await updateTextInputValue({ text: "always", name: "/ra", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ra2"].stateValues.value).eq("always");
         expect(stateVariables["/alpha1"].stateValues.radians.tree).eq(
             angleFromPs(points),
@@ -709,7 +724,10 @@ describe("Angle tag tests", async () => {
             x2: number,
             y2: number,
         ) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let radiansNumber: number;
             if (typeof radians === "number") {
                 radiansNumber = radians;
@@ -944,7 +962,10 @@ describe("Angle tag tests", async () => {
             point: number[],
             slope: number,
         ) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let radiansNumber: number;
             if (typeof radians === "number") {
                 radiansNumber = radians;
@@ -1120,7 +1141,7 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.label).eq("\\(\\alpha^2\\)");
         expect(stateVariables["/b"].stateValues.label).eq(
             "This is \\(\\frac{m}{2}\\)",
@@ -1148,7 +1169,7 @@ describe("Angle tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.latexForRenderer).eq("1.39");
 
         expect(stateVariables["/aDig5a"].stateValues.latexForRenderer).eq(
@@ -1209,7 +1230,7 @@ describe("Angle tag tests", async () => {
 
         // TODO: How to check renderer itself?
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/emphasize"].stateValues.text).eq(
             "Emphasize right angle: true, false, false",
@@ -1221,7 +1242,7 @@ describe("Angle tag tests", async () => {
         await updateBooleanInputValue({ boolean: false, name: "/bi1", core });
         await updateBooleanInputValue({ boolean: true, name: "/bi2", core });
         await updateBooleanInputValue({ boolean: true, name: "/bi3", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/emphasize"].stateValues.text).eq(
             "Emphasize right angle: false, true, true",

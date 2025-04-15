@@ -31,7 +31,7 @@ describe("Group tag tests", async () => {
         let animalSentence = "The animal is a " + animal + ".";
         let plantSentence = "The plant is a " + plant + ".";
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/animalp"].stateValues.text).eq(animalSentence);
         expect(stateVariables["/plantp"].stateValues.text).eq(plantSentence);
         expect(stateVariables["/animalp2"].stateValues.text).eq(animalSentence);
@@ -59,7 +59,7 @@ describe("Group tag tests", async () => {
         let animalSentence2 = "The animal is a " + animal2 + ".";
         let plantSentence2 = "The plant is a " + plant2 + ".";
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/animalp"].stateValues.text).eq(animalSentence2);
         expect(stateVariables["/plantp"].stateValues.text).eq(plantSentence2);
         expect(stateVariables["/animalp2"].stateValues.text).eq(
@@ -185,7 +185,10 @@ describe("Group tag tests", async () => {
                 .map((i) => (from + i * dx) ** 2)
                 .join(", ");
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let i = 1; i <= 6; i++) {
                 expect(stateVariables[`/p${i}`].stateValues.text).eq(
                     sequence_text,
@@ -287,7 +290,10 @@ describe("Group tag tests", async () => {
         async function check_items(var1: string, var2: string) {
             let text = `${var1} + ${var2}`;
             text = `${text}, ${text}`;
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             for (let i = 1; i <= 9; i++) {
                 expect(stateVariables[`/p${i}`].stateValues.text).eq(text);
             }
@@ -330,7 +336,7 @@ describe("Group tag tests", async () => {
         });
 
         // Initial values
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g"].stateValues.fixed).eq(false);
         expect(stateVariables["/g/A"].stateValues.fixed).eq(false);
         expect(stateVariables["/g/A"].stateValues.xs.map((x) => x.tree)).eqls([
@@ -354,7 +360,7 @@ describe("Group tag tests", async () => {
 
         // move first point
         await movePoint({ name: "/g/A", x: 3, y: 4, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/A"].stateValues.xs.map((x) => x.tree)).eqls([
             3, 4,
         ]);
@@ -371,7 +377,7 @@ describe("Group tag tests", async () => {
         // can't move second point as fixed
         await movePoint({ name: "/g2/A", x: 5, y: 6, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/A"].stateValues.xs.map((x) => x.tree)).eqls([
             3, 4,
         ]);
@@ -392,7 +398,7 @@ describe("Group tag tests", async () => {
         // for now, can move third point as depends on directly on xs of first point
         await movePoint({ name: "/g3/A", x: 7, y: 8, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/A"].stateValues.xs.map((x) => x.tree)).eqls([
             7, 8,
         ]);
@@ -408,7 +414,7 @@ describe("Group tag tests", async () => {
 
         // can move fourth point
         await movePoint({ name: "/g4/A", x: 9, y: 0, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/A"].stateValues.xs.map((x) => x.tree)).eqls([
             7, 8,
         ]);
@@ -441,7 +447,7 @@ describe("Group tag tests", async () => {
         });
 
         // Initial values
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g"].stateValues.disabled).eq(false);
         expect(stateVariables["/g/ti"].stateValues.disabled).eq(false);
         expect(stateVariables["/g/ti"].stateValues.value).eq("hello");
@@ -457,7 +463,7 @@ describe("Group tag tests", async () => {
 
         // type in first textInput
         await updateTextInputValue({ text: "bye", name: "/g/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/ti"].stateValues.value).eq("bye");
         expect(stateVariables["/g2/ti"].stateValues.value).eq("bye");
         expect(stateVariables["/g3/ti"].stateValues.value).eq("bye");
@@ -465,7 +471,7 @@ describe("Group tag tests", async () => {
 
         // attempting to type in second textInput doesn't work
         await updateTextInputValue({ text: "nope", name: "/g2/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/ti"].stateValues.value).eq("bye");
         expect(stateVariables["/g2/ti"].stateValues.value).eq("bye");
         expect(stateVariables["/g3/ti"].stateValues.value).eq("bye");
@@ -473,7 +479,7 @@ describe("Group tag tests", async () => {
 
         // type in third textInput
         await updateTextInputValue({ text: "this", name: "/g3/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/ti"].stateValues.value).eq("this");
         expect(stateVariables["/g2/ti"].stateValues.value).eq("this");
         expect(stateVariables["/g3/ti"].stateValues.value).eq("this");
@@ -481,7 +487,7 @@ describe("Group tag tests", async () => {
 
         // type in fourth textInput
         await updateTextInputValue({ text: "that", name: "/g4/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/ti"].stateValues.value).eq("this");
         expect(stateVariables["/g2/ti"].stateValues.value).eq("this");
         expect(stateVariables["/g3/ti"].stateValues.value).eq("this");
@@ -507,35 +513,35 @@ describe("Group tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g1/p"]).eq(undefined);
         expect(stateVariables["/g1a/p"]).eq(undefined);
         expect(stateVariables["/g2/p"].stateValues.text).eq("Bye");
         expect(stateVariables["/g2a/p"].stateValues.text).eq("Bye");
 
         await updateBooleanInputValue({ boolean: true, name: "/ren1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g1/p"].stateValues.text).eq("Hello");
         expect(stateVariables["/g1a/p"].stateValues.text).eq("Hello");
         expect(stateVariables["/g2/p"].stateValues.text).eq("Bye");
         expect(stateVariables["/g2a/p"].stateValues.text).eq("Bye");
 
         await updateBooleanInputValue({ boolean: false, name: "/ren2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g1/p"].stateValues.text).eq("Hello");
         expect(stateVariables["/g1a/p"].stateValues.text).eq("Hello");
         isUndefinedOrInactive(stateVariables["/g2/p"]);
         isUndefinedOrInactive(stateVariables["/g2a/p"]);
 
         await updateBooleanInputValue({ boolean: false, name: "/ren1", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         isUndefinedOrInactive(stateVariables["/g1/p"]);
         isUndefinedOrInactive(stateVariables["/g1a/p"]);
         isUndefinedOrInactive(stateVariables["/g2/p"]);
         isUndefinedOrInactive(stateVariables["/g2a/p"]);
 
         await updateBooleanInputValue({ boolean: true, name: "/ren2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         isUndefinedOrInactive(stateVariables["/g1/p"]);
         isUndefinedOrInactive(stateVariables["/g1a/p"]);
         expect(stateVariables["/g2/p"].stateValues.text).eq("Bye");

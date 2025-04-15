@@ -20,7 +20,7 @@ describe("ChoiceInput tag tests", async () => {
         shuffleOrder: boolean,
     ) {
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
             stateVariables["/ci"].stateValues.choiceTexts;
 
@@ -36,7 +36,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndex?: number,
             selectedValue?: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected value: ${selectedValue ?? ""}`,
@@ -222,7 +225,7 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["a", "b", "c", "d", "e", "f"];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
             stateVariables["/ci1"].stateValues.choiceTexts,
             stateVariables["/ci2"].stateValues.choiceTexts,
@@ -249,7 +252,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndex?: number,
             selectedValue?: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValue ? Array(4).fill(selectedValue).join(", ") : ""}`,
@@ -318,7 +324,7 @@ describe("ChoiceInput tag tests", async () => {
             "Can't convert this latex: \\bar{x}^i.",
         ];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
             stateVariables["/ci1"].stateValues.choiceTexts,
             stateVariables["/ci2"].stateValues.choiceTexts,
@@ -336,7 +342,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndex?: number,
             selectedValue?: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
@@ -401,7 +410,7 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["caT", "  dog ", "Monkey"];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
             stateVariables["/ci1"].stateValues.choiceTexts,
             stateVariables["/ci2"].stateValues.choiceTexts,
@@ -420,7 +429,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedValue: string | null,
             inputText: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
@@ -561,7 +573,7 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["caT", "  dog ", "Monkey"];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
             stateVariables["/ci1"].stateValues.choiceTexts,
             stateVariables["/ci2"].stateValues.choiceTexts,
@@ -589,7 +601,10 @@ describe("ChoiceInput tag tests", async () => {
                 ...selectedIndices,
             ].join(", ");
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValuesString}`,
@@ -776,7 +791,10 @@ describe("ChoiceInput tag tests", async () => {
                 ", ",
             );
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValuesString}`,
@@ -855,7 +873,7 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["(x²)/2", "y", "∂f/∂x", "3", "1/(e^x)"];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
             stateVariables["/ci1"].stateValues.choiceTexts,
             stateVariables["/ci2"].stateValues.choiceTexts,
@@ -874,7 +892,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedValue: string | null,
             inputMath: any,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
@@ -1058,7 +1079,7 @@ describe("ChoiceInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c1"].stateValues.selectedIndices).eqls([2]);
         expect(stateVariables["/c2"].stateValues.selectedIndices).eqls([2]);
         expect(stateVariables["/c3"].stateValues.selectedValues).eqls([
@@ -1103,7 +1124,7 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci"].stateValues.choiceTexts).eqls(
             originalChoices,
         );
@@ -1112,7 +1133,10 @@ describe("ChoiceInput tag tests", async () => {
             let selectedValue = selectedIndex
                 ? originalChoices[selectedIndex - 1]
                 : undefined;
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected value: ${selectedValue ?? ""}`,
@@ -1172,14 +1196,17 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let choiceTexts = stateVariables["/ci"].stateValues.choiceTexts;
         expect([...choiceTexts].sort()).eqls([...originalChoices].sort());
         const order = choiceTexts.map((v) => originalChoices.indexOf(v));
 
         async function check_items(selectedIndices: number[]) {
             let selectedValues = selectedIndices.map((v) => choiceTexts[v - 1]);
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected values: ${selectedValues.join(", ")}`,
@@ -1240,7 +1267,7 @@ describe("ChoiceInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/t"].stateValues.value).eq("");
 
         await updateSelectedIndices({
@@ -1248,7 +1275,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [2],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/t"].stateValues.value).eq(" orange");
 
         await updateSelectedIndices({
@@ -1256,7 +1283,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [5],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/t"].stateValues.value).eq(" orange blue");
 
         await updateSelectedIndices({
@@ -1264,7 +1291,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [1],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/t"].stateValues.value).eq(" orange blue red");
     });
 
@@ -1289,7 +1316,7 @@ describe("ChoiceInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let choiceOrder = stateVariables["/g/ci"].stateValues.choiceOrder;
         let choiceOrder2 = stateVariables["/g2/ci"].stateValues.choiceOrder;
@@ -1327,7 +1354,10 @@ describe("ChoiceInput tag tests", async () => {
                 ? choicesSimp[selectedIndex - 1]
                 : "";
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected value: ${selectedValue}`,
@@ -1379,7 +1409,7 @@ describe("ChoiceInput tag tests", async () => {
         let m = 1,
             n = 6;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect([...choiceOrder].sort((a, b) => a - b)).eqls(
@@ -1395,7 +1425,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 1;
         n = 8;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect([...choiceOrder].sort((a, b) => a - b)).eqls(
@@ -1411,7 +1441,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 3;
         n = 8;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,6`]);
@@ -1425,7 +1455,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 3;
         n = 10;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,8`]);
@@ -1455,7 +1485,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 1;
         n = 6;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect(choiceOrder).not.eqls(orders[`${m},${n}`]);
@@ -1473,7 +1503,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 1;
         n = 8;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
         expect(choiceOrder).not.eqls(orders[`${m},${n}`]);
 
@@ -1490,7 +1520,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 3;
         n = 8;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,6`]);
@@ -1504,7 +1534,7 @@ describe("ChoiceInput tag tests", async () => {
         m = 3;
         n = 10;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,8`]);
@@ -1537,7 +1567,7 @@ describe("ChoiceInput tag tests", async () => {
 
         let originalChoices = ["cat", "dog", "monkey", "none of the above"];
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
             stateVariables["/ci"].stateValues.choiceTexts;
 
@@ -1547,7 +1577,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndex?: number,
             selectedValue?: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected value: ${selectedValue ?? ""}`,
@@ -1627,7 +1660,7 @@ describe("ChoiceInput tag tests", async () => {
         });
 
         let sortedChoices = ["cat", "dog", "monkey", "mouse"];
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
             stateVariables["/ci"].stateValues.choiceTexts;
 
@@ -1637,7 +1670,10 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndex?: number,
             selectedValue?: string,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv"].stateValues.text).eq(
                 `Selected value: ${selectedValue ?? ""}`,
@@ -1744,7 +1780,10 @@ describe("ChoiceInput tag tests", async () => {
                 ? choices[selectedIndex2 - 1]
                 : "";
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/psv1"].stateValues.text).eq(
                 `Selected value 1: ${selectedValue1}`,
@@ -1837,7 +1876,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1changed"].stateValues.value).eq(false);
         expect(stateVariables["/ci2changed"].stateValues.value).eq(false);
         expect(stateVariables["/ci3changed"].stateValues.value).eq(false);
@@ -1860,7 +1899,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [1],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci2changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci3changed"].stateValues.value).eq(false);
@@ -1883,7 +1922,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [2],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci2changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci3changed"].stateValues.value).eq(true);
@@ -1900,7 +1939,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1changed"].stateValues.value).eq(false);
         expect(stateVariables["/ci2changed"].stateValues.value).eq(false);
         expect(stateVariables["/ci3changed"].stateValues.value).eq(false);
@@ -1918,7 +1957,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [1],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1changed"].stateValues.value).eq(false);
         expect(stateVariables["/ci2changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci3changed"].stateValues.value).eq(false);
@@ -1936,7 +1975,7 @@ describe("ChoiceInput tag tests", async () => {
             selectedIndices: [2],
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci2changed"].stateValues.value).eq(true);
         expect(stateVariables["/ci3changed"].stateValues.value).eq(true);
@@ -1961,7 +2000,7 @@ describe("ChoiceInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1"].stateValues.label).eq("Select an option");
         expect(stateVariables["/ci1a"].stateValues.label).eq(
             "Select an option",
@@ -1975,7 +2014,7 @@ describe("ChoiceInput tag tests", async () => {
 
         // hide labels
         await updateValue({ name: "/toggleLabels", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1"].stateValues.label).eq("");
         expect(stateVariables["/ci1a"].stateValues.label).eq("");
         expect(stateVariables["/ci2"].stateValues.label).eq("");
@@ -1983,7 +2022,7 @@ describe("ChoiceInput tag tests", async () => {
 
         // show labels again
         await updateValue({ name: "/toggleLabels", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ci1"].stateValues.label).eq("Select an option");
         expect(stateVariables["/ci1a"].stateValues.label).eq(
             "Select an option",
@@ -2020,7 +2059,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // typing in wrong value doesn't do anything
@@ -2029,7 +2068,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Select value from text ci
@@ -2038,7 +2077,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected value: maybe`,
         );
@@ -2049,7 +2088,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
 
         // Invalid value into text ci.selectedValue does nothing
@@ -2058,7 +2097,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
 
         // reload
@@ -2066,7 +2105,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Can change value from one macro after starting afresh
@@ -2075,7 +2114,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: yes`);
 
         // reload
@@ -2083,7 +2122,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Can change value from other macro after starting afresh
@@ -2092,7 +2131,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
 
         // reload
@@ -2100,7 +2139,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Change value from text ci.selectedValue works after starting afresh
@@ -2109,7 +2148,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected value: maybe`,
         );
@@ -2120,7 +2159,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: yes`);
 
         await updateTextInputValue({
@@ -2128,7 +2167,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
 
         // reload
@@ -2136,7 +2175,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Change value from math ci.selectedIndices works after starting afresh
@@ -2145,7 +2184,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndices",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected value: maybe`,
         );
@@ -2156,7 +2195,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Enter valid value into from math ci.selectedIndex
@@ -2165,7 +2204,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected value: maybe`,
         );
@@ -2176,7 +2215,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndices",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
 
         // Enter value into from macro ci.selectedIndex
@@ -2185,7 +2224,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: yes`);
 
         // reload
@@ -2193,7 +2232,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Can change value from macros ci.selectedIndices after starting afresh
@@ -2202,7 +2241,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndices",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
 
         // reload
@@ -2210,7 +2249,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // Can change value from macro ci.selectedIndex after starting afresh
@@ -2219,7 +2258,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: yes`);
 
         // reload
@@ -2227,7 +2266,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: `);
 
         // can add value into from math ci.selectedIndex even after starting afresh
@@ -2236,7 +2275,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: no`);
     });
 
@@ -2264,7 +2303,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // typing in wrong value doesn't do anything
@@ -2273,7 +2312,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Select value from text ci.selectedValue
@@ -2282,7 +2321,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: maybe`,
         );
@@ -2293,7 +2332,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: no, maybe`,
         );
@@ -2304,7 +2343,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: no, maybe`,
         );
@@ -2315,7 +2354,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: no`);
 
         // Add second value from text ci.selectedValue2
@@ -2324,7 +2363,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes, no`,
         );
@@ -2335,7 +2374,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: no`);
 
         // reload
@@ -2343,7 +2382,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
@@ -2352,7 +2391,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes`,
         );
@@ -2362,7 +2401,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
@@ -2371,7 +2410,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: no`);
 
         // reload
@@ -2379,7 +2418,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Change value from text ci.selectedValue2 works after starting afresh
@@ -2388,7 +2427,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: maybe`,
         );
@@ -2399,7 +2438,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromTextSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes, maybe`,
         );
@@ -2410,7 +2449,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: no, maybe`,
         );
@@ -2420,7 +2459,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes, no`,
         );
@@ -2430,7 +2469,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Change value from math ci.selectedIndex works after starting afresh
@@ -2439,7 +2478,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: maybe`,
         );
@@ -2450,7 +2489,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: maybe`,
         );
@@ -2461,7 +2500,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes, maybe`,
         );
@@ -2472,7 +2511,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: no, maybe`,
         );
@@ -2483,7 +2522,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes, no`,
         );
@@ -2494,7 +2533,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes`,
         );
@@ -2504,7 +2543,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex after starting afresh
@@ -2513,7 +2552,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: no`);
 
         // reload
@@ -2521,7 +2560,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex2 after starting afresh
@@ -2530,7 +2569,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: yes`,
         );
@@ -2540,7 +2579,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // can add value into from math ci.selectedIndex2 even after starting afresh
@@ -2549,7 +2588,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: no`);
     });
 
@@ -2577,7 +2616,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // typing in wrong value doesn't do anything
@@ -2586,7 +2625,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Select value from math ci
@@ -2595,7 +2634,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: z`);
 
         // Change value from math ci.selectedValue
@@ -2604,7 +2643,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
 
         // Invalid value into math ci.selectedValue does nothing
@@ -2613,7 +2652,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
 
         // reload
@@ -2621,7 +2660,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Can change value from one macro after starting afresh
@@ -2630,7 +2669,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: x`);
 
         // reload
@@ -2638,7 +2677,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Can change value from other macro after starting afresh
@@ -2647,7 +2686,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
 
         // reload
@@ -2655,7 +2694,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Change value from math ci.selectedValue works after starting afresh
@@ -2664,7 +2703,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: z`);
 
         // We can change from macros
@@ -2673,7 +2712,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroCi",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: x`);
 
         await updateMathInputValue({
@@ -2681,7 +2720,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
 
         // reload
@@ -2689,7 +2728,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Change value from math ci.selectedIndices works after starting afresh
@@ -2698,7 +2737,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndices",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: z`);
 
         // Invalid value into from math ci.selectedIndex deselects all option
@@ -2707,7 +2746,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Enter valid value into from math ci.selectedIndex
@@ -2716,7 +2755,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: z`);
 
         // Enter value into from macro ci.selectedIndices
@@ -2725,7 +2764,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndices",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
 
         // Enter value into from macro ci.selectedIndex
@@ -2734,7 +2773,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: x`);
 
         // reload
@@ -2742,7 +2781,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Can change value from macros ci.selectedIndices after starting afresh
@@ -2751,7 +2790,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndices",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
 
         // reload
@@ -2759,7 +2798,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // Can change value from macro ci.selectedIndex after starting afresh
@@ -2768,7 +2807,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: x`);
 
         // reload
@@ -2776,7 +2815,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq("Selected value: ");
 
         // can add value into from math ci.selectedIndex even after starting afresh
@@ -2785,7 +2824,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected value: y`);
     });
 
@@ -2813,7 +2852,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // typing in wrong value doesn't do anything
@@ -2822,7 +2861,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Select value from text ci.selectedValue
@@ -2831,7 +2870,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: z`);
 
         // Add second value from text ci.selectedValue2
@@ -2840,7 +2879,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: y, z`,
         );
@@ -2851,7 +2890,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: y, z`,
         );
@@ -2862,7 +2901,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: y`);
 
         // Add second value from text ci.selectedValue2
@@ -2871,7 +2910,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: x, y`,
         );
@@ -2882,7 +2921,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: y`);
 
         // reload
@@ -2890,7 +2929,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
@@ -2899,7 +2938,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: x`);
 
         // reload
@@ -2907,7 +2946,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
@@ -2916,7 +2955,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: y`);
 
         // reload
@@ -2924,7 +2963,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Change value from text ci.selectedValue2 works after starting afresh
@@ -2933,7 +2972,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: z`);
 
         // Add second value from text ci.selectedValue2
@@ -2942,7 +2981,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: x, z`,
         );
@@ -2953,7 +2992,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: y, z`,
         );
@@ -2963,7 +3002,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedValue2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: x, y`,
         );
@@ -2973,7 +3012,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Change value from math ci.selectedIndex works after starting afresh
@@ -2982,7 +3021,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: z`);
 
         // Invalid value into from math ci.selectedIndex is reverted
@@ -2991,7 +3030,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: z`);
 
         // Enter valid value into from math ci.selectedIndex2
@@ -3000,7 +3039,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: x, z`,
         );
@@ -3011,7 +3050,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: y, z`,
         );
@@ -3022,7 +3061,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(
             `Selected values: x, y`,
         );
@@ -3033,7 +3072,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: x`);
 
         // reload
@@ -3041,7 +3080,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex after starting afresh
@@ -3050,7 +3089,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: y`);
 
         // reload
@@ -3058,7 +3097,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex2 after starting afresh
@@ -3067,7 +3106,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMacroSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: x`);
 
         // reload
@@ -3075,7 +3114,7 @@ describe("ChoiceInput tag tests", async () => {
             doenetML,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: `);
 
         // can add value into from math ci.selectedIndex2 even after starting afresh
@@ -3084,7 +3123,7 @@ describe("ChoiceInput tag tests", async () => {
             name: "/fromMathSelectedIndex2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/p"].stateValues.text).eq(`Selected values: y`);
     });
 });

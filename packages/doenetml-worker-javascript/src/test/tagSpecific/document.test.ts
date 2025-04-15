@@ -15,7 +15,7 @@ describe("Document tag tests", async () => {
   `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
     });
 
@@ -31,7 +31,7 @@ describe("Document tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/docCa"].stateValues.value).eq(0.5);
 
         let mathInputName =
@@ -44,7 +44,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/ans", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
     });
 
@@ -63,7 +63,7 @@ describe("Document tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/docCa"].stateValues.value).eq(0);
 
         let mathInputName =
@@ -76,7 +76,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/ans", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
     });
 
@@ -99,7 +99,7 @@ describe("Document tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/docCa"].stateValues.value).eq(0);
         expect(
             stateVariables["/_document1"].stateValues.componentCreditAchieved,
@@ -123,7 +123,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/x", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/x"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(1 / 3);
         expect(
@@ -137,7 +137,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/a", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/a"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(1 / 3);
         expect(
@@ -151,7 +151,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/y", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/y"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(2 / 3);
         expect(
@@ -165,7 +165,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/b", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(2 / 3);
         expect(
@@ -179,7 +179,7 @@ describe("Document tag tests", async () => {
         });
         await submitAnswer({ name: "/z", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/z"].stateValues.creditAchieved).eq(1);
         expect(stateVariables["/docCa"].stateValues.value).eq(1);
         expect(
@@ -198,7 +198,7 @@ describe("Document tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(Object.keys(stateVariables).length).eq(1);
 

@@ -28,7 +28,7 @@ describe("DoenetML text tests", async () => {
   $m{simplify}?
 </p>`;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/theP"].stateValues.text).eq(`
           Did you know that
           1 + 1
@@ -70,7 +70,7 @@ describe("DoenetML text tests", async () => {
 
 A string by itself!`;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ddml1"].stateValues.value).eq(thePDoenetML);
         expect(stateVariables["/ddml1"].stateValues.text).eq(thePDoenetML);
         expect(stateVariables["/ddml2"].stateValues.value).eq(
@@ -136,7 +136,7 @@ ${theDoenetML1}
   Hello
 </p>`;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ddml1"].stateValues.value).eq(theDoenetML1);
         expect(stateVariables["/ddml1"].stateValues.text).eq(theDoenetML1);
         expect(stateVariables["/ddml2"].stateValues.value).eq(theDoenetML2);
@@ -212,7 +212,7 @@ ${theDoenetML1}
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i < 5; i++) {
             expect(stateVariables[`/s${i}/ddml`].stateValues.value).eq(
                 `<text>hello!</text>`,
@@ -256,7 +256,7 @@ ${theDoenetML1}
         });
 
         let pdml = `<p name="p">Hello</p>`;
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/dml"].stateValues.text).eq(pdml);
         expect(stateVariables["/pdml"].stateValues.text).eq(pdml);
         expect(stateVariables["/g2/dml"].stateValues.text).eq(pdml);
@@ -296,7 +296,7 @@ ${theDoenetML1}
 
         // check original
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 1; i <= 3; i++) {
             expect(stateVariables[`/s${i}/pdml`].stateValues.text).eq(pdml);
@@ -341,7 +341,7 @@ ${theDoenetML1}
 
         // check original
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 1; i <= 3; i++) {
             expect(stateVariables[`/s${i}/p1dml`].stateValues.text).eq(p1dml);

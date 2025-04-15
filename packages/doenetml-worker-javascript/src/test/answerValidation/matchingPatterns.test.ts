@@ -174,7 +174,10 @@ describe("matching patterns answer tests", async () => {
                     core,
                 });
                 await submitAnswer({ name: "/ans", core });
-                let stateVariables = await core.returnAllStateVariables(true);
+                let stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
 
                 let res = resultsForVar[expr];
 

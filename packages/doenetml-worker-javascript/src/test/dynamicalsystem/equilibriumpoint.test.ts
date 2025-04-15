@@ -44,7 +44,7 @@ describe("Equilibriumpoint Tag Tests", async () => {
         const pointB = [7, 0];
         const pointC = [-9, 0];
         const pointD = [-3, 0];
-        let svs = await core.returnAllStateVariables(true);
+        let svs = await core.returnAllStateVariables(false, true);
         expect(svs["/g/A"].stateValues.xs.map((v) => v.tree)).eqls(pointA);
         expect(svs["/g/B"].stateValues.xs.map((v) => v.tree)).eqls(pointB);
         expect(svs["/g/C"].stateValues.xs.map((v) => v.tree)).eqls(pointC);
@@ -59,7 +59,10 @@ describe("Equilibriumpoint Tag Tests", async () => {
         let Ds = false;
 
         async function check_stable() {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/gAs"].stateValues.value).eqls(As);
             expect(stateVariables["/gBs"].stateValues.value).eqls(false);
             expect(stateVariables["/gCs"].stateValues.value).eqls(Cs);

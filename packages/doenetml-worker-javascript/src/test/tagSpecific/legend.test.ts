@@ -48,7 +48,7 @@ async function check_legend({
     legendItems: LegendItem[];
     position?: string;
 }) {
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
 
     if (position) {
         expect(stateVariables[legendName].stateValues.position).eq(position);

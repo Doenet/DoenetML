@@ -114,7 +114,10 @@ describe("sequence and map assign name tests", async () => {
                 .map((v) => numberToLetters(v + 1, true))
                 .join(", ");
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/s1"].stateValues.text).eq(allLetters);
             expect(stateVariables["/s2"].stateValues.text).eq(allLetters);
             expect(stateVariables["/s3"].stateValues.text).eq(allLetters);
@@ -285,7 +288,10 @@ describe("sequence and map assign name tests", async () => {
                 (i) => `Letter ${i + 1} is ${numberToLetters(i + 1, true)}. `,
             );
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             for (let name of ["/m1", "/m2", "/m3", "/m4"]) {
                 expect(stateVariables[name].stateValues.text).eq(
@@ -376,7 +382,10 @@ describe("sequence and map assign name tests", async () => {
                 (i) => `Letter ${i + 1} is ${numberToLetters(i + 1, true)}. `,
             );
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/m1"].stateValues.text).eq(
                 letterPhrases.join(""),
@@ -450,7 +459,10 @@ describe("sequence and map assign name tests", async () => {
                     `Letter ${i + 1} is ${numberToLetters(i + 1, true)}. Repeat: letter ${i + 1} is ${numberToLetters(i + 1, true)}. `,
             );
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/m1"].stateValues.text).eq(
                 letterPhrases.join(""),

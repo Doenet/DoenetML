@@ -60,7 +60,7 @@ async function run_tests({
         for (let code in credits) {
             await submitAnswer({ name: `/ans${code}`, core });
         }
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         for (let code in credits) {
             expect(stateVariables[`/ans${code}`].stateValues.creditAchieved).eq(
                 credits[code],

@@ -17,7 +17,7 @@ describe("Function curve tag tests", async () => {
         f: (arg: number) => number;
         flipFunction?: boolean;
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.curveType).eq("function");
         expect(stateVariables["/c"].stateValues.flipFunction).eq(flipFunction);
 
@@ -126,7 +126,7 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.curveType).eq("function");
         expect(stateVariables["/c"].stateValues.flipFunction).eq(false);
 
@@ -141,7 +141,7 @@ describe("Function curve tag tests", async () => {
 
         a = -2;
         await updateMathInputValue({ latex: `${a}`, name: "/a", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         c_fun = stateVariables["/c"].stateValues.fs[0];
         for (let x = -5; x <= 5; x += 2) {
             expect(c_fun(x)).closeTo(f(x, a), 1e-12);
@@ -167,7 +167,10 @@ describe("Function curve tag tests", async () => {
         f: (arg: number) => number,
     ) {
         async function check_items(x: number) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let px = stateVariables["/P"].stateValues.xs[0].tree;
             let py = stateVariables["/P"].stateValues.xs[1].tree;
             expect(px).eq(x);
@@ -238,7 +241,7 @@ describe("Function curve tag tests", async () => {
     ) {
         let f = (x) => x ** 4 - 5 * x ** 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).closeTo(5, 0.1);
@@ -246,7 +249,7 @@ describe("Function curve tag tests", async () => {
         expect(y).closeTo(f(x), 1e-5);
 
         await movePoint({ name: "/P", x: 1.5, y: -1.5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).closeTo(-1.5, 0.1);
@@ -254,7 +257,7 @@ describe("Function curve tag tests", async () => {
         expect(y).closeTo(f(x), 1e-5);
 
         await movePoint({ name: "/P", x: 0.1, y: -10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         let minimum2 = stateVariables["/f"].stateValues.minima[1];
@@ -263,7 +266,7 @@ describe("Function curve tag tests", async () => {
         expect(y).closeTo(f(x), 1e-5);
 
         await movePoint({ name: "/P", x: -0.1, y: -10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         let minimum1 = stateVariables["/f"].stateValues.minima[0];
@@ -275,7 +278,7 @@ describe("Function curve tag tests", async () => {
         // which fails with numDiscretizationPoints too low (e.g., at 100)
         for (let v = -5; v <= -1; v += 0.1) {
             await movePoint({ name: "/P", x: 5, y: v, core });
-            stateVariables = await core.returnAllStateVariables(true);
+            stateVariables = await core.returnAllStateVariables(false, true);
             x = stateVariables["/P"].stateValues.xs[0].tree;
             y = stateVariables["/P"].stateValues.xs[1].tree;
             expect(x).greaterThan(1.7);
@@ -371,14 +374,14 @@ describe("Function curve tag tests", async () => {
         let f = (t) =>
             (60 * t - 106 * t ** 2 + 59 * t ** 3 - 13 * t ** 4 + t ** 5) * 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/A"].stateValues.xs[0].tree;
         let y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(1.5, 1e-10);
         expect(y).closeTo(f(1.5), 1e-10);
 
         await movePoint({ name: "/A", x: 5, y: -60, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(5, 1e-10);
@@ -403,35 +406,35 @@ describe("Function curve tag tests", async () => {
 
         let f = (t) => Math.sin(t / 10) + t / 50 + 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/A"].stateValues.xs[0].tree;
         let y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(1.5, 1e-10);
         expect(y).closeTo(f(1.5), 1e-10);
 
         await movePoint({ name: "/A", x: 90, y: 5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(90, 1e-10);
         expect(y).closeTo(f(90), 1e-10);
 
         await movePoint({ name: "/A", x: 120, y: -5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(100, 1e-10);
         expect(y).closeTo(f(100), 1e-10);
 
         await movePoint({ name: "/A", x: -10, y: 10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(-10, 1e-10);
         expect(y).closeTo(f(-10), 1e-10);
 
         await movePoint({ name: "/A", x: -50, y: -100, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(x).closeTo(-20, 1e-10);
@@ -460,7 +463,7 @@ describe("Function curve tag tests", async () => {
 
         let f = (y) => y ** 4 - 5 * y ** 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.flipFunction).eq(true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
@@ -468,21 +471,21 @@ describe("Function curve tag tests", async () => {
         expect(x).closeTo(f(y), 1e-5);
 
         await movePoint({ name: "/P", y: 1.5, x: -1.5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).eq(1.5);
         expect(x).closeTo(f(y), 1e-5);
 
         await movePoint({ name: "/P", y: 0.1, x: -10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).eq(0.1);
         expect(x).closeTo(f(y), 1e-5);
 
         await movePoint({ name: "/P", y: -0.1, x: -10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).eq(-0.1);
@@ -492,7 +495,7 @@ describe("Function curve tag tests", async () => {
     async function test_constrain_inverse_as_curve(core: PublicDoenetMLCore) {
         let f = (y) => y ** 4 - 5 * y ** 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.flipFunction).eq(true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
@@ -501,7 +504,7 @@ describe("Function curve tag tests", async () => {
         expect(x).closeTo(f(y), 1e-5);
 
         await movePoint({ name: "/P", x: -1.5, y: 1.5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(-1.5, 0.1);
@@ -509,7 +512,7 @@ describe("Function curve tag tests", async () => {
         expect(x).closeTo(f(y), 1e-5);
 
         await movePoint({ name: "/P", x: -10, y: 0.1, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         let minimum2 = stateVariables["/_function1"].stateValues.minima[1];
@@ -519,7 +522,7 @@ describe("Function curve tag tests", async () => {
         expect(x).closeTo(f(y), 1e-5);
 
         await movePoint({ name: "/P", x: -10, y: -0.1, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         let minimum1 = stateVariables["/_function1"].stateValues.minima[0];
@@ -532,7 +535,7 @@ describe("Function curve tag tests", async () => {
         // which fails with numDiscretizationPoints too low (e.g., at 100)
         for (let v = -5; v <= -1; v += 0.1) {
             await movePoint({ name: "/P", x: v, y: 5, core });
-            stateVariables = await core.returnAllStateVariables(true);
+            stateVariables = await core.returnAllStateVariables(false, true);
             x = stateVariables["/P"].stateValues.xs[0].tree;
             y = stateVariables["/P"].stateValues.xs[1].tree;
             expect(y).greaterThan(1.7);
@@ -606,14 +609,14 @@ describe("Function curve tag tests", async () => {
         let f = (t) =>
             (60 * t - 106 * t ** 2 + 59 * t ** 3 - 13 * t ** 4 + t ** 5) * 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/A"].stateValues.xs[0].tree;
         let y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(1.5, 1e-10);
         expect(x).closeTo(f(1.5), 1e-10);
 
         await movePoint({ name: "/A", x: -60, y: 5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(5, 1e-10);
@@ -638,35 +641,35 @@ describe("Function curve tag tests", async () => {
 
         let f = (t) => Math.sin(t / 10) + t / 50 + 2;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/A"].stateValues.xs[0].tree;
         let y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(1.5, 1e-10);
         expect(x).closeTo(f(1.5), 1e-10);
 
         await movePoint({ name: "/A", x: 5, y: 90, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(90, 1e-10);
         expect(x).closeTo(f(90), 1e-10);
 
         await movePoint({ name: "/A", x: -5, y: 120, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(100, 1e-10);
         expect(x).closeTo(f(100), 1e-10);
 
         await movePoint({ name: "/A", x: 10, y: -10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(-10, 1e-10);
         expect(x).closeTo(f(-10), 1e-10);
 
         await movePoint({ name: "/A", x: -100, y: -50, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/A"].stateValues.xs[0].tree;
         y = stateVariables["/A"].stateValues.xs[1].tree;
         expect(y).closeTo(-20, 1e-10);
@@ -687,7 +690,7 @@ describe("Function curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/c"].stateValues.curveType).eq("function");
         expect(stateVariables["/c"].stateValues.flipFunction).eq(false);
         expect(stateVariables["/c"].stateValues.label).eq("hello \\(x^3-x\\)");

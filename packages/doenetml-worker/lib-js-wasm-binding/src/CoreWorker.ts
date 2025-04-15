@@ -354,9 +354,11 @@ export class CoreWorker {
         }
     }
 
-    async returnAllStateVariables() {
+    async returnAllStateVariables(consoleLogComponents = false) {
         if (this.javascriptCore) {
-            return this.javascriptCore.returnAllStateVariables();
+            return this.javascriptCore.returnAllStateVariables(
+                consoleLogComponents,
+            );
         } else {
             return {};
         }

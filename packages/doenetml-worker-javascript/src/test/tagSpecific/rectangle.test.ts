@@ -334,7 +334,7 @@ async function checkRectangleValues(
     }: { v0x: number; v0y: number; v2x: number; v2y: number },
     core: PublicDoenetMLCore,
 ) {
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
 
     let vertexCoords = [
         [v0x, v0y],
@@ -922,7 +922,7 @@ describe("Rectangle tag tests", async () => {
         let t4x = 2,
             t4y = 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"]).eq(undefined);
         expect(stateVariables["/P2"]).eq(undefined);
         expect(stateVariables["/P3"]).eq(undefined);
@@ -931,7 +931,7 @@ describe("Rectangle tag tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "1", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t1x,
             t1y,
@@ -943,7 +943,7 @@ describe("Rectangle tag tests", async () => {
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2x);
 
         await updateMathInputValue({ latex: "2", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t2x,
             t2y,
@@ -955,7 +955,7 @@ describe("Rectangle tag tests", async () => {
         expect(stateVariables["/xa"].stateValues.value.tree).eq(t2y);
 
         await updateMathInputValue({ latex: "3", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t3x,
             t3y,
@@ -967,7 +967,7 @@ describe("Rectangle tag tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "4", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"].stateValues.xs.map((v) => v.tree)).eqls([
             t4x,
             t4y,
@@ -979,7 +979,7 @@ describe("Rectangle tag tests", async () => {
         expect(stateVariables["/xa"]).eq(undefined);
 
         await updateMathInputValue({ latex: "5", name: "/n", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P1"]).eq(undefined);
         expect(stateVariables["/P2"]).eq(undefined);
         expect(stateVariables["/P3"]).eq(undefined);
@@ -1005,7 +1005,10 @@ describe("Rectangle tag tests", async () => {
             draggable: boolean,
             verticesDraggable: boolean,
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/p"].stateValues.vertices[0].map((v) => v.tree),
             ).eqls(v1);
@@ -1138,7 +1141,7 @@ describe("Rectangle tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1162,7 +1165,7 @@ describe("Rectangle tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1190,7 +1193,7 @@ describe("Rectangle tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1214,7 +1217,7 @@ describe("Rectangle tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1242,7 +1245,7 @@ describe("Rectangle tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1266,7 +1269,7 @@ describe("Rectangle tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1294,7 +1297,7 @@ describe("Rectangle tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1318,7 +1321,7 @@ describe("Rectangle tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables["/p"].stateValues.vertices[0].map((v) =>
                 v.evaluate_to_constant(),
@@ -1345,7 +1348,7 @@ describe("Rectangle tag tests", async () => {
         let area = 1;
         let perimeter = 4;
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
 
@@ -1358,7 +1361,7 @@ describe("Rectangle tag tests", async () => {
         area = 9 * 4;
         perimeter = 2 * 9 + 2 * 4;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/area"].stateValues.value).eq(area);
         expect(stateVariables["/perimeter"].stateValues.value).eq(perimeter);
     });

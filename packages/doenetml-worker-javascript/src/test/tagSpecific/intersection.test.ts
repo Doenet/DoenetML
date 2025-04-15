@@ -23,7 +23,7 @@ async function check_intersections(
     coords6?: number[],
     coords7?: number[],
 ) {
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
 
     if (coords1) {
         expect(stateVariables["/int1"].stateValues.xs[0].tree).closeTo(
@@ -217,20 +217,20 @@ describe("Intersection tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq("Intersection 2: ");
 
         await updateBooleanInputValue({ boolean: true, name: "/h1", core });
         await updateBooleanInputValue({ boolean: false, name: "/h2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq("Intersection 2: ");
 
         // make first line vertical
         await movePoint({ name: "/P1", x: 3, y: 5, core });
         await movePoint({ name: "/P2", x: 3, y: -5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq(
             "Intersection 2: ( 3, 2 )",
@@ -238,7 +238,7 @@ describe("Intersection tag tests", async () => {
 
         await updateBooleanInputValue({ boolean: false, name: "/h1", core });
         await updateBooleanInputValue({ boolean: true, name: "/h2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq(
             "Intersection 1: ( 3, 2 )",
         );
@@ -247,13 +247,13 @@ describe("Intersection tag tests", async () => {
         // make second line vertical
         await movePoint({ name: "/P3", x: -4, y: 5, core });
         await movePoint({ name: "/P4", x: -4, y: -5, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq("Intersection 2: ");
 
         await updateBooleanInputValue({ boolean: true, name: "/h1", core });
         await updateBooleanInputValue({ boolean: false, name: "/h2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq("Intersection 2: ");
 
@@ -262,7 +262,7 @@ describe("Intersection tag tests", async () => {
         await movePoint({ name: "/P2", x: 8, y: 9, core });
         await movePoint({ name: "/P3", x: 4, y: 6, core });
         await movePoint({ name: "/P4", x: -4, y: -6, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq(
             "Intersection 2: ( 2, 3 )",
@@ -270,7 +270,7 @@ describe("Intersection tag tests", async () => {
 
         await updateBooleanInputValue({ boolean: false, name: "/h1", core });
         await updateBooleanInputValue({ boolean: true, name: "/h2", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq(
             "Intersection 1: ( 2, 3 )",
         );
@@ -279,7 +279,7 @@ describe("Intersection tag tests", async () => {
         // make lines equal again
         await movePoint({ name: "/P1", x: 6, y: 9, core });
         await movePoint({ name: "/P2", x: -6, y: -9, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/i1"].stateValues.text).eq("Intersection 1: ");
         expect(stateVariables["/i2"].stateValues.text).eq("Intersection 2: ");
     });
@@ -824,7 +824,7 @@ describe("Intersection tag tests", async () => {
   `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pDefault"].stateValues.text).eq(
             "( 0, 1 ), ( 1, 0 )",
         );

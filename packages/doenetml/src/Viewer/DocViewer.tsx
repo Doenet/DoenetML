@@ -343,7 +343,7 @@ export function DocViewer({
                 "returnAllStateVariables" + postfixForWindowFunctions
             ] = async function () {
                 const allStateVariables =
-                    await coreWorker.current?.returnAllStateVariables();
+                    await coreWorker.current?.returnAllStateVariables(true);
                 console.log(allStateVariables);
                 return allStateVariables;
             };

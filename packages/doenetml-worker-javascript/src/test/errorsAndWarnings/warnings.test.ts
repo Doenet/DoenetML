@@ -238,7 +238,7 @@ describe("Warning Tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m2"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m3"].stateValues.text).eq("sin(x)");
@@ -308,7 +308,7 @@ describe("Warning Tests", async () => {
         await updateTextInputValue({ text: "try7", name: "/ti7", core });
         await updateTextInputValue({ text: "try8", name: "/ti8", core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m2"].stateValues.text).eq("sin(x)");
         expect(stateVariables["/m3"].stateValues.text).eq("sin(x)");

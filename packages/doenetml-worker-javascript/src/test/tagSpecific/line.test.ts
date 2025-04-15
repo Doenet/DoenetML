@@ -372,7 +372,7 @@ async function checkAllLineValues({
         });
     }
 
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     for (let [ind, pointName] of definingPointNames.entries()) {
         expect(
             stateVariables[pointName].stateValues.xs.map((v) => v.tree),
@@ -403,7 +403,7 @@ async function checkLineValues({
     label?: string;
     core: PublicDoenetMLCore;
 }) {
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
 
     let linePoints = stateVariables[name].stateValues.points;
     let P1xs = stateVariables[P1Name].stateValues.xs;
@@ -490,7 +490,7 @@ async function runEquationBasedTests({
         core,
     });
 
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     let point1 = [...stateVariables[names[0]].stateValues.points[0]];
     let point2 = [...stateVariables[names[0]].stateValues.points[1]];
 
@@ -625,7 +625,7 @@ async function checkLineEquations({
     label?: string;
     core: PublicDoenetMLCore;
 }) {
-    const stateVariables = await core.returnAllStateVariables(true);
+    const stateVariables = await core.returnAllStateVariables(false, true);
     const line = stateVariables[name].stateValues;
 
     expect(line.coeff0.evaluate_to_constant()).closeTo(coeff0, 1e-12);
@@ -1374,7 +1374,7 @@ describe("Line tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/l1"].stateValues.equation.tree).eq("\uff3f");
         expect(stateVariables["/l1"].stateValues.coeff0.tree).eq("\uff3f");
@@ -1440,7 +1440,7 @@ describe("Line tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/l1"].stateValues.equation.tree).eqls([
             "/",
@@ -1546,7 +1546,7 @@ describe("Line tag tests", async () => {
         let yintercept = point2y - slope * point2x;
 
         // points and line match constraints
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P2"].stateValues.xs[0].tree).closeTo(
             point2x,
@@ -1589,7 +1589,7 @@ describe("Line tag tests", async () => {
 
         await movePoint({ name: "/P1", x: point1x, y: point1y, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/P2"].stateValues.xs[0].tree).closeTo(
             point2x,
             1e-12,
@@ -1619,7 +1619,7 @@ describe("Line tag tests", async () => {
         ).closeTo(yintercept, 1e-12);
 
         // move line
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         let point1 = stateVariables["/l"].stateValues.points[0];
         let point2 = stateVariables["/l"].stateValues.points[1];
@@ -1660,7 +1660,7 @@ describe("Line tag tests", async () => {
         slope = (point1y - point2y) / (point1x - point2x);
         yintercept = point2y - slope * point2x;
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/P2"].stateValues.xs[0].tree).closeTo(
             point2x,
@@ -1706,7 +1706,7 @@ describe("Line tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq(
             "Variables are x and y.",
@@ -1764,7 +1764,10 @@ describe("Line tag tests", async () => {
         });
 
         async function check_items(x: number, y: number) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/l"].stateValues.points[0].map((v) => v.tree),
             ).eqls([x, y]);
@@ -1834,7 +1837,10 @@ describe("Line tag tests", async () => {
             y2: number;
             y3: number;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/l1"].stateValues.points[0].map((v) => v.tree),
             ).eqls([x2, y2]);
@@ -1946,7 +1952,10 @@ describe("Line tag tests", async () => {
             x2: number;
             y2: number;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables[
                     "/g1/l"
@@ -2213,7 +2222,10 @@ describe("Line tag tests", async () => {
             x2: number;
             y2: number;
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables[
@@ -2959,7 +2971,10 @@ describe("Line tag tests", async () => {
             x2: number;
             y2: number;
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/l"].stateValues.points[0].map((v) => v.tree),
             ).eqls([x1, y1]);
@@ -3120,7 +3135,10 @@ describe("Line tag tests", async () => {
             x2: number;
             y2: number;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/l"].stateValues.points[0].map((v) => v.tree),
             ).eqls([x1, y1]);
@@ -3306,7 +3324,10 @@ describe("Line tag tests", async () => {
             slope1: number;
             slope2: number;
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables[
@@ -3780,7 +3801,10 @@ describe("Line tag tests", async () => {
             slope1: number;
             slope2: number;
         }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             let i1 = flipFirstPoints ? 1 : 0;
             let i2 = flipFirstPoints ? 0 : 1;
@@ -4229,7 +4253,10 @@ describe("Line tag tests", async () => {
             y22,
             slope,
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(
                 stateVariables[
@@ -4557,7 +4584,7 @@ describe("Line tag tests", async () => {
 
         // point on line, close to origin
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
 
@@ -4569,7 +4596,7 @@ describe("Line tag tests", async () => {
         // move point
         await movePoint({ name: "/P", x: -100, y: 0.05, core });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(y).lessThan(0.05);
@@ -4599,7 +4626,10 @@ describe("Line tag tests", async () => {
             t2y = 4;
 
         async function check_items(n: number) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             if (n === 1) {
                 expect(
@@ -4646,7 +4676,7 @@ describe("Line tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/l"].stateValues.text).eq(
             "0 = 528.23 x + 2.24 y + 0.0486",
@@ -4693,7 +4723,10 @@ describe("Line tag tests", async () => {
         });
 
         async function check_items(label: string, position: string) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/l"].stateValues.label).eq(label);
             expect(stateVariables["/l"].stateValues.labelPosition).eq(
                 position.toLowerCase(),
@@ -4755,7 +4788,7 @@ describe("Line tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_no_style"].stateValues.text).eq("black");
         expect(stateVariables["/tc_no_style"].stateValues.text).eq("black");
@@ -4776,7 +4809,7 @@ describe("Line tag tests", async () => {
         );
 
         await updateMathInputValue({ latex: "2", name: "/sn", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "green",
@@ -4797,7 +4830,7 @@ describe("Line tag tests", async () => {
         expect(stateVariables["/bc_fixed_style"].stateValues.text).eq("none");
 
         await updateMathInputValue({ latex: "3", name: "/sn", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/tsd_variable_style"].stateValues.text).eq(
             "red with a blue background",
@@ -4835,7 +4868,10 @@ describe("Line tag tests", async () => {
             x2: number,
             y2: number,
         ) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/P"].stateValues.xs[0].tree).eq(x1);
             expect(stateVariables["/P"].stateValues.xs[1].tree).eq(y1);
             expect(stateVariables["/Q"].stateValues.xs[0].tree).eq(x2);
@@ -4912,7 +4948,10 @@ describe("Line tag tests", async () => {
             B2y: number;
             B2z: number;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(
                 stateVariables["/l1"].stateValues.points[0].map((v) => v.tree),
             ).eqls([A1x, A1y, A1z]);
@@ -5138,7 +5177,10 @@ describe("Line tag tests", async () => {
             const BShade = theme === "dark" ? "light" : "dark";
             const CColor = theme === "dark" ? "white" : "black";
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/ADescription"].stateValues.text).eq(
                 `Line A is thick ${AColor}.`,

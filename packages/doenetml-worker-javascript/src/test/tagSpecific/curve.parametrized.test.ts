@@ -29,7 +29,7 @@ describe("Parameterized curve tag tests", async () => {
         f1?: (arg: number) => number;
         f2?: (arg: number) => number;
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         const cName = nameFromGraphChild
             ? stateVariables["/g"].activeChildren[0].componentName
@@ -253,42 +253,42 @@ describe("Parameterized curve tag tests", async () => {
     });
 
     async function test_constrain_to_curve(core: PublicDoenetMLCore) {
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(7, 0.5);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({ name: "/P", x: -2, y: 10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(0.3, 0.1);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({ name: "/P", x: -10, y: 2, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(-8, 1e-3);
         expect(y).closeTo(Math.sin(-4), 1e-3);
 
         await updateMathInputValue({ latex: "-1", name: "/parMin", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(-1, 1e-3);
         expect(y).closeTo(Math.sin(-2), 1e-3);
 
         await movePoint({ name: "/P", x: 10, y: 2, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(8, 1e-3);
         expect(y).closeTo(Math.sin(4), 1e-3);
 
         await updateMathInputValue({ latex: "1", name: "/parMax", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(1, 1e-3);
@@ -358,21 +358,21 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(7, 0.5);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({ name: "/P", x: -2, y: 10, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(0.3, 0.1);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({ name: "/P", x: -10, y: 2, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(-10, 0.1);
@@ -401,21 +401,21 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         let x = stateVariables["/P"].stateValues.xs[0].tree;
         let y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(100 / Math.sqrt(2), 1e-4);
         expect(y).closeTo(0.1 / Math.sqrt(2), 1e-4);
 
         await movePoint({ name: "/P", x: -200, y: 0.8, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo(-100 / Math.sqrt(17), 1e-4);
         expect(y).closeTo((0.1 * 4) / Math.sqrt(17), 1e-4);
 
         await movePoint({ name: "/P", x: -2, y: -0.001, core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         x = stateVariables["/P"].stateValues.xs[0].tree;
         y = stateVariables["/P"].stateValues.xs[1].tree;
         expect(x).closeTo((-100 * 2) / Math.sqrt(5), 1e-4);

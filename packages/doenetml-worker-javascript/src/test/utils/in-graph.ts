@@ -77,7 +77,7 @@ export async function test_in_graph(
 
     let core = await createTestCore({ doenetML });
 
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( 1, 3 )",
     );
@@ -122,7 +122,7 @@ export async function test_in_graph(
     await moveCommand({ name: "/item1", x: -2, y: 3, core });
     await moveCommand({ name: "/item2", x: 4, y: -5, core });
 
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( -2, 3 )",
     );
@@ -143,7 +143,7 @@ export async function test_in_graph(
         core,
     });
 
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( 6, 7 )",
     );
@@ -162,7 +162,7 @@ export async function test_in_graph(
         selectedIndices: [3],
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
         "Position from anchor 1: lowerleft",
@@ -182,7 +182,7 @@ export async function test_in_graph(
         name: "/draggable2",
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pDraggable1"].stateValues.text).eq(
         "Draggable 1: false",
@@ -194,7 +194,7 @@ export async function test_in_graph(
     // cannot move items by dragging
     await moveCommand({ name: "/item1", x: -10, y: -9, core });
     await moveCommand({ name: "/item2", x: -8, y: -7, core });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( 6, 7 )",
@@ -214,7 +214,7 @@ export async function test_in_graph(
         name: "/draggable2",
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pDraggable1"].stateValues.text).eq(
         "Draggable 1: true",
@@ -225,7 +225,7 @@ export async function test_in_graph(
 
     await moveCommand({ name: "/item1", x: -10, y: -9, core });
     await moveCommand({ name: "/item2", x: -8, y: -7, core });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( -10, -9 )",
@@ -245,7 +245,7 @@ export async function test_in_graph(
         name: "/fixLocation2",
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pFixLocation1"].stateValues.text).eq(
         "FixLocation 1: true",
@@ -266,7 +266,7 @@ export async function test_in_graph(
         core,
     });
 
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( 1, 2 )",
@@ -279,7 +279,7 @@ export async function test_in_graph(
     await moveCommand({ name: "/item1", x: 4, y: 6, core });
     await moveCommand({ name: "/item2", x: 7, y: 8, core });
 
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( 1, 2 )",
@@ -299,7 +299,7 @@ export async function test_in_graph(
         selectedIndices: [8],
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
         "Position from anchor 1: top",
@@ -320,7 +320,7 @@ export async function test_in_graph(
         name: "/disabled2",
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pDisabled1"].stateValues.text).eq(
         "Disabled 1: false",
@@ -341,7 +341,7 @@ export async function test_in_graph(
         name: "/fixed2",
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pFixed1"].stateValues.text).eq("Fixed 1: true");
     expect(stateVariables["/pFixed2"].stateValues.text).eq("Fixed 2: true");
@@ -358,7 +358,7 @@ export async function test_in_graph(
         core,
     });
 
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pAnchor1"].stateValues.text).eq(
         "Anchor 1 coordinates: ( 5, 6 )",
@@ -378,7 +378,7 @@ export async function test_in_graph(
         selectedIndices: [5],
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pPositionFromAnchor1"].stateValues.text).eq(
         "Position from anchor 1: right",
@@ -399,7 +399,7 @@ export async function test_in_graph(
         name: "/disabled2",
         core,
     });
-    stateVariables = await core.returnAllStateVariables(true);
+    stateVariables = await core.returnAllStateVariables(false, true);
 
     expect(stateVariables["/pDisabled1"].stateValues.text).eq(
         "Disabled 1: true",

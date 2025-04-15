@@ -37,7 +37,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("hello");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("hello");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
@@ -52,7 +52,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("hello2");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("hello2");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
@@ -66,7 +66,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("hello2");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("hello2");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
@@ -87,7 +87,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello you",
         );
@@ -105,7 +105,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello you",
         );
@@ -123,7 +123,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello you",
         );
@@ -140,7 +140,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello you",
         );
@@ -158,7 +158,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
@@ -171,7 +171,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
@@ -186,7 +186,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("");
 
         await updateTextInputImmediateValue({
@@ -208,7 +208,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
@@ -223,7 +223,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("abc");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("saludos");
@@ -242,7 +242,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abcd");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("abcd");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("saludos");
@@ -255,7 +255,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abcd");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("abcd");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("saludos");
@@ -269,7 +269,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1a",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("saludos");
@@ -283,7 +283,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("");
         expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("saludos");
@@ -301,7 +301,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
@@ -319,7 +319,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/t1"].stateValues.value).eq("bye now");
@@ -335,7 +335,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
@@ -352,7 +352,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq(`can't update me`);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             `can't update me`,
@@ -365,7 +365,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq(`can't update me`);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             `disappear`,
@@ -377,7 +377,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq(`can't update me`);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             `can't update me`,
@@ -394,7 +394,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
@@ -412,7 +412,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/t1"].stateValues.value).eq("bye now");
@@ -428,7 +428,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
@@ -445,7 +445,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq(`can't update me`);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             `can't update me`,
@@ -458,7 +458,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq(`can't update me`);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             `disappear`,
@@ -470,7 +470,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq(`can't update me`);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             `can't update me`,
@@ -488,7 +488,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
@@ -507,7 +507,7 @@ describe("TextInput tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/t1"].stateValues.value).eq("bye now");
@@ -524,7 +524,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
         );
@@ -540,7 +540,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
@@ -553,7 +553,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye now");
@@ -565,7 +565,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
@@ -578,7 +578,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "Hello again",
         );
@@ -597,7 +597,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "hello there",
         );
@@ -613,7 +613,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.value).eq("hello there");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye now");
@@ -624,7 +624,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti1",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye now");
@@ -636,7 +636,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq("bye now");
         expect(stateVariables["/ti1"].stateValues.value).eq("bye now");
         expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
@@ -649,7 +649,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti2",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
             "Hello again",
         );
@@ -670,7 +670,7 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/h"].stateValues.value).eq("hello");
 
@@ -679,7 +679,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti"].stateValues.immediateValue).eq(" bye");
         expect(stateVariables["/h"].stateValues.value).eq("hello");
 
@@ -688,7 +688,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti"].stateValues.immediateValue).eq(" there");
         expect(stateVariables["/h"].stateValues.value).eq("hello");
 
@@ -696,7 +696,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti"].stateValues.immediateValue).eq(" there");
         expect(stateVariables["/h"].stateValues.value).eq("hello there");
 
@@ -705,7 +705,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti"].stateValues.immediateValue).eq("?");
         expect(stateVariables["/h"].stateValues.value).eq("hello there");
 
@@ -714,7 +714,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti"].stateValues.immediateValue).eq("!");
         expect(stateVariables["/h"].stateValues.value).eq("hello there");
 
@@ -722,7 +722,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti"].stateValues.immediateValue).eq("!");
         expect(stateVariables["/h"].stateValues.value).eq("hello there!");
     });
@@ -751,21 +751,21 @@ describe("TextInput tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/m2"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
         expect(stateVariables["/n2"].stateValues.value).eqls(NaN);
 
         await updateTextInputValue({ text: "4/2", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.value.tree).eqls(["/", 4, 2]);
         expect(stateVariables["/m2"].stateValues.value.tree).eqls(["/", 4, 2]);
         expect(stateVariables["/n1"].stateValues.value).eq(2);
         expect(stateVariables["/n2"].stateValues.value).eq(2);
 
         await updateTextInputValue({ text: "xy", name: "/ti", core });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.value.tree).eqls([
             "*",
             "x",
@@ -784,7 +784,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/m2"].stateValues.value.tree).eqls([
             "/",
@@ -799,7 +799,7 @@ describe("TextInput tag tests", async () => {
             name: "/ti",
             core,
         });
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/m1"].stateValues.value.tree).eq("\uff3f");
         expect(stateVariables["/m2"].stateValues.value.tree).eqls(["/", 6, 2]);
         expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
@@ -841,7 +841,10 @@ describe("TextInput tag tests", async () => {
                 ti4ivchanged: boolean,
             ],
         ) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/ti1"].stateValues.value).eq(ti1);
             expect(stateVariables["/ti2"].stateValues.value).eq(ti2);
             expect(stateVariables["/ti3"].stateValues.value).eq(ti3);
@@ -1136,7 +1139,7 @@ describe("TextInput tag tests", async () => {
      `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/ti1"].stateValues.label).eq("Type something");
         expect(stateVariables["/ti2"].stateValues.label).eq(
             "Hello \\(\\frac{a}{b}\\)",
@@ -1176,7 +1179,10 @@ describe("TextInput tag tests", async () => {
                 .map((s) => s.trim());
             const numListItems = list.length;
 
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
             expect(stateVariables["/p2"].stateValues.text).eq(
                 `Number of characters is ${numCharacters}.`,

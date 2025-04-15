@@ -42,7 +42,10 @@ describe("Ionic Compounds tests", async () => {
             latex: string;
             math: any;
         }) {
-            let stateVariables = await core.returnAllStateVariables(true);
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             let mi =
                 stateVariables[`/ans${name}`].stateValues.inputChildren[0]
                     .componentName;
@@ -54,7 +57,10 @@ describe("Ionic Compounds tests", async () => {
             for (let resp in responseCredits) {
                 await updateMathInputValue({ name: mi, latex: resp, core });
                 await submitAnswer({ name: `/ans${name}`, core });
-                stateVariables = await core.returnAllStateVariables(true);
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
                 expect(
                     stateVariables[`/ans${name}`].stateValues.creditAchieved,
                 ).eq(responseCredits[resp]);

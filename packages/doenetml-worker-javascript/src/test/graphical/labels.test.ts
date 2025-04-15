@@ -11,7 +11,7 @@ describe("Label tests", async () => {
     async function test_labelIsName_preserved_shadowed_or_no_link(
         core: PublicDoenetMLCore,
     ) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/Plabel"].stateValues.value).eq("P");
         expect(stateVariables["/Qlabel"].stateValues.value).eq("Q");
@@ -295,7 +295,7 @@ describe("Label tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         let g1ChildNames = stateVariables["/g1"].activeChildren.map(
             (x) => x.componentName,
@@ -413,7 +413,7 @@ describe("Label tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/g/P"].stateValues.label).eq("P");
     });
 
@@ -431,7 +431,7 @@ describe("Label tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/the_first_point"].stateValues.label).eq(
             "the first point",
         );
@@ -498,7 +498,10 @@ describe("Label tests", async () => {
         });
 
         async function check_items({ lA, lD, lE, l6, l7 }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const p6Name =
                 stateVariables["/g6"].activeChildren[0].componentName;
             const p7Name =
@@ -598,7 +601,10 @@ describe("Label tests", async () => {
         });
 
         async function check_items({ lA, lB, lC, l4, l5 }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             const p4Name =
                 stateVariables["/g4"].activeChildren[0].componentName;
             const p5Name =
@@ -735,7 +741,10 @@ describe("Label tests", async () => {
         });
 
         async function check_items({ lA, lC, lD, lF, lG, lI, lJ, lL, lM }) {
-            const stateVariables = await core.returnAllStateVariables(true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
             expect(stateVariables["/lA"].stateValues.value).eq(lA);
             expect(stateVariables["/lB"].stateValues.value).eq(lA);
             expect(stateVariables["/lC"].stateValues.value).eq(lC);
@@ -868,7 +877,7 @@ describe("Label tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/A"].stateValues.label).eq("x_1");
         expect(stateVariables["/A"].stateValues.labelForGraph).eq(
             "x&UnderBar;1",
@@ -908,7 +917,7 @@ describe("Label tests", async () => {
     </graph>`,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/line"].stateValues.label).eq("L");
         expect(stateVariables["/l"].stateValues.label).eq("l");

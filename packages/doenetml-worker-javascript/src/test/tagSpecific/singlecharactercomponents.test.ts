@@ -14,7 +14,7 @@ describe("Single character tag tests", async () => {
         });
 
         // Note these dashes are different unicode even though they display the same here
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq("1 – 2 — that's it");
     });
@@ -26,7 +26,7 @@ describe("Single character tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(
             "act\u00a0like\u00a0one\u00a0word",
@@ -40,7 +40,7 @@ describe("Single character tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq("we could do that…");
     });
@@ -52,7 +52,7 @@ describe("Single character tag tests", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p"].stateValues.text).eq(`”“’‘`);
     });

@@ -84,7 +84,7 @@ let checkSingleColumnSbs = async function ({
 
     let valign = specifiedValign ? specifiedValign : "top";
 
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
 
     let specifiedWidthName = isSbsGroup
         ? "specifiedWidths"
@@ -283,7 +283,7 @@ let checkTwoColumnSbs = async function ({
         ? "specifiedMargins"
         : "allMarginsSpecified";
 
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables[sbsName].stateValues[specifiedWidthName]).eqls(
         specifiedWidths,
     );
@@ -420,7 +420,7 @@ let checkFourColumnSbs = async function ({
         ? "specifiedMargins"
         : "allMarginsSpecified";
 
-    let stateVariables = await core.returnAllStateVariables(true);
+    let stateVariables = await core.returnAllStateVariables(false, true);
     expect(stateVariables[sbsName].stateValues[specifiedWidthName]).eqls(
         specifiedWidths,
     );
@@ -485,7 +485,7 @@ describe("SideBySide tag tests", async () => {
 
         await checkSingleColumnSbs({ core, sbsName: "/sbs" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -639,7 +639,7 @@ describe("SideBySide tag tests", async () => {
 
         await checkSingleColumnSbs({ core, sbsName: "/sbs" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -737,7 +737,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -823,7 +823,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -908,7 +908,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -991,7 +991,7 @@ describe("SideBySide tag tests", async () => {
 
         await checkTwoColumnSbs({ core, sbsName: "/sbs" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1183,7 +1183,7 @@ describe("SideBySide tag tests", async () => {
 
         await checkTwoColumnSbs({ core, sbsName: "/sbs" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1282,7 +1282,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1401,7 +1401,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1520,7 +1520,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1659,7 +1659,7 @@ describe("SideBySide tag tests", async () => {
 
         await checkFourColumnSbs({ core, sbsName: "/sbs" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1851,7 +1851,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -1936,7 +1936,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -2048,7 +2048,7 @@ describe("SideBySide tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_sidebyside1"].stateValues.marginsAbsolute).eq(
             false,
         );
@@ -2141,7 +2141,7 @@ describe("SideBySide tag tests", async () => {
         await checkSingleColumnSbs({ core, sbsName: "/sbs1" });
         await checkSingleColumnSbs({ core, sbsName: "/sbs2" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbsg"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -2180,7 +2180,7 @@ describe("SideBySide tag tests", async () => {
         });
         await checkSingleColumnSbs({ core, sbsName: "/sbs2" });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
         ]);
@@ -2216,7 +2216,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
         ]);
@@ -2253,7 +2253,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
         ]);
@@ -2291,7 +2291,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
         ]);
@@ -2329,7 +2329,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
         ]);
@@ -2367,7 +2367,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2403,7 +2403,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2439,7 +2439,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2475,7 +2475,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2512,7 +2512,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2551,7 +2551,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2590,7 +2590,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2629,7 +2629,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([50]);
         expect(stateVariables["/sbs1"].stateValues.essentialMargins).eqls([
             10,
@@ -2709,7 +2709,7 @@ describe("SideBySide tag tests", async () => {
         await checkTwoColumnSbs({ core, sbsName: "/sbs1" });
         await checkTwoColumnSbs({ core, sbsName: "/sbs2" });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbsg"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -2755,7 +2755,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -2792,7 +2792,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -2829,7 +2829,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -2867,7 +2867,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -2907,7 +2907,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -2947,7 +2947,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -2987,7 +2987,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -3027,7 +3027,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30,
             null,
@@ -3067,7 +3067,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30, 55,
         ]);
@@ -3106,7 +3106,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30, 55,
         ]);
@@ -3148,7 +3148,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30, 55,
         ]);
@@ -3190,7 +3190,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30, 55,
         ]);
@@ -3232,7 +3232,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30, 55,
         ]);
@@ -3274,7 +3274,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             30, 55,
         ]);
@@ -3376,7 +3376,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbsg"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -3428,7 +3428,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3471,7 +3471,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3514,7 +3514,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3557,7 +3557,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3601,7 +3601,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3644,7 +3644,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3687,7 +3687,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3730,7 +3730,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3773,7 +3773,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3815,7 +3815,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3857,7 +3857,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3899,7 +3899,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3941,7 +3941,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -3984,7 +3984,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4086,7 +4086,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbsg"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -4138,7 +4138,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4181,7 +4181,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4224,7 +4224,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4267,7 +4267,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4310,7 +4310,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4353,7 +4353,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4395,7 +4395,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4437,7 +4437,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4479,7 +4479,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4521,7 +4521,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4562,7 +4562,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4603,7 +4603,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4644,7 +4644,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4685,7 +4685,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4726,7 +4726,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4767,7 +4767,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4809,7 +4809,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs2",
         });
 
-        stateVariables = await core.returnAllStateVariables(true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs1"].stateValues.essentialWidths).eqls([
             null,
             null,
@@ -4931,7 +4931,7 @@ describe("SideBySide tag tests", async () => {
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/_sbsgroup1"].stateValues.marginsAbsolute).eq(
             false,
         );
@@ -4986,7 +4986,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -5030,7 +5030,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );
@@ -5222,7 +5222,7 @@ describe("SideBySide tag tests", async () => {
             sbsName: "/sbs",
         });
 
-        let stateVariables = await core.returnAllStateVariables(true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/sbs"].stateValues.absoluteMeasurements).eq(
             false,
         );

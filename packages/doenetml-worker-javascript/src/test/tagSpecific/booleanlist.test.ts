@@ -24,7 +24,7 @@ describe("BooleanList tag tests", async () => {
         text?: string;
         booleans?: boolean[];
     }) {
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {
             expect(stateVariables[pName].stateValues.text).eq(text);
@@ -546,7 +546,7 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/b"].stateValues.value).eq(true);
     });
 
@@ -559,7 +559,7 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables["/p1"].stateValues.text).eq("true, true, false");
         expect(stateVariables["/p2"].stateValues.text).eq("true, true, false");
@@ -578,7 +578,7 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables["/pText"].stateValues.text).eq(
             "Text: true, true, false",
         );
