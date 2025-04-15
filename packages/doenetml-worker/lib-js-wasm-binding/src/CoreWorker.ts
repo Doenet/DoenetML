@@ -371,6 +371,26 @@ export class CoreWorker {
             this.javascriptCore.handleVisibilityChange(documentIsVisible);
         }
     }
+
+    /**
+     * Call submitAnswer on all answers in the document
+     */
+    async submitAllAnswers() {
+        if (this.javascriptCore) {
+            this.javascriptCore.submitAllAnswers();
+        }
+    }
+
+    /**
+     * Immediately save all document state to the database,
+     * ignoring any timeouts
+     */
+    async saveImmediately() {
+        if (this.javascriptCore) {
+            this.javascriptCore.saveImmediately();
+        }
+    }
+
     async _getTests() {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.

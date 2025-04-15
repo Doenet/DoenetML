@@ -377,7 +377,7 @@ export class PublicDoenetMLCore {
     /**
      * Call submitAnswer on all answers in the document
      */
-    async submitAllAnswer() {
+    async submitAllAnswers() {
         return await this.core?.requestAction({
             componentName: this.core.documentName,
             actionName: "submitAllAnswers",
