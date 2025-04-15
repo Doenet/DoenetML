@@ -3,7 +3,11 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 type DoenetMLFlags = {
     showCorrectness: boolean;
     readOnly: boolean;
-    solutionDisplayMode: string;
+    solutionDisplayMode:
+        | "button"
+        | "buttonRequirePermission"
+        | "displayed"
+        | "none";
     showFeedback: boolean;
     showHints: boolean;
     allowLoadState: boolean;
@@ -34,12 +38,16 @@ export async function createTestCore({
     flags: specifiedFlags = {},
     theme,
     initializeCounters = {},
+    requestSolutionView = async () => ({ allowView: true }),
 }: {
     doenetML: string;
     requestedVariantIndex?: number;
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
     initializeCounters?: Record<string, number>;
+    requestSolutionView?: (componentName: string) => Promise<{
+        allowView: boolean;
+    }>;
 }) {
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -67,6 +75,8 @@ export async function createTestCore({
         () => null,
         () => null,
         () => null,
+        () => null,
+        requestSolutionView,
     );
 
     if (!dastResult.success) {
