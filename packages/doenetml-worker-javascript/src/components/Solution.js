@@ -263,6 +263,10 @@ export class Solution extends BlockComponent {
 
         let allowView = true;
 
+        // If we require permission to view the solution,
+        // then we must request the solution view before opening.
+        // If a response with `allowView` equal to `false`
+        // is not received, the solution will stay closed.
         if (displayMode === "buttonRequirePermission") {
             const requestResult = await this.coreFunctions.requestSolutionView(
                 this.componentName,

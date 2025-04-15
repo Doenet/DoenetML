@@ -12936,6 +12936,13 @@ export default class Core {
         return;
     }
 
+    /**
+     * Poll `requestSolutionViewCallback` to determine whether or not
+     * the user is allowed to view the solution.
+     *
+     * Note: this will occur only if the `solutionDisplayMode` flag is set to
+     * "buttonRequirePermission".
+     */
     async requestSolutionView(componentName) {
         const requestResult =
             await this.requestSolutionViewCallback(componentName);
