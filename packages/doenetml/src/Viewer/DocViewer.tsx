@@ -382,6 +382,32 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
+        if (!coreWorker.current) {
+            return;
+        }
+
+        // Based on the "visibilityChange" event from the browser,
+        // start or stop the tracking of the visibility of DoenetML components
+        function documentVisibilityListener() {
+            coreWorker.current?.handleVisibilityChange(
+                document.visibilityState === "visible",
+            );
+        }
+
+        document.addEventListener(
+            "visibilitychange",
+            documentVisibilityListener,
+        );
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                documentVisibilityListener,
+            );
+        };
+    }, [coreWorker.current]);
+
+    useEffect(() => {
         callAction({
             action: { actionName: "setTheme" },
             args: { theme: darkMode, doNotIgnore: true },

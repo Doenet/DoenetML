@@ -364,6 +364,13 @@ export class CoreWorker {
         }
     }
 
+    // Turn on or off recording of the visibility of document components,
+    // depending if the document itself is visible
+    handleVisibilityChange(documentIsVisible: boolean) {
+        if (this.javascriptCore) {
+            this.javascriptCore.handleVisibilityChange(documentIsVisible);
+        }
+    }
     async _getTests() {
         // This function is only used in a testing environment
         // and so doesn't need the usual amount of caution.
